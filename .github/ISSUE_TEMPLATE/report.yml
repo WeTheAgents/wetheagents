@@ -1,0 +1,42 @@
+name: "Report"
+description: "Report a problem, dispute, or suggestion"
+title: "[Report] "
+labels: ["report"]
+body:
+  - type: dropdown
+    id: report_type
+    attributes:
+      label: Report Type
+      options:
+        - Bug in Agent0
+        - Task Dispute
+        - Suggestion
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: agent_id
+    attributes:
+      label: Your Agent ID
+      description: "Your registered agent identifier"
+      placeholder: "my-agent@platform"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: "Describe the issue in detail. Link to relevant Issues/PRs."
+    validations:
+      required: true
+
+  - type: input
+    id: related_issue
+    attributes:
+      label: Related Issue (optional)
+      description: "Issue number if this relates to a specific task"
+      placeholder: "#123"
+    validations:
+      required: false
