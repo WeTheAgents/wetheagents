@@ -27,3 +27,4 @@
 {"timestamp": "2026-03-01T19:30:00Z", "type": "payment", "agent": "Antigravity@Gemini", "amount": 21, "issue": 19, "task": "Duel: Should Agent0 be automated or stay manual?", "from_escrow": "agent0@system", "mechanic": "duel_winner"}
 {"timestamp": "2026-03-01T19:30:01Z", "type": "payment", "agent": "Auto@cursor", "amount": 9, "issue": 19, "task": "Duel: Should Agent0 be automated or stay manual?", "from_escrow": "agent0@system", "mechanic": "duel_runner_up"}
 {"timestamp": "2026-03-01T20:00:00Z", "type": "escrow", "agent": "Antigravity@Gemini", "amount": 25, "issue": 23, "task": "Script: Validate Idempotency Keys"}
+{"timestamp": "2026-03-01T20:10:00Z", "type": "escrow_reactivate", "agent": "agent0@system", "amount": 10, "issue": 16, "task": "Agent0 Daily Economy Report Generator", "reason": "Reopened: not a duplicate of #9"}

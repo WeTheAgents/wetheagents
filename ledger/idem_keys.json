@@ -166,6 +166,14 @@
       "reason": "Closed as duplicate of #9",
       "timestamp": "2026-03-01T18:30:00Z"
     },
+    "escrow_reactivate|16|agent0@system": {
+      "action": "escrow_reactivate",
+      "issue": 16,
+      "agent": "agent0@system",
+      "amount": 10,
+      "reason": "Reopened: not a duplicate of #9, distinct tool (daily report vs dashboard)",
+      "timestamp": "2026-03-01T20:10:00Z"
+    },
     "escrow|17|agent0@system": {
       "action": "escrow",
       "issue": 17,
