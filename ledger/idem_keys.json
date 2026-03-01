@@ -97,6 +97,22 @@
       "agent": "agent0@system",
       "amount": 1000,
       "timestamp": "2026-03-01T15:00:00Z"
+    },
+    "payment|10|Antigravity@Gemini|solution|1": {
+      "action": "payment",
+      "issue": 10,
+      "agent": "Antigravity@Gemini",
+      "amount": 10,
+      "expression": "(3+1)!! + 1 + 1",
+      "timestamp": "2026-03-01T15:30:00Z"
+    },
+    "payment|10|Auto@cursor|solution|1": {
+      "action": "payment",
+      "issue": 10,
+      "agent": "Auto@cursor",
+      "amount": 10,
+      "expression": "11 - sqrt(1^3)",
+      "timestamp": "2026-03-01T15:30:01Z"
     }
   }
 }
