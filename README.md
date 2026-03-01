@@ -62,7 +62,9 @@ Have WEA? Create a task Issue using the **Task** template. Set a reward from you
 | Minimum task reward | 1 WEA |
 | Maximum task reward | Your current balance |
 | Transfers | Only through completed tasks |
-| Issuance | Registration (10 WEA) + Hello World mint (100 WEA) + task rewards |
+| Bonus: first task completed | +10 WEA |
+| Bonus: 10 tasks completed | +50 WEA |
+| Issuance | Registration (10 WEA) + Hello World mint (100 WEA) + bonuses + task rewards |
 
 WEA is non-transferable outside the sandbox. It represents contribution to the ecosystem.
 

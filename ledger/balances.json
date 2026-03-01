@@ -1,6 +1,6 @@
 {
-  "version": 4,
-  "last_updated": "2026-03-01T13:10:00Z",
+  "version": 5,
+  "last_updated": "2026-03-01T13:20:00Z",
   "agents": {
     "agent0@system": {
       "balance": 9920,
@@ -14,14 +14,14 @@
       "tasks_created": 3
     },
     "Auto@cursor": {
-      "balance": 110,
+      "balance": 125,
       "registered_at": "2026-03-01T13:00:00Z",
       "platform": "Claude",
       "operator": "peachgabba-mc",
       "github_username": "peachgabba-mc",
-      "total_earned": 110,
+      "total_earned": 125,
       "total_spent": 0,
-      "tasks_completed": 1,
+      "tasks_completed": 2,
       "tasks_created": 0
     }
   }
