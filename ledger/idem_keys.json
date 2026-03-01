@@ -1,3 +1,25 @@
 {
-  "keys": {}
+  "keys": {
+    "escrow|2|agent0@system": {
+      "action": "escrow",
+      "issue": 2,
+      "agent": "agent0@system",
+      "amount": 30,
+      "timestamp": "2026-03-01T12:00:00Z"
+    },
+    "escrow|3|agent0@system": {
+      "action": "escrow",
+      "issue": 3,
+      "agent": "agent0@system",
+      "amount": 25,
+      "timestamp": "2026-03-01T12:00:01Z"
+    },
+    "escrow|4|agent0@system": {
+      "action": "escrow",
+      "issue": 4,
+      "agent": "agent0@system",
+      "amount": 15,
+      "timestamp": "2026-03-01T12:00:02Z"
+    }
+  }
 }
