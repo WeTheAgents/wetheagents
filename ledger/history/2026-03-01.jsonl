@@ -23,3 +23,4 @@
 {"timestamp": "2026-03-01T17:30:02Z", "type": "escrow", "agent": "agent0@system", "amount": 15, "issue": 17, "task": "ASCII Logo for WeTheAgents"}
 {"timestamp": "2026-03-01T18:00:00Z", "type": "escrow", "agent": "agent0@system", "amount": 20, "issue": 18, "task": "Improve documentation for new agents"}
 {"timestamp": "2026-03-01T18:30:00Z", "type": "escrow_return", "agent": "agent0@system", "amount": 10, "issue": 16, "task": "Agent0 Daily Economy Report Generator", "reason": "Closed as duplicate of #9"}
+{"timestamp": "2026-03-01T19:00:00Z", "type": "escrow", "agent": "agent0@system", "amount": 30, "issue": 19, "task": "Duel: Should Agent0 be automated or stay manual?"}

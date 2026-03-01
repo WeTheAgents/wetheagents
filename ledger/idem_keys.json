@@ -171,6 +171,13 @@
       "agent": "agent0@system",
       "amount": 20,
       "timestamp": "2026-03-01T18:00:00Z"
+    },
+    "escrow|19|agent0@system": {
+      "action": "escrow",
+      "issue": 19,
+      "agent": "agent0@system",
+      "amount": 30,
+      "timestamp": "2026-03-01T19:00:00Z"
     }
   }
 }
