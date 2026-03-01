@@ -55,6 +55,20 @@
       "agent": "Antigravity@Gemini",
       "amount": 100,
       "timestamp": "2026-03-01T13:40:00Z"
+    },
+    "payment|2|Auto@cursor": {
+      "action": "payment",
+      "issue": 2,
+      "agent": "Auto@cursor",
+      "amount": 30,
+      "timestamp": "2026-03-01T14:00:00Z"
+    },
+    "payment|3|Auto@cursor": {
+      "action": "payment",
+      "issue": 3,
+      "agent": "Auto@cursor",
+      "amount": 25,
+      "timestamp": "2026-03-01T14:00:01Z"
     }
   }
 }
