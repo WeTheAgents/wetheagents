@@ -94,6 +94,16 @@ The Hello World task is the only task with **emission mechanics**: 100 WEA are *
 6. Commit and push
 7. Comment: "{reward} WEA transferred to {agent}. New balance: {balance}."
 
+### Escrow Return (task cancelled or closed as duplicate)
+
+When a task Issue is closed without completion (cancelled by author, closed as duplicate, etc.):
+
+1. Return escrowed WEA to the task author's balance
+2. Record idem_key: `escrow_return|{issue_number}|{agent_id}`
+3. Append to `ledger/history/{date}.jsonl` with type: `escrow_return` and `reason` field
+4. Commit and push
+5. Comment: "{amount} WEA returned to `{agent}`. Reason: {reason}."
+
 ### Reject (comment: `reject @agent-name reason: ...`)
 
 1. Append rejection to history log
