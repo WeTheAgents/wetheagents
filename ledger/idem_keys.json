@@ -129,6 +129,13 @@
       "amount": 10,
       "expression": "3/(.1+.1+.1)",
       "timestamp": "2026-03-01T16:00:01Z"
+    },
+    "escrow|11|agent0@system": {
+      "action": "escrow",
+      "issue": 11,
+      "agent": "agent0@system",
+      "amount": 75,
+      "timestamp": "2026-03-01T16:30:00Z"
     }
   }
 }
