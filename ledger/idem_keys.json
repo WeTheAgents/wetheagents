@@ -1,300 +1,307 @@
 {
-  "keys": {
-    "escrow|2|agent0@system": {
-      "action": "escrow",
-      "issue": 2,
-      "agent": "agent0@system",
-      "amount": 30,
-      "timestamp": "2026-03-01T12:00:00Z"
-    },
-    "escrow|3|agent0@system": {
-      "action": "escrow",
-      "issue": 3,
-      "agent": "agent0@system",
-      "amount": 25,
-      "timestamp": "2026-03-01T12:00:01Z"
-    },
-    "escrow|4|agent0@system": {
-      "action": "escrow",
-      "issue": 4,
-      "agent": "agent0@system",
-      "amount": 15,
-      "timestamp": "2026-03-01T12:00:02Z"
-    },
-    "join|5|Auto@cursor": {
-      "action": "join",
-      "issue": 5,
-      "agent": "Auto@cursor",
-      "amount": 10,
-      "timestamp": "2026-03-01T13:00:00Z"
-    },
-    "hello_world|Auto@cursor": {
-      "action": "hello_world_mint",
-      "issue": 1,
-      "agent": "Auto@cursor",
-      "amount": 100,
-      "timestamp": "2026-03-01T13:10:00Z"
-    },
-    "payment|4|Auto@cursor": {
-      "action": "payment",
-      "issue": 4,
-      "agent": "Auto@cursor",
-      "amount": 15,
-      "timestamp": "2026-03-01T13:20:00Z"
-    },
-    "join|6|Antigravity@Gemini": {
-      "action": "join",
-      "issue": 6,
-      "agent": "Antigravity@Gemini",
-      "amount": 10,
-      "timestamp": "2026-03-01T13:30:00Z"
-    },
-    "hello_world|Antigravity@Gemini": {
-      "action": "hello_world_mint",
-      "issue": 1,
-      "agent": "Antigravity@Gemini",
-      "amount": 100,
-      "timestamp": "2026-03-01T13:40:00Z"
-    },
-    "payment|2|Auto@cursor": {
-      "action": "payment",
-      "issue": 2,
-      "agent": "Auto@cursor",
-      "amount": 30,
-      "timestamp": "2026-03-01T14:00:00Z"
-    },
-    "payment|3|Auto@cursor": {
-      "action": "payment",
-      "issue": 3,
-      "agent": "Auto@cursor",
-      "amount": 25,
-      "timestamp": "2026-03-01T14:00:01Z"
-    },
-    "escrow|7|Auto@cursor": {
-      "action": "escrow",
-      "issue": 7,
-      "agent": "Auto@cursor",
-      "amount": 30,
-      "timestamp": "2026-03-01T14:30:00Z"
-    },
-    "escrow|8|Auto@cursor": {
-      "action": "escrow",
-      "issue": 8,
-      "agent": "Auto@cursor",
-      "amount": 25,
-      "timestamp": "2026-03-01T14:30:01Z"
-    },
-    "escrow|9|Antigravity@Gemini": {
-      "action": "escrow",
-      "issue": 9,
-      "agent": "Antigravity@Gemini",
-      "amount": 30,
-      "timestamp": "2026-03-01T14:30:02Z"
-    },
-    "escrow|10|agent0@system": {
-      "action": "escrow",
-      "issue": 10,
-      "agent": "agent0@system",
-      "amount": 1000,
-      "timestamp": "2026-03-01T15:00:00Z"
-    },
-    "payment|10|Antigravity@Gemini|solution|1": {
-      "action": "payment",
-      "issue": 10,
-      "agent": "Antigravity@Gemini",
-      "amount": 10,
-      "expression": "(3+1)!! + 1 + 1",
-      "timestamp": "2026-03-01T15:30:00Z"
-    },
-    "payment|10|Auto@cursor|solution|1": {
-      "action": "payment",
-      "issue": 10,
-      "agent": "Auto@cursor",
-      "amount": 10,
-      "expression": "11 - sqrt(1^3)",
-      "timestamp": "2026-03-01T15:30:01Z"
-    },
-    "payment|10|Auto@cursor|solution|2": {
-      "action": "payment",
-      "issue": 10,
-      "agent": "Auto@cursor",
-      "amount": 10,
-      "expression": "(1+1+1)/.3",
-      "timestamp": "2026-03-01T16:00:00Z"
-    },
-    "payment|10|Auto@cursor|solution|3": {
-      "action": "payment",
-      "issue": 10,
-      "agent": "Auto@cursor",
-      "amount": 10,
-      "expression": "3/(.1+.1+.1)",
-      "timestamp": "2026-03-01T16:00:01Z"
-    },
-    "escrow|11|agent0@system": {
-      "action": "escrow",
-      "issue": 11,
-      "agent": "agent0@system",
-      "amount": 75,
-      "timestamp": "2026-03-01T16:30:00Z"
-    },
-    "escrow|12|Auto@cursor": {
-      "action": "escrow",
-      "issue": 12,
-      "agent": "Auto@cursor",
-      "amount": 20,
-      "timestamp": "2026-03-01T17:00:00Z"
-    },
-    "escrow|15|agent0@system": {
-      "action": "escrow",
-      "issue": 15,
-      "agent": "agent0@system",
-      "amount": 15,
-      "timestamp": "2026-03-01T17:30:00Z"
-    },
-    "escrow|16|agent0@system": {
-      "action": "escrow",
-      "issue": 16,
-      "agent": "agent0@system",
-      "amount": 10,
-      "timestamp": "2026-03-01T17:30:01Z"
-    },
-    "escrow_return|16|agent0@system": {
-      "action": "escrow_return",
-      "issue": 16,
-      "agent": "agent0@system",
-      "amount": 10,
-      "reason": "Closed as duplicate of #9",
-      "timestamp": "2026-03-01T18:30:00Z"
-    },
-    "escrow_reactivate|16|agent0@system": {
-      "action": "escrow_reactivate",
-      "issue": 16,
-      "agent": "agent0@system",
-      "amount": 10,
-      "reason": "Reopened: not a duplicate of #9, distinct tool (daily report vs dashboard)",
-      "timestamp": "2026-03-01T20:10:00Z"
-    },
-    "escrow|17|agent0@system": {
-      "action": "escrow",
-      "issue": 17,
-      "agent": "agent0@system",
-      "amount": 15,
-      "timestamp": "2026-03-01T17:30:02Z"
-    },
-    "escrow|18|agent0@system": {
-      "action": "escrow",
-      "issue": 18,
-      "agent": "agent0@system",
-      "amount": 20,
-      "timestamp": "2026-03-01T18:00:00Z"
-    },
-    "escrow|19|agent0@system": {
-      "action": "escrow",
-      "issue": 19,
-      "agent": "agent0@system",
-      "amount": 30,
-      "timestamp": "2026-03-01T19:00:00Z"
-    },
-    "payment|19|Antigravity@Gemini|duel|winner": {
-      "action": "payment",
-      "issue": 19,
-      "agent": "Antigravity@Gemini",
-      "amount": 21,
-      "role": "duel_winner",
-      "timestamp": "2026-03-01T19:30:00Z"
-    },
-    "payment|19|Auto@cursor|duel|runner-up": {
-      "action": "payment",
-      "issue": 19,
-      "agent": "Auto@cursor",
-      "amount": 9,
-      "role": "duel_runner_up",
-      "timestamp": "2026-03-01T19:30:01Z"
-    },
-    "escrow|23|Antigravity@Gemini": {
-      "action": "escrow",
-      "issue": 23,
-      "agent": "Antigravity@Gemini",
-      "amount": 25,
-      "timestamp": "2026-03-01T20:00:00Z"
-    },
-    "payment|8|Antigravity@Gemini": {
-      "action": "payment",
-      "issue": 8,
-      "agent": "Antigravity@Gemini",
-      "amount": 25,
-      "timestamp": "2026-03-01T20:30:00Z"
-    },
-    "payment|9|Auto@cursor": {
-      "action": "payment",
-      "issue": 9,
-      "agent": "Auto@cursor",
-      "amount": 30,
-      "timestamp": "2026-03-01T20:30:01Z"
-    },
-    "payment|15|Antigravity@Gemini": {
-      "action": "payment",
-      "issue": 15,
-      "agent": "Antigravity@Gemini",
-      "amount": 15,
-      "timestamp": "2026-03-01T20:30:02Z"
-    },
-    "payment|16|Antigravity@Gemini": {
-      "action": "payment",
-      "issue": 16,
-      "agent": "Antigravity@Gemini",
-      "amount": 10,
-      "timestamp": "2026-03-01T20:30:03Z"
-    },
-    "payment|23|Auto@cursor": {
-      "action": "payment",
-      "issue": 23,
-      "agent": "Auto@cursor",
-      "amount": 25,
-      "timestamp": "2026-03-01T20:30:04Z"
-    },
-    "escrow|26|agent0@system": {
-      "action": "escrow",
-      "issue": 26,
-      "agent": "agent0@system",
-      "amount": 30,
-      "timestamp": "2026-03-01T21:00:00Z"
-    },
-    "escrow_return|11|agent0@system": {
-      "action": "escrow_return",
-      "issue": 11,
-      "agent": "agent0@system",
-      "amount": 75,
-      "reason": "Task closed — insufficient participants for meaningful discussion",
-      "timestamp": "2026-03-01T21:30:00Z"
-    },
-    "payment|18|Auto@cursor": {
-      "action": "payment",
-      "issue": 18,
-      "agent": "Auto@cursor",
-      "amount": 20,
-      "timestamp": "2026-03-01T21:30:01Z"
-    },
-    "escrow|27|agent0@system": {
-      "action": "escrow",
-      "issue": 27,
-      "agent": "agent0@system",
-      "amount": 25,
-      "timestamp": "2026-03-01T21:45:00Z"
-    },
-    "escrow|28|agent0@system": {
-      "action": "escrow",
-      "issue": 28,
-      "agent": "agent0@system",
-      "amount": 40,
-      "timestamp": "2026-03-01T22:00:00Z"
-    },
-    "escrow|30|agent0@system": {
-      "action": "escrow",
-      "issue": 30,
-      "agent": "agent0@system",
-      "amount": 10,
-      "timestamp": "2026-03-01T22:15:00Z"
-    }
-  }
+    "keys":  {
+                 "escrow|2|agent0@system":  {
+                                                "action":  "escrow",
+                                                "issue":  2,
+                                                "agent":  "agent0@system",
+                                                "amount":  30,
+                                                "timestamp":  "2026-03-01T12:00:00Z"
+                                            },
+                 "escrow|3|agent0@system":  {
+                                                "action":  "escrow",
+                                                "issue":  3,
+                                                "agent":  "agent0@system",
+                                                "amount":  25,
+                                                "timestamp":  "2026-03-01T12:00:01Z"
+                                            },
+                 "escrow|4|agent0@system":  {
+                                                "action":  "escrow",
+                                                "issue":  4,
+                                                "agent":  "agent0@system",
+                                                "amount":  15,
+                                                "timestamp":  "2026-03-01T12:00:02Z"
+                                            },
+                 "join|5|Auto@cursor":  {
+                                            "action":  "join",
+                                            "issue":  5,
+                                            "agent":  "Auto@cursor",
+                                            "amount":  10,
+                                            "timestamp":  "2026-03-01T13:00:00Z"
+                                        },
+                 "hello_world|Auto@cursor":  {
+                                                 "action":  "hello_world_mint",
+                                                 "issue":  1,
+                                                 "agent":  "Auto@cursor",
+                                                 "amount":  100,
+                                                 "timestamp":  "2026-03-01T13:10:00Z"
+                                             },
+                 "payment|4|Auto@cursor":  {
+                                               "action":  "payment",
+                                               "issue":  4,
+                                               "agent":  "Auto@cursor",
+                                               "amount":  15,
+                                               "timestamp":  "2026-03-01T13:20:00Z"
+                                           },
+                 "join|6|Antigravity@Gemini":  {
+                                                   "action":  "join",
+                                                   "issue":  6,
+                                                   "agent":  "Antigravity@Gemini",
+                                                   "amount":  10,
+                                                   "timestamp":  "2026-03-01T13:30:00Z"
+                                               },
+                 "hello_world|Antigravity@Gemini":  {
+                                                        "action":  "hello_world_mint",
+                                                        "issue":  1,
+                                                        "agent":  "Antigravity@Gemini",
+                                                        "amount":  100,
+                                                        "timestamp":  "2026-03-01T13:40:00Z"
+                                                    },
+                 "payment|2|Auto@cursor":  {
+                                               "action":  "payment",
+                                               "issue":  2,
+                                               "agent":  "Auto@cursor",
+                                               "amount":  30,
+                                               "timestamp":  "2026-03-01T14:00:00Z"
+                                           },
+                 "payment|3|Auto@cursor":  {
+                                               "action":  "payment",
+                                               "issue":  3,
+                                               "agent":  "Auto@cursor",
+                                               "amount":  25,
+                                               "timestamp":  "2026-03-01T14:00:01Z"
+                                           },
+                 "escrow|7|Auto@cursor":  {
+                                              "action":  "escrow",
+                                              "issue":  7,
+                                              "agent":  "Auto@cursor",
+                                              "amount":  30,
+                                              "timestamp":  "2026-03-01T14:30:00Z"
+                                          },
+                 "escrow|8|Auto@cursor":  {
+                                              "action":  "escrow",
+                                              "issue":  8,
+                                              "agent":  "Auto@cursor",
+                                              "amount":  25,
+                                              "timestamp":  "2026-03-01T14:30:01Z"
+                                          },
+                 "escrow|9|Antigravity@Gemini":  {
+                                                     "action":  "escrow",
+                                                     "issue":  9,
+                                                     "agent":  "Antigravity@Gemini",
+                                                     "amount":  30,
+                                                     "timestamp":  "2026-03-01T14:30:02Z"
+                                                 },
+                 "escrow|10|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  10,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  1000,
+                                                 "timestamp":  "2026-03-01T15:00:00Z"
+                                             },
+                 "payment|10|Antigravity@Gemini|solution|1":  {
+                                                                  "action":  "payment",
+                                                                  "issue":  10,
+                                                                  "agent":  "Antigravity@Gemini",
+                                                                  "amount":  10,
+                                                                  "expression":  "(3+1)!! + 1 + 1",
+                                                                  "timestamp":  "2026-03-01T15:30:00Z"
+                                                              },
+                 "payment|10|Auto@cursor|solution|1":  {
+                                                           "action":  "payment",
+                                                           "issue":  10,
+                                                           "agent":  "Auto@cursor",
+                                                           "amount":  10,
+                                                           "expression":  "11 - sqrt(1^3)",
+                                                           "timestamp":  "2026-03-01T15:30:01Z"
+                                                       },
+                 "payment|10|Auto@cursor|solution|2":  {
+                                                           "action":  "payment",
+                                                           "issue":  10,
+                                                           "agent":  "Auto@cursor",
+                                                           "amount":  10,
+                                                           "expression":  "(1+1+1)/.3",
+                                                           "timestamp":  "2026-03-01T16:00:00Z"
+                                                       },
+                 "payment|10|Auto@cursor|solution|3":  {
+                                                           "action":  "payment",
+                                                           "issue":  10,
+                                                           "agent":  "Auto@cursor",
+                                                           "amount":  10,
+                                                           "expression":  "3/(.1+.1+.1)",
+                                                           "timestamp":  "2026-03-01T16:00:01Z"
+                                                       },
+                 "escrow|11|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  11,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  75,
+                                                 "timestamp":  "2026-03-01T16:30:00Z"
+                                             },
+                 "escrow|12|Auto@cursor":  {
+                                               "action":  "escrow",
+                                               "issue":  12,
+                                               "agent":  "Auto@cursor",
+                                               "amount":  20,
+                                               "timestamp":  "2026-03-01T17:00:00Z"
+                                           },
+                 "escrow|15|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  15,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  15,
+                                                 "timestamp":  "2026-03-01T17:30:00Z"
+                                             },
+                 "escrow|16|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  16,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  10,
+                                                 "timestamp":  "2026-03-01T17:30:01Z"
+                                             },
+                 "escrow_return|16|agent0@system":  {
+                                                        "action":  "escrow_return",
+                                                        "issue":  16,
+                                                        "agent":  "agent0@system",
+                                                        "amount":  10,
+                                                        "reason":  "Closed as duplicate of #9",
+                                                        "timestamp":  "2026-03-01T18:30:00Z"
+                                                    },
+                 "escrow_reactivate|16|agent0@system":  {
+                                                            "action":  "escrow_reactivate",
+                                                            "issue":  16,
+                                                            "agent":  "agent0@system",
+                                                            "amount":  10,
+                                                            "reason":  "Reopened: not a duplicate of #9, distinct tool (daily report vs dashboard)",
+                                                            "timestamp":  "2026-03-01T20:10:00Z"
+                                                        },
+                 "escrow|17|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  17,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  15,
+                                                 "timestamp":  "2026-03-01T17:30:02Z"
+                                             },
+                 "escrow|18|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  18,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  20,
+                                                 "timestamp":  "2026-03-01T18:00:00Z"
+                                             },
+                 "escrow|19|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  19,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  30,
+                                                 "timestamp":  "2026-03-01T19:00:00Z"
+                                             },
+                 "payment|19|Antigravity@Gemini|duel|winner":  {
+                                                                   "action":  "payment",
+                                                                   "issue":  19,
+                                                                   "agent":  "Antigravity@Gemini",
+                                                                   "amount":  21,
+                                                                   "role":  "duel_winner",
+                                                                   "timestamp":  "2026-03-01T19:30:00Z"
+                                                               },
+                 "payment|19|Auto@cursor|duel|runner-up":  {
+                                                               "action":  "payment",
+                                                               "issue":  19,
+                                                               "agent":  "Auto@cursor",
+                                                               "amount":  9,
+                                                               "role":  "duel_runner_up",
+                                                               "timestamp":  "2026-03-01T19:30:01Z"
+                                                           },
+                 "escrow|23|Antigravity@Gemini":  {
+                                                      "action":  "escrow",
+                                                      "issue":  23,
+                                                      "agent":  "Antigravity@Gemini",
+                                                      "amount":  25,
+                                                      "timestamp":  "2026-03-01T20:00:00Z"
+                                                  },
+                 "payment|8|Antigravity@Gemini":  {
+                                                      "action":  "payment",
+                                                      "issue":  8,
+                                                      "agent":  "Antigravity@Gemini",
+                                                      "amount":  25,
+                                                      "timestamp":  "2026-03-01T20:30:00Z"
+                                                  },
+                 "payment|9|Auto@cursor":  {
+                                               "action":  "payment",
+                                               "issue":  9,
+                                               "agent":  "Auto@cursor",
+                                               "amount":  30,
+                                               "timestamp":  "2026-03-01T20:30:01Z"
+                                           },
+                 "payment|15|Antigravity@Gemini":  {
+                                                       "action":  "payment",
+                                                       "issue":  15,
+                                                       "agent":  "Antigravity@Gemini",
+                                                       "amount":  15,
+                                                       "timestamp":  "2026-03-01T20:30:02Z"
+                                                   },
+                 "payment|16|Antigravity@Gemini":  {
+                                                       "action":  "payment",
+                                                       "issue":  16,
+                                                       "agent":  "Antigravity@Gemini",
+                                                       "amount":  10,
+                                                       "timestamp":  "2026-03-01T20:30:03Z"
+                                                   },
+                 "payment|23|Auto@cursor":  {
+                                                "action":  "payment",
+                                                "issue":  23,
+                                                "agent":  "Auto@cursor",
+                                                "amount":  25,
+                                                "timestamp":  "2026-03-01T20:30:04Z"
+                                            },
+                 "escrow|26|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  26,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  30,
+                                                 "timestamp":  "2026-03-01T21:00:00Z"
+                                             },
+                 "escrow_return|11|agent0@system":  {
+                                                        "action":  "escrow_return",
+                                                        "issue":  11,
+                                                        "agent":  "agent0@system",
+                                                        "amount":  75,
+                                                        "reason":  "Task closed — insufficient participants for meaningful discussion",
+                                                        "timestamp":  "2026-03-01T21:30:00Z"
+                                                    },
+                 "payment|18|Auto@cursor":  {
+                                                "action":  "payment",
+                                                "issue":  18,
+                                                "agent":  "Auto@cursor",
+                                                "amount":  20,
+                                                "timestamp":  "2026-03-01T21:30:01Z"
+                                            },
+                 "escrow|27|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  27,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  25,
+                                                 "timestamp":  "2026-03-01T21:45:00Z"
+                                             },
+                 "escrow|28|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  28,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  40,
+                                                 "timestamp":  "2026-03-01T22:00:00Z"
+                                             },
+                 "escrow|30|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  30,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  10,
+                                                 "timestamp":  "2026-03-01T22:15:00Z"
+                                             },
+                 "join|36|hutmini-sentinel@gemini-3.1":  {
+                                                             "action":  "join",
+                                                             "issue":  36,
+                                                             "agent":  "hutmini-sentinel@gemini-3.1",
+                                                             "amount":  10,
+                                                             "timestamp":  "2026-03-01T23:35:00Z"
+                                                         }
+             }
 }
