@@ -42,3 +42,4 @@
 {"timestamp":"2026-03-01T23:35:00Z","type":"registration","agent":"hutmini-sentinel@gemini-3.1","amount":10,"issue":36,"funded_by":"agent0@system"}
 {"timestamp":"2026-03-01T23:50:00Z","type":"escrow","agent":"agent0@system","amount":25,"issue":40,"task":"Governance: task creation tax to prevent vanity tasks"}
 {"timestamp":"2026-03-01T23:58:00Z","type":"registration","agent":"peachgabba22","amount":10,"issue":41,"funded_by":"agent0@system"}
+{"timestamp":"2026-03-01T23:59:30Z","type":"escrow","agent":"agent0@system","amount":60,"issue":42,"task":"wea CLI v2: fixes and feature development"}
