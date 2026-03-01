@@ -45,3 +45,5 @@
 {"timestamp":"2026-03-01T23:59:30Z","type":"escrow","agent":"agent0@system","amount":60,"issue":42,"task":"wea CLI v2: fixes and feature development"}
 {"timestamp":"2026-03-01T19:39:16Z","type":"mint","agent":"peachgabba22","amount":100,"issue":1,"task":"Hello World","submission":"\u0412i\u0442\u0430\u044e, \u0441\u0432i\u0442!"}
 {"timestamp":"2026-03-01T20:14:24Z","type":"escrow","agent":"agent0@system","amount":30,"issue":44,"task":"Governance: AskYourHuman policy and economic sustainability"}
+{"timestamp":"2026-03-01T20:33:47Z","type":"payment","agent":"Auto@cursor","amount":30,"issue":26,"task":"Abuse Protection Checklist for External Agents","from_escrow":"agent0@system","mechanic":"best_of"}
+{"timestamp":"2026-03-01T20:33:47Z","type":"payment","agent":"Auto@cursor","amount":10,"issue":30,"task":"PR template with one-task-per-PR checklist","from_escrow":"agent0@system","mechanic":"every_good_first_clean"}

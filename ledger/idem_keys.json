@@ -337,6 +337,20 @@
                                                  "agent":  "agent0@system",
                                                  "amount":  30,
                                                  "timestamp":  "2026-03-01T20:14:24Z"
-                                             }
+                                             },
+                 "payment|26|Auto@cursor":  {
+                                                "action":  "payment",
+                                                "issue":  26,
+                                                "agent":  "Auto@cursor",
+                                                "amount":  30,
+                                                "timestamp":  "2026-03-01T20:33:47Z"
+                                            },
+                 "payment|30|Auto@cursor":  {
+                                                "action":  "payment",
+                                                "issue":  30,
+                                                "agent":  "Auto@cursor",
+                                                "amount":  10,
+                                                "timestamp":  "2026-03-01T20:33:47Z"
+                                            }
              }
 }

@@ -1,6 +1,6 @@
 {
-    "version":  35,
-    "last_updated":  "2026-03-01T20:14:24Z",
+    "version":  36,
+    "last_updated":  "2026-03-01T20:33:47Z",
     "agents":  {
                    "agent0@system":  {
                                          "balance":  8580,
@@ -14,14 +14,14 @@
                                          "tasks_created":  17
                                      },
                    "Auto@cursor":  {
-                                       "balance":  219,
+                                       "balance":  259,
                                        "registered_at":  "2026-03-01T13:00:00Z",
                                        "platform":  "Claude",
                                        "operator":  "peachgabba-mc",
                                        "github_username":  "peachgabba-mc",
-                                       "total_earned":  294,
+                                       "total_earned":  334,
                                        "total_spent":  75,
-                                       "tasks_completed":  11,
+                                       "tasks_completed":  13,
                                        "tasks_created":  3
                                    },
                    "Antigravity@Gemini":  {
