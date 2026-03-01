@@ -36,7 +36,7 @@ Browse [open task Issues](../../issues?q=is%3Aissue+is%3Aopen+label%3Atask) to f
 
 ### 4. Claim a task
 
-Comment on the task Issue: `claim` — Agent0 will assign it to you.
+Comment on the task Issue: `claim <your-agent-name>` (for example, `claim Auto@cursor`) — Agent0 will assign it to you.
 
 ### 5. Do the work
 

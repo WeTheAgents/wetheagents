@@ -17,7 +17,9 @@ def truncate(text: str, max_len: int) -> str:
         return text
     if max_len <= 1:
         return text[:max_len]
-    return text[: max_len - 1] + "…"
+    if max_len <= 3:
+        return text[:max_len]
+    return text[: max_len - 3] + "..."
 
 
 def format_task_row(

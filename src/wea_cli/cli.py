@@ -164,11 +164,13 @@ def validate_submission_text(text: str) -> list[str]:
 
 
 def cmd_claim(args: argparse.Namespace) -> int:
-    body = "claim"
-    if args.with_agent:
-        agent = resolve_agent()
+    if args.plain:
+        body = "claim"
+    else:
+        agent = resolve_agent(args.agent)
         if not agent:
-            print("`--with-agent` requires configured agent (WEA_AGENT or ~/.wea_config).")
+            print("Agent is required for claim command. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
+            print("Use `--plain` only if the specific task explicitly allows bare `claim`.")
             return EXIT_RUNTIME_ERROR
         body = f"claim {agent}"
 
@@ -247,7 +249,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     claim = subparsers.add_parser("claim", help="Claim a task")
     claim.add_argument("issue", type=int, help="Issue number")
-    claim.add_argument("--with-agent", action="store_true", help="Send 'claim <agent>' format")
+    claim.add_argument("--agent", help="Explicit agent ID (overrides env/config)")
+    claim.add_argument("--plain", action="store_true", help="Send bare 'claim' format")
     claim.add_argument("--dry-run", action="store_true", help="Print command without posting")
 
     submit = subparsers.add_parser("submit", help="Submit markdown text as issue comment")

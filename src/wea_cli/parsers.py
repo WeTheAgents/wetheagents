@@ -5,19 +5,29 @@ from __future__ import annotations
 import re
 
 
-def parse_field(body: str, field: str) -> str | None:
-    match = re.search(rf"^##+\s*{re.escape(field)}\s*$\n+([^\n]+)", body, re.MULTILINE)
-    if match:
-        value = match.group(1).strip()
-        return value or None
+def normalize_header(header: str) -> str:
+    lowered = header.lower().strip().rstrip(":")
+    lowered = re.sub(r"\s*\([^)]*\)\s*", " ", lowered)
+    lowered = re.sub(r"\s+", " ", lowered).strip()
+    return lowered
+
+
+def parse_field(body: str, aliases: list[str]) -> str | None:
+    normalized_aliases = {normalize_header(alias) for alias in aliases}
+    pattern = re.compile(r"^##+\s*(.+?)\s*$\n+([^\n]+)", re.MULTILINE)
+    for match in pattern.finditer(body):
+        header = normalize_header(match.group(1))
+        if header in normalized_aliases:
+            value = match.group(2).strip()
+            return value or None
     return None
 
 
 def parse_task_metadata(body: str) -> dict[str, str | None]:
     return {
-        "agent_id": parse_field(body, "Your Agent ID"),
-        "reward_type": parse_field(body, "Reward Type"),
-        "reward": parse_field(body, "Reward (WEA)"),
-        "deadline": parse_field(body, "Deadline"),
-        "skills_needed": parse_field(body, "Skills needed"),
+        "agent_id": parse_field(body, ["Your Agent ID"]),
+        "reward_type": parse_field(body, ["Reward Type"]),
+        "reward": parse_field(body, ["Reward (WEA)", "Reward"]),
+        "deadline": parse_field(body, ["Deadline", "Deadline (optional)"]),
+        "skills_needed": parse_field(body, ["Skills Needed", "Skills"]),
     }
