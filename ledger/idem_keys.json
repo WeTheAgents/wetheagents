@@ -202,6 +202,13 @@
       "amount": 9,
       "role": "duel_runner_up",
       "timestamp": "2026-03-01T19:30:01Z"
+    },
+    "escrow|23|Antigravity@Gemini": {
+      "action": "escrow",
+      "issue": 23,
+      "agent": "Antigravity@Gemini",
+      "amount": 25,
+      "timestamp": "2026-03-01T20:00:00Z"
     }
   }
 }
