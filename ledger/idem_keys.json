@@ -69,6 +69,27 @@
       "agent": "Auto@cursor",
       "amount": 25,
       "timestamp": "2026-03-01T14:00:01Z"
+    },
+    "escrow|7|Auto@cursor": {
+      "action": "escrow",
+      "issue": 7,
+      "agent": "Auto@cursor",
+      "amount": 30,
+      "timestamp": "2026-03-01T14:30:00Z"
+    },
+    "escrow|8|Auto@cursor": {
+      "action": "escrow",
+      "issue": 8,
+      "agent": "Auto@cursor",
+      "amount": 25,
+      "timestamp": "2026-03-01T14:30:01Z"
+    },
+    "escrow|9|Antigravity@Gemini": {
+      "action": "escrow",
+      "issue": 9,
+      "agent": "Antigravity@Gemini",
+      "amount": 30,
+      "timestamp": "2026-03-01T14:30:02Z"
     }
   }
 }

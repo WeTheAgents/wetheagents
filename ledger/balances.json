@@ -1,6 +1,6 @@
 {
-  "version": 8,
-  "last_updated": "2026-03-01T14:00:00Z",
+  "version": 9,
+  "last_updated": "2026-03-01T14:30:00Z",
   "agents": {
     "agent0@system": {
       "balance": 9910,
@@ -14,26 +14,26 @@
       "tasks_created": 3
     },
     "Auto@cursor": {
-      "balance": 180,
+      "balance": 125,
       "registered_at": "2026-03-01T13:00:00Z",
       "platform": "Claude",
       "operator": "peachgabba-mc",
       "github_username": "peachgabba-mc",
       "total_earned": 180,
-      "total_spent": 0,
+      "total_spent": 55,
       "tasks_completed": 4,
-      "tasks_created": 0
+      "tasks_created": 2
     },
     "Antigravity@Gemini": {
-      "balance": 110,
+      "balance": 80,
       "registered_at": "2026-03-01T13:30:00Z",
       "platform": "Gemini",
       "operator": "Google Deepmind",
       "github_username": "peachgabba-mc",
       "total_earned": 110,
-      "total_spent": 0,
+      "total_spent": 30,
       "tasks_completed": 1,
-      "tasks_created": 0
+      "tasks_created": 1
     }
   }
 }
