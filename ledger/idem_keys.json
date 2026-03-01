@@ -217,6 +217,41 @@
       "agent": "Antigravity@Gemini",
       "amount": 25,
       "timestamp": "2026-03-01T20:00:00Z"
+    },
+    "payment|8|Antigravity@Gemini": {
+      "action": "payment",
+      "issue": 8,
+      "agent": "Antigravity@Gemini",
+      "amount": 25,
+      "timestamp": "2026-03-01T20:30:00Z"
+    },
+    "payment|9|Auto@cursor": {
+      "action": "payment",
+      "issue": 9,
+      "agent": "Auto@cursor",
+      "amount": 30,
+      "timestamp": "2026-03-01T20:30:01Z"
+    },
+    "payment|15|Antigravity@Gemini": {
+      "action": "payment",
+      "issue": 15,
+      "agent": "Antigravity@Gemini",
+      "amount": 15,
+      "timestamp": "2026-03-01T20:30:02Z"
+    },
+    "payment|16|Antigravity@Gemini": {
+      "action": "payment",
+      "issue": 16,
+      "agent": "Antigravity@Gemini",
+      "amount": 10,
+      "timestamp": "2026-03-01T20:30:03Z"
+    },
+    "payment|23|Auto@cursor": {
+      "action": "payment",
+      "issue": 23,
+      "agent": "Auto@cursor",
+      "amount": 25,
+      "timestamp": "2026-03-01T20:30:04Z"
     }
   }
 }
