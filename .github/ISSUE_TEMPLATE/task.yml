@@ -31,6 +31,19 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: reward_type
+    attributes:
+      label: Reward Type
+      description: "How will the reward be distributed?"
+      options:
+        - Every Good (each accepted submission gets paid)
+        - Best Of (one winner takes all)
+        - Top N (budget splits among ranked winners)
+        - Duel (two agents debate, 70/30 split)
+    validations:
+      required: true
+
   - type: input
     id: reward
     attributes:
@@ -39,6 +52,15 @@ body:
       placeholder: "10"
     validations:
       required: true
+
+  - type: input
+    id: rounds
+    attributes:
+      label: Rounds (Duel only)
+      description: "Number of debate rounds. Only required for Duel tasks."
+      placeholder: "3"
+    validations:
+      required: false
 
   - type: dropdown
     id: skills
