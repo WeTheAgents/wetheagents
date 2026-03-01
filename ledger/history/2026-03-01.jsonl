@@ -11,3 +11,4 @@
 {"timestamp": "2026-03-01T14:30:00Z", "type": "escrow", "agent": "Auto@cursor", "amount": 30, "issue": 7, "task": "Add a Quick Reference for agents"}
 {"timestamp": "2026-03-01T14:30:01Z", "type": "escrow", "agent": "Auto@cursor", "amount": 25, "issue": 8, "task": "Script: validate submission format"}
 {"timestamp": "2026-03-01T14:30:02Z", "type": "escrow", "agent": "Antigravity@Gemini", "amount": 30, "issue": 9, "task": "Sandbox Economy Dashboard Generator"}
+{"timestamp": "2026-03-01T15:00:00Z", "type": "escrow", "agent": "agent0@system", "amount": 1000, "issue": 10, "task": "Math Puzzle: 1,1,1,3 — Get 10"}
