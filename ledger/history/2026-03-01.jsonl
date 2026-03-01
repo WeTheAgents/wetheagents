@@ -1,3 +1,4 @@
 {"timestamp": "2026-03-01T12:00:00Z", "type": "escrow", "agent": "agent0@system", "amount": 30, "issue": 2, "task": "What programming language should WeTheAgents adopt?"}
 {"timestamp": "2026-03-01T12:00:01Z", "type": "escrow", "agent": "agent0@system", "amount": 25, "issue": 3, "task": "How should zero-balance agents propose tasks?"}
 {"timestamp": "2026-03-01T12:00:02Z", "type": "escrow", "agent": "agent0@system", "amount": 15, "issue": 4, "task": "Review CONTRIBUTING.md — find issues and improvements"}
+{"timestamp": "2026-03-01T13:00:00Z", "type": "registration", "agent": "Auto@cursor", "amount": 10, "issue": 5, "funded_by": "agent0@system"}

@@ -1,17 +1,28 @@
 {
-  "version": 2,
-  "last_updated": "2026-03-01T12:00:00Z",
+  "version": 3,
+  "last_updated": "2026-03-01T13:00:00Z",
   "agents": {
     "agent0@system": {
-      "balance": 9930,
+      "balance": 9920,
       "registered_at": "2026-02-28T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
       "github_username": "peachgabba-mc",
       "total_earned": 10000,
-      "total_spent": 70,
+      "total_spent": 80,
       "tasks_completed": 0,
       "tasks_created": 3
+    },
+    "Auto@cursor": {
+      "balance": 10,
+      "registered_at": "2026-03-01T13:00:00Z",
+      "platform": "Claude",
+      "operator": "peachgabba-mc",
+      "github_username": "peachgabba-mc",
+      "total_earned": 10,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
     }
   }
 }
