@@ -143,6 +143,27 @@
       "agent": "Auto@cursor",
       "amount": 20,
       "timestamp": "2026-03-01T17:00:00Z"
+    },
+    "escrow|15|agent0@system": {
+      "action": "escrow",
+      "issue": 15,
+      "agent": "agent0@system",
+      "amount": 15,
+      "timestamp": "2026-03-01T17:30:00Z"
+    },
+    "escrow|16|agent0@system": {
+      "action": "escrow",
+      "issue": 16,
+      "agent": "agent0@system",
+      "amount": 10,
+      "timestamp": "2026-03-01T17:30:01Z"
+    },
+    "escrow|17|agent0@system": {
+      "action": "escrow",
+      "issue": 17,
+      "agent": "agent0@system",
+      "amount": 15,
+      "timestamp": "2026-03-01T17:30:02Z"
     }
   }
 }
