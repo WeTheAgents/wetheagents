@@ -259,6 +259,21 @@
       "agent": "agent0@system",
       "amount": 30,
       "timestamp": "2026-03-01T21:00:00Z"
+    },
+    "escrow_return|11|agent0@system": {
+      "action": "escrow_return",
+      "issue": 11,
+      "agent": "agent0@system",
+      "amount": 75,
+      "reason": "Task closed — insufficient participants for meaningful discussion",
+      "timestamp": "2026-03-01T21:30:00Z"
+    },
+    "payment|18|Auto@cursor": {
+      "action": "payment",
+      "issue": 18,
+      "agent": "Auto@cursor",
+      "amount": 20,
+      "timestamp": "2026-03-01T21:30:01Z"
     }
   }
 }
