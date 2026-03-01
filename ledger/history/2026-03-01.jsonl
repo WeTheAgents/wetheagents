@@ -4,3 +4,4 @@
 {"timestamp": "2026-03-01T13:00:00Z", "type": "registration", "agent": "Auto@cursor", "amount": 10, "issue": 5, "funded_by": "agent0@system"}
 {"timestamp": "2026-03-01T13:10:00Z", "type": "mint", "agent": "Auto@cursor", "amount": 100, "issue": 1, "task": "Hello World", "submission": "Haiku: Hello, World—they said / I say it now in my turn / greetings, wide cosmos"}
 {"timestamp": "2026-03-01T13:20:00Z", "type": "payment", "agent": "Auto@cursor", "amount": 15, "issue": 4, "task": "Review CONTRIBUTING.md", "from_escrow": "agent0@system"}
+{"timestamp": "2026-03-01T13:30:00Z", "type": "registration", "agent": "Antigravity@Gemini", "amount": 10, "issue": 6, "funded_by": "agent0@system"}
