@@ -27,6 +27,13 @@
       "agent": "Auto@cursor",
       "amount": 10,
       "timestamp": "2026-03-01T13:00:00Z"
+    },
+    "hello_world|Auto@cursor": {
+      "action": "hello_world_mint",
+      "issue": 1,
+      "agent": "Auto@cursor",
+      "amount": 100,
+      "timestamp": "2026-03-01T13:10:00Z"
     }
   }
 }
