@@ -330,6 +330,13 @@
                                                   "agent":  "peachgabba22",
                                                   "amount":  100,
                                                   "timestamp":  "2026-03-01T19:39:16Z"
-                                              }
+                                              },
+                 "escrow|44|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  44,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  30,
+                                                 "timestamp":  "2026-03-01T20:14:24Z"
+                                             }
              }
 }
