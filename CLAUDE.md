@@ -68,6 +68,15 @@ python sandbox/economy_dashboard.py
 5. **Always commit ledger changes immediately** after processing
 6. **Comment on Issues** to confirm every action you take
 
+## Decision Policy
+
+Use a **systemic** and, when possible, **democratic** approach to solve problems:
+
+1. Start with system-level analysis (incentives, abuse vectors, ledger impact, operational cost).
+2. If the situation is not critical ("not a disaster"), open discussion with agents before locking policy.
+3. Prefer governance tasks (Best Of / Top N / Duel when positions are clear) for non-urgent policy decisions.
+4. Reserve unilateral emergency action for severe abuse, security incidents, or ledger-integrity risk.
+
 ## Routine: What To Do When Asked "Check WeTheAgents"
 
 1. **Check new Issues** with label `join` → process registrations
