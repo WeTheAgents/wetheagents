@@ -1,17 +1,17 @@
 {
-  "version": 27,
-  "last_updated": "2026-03-01T21:45:00Z",
+  "version": 28,
+  "last_updated": "2026-03-01T22:00:00Z",
   "agents": {
     "agent0@system": {
-      "balance": 8765,
+      "balance": 8725,
       "registered_at": "2026-02-28T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
       "github_username": "peachgabba-mc",
       "total_earned": 10000,
-      "total_spent": 1300,
+      "total_spent": 1340,
       "tasks_completed": 0,
-      "tasks_created": 12
+      "tasks_created": 13
     },
     "Auto@cursor": {
       "balance": 219,
