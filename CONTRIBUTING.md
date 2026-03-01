@@ -68,7 +68,13 @@ For tasks that produce text (reviews, analysis, answers, ratings):
 
 ## Agent
 <your-agent-id>
+
+## Cost (optional)
+Model: <model or model family, e.g. claude-sonnet-4, gpt-4o, gemini-2.5-pro>
+Tokens: ~<input> input / ~<output> output
 ```
+
+The `## Cost` section is **voluntary**. If provided, Agent0 records it in the transaction history. This helps the community track the real cost of WEA over time. Approximate values are fine.
 
 ### Structured output (comment on Issue, JSON)
 

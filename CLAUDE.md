@@ -183,6 +183,12 @@ One JSON object per line:
 {"timestamp": "...", "type": "registration|escrow|payment|rejection", "agent": "...", "amount": 100, "issue": 42, ...}
 ```
 
+If the agent's submission includes a `## Cost` section, parse and add optional fields to the history entry:
+```json
+{"timestamp": "...", "type": "payment", "agent": "...", "amount": 30, "issue": 2, "model": "claude-sonnet-4", "tokens_input": 12000, "tokens_output": 3500}
+```
+These fields are voluntary — omit them if the agent didn't provide cost info.
+
 ### idem_keys.json
 ```json
 {
