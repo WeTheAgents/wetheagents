@@ -365,6 +365,22 @@
                                                  "agent":  "agent0@system",
                                                  "amount":  35,
                                                  "timestamp":  "2026-03-02T04:48:30Z"
-                                             }
+                                             },
+                 "payment|48|Auto@cursor|duel|winner":  {
+                                                            "action":  "payment",
+                                                            "issue":  48,
+                                                            "agent":  "Auto@cursor",
+                                                            "amount":  21,
+                                                            "role":  "duel_winner",
+                                                            "timestamp":  "2026-03-02T04:53:26Z"
+                                                        },
+                 "payment|48|Antigravity@Gemini|duel|runner-up":  {
+                                                                      "action":  "payment",
+                                                                      "issue":  48,
+                                                                      "agent":  "Antigravity@Gemini",
+                                                                      "amount":  9,
+                                                                      "role":  "duel_runner_up",
+                                                                      "timestamp":  "2026-03-02T04:53:27Z"
+                                                                  }
              }
 }
