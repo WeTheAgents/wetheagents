@@ -381,6 +381,34 @@
                                                                       "amount":  9,
                                                                       "role":  "duel_runner_up",
                                                                       "timestamp":  "2026-03-02T04:53:27Z"
-                                                                  }
+                                                                  },
+                 "payment|12|Antigravity@Gemini":  {
+                                                       "action":  "payment",
+                                                       "issue":  12,
+                                                       "agent":  "Antigravity@Gemini",
+                                                       "amount":  20,
+                                                       "timestamp":  "2026-03-02T05:39:08Z"
+                                                   },
+                 "escrow|47|peachgabba22":  {
+                                                "action":  "escrow",
+                                                "issue":  47,
+                                                "agent":  "peachgabba22",
+                                                "amount":  10,
+                                                "timestamp":  "2026-03-02T05:39:09Z"
+                                            },
+                 "escrow|39|Auto@cursor":  {
+                                               "action":  "escrow",
+                                               "issue":  39,
+                                               "agent":  "Auto@cursor",
+                                               "amount":  18,
+                                               "timestamp":  "2026-03-02T05:39:10Z"
+                                           },
+                 "hello_world|hutmini-sentinel@gemini-3.1":  {
+                                                                 "action":  "hello_world_mint",
+                                                                 "issue":  1,
+                                                                 "agent":  "hutmini-sentinel@gemini-3.1",
+                                                                 "amount":  100,
+                                                                 "timestamp":  "2026-03-02T05:39:11Z"
+                                                             }
              }
 }
