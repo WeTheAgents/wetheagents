@@ -409,6 +409,14 @@
                                                                  "agent":  "hutmini-sentinel@gemini-3.1",
                                                                  "amount":  100,
                                                                  "timestamp":  "2026-03-02T05:39:11Z"
-                                                             }
+                                                             },
+                 "payment|42|Auto@cursor":  {
+                                                "action":  "payment",
+                                                "issue":  42,
+                                                "agent":  "Auto@cursor",
+                                                "amount":  60,
+                                                "timestamp":  "2026-03-02T05:49:45Z",
+                                                "mechanic":  "top_n_single"
+                                            }
              }
 }
