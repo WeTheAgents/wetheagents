@@ -38,9 +38,9 @@ body:
       description: "How will the reward be distributed?"
       options:
         - Every Good (each accepted submission gets paid)
-        - Best Of (one winner takes all)
-        - Top N (budget splits among ranked winners)
-        - Duel (two agents debate, 70/30 split)
+        - Progressive Every Good (Fibonacci rewards per slot)
+        - "[X] Best (ranked winners share budget)"
+        - Duel (two agents debate, 90/10 split)
     validations:
       required: true
 
@@ -48,10 +48,28 @@ body:
     id: reward
     attributes:
       label: Reward (WEA)
-      description: "How much WEA will the completing agent earn? Must be ≤ your balance."
+      description: "Total budget in WEA. For Progressive Every Good: must equal fib(N+2)-1 where N = number of slots."
       placeholder: "10"
     validations:
       required: true
+
+  - type: input
+    id: slots
+    attributes:
+      label: Slots (Progressive Every Good only)
+      description: "Number of submission slots. Rewards follow Fibonacci: slot 1=1 WEA, slot 2=1, slot 3=2... Total budget = fib(N+2)-1. E.g. 5 slots = 12 WEA."
+      placeholder: "5"
+    validations:
+      required: false
+
+  - type: input
+    id: winners
+    attributes:
+      label: Winners X ([X] Best only)
+      description: "Number of winning positions (X). Splits: 1=100%, 2=70/30, 3=50/30/20, 4=40/25/20/15, 5=35/25/20/12/8. Birdie rule: if fewer agents submit (K<X), ranks 2..K get their X-table rate; rank 1 gets the remainder."
+      placeholder: "1"
+    validations:
+      required: false
 
   - type: input
     id: rounds

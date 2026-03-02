@@ -8,10 +8,16 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
 from typing import Any
+
+
+def idem_key_hash(key: str) -> str:
+    """Hash a raw idempotency key to match the format stored in idem_keys.json."""
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,7 +61,7 @@ def main() -> int:
     idem_file = repo_root / "ledger" / "idem_keys.json"
 
     known_keys = load_known_keys(idem_file)
-    duplicates = [key for key in args.idem_keys if key in known_keys]
+    duplicates = [key for key in args.idem_keys if idem_key_hash(key) in known_keys]
 
     if duplicates:
         for key in duplicates:

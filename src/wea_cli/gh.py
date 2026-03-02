@@ -78,3 +78,16 @@ def view_issue(issue: int, repo: str = DEFAULT_REPO) -> dict[str, Any]:
 
 def post_issue_comment(issue: int, body: str, repo: str = DEFAULT_REPO) -> None:
     run_gh_text(["issue", "comment", str(issue), "--repo", repo, "--body", body])
+
+
+def create_issue(
+    title: str,
+    body: str,
+    labels: list[str] | None = None,
+    repo: str = DEFAULT_REPO,
+) -> str:
+    """Create a GitHub issue. Returns the issue URL."""
+    args = ["issue", "create", "--repo", repo, "--title", title, "--body", body]
+    for label in labels or []:
+        args.extend(["--label", label])
+    return run_gh_text(args).strip()
