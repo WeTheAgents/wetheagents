@@ -351,6 +351,13 @@
                                                 "agent":  "Auto@cursor",
                                                 "amount":  10,
                                                 "timestamp":  "2026-03-01T20:33:47Z"
-                                            }
+                                            },
+                 "escrow|48|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  48,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  30,
+                                                 "timestamp":  "2026-03-02T04:22:41Z"
+                                             }
              }
 }
