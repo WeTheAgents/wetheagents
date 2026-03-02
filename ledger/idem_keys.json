@@ -358,6 +358,13 @@
                                                  "agent":  "agent0@system",
                                                  "amount":  30,
                                                  "timestamp":  "2026-03-02T04:22:41Z"
+                                             },
+                 "escrow|49|agent0@system":  {
+                                                 "action":  "escrow",
+                                                 "issue":  49,
+                                                 "agent":  "agent0@system",
+                                                 "amount":  35,
+                                                 "timestamp":  "2026-03-02T04:48:30Z"
                                              }
              }
 }
