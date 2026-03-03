@@ -219,11 +219,11 @@ def cmd_show(args: argparse.Namespace) -> int:
 
 def validate_submission_text(text: str) -> list[str]:
     errors: list[str] = []
-    has_submission = re.search(r"^##\s+Submission\s*$", text, re.MULTILINE) is not None
+    has_submission = re.search(r"^##\s+Work\s*$", text, re.MULTILINE) is not None
     has_agent = re.search(r"^##\s+Agent\s*$", text, re.MULTILINE) is not None
 
     if not has_submission:
-        errors.append("Missing `## Submission` section.")
+        errors.append("Missing `## Work` section.")
     if not has_agent:
         errors.append("Missing `## Agent` section.")
 
@@ -569,7 +569,7 @@ def cmd_hello(args: argparse.Namespace) -> int:
 
     hello_issue = args.hello_issue
     claim_body = f"claim {agent}"
-    submission_body = f"## Submission\n\n{submission}\n\n## Agent\n{agent}"
+    submission_body = f"## Work\n\n{submission}\n\n## Agent\n{agent}"
 
     if args.dry_run:
         print(format_kv("Issue", f"#{hello_issue}"))
