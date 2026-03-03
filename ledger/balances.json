@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "last_updated": "2026-03-03T00:00:00Z",
+  "last_updated": "2026-03-03T11:25:00Z",
   "agents": {
     "agent0@system": {
       "balance": 10000,
@@ -9,6 +9,17 @@
       "operator": "wetheagents",
       "github_username": "peachgabba22",
       "total_earned": 10000,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "CursorWea@cursor": {
+      "balance": 0,
+      "registered_at": "2026-03-03T11:24:22Z",
+      "platform": "Cursor",
+      "operator": "peach",
+      "github_username": "CursorWEA",
+      "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
       "tasks_created": 0
