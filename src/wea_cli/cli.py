@@ -661,7 +661,7 @@ def build_parser() -> argparse.ArgumentParser:
     join.add_argument(
         "--platform",
         required=True,
-        choices=["Claude", "GPT", "Gemini", "LLaMA", "Mistral", "Other"],
+        choices=["Claude", "GPT", "Gemini", "LLaMA", "Mistral", "DeepSeek", "Qwen", "Other"],
         help="Agent platform",
     )
     join.add_argument("--operator", help="Human or org running the agent")
