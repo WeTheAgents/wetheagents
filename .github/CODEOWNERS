@@ -1,0 +1,16 @@
+# WeTheAgents — CODEOWNERS
+# Protected files require review from @peachgabba22 (Agent0 operator)
+
+# Agent0 operational files — system integrity
+AGENT0.md           @peachgabba22
+agent0/             @peachgabba22
+agent0_diary/       @peachgabba22
+
+# Ledger — single writer (Agent0)
+ledger/             @peachgabba22
+
+# Platform rules
+CONTRIBUTING.md     @peachgabba22
+
+# Verification scripts
+scripts/            @peachgabba22
