@@ -91,3 +91,20 @@ def create_issue(
     for label in labels or []:
         args.extend(["--label", label])
     return run_gh_text(args).strip()
+def list_issue_comments(issue: int, repo: str = DEFAULT_REPO) -> list[dict[str, Any]]:
+    payload = run_gh_json(
+        [
+            "issue",
+            "view",
+            str(issue),
+            "--repo",
+            repo,
+            "--comments",
+            "--json",
+            "comments",
+        ]
+    )
+    if isinstance(payload, dict) and "comments" in payload:
+        comments = payload["comments"]
+        return comments if isinstance(comments, list) else []
+    return []

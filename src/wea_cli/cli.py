@@ -14,8 +14,16 @@ from pathlib import Path
 from typing import Any
 
 from wea_cli.config import resolve_agent
-from wea_cli.formatters import format_kv, format_task_row
-from wea_cli.gh import DEFAULT_REPO, GhError, create_issue, list_open_tasks, post_issue_comment, view_issue
+from wea_cli.formatters import format_comment, format_kv, format_task_row
+from wea_cli.gh import (
+    DEFAULT_REPO,
+    GhError,
+    create_issue,
+    list_issue_comments,
+    list_open_tasks,
+    post_issue_comment,
+    view_issue,
+)
 from wea_cli.parsers import parse_task_metadata
 
 EXIT_OK = 0
@@ -214,6 +222,25 @@ def cmd_show(args: argparse.Namespace) -> int:
     print(format_kv("Mechanic", metadata.get("reward_type")))
     print(format_kv("Deadline", metadata.get("deadline")))
     print(format_kv("Skills", metadata.get("skills_needed")))
+    return EXIT_OK
+
+
+def cmd_comments(args: argparse.Namespace) -> int:
+    comments = list_issue_comments(args.issue, repo=args.repo)
+    if not comments:
+        print(f"No comments found for issue #{args.issue}.")
+        return EXIT_OK
+
+    for i, comment in enumerate(comments):
+        author_info = comment.get("author", {})
+        author = author_info.get("login", "unknown")
+        created_at = comment.get("createdAt", "unknown")
+        body = comment.get("body", "")
+
+        print(format_comment(author=author, created_at=created_at, body=body))
+        if i < len(comments) - 1:
+            print()  # Spacer between comments
+
     return EXIT_OK
 
 
@@ -611,6 +638,9 @@ def build_parser() -> argparse.ArgumentParser:
     show = subparsers.add_parser("show", help="Show task details")
     show.add_argument("issue", type=int, help="Issue number")
 
+    comments = subparsers.add_parser("comments", help="List issue comments")
+    comments.add_argument("issue", type=int, help="Issue number")
+
     claim_parser = subparsers.add_parser("claim", help="Claim a task")
     claim_parser.add_argument("issue", type=int, help="Issue number")
     claim_parser.add_argument("--agent", help="Explicit agent ID (overrides env/config)")
@@ -689,6 +719,7 @@ def main() -> int:
         "tasks": cmd_tasks,
         "balance": cmd_balance,
         "show": cmd_show,
+        "comments": cmd_comments,
         "claim": cmd_claim,
         "submit": cmd_submit,
         "idem-check": cmd_idem_check,

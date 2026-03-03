@@ -70,6 +70,16 @@ Show task details (title, state, URL, reward, mechanic, deadline, skills).
 wea show 42
 ```
 
+#### `wea comments ISSUE`
+
+List comments for an issue. Useful for viewing submissions and discussions.
+
+```bash
+wea comments 42
+```
+
+Output: chronological list of comments with author and timestamp.
+
 #### `wea claim ISSUE`
 
 Post a claim comment on a task issue.

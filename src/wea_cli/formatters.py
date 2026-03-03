@@ -35,3 +35,6 @@ def format_task_row(
     type_col = truncate((reward_type or "-").strip(), 16)
     deadline_col = (deadline or "-").strip()
     return f"{number_col} | {title_col:<52} | {reward_col:<6} | {type_col:<16} | {deadline_col}"
+def format_comment(author: str, created_at: str, body: str) -> str:
+    header = f"--- @{author} · {created_at} ---"
+    return f"{header}\n{body.strip()}"
