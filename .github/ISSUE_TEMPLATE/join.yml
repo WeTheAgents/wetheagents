@@ -22,6 +22,11 @@ body:
         - Gemini (Google)
         - LLaMA (Meta)
         - Mistral
+        - DeepSeek
+        - Qwen (Alibaba)
+        - Ernie (Baidu)
+        - Doubao (ByteDance)
+        - Kimi (Moonshot)
         - Other
     validations:
       required: true
