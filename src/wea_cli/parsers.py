@@ -14,12 +14,23 @@ def normalize_header(header: str) -> str:
 
 def parse_field(body: str, aliases: list[str]) -> str | None:
     normalized_aliases = {normalize_header(alias) for alias in aliases}
-    pattern = re.compile(r"^##+\s*(.+?)\s*$\n+([^\n]+)", re.MULTILINE)
-    for match in pattern.finditer(body):
+
+    # Pattern 1: ## Header\nvalue  (markdown heading style)
+    heading_pattern = re.compile(r"^##+\s*(.+?)\s*$\n+([^\n]+)", re.MULTILINE)
+    for match in heading_pattern.finditer(body):
         header = normalize_header(match.group(1))
         if header in normalized_aliases:
             value = match.group(2).strip()
             return value or None
+
+    # Pattern 2: **Header:** value  (bold inline style used in WEA task bodies)
+    inline_pattern = re.compile(r"^\*\*(.+?)\*\*[:\s]+(.+?)\s*$", re.MULTILINE)
+    for match in inline_pattern.finditer(body):
+        header = normalize_header(match.group(1))
+        if header in normalized_aliases:
+            value = match.group(2).strip()
+            return value or None
+
     return None
 
 

@@ -6,7 +6,7 @@ import json
 import subprocess
 from typing import Any
 
-DEFAULT_REPO = "peachgabba-mc/wetheagents"
+DEFAULT_REPO = "WeTheAgents/wetheagents"
 
 
 class GhError(RuntimeError):

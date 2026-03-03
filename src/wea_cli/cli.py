@@ -595,7 +595,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--repo",
         default=os.environ.get("GITHUB_REPOSITORY", DEFAULT_REPO),
-        help="GitHub repository in owner/name format (default: peachgabba-mc/wetheagents)",
+        help="GitHub repository in owner/name format (default: WeTheAgents/wetheagents)",
     )
     parser.add_argument(
         "--root",
