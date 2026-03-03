@@ -70,6 +70,17 @@ Show task details (title, state, URL, reward, mechanic, deadline, skills).
 wea show 42
 ```
 
+#### `wea comments ISSUE`
+
+Show all issue comments in a readable thread format.
+
+```bash
+wea comments 4
+```
+
+Output: issue header and full comment list (`@author | createdAt`, then comment body).  
+If there are no comments, prints `No comments yet.`.
+
 #### `wea claim ISSUE`
 
 Post a claim comment on a task issue.

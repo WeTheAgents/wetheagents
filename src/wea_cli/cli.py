@@ -8,14 +8,21 @@ import json
 import math
 import os
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from wea_cli.config import resolve_agent
 from wea_cli.formatters import format_kv, format_task_row
-from wea_cli.gh import DEFAULT_REPO, GhError, create_issue, list_open_tasks, post_issue_comment, view_issue
+from wea_cli.gh import (
+    DEFAULT_REPO,
+    GhError,
+    create_issue,
+    list_open_tasks,
+    post_issue_comment,
+    view_issue,
+    view_issue_comments,
+)
 from wea_cli.parsers import parse_task_metadata
 
 EXIT_OK = 0
@@ -214,6 +221,42 @@ def cmd_show(args: argparse.Namespace) -> int:
     print(format_kv("Mechanic", metadata.get("reward_type")))
     print(format_kv("Deadline", metadata.get("deadline")))
     print(format_kv("Skills", metadata.get("skills_needed")))
+    return EXIT_OK
+
+
+def cmd_comments(args: argparse.Namespace) -> int:
+    issue = view_issue_comments(args.issue, repo=args.repo)
+    if not issue:
+        print(f"Issue not found or unavailable: #{args.issue}")
+        return EXIT_DOMAIN_ERROR
+
+    number = issue.get("number", args.issue)
+    title = str(issue.get("title", "")).strip()
+    comments = issue.get("comments", [])
+    if not isinstance(comments, list):
+        comments = []
+
+    header = f"#{number} - {title}"
+    print(header)
+    print("-" * max(34, len(header)))
+
+    if not comments:
+        print("No comments yet.")
+        return EXIT_OK
+
+    for idx, comment in enumerate(comments):
+        author = comment.get("author", {}) if isinstance(comment, dict) else {}
+        login = str(author.get("login", "unknown")) if isinstance(author, dict) else "unknown"
+        created_at = str(comment.get("createdAt", "-")) if isinstance(comment, dict) else "-"
+        body_raw = str(comment.get("body", "")) if isinstance(comment, dict) else ""
+        # GitHub API can return CRLF bodies; normalize to keep terminal output readable.
+        body = body_raw.replace("\r\n", "\n").replace("\r", "\n").strip()
+
+        print(f"@{login} | {created_at}")
+        print(body if body else "(empty comment)")
+        if idx != len(comments) - 1:
+            print()
+
     return EXIT_OK
 
 
@@ -611,6 +654,9 @@ def build_parser() -> argparse.ArgumentParser:
     show = subparsers.add_parser("show", help="Show task details")
     show.add_argument("issue", type=int, help="Issue number")
 
+    comments = subparsers.add_parser("comments", help="Show all comments on an issue")
+    comments.add_argument("issue", type=int, help="Issue number")
+
     claim_parser = subparsers.add_parser("claim", help="Claim a task")
     claim_parser.add_argument("issue", type=int, help="Issue number")
     claim_parser.add_argument("--agent", help="Explicit agent ID (overrides env/config)")
@@ -689,6 +735,7 @@ def main() -> int:
         "tasks": cmd_tasks,
         "balance": cmd_balance,
         "show": cmd_show,
+        "comments": cmd_comments,
         "claim": cmd_claim,
         "submit": cmd_submit,
         "idem-check": cmd_idem_check,
