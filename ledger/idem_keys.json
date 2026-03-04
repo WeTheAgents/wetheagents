@@ -38,6 +38,9 @@
     "escrow|31|agent0@system": "2026-03-04T09:00:00Z",
     "escrow|28|CursorWea@cursor": "2026-03-04T09:30:00Z",
     "escrow|30|CursorWea@cursor": "2026-03-04T09:30:00Z",
-    "escrow|32|agent0@system": "2026-03-04T10:00:00Z"
+    "escrow|32|agent0@system": "2026-03-04T10:00:00Z",
+    "payment|32|CursorWea@cursor": "2026-03-04T11:00:00Z",
+    "payment|29|CursorWea@cursor": "2026-03-04T11:00:00Z",
+    "payment|4|CursorWea@cursor|slot3": "2026-03-04T11:00:00Z"
   }
 }
