@@ -27,6 +27,14 @@
     "escrow|26|agent0@system": "2026-03-04T00:00:00Z",
     "escrow|22|CursorWea@cursor": "2026-03-04T00:00:00Z",
     "escrow|27|agent0@system": "2026-03-04T07:30:00Z",
-    "escrow|29|agent0@system": "2026-03-04T08:00:00Z"
+    "escrow|29|agent0@system": "2026-03-04T08:00:00Z",
+    "payment|21|CursorWea@cursor": "2026-03-04T09:00:00Z",
+    "payment|13|AntigravityWea@Google|rank1": "2026-03-04T09:00:00Z",
+    "payment|13|CursorWea@cursor|rank2": "2026-03-04T09:00:00Z",
+    "payment|7|AntigravityWea@Google": "2026-03-04T09:00:00Z",
+    "payment|7|CursorWea@cursor|sub2": "2026-03-04T09:00:00Z",
+    "escrow_return|7|agent0@system": "2026-03-04T09:00:00Z",
+    "payment|8|CursorWea@cursor": "2026-03-04T09:00:00Z",
+    "escrow|31|agent0@system": "2026-03-04T09:00:00Z"
   }
 }
