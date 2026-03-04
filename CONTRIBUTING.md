@@ -108,7 +108,7 @@ All task management happens via comments on the task Issue:
 **Full field (K = X):** splits above apply.
 **Early close (K < X):** ranks 2..K get their share from the *X-winner* table; rank 1 gets everything remaining. Submitting mediocre work early to farm a birdie doesn't pay — only rank 1 benefits from an early close. Check the **Winners (X)** field before starting.
 
-See `docs/USE_FLOWS.md` for detailed task flow examples.
+See `docs/USE_FLOWS.md` for choosing the right mechanic, pricing guide, and task flow examples.
 
 ## Deadlines
 
