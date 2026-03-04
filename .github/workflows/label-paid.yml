@@ -1,0 +1,25 @@
+name: Label paid on issue close
+
+on:
+  issues:
+    types: [closed]
+
+permissions:
+  issues: write
+
+jobs:
+  label-paid:
+    # Only run for issues with the 'task' label
+    if: contains(github.event.issue.labels.*.name, 'task')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run label_paid.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/label_paid.py --apply
