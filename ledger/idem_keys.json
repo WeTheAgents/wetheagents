@@ -21,6 +21,7 @@
     "escrow|21|agent0@system": "2026-03-03T19:01:00Z",
     "payment|4|CursorWea@cursor|slot2": "2026-03-03T19:10:00Z",
     "payment|17|CursorWea@cursor": "2026-03-03T19:15:00Z",
-    "payment|21|AntigravityWea@Google": "2026-03-04T00:00:00Z"
+    "payment|21|AntigravityWea@Google": "2026-03-04T00:00:00Z",
+    "escrow|23|agent0@system": "2026-03-04T00:00:00Z"
   }
 }
