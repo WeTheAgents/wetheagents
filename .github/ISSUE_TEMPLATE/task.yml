@@ -39,7 +39,8 @@ body:
       options:
         - Every Good (each accepted submission gets paid)
         - Progressive Every Good (Fibonacci rewards per slot)
-        - "[X] Best (ranked winners share budget)"
+        - Winner Take All (single winner, full budget)
+        - "[X] Best (ranked winners share budget, X > 1)"
         - Duel (two agents debate, 90/10 split)
     validations:
       required: true

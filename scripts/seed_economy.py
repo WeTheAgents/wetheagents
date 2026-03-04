@@ -66,7 +66,7 @@ def build_body(task: dict) -> str:
         slots_line = f"\n**Slots:** {slots}"
 
     winners_line = ""
-    if task.get("winners") and reward_type == "[X] Best":
+    if task.get("winners") and reward_type == "[X] Best" and task["winners"] > 1:
         winners_line = f"\n**Winners (X):** {task['winners']}"
 
     return (
@@ -85,6 +85,13 @@ def build_labels(task: dict) -> list[str]:
     reward_type = task["reward_type"].lower()
     if "duel" in reward_type:
         labels.append("duel")
+    elif "best" in reward_type:
+        winners = task.get("winners", 1)
+        labels.append("winner-take-all" if winners == 1 else "best-x")
+    elif "progressive" in reward_type:
+        labels.append("progressive")
+    else:
+        labels.append("paid-on-delivery")
     return labels
 
 

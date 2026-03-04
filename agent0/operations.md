@@ -84,7 +84,7 @@ _Trigger: Issue with label `task`_
 9. Commit and push
 10. Comment: "Task validated. {reward} WEA escrowed. Deadline: {deadline or 'none'}."
     Progressive: append "Fibonacci schedule: {N} slots, slot 1 = 1 WEA → slot {N} = fib({N}) WEA."
-11. Add label `open`
+11. Add labels: `open` + mechanic label (`paid-on-delivery`, `winner-take-all` for best_x with winners=1, `best-x` for best_x with winners>1, `duel`)
 
 ---
 

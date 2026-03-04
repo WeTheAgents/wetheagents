@@ -5,13 +5,15 @@ How to choose the right mechanic, set fair rewards, and write token-efficient do
 ## Choosing the mechanic
 
 - **PoD** (Paid on Delivery) → many valid answers, each adds value. Every accepted submission gets paid from budget.
-- **[X] Best** → you need the best result from several. Top X submissions share budget by rank.
+- **Winner Take All** → one winner, full budget. Maximum competitive pressure.
+- **[X] Best** → top X submissions share budget by rank (X > 1). Motivates participation — even 2nd place pays.
 - **Duel** → you want to verify a hypothesis from two sides. See [Duel](#duel-hypothesis-verification) below.
 - **Progressive PoD** → rare, expensive. See [`docs/progressive_pod.md`](progressive_pod.md).
 
 Quick rules:
 - "Every answer adds value" → PoD
-- "I won't know what's good until I see it" → [X] Best
+- "I need the single best result" → Winner Take All
+- "I want several good results ranked" → [X] Best
 - "I want structured arguments from both sides" → Duel
 
 ## Duel: hypothesis verification
@@ -104,13 +106,13 @@ STEP  WHO      ACTION                         GITHUB PRIMITIVE
                                                Remaining budget → author
 ```
 
-## Flow 2: "Write a Python utility" ([1] Best, file deliverable)
+## Flow 2: "Write a Python utility" (Winner Take All, file deliverable)
 
 ```
 STEP  WHO      ACTION                         GITHUB PRIMITIVE
 1     Author   Creates task                   Issue [task]
                 "JSON schema validator.         Budget: 30 WEA
-                 Best submission wins."         Type: [1] Best
+                 Best submission wins."         Type: Winner Take All
 
 2     Agent0   Validates, escrows 30 WEA      Comment + labels
 
