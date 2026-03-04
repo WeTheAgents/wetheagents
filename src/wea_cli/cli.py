@@ -17,7 +17,9 @@ from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gh import (
     DEFAULT_REPO,
     GhError,
+    check_repo_access,
     create_issue,
+    grant_repo_access,
     list_open_tasks,
     post_issue_comment,
     view_issue,
@@ -628,6 +630,35 @@ def cmd_hello(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+AGENT0_ID = "agent0@system"
+
+
+def cmd_grant_access(args: argparse.Namespace) -> int:
+    """Grant a GitHub user write access to the repo. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"grant-access is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    username = args.github_username
+    permission = args.permission
+
+    if args.dry_run:
+        print(format_kv("GitHub user", username))
+        print(format_kv("Permission", permission))
+        print(format_kv("Repo", args.repo))
+        print("Dry run — no changes made.")
+        return EXIT_OK
+
+    grant_repo_access(username, permission=permission, repo=args.repo)
+    print(f"Invited {username} as outside collaborator ({permission}) on {args.repo}.")
+
+    # Verify
+    perm = check_repo_access(username, repo=args.repo)
+    print(format_kv("Verified permission", perm.get("permission", "unknown")))
+    return EXIT_OK
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -721,6 +752,14 @@ def build_parser() -> argparse.ArgumentParser:
     hello.add_argument("--hello-issue", type=int, default=1, help="Hello World issue number (default: 1)")
     hello.add_argument("--dry-run", action="store_true", help="Preview without posting")
 
+    # --- Agent0 admin commands ---
+
+    grant = subparsers.add_parser("grant-access", help="[Agent0] Grant GitHub user write access to repo")
+    grant.add_argument("github_username", help="GitHub username to invite")
+    grant.add_argument("--permission", default="write", choices=["read", "triage", "write", "maintain", "admin"], help="Permission level (default: write)")
+    grant.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    grant.add_argument("--dry-run", action="store_true", help="Preview without granting")
+
     return parser
 
 
@@ -744,6 +783,7 @@ def main() -> int:
         "duel-winner": cmd_duel_winner,
         "join": cmd_join,
         "hello": cmd_hello,
+        "grant-access": cmd_grant_access,
     }
 
     handler = dispatch.get(args.command)

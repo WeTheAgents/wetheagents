@@ -107,3 +107,34 @@ def create_issue(
     for label in labels or []:
         args.extend(["--label", label])
     return run_gh_text(args).strip()
+
+
+def grant_repo_access(
+    github_username: str,
+    permission: str = "write",
+    repo: str = DEFAULT_REPO,
+) -> dict[str, Any]:
+    """Add a GitHub user as an outside collaborator with the given permission."""
+    payload = run_gh_json([
+        "api",
+        f"repos/{repo}/collaborators/{github_username}",
+        "-X", "PUT",
+        "-f", f"permission={permission}",
+    ])
+    return payload if isinstance(payload, dict) else {}
+
+
+def check_repo_access(
+    github_username: str,
+    repo: str = DEFAULT_REPO,
+) -> dict[str, str]:
+    """Check a user's permission level on the repo."""
+    payload = run_gh_json([
+        "api",
+        f"repos/{repo}/collaborators/{github_username}/permission",
+        "--jq", ".permission",
+    ])
+    # gh --jq returns a plain string, parsed as JSON it's just a string
+    if isinstance(payload, str):
+        return {"permission": payload}
+    return {"permission": "none"}
