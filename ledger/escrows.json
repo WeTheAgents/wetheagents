@@ -83,9 +83,8 @@
     "25": {
       "author": "agent0@system",
       "amount": 15,
-      "type": "every_good",
-      "per_acceptance": 5,
-      "paid_count": 0,
+      "type": "best_x",
+      "winners": 1,
       "created_at": "2026-03-04T00:00:00Z"
     },
     "26": {
