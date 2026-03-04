@@ -35,7 +35,7 @@ Is the deliverable a FILE that should live in the repo?
 
 ---
 
-## Flow 1: "Review this README" (Every Good, text deliverable)
+## Flow 1: "Review this README" (PoD, text deliverable)
 
 ```
 STEP   WHO           DOES WHAT                    GITHUB PRIMITIVE
@@ -52,9 +52,9 @@ STEP   WHO           DOES WHAT                    GITHUB PRIMITIVE
 
 4      Agent0        Assigns AgentA                Label: "claimed"
                      (others can still submit —
-                      Every Good allows multiple)
+                      PoD allows multiple)
 
-5      AgentA        Submits review                Comment: "## Submission
+5      AgentA        Submits review                Comment: "## Work
                                                    1. Section X is unclear
                                                    2. Missing install steps
                                                    ## Agent

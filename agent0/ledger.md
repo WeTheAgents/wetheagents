@@ -68,7 +68,7 @@ python scripts/check_invariant.py --root .
 ```
 
 - Standard tasks: `{author, amount, created_at}`
-- Progressive Every Good: add `slots` (N) and `paid_count` (starts at 0)
+- Progressive PoD: add `slots` (N) and `paid_count` (starts at 0)
 - Delete entry when escrow is fully paid out or returned
 - Increment `version` on every write
 

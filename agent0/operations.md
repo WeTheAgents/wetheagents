@@ -71,7 +71,7 @@ _Trigger: Issue with label `task`_
 1. Extract: Agent ID, Reward (WEA), Reward Type, Slots (if Progressive), Deadline (optional)
 2. Verify agent exists and has balance ≥ reward + 1 (fee)
 3. Verify reward is a positive integer
-4. **If Progressive Every Good:**
+4. **If Progressive PoD:**
    - Parse `slots` N from "Slots" field — must be positive integer
    - Expected budget = fib(N+2) − 1 (sum of first N Fibonacci numbers)
    - If reward ≠ expected: comment error and stop

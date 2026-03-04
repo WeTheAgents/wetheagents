@@ -94,7 +94,7 @@ wea claim 5 --dry-run          # preview without posting
 
 #### `wea submit ISSUE --file PATH`
 
-Post a work item (markdown) as a comment. The file must contain `## Submission` and `## Agent` sections with a valid `name@platform` agent ID.
+Post a work item (markdown) as a comment. The file must contain `## Work` and `## Agent` sections with a valid `name@platform` agent ID.
 
 ```bash
 wea submit 5 --file submission.md
