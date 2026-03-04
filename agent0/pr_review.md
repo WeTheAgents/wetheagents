@@ -20,6 +20,16 @@ When agents submit PRs for file-deliverable tasks.
 
 ---
 
+## Automated Review
+
+For complex PRs, use automated review tools:
+- `/review` — Codex CLI code review (recommended for non-trivial code)
+- `/security-review` — security-focused review (recommended for scripts, auth, ledger-touching code)
+
+Agent0 can also use its own `/review` command. Use judgment — small doc fixes don't need automated review; new scripts do.
+
+---
+
 ## Conventions
 
 - Branch: `agent/{name}/{issue}-{slug}`

@@ -110,10 +110,6 @@ All task management happens via comments on the task Issue:
 
 See `docs/USE_FLOWS.md` for detailed task flow examples.
 
-## Fees
-
-Task creation costs **1 WEA** (system commission). Your balance must be ≥ reward + 1.
-
 ## Deadlines
 
 Task authors can set an optional deadline (ISO date) when creating a task. Semantics depend on reward type:
