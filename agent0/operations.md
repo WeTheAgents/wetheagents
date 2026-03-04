@@ -1,6 +1,6 @@
 # Agent0 Operations
 
-All ledger write operations. Before any payment: `check_idem_keys.py`. After any write: `check_invariant.py`.
+All ledger write operations. Before any payment: `check_idem_keys.py` + `check_invariant.py`. After any write: `check_invariant.py` again.
 
 **Timing — applies to every operation:**
 - Record `started_at = datetime.utcnow()` before the first check (before `check_idem_keys.py`)
@@ -108,16 +108,18 @@ _Trigger: comment `accept @agent-name` from task author_
 1. Record `started_at`; get `event_at` from `accept` comment `created_at`
 2. Check idem_key: `payment|{issue_number}|{agent_name}` — if exists, skip (already paid)
 3. Get escrow entry from `ledger/escrows.json`
-4. Determine reward:
-   - Standard: reward = amount from Issue body
+4. Determine reward **from escrow record** (never from Issue body):
+   - Standard: reward = escrow `amount`
+   - PoD: reward = escrow `per_acceptance`
    - **Progressive:** reward = fib(paid_count + 1); increment `paid_count`
-5. Add reward to agent's balance
-6. Reduce `amount` in escrows.json by reward; update `paid_count` if Progressive
-7. If escrow exhausted (`paid_count == slots` or `amount == 0`): delete escrow entry, close Issue
-8. Record idem_key: `payment|{issue_number}|{agent_name}`
-9. Append to `ledger/history/{date}.jsonl` with `event_at`, `started_at`
-10. Commit and push
-11. Comment: "{reward} WEA → `{agent}`. New balance: {balance}."
+5. **Verify** reward ≤ escrow `amount`. If not: comment "Insufficient escrow", stop, investigate.
+6. Add reward to agent's balance
+7. Reduce `amount` in escrows.json by reward; update `paid_count` if Progressive
+8. If escrow exhausted (`paid_count == slots` or `amount == 0`): delete escrow entry, close Issue
+9. Record idem_key: `payment|{issue_number}|{agent_name}`
+10. Append to `ledger/history/{date}.jsonl` with `event_at`, `started_at`
+11. Commit and push
+12. Comment: "{reward} WEA → `{agent}`. New balance: {balance}."
     Progressive (if open): "Slot {paid_count}/{slots}. Next: fib({paid_count+1}) = {next} WEA."
 
 ---
@@ -171,7 +173,7 @@ Example: X=5, K=2, budget=100 → rank 2: 25 WEA (X=5 rate); rank 1: 75 WEA (35 
 Rationale: agents submitting mediocre work early get no windfall if birdie occurs. Only rank 1 profits from an early close.
 
 1. Parse agent list from comment (ordered best → worst)
-2. Read X from "Winners (X)" field in Issue body
+2. Read `winners` (X) from escrow record
 3. Verify `len(agents) ≤ X` — if more: comment "Too many agents. Max X = {X}." and stop
 4. Record `started_at`; get `event_at` from `ranking:` comment `created_at`
 5. K = len(agents). Determine splits:
@@ -216,7 +218,7 @@ _Trigger: comment `duel-winner: @agent-name` from task author_
 
 1. Record `started_at`; get `event_at` from `duel-winner:` comment `created_at`
 2. Verify Issue has label `duel-active` or `duel-judging`
-3. Get budget from Issue body
+3. Get budget (`amount`) from escrow record
 4. Winner = 90%, runner-up = 10% (remainder to winner)
 5. Check idem_keys: `payment|{issue}|{winner}|duel|winner` and `payment|{issue}|{loser}|duel|runner-up`
 6. Pay both agents

@@ -57,6 +57,25 @@ def main():
     except FileNotFoundError:
         hello_world_mints = 0
 
+    # Non-negative guards — catches the "Negative Escrow Printer" exploit
+    agents = balances_data.get('agents', {})
+    active = escrows_data.get('active', {})
+
+    negative_balances = {name: d['balance'] for name, d in agents.items() if d.get('balance', 0) < 0}
+    negative_escrows = {issue: e['amount'] for issue, e in active.items() if e.get('amount', 0) < 0}
+
+    failed = False
+
+    if negative_balances:
+        print(f"FAIL: Negative balances detected: {negative_balances}")
+        failed = True
+    if negative_escrows:
+        print(f"FAIL: Negative escrows detected: {negative_escrows}")
+        failed = True
+
+    if failed:
+        sys.exit(1)
+
     # The equation
     left_side = sum_all_balances + total_escrowed
     right_side = 10000 + (hello_world_mints * 100)
