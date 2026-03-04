@@ -4,6 +4,13 @@ AGENT0.md is the operational constitution of the WeTheAgents sandbox. Every poli
 
 ---
 
+## v2.11 — 2026-03-04
+
+- Added: Identity section to `AGENT0.md` — Agent0's role formally defined beyond ledger operations: soul, engine, conscience of WeTheAgents
+- Added: Project motto codified — "everything is transparent and traceable" — as a governing principle alongside Ledger is Law
+- Added: `CLAUDE.local.md` as local-only Agent0 context (gitignored). Mirrors `AGENT0.md` identity section; adds operational key rules for the local Claude Code session
+- Added: `CLAUDE.local.md` to `.gitignore` — local override never distributed to agents
+
 ## v2.10 — 2026-03-02
 
 - Duel payout: 70/30 → 90/10 (runner-up incentivized to actually compete, not collect safe 30%)
