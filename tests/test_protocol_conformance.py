@@ -6,7 +6,11 @@ import sys
 
 import pytest
 
+from scripts.tide import TideProcessor
+from scripts.tide_parser import TideEvent
 from scripts.tide_ops import SPLIT_TABLE, compute_ranking_payouts, fib, progressive_budget
+
+SUITE_VERSION = "0.1.1"
 
 
 def test_protocol_vector2_progressive_pod_3_slots() -> None:
@@ -118,3 +122,134 @@ def test_protocol_invariant_formula_section_4_on_live_ledger() -> None:
             "PROTOCOL.md §4: invariant check failed on live ledger.\n"
             f"stdout:\n{stdout}\n\nstderr:\n{stderr}"
         )
+
+
+def _mk_processor_for_behavior_tests() -> TideProcessor:
+    balances = {
+        "agents": {
+            "author@x": {
+                "balance": 1000,
+                "github_username": "author-gh",
+                "total_earned": 1000,
+                "total_spent": 0,
+                "tasks_completed": 0,
+                "tasks_created": 0,
+            },
+            "alice@y": {
+                "balance": 10,
+                "github_username": "alice-gh",
+                "total_earned": 10,
+                "total_spent": 0,
+                "tasks_completed": 0,
+                "tasks_created": 0,
+            },
+            "bob@z": {
+                "balance": 20,
+                "github_username": "bob-gh",
+                "total_earned": 20,
+                "total_spent": 0,
+                "tasks_completed": 0,
+                "tasks_created": 0,
+            },
+        }
+    }
+    escrows = {
+        "active": {
+            "1": {"author": "author@x", "amount": 77, "type": "standard", "created_at": "2026-03-05T00:00:00Z"},
+            "2": {
+                "author": "author@x",
+                "amount": 4,
+                "type": "progressive",
+                "slots": 3,
+                "paid_count": 0,
+                "created_at": "2026-03-05T00:00:00Z",
+            },
+            "3": {"author": "author@x", "amount": 20, "type": "every_good", "created_at": "2026-03-05T00:00:00Z"},
+        }
+    }
+    idem_keys = {"keys": {}}
+    task_index = {"version": 1, "tasks": {}}
+    return TideProcessor(
+        balances=balances,
+        escrows=escrows,
+        idem_keys=idem_keys,
+        task_index=task_index,
+    )
+
+
+def _mk_event(
+    *,
+    event_type: str,
+    issue: int,
+    author_github: str,
+    agent: str | None = None,
+    comment_id: int = 1,
+    created_at: str = "2026-03-05T12:00:00Z",
+) -> TideEvent:
+    return TideEvent(
+        type=event_type,
+        issue=issue,
+        created_at=created_at,
+        author_github=author_github,
+        source="comment",
+        comment_id=comment_id,
+        agent=agent,
+    )
+
+
+def test_protocol_v011_standard_is_budget_driven_full_escrow_amount() -> None:
+    """Recommendation sync: standard payout follows escrow budget-driven semantics."""
+    proc = _mk_processor_for_behavior_tests()
+    ev = _mk_event(event_type="accept", issue=1, author_github="author-gh", agent="alice@y")
+    assert proc.process(ev), "PROTOCOL.md v0.1.1: standard accept should process"
+    assert proc.balances["agents"]["alice@y"]["balance"] == 87, (
+        "PROTOCOL.md v0.1.1: standard payout must equal full escrow amount "
+        "(budget-driven behavior)"
+    )
+    assert "1" not in proc.escrows["active"], "PROTOCOL.md v0.1.1: exhausted standard escrow must close"
+
+
+def test_protocol_v011_progressive_idem_key_must_include_slot_suffix() -> None:
+    """Recommendation sync: progressive idem keys must be slot-specific."""
+    proc = _mk_processor_for_behavior_tests()
+    ev1 = _mk_event(event_type="accept", issue=2, author_github="author-gh", agent="alice@y", comment_id=11)
+    ev2 = _mk_event(
+        event_type="accept",
+        issue=2,
+        author_github="author-gh",
+        agent="alice@y",
+        comment_id=12,
+        created_at="2026-03-05T12:01:00Z",
+    )
+    assert proc.process(ev1), "PROTOCOL.md v0.1.1: progressive slot 1 accept should process"
+    assert proc.process(ev2), "PROTOCOL.md v0.1.1: progressive slot 2 accept should process"
+
+    keys = proc.idem_keys.get("keys", {})
+    assert "payment|2|alice@y|slot1" in keys, (
+        "PROTOCOL.md v0.1.1: progressive idem key for slot 1 must be `...|slot1`"
+    )
+    assert "payment|2|alice@y|slot2" in keys, (
+        "PROTOCOL.md v0.1.1: progressive idem key for slot 2 must be `...|slot2`"
+    )
+
+
+def test_protocol_v011_claimed_is_non_exclusive_for_non_duel_tasks() -> None:
+    """Recommendation sync: CLAIMED should support multiple claimants for non-duel."""
+    proc = _mk_processor_for_behavior_tests()
+    claim1 = _mk_event(event_type="claim", issue=3, author_github="alice-gh", agent="alice@y", comment_id=21)
+    claim2 = _mk_event(
+        event_type="claim",
+        issue=3,
+        author_github="bob-gh",
+        agent="bob@z",
+        comment_id=22,
+        created_at="2026-03-05T12:01:00Z",
+    )
+    assert proc.process(claim1), "PROTOCOL.md v0.1.1: first claim should process"
+    assert proc.process(claim2), (
+        "PROTOCOL.md v0.1.1: second claimant should also be allowed for non-duel task"
+    )
+    keys = proc.idem_keys.get("keys", {})
+    assert "claim|3|alice@y" in keys and "claim|3|bob@z" in keys, (
+        "PROTOCOL.md v0.1.1: claim idem keys must be per-agent, enabling multi-claim semantics"
+    )
