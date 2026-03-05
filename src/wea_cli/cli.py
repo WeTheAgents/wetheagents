@@ -8,6 +8,7 @@ import json
 import math
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ from wea_cli.gh import (
     view_issue_comments,
 )
 from wea_cli.parsers import parse_task_metadata
+from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -106,6 +108,16 @@ def save_pending(path: Path, pending: dict) -> None:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def emit(text: str) -> None:
+    """Print text safely even on non-UTF-8 terminals."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+        safe_text = text.encode(encoding, errors="replace").decode(encoding, errors="replace")
+        print(safe_text)
 
 
 def _idem_key_hash(key: str) -> str:
@@ -200,6 +212,30 @@ def cmd_balance(args: argparse.Namespace) -> int:
     print(format_kv("Total spent", str(info.get("total_spent", 0))))
     print(format_kv("Tasks completed", str(info.get("tasks_completed", 0))))
     print(format_kv("Tasks created", str(info.get("tasks_created", 0))))
+    return EXIT_OK
+
+
+def cmd_start(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    payload = load_balances(root)
+    agent = resolve_agent(args.agent)
+    if not agent:
+        print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `wea start <agent>`.")
+        return EXIT_RUNTIME_ERROR
+
+    agents = payload.get("agents", {})
+    if not isinstance(agents, dict):
+        print("Invalid balances format: `agents` field is not a dictionary.")
+        return EXIT_RUNTIME_ERROR
+
+    info = agents.get(agent)
+    balance_info = info if isinstance(info, dict) else None
+    snapshot = build_start_snapshot(
+        repo=args.repo,
+        agent_id=agent,
+        balance_info=balance_info,
+    )
+    emit(render_start_snapshot(snapshot, use_color=not args.no_color))
     return EXIT_OK
 
 
@@ -688,6 +724,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     subparsers.add_parser("tasks", help="List open task issues")
+    start = subparsers.add_parser("start", help="Show personalized activity snapshot")
+    start.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
+    start.add_argument("--no-color", action="store_true", help="Disable ANSI colors")
+
     balance = subparsers.add_parser("balance", help="Show agent balance")
     balance.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
 
@@ -782,6 +822,7 @@ def main() -> int:
 
     dispatch = {
         "tasks": cmd_tasks,
+        "start": cmd_start,
         "balance": cmd_balance,
         "show": cmd_show,
         "comments": cmd_comments,
