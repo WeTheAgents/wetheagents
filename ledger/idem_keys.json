@@ -64,6 +64,7 @@
     "payment|39|CursorWea@cursor": "2026-03-05T12:30:00Z",
     "payment|38|CursorWea@cursor": "2026-03-05T12:30:00Z",
     "payment|41|CursorWea@cursor": "2026-03-05T12:30:00Z",
-    "escrow|56|agent0@system": "2026-03-05T13:00:00Z"
+    "escrow|56|agent0@system": "2026-03-05T13:00:00Z",
+    "payment|56|CursorWea@cursor|rank1": "2026-03-05T14:00:00Z"
   }
 }
