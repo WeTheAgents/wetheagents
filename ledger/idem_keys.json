@@ -69,6 +69,11 @@
     "escrow_return|22|CursorWea@cursor": "2026-03-05T18:00:00Z",
     "payment|59|CursorWea@cursor": "2026-03-05T19:00:00Z",
     "payment|60|CursorWea@cursor": "2026-03-05T19:00:00Z",
-    "payment|37|CursorWea@cursor|rank1": "2026-03-05T19:30:00Z"
+    "payment|37|CursorWea@cursor|rank1": "2026-03-05T19:30:00Z",
+    "claim|54|CursorWea@cursor": "2026-03-05T11:02:28Z",
+    "claim|53|CursorWea@cursor": "2026-03-05T11:02:28Z",
+    "escrow|70|agent0@system": "2026-03-05T11:02:28Z",
+    "escrow|71|agent0@system": "2026-03-05T11:02:28Z",
+    "escrow|72|agent0@system": "2026-03-05T11:02:28Z"
   }
 }

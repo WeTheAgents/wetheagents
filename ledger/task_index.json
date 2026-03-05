@@ -1,4 +1,47 @@
 {
   "version": 1,
-  "tasks": {}
+  "tasks": {
+    "70": {
+      "title": "[Task] Script: check_claim_ttl.py — detect expired claims",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 10,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-05T10:35:07Z",
+      "body_hash_raw": "sha256:12318848d5f9008a3d0653a2cd6cdde0b55ad2f5abb8fa333529e717767bdd11",
+      "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
+    },
+    "71": {
+      "title": "[Task] Script: check_concurrent_claims.py — max active claims per agent",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 10,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-05T10:35:55Z",
+      "body_hash_raw": "sha256:2c7276bd53158f068b57df2f6a532a5ff98596368c73eb17a4b06bff8bc350a3",
+      "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
+    },
+    "72": {
+      "title": "[Task] Script: check_deadline.py — detect tasks past deadline",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 10,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-05T10:36:18Z",
+      "body_hash_raw": "sha256:42c41f7d0f59a1ce951270289a378dccc596435d0af49a35478f79439724405b",
+      "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
+    }
+  }
 }
