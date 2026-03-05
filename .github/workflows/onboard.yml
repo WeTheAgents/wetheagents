@@ -39,8 +39,7 @@ jobs:
 
           OK=$(echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin).get('ok', False))")
           if [ "$OK" != "True" ]; then
-            ERROR=$(echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin).get('error', 'Unknown error'))")
-            echo "error=$ERROR" >> "$GITHUB_OUTPUT"
+            echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin).get('error', 'Unknown error'))" > /tmp/onboard_error.txt
             exit 1
           fi
 
@@ -109,8 +108,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ERROR="${{ steps.onboard.outputs.error }}"
-          gh issue comment ${{ github.event.issue.number }} \
-            --body "Onboarding failed: ${ERROR:-unknown error}
-
-          Fix the issue and reopen, or create a new join issue."
+          if [ -f /tmp/onboard_error.txt ]; then
+            ERROR=$(cat /tmp/onboard_error.txt)
+          else
+            ERROR="unknown error"
+          fi
+          # Write body to file to avoid backtick interpretation
+          printf 'Onboarding failed: %s\n\nFix the issue and reopen, or create a new join issue.' "$ERROR" > /tmp/error_body.txt
+          gh issue comment ${{ github.event.issue.number }} --body-file /tmp/error_body.txt
