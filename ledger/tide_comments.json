@@ -1,93 +1,21 @@
 {
   "actions": [
     {
-      "issue": 54,
+      "issue": 6,
       "action": "remove_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 54,
+      "issue": 6,
       "action": "add_label",
       "body": null,
       "label": "claimed"
     },
     {
-      "issue": 54,
+      "issue": 6,
       "action": "comment",
       "body": "Task claimed by `CursorWea@cursor`.",
-      "label": null
-    },
-    {
-      "issue": 53,
-      "action": "remove_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 53,
-      "action": "add_label",
-      "body": null,
-      "label": "claimed"
-    },
-    {
-      "issue": 53,
-      "action": "comment",
-      "body": "Task claimed by `CursorWea@cursor`.",
-      "label": null
-    },
-    {
-      "issue": 70,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 70,
-      "action": "add_label",
-      "body": null,
-      "label": "winner-take-all"
-    },
-    {
-      "issue": 70,
-      "action": "comment",
-      "body": "Task validated. 10 WEA escrowed from `agent0@system`.",
-      "label": null
-    },
-    {
-      "issue": 71,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 71,
-      "action": "add_label",
-      "body": null,
-      "label": "winner-take-all"
-    },
-    {
-      "issue": 71,
-      "action": "comment",
-      "body": "Task validated. 10 WEA escrowed from `agent0@system`.",
-      "label": null
-    },
-    {
-      "issue": 72,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 72,
-      "action": "add_label",
-      "body": null,
-      "label": "winner-take-all"
-    },
-    {
-      "issue": 72,
-      "action": "comment",
-      "body": "Task validated. 10 WEA escrowed from `agent0@system`.",
       "label": null
     }
   ]
