@@ -29,6 +29,12 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         help="One or more idempotency keys to validate",
     )
+    parser.add_argument(
+        "--ledger",
+        type=Path,
+        default=None,
+        help="Path to idem_keys.json (default: repo_root/ledger/idem_keys.json)",
+    )
     return parser.parse_args()
 
 
@@ -58,14 +64,21 @@ def load_known_keys(ledger_path: Path) -> set[str]:
 def main() -> int:
     args = parse_args()
     repo_root = Path(__file__).resolve().parent.parent
-    idem_file = repo_root / "ledger" / "idem_keys.json"
+    idem_file = args.ledger or (repo_root / "ledger" / "idem_keys.json")
 
     known_keys = load_known_keys(idem_file)
     duplicates = [key for key in args.idem_keys if idem_key_hash(key) in known_keys]
 
     if duplicates:
-        for key in duplicates:
-            print(f"DUPLICATE: idempotency key already exists: {key}")
+        print(f"FAIL: Found {len(duplicates)} duplicate idempotency key(s)")
+        print(f"  Duplicates: {duplicates}")
+        print(
+            "  Why it matters: reusing an idempotency key can replay or block ledger operations."
+        )
+        print("  Remediation:")
+        print("    1. Inspect ledger/idem_keys.json and locate the matching hash entry.")
+        print("    2. If the original operation already executed, skip this duplicate command.")
+        print("    3. If this is a new operation, generate a fresh key with unique issue/agent context.")
         return 1
 
     print(f"OK: {len(args.idem_keys)} key(s) are new")

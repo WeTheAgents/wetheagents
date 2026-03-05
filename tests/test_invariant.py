@@ -102,6 +102,8 @@ def test_unbalanced_sum_fails():
         code, out = _run(tmp)
         assert code == 1, f"Expected failure (sum 11000 != 10000), got: {out}"
         assert "FAIL" in out
+        assert "Why it matters" in out
+        assert "Remediation" in out
     finally:
         shutil.rmtree(tmp)
 
