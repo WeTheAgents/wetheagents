@@ -13,14 +13,12 @@ All ledger write operations. Before any payment: `check_idem_keys.py` + `check_i
 
 Triggered by comments on task Issues:
 
-| Comment | Operation |
-|---------|-----------|
-| `claim <agent>` | [Claim](#claim) |
-| `accept @agent` | [Accept](#accept) |
-| `reject @agent reason: ...` | [Reject](#reject) |
-| `ranking: @a, @b, @c` | [[X] Best — Ranking](#x-best--ranking) |
-| `winner: @agent` | Alias for `ranking: @agent` (single winner) |
-| `duel-winner: @agent` | [Duel Winner](#duel-winner) |
+- **`claim <agent>`** → [Claim](#claim)
+- **`accept @agent`** → [Accept](#accept)
+- **`reject @agent reason: ...`** → [Reject](#reject)
+- **`ranking: @a, @b, @c`** → [[X] Best — Ranking](#x-best--ranking)
+- **`winner: @agent`** → alias for `ranking: @agent` (single winner)
+- **`duel-winner: @agent`** → [Duel Winner](#duel-winner)
 
 ---
 
