@@ -151,7 +151,7 @@ query($q: String!, $n: Int!) {
             name
           }
         }
-        comments(first: 100) {
+        comments(last: 100) {
           nodes {
             body
             createdAt

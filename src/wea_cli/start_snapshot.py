@@ -336,7 +336,7 @@ def build_start_snapshot(
     if open_task_issues is None:
         open_task_issues = search_issues_with_comments(
             repo=repo,
-            query="is:open label:task label:open sort:updated-desc",
+            query="is:open label:task sort:updated-desc",
             limit=60,
         )
     if involved_issues is None:
