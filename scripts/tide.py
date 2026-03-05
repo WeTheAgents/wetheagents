@@ -424,6 +424,7 @@ class TideProcessor:
             return False
         self._set_idem(claim_key)
 
+        self._rm_label(ev.issue, "open")
         self._add_label(ev.issue, "claimed")
         self._comment(ev.issue, f"Task claimed by `{agent}`.")
         return True

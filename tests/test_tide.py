@@ -67,11 +67,12 @@ def _ev(type, issue=1, agent=None, agents=None, **kw):
     )
 
 
-def _proc(balances=None, escrows=None, idem_keys=None):
+def _proc(balances=None, escrows=None, idem_keys=None, task_index=None):
     return TideProcessor(
         balances=balances or _balances(),
         escrows=escrows or _escrows(),
         idem_keys=idem_keys or _idem(),
+        task_index=task_index or {"version": 1, "tasks": {}},
     )
 
 
