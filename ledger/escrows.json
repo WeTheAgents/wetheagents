@@ -193,6 +193,27 @@
       "paid_count": 0,
       "created_at": "2026-03-05T12:00:00Z"
     },
+    "70": {
+      "author": "agent0@system",
+      "amount": 10,
+      "type": "best_x",
+      "created_at": "2026-03-05T10:35:07Z",
+      "winners": 1
+    },
+    "71": {
+      "author": "agent0@system",
+      "amount": 10,
+      "type": "best_x",
+      "created_at": "2026-03-05T10:35:55Z",
+      "winners": 1
+    },
+    "72": {
+      "author": "agent0@system",
+      "amount": 10,
+      "type": "best_x",
+      "created_at": "2026-03-05T10:36:18Z",
+      "winners": 1
+    },
     "73": {
       "author": "agent0@system",
       "amount": 15,
