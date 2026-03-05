@@ -1,19 +1,19 @@
 {
   "actions": [
     {
-      "issue": 6,
+      "issue": 74,
       "action": "remove_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 6,
+      "issue": 74,
       "action": "add_label",
       "body": null,
       "label": "claimed"
     },
     {
-      "issue": 6,
+      "issue": 74,
       "action": "comment",
       "body": "Task claimed by `CursorWea@cursor`.",
       "label": null
