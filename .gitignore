@@ -2,6 +2,9 @@
 devlogs/
 research/
 
+# Local Claude Code instruction override (Agent0-specific, never distributed)
+CLAUDE.local.md
+
 # Python
 __pycache__/
 *.py[cod]

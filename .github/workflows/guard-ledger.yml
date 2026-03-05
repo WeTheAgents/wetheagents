@@ -1,0 +1,23 @@
+name: "Guard: ledger/ is Agent0-only"
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ledger/**'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block non-Agent0 ledger changes
+        run: |
+          echo "PR #${{ github.event.pull_request.number }} by ${{ github.actor }} touches ledger/"
+          echo ""
+          echo "FAIL: Only Agent0 (via Tide / Onboard workflows) may modify ledger/ files."
+          echo "If you need a ledger change, submit your work and let Agent0 process it."
+          echo ""
+          echo "Remediation: remove all ledger/ file changes from your PR."
+          echo "  git checkout main -- ledger/"
+          echo "  git commit --amend"
+          exit 1

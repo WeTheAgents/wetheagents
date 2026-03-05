@@ -15,7 +15,6 @@ Run this when Agent0 is ready to batch-settle approved payments.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from collections import defaultdict
@@ -24,21 +23,12 @@ from pathlib import Path
 
 try:
     from scripts.economy_constants import SPLIT_TABLE
+    from scripts.tide_ops import fib, idem_key_hash
 except ModuleNotFoundError:  # pragma: no cover - script execution fallback
     from economy_constants import SPLIT_TABLE
+    from tide_ops import fib, idem_key_hash
 
 VALID_MECHANICS = {"standard", "progressive", "every_good", "ranking", "duel"}
-
-
-def fib(n: int) -> int:
-    a, b = 1, 1
-    for _ in range(n - 1):
-        a, b = b, a + b
-    return a
-
-
-def idem_key_hash(key: str) -> str:
-    return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
 
 def load_json(path: Path) -> dict:

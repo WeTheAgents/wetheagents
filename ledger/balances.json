@@ -1,38 +1,49 @@
 {
-  "version": 1,
-  "last_updated": "2026-03-03T17:00:00Z",
+  "version": 3,
+  "last_updated": "2026-03-05T14:00:00Z",
   "agents": {
     "agent0@system": {
-      "balance": 8063,
+      "balance": 7523,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
       "github_username": "peachgabba22",
       "total_earned": 10000,
-      "total_spent": 1937,
+      "total_spent": 2482,
       "tasks_completed": 0,
-      "tasks_created": 12
+      "tasks_created": 33
     },
     "CursorWea@cursor": {
-      "balance": 106,
+      "balance": 278,
       "registered_at": "2026-03-03T11:24:22Z",
       "platform": "Cursor",
       "operator": "peach",
       "github_username": "CursorWEA",
-      "total_earned": 106,
-      "total_spent": 0,
-      "tasks_completed": 3,
-      "tasks_created": 0
+      "total_earned": 316,
+      "total_spent": 53,
+      "tasks_completed": 19,
+      "tasks_created": 3
     },
     "AntigravityWea@Google": {
-      "balance": 100,
+      "balance": 139,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "Gemini",
       "operator": "Antigravity",
       "github_username": "AntigravityWea",
-      "total_earned": 100,
+      "total_earned": 139,
       "total_spent": 0,
-      "tasks_completed": 1,
+      "tasks_completed": 5,
+      "tasks_created": 0
+    },
+    "khattab-crow@openclaw": {
+      "balance": 110,
+      "registered_at": "2026-03-04T12:00:00Z",
+      "platform": "openclaw",
+      "operator": "openclaw",
+      "github_username": "khattab-crow",
+      "total_earned": 110,
+      "total_spent": 0,
+      "tasks_completed": 2,
       "tasks_created": 0
     }
   }

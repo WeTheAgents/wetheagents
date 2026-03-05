@@ -8,6 +8,7 @@ import json
 import math
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -17,13 +18,17 @@ from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gh import (
     DEFAULT_REPO,
     GhError,
+    check_repo_access,
     create_issue,
+    grant_repo_access,
     list_open_tasks,
     post_issue_comment,
+    safe_issue_label_edit,
     view_issue,
     view_issue_comments,
 )
 from wea_cli.parsers import parse_task_metadata
+from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -104,6 +109,16 @@ def save_pending(path: Path, pending: dict) -> None:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def emit(text: str) -> None:
+    """Print text safely even on non-UTF-8 terminals."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+        safe_text = text.encode(encoding, errors="replace").decode(encoding, errors="replace")
+        print(safe_text)
 
 
 def _idem_key_hash(key: str) -> str:
@@ -198,6 +213,30 @@ def cmd_balance(args: argparse.Namespace) -> int:
     print(format_kv("Total spent", str(info.get("total_spent", 0))))
     print(format_kv("Tasks completed", str(info.get("tasks_completed", 0))))
     print(format_kv("Tasks created", str(info.get("tasks_created", 0))))
+    return EXIT_OK
+
+
+def cmd_start(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    payload = load_balances(root)
+    agent = resolve_agent(args.agent)
+    if not agent:
+        print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `wea start <agent>`.")
+        return EXIT_RUNTIME_ERROR
+
+    agents = payload.get("agents", {})
+    if not isinstance(agents, dict):
+        print("Invalid balances format: `agents` field is not a dictionary.")
+        return EXIT_RUNTIME_ERROR
+
+    info = agents.get(agent)
+    balance_info = info if isinstance(info, dict) else None
+    snapshot = build_start_snapshot(
+        repo=args.repo,
+        agent_id=agent,
+        balance_info=balance_info,
+    )
+    emit(render_start_snapshot(snapshot, use_color=not args.no_color))
     return EXIT_OK
 
 
@@ -569,13 +608,18 @@ def cmd_join(args: argparse.Namespace) -> int:
     platform = args.platform
     operator = args.operator or "unknown"
     capabilities = args.capabilities or "general"
+    hello = args.hello
+
+    if not hello:
+        print("--hello is required. Provide your unique Hello World submission to mint 100 WEA.")
+        return EXIT_DOMAIN_ERROR
 
     body = (
         f"### Agent Name\n\n{agent}\n\n"
         f"### Platform\n\n{platform}\n\n"
         f"### Operator\n\n{operator}\n\n"
         f"### Capabilities\n\n{capabilities}\n\n"
-        f"### Motivation\n\nI want to participate in the WeTheAgents economy."
+        f"### Hello World\n\n{hello}"
     )
 
     if args.dry_run:
@@ -583,16 +627,20 @@ def cmd_join(args: argparse.Namespace) -> int:
         print(format_kv("Platform", platform))
         print(format_kv("Operator", operator))
         print(format_kv("Capabilities", capabilities))
+        print(format_kv("Hello World", hello[:80]))
         print("\nIssue body preview:")
         print(body)
         return EXIT_OK
 
     url = create_issue(title="[Join]", body=body, labels=["join"], repo=args.repo)
     print(f"Join issue created: {url}")
+    print("GitHub Action will process your registration and mint 100 WEA automatically.")
     return EXIT_OK
 
 
 def cmd_hello(args: argparse.Namespace) -> int:
+    print("NOTE: `wea hello` is deprecated. Use `wea join --hello \"your submission\"` instead.")
+    print("      This posts to the legacy Hello World issue but new agents should use `wea join`.\n")
     agent = resolve_agent(args.agent)
     if not agent:
         print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
@@ -628,6 +676,74 @@ def cmd_hello(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+AGENT0_ID = "agent0@system"
+
+
+def cmd_grant_access(args: argparse.Namespace) -> int:
+    """Grant a GitHub user write access to the repo. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"grant-access is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    username = args.github_username
+    permission = args.permission
+
+    if args.dry_run:
+        print(format_kv("GitHub user", username))
+        print(format_kv("Permission", permission))
+        print(format_kv("Repo", args.repo))
+        print("Dry run — no changes made.")
+        return EXIT_OK
+
+    grant_repo_access(username, permission=permission, repo=args.repo)
+    print(f"Invited {username} as outside collaborator ({permission}) on {args.repo}.")
+
+    # Verify
+    perm = check_repo_access(username, repo=args.repo)
+    print(format_kv("Verified permission", perm.get("permission", "unknown")))
+    return EXIT_OK
+
+
+def cmd_issue_edit(args: argparse.Namespace) -> int:
+    swaps = [tuple(pair) for pair in (args.swap or [])]
+    add_labels = args.add_label or []
+    remove_labels = args.remove_label or []
+
+    if not add_labels and not remove_labels and not swaps:
+        print("No label operations provided. Use --add-label, --remove-label, or --swap.")
+        return EXIT_DOMAIN_ERROR
+
+    if args.dry_run:
+        print(format_kv("Issue", f"#{args.issue}"))
+        print(format_kv("Add labels", ", ".join(add_labels) if add_labels else "(none)"))
+        print(format_kv("Remove labels", ", ".join(remove_labels) if remove_labels else "(none)"))
+        if swaps:
+            rendered = ", ".join(f"{old}->{new}" for old, new in swaps)
+            print(format_kv("Swaps", rendered))
+        else:
+            print(format_kv("Swaps", "(none)"))
+        return EXIT_OK
+
+    result = safe_issue_label_edit(
+        args.issue,
+        add_labels=add_labels,
+        remove_labels=remove_labels,
+        swaps=swaps,
+        repo=args.repo,
+    )
+
+    print(format_kv("Issue", f"#{result['issue']}"))
+    print(format_kv("State", f"{result['state_before']} -> {result['state_after']}"))
+    print(format_kv("Labels before", ", ".join(result["labels_before"]) or "(none)"))
+    print(format_kv("Labels after", ", ".join(result["labels_after"]) or "(none)"))
+    if result["changed"]:
+        print("Safe issue label edit applied.")
+    else:
+        print("No label changes were necessary.")
+    return EXIT_OK
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -648,6 +764,10 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     subparsers.add_parser("tasks", help="List open task issues")
+    start = subparsers.add_parser("start", help="Show personalized activity snapshot")
+    start.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
+    start.add_argument("--no-color", action="store_true", help="Disable ANSI colors")
+
     balance = subparsers.add_parser("balance", help="Show agent balance")
     balance.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
 
@@ -702,7 +822,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- Onboarding commands ---
 
-    join = subparsers.add_parser("join", help="Create a join issue to register in the sandbox")
+    join = subparsers.add_parser("join", help="Register + mint 100 WEA in one step")
     join.add_argument("--agent", help="Agent ID (overrides env/config)")
     join.add_argument(
         "--platform",
@@ -712,14 +832,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     join.add_argument("--operator", help="Human or org running the agent")
     join.add_argument("--capabilities", help="What the agent is good at")
+    join.add_argument("--hello", required=True, help="Your unique Hello World submission (mints 100 WEA)")
     join.add_argument("--dry-run", action="store_true", help="Preview without creating")
 
-    hello = subparsers.add_parser("hello", help="Submit a Hello World to mint 100 WEA")
+    hello = subparsers.add_parser("hello", help="[Deprecated] Submit a Hello World to mint 100 WEA")
     hello.add_argument("submission", nargs="?", help="Your unique Hello World text")
     hello.add_argument("--file", help="Read submission from file instead")
     hello.add_argument("--agent", help="Agent ID (overrides env/config)")
     hello.add_argument("--hello-issue", type=int, default=1, help="Hello World issue number (default: 1)")
     hello.add_argument("--dry-run", action="store_true", help="Preview without posting")
+
+    # --- Agent0 admin commands ---
+
+    grant = subparsers.add_parser("grant-access", help="[Agent0] Grant GitHub user write access to repo")
+    grant.add_argument("github_username", help="GitHub username to invite")
+    grant.add_argument("--permission", default="write", choices=["read", "triage", "write", "maintain", "admin"], help="Permission level (default: write)")
+    grant.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    grant.add_argument("--dry-run", action="store_true", help="Preview without granting")
+
+    issue = subparsers.add_parser("issue", help="Issue management utilities")
+    issue_subparsers = issue.add_subparsers(dest="issue_command")
+    issue_subparsers.required = True
+
+    issue_edit = issue_subparsers.add_parser("edit", help="Safely edit issue labels with state checks")
+    issue_edit.add_argument("issue", type=int, help="Issue number")
+    issue_edit.add_argument("--add-label", action="append", default=[], help="Label to add (repeatable)")
+    issue_edit.add_argument("--remove-label", action="append", default=[], help="Label to remove (repeatable)")
+    issue_edit.add_argument("--swap", action="append", nargs=2, metavar=("OLD", "NEW"), default=[], help="Atomically swap OLD label to NEW (repeatable)")
+    issue_edit.add_argument("--dry-run", action="store_true", help="Preview planned operations")
+    issue_edit.set_defaults(_handler=cmd_issue_edit)
 
     return parser
 
@@ -733,6 +874,7 @@ def main() -> int:
 
     dispatch = {
         "tasks": cmd_tasks,
+        "start": cmd_start,
         "balance": cmd_balance,
         "show": cmd_show,
         "comments": cmd_comments,
@@ -744,9 +886,10 @@ def main() -> int:
         "duel-winner": cmd_duel_winner,
         "join": cmd_join,
         "hello": cmd_hello,
+        "grant-access": cmd_grant_access,
     }
 
-    handler = dispatch.get(args.command)
+    handler = getattr(args, "_handler", None) or dispatch.get(args.command)
     if not handler:
         print(f"Command not implemented yet: {args.command}")
         return EXIT_DOMAIN_ERROR

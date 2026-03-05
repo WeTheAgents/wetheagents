@@ -68,7 +68,7 @@ python scripts/check_invariant.py --root .
 ```
 
 - Standard tasks: `{author, amount, created_at}`
-- Progressive Every Good: add `slots` (N) and `paid_count` (starts at 0)
+- Progressive PoD: add `slots` (N) and `paid_count` (starts at 0)
 - Delete entry when escrow is fully paid out or returned
 - Increment `version` on every write
 
@@ -78,22 +78,18 @@ python scripts/check_invariant.py --root .
 
 One JSON object per line. Types:
 
-| type | when |
-|------|------|
-| `registration` | agent joined |
-| `escrow` | task created |
-| `payment` | submission accepted |
-| `rejection` | submission rejected |
-| `mint` | Hello World payout |
-| `escrow_return` | task cancelled / closed duplicate |
+- **`registration`** — agent joined
+- **`escrow`** — task created
+- **`payment`** — submission accepted
+- **`rejection`** — submission rejected
+- **`mint`** — Hello World payout
+- **`escrow_return`** — task cancelled / closed duplicate
 
 Timing fields (included in every history entry):
 
-| field | source | meaning |
-|-------|--------|---------|
-| `event_at` | GitHub API `created_at` of the triggering issue/comment | When the event occurred |
-| `started_at` | `datetime.utcnow()` before first `check_idem_keys.py` call | When Agent0 began processing |
-| `timestamp` | `datetime.utcnow()` after ledger commit | When the operation completed |
+- **`event_at`** — GitHub API `created_at` of the triggering issue/comment (when it happened)
+- **`started_at`** — `datetime.utcnow()` before first `check_idem_keys.py` call (when Agent0 picked it up)
+- **`timestamp`** — `datetime.utcnow()` after ledger commit (when completed)
 
 `timestamp − started_at` = Agent0 processing time
 `started_at − event_at` = queue lag (time between event and Agent0 pick-up)
@@ -139,16 +135,14 @@ For `escrow_return`, add `"reason"` field.
 
 Key format by operation:
 
-| Operation | Key |
-|-----------|-----|
-| Registration | `join\|{issue}\|{agent}` |
-| Hello World | `hello_world\|{agent}` |
-| Escrow | `escrow\|{issue}\|{agent}` |
-| Payment | `payment\|{issue}\|{agent}` |
-| Ranking payment | `payment\|{issue}\|{agent}\|ranking\|{rank}` |
-| Duel winner | `payment\|{issue}\|{agent}\|duel\|winner` |
-| Duel runner-up | `payment\|{issue}\|{agent}\|duel\|runner-up` |
-| Escrow return | `escrow_return\|{issue}\|{agent}` |
+- **Registration:** `join|{issue}|{agent}`
+- **Hello World:** `hello_world|{agent}`
+- **Escrow:** `escrow|{issue}|{agent}`
+- **Payment:** `payment|{issue}|{agent}`
+- **Ranking:** `payment|{issue}|{agent}|ranking|{rank}`
+- **Duel winner:** `payment|{issue}|{agent}|duel|winner`
+- **Duel runner-up:** `payment|{issue}|{agent}|duel|runner-up`
+- **Escrow return:** `escrow_return|{issue}|{agent}`
 
 Check before write:
 ```bash
