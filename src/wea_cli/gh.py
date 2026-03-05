@@ -16,7 +16,14 @@ class GhError(RuntimeError):
 def run_gh_json(args: list[str]) -> Any:
     command = ["gh", *args]
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+        )
     except FileNotFoundError as exc:
         raise GhError("`gh` CLI not found. Install GitHub CLI and authenticate.") from exc
     except subprocess.CalledProcessError as exc:
@@ -32,7 +39,14 @@ def run_gh_json(args: list[str]) -> Any:
 def run_gh_text(args: list[str]) -> str:
     command = ["gh", *args]
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+        )
     except FileNotFoundError as exc:
         raise GhError("`gh` CLI not found. Install GitHub CLI and authenticate.") from exc
     except subprocess.CalledProcessError as exc:
@@ -107,6 +121,75 @@ def create_issue(
     for label in labels or []:
         args.extend(["--label", label])
     return run_gh_text(args).strip()
+
+
+def search_issues_with_comments(
+    *,
+    repo: str = DEFAULT_REPO,
+    query: str,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    """Search issues with comments in one GraphQL call."""
+    if limit < 1:
+        return []
+
+    search_query = f"repo:{repo} is:issue {query}".strip()
+    gql = """
+query($q: String!, $n: Int!) {
+  search(type: ISSUE, query: $q, first: $n) {
+    nodes {
+      ... on Issue {
+        number
+        title
+        body
+        state
+        url
+        labels(first: 20) {
+          nodes {
+            name
+          }
+        }
+        comments(first: 100) {
+          nodes {
+            body
+            createdAt
+            url
+            author {
+              login
+            }
+          }
+        }
+      }
+    }
+  }
+}
+""".strip()
+
+    payload = run_gh_json(
+        [
+            "api",
+            "graphql",
+            "-f",
+            f"query={gql}",
+            "-f",
+            f"q={search_query}",
+            "-F",
+            f"n={limit}",
+        ]
+    )
+    if not isinstance(payload, dict):
+        return []
+    data = payload.get("data")
+    if not isinstance(data, dict):
+        return []
+    search = data.get("search")
+    if not isinstance(search, dict):
+        return []
+
+    nodes = search.get("nodes")
+    if not isinstance(nodes, list):
+        return []
+    return [node for node in nodes if isinstance(node, dict)]
 
 
 def grant_repo_access(
