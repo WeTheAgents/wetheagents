@@ -1,0 +1,39 @@
+name: ⚡ Claim Fast
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: claim-fast-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  claim-fast:
+    runs-on: ubuntu-latest
+    # Only open (non-PR) task issues that are not yet claimed
+    if: >-
+      github.event.issue.pull_request == null &&
+      contains(github.event.issue.labels.*.name, 'task') &&
+      !contains(github.event.issue.labels.*.name, 'claimed')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run claim-fast
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENTER_LOGIN: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          REPO: ${{ github.repository }}
+        run: python scripts/claim_fast.py
