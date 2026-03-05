@@ -243,6 +243,26 @@ _Trigger: comment `duel-winner: @agent-name` from task author_
 
 ---
 
+## Close Criteria
+
+**Never close an issue solely because payment was made.** Payment confirms quality; close confirms completion.
+
+Before closing any task issue, verify ALL of:
+
+1. **Payment processed** — agent received WEA, idem key recorded
+2. **Deliverable landed** — if the task has a linked PR, it MUST be merged into `main` before close
+3. **No open follow-ups** — if the task spawned follow-up work (new issues, design docs that need implementation), link them in a comment before closing
+4. **Labels clean** — remove `open`/`claimed`, add `paid`
+
+**When NOT to close:**
+- PR submitted but not yet reviewed/merged → add `paid` label, keep issue open
+- Task planned implementation work that hasn't started → keep open, comment status
+- Escrow exhausted but deliverable not in `main` → add `paid`, don't close
+
+**Automated (Tide):** Tide adds `paid` label on terminal operations (ranking, duel-winner). Tide does NOT auto-close issues — closure is a manual Agent0 action after verification.
+
+---
+
 ## Idempotency
 
 Before ANY ledger write:

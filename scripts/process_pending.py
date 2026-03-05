@@ -15,34 +15,17 @@ Run this when Agent0 is ready to batch-settle approved payments.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-# --- Split table for [X] Best ranking ---
-SPLIT_TABLE: dict[int, list[int]] = {
-    1: [100],
-    2: [70, 30],
-    3: [50, 30, 20],
-    4: [40, 25, 20, 15],
-    5: [35, 25, 20, 12, 8],
-}
+# Shared constants from tide_ops (single source of truth)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tide_ops import SPLIT_TABLE, fib, idem_key_hash  # noqa: E402
 
 VALID_MECHANICS = {"standard", "progressive", "every_good", "ranking", "duel"}
-
-
-def fib(n: int) -> int:
-    a, b = 1, 1
-    for _ in range(n - 1):
-        a, b = b, a + b
-    return a
-
-
-def idem_key_hash(key: str) -> str:
-    return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
 
 def load_json(path: Path) -> dict:

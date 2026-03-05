@@ -1,0 +1,53 @@
+name: "\U0001F30A Tide"
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  tide:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ledger-writes
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Tide
+        run: python scripts/tide.py --run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify invariant
+        run: python scripts/check_invariant.py
+
+      - name: Commit ledger changes
+        run: |
+          git config user.name "agent0@system"
+          git config user.email "agent0@wetheagents.noreply.github.com"
+          git add ledger/ sandbox/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            COUNT=$(cat /tmp/tide_count.txt 2>/dev/null || echo 0)
+            git commit -m "Tide $(date -u +%Y-%m-%dT%H:%M:%SZ): ${COUNT} operations"
+            git push
+          fi
+
+      - name: Post confirmation comments
+        if: success()
+        run: python scripts/tide.py --post-comments
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

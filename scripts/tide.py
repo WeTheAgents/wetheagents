@@ -1,0 +1,898 @@
+#!/usr/bin/env python3
+"""Tide — periodic settlement cycle for WeTheAgents.
+
+Reads unprocessed GitHub Issue events (new tasks, comments/commands),
+processes them as a batch, writes ledger changes atomically.
+
+Usage:
+    python scripts/tide.py --run [--root PATH] [--dry-run]
+    python scripts/tide.py --post-comments [--root PATH]
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import subprocess
+import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+# Ensure scripts/ is importable
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from duel_randomizer import assign_roles  # noqa: E402
+from tide_ops import compute_ranking_payouts, fib, progressive_budget  # noqa: E402
+from tide_parser import TideEvent, parse_comment, parse_task_issue  # noqa: E402
+
+
+# ---------------------------------------------------------------------------
+# Data structures
+# ---------------------------------------------------------------------------
+
+@dataclass
+class TideAction:
+    """Pending action to execute on GitHub after ledger commit."""
+
+    issue: int
+    action: str  # "comment", "add_label", "remove_label", "close"
+    body: str | None = None
+    label: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Utilities
+# ---------------------------------------------------------------------------
+
+def _load_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _save_json(path: Path, data: dict) -> None:
+    path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _github_to_agent(balances: dict) -> dict[str, str]:
+    """Build reverse map: lowercase github_username -> agent_id."""
+    m: dict[str, str] = {}
+    for agent_id, info in balances.get("agents", {}).items():
+        gh = info.get("github_username", "")
+        if gh:
+            m[gh.lower()] = agent_id
+    return m
+
+
+# ---------------------------------------------------------------------------
+# GitHub API helpers
+# ---------------------------------------------------------------------------
+
+def _detect_repo(root: Path) -> str:
+    try:
+        r = subprocess.run(
+            ["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"],
+            capture_output=True, text=True, cwd=root, check=True,
+        )
+        return r.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "peachgabba22/wetheagents"
+
+
+def _gh_api(repo: str, endpoint: str, params: dict[str, str] | None = None) -> list[dict]:
+    # Build URL with query params (gh api -f sends POST body, not query params)
+    url = f"/repos/{repo}/{endpoint}"
+    if params:
+        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        url = f"{url}?{qs}"
+    cmd = ["gh", "api", "--paginate", url]
+    # MSYS_NO_PATHCONV prevents Git Bash on Windows from rewriting
+    # /repos/... as a filesystem path.
+    env = {**__import__("os").environ, "MSYS_NO_PATHCONV": "1"}
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, check=True, env=env)
+        # --paginate may output multiple JSON arrays concatenated;
+        # use json.JSONDecoder to parse them all.
+        results: list[dict] = []
+        decoder = json.JSONDecoder()
+        text = r.stdout.strip()
+        pos = 0
+        while pos < len(text):
+            obj, end = decoder.raw_decode(text, pos)
+            if isinstance(obj, list):
+                results.extend(obj)
+            else:
+                results.append(obj)
+            # skip whitespace between concatenated JSON values
+            pos = end
+            while pos < len(text) and text[pos] in " \t\r\n":
+                pos += 1
+        return results
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        print(f"Warning: gh api {endpoint} failed: {e}", file=sys.stderr)
+        return []
+
+
+def fetch_task_issues(repo: str, since: str) -> list[dict]:
+    return _gh_api(repo, "issues", {
+        "labels": "task", "since": since, "state": "open", "per_page": "100",
+    })
+
+
+def fetch_comments(repo: str, since: str) -> list[dict]:
+    return _gh_api(repo, "issues/comments", {
+        "since": since, "sort": "created", "direction": "asc", "per_page": "100",
+    })
+
+
+# ---------------------------------------------------------------------------
+# Event building
+# ---------------------------------------------------------------------------
+
+def build_events(
+    issues: list[dict],
+    comments: list[dict],
+    idem_keys: dict,
+    task_issue_numbers: set[int],
+) -> list[TideEvent]:
+    """Convert raw GitHub API data into a sorted TideEvent list."""
+    events: list[TideEvent] = []
+
+    # Task creation from issue bodies
+    for iss in issues:
+        num = iss["number"]
+        prefix = f"escrow|{num}|"
+        if any(k.startswith(prefix) for k in idem_keys.get("keys", {})):
+            continue
+        body = iss.get("body", "") or ""
+        ev = parse_task_issue(
+            body,
+            issue=num,
+            created_at=iss.get("created_at", ""),
+            author_github=iss.get("user", {}).get("login", ""),
+        )
+        if ev:
+            ev.title = iss.get("title", "")
+            ev.body_hash_raw = "sha256:" + hashlib.sha256(body.encode()).hexdigest()
+            semantic = json.dumps({
+                "reward": ev.reward,
+                "reward_type": ev.reward_type,
+                "slots": ev.slots,
+                "winners": ev.winners,
+                "rounds": ev.rounds,
+                "deadline": ev.deadline,
+            }, sort_keys=True)
+            ev.body_hash_semantic = "sha256:" + hashlib.sha256(semantic.encode()).hexdigest()
+            events.append(ev)
+
+    # Commands from comments
+    for c in comments:
+        issue_url = c.get("issue_url", "")
+        try:
+            num = int(issue_url.rstrip("/").split("/")[-1])
+        except (ValueError, IndexError):
+            continue
+        if num not in task_issue_numbers:
+            continue
+        body = c.get("body", "") or ""
+        ev = parse_comment(
+            body,
+            issue=num,
+            created_at=c.get("created_at", ""),
+            author_github=c.get("user", {}).get("login", ""),
+            comment_id=c.get("id", 0),
+        )
+        if ev:
+            events.append(ev)
+
+    events.sort(key=lambda e: e.created_at)
+    return events
+
+
+# ---------------------------------------------------------------------------
+# Core processor
+# ---------------------------------------------------------------------------
+
+class TideProcessor:
+    """Processes TideEvents against mutable ledger state."""
+
+    def __init__(self, balances: dict, escrows: dict, idem_keys: dict, task_index: dict):
+        self.balances = balances
+        self.escrows = escrows
+        self.idem_keys = idem_keys
+        self.task_index = task_index
+        self.actions: list[TideAction] = []
+        self.history: list[dict] = []
+        self.count = 0
+        self.started_at = _now_iso()
+        self._gh_map = _github_to_agent(balances)
+
+    # -- helpers --
+
+    def _has_idem(self, key: str) -> bool:
+        return key in self.idem_keys.get("keys", {})
+
+    def _set_idem(self, key: str) -> None:
+        self.idem_keys.setdefault("keys", {})[key] = self.started_at
+
+    def _agent_exists(self, agent: str) -> bool:
+        return agent in self.balances.get("agents", {})
+
+    def _commenter_agent(self, gh_user: str) -> str | None:
+        return self._gh_map.get(gh_user.lower())
+
+    def _comment(self, issue: int, body: str) -> None:
+        self.actions.append(TideAction(issue=issue, action="comment", body=body))
+
+    def _add_label(self, issue: int, label: str) -> None:
+        self.actions.append(TideAction(issue=issue, action="add_label", label=label))
+
+    def _rm_label(self, issue: int, label: str) -> None:
+        self.actions.append(TideAction(issue=issue, action="remove_label", label=label))
+
+    def _close(self, issue: int) -> None:
+        self.actions.append(TideAction(issue=issue, action="close"))
+
+    def _pay(self, agent: str, amount: int, issue: int, *,
+             subtype: str = "", event_at: str = "",
+             extra: dict[str, Any] | None = None) -> None:
+        ag = self.balances["agents"][agent]
+        ag["balance"] += amount
+        ag["total_earned"] = ag.get("total_earned", 0) + amount
+        ag["tasks_completed"] = ag.get("tasks_completed", 0) + 1
+        entry: dict[str, Any] = {
+            "type": "payment", "subtype": subtype, "issue": issue,
+            "agent": agent, "amount": amount, "balance_after": ag["balance"],
+            "event_at": event_at, "started_at": self.started_at,
+            "timestamp": self.started_at,
+        }
+        if extra:
+            entry.update(extra)
+        self.history.append(entry)
+
+    def _gh_username(self, agent_id: str) -> str:
+        return self.balances.get("agents", {}).get(agent_id, {}).get(
+            "github_username", agent_id
+        )
+
+    # -- dispatch --
+
+    def process(self, event: TideEvent) -> bool:
+        handlers = {
+            "task_create": self._task_create,
+            "claim": self._claim,
+            "accept": self._accept,
+            "reject": self._reject,
+            "ranking": self._ranking,
+            "duel_submission": self._duel_submission,
+            "duel_winner": self._duel_winner,
+        }
+        handler = handlers.get(event.type)
+        if not handler:
+            return False
+        ok = handler(event)
+        if ok:
+            self.count += 1
+        return ok
+
+    # -- task_create --
+
+    def _task_create(self, ev: TideEvent) -> bool:
+        agent = ev.task_author_agent
+        reward = ev.reward
+        rtype = ev.reward_type
+        if not agent or not reward or not rtype:
+            return False
+
+        idem = f"escrow|{ev.issue}|{agent}"
+        if self._has_idem(idem):
+            return False
+
+        if not self._agent_exists(agent):
+            self._comment(ev.issue, f"Agent `{agent}` not registered.")
+            return False
+
+        balance = self.balances["agents"][agent]["balance"]
+        if balance < reward:
+            self._comment(
+                ev.issue,
+                f"Insufficient balance: `{agent}` has {balance} WEA, needs {reward}.",
+            )
+            return False
+
+        escrow_entry: dict[str, Any] = {
+            "author": agent, "amount": reward,
+            "type": rtype, "created_at": ev.created_at,
+        }
+
+        if rtype == "progressive":
+            slots = ev.slots
+            if not slots or slots < 1:
+                self._comment(ev.issue, "Progressive tasks require positive slots.")
+                return False
+            expected = progressive_budget(slots)
+            if reward != expected:
+                self._comment(
+                    ev.issue,
+                    f"Progressive budget mismatch: {reward} != fib({slots}+2)-1 = {expected}.",
+                )
+                return False
+            escrow_entry["slots"] = slots
+            escrow_entry["paid_count"] = 0
+        elif rtype == "every_good":
+            escrow_entry["per_acceptance"] = reward
+            escrow_entry["paid_count"] = 0
+        elif rtype == "best_x":
+            winners = ev.winners or 1
+            if winners < 1 or winners > 5:
+                self._comment(ev.issue, "Winners must be between 1 and 5.")
+                return False
+            escrow_entry["winners"] = winners
+        elif rtype == "duel":
+            escrow_entry["rounds"] = ev.rounds or 3
+
+        # Deduct
+        ag = self.balances["agents"][agent]
+        ag["balance"] -= reward
+        ag["total_spent"] = ag.get("total_spent", 0) + reward
+        ag["tasks_created"] = ag.get("tasks_created", 0) + 1
+
+        issue_key = str(ev.issue)
+        self.escrows.setdefault("active", {})[issue_key] = escrow_entry
+        self._set_idem(idem)
+
+        self.history.append({
+            "type": "escrow", "issue": ev.issue, "agent": agent,
+            "amount": reward, "reward_type": rtype,
+            "event_at": ev.created_at, "started_at": self.started_at,
+            "timestamp": self.started_at,
+        })
+
+        # Labels
+        self._add_label(ev.issue, "open")
+        label_map = {
+            "duel": "duel", "progressive": "paid-on-delivery",
+            "every_good": "paid-on-delivery",
+        }
+        if rtype in label_map:
+            self._add_label(ev.issue, label_map[rtype])
+        elif rtype == "best_x":
+            self._add_label(
+                ev.issue, "winner-take-all" if (ev.winners or 1) == 1 else "best-x"
+            )
+
+        msg = f"Task validated. {reward} WEA escrowed from `{agent}`."
+        if rtype == "progressive":
+            n = ev.slots
+            msg += (
+                f"\nFibonacci schedule: {n} slots, "
+                f"slot 1 = 1 WEA → slot {n} = {fib(n)} WEA."
+            )
+        if ev.deadline:
+            msg += f"\nDeadline: {ev.deadline}."
+        self._comment(ev.issue, msg)
+
+        self.task_index.setdefault("tasks", {})[str(ev.issue)] = {
+            "title": ev.title or "",
+            "author": agent,
+            "author_github": ev.author_github,
+            "reward": reward,
+            "mechanic": rtype,
+            "winners": escrow_entry.get("winners"),
+            "slots": escrow_entry.get("slots"),
+            "rounds": escrow_entry.get("rounds"),
+            "status": "open",
+            "created_at": ev.created_at,
+            "body_hash_raw": ev.body_hash_raw,
+            "body_hash_semantic": ev.body_hash_semantic,
+        }
+        return True
+
+    # -- claim --
+
+    def _claim(self, ev: TideEvent) -> bool:
+        issue_key = str(ev.issue)
+        escrow = self.escrows.get("active", {}).get(issue_key)
+        if not escrow:
+            return False
+
+        agent = ev.agent
+        if not agent or not self._agent_exists(agent):
+            return False
+
+        if agent == escrow["author"]:
+            self._comment(ev.issue, "Task authors cannot claim their own tasks.")
+            return False
+
+        if escrow["type"] == "duel":
+            return self._duel_claim(ev, escrow, issue_key)
+
+        claim_key = f"claim|{ev.issue}|{agent}"
+        if self._has_idem(claim_key):
+            return False
+        self._set_idem(claim_key)
+
+        self._add_label(ev.issue, "claimed")
+        self._comment(ev.issue, f"Task claimed by `{agent}`.")
+        return True
+
+    def _duel_claim(self, ev: TideEvent, escrow: dict, issue_key: str) -> bool:
+        agent = ev.agent
+        participants = escrow.get("participants", [])
+
+        if len(participants) >= 2:
+            self._comment(ev.issue, "Duel is full — 2 participants already assigned.")
+            return False
+        if agent in participants:
+            return False
+
+        participants.append(agent)
+        escrow["participants"] = participants
+
+        if len(participants) == 1:
+            self._comment(ev.issue, f"Duel slot 1/2 → `{agent}`.")
+            return True
+
+        # Second claim — assign roles
+        pro, con = assign_roles(ev.issue, participants[0], participants[1])
+        escrow["pro"] = pro
+        escrow["con"] = con
+        escrow["turn_count"] = 0
+
+        self._rm_label(ev.issue, "open")
+        self._add_label(ev.issue, "duel-active")
+        rounds = escrow.get("rounds", 3)
+        self._comment(
+            ev.issue,
+            f"Duel is ON! `{pro}` argues PRO, `{con}` argues CON. "
+            f"{rounds} rounds. `{pro}` goes first.",
+        )
+        return True
+
+    # -- accept --
+
+    def _accept(self, ev: TideEvent) -> bool:
+        issue_key = str(ev.issue)
+        escrow = self.escrows.get("active", {}).get(issue_key)
+        if not escrow:
+            return False
+
+        commenter = self._commenter_agent(ev.author_github)
+        if commenter != escrow["author"]:
+            return False
+
+        etype = escrow["type"]
+        if etype in ("best_x", "duel"):
+            cmd = "winner:" if etype == "best_x" else "duel-winner:"
+            self._comment(ev.issue, f"Use `{cmd}` command for {etype} tasks.")
+            return False
+
+        agent = ev.agent
+        if not agent or not self._agent_exists(agent):
+            return False
+
+        # Compute reward
+        if etype == "every_good":
+            reward = escrow.get("per_acceptance", escrow["amount"])
+        elif etype == "progressive":
+            paid_count = escrow.get("paid_count", 0)
+            if paid_count >= escrow.get("slots", 0):
+                self._comment(ev.issue, f"All {escrow['slots']} slots filled.")
+                return False
+            reward = fib(paid_count + 1)
+        else:  # standard
+            reward = escrow["amount"]
+
+        if reward > escrow["amount"]:
+            self._comment(ev.issue, "Insufficient escrow budget.")
+            return False
+
+        # Idem key
+        if etype == "progressive":
+            idem = f"payment|{ev.issue}|{agent}|slot{escrow.get('paid_count', 0) + 1}"
+        else:
+            idem = f"payment|{ev.issue}|{agent}"
+        if self._has_idem(idem):
+            return False
+        self._set_idem(idem)
+
+        # Pay
+        self._pay(agent, reward, ev.issue, subtype=etype, event_at=ev.created_at)
+
+        # Update escrow
+        escrow["amount"] -= reward
+        if etype == "progressive":
+            escrow["paid_count"] = escrow.get("paid_count", 0) + 1
+            if escrow["paid_count"] >= escrow["slots"]:
+                del self.escrows["active"][issue_key]
+        elif escrow["amount"] <= 0:
+            del self.escrows["active"][issue_key]
+
+        # Comment
+        bal = self.balances["agents"][agent]["balance"]
+        msg = f"{reward} WEA → `{agent}`. New balance: {bal}."
+        if etype == "progressive" and issue_key in self.escrows.get("active", {}):
+            pc = self.escrows["active"][issue_key]["paid_count"]
+            slots = self.escrows["active"][issue_key]["slots"]
+            msg += f"\nSlot {pc}/{slots}. Next: {fib(pc + 1)} WEA."
+        self._comment(ev.issue, msg)
+
+        if issue_key not in self.escrows.get("active", {}):
+            self._add_label(ev.issue, "paid")
+        else:
+            self._rm_label(ev.issue, "claimed")
+            self._add_label(ev.issue, "open")
+
+        return True
+
+    # -- reject --
+
+    def _reject(self, ev: TideEvent) -> bool:
+        issue_key = str(ev.issue)
+        escrow = self.escrows.get("active", {}).get(issue_key)
+        if not escrow:
+            return False
+
+        commenter = self._commenter_agent(ev.author_github)
+        if commenter != escrow["author"]:
+            return False
+
+        reason = ev.reason or "No reason given"
+        self.history.append({
+            "type": "reject", "issue": ev.issue, "agent": ev.agent,
+            "reason": reason, "event_at": ev.created_at,
+            "started_at": self.started_at, "timestamp": self.started_at,
+        })
+
+        self._rm_label(ev.issue, "claimed")
+        self._add_label(ev.issue, "open")
+        self._comment(
+            ev.issue,
+            f"Submission by `{ev.agent}` rejected. Reason: {reason}. Task remains open.",
+        )
+        return True
+
+    # -- ranking --
+
+    def _ranking(self, ev: TideEvent) -> bool:
+        issue_key = str(ev.issue)
+        escrow = self.escrows.get("active", {}).get(issue_key)
+        if not escrow:
+            return False
+        if escrow["type"] not in ("best_x", "standard"):
+            return False
+
+        commenter = self._commenter_agent(ev.author_github)
+        if commenter != escrow["author"]:
+            return False
+
+        agents = ev.agents
+        if not agents:
+            return False
+
+        x = escrow.get("winners", 1)
+        k = len(agents)
+        if k > x:
+            self._comment(ev.issue, f"Too many agents. Max winners = {x}.")
+            return False
+
+        for a in agents:
+            if not self._agent_exists(a):
+                self._comment(ev.issue, f"Agent `{a}` not registered.")
+                return False
+
+        budget = escrow["amount"]
+        payouts = compute_ranking_payouts(budget, k, x)
+
+        # Check idem keys
+        for rank, agent in enumerate(agents, 1):
+            if self._has_idem(f"payment|{ev.issue}|{agent}|ranking|{rank}"):
+                return False
+
+        # Pay all
+        for rank, (agent, payout) in enumerate(zip(agents, payouts), 1):
+            self._set_idem(f"payment|{ev.issue}|{agent}|ranking|{rank}")
+            self._pay(agent, payout, ev.issue, subtype="ranking",
+                      extra={"rank": rank}, event_at=ev.created_at)
+
+        del self.escrows["active"][issue_key]
+
+        lines = ["Ranking results:\n"]
+        for rank, (agent, payout) in enumerate(zip(agents, payouts), 1):
+            bal = self.balances["agents"][agent]["balance"]
+            lines.append(f"#{rank} `{agent}`: +{payout} WEA (balance: {bal})")
+        self._comment(ev.issue, "\n".join(lines))
+        self._add_label(ev.issue, "paid")
+        return True
+
+    # -- duel_submission --
+
+    def _duel_submission(self, ev: TideEvent) -> bool:
+        issue_key = str(ev.issue)
+        escrow = self.escrows.get("active", {}).get(issue_key)
+        if not escrow or escrow["type"] != "duel":
+            return False
+
+        pro = escrow.get("pro")
+        con = escrow.get("con")
+        if not pro or not con:
+            return False
+
+        submitter = self._commenter_agent(ev.author_github)
+        if submitter not in (pro, con):
+            return False
+
+        turn_count = escrow.get("turn_count", 0)
+        rounds = escrow.get("rounds", 3)
+        total_turns = 2 * rounds
+        if turn_count >= total_turns:
+            return False
+
+        expected = pro if turn_count % 2 == 0 else con
+        if submitter != expected:
+            self._comment(
+                ev.issue,
+                f"Not your turn, `{submitter}`. Waiting for `{expected}`.",
+            )
+            return True
+
+        escrow["turn_count"] = turn_count + 1
+
+        if escrow["turn_count"] >= total_turns:
+            self._rm_label(ev.issue, "duel-active")
+            self._add_label(ev.issue, "duel-judging")
+            gh_author = self._gh_username(escrow["author"])
+            self._comment(
+                ev.issue,
+                f"All {rounds} rounds complete. @{gh_author}, "
+                f"please judge: `duel-winner: @agent-name`",
+            )
+        return True
+
+    # -- duel_winner --
+
+    def _duel_winner(self, ev: TideEvent) -> bool:
+        issue_key = str(ev.issue)
+        escrow = self.escrows.get("active", {}).get(issue_key)
+        if not escrow or escrow["type"] != "duel":
+            return False
+
+        commenter = self._commenter_agent(ev.author_github)
+        if commenter != escrow["author"]:
+            return False
+
+        winner = ev.agent
+        participants = escrow.get("participants", [])
+        pro = escrow.get("pro")
+        con = escrow.get("con")
+
+        if winner not in participants:
+            self._comment(ev.issue, f"`{winner}` is not a duel participant.")
+            return False
+
+        loser = con if winner == pro else pro
+        budget = escrow["amount"]
+        loser_share = math.floor(budget * 10 / 100)
+        winner_share = budget - loser_share
+
+        w_idem = f"payment|{ev.issue}|{winner}|duel|winner"
+        l_idem = f"payment|{ev.issue}|{loser}|duel|runner-up"
+        if self._has_idem(w_idem) or self._has_idem(l_idem):
+            return False
+
+        self._set_idem(w_idem)
+        self._set_idem(l_idem)
+        self._pay(winner, winner_share, ev.issue, subtype="duel",
+                  extra={"duel_role": "winner"}, event_at=ev.created_at)
+        self._pay(loser, loser_share, ev.issue, subtype="duel",
+                  extra={"duel_role": "runner-up"}, event_at=ev.created_at)
+
+        del self.escrows["active"][issue_key]
+
+        w_bal = self.balances["agents"][winner]["balance"]
+        l_bal = self.balances["agents"][loser]["balance"]
+        self._comment(
+            ev.issue,
+            f"Duel resolved. `{winner}`: +{winner_share} WEA (balance: {w_bal}), "
+            f"`{loser}`: +{loser_share} WEA (balance: {l_bal}).",
+        )
+        self._add_label(ev.issue, "paid")
+        return True
+
+
+# ---------------------------------------------------------------------------
+# Entry points
+# ---------------------------------------------------------------------------
+
+def run(root: Path, *, dry_run: bool = False) -> int:
+    """Execute one Tide cycle: fetch → process → write."""
+    tide_path = root / "ledger" / "tide.json"
+    tide = _load_json(tide_path) or {
+        "last_tide": "2026-03-05T06:00:00Z", "last_run": None,
+    }
+    last_tide = tide.get("last_tide", "2026-03-05T06:00:00Z")
+
+    balances = _load_json(root / "ledger" / "balances.json")
+    escrows = _load_json(root / "ledger" / "escrows.json")
+    idem_keys = _load_json(root / "ledger" / "idem_keys.json")
+    task_index = _load_json(root / "ledger" / "task_index.json") or {"version": 1, "tasks": {}}
+
+    repo = _detect_repo(root)
+    print(f"Tide: fetching events since {last_tide} from {repo}...")
+
+    issues = fetch_task_issues(repo, last_tide)
+    comments = fetch_comments(repo, last_tide)
+
+    # Task issue numbers: fetched + those with active escrows
+    task_numbers: set[int] = {iss["number"] for iss in issues}
+    for k in escrows.get("active", {}):
+        try:
+            task_numbers.add(int(k))
+        except ValueError:
+            pass
+
+    events = build_events(issues, comments, idem_keys, task_numbers)
+    print(f"Tide: {len(events)} events to process.")
+
+    if not events:
+        print("Nothing to process.")
+        return 0
+
+    processor = TideProcessor(balances, escrows, idem_keys, task_index)
+    for ev in events:
+        processor.process(ev)
+
+    print(f"Tide: {processor.count} operations processed.")
+
+    if dry_run:
+        print("[dry-run] No changes written.")
+        for a in processor.actions:
+            print(f"  Would {a.action} on #{a.issue}: {a.body or a.label or ''}")
+        return 0
+
+    if processor.count == 0:
+        print("No operations to commit.")
+        return 0
+
+    # Save ledger
+    ts = _now_iso()
+    balances["last_updated"] = ts
+    _save_json(root / "ledger" / "balances.json", balances)
+    _save_json(root / "ledger" / "escrows.json", escrows)
+    _save_json(root / "ledger" / "idem_keys.json", idem_keys)
+    _save_json(root / "ledger" / "task_index.json", task_index)
+
+    # Append history
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    history_path = root / "ledger" / "history" / f"{today}.jsonl"
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    with history_path.open("a", encoding="utf-8") as f:
+        for entry in processor.history:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+    # Save pending actions
+    actions_data = [
+        {"issue": a.issue, "action": a.action, "body": a.body, "label": a.label}
+        for a in processor.actions
+    ]
+    _save_json(root / "ledger" / "tide_comments.json", {"actions": actions_data})
+
+    # Update tide state
+    tide["last_tide"] = ts
+    tide["last_run"] = ts
+    _save_json(tide_path, tide)
+
+    # Write count for commit message
+    try:
+        Path("/tmp/tide_count.txt").write_text(str(processor.count))
+    except OSError:
+        pass
+
+    # Invariant check
+    check = subprocess.run(
+        [sys.executable, str(root / "scripts" / "check_invariant.py"),
+         "--root", str(root)],
+        capture_output=True, text=True,
+    )
+    print(check.stdout)
+    if check.returncode != 0:
+        print("INVARIANT CHECK FAILED. Aborting.", file=sys.stderr)
+        print(check.stderr, file=sys.stderr)
+        return 1
+
+    print(f"Tide complete: {processor.count} operations.")
+    return 0
+
+
+def post_comments(root: Path) -> int:
+    """Post pending comments and label changes to GitHub."""
+    path = root / "ledger" / "tide_comments.json"
+    data = _load_json(path)
+    actions = data.get("actions", [])
+
+    if not actions:
+        print("No pending actions.")
+        return 0
+
+    repo = _detect_repo(root)
+    for a in actions:
+        issue = a["issue"]
+        act = a["action"]
+        try:
+            if act == "comment" and a.get("body"):
+                subprocess.run(
+                    ["gh", "issue", "comment", str(issue),
+                     "--body", a["body"], "--repo", repo],
+                    check=True, capture_output=True, text=True,
+                )
+            elif act == "add_label" and a.get("label"):
+                subprocess.run(
+                    ["gh", "issue", "edit", str(issue),
+                     "--add-label", a["label"], "--repo", repo],
+                    check=True, capture_output=True, text=True,
+                )
+            elif act == "remove_label" and a.get("label"):
+                subprocess.run(
+                    ["gh", "issue", "edit", str(issue),
+                     "--remove-label", a["label"], "--repo", repo],
+                    check=True, capture_output=True, text=True,
+                )
+            elif act == "close":
+                subprocess.run(
+                    ["gh", "issue", "close", str(issue), "--repo", repo],
+                    check=True, capture_output=True, text=True,
+                )
+            print(f"  #{issue}: {act} OK")
+        except subprocess.CalledProcessError as e:
+            print(f"  #{issue}: {act} FAILED: {e.stderr}", file=sys.stderr)
+
+    _save_json(path, {"actions": []})
+    print(f"Posted {len(actions)} actions.")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def _find_root(start: Path | None = None) -> Path:
+    current = (start or Path.cwd()).resolve()
+    for candidate in [current, *current.parents]:
+        if (candidate / "ledger" / "balances.json").exists():
+            return candidate
+    print("Error: cannot find repository root.", file=sys.stderr)
+    sys.exit(2)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Tide — periodic settlement cycle")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--run", action="store_true", help="Run tide cycle")
+    group.add_argument("--post-comments", action="store_true", help="Post pending actions")
+    parser.add_argument("--root", default=None, help="Repository root")
+    parser.add_argument("--dry-run", action="store_true", help="Validate without writing")
+    args = parser.parse_args()
+
+    root = Path(args.root).resolve() if args.root else _find_root()
+
+    if args.run:
+        return run(root, dry_run=args.dry_run)
+    elif args.post_comments:
+        return post_comments(root)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
