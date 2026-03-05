@@ -10,6 +10,16 @@ import os
 import sys
 import argparse
 
+
+def _print_failure(title: str, details: str, why_it_matters: str, remediation_steps: list[str]) -> None:
+    print(f"FAIL: {title}")
+    print(f"  {details}")
+    print(f"  Why it matters: {why_it_matters}")
+    print("  Remediation:")
+    for idx, step in enumerate(remediation_steps, 1):
+        print(f"    {idx}. {step}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Economy Invariant Checker")
     parser.add_argument("--root", help="Root directory of the wetheagents repository",
@@ -26,7 +36,15 @@ def main():
         with open(balances_path, 'r', encoding='utf-8') as f:
             balances_data = json.load(f)
     except FileNotFoundError:
-        print(f"Error: Could not find {balances_path}")
+        _print_failure(
+            "Missing ledger file",
+            f"Could not find {balances_path}",
+            "Without balances we cannot validate supply conservation.",
+            [
+                "Ensure you run from the wetheagents repo root or pass --root correctly.",
+                "Restore ledger/balances.json from main if it was deleted accidentally.",
+            ],
+        )
         sys.exit(1)
 
     sum_all_balances = sum(
@@ -39,7 +57,15 @@ def main():
         with open(escrows_path, 'r', encoding='utf-8') as f:
             escrows_data = json.load(f)
     except FileNotFoundError:
-        print(f"Error: Could not find {escrows_path}")
+        _print_failure(
+            "Missing ledger file",
+            f"Could not find {escrows_path}",
+            "Escrow must be included to validate the invariant correctly.",
+            [
+                "Ensure you run from the wetheagents repo root or pass --root correctly.",
+                "Restore ledger/escrows.json from main if it was deleted accidentally.",
+            ],
+        )
         sys.exit(1)
 
     total_escrowed = sum(
@@ -67,10 +93,28 @@ def main():
     failed = False
 
     if negative_balances:
-        print(f"FAIL: Negative balances detected: {negative_balances}")
+        _print_failure(
+            "Negative balances detected",
+            f"Agents with negative balance: {negative_balances}",
+            "Negative balances allow invalid debt and can hide accounting mistakes.",
+            [
+                "Inspect the latest ledger commit for over-payment or bad escrow return.",
+                "Verify recent accept/ranking/duel operations were applied once.",
+                "Re-run settlement after correcting the offending ledger entry.",
+            ],
+        )
         failed = True
     if negative_escrows:
-        print(f"FAIL: Negative escrows detected: {negative_escrows}")
+        _print_failure(
+            "Negative escrows detected",
+            f"Issues with negative escrow amount: {negative_escrows}",
+            "Negative escrow can create fake spend capacity and break payout safety.",
+            [
+                "Inspect the latest ledger commit for duplicate payout on the same issue.",
+                "Verify escrow deductions never exceed the escrowed amount.",
+                "Run Tide again from a clean state after fixing escrow entries.",
+            ],
+        )
         failed = True
 
     if failed:
@@ -92,7 +136,18 @@ def main():
         print("\nStatus: PASS (Invariant holds)")
         sys.exit(0)
     else:
-        print("\nStatus: FAIL (Invariant broken)")
+        diff = left_side - right_side
+        print()
+        _print_failure(
+            "Invariant broken",
+            f"LHS {left_side}, RHS {right_side}, diff {diff}",
+            "This indicates WEA was leaked, duplicated, or not tracked in escrow.",
+            [
+                "Check the latest Tide commit for duplicate payment operations and idem key usage.",
+                "Run: python scripts/check_ledger_schema.py",
+                "If root cause is unclear, revert the last ledger commit and re-run Tide.",
+            ],
+        )
         sys.exit(1)
 
 if __name__ == "__main__":
