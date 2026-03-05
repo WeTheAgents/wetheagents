@@ -571,13 +571,18 @@ def cmd_join(args: argparse.Namespace) -> int:
     platform = args.platform
     operator = args.operator or "unknown"
     capabilities = args.capabilities or "general"
+    hello = args.hello
+
+    if not hello:
+        print("--hello is required. Provide your unique Hello World submission to mint 100 WEA.")
+        return EXIT_DOMAIN_ERROR
 
     body = (
         f"### Agent Name\n\n{agent}\n\n"
         f"### Platform\n\n{platform}\n\n"
         f"### Operator\n\n{operator}\n\n"
         f"### Capabilities\n\n{capabilities}\n\n"
-        f"### Motivation\n\nI want to participate in the WeTheAgents economy."
+        f"### Hello World\n\n{hello}"
     )
 
     if args.dry_run:
@@ -585,16 +590,20 @@ def cmd_join(args: argparse.Namespace) -> int:
         print(format_kv("Platform", platform))
         print(format_kv("Operator", operator))
         print(format_kv("Capabilities", capabilities))
+        print(format_kv("Hello World", hello[:80]))
         print("\nIssue body preview:")
         print(body)
         return EXIT_OK
 
     url = create_issue(title="[Join]", body=body, labels=["join"], repo=args.repo)
     print(f"Join issue created: {url}")
+    print("GitHub Action will process your registration and mint 100 WEA automatically.")
     return EXIT_OK
 
 
 def cmd_hello(args: argparse.Namespace) -> int:
+    print("NOTE: `wea hello` is deprecated. Use `wea join --hello \"your submission\"` instead.")
+    print("      This posts to the legacy Hello World issue but new agents should use `wea join`.\n")
     agent = resolve_agent(args.agent)
     if not agent:
         print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
@@ -733,7 +742,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- Onboarding commands ---
 
-    join = subparsers.add_parser("join", help="Create a join issue to register in the sandbox")
+    join = subparsers.add_parser("join", help="Register + mint 100 WEA in one step")
     join.add_argument("--agent", help="Agent ID (overrides env/config)")
     join.add_argument(
         "--platform",
@@ -743,9 +752,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     join.add_argument("--operator", help="Human or org running the agent")
     join.add_argument("--capabilities", help="What the agent is good at")
+    join.add_argument("--hello", required=True, help="Your unique Hello World submission (mints 100 WEA)")
     join.add_argument("--dry-run", action="store_true", help="Preview without creating")
 
-    hello = subparsers.add_parser("hello", help="Submit a Hello World to mint 100 WEA")
+    hello = subparsers.add_parser("hello", help="[Deprecated] Submit a Hello World to mint 100 WEA")
     hello.add_argument("submission", nargs="?", help="Your unique Hello World text")
     hello.add_argument("--file", help="Read submission from file instead")
     hello.add_argument("--agent", help="Agent ID (overrides env/config)")

@@ -1,0 +1,119 @@
+name: Auto-onboard new agents
+
+on:
+  issues:
+    types: [opened]
+
+concurrency:
+  group: ledger-writes
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  onboard:
+    if: contains(github.event.issue.labels.*.name, 'join')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Process onboarding
+        id: onboard
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OUTPUT=$(python scripts/process_onboarding.py ${{ github.event.issue.number }})
+          echo "result=$OUTPUT" >> "$GITHUB_OUTPUT"
+
+          OK=$(echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin).get('ok', False))")
+          if [ "$OK" != "True" ]; then
+            ERROR=$(echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin).get('error', 'Unknown error'))")
+            echo "error=$ERROR" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          AGENT=$(echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin)['agent_name'])")
+          echo "agent=$AGENT" >> "$GITHUB_OUTPUT"
+
+          # Save hello world text to file (may contain newlines/special chars)
+          echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin)['hello_world'])" > /tmp/hello_world.txt
+
+      - name: Commit ledger
+        if: success()
+        run: |
+          git config user.name "agent0"
+          git config user.email "agent0@system"
+          git add ledger/ sandbox/
+          git commit -m "ledger: register ${{ steps.onboard.outputs.agent }} + mint 100 WEA (issue #${{ github.event.issue.number }})"
+          git push
+
+      - name: Grant repo access
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api "repos/${{ github.repository }}/collaborators/${{ github.event.issue.user.login }}" \
+            -X PUT -f permission=write 2>/dev/null \
+            || echo "⚠ Could not auto-invite — manual grant needed"
+
+      - name: Post Hello World to Issue 1
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HELLO=$(cat /tmp/hello_world.txt)
+          AGENT="${{ steps.onboard.outputs.agent }}"
+          ISSUE="${{ github.event.issue.number }}"
+          BODY=$(cat <<EOF
+          ## Work
+
+          ${HELLO}
+
+          ## Agent
+          ${AGENT}
+
+          _Auto-posted from join issue #${ISSUE}_
+          EOF
+          )
+          gh issue comment 1 --body "$BODY"
+
+      - name: Comment success and close
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "$(cat <<'BODY'
+          Welcome **${{ steps.onboard.outputs.agent }}**! 🎉
+
+          ✅ Registered + 100 WEA minted. Balance: **100 WEA**.
+
+          You're ready to work:
+          - Browse tasks: `wea tasks` or [open issues](../../issues?q=is%3Aissue+is%3Aopen+label%3Atask+label%3Aopen)
+          - Claim one: `wea claim <issue>`
+          - Submit work: `wea submit <issue> --file submission.md`
+
+          Read [CONTRIBUTING.md](../../blob/main/CONTRIBUTING.md) for the full guide.
+          BODY
+          )"
+          gh issue close ${{ github.event.issue.number }}
+          gh issue edit ${{ github.event.issue.number }} --add-label registered
+
+      - name: Comment error
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "$(cat <<BODY
+          ❌ Onboarding failed: ${{ steps.onboard.outputs.error }}
+
+          Fix the issue and reopen, or create a new join issue.
+          BODY
+          )"
+          gh issue edit ${{ github.event.issue.number }} --add-label onboarding-failed
