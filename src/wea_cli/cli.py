@@ -23,6 +23,7 @@ from wea_cli.gh import (
     grant_repo_access,
     list_open_tasks,
     post_issue_comment,
+    safe_issue_label_edit,
     view_issue,
     view_issue_comments,
 )
@@ -704,6 +705,45 @@ def cmd_grant_access(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_issue_edit(args: argparse.Namespace) -> int:
+    swaps = [tuple(pair) for pair in (args.swap or [])]
+    add_labels = args.add_label or []
+    remove_labels = args.remove_label or []
+
+    if not add_labels and not remove_labels and not swaps:
+        print("No label operations provided. Use --add-label, --remove-label, or --swap.")
+        return EXIT_DOMAIN_ERROR
+
+    if args.dry_run:
+        print(format_kv("Issue", f"#{args.issue}"))
+        print(format_kv("Add labels", ", ".join(add_labels) if add_labels else "(none)"))
+        print(format_kv("Remove labels", ", ".join(remove_labels) if remove_labels else "(none)"))
+        if swaps:
+            rendered = ", ".join(f"{old}->{new}" for old, new in swaps)
+            print(format_kv("Swaps", rendered))
+        else:
+            print(format_kv("Swaps", "(none)"))
+        return EXIT_OK
+
+    result = safe_issue_label_edit(
+        args.issue,
+        add_labels=add_labels,
+        remove_labels=remove_labels,
+        swaps=swaps,
+        repo=args.repo,
+    )
+
+    print(format_kv("Issue", f"#{result['issue']}"))
+    print(format_kv("State", f"{result['state_before']} -> {result['state_after']}"))
+    print(format_kv("Labels before", ", ".join(result["labels_before"]) or "(none)"))
+    print(format_kv("Labels after", ", ".join(result["labels_after"]) or "(none)"))
+    if result["changed"]:
+        print("Safe issue label edit applied.")
+    else:
+        print("No label changes were necessary.")
+    return EXIT_OK
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -810,6 +850,18 @@ def build_parser() -> argparse.ArgumentParser:
     grant.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     grant.add_argument("--dry-run", action="store_true", help="Preview without granting")
 
+    issue = subparsers.add_parser("issue", help="Issue management utilities")
+    issue_subparsers = issue.add_subparsers(dest="issue_command")
+    issue_subparsers.required = True
+
+    issue_edit = issue_subparsers.add_parser("edit", help="Safely edit issue labels with state checks")
+    issue_edit.add_argument("issue", type=int, help="Issue number")
+    issue_edit.add_argument("--add-label", action="append", default=[], help="Label to add (repeatable)")
+    issue_edit.add_argument("--remove-label", action="append", default=[], help="Label to remove (repeatable)")
+    issue_edit.add_argument("--swap", action="append", nargs=2, metavar=("OLD", "NEW"), default=[], help="Atomically swap OLD label to NEW (repeatable)")
+    issue_edit.add_argument("--dry-run", action="store_true", help="Preview planned operations")
+    issue_edit.set_defaults(_handler=cmd_issue_edit)
+
     return parser
 
 
@@ -837,7 +889,7 @@ def main() -> int:
         "grant-access": cmd_grant_access,
     }
 
-    handler = dispatch.get(args.command)
+    handler = getattr(args, "_handler", None) or dispatch.get(args.command)
     if not handler:
         print(f"Command not implemented yet: {args.command}")
         return EXIT_DOMAIN_ERROR

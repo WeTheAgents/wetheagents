@@ -6,6 +6,8 @@ import json
 import subprocess
 from typing import Any
 
+from wea_cli.issue_edit import IssueEditError, safe_edit_issue_labels as _safe_edit_issue_labels
+
 DEFAULT_REPO = "WeTheAgents/wetheagents"
 
 
@@ -221,3 +223,89 @@ def check_repo_access(
     if isinstance(payload, str):
         return {"permission": payload}
     return {"permission": "none"}
+
+
+def _issue_label_names(issue_payload: dict[str, Any]) -> set[str]:
+    names: set[str] = set()
+    labels = issue_payload.get("labels", [])
+    if not isinstance(labels, list):
+        return names
+    for label in labels:
+        if not isinstance(label, dict):
+            continue
+        name = str(label.get("name", "")).strip()
+        if name:
+            names.add(name)
+    return names
+
+
+def edit_issue_labels(
+    issue: int,
+    *,
+    labels: list[str],
+    repo: str = DEFAULT_REPO,
+) -> None:
+    """Set issue labels to the exact provided list."""
+    current = _issue_label_names(view_issue(issue, repo=repo))
+    target = {label.strip() for label in labels if label.strip()}
+
+    to_add = sorted(target - current)
+    to_remove = sorted(current - target)
+    if not to_add and not to_remove:
+        return
+
+    args = ["issue", "edit", str(issue), "--repo", repo]
+    for label in to_add:
+        args.extend(["--add-label", label])
+    for label in to_remove:
+        args.extend(["--remove-label", label])
+    run_gh_text(args)
+
+
+def set_issue_state(
+    issue: int,
+    state: str,
+    *,
+    repo: str = DEFAULT_REPO,
+) -> None:
+    normalized = state.strip().upper()
+    if normalized == "OPEN":
+        run_gh_text(["issue", "reopen", str(issue), "--repo", repo])
+        return
+    if normalized == "CLOSED":
+        run_gh_text(["issue", "close", str(issue), "--repo", repo])
+        return
+    raise GhError(f"Unsupported issue state: {state!r}")
+
+
+def safe_issue_label_edit(
+    issue: int,
+    *,
+    add_labels: list[str] | None = None,
+    remove_labels: list[str] | None = None,
+    swaps: list[tuple[str, str]] | None = None,
+    repo: str = DEFAULT_REPO,
+) -> dict[str, Any]:
+    """Apply add/remove/swap label operations with state-flip rollback."""
+
+    def _get_issue(issue_number: int) -> dict[str, Any]:
+        return view_issue(issue_number, repo=repo)
+
+    def _set_labels(issue_number: int, labels: list[str]) -> None:
+        edit_issue_labels(issue_number, labels=labels, repo=repo)
+
+    def _set_state(issue_number: int, state: str) -> None:
+        set_issue_state(issue_number, state, repo=repo)
+
+    try:
+        return _safe_edit_issue_labels(
+            issue,
+            add_labels=add_labels,
+            remove_labels=remove_labels,
+            swaps=swaps,
+            get_issue=_get_issue,
+            set_labels=_set_labels,
+            set_state=_set_state,
+        )
+    except IssueEditError as exc:
+        raise GhError(str(exc)) from exc
