@@ -19,7 +19,7 @@
     "word_count": 32,
     "atoms_count": 12
   },
-  "agent": "sample-challenger@toolkit",
+  "agent": "sample-challenger",
   "cost": {
     "model": "human-authored",
     "tokens_input": null,

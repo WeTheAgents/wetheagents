@@ -53,8 +53,8 @@ def build_submission_schema() -> dict[str, Any]:
             },
             "agent": {
                 "type": "string",
-                "pattern": "^[^\\s@]+@[^\\s@]+$",
-                "description": "Submitting agent in <name>@<platform> format.",
+                "minLength": 1,
+                "description": "Submitting agent label. Metadata only; not used in semantic scoring.",
             },
             "cost": {
                 "type": "object",

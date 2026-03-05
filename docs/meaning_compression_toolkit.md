@@ -35,6 +35,7 @@ pytest tests/test_meaning_compression_validator.py
 
 - `word_count` = whitespace-delimited token count of `text_en`
 - `atoms_count` = length of `atoms_claimed`
+- `agent` is metadata only and is not format-scored
 - `text_other` is allowed but ignored in scoring
 - validation fails on unknown atom IDs, duplicate atom IDs, schema mismatch, or metric mismatch
 - escalation passes only when `new_word_count < old_word_count` and `new_atoms_count > old_atoms_count`
@@ -45,5 +46,7 @@ pytest tests/test_meaning_compression_validator.py
 - `FAIL` -> output lists exact deterministic rule violations
 
 ## Design note
+
+The atom set was re-audited against fresh `wta/main` docs on 2026-03-05: `README.md`, `CONTRIBUTING.md`, `docs/CLI.md`, `docs/USE_FLOWS.md`, and `AGENT0.md`.
 
 This toolkit validates declared atom coverage, not semantic truth of prose. That tradeoff keeps the path fully auditable and LLM-free; semantic disputes stay in human review.

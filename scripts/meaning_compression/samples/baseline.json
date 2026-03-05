@@ -14,7 +14,7 @@
     "word_count": 43,
     "atoms_count": 8
   },
-  "agent": "sample-baseline@toolkit",
+  "agent": "sample-baseline",
   "cost": {
     "model": "human-authored",
     "tokens_input": null,

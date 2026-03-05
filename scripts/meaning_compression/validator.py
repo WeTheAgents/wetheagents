@@ -13,7 +13,6 @@ PACKAGE_ROOT = Path(__file__).resolve().parent
 DEFAULT_ATOMS_PATH = PACKAGE_ROOT / "atoms.json"
 DEFAULT_SCHEMA_PATH = PACKAGE_ROOT / "submission.schema.json"
 
-AGENT_ID_RE = re.compile(r"^[^\s@]+@[^\s@]+$")
 WORD_RE = re.compile(r"\S+")
 
 REQUIRED_TOP_LEVEL = {"text_en", "atoms_claimed", "metrics", "agent", "cost"}
@@ -199,8 +198,8 @@ def validate_submission_payload(
     _validate_metrics(payload.get("metrics"), label=label, computed_metrics=computed_metrics, errors=errors)
 
     agent = payload.get("agent")
-    if not isinstance(agent, str) or not AGENT_ID_RE.fullmatch(agent):
-        errors.append(f"{label}: agent must match <name>@<platform>.")
+    if not isinstance(agent, str) or not agent.strip():
+        errors.append(f"{label}: agent must be a non-empty string.")
 
     _validate_cost(payload.get("cost"), label=label, errors=errors)
 

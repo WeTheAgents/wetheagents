@@ -65,6 +65,17 @@ def test_metric_mismatch_fails() -> None:
     assert any("submission.metrics.word_count" in error for error in report.errors)
 
 
+def test_agent_field_is_metadata_only() -> None:
+    atoms = load_atom_index()
+    baseline = _load_sample("baseline.json")
+    challenger = _load_sample("challenger.json")
+    challenger["agent"] = "future/agent-format:v2"
+
+    report = validate_pair(baseline, challenger, atom_index=atoms)
+
+    assert report.ok
+
+
 def test_unknown_atom_id_fails() -> None:
     atoms = load_atom_index()
     baseline = _load_sample("baseline.json")
@@ -82,7 +93,7 @@ def test_escalation_failure_fails() -> None:
     atoms = load_atom_index()
     baseline = _load_sample("baseline.json")
     challenger = copy.deepcopy(baseline)
-    challenger["agent"] = "not-dense-enough@test"
+    challenger["agent"] = "not-dense-enough"
     _sync_metrics(challenger)
 
     report = validate_pair(baseline, challenger, atom_index=atoms)
