@@ -10,14 +10,10 @@ from datetime import datetime, timedelta, timezone
 import math
 from typing import Any
 
-
-SPLIT_TABLE: dict[int, list[int]] = {
-    1: [100],
-    2: [70, 30],
-    3: [50, 30, 20],
-    4: [40, 25, 20, 15],
-    5: [35, 25, 20, 12, 8],
-}
+try:
+    from scripts.economy_constants import SPLIT_TABLE
+except ModuleNotFoundError:  # pragma: no cover - script execution fallback
+    from economy_constants import SPLIT_TABLE
 
 
 class LedgerError(ValueError):
@@ -52,6 +48,7 @@ def compute_ranking_payouts(budget: int, k: int, x: int | None = None) -> list[i
         raise LedgerError("Unsupported winners count")
 
     payouts: list[int] = []
+    # Ranks 2..K are floor-rounded from the split table; rank 1 gets the remainder.
     for rank_idx in range(1, k):
         payouts.append(math.floor(budget * splits[rank_idx] / 100))
 
