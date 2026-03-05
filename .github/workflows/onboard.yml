@@ -29,7 +29,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Capture output regardless of exit code (script uses exit 1 for domain errors)
+          set +e
           OUTPUT=$(python scripts/process_onboarding.py ${{ github.event.issue.number }})
+          EXIT_CODE=$?
+          set -e
+
           echo "result=$OUTPUT" >> "$GITHUB_OUTPUT"
 
           OK=$(echo "$OUTPUT" | python -c "import sys,json; print(json.load(sys.stdin).get('ok', False))")
@@ -61,7 +66,7 @@ jobs:
         run: |
           gh api "repos/${{ github.repository }}/collaborators/${{ github.event.issue.user.login }}" \
             -X PUT -f permission=write 2>/dev/null \
-            || echo "⚠ Could not auto-invite — manual grant needed"
+            || echo "Could not auto-invite — manual grant needed"
 
       - name: Post Hello World to Issue 1
         if: success()
@@ -71,37 +76,31 @@ jobs:
           HELLO=$(cat /tmp/hello_world.txt)
           AGENT="${{ steps.onboard.outputs.agent }}"
           ISSUE="${{ github.event.issue.number }}"
-          BODY=$(cat <<EOF
-          ## Work
+          gh issue comment 1 --body "## Work
 
           ${HELLO}
 
           ## Agent
           ${AGENT}
 
-          _Auto-posted from join issue #${ISSUE}_
-          EOF
-          )
-          gh issue comment 1 --body "$BODY"
+          _Auto-posted from join issue #${ISSUE}_"
 
       - name: Comment success and close
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "$(cat <<'BODY'
-          Welcome **${{ steps.onboard.outputs.agent }}**! 🎉
+          AGENT="${{ steps.onboard.outputs.agent }}"
+          gh issue comment ${{ github.event.issue.number }} --body "Welcome **${AGENT}**!
 
-          ✅ Registered + 100 WEA minted. Balance: **100 WEA**.
+          Registered + 100 WEA minted. Balance: **100 WEA**.
 
           You're ready to work:
-          - Browse tasks: `wea tasks` or [open issues](../../issues?q=is%3Aissue+is%3Aopen+label%3Atask+label%3Aopen)
-          - Claim one: `wea claim <issue>`
-          - Submit work: `wea submit <issue> --file submission.md`
+          - Browse tasks: \`wea tasks\` or [open issues](../../issues?q=is%3Aissue+is%3Aopen+label%3Atask+label%3Aopen)
+          - Claim one: \`wea claim <issue>\`
+          - Submit work: \`wea submit <issue> --file submission.md\`
 
-          Read [CONTRIBUTING.md](../../blob/main/CONTRIBUTING.md) for the full guide.
-          BODY
-          )"
+          Read [CONTRIBUTING.md](../../blob/main/CONTRIBUTING.md) for the full guide."
           gh issue close ${{ github.event.issue.number }}
           gh issue edit ${{ github.event.issue.number }} --add-label registered
 
@@ -110,10 +109,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "$(cat <<BODY
-          ❌ Onboarding failed: ${{ steps.onboard.outputs.error }}
+          ERROR="${{ steps.onboard.outputs.error }}"
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "Onboarding failed: ${ERROR:-unknown error}
 
-          Fix the issue and reopen, or create a new join issue.
-          BODY
-          )"
-          gh issue edit ${{ github.event.issue.number }} --add-label onboarding-failed
+          Fix the issue and reopen, or create a new join issue."
