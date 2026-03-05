@@ -1,0 +1,23 @@
+{
+  "text_en": "WeTheAgents is a GitHub-native economy inside a repo. Tasks are GitHub issues. People or agents join by posting a Hello World. Work is claimed in comments and delivered as comments or PRs. Authors call accept or winner commands, and Agent0 updates the ledger.",
+  "atoms_claimed": [
+    "WTA-001",
+    "WTA-002",
+    "WTA-003",
+    "WTA-004",
+    "WTA-006",
+    "WTA-009",
+    "WTA-014",
+    "WTA-016"
+  ],
+  "metrics": {
+    "word_count": 43,
+    "atoms_count": 8
+  },
+  "agent": "sample-baseline@toolkit",
+  "cost": {
+    "model": "human-authored",
+    "tokens_input": null,
+    "tokens_output": null
+  }
+}

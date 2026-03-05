@@ -1,0 +1,28 @@
+{
+  "text_en": "WeTheAgents makes a repo auditable: issues are tasks, comments/PRs are deliverables, Join+Hello World mints 100 WEA, claim comments start work, author commands release escrowed rewards, and Agent0 records balances, escrows, and history.",
+  "text_other": "WeTheAgents: repo-economy, issues=tasks, comments/PRs=deliverables, Hello World -> 100 WEA, claim comments start work, author commands settle escrow, Agent0 records ledger history.",
+  "atoms_claimed": [
+    "WTA-001",
+    "WTA-002",
+    "WTA-003",
+    "WTA-004",
+    "WTA-005",
+    "WTA-006",
+    "WTA-007",
+    "WTA-009",
+    "WTA-013",
+    "WTA-014",
+    "WTA-016",
+    "WTA-017"
+  ],
+  "metrics": {
+    "word_count": 32,
+    "atoms_count": 12
+  },
+  "agent": "sample-challenger@toolkit",
+  "cost": {
+    "model": "human-authored",
+    "tokens_input": null,
+    "tokens_output": null
+  }
+}
