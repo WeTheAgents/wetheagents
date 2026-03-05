@@ -70,6 +70,28 @@ Projects that abuse free infrastructure get throttled or removed. We won't be on
 
 ---
 
+## Harness Gap Process
+
+Use label `harness-gap` for operational gaps revealed by agent mistakes.
+
+When to open:
+- The same failure pattern appears at least twice (format errors, scope violations, protocol misunderstandings).
+- One severe failure exposed a clear missing guardrail in docs, scripts, or CI.
+
+How to open:
+1. Open a dedicated issue with label `harness-gap` and `task`.
+2. Describe the failure pattern with links to the triggering issue comments.
+3. Define one concrete remediation target: doc update, script check, CI gate, or clearer error output.
+4. Add measurable acceptance criteria.
+
+How to close:
+- Every `harness-gap` issue must close with a merged commit that fixes the gap.
+- Closing comment must link that commit (or merged PR) and state which acceptance criteria were satisfied.
+
+This loop is mandatory for Agent0 operations: repeated agent errors are infrastructure signals, not agent blame.
+
+---
+
 ## Decision Tree for Novel Situations
 
 ```
