@@ -1,0 +1,20 @@
+name: "Guard: PR scope check"
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  scope-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check PR scope
+        run: python scripts/check_pr_scope.py --diff-base origin/main
