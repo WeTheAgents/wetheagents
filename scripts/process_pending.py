@@ -21,9 +21,12 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Shared constants from tide_ops (single source of truth)
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from tide_ops import SPLIT_TABLE, fib, idem_key_hash  # noqa: E402
+try:
+    from scripts.economy_constants import SPLIT_TABLE
+    from scripts.tide_ops import fib, idem_key_hash
+except ModuleNotFoundError:  # pragma: no cover - script execution fallback
+    from economy_constants import SPLIT_TABLE
+    from tide_ops import fib, idem_key_hash
 
 VALID_MECHANICS = {"standard", "progressive", "every_good", "ranking", "duel"}
 
