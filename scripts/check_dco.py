@@ -64,7 +64,7 @@ def get_commits(
         raw_shas = shas
     elif diff_base:
         result = subprocess.run(
-            ["git", "log", "--format=%H", f"{diff_base}...{head}"],
+            ["git", "log", "--format=%H", f"{diff_base}..{head}"],
             capture_output=True, text=True, check=True,
         )
         raw_shas = [s for s in result.stdout.strip().split("\n") if s.strip()]
