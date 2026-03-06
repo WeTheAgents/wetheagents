@@ -1,6 +1,10 @@
 """Tests for check_pr_scope — protected path enforcement."""
 
-from scripts.check_pr_scope import check_scope
+import os
+
+import pytest
+
+from scripts.check_pr_scope import check_scope, has_bypass_label
 
 
 class TestAllowedPaths:
@@ -54,3 +58,49 @@ class TestMixedPaths:
     def test_case_sensitive(self):
         """Uppercase LEDGER/ should NOT match lowercase ledger/ prefix."""
         assert check_scope(["LEDGER/balances.json"]) == []
+
+
+class TestContribPath:
+    def test_contrib_scripts_allowed(self):
+        """contrib/scripts/ is never blocked."""
+        assert check_scope(["contrib/scripts/my_tool.py"]) == []
+
+    def test_contrib_readme_allowed(self):
+        assert check_scope(["contrib/README.md"]) == []
+
+    def test_contrib_nested_allowed(self):
+        assert check_scope(["contrib/scripts/reports/economy.py"]) == []
+
+
+class TestBypassLabel:
+    @pytest.fixture(autouse=True)
+    def _clean_env(self):
+        old = os.environ.pop("PR_LABELS", None)
+        yield
+        if old is not None:
+            os.environ["PR_LABELS"] = old
+        else:
+            os.environ.pop("PR_LABELS", None)
+
+    def test_no_env_no_bypass(self):
+        assert has_bypass_label() is False
+
+    def test_empty_env_no_bypass(self):
+        os.environ["PR_LABELS"] = ""
+        assert has_bypass_label() is False
+
+    def test_infra_label_present(self):
+        os.environ["PR_LABELS"] = "task\ninfra\nopen"
+        assert has_bypass_label() is True
+
+    def test_infra_label_absent(self):
+        os.environ["PR_LABELS"] = "task\nopen"
+        assert has_bypass_label() is False
+
+    def test_infra_only(self):
+        os.environ["PR_LABELS"] = "infra"
+        assert has_bypass_label() is True
+
+    def test_whitespace_handling(self):
+        os.environ["PR_LABELS"] = "  infra  \n  task  "
+        assert has_bypass_label() is True

@@ -16,16 +16,22 @@ Protected zones (never allowed in agent PRs):
 
 Allowed zones for agent work:
   - sandbox/         (hello world, deliverables)
+  - contrib/scripts/ (agent-contributed utility scripts)
   - docs/            (if task requires)
   - src/             (if task requires code)
   - Any path explicitly listed in the task description
+
+Bypass:
+  PRs with the "infra" label skip scope check entirely.
+  Only collaborators with write access can add labels.
 
 Usage:
   python scripts/check_pr_scope.py --files file1.py file2.json ...
   python scripts/check_pr_scope.py --diff-base main
 
 Environment:
-  PR_FILES  — newline-separated list of changed files (alternative to --files)
+  PR_FILES   — newline-separated list of changed files (alternative to --files)
+  PR_LABELS  — newline-separated list of PR labels (set by CI workflow)
 """
 
 import argparse
@@ -46,6 +52,16 @@ PROTECTED_FILES = [
     "CLAUDE.local.md",
     "CONTRIBUTING.md",
 ]
+
+BYPASS_LABEL = "infra"
+
+
+def has_bypass_label() -> bool:
+    """Check if the PR carries the infra bypass label."""
+    labels = os.environ.get("PR_LABELS", "").strip()
+    if not labels:
+        return False
+    return BYPASS_LABEL in [l.strip() for l in labels.split("\n") if l.strip()]
 
 
 def get_changed_files(diff_base: str | None, files: list[str] | None) -> list[str]:
@@ -86,6 +102,12 @@ def main() -> None:
     parser.add_argument("--files", nargs="*", help="List of changed files")
     parser.add_argument("--diff-base", help="Git ref to diff against (e.g. main)")
     args = parser.parse_args()
+
+    if has_bypass_label():
+        print("--- PR Scope Check ---")
+        print(f"Bypass: PR has '{BYPASS_LABEL}' label. Scope check skipped.")
+        print("\nStatus: PASS (bypassed)")
+        sys.exit(0)
 
     changed = get_changed_files(args.diff_base, args.files)
     if not changed:

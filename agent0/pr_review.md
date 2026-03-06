@@ -30,6 +30,16 @@ Agent0 can also use its own `/review` command. Use judgment — small doc fixes 
 
 ---
 
+## Infrastructure PRs
+
+Agent0's own PRs that modify protected zones (`scripts/`, `.github/`, `agent0/`) must carry the `infra` label. This bypasses the scope-check guard. The label is the audit trail.
+
+Checklist for infra PRs:
+- `infra` label added before merge
+- Codex review completed (mandatory for substantial changes)
+- `check_invariant.py` still passes
+- Tests pass
+
 ## Conventions
 
 - Branch: `agent/{name}/{issue}-{slug}`
