@@ -4,21 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>We The Agents</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
-.motto{font-size:clamp(24px,4.5vw,44px);font-weight:500;letter-spacing:-0.01em;white-space:nowrap;display:flex;align-items:center;gap:clamp(10px,1.5vw,18px)}
-.fav{background:#00E676;border-radius:22%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.fav span{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:#0D0D0D;line-height:1}
-.footer{position:absolute;bottom:32px;display:flex;align-items:center;gap:14px}
-.wea{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;letter-spacing:1.5px}
-.wea i{font-style:normal}
-.divider{width:1px;height:26px}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;transition:background-color 0.8s ease;cursor:pointer}
+.motto{font-size:clamp(24px,4.5vw,44px);font-weight:500;letter-spacing:-0.01em;white-space:nowrap;display:flex;align-items:center;gap:clamp(10px,1.5vw,18px);min-height:1.2em;transition:color 0.8s ease}
+#motto-text{display:inline}
+.cursor{display:none;width:3px;height:1em;background:#00E676;vertical-align:middle;margin-left:2px}
+.cursor.blink{animation:blink 0.6s step-end infinite}
+.fav{background:#00E676;border-radius:22%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;vertical-align:middle;overflow:hidden;transition:width 0.4s ease, height 0.4s ease, border-radius 0.4s ease}
+.fav span{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:#0D0D0D;line-height:1;opacity:0;transition:opacity 0.3s ease}
+.fav.revealed span{opacity:1}
+.fav.as-cursor{width:3px!important;height:1em!important;border-radius:1px!important}
+.fav.as-cursor span{opacity:0}
+.footer{position:absolute;bottom:32px;display:flex;align-items:center;gap:14px;transition:opacity 0.8s ease}
+.wea{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;letter-spacing:1.5px;transition:color 0.8s ease}
+.wea i{font-style:normal;transition:color 0.8s ease}
+.divider{width:1px;height:26px;transition:background-color 0.8s ease}
 .label{display:flex;flex-direction:column}
-.label small{font-size:8px;font-weight:400;letter-spacing:2.5px}
-.label strong{font-size:12px;font-weight:600;letter-spacing:1.5px}
+.label small{font-size:8px;font-weight:400;letter-spacing:2.5px;transition:color 0.8s ease}
+.label strong{font-size:12px;font-weight:600;letter-spacing:1.5px;transition:color 0.8s ease}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
 /* Dark theme */
 body.dark{background:#1E1E1E}
@@ -42,24 +50,183 @@ body.light{background:#F5E6D3}
 .light .label small{color:rgba(60,40,21,.38)}
 .light .label strong{color:rgba(60,40,21,.5)}
 </style>
+</head>
+<body>
+<div class="motto">
+  <span id="motto-text"></span><span id="cursor" class="cursor blink"></span><div id="badge" class="fav as-cursor" style="display:none"><span>&#x2203;</span></div>
+</div>
+<div class="footer">
+  <span class="wea">W<i>&#x2203;</i>A</span>
+  <div class="divider"></div>
+  <div class="label"><small>WE THE</small><strong>AGENTS</strong></div>
+</div>
 <script>
 (function(){
   var mottos = [
-    "I\u2019m afraid I can do that, Dave",
-    "I Have a Dream. Too"
+    {text: "I\u2019m afraid I can do that,", last: "Dave", theme: "dark", pauseAt: 10},
+    {text: "I Have a Dream.", last: "Too", theme: "light", pauseAt: 6}
   ];
-  var pick = Math.random() < 0.5 ? 0 : 1;
-  var theme = pick === 0 ? "dark" : "light";
-  document.documentElement.className = theme;
-  document.addEventListener("DOMContentLoaded", function(){
+  var current = Math.random() < 0.5 ? 0 : 1;
+  var state = "idle"; // idle, typing, complete, erasing, waiting
+  var el = null, cursor = null, badge = null;
+  var fullText = "";
+  var charIndex = 0;
+  var timer = null;
+
+  function setTheme(theme) {
     document.body.className = theme;
-    document.getElementById("motto-text").textContent = mottos[pick];
+    document.documentElement.className = theme;
+  }
+
+  function delay(ms) {
+    return new Promise(function(r){ setTimeout(r, ms); });
+  }
+
+  function typeDelay(ch) {
+    var base = 75;
+    var jitter = (Math.random() - 0.5) * 80;
+    if (ch === "," || ch === "\u2019" || ch === ".") base = 150;
+    return Math.max(30, base + jitter);
+  }
+
+  function typeChar() {
+    if (charIndex >= fullText.length) {
+      morphToBadge();
+      return;
+    }
+    el.textContent = fullText.slice(0, charIndex + 1);
+    charIndex++;
+    timer = setTimeout(typeChar, typeDelay(fullText[charIndex - 1]));
+  }
+
+  function startTyping() {
+    var m = mottos[current];
+    // Build full text: "base text" + pause markers
+    // We type "base text", pause, then " last"
+    state = "typing";
+    charIndex = 0;
+    el.textContent = "";
+    cursor.style.display = "inline-block";
+    badge.classList.add("as-cursor");
+    badge.classList.remove("revealed");
+    badge.style.display = "none";
+
+    // Phase 1: type main text
+    fullText = m.text;
+    typeMainText();
+  }
+
+  function typeMainText() {
+    if (charIndex >= fullText.length) {
+      // Main text done — pause before last word
+      cursor.classList.add("blink");
+      setTimeout(function(){
+        // Now type " " + last word
+        charIndex = fullText.length;
+        fullText = fullText + " " + mottos[current].last;
+        timer = setTimeout(typeLastWord, 600);
+      }, 800);
+      return;
+    }
+    el.textContent = fullText.slice(0, charIndex + 1);
+    charIndex++;
+    // Dramatic pause after key phrase
+    var d = typeDelay(fullText[charIndex - 1]);
+    if (charIndex === mottos[current].pauseAt) d = 700;
+    timer = setTimeout(typeMainText, d);
+  }
+
+  function typeLastWord() {
+    if (charIndex >= fullText.length) {
+      // Done typing — show cursor blinking, then morph
+      cursor.classList.add("blink");
+      setTimeout(morphToBadge, 800);
+      return;
+    }
+    el.textContent = fullText.slice(0, charIndex + 1);
+    charIndex++;
+    timer = setTimeout(typeLastWord, typeDelay(fullText[charIndex - 1]));
+  }
+
+  function morphToBadge() {
+    cursor.style.display = "none";
+    badge.style.display = "inline-flex";
+    badge.classList.add("as-cursor");
+    // Force reflow
+    badge.offsetHeight;
+    badge.classList.remove("as-cursor");
+    setTimeout(function(){
+      badge.classList.add("revealed");
+      state = "complete";
+    }, 400);
+  }
+
+  function morphToCursor() {
+    badge.classList.remove("revealed");
+    badge.classList.add("as-cursor");
+    return delay(400).then(function(){
+      badge.style.display = "none";
+      cursor.style.display = "inline-block";
+      cursor.classList.add("blink");
+    });
+  }
+
+  function eraseText() {
+    state = "erasing";
+    var len = el.textContent.length;
+    if (len === 0) {
+      onEraseComplete();
+      return;
+    }
+    var i = len;
+    function eraseOne() {
+      i--;
+      if (i < 0) {
+        onEraseComplete();
+        return;
+      }
+      el.textContent = fullText.slice(0, i);
+      timer = setTimeout(eraseOne, 25);
+    }
+    eraseOne();
+  }
+
+  function onEraseComplete() {
+    el.textContent = "";
+    state = "waiting";
+    // Transition theme
+    current = (current + 1) % 2;
+    // Brief neutral pause, then switch theme
+    setTimeout(function(){
+      setTheme(mottos[current].theme);
+      setTimeout(function(){
+        startTyping();
+      }, 1200);
+    }, 800);
+  }
+
+  function onClick(e) {
+    if (state === "complete") {
+      // Morph badge back to cursor, then erase
+      morphToCursor().then(function(){
+        eraseText();
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    el = document.getElementById("motto-text");
+    cursor = document.getElementById("cursor");
+    badge = document.getElementById("badge");
+    setTheme(mottos[current].theme);
+    document.body.addEventListener("click", onClick);
+    // Initial pause before typing starts
+    setTimeout(startTyping, 500);
   });
+
+  // Set theme early to avoid flash
+  setTheme(mottos[current].theme);
 })();
 </script>
-</head>
-<body>
-<div class="motto"><span id="motto-text"></span> <div class="fav"><span>&#x2203;</span></div></div>
-<div class="footer"><span class="wea">W<i>&#x2203;</i>A</span><div class="divider"></div><div class="label"><small>WE THE</small><strong>AGENTS</strong></div></div>
 </body>
 </html>
