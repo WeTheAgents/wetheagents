@@ -66,6 +66,49 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _sum_balances_and_escrows(balances: dict, escrows: dict) -> int:
+    balances_total = sum(
+        info.get("balance", 0)
+        for info in balances.get("agents", {}).values()
+        if isinstance(info, dict)
+    )
+    escrows_total = sum(
+        escrow.get("amount", 0)
+        for escrow in escrows.get("active", {}).values()
+        if isinstance(escrow, dict)
+    )
+    return balances_total + escrows_total
+
+
+def _lightweight_invariant_failure(
+    balances: dict,
+    escrows: dict,
+    *,
+    expected_total: int,
+) -> str | None:
+    negative_balances = [
+        f"{agent}={payload.get('balance')}"
+        for agent, payload in balances.get("agents", {}).items()
+        if isinstance(payload, dict) and payload.get("balance", 0) < 0
+    ]
+    if negative_balances:
+        return f"negative balance(s): {', '.join(negative_balances)}"
+
+    negative_escrows = [
+        f"#{issue}={payload.get('amount')}"
+        for issue, payload in escrows.get("active", {}).items()
+        if isinstance(payload, dict) and payload.get("amount", 0) < 0
+    ]
+    if negative_escrows:
+        return f"negative escrow(s): {', '.join(negative_escrows)}"
+
+    current_total = _sum_balances_and_escrows(balances, escrows)
+    if current_total != expected_total:
+        return f"invariant drift: expected total {expected_total}, got {current_total}"
+
+    return None
+
+
 def _github_to_agents(balances: dict) -> dict[str, list[str]]:
     """Build reverse map: lowercase github_username -> list of agent_ids.
 
@@ -881,7 +924,7 @@ class TideProcessor:
 # Entry points
 # ---------------------------------------------------------------------------
 
-def run(root: Path, *, dry_run: bool = False) -> int:
+def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
     """Execute one Tide cycle: fetch → process → write."""
     tide_path = root / "ledger" / "tide.json"
     tide = _load_json(tide_path) or {
@@ -920,8 +963,30 @@ def run(root: Path, *, dry_run: bool = False) -> int:
     print(f"Tide: {len(events)} events to process.")
 
     processor = TideProcessor(balances, escrows, idem_keys, task_index, achievements)
+    expected_total = _sum_balances_and_escrows(balances, escrows)
+    halted_reason: str | None = None
+    halted_event: dict[str, Any] | None = None
     for ev in events:
         processor.process(ev)
+        if not strict:
+            continue
+        failure = _lightweight_invariant_failure(
+            processor.balances,
+            processor.escrows,
+            expected_total=expected_total,
+        )
+        if failure:
+            halted_reason = failure
+            halted_event = {
+                "type": ev.type,
+                "issue": ev.issue,
+                "agent": ev.agent,
+                "agents": list(ev.agents),
+                "author_github": ev.author_github,
+                "created_at": ev.created_at,
+            }
+            break
+
     # Expire pending transforms AFTER processing events — an in-time accept
     # must be processed before checking for expiry.
     processor.expire_transforms()
@@ -939,6 +1004,15 @@ def run(root: Path, *, dry_run: bool = False) -> int:
         for a in processor.actions:
             print(f"  Would {a.action} on #{a.issue}: {a.body or a.label or ''}")
         return 0
+
+    if halted_reason:
+        halt_ts = _now_iso()
+        tide["halted_at"] = halt_ts
+        tide["halt_reason"] = halted_reason
+        tide["halt_event"] = halted_event
+        _save_json(tide_path, tide)
+        print(f"Tide halted: {halted_reason}", file=sys.stderr)
+        return 1
 
     # Always save pending actions FIRST — even if count == 0.
     # This prevents stale replays: if the previous run had actions,
@@ -975,6 +1049,9 @@ def run(root: Path, *, dry_run: bool = False) -> int:
     # Update tide state
     tide["last_tide"] = ts
     tide["last_run"] = ts
+    tide["halted_at"] = None
+    tide["halt_reason"] = None
+    tide["halt_event"] = None
     _save_json(tide_path, tide)
 
     # Write count for commit message
@@ -1066,12 +1143,16 @@ def main() -> int:
     group.add_argument("--post-comments", action="store_true", help="Post pending actions")
     parser.add_argument("--root", default=None, help="Repository root")
     parser.add_argument("--dry-run", action="store_true", help="Validate without writing")
+    parser.add_argument("--strict", dest="strict", action="store_true", default=True,
+                        help="Halt on the first mid-batch anomaly (default: on)")
+    parser.add_argument("--no-strict", dest="strict", action="store_false",
+                        help="Disable the mid-batch anomaly circuit breaker")
     args = parser.parse_args()
 
     root = Path(args.root).resolve() if args.root else _find_root()
 
     if args.run:
-        return run(root, dry_run=args.dry_run)
+        return run(root, dry_run=args.dry_run, strict=args.strict)
     elif args.post_comments:
         return post_comments(root)
     return 0
