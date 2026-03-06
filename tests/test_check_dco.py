@@ -8,8 +8,21 @@ def _commit(sha="abc123", email="dev@example.com", message="feat: something"):
 
 
 class TestBotDetection:
-    def test_github_bot(self):
+    def test_github_bot_dependabot(self):
         assert is_bot_commit("dependabot[bot]@users.noreply.github.com")
+
+    def test_github_bot_with_numeric_id(self):
+        assert is_bot_commit("49699333+dependabot[bot]@users.noreply.github.com")
+
+    def test_github_bot_actions(self):
+        assert is_bot_commit("github-actions[bot]@users.noreply.github.com")
+
+    def test_spoofed_bot_email_rejected(self):
+        # Attacker sets git config email to fake [bot] — must NOT be exempt
+        assert not is_bot_commit("alice[bot]@example.com")
+
+    def test_spoofed_bot_wrong_domain_rejected(self):
+        assert not is_bot_commit("bot[bot]@github.com")
 
     def test_human_noreply_github_not_bot(self):
         # Private GitHub email is a real human — not exempt from DCO
@@ -48,7 +61,11 @@ class TestDCOCheck:
     def test_mixed_commits(self):
         signed = _commit(sha="aaa", message="feat: x\n\nSigned-off-by: A <a@b.com>")
         unsigned = _commit(sha="bbb", message="feat: y")
-        bot = _commit(sha="ccc", email="bot[bot]@github.com", message="auto")
+        bot = _commit(
+            sha="ccc",
+            email="github-actions[bot]@users.noreply.github.com",
+            message="auto",
+        )
         assert check_dco([signed, unsigned, bot]) == [unsigned]
 
     def test_empty_list(self):

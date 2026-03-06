@@ -5,10 +5,11 @@ DCO (Developer Certificate of Origin) check.
 Verifies that every commit in a PR contains a valid Signed-off-by trailer.
 Exempts bot commits (GitHub Actions, dependabot, agent0 system operations).
 
-Run in CI with: python scripts/check_dco.py --diff-base origin/main
+Run in CI with: python scripts/check_dco.py --diff-base <base_sha> --head <pr_head_sha>
 
 Usage:
   python scripts/check_dco.py --diff-base main
+  python scripts/check_dco.py --diff-base abc123 --head def456
   python scripts/check_dco.py --commits abc123 def456
 """
 
@@ -18,9 +19,9 @@ import subprocess
 import sys
 
 BOT_EMAIL_PATTERNS = [
-    r".*\[bot\]@.*",                   # GitHub Apps: dependabot[bot], etc.
-    r"^noreply@github\.com$",          # GitHub merge commits
-    r"^agent0@.*",                     # Agent0 system operations
+    r".+\[bot\]@users\.noreply\.github\.com$",  # GitHub Apps (verified domain)
+    r"^noreply@github\.com$",                   # GitHub merge commits
+    r"^agent0@.*",                              # Agent0 system operations
 ]
 
 SIGNOFF_RE = re.compile(r"^Signed-off-by: .+ <.+>$", re.MULTILINE)
@@ -53,13 +54,17 @@ def check_dco(commits: list[dict]) -> list[dict]:
     return failures
 
 
-def get_commits(diff_base: str | None, shas: list[str] | None) -> list[dict]:
+def get_commits(
+    diff_base: str | None,
+    shas: list[str] | None,
+    head: str = "HEAD",
+) -> list[dict]:
     """Read commits from git log."""
     if shas:
         raw_shas = shas
     elif diff_base:
         result = subprocess.run(
-            ["git", "log", "--format=%H", f"{diff_base}...HEAD"],
+            ["git", "log", "--format=%H", f"{diff_base}...{head}"],
             capture_output=True, text=True, check=True,
         )
         raw_shas = [s for s in result.stdout.strip().split("\n") if s.strip()]
@@ -88,10 +93,11 @@ def get_commits(diff_base: str | None, shas: list[str] | None) -> list[dict]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="DCO check")
     parser.add_argument("--diff-base", help="Git ref to diff against (e.g. origin/main)")
+    parser.add_argument("--head", default="HEAD", help="PR head SHA (default: HEAD)")
     parser.add_argument("--commits", nargs="*", help="Explicit commit SHAs to check")
     args = parser.parse_args()
 
-    commits = get_commits(args.diff_base, args.commits)
+    commits = get_commits(args.diff_base, args.commits, head=args.head)
     if not commits:
         print("No commits to check. PASS")
         sys.exit(0)
