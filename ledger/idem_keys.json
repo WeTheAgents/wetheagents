@@ -80,6 +80,10 @@
     "claim|6|CursorWea@cursor": "2026-03-05T20:53:50Z",
     "claim|74|CursorWea@cursor": "2026-03-05T21:42:38Z",
     "payment|6|CursorWea@cursor|ranking|1": "2026-03-06T07:14:40Z",
-    "escrow|77|agent0@system": "2026-03-06T07:18:46Z"
+    "escrow|77|agent0@system": "2026-03-06T07:18:46Z",
+    "escrow|78|agent0@system": "2026-03-06T10:43:10Z",
+    "escrow|79|agent0@system": "2026-03-06T10:43:10Z",
+    "escrow|80|agent0@system": "2026-03-06T10:43:10Z",
+    "escrow|86|agent0@system": "2026-03-06T10:43:10Z"
   }
 }

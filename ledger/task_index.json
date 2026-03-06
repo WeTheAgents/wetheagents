@@ -42,6 +42,62 @@
       "created_at": "2026-03-05T10:36:18Z",
       "body_hash_raw": "sha256:42c41f7d0f59a1ce951270289a378dccc596435d0af49a35478f79439724405b",
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
+    },
+    "78": {
+      "title": "[Task] Script: check_cross_file_integrity.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 12,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-06T07:53:18Z",
+      "body_hash_raw": "sha256:24cfc7f54e89cd8621befeb89d4b6384647c4b5d092d1f37a4db553d57e12e06",
+      "body_hash_semantic": "sha256:b647e0ee91cfc827e1b2b78e248a80f71903f8d82e1b33c8c8375228094bd7a1"
+    },
+    "79": {
+      "title": "[Task] Script: check_post_close_audit.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 12,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-06T07:53:24Z",
+      "body_hash_raw": "sha256:a7e33fa730f0905ce2432973ecbe6a4aad14db23f186ced93b7ab16129dd69ea",
+      "body_hash_semantic": "sha256:b647e0ee91cfc827e1b2b78e248a80f71903f8d82e1b33c8c8375228094bd7a1"
+    },
+    "80": {
+      "title": "[Task] Tide circuit breaker: halt on mid-batch anomaly",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-06T07:53:32Z",
+      "body_hash_raw": "sha256:f4e74210be0a0646b85e927c41d68f7f7c6c0090991771dcd63f9fa68189edf8",
+      "body_hash_semantic": "sha256:9bdb4ad9f0a6ec63a7d4daf4ba48c010b15e25eab1b5a511f08222652a2ee0ae"
+    },
+    "86": {
+      "title": "[Task] Design: agent worktree architecture and bootstrap",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 30,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-06T09:39:28Z",
+      "body_hash_raw": "sha256:f91252e06e2b283a1396d89f9d0991e64487b86a1b84112cac6b138cc4b0b658",
+      "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     }
   }
 }

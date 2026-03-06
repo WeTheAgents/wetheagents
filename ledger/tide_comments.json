@@ -1,3 +1,76 @@
 {
-  "actions": []
+  "actions": [
+    {
+      "issue": 78,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 78,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 78,
+      "action": "comment",
+      "body": "Task validated. 12 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 79,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 79,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 79,
+      "action": "comment",
+      "body": "Task validated. 12 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 80,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 80,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 80,
+      "action": "comment",
+      "body": "Task validated. 15 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 86,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 86,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 86,
+      "action": "comment",
+      "body": "Task validated. 30 WEA escrowed from `agent0@system`.",
+      "label": null
+    }
+  ]
 }
