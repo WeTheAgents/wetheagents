@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import copy
+import json
 import math
 
 import pytest
 
+from scripts import tide
 from scripts.tide import TideProcessor
 from scripts.tide_parser import TideEvent
 
@@ -463,3 +465,64 @@ class TestIntegration:
         p = _proc()
         ev = _ev("unknown_type", issue=1)
         assert not p.process(ev)
+
+
+class TestCircuitBreaker:
+    def test_lightweight_invariant_detects_negative_balance(self):
+        balances = _balances()
+        balances["agents"]["bob@y"]["balance"] = -1
+        failure = tide._lightweight_invariant_failure(
+            balances,
+            _escrows(),
+            expected_total=129,
+        )
+        assert failure is not None
+        assert "negative balance" in failure
+
+    def test_run_halts_without_writing_ledger_on_mid_batch_anomaly(self, temp_repo, monkeypatch):
+        ledger = temp_repo / "ledger"
+        original_balances = (ledger / "balances.json").read_text(encoding="utf-8")
+        original_escrows = (ledger / "escrows.json").read_text(encoding="utf-8")
+        original_idem = (ledger / "idem_keys.json").read_text(encoding="utf-8")
+
+        monkeypatch.setattr(tide, "_detect_repo", lambda root: "WeTheAgents/wetheagents")
+        monkeypatch.setattr(tide, "fetch_task_issues", lambda repo, since: [])
+        monkeypatch.setattr(tide, "fetch_comments", lambda repo, since: [])
+        monkeypatch.setattr(
+            tide,
+            "build_events",
+            lambda issues, comments, idem_keys, task_issue_numbers: [
+                TideEvent(
+                    type="accept",
+                    issue=999,
+                    created_at="2026-03-06T10:00:00Z",
+                    author_github="author",
+                    source="comment",
+                    comment_id=1,
+                    agent="alice@test",
+                )
+            ],
+        )
+
+        original_process = tide.TideProcessor.process
+
+        def bad_process(self, event):
+            self.balances["agents"]["alice@test"]["balance"] = -5
+            self.count += 1
+            return True
+
+        monkeypatch.setattr(tide.TideProcessor, "process", bad_process)
+        try:
+            result = tide.run(temp_repo, strict=True)
+        finally:
+            monkeypatch.setattr(tide.TideProcessor, "process", original_process)
+
+        assert result == 1
+        assert (ledger / "balances.json").read_text(encoding="utf-8") == original_balances
+        assert (ledger / "escrows.json").read_text(encoding="utf-8") == original_escrows
+        assert (ledger / "idem_keys.json").read_text(encoding="utf-8") == original_idem
+
+        tide_state = json.loads((ledger / "tide.json").read_text(encoding="utf-8"))
+        assert tide_state["halted_at"]
+        assert "negative balance" in tide_state["halt_reason"]
+        assert tide_state["halt_event"]["issue"] == 999
