@@ -3,7 +3,7 @@ name: "Guard: PR scope check"
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, labeled, unlabeled]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
 
 jobs:
   scope-check:
