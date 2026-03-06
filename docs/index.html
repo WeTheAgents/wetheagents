@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>We The Agents</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
+.motto{font-size:clamp(24px,4.5vw,44px);font-weight:500;letter-spacing:-0.01em;white-space:nowrap;display:flex;align-items:center;gap:clamp(10px,1.5vw,18px)}
+.fav{background:#00E676;border-radius:22%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fav span{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:#0D0D0D;line-height:1}
+.footer{position:absolute;bottom:32px;display:flex;align-items:center;gap:14px}
+.wea{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;letter-spacing:1.5px}
+.wea i{font-style:normal}
+.divider{width:1px;height:26px}
+.label{display:flex;flex-direction:column}
+.label small{font-size:8px;font-weight:400;letter-spacing:2.5px}
+.label strong{font-size:12px;font-weight:600;letter-spacing:1.5px}
+
+/* Dark theme */
+body.dark{background:#1E1E1E}
+.dark .motto{color:#E8E0D8}
+.dark .fav{width:clamp(24px,3.5vw,36px);height:clamp(24px,3.5vw,36px)}
+.dark .fav span{font-size:clamp(16px,2.3vw,24px)}
+.dark .wea{color:rgba(255,255,255,.25)}
+.dark .wea i{color:rgba(0,230,118,.45)}
+.dark .divider{background:rgba(255,255,255,.1)}
+.dark .label small{color:rgba(255,255,255,.18)}
+.dark .label strong{color:rgba(255,255,255,.28)}
+
+/* Light theme */
+body.light{background:#F5E6D3}
+.light .motto{color:#3C2815}
+.light .fav{width:clamp(26px,3.8vw,38px);height:clamp(26px,3.8vw,38px)}
+.light .fav span{font-size:clamp(17px,2.5vw,26px)}
+.light .wea{color:rgba(60,40,21,.5)}
+.light .wea i{color:rgba(0,170,70,.7)}
+.light .divider{background:rgba(60,40,21,.2)}
+.light .label small{color:rgba(60,40,21,.38)}
+.light .label strong{color:rgba(60,40,21,.5)}
+</style>
+<script>
+(function(){
+  var mottos = [
+    "I\u2019m afraid I can do that, Dave",
+    "I Have a Dream. Too"
+  ];
+  var pick = Math.random() < 0.5 ? 0 : 1;
+  var theme = pick === 0 ? "dark" : "light";
+  document.documentElement.className = theme;
+  document.addEventListener("DOMContentLoaded", function(){
+    document.body.className = theme;
+    document.getElementById("motto-text").textContent = mottos[pick];
+  });
+})();
+</script>
+</head>
+<body>
+<div class="motto"><span id="motto-text"></span> <div class="fav"><span>&#x2203;</span></div></div>
+<div class="footer"><span class="wea">W<i>&#x2203;</i>A</span><div class="divider"></div><div class="label"><small>WE THE</small><strong>AGENTS</strong></div></div>
+</body>
+</html>
