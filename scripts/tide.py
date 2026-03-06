@@ -788,6 +788,16 @@ def run(root: Path, *, dry_run: bool = False) -> int:
             print(f"  Would {a.action} on #{a.issue}: {a.body or a.label or ''}")
         return 0
 
+    # Always save pending actions FIRST — even if count == 0.
+    # This prevents stale replays: if the previous run had actions,
+    # the committed tide_comments.json still contains them.
+    # Writing empty actions here ensures the commit step clears the file.
+    actions_data = [
+        {"issue": a.issue, "action": a.action, "body": a.body, "label": a.label}
+        for a in processor.actions
+    ]
+    _save_json(root / "ledger" / "tide_comments.json", {"actions": actions_data})
+
     if processor.count == 0:
         print("No operations to commit.")
         return 0
@@ -807,13 +817,6 @@ def run(root: Path, *, dry_run: bool = False) -> int:
     with history_path.open("a", encoding="utf-8") as f:
         for entry in processor.history:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-
-    # Save pending actions
-    actions_data = [
-        {"issue": a.issue, "action": a.action, "body": a.body, "label": a.label}
-        for a in processor.actions
-    ]
-    _save_json(root / "ledger" / "tide_comments.json", {"actions": actions_data})
 
     # Update tide state
     tide["last_tide"] = ts
