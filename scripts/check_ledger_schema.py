@@ -40,7 +40,7 @@ def validate_balances(data: dict) -> None:
         if "balance" in agent and not isinstance(agent["balance"], int):
             err(f, f"agent '{agent_id}' balance is not int", "balance must be an integer")
 
-        if "balance" in agent and agent["balance"] < 0:
+        if "balance" in agent and isinstance(agent["balance"], int) and agent["balance"] < 0:
             err(f, f"agent '{agent_id}' has negative balance: {agent['balance']}",
                 "investigate ledger history — balances must be >= 0")
 
@@ -93,12 +93,84 @@ def validate_task_index(data: dict) -> None:
         err(f, "missing 'tasks' key", "add \"tasks\": {} at top level")
 
 
+def validate_achievements(data: dict) -> None:
+    f = "achievements.json"
+    if "version" not in data:
+        err(f, "missing 'version' key", "add \"version\": 1 at top level")
+    if "agents" not in data:
+        err(f, "missing 'agents' key", "add \"agents\": {} at top level")
+        return
+    if not isinstance(data["agents"], dict):
+        err(f, "'agents' must be a dict", "agents should be an object, not a list")
+        return
+
+    for agent_id, ach in data["agents"].items():
+        if not isinstance(ach, dict):
+            err(f, f"agent '{agent_id}' value must be a dict", "each agent entry should be an object")
+            continue
+        if "@" not in agent_id:
+            err(f, f"agent id '{agent_id}' missing '@'", "format: <name>@<platform>")
+
+        if "title" not in ach:
+            err(f, f"agent '{agent_id}' missing 'title'", "add \"title\": \"\" to agent entry")
+        if "words" not in ach:
+            err(f, f"agent '{agent_id}' missing 'words'", "add \"words\": [] to agent entry")
+        elif not isinstance(ach["words"], list):
+            err(f, f"agent '{agent_id}' words is not a list", "words must be a JSON array of strings")
+        if "history" not in ach:
+            err(f, f"agent '{agent_id}' missing 'history'", "add \"history\": [] to agent entry")
+        elif not isinstance(ach["history"], list):
+            err(f, f"agent '{agent_id}' history is not a list", "history must be a JSON array")
+        else:
+            for i, entry in enumerate(ach["history"]):
+                if not isinstance(entry, dict):
+                    err(f, f"agent '{agent_id}' history[{i}] must be a dict", "each history entry should be an object")
+                    continue
+                if "action" not in entry:
+                    err(f, f"agent '{agent_id}' history[{i}] missing 'action'",
+                        "add \"action\": \"award\" or \"revoke\"")
+                elif entry["action"] not in ("award", "revoke", "transform_award", "transform_revoke"):
+                    err(f, f"agent '{agent_id}' history[{i}] unknown action '{entry['action']}'",
+                        "action must be 'award', 'revoke', 'transform_award', or 'transform_revoke'")
+                if "word" not in entry:
+                    err(f, f"agent '{agent_id}' history[{i}] missing 'word'", "add word string")
+                if "at" not in entry:
+                    err(f, f"agent '{agent_id}' history[{i}] missing 'at'", "add ISO timestamp")
+
+        # Consistency check: computed words/title should match stored
+        if isinstance(ach.get("history"), list) and isinstance(ach.get("words"), list):
+            computed_words = []
+            for entry in ach["history"]:
+                if not isinstance(entry, dict):
+                    continue
+                action = entry.get("action")
+                word = entry.get("word", "")
+                if not isinstance(word, str):
+                    continue
+                if action in ("award", "transform_award") and word not in computed_words:
+                    computed_words.append(word)
+                elif action in ("revoke", "transform_revoke") and word in computed_words:
+                    computed_words.remove(word)
+            if computed_words != ach["words"]:
+                err(f, f"agent '{agent_id}' words mismatch: stored {ach['words']} vs computed {computed_words}",
+                    "recompute words from history")
+            expected_title = "-".join(str(w) for w in reversed(computed_words)) if computed_words else ""
+            if ach.get("title", "") != expected_title:
+                err(f, f"agent '{agent_id}' title mismatch: stored '{ach.get('title')}' vs computed '{expected_title}'",
+                    "recompute title from words")
+
+
 VALIDATORS = {
     "balances.json": validate_balances,
     "escrows.json": validate_escrows,
     "idem_keys.json": validate_idem_keys,
     "pending.json": validate_pending,
     "task_index.json": validate_task_index,
+}
+
+# Optional validators -- only run if file exists
+OPTIONAL_VALIDATORS = {
+    "achievements.json": validate_achievements,
 }
 
 
@@ -109,6 +181,21 @@ def main() -> None:
         path = os.path.join(LEDGER_DIR, filename)
         if not os.path.exists(path):
             err(filename, "file not found", f"create {filename} with correct structure")
+            continue
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            err(filename, f"invalid JSON: {e}", "fix JSON syntax")
+            continue
+
+        validator(data)
+
+    # Optional files -- validate only if present
+    for filename, validator in OPTIONAL_VALIDATORS.items():
+        path = os.path.join(LEDGER_DIR, filename)
+        if not os.path.exists(path):
             continue
 
         try:

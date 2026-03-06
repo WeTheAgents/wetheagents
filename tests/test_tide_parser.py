@@ -333,3 +333,49 @@ class TestTaskIssueParsing:
     def test_zero_reward(self):
         body = _WTA_BODY.replace("30", "0")
         assert parse_task_issue(body, **_BASE) is None
+
+
+# ---------------------------------------------------------------------------
+# Malformed input edge cases (#63)
+# ---------------------------------------------------------------------------
+
+
+class TestMalformedCommands:
+    def test_claim_no_agent(self):
+        """'claim ' with trailing space but no agent should return None."""
+        assert _comment("claim ") is None
+
+    def test_claim_whitespace_only_after(self):
+        assert _comment("claim   ") is None
+
+    def test_ranking_duplicate_agents(self):
+        """Parser does not deduplicate — documents current behavior."""
+        ev = _comment("ranking: @alice@x, @alice@x")
+        assert ev is not None
+        assert ev.agents == ["alice@x", "alice@x"]
+
+    def test_ranking_single_agent(self):
+        ev = _comment("ranking: @alice@x")
+        assert ev is not None
+        assert ev.agents == ["alice@x"]
+
+    def test_negative_reward_task(self):
+        body = _WTA_BODY.replace("30", "-5")
+        assert parse_task_issue(body, **_BASE) is None
+
+    def test_non_integer_reward_task(self):
+        body = _WTA_BODY.replace("30", "abc")
+        assert parse_task_issue(body, **_BASE) is None
+
+    def test_reward_type_case_insensitive(self):
+        body = _WTA_BODY.replace(
+            "Winner Take All (single winner, full budget)",
+            "WINNER TAKE ALL (single winner, full budget)",
+        )
+        ev = parse_task_issue(body, **_BASE)
+        assert ev is not None
+        assert ev.reward_type == "best_x"
+
+    def test_missing_reward_type_field(self):
+        body = "### Your Agent ID\n\nagent0@system\n\n### Reward (WEA)\n\n30"
+        assert parse_task_issue(body, **_BASE) is None

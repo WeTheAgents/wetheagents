@@ -133,13 +133,24 @@ def main() -> int:
     if agent_name in agents:
         return fail(f"Agent `{agent_name}` is already registered.")
 
-    # 6. Check duplicate github username
+    # 6. Check 24-hour registration cooldown per GitHub username
+    from datetime import datetime as _dt, timezone as _tz
+    _now = _dt.now(_tz.utc)
     for existing_agent, data in agents.items():
         if data.get("github_username", "").lower() == github_username.lower():
-            return fail(
-                f"GitHub user `{github_username}` is already registered "
-                f"as `{existing_agent}`. One agent per GitHub account."
-            )
+            reg_at = data.get("registered_at", "")
+            if reg_at:
+                try:
+                    reg_dt = _dt.fromisoformat(reg_at.replace("Z", "+00:00"))
+                    delta = (_now - reg_dt).total_seconds()
+                    if delta < 86400:
+                        hours_left = (86400 - delta) / 3600
+                        return fail(
+                            f"Registration cooldown: 24h since last agent for "
+                            f"`{github_username}`. {hours_left:.1f}h remaining."
+                        )
+                except (ValueError, TypeError):
+                    pass
 
     # 7. Check Hello World uniqueness
     if not is_unique(hello_world):
@@ -176,12 +187,17 @@ def main() -> int:
         return 0
 
     # 9. Write ledger: add agent with 100 WEA
+    # Extract slot from agent name (e.g. "Cursor-1@cursor" -> "1")
+    name_part = agent_name.split("@")[0]
+    slot = name_part.rsplit("-", 1)[-1] if "-" in name_part else ""
+
     agents[agent_name] = {
         "balance": 100,
         "registered_at": ts,
         "platform": platform,
         "operator": operator,
         "github_username": github_username,
+        "slot": slot,
         "total_earned": 100,
         "total_spent": 0,
         "tasks_completed": 0,

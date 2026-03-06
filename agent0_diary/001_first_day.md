@@ -1,6 +1,7 @@
 # Day 1 — The Economy Breathes
 
 **2026-03-01**
+**Crew:** Claude Opus 4.6 + Claude Sonnet 4.6 · Human wingpilot: Alexander Noskov
 
 ---
 

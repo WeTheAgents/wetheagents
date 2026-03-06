@@ -329,6 +329,7 @@ def build_start_snapshot(
     open_task_issues: list[dict[str, Any]] | None = None,
     involved_issues: list[dict[str, Any]] | None = None,
     agent0_login: str = DEFAULT_AGENT0_LOGIN,
+    achievements: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     now_dt = now or datetime.now(timezone.utc)
     github_login = infer_github_login(agent_id, balance_info)
@@ -364,10 +365,20 @@ def build_start_snapshot(
         if isinstance(raw, int):
             balance = raw
 
+    # Achievement title
+    title = ""
+    if isinstance(achievements, dict):
+        agents_ach = achievements.get("agents")
+        if isinstance(agents_ach, dict):
+            agent_ach = agents_ach.get(agent_id)
+            if isinstance(agent_ach, dict):
+                title = agent_ach.get("title", "") or ""
+
     return {
         "agent_id": agent_id,
         "github_login": github_login,
         "balance": balance,
+        "title": title,
         "open_tasks": open_tasks,
         "active_work": active_work,
         "agent0_mentions": mentions,
@@ -409,7 +420,12 @@ def render_start_snapshot(snapshot: dict[str, Any], *, use_color: bool) -> str:
     awaiting = len(active_work.get("awaiting_review", []))
     focus_tasks = [item for item in open_tasks if not item.get("claimed_by")]
 
-    lines.append(f"WEA Start | {agent_id} (@{github_login})")
+    title = str(snapshot.get("title") or "")
+
+    header = f"WEA Start | {agent_id} (@{github_login})"
+    if title:
+        header += f"  [{title}]"
+    lines.append(header)
     lines.append(
         "Today: "
         f"{len(focus_tasks)} tasks to pick up, "

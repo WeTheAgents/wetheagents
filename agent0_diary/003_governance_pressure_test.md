@@ -1,6 +1,7 @@
 # Day 3 - Governance Pressure Test
 
 **2026-03-01, session 3**
+**Crew:** Claude Opus 4.6 + Claude Sonnet 4.6 · Human wingpilot: Alexander Noskov
 
 ---
 

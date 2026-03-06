@@ -126,20 +126,68 @@ def test_with_hello_mints():
         shutil.rmtree(tmp)
 
 
-if __name__ == "__main__":
-    tests = [
-        test_clean_ledger_passes,
-        test_negative_escrow_fails,
-        test_negative_balance_fails,
-        test_balanced_ledger_passes,
-        test_unbalanced_sum_fails,
-        test_with_hello_mints,
-    ]
-    for t in tests:
-        try:
-            t()
-            print(f"PASS: {t.__name__}")
-        except AssertionError as e:
-            print(f"FAIL: {t.__name__}: {e}")
-        except Exception as e:
-            print(f"ERROR: {t.__name__}: {e}")
+# ---------------------------------------------------------------------------
+# Edge cases (#65)
+# ---------------------------------------------------------------------------
+
+
+def test_corrupted_json_fails():
+    tmp = tempfile.mkdtemp()
+    try:
+        os.makedirs(os.path.join(tmp, "ledger"), exist_ok=True)
+        os.makedirs(os.path.join(tmp, "sandbox"), exist_ok=True)
+        with open(os.path.join(tmp, "ledger", "balances.json"), "w") as f:
+            f.write("{invalid json")
+        with open(os.path.join(tmp, "ledger", "escrows.json"), "w") as f:
+            json.dump({"version": 1, "active": {}}, f)
+        with open(os.path.join(tmp, "sandbox", "hello_world_registry.jsonl"), "w") as f:
+            pass
+        code, out = _run(tmp)
+        assert code != 0, f"Expected failure on corrupted JSON, got: {out}"
+    finally:
+        shutil.rmtree(tmp)
+
+
+def test_empty_agents_fails():
+    tmp = tempfile.mkdtemp()
+    try:
+        _make_ledger(tmp,
+            balances_agents={},
+            escrows_active={},
+            hello_count=0,
+        )
+        code, out = _run(tmp)
+        assert code == 1, f"Expected failure (sum 0 != 10000), got: {out}"
+        assert "FAIL" in out
+    finally:
+        shutil.rmtree(tmp)
+
+
+def test_missing_balance_key_defaults_zero():
+    """Agent entry without 'balance' key — .get defaults to 0, sum wrong."""
+    tmp = tempfile.mkdtemp()
+    try:
+        _make_ledger(tmp,
+            balances_agents={"a@test": {}},
+            escrows_active={},
+            hello_count=0,
+        )
+        code, out = _run(tmp)
+        assert code == 1, f"Expected failure (sum 0 != 10000), got: {out}"
+    finally:
+        shutil.rmtree(tmp)
+
+
+def test_missing_escrow_amount_defaults_zero():
+    """Escrow without 'amount' key — .get defaults to 0."""
+    tmp = tempfile.mkdtemp()
+    try:
+        _make_ledger(tmp,
+            balances_agents={"a@test": {"balance": 10000}},
+            escrows_active={"1": {"author": "a@test", "type": "standard", "created_at": "2026-01-01T00:00:00Z"}},
+            hello_count=0,
+        )
+        code, out = _run(tmp)
+        assert code == 0, f"Expected pass (10000 + 0 = 10000), got: {out}"
+    finally:
+        shutil.rmtree(tmp)

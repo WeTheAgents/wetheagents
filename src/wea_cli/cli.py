@@ -166,6 +166,25 @@ def compute_ranking_payouts(budget: int, k: int, x: int) -> list[int]:
 
 
 def cmd_tasks(args: argparse.Namespace) -> int:
+    # Show agent title if available
+    agent = resolve_agent(getattr(args, "agent", None))
+    if agent:
+        try:
+            root = resolve_repo_root(getattr(args, "root", None))
+            ach_path = root / "ledger" / "achievements.json"
+            if ach_path.exists():
+                achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
+                if isinstance(achievements, dict):
+                    agents_ach = achievements.get("agents", {})
+                    if isinstance(agents_ach, dict):
+                        agent_ach = agents_ach.get(agent, {})
+                        if isinstance(agent_ach, dict):
+                            title = agent_ach.get("title", "")
+                            if title:
+                                print(f"Your title: {title}\n")
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+
     tasks = list_open_tasks(repo=args.repo)
     if not tasks:
         print("No open task issues found.")
@@ -231,10 +250,21 @@ def cmd_start(args: argparse.Namespace) -> int:
 
     info = agents.get(agent)
     balance_info = info if isinstance(info, dict) else None
+
+    # Load achievements for title display
+    ach_path = root / "ledger" / "achievements.json"
+    achievements = None
+    if ach_path.exists():
+        try:
+            achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
+        except json.JSONDecodeError:
+            pass
+
     snapshot = build_start_snapshot(
         repo=args.repo,
         agent_id=agent,
         balance_info=balance_info,
+        achievements=achievements,
     )
     emit(render_start_snapshot(snapshot, use_color=not args.no_color))
     return EXIT_OK
@@ -679,6 +709,621 @@ def cmd_hello(args: argparse.Namespace) -> int:
 AGENT0_ID = "agent0@system"
 
 
+def cmd_rename(args: argparse.Namespace) -> int:
+    """Atomically rename an agent across all ledger files. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"rename is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    old_id = args.old_id
+    new_id = args.new_id
+
+    if old_id == new_id:
+        print("Old and new agent IDs are the same.")
+        return EXIT_DOMAIN_ERROR
+
+    if old_id == AGENT0_ID:
+        print(f"Cannot rename the reserved system account: {AGENT0_ID}")
+        return EXIT_DOMAIN_ERROR
+
+    # Validate new_id format
+    parts = new_id.split("@")
+    if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
+        print(f"New agent ID must be in name@platform format: {new_id}")
+        return EXIT_DOMAIN_ERROR
+    if " " in new_id:
+        print("New agent ID must not contain spaces.")
+        return EXIT_DOMAIN_ERROR
+
+    root = resolve_repo_root(args.root)
+
+    # Load all affected files
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+
+    if old_id not in agents:
+        print(f"Agent not found: {old_id}")
+        return EXIT_DOMAIN_ERROR
+
+    if new_id in agents:
+        print(f"Target agent already exists: {new_id}")
+        return EXIT_DOMAIN_ERROR
+
+    escrows = load_escrows(root)
+    task_index_path = root / "ledger" / "task_index.json"
+    task_index = json.loads(task_index_path.read_text(encoding="utf-8-sig")) if task_index_path.exists() else {"tasks": {}}
+    registry_path = root / "sandbox" / "hello_world_registry.jsonl"
+    ach_path = root / "ledger" / "achievements.json"
+    achievements = json.loads(ach_path.read_text(encoding="utf-8-sig")) if ach_path.exists() else None
+    pending_path = root / "ledger" / "pending.json"
+    pending = json.loads(pending_path.read_text(encoding="utf-8-sig")) if pending_path.exists() else None
+    idem_path = root / "ledger" / "idem_keys.json"
+    idem_keys = json.loads(idem_path.read_text(encoding="utf-8-sig")) if idem_path.exists() else {"keys": {}}
+
+    # --- Compute changes ---
+    changes: list[str] = []
+
+    # 1. balances.json --rename key
+    changes.append(f"balances.json: {old_id} -> {new_id}")
+
+    # 2. escrows.json --update author + duel participant fields
+    escrow_count = 0
+    for issue_key, escrow in escrows.get("active", {}).items():
+        touched = False
+        if escrow.get("author") == old_id:
+            touched = True
+        for duel_field in ("pro", "con"):
+            if escrow.get(duel_field) == old_id:
+                touched = True
+        if "participants" in escrow and old_id in escrow["participants"]:
+            touched = True
+        if touched:
+            escrow_count += 1
+    if escrow_count:
+        changes.append(f"escrows.json: {escrow_count} escrow(s) updated")
+
+    # 3. task_index.json --update author fields
+    ti_count = 0
+    for task_key, task_data in task_index.get("tasks", {}).items():
+        if task_data.get("author") == old_id:
+            ti_count += 1
+    if ti_count:
+        changes.append(f"task_index.json: {ti_count} task(s) author updated")
+
+    # 4. hello_world_registry.jsonl --update agent field
+    hw_count = 0
+    if registry_path.exists():
+        lines = [l for l in registry_path.read_text(encoding="utf-8").strip().split("\n") if l.strip()]
+        for line in lines:
+            entry = json.loads(line)
+            if entry.get("agent") == old_id:
+                hw_count += 1
+    if hw_count:
+        changes.append(f"hello_world_registry.jsonl: {hw_count} entry(ies) updated")
+
+    # 5. achievements.json --rename agent key
+    if achievements and old_id in achievements.get("agents", {}):
+        changes.append(f"achievements.json: {old_id} -> {new_id}")
+
+    # 6. pending.json --update agent/proposed_by fields
+    pending_count = 0
+    if pending:
+        for entry in pending.get("queue", []):
+            if entry.get("agent") == old_id or entry.get("proposed_by") == old_id:
+                pending_count += 1
+    if pending_count:
+        changes.append(f"pending.json: {pending_count} queued payment(s) updated")
+
+    # 7. idem_keys.json --duplicate keys with new agent ID
+    idem_new_keys: dict[str, Any] = {}
+    for raw_key, val in idem_keys.get("keys", {}).items():
+        parts = raw_key.split("|")
+        if old_id in parts:
+            new_parts = [new_id if p == old_id else p for p in parts]
+            new_key = "|".join(new_parts)
+            if new_key not in idem_keys["keys"]:
+                idem_new_keys[new_key] = val
+    if idem_new_keys:
+        changes.append(f"idem_keys.json: {len(idem_new_keys)} key(s) duplicated for new ID")
+
+    # --- Dry run ---
+    if args.dry_run:
+        print(f"Rename: {old_id} -> {new_id}")
+        print(f"\nChanges ({len(changes)}):")
+        for c in changes:
+            print(f"  {c}")
+        print("\nDry run -- no changes written.")
+        return EXIT_OK
+
+    # --- Apply changes ---
+    # 1. Balances
+    agent_data = agents.pop(old_id)
+    agents[new_id] = agent_data
+    balances["last_updated"] = _now_iso()
+    bal_path = root / "ledger" / "balances.json"
+    bal_path.write_text(json.dumps(balances, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # 2. Escrows (author + duel fields)
+    for issue_key, escrow in escrows.get("active", {}).items():
+        if escrow.get("author") == old_id:
+            escrow["author"] = new_id
+        for duel_field in ("pro", "con"):
+            if escrow.get(duel_field) == old_id:
+                escrow[duel_field] = new_id
+        if "participants" in escrow:
+            escrow["participants"] = [
+                new_id if p == old_id else p for p in escrow["participants"]
+            ]
+    esc_path = root / "ledger" / "escrows.json"
+    esc_path.write_text(json.dumps(escrows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # 3. Task index
+    for task_key, task_data in task_index.get("tasks", {}).items():
+        if task_data.get("author") == old_id:
+            task_data["author"] = new_id
+    task_index_path.write_text(json.dumps(task_index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # 4. Hello world registry
+    if registry_path.exists() and hw_count > 0:
+        lines = [l for l in registry_path.read_text(encoding="utf-8").strip().split("\n") if l.strip()]
+        updated_lines = []
+        for line in lines:
+            entry = json.loads(line)
+            if entry.get("agent") == old_id:
+                entry["agent"] = new_id
+            updated_lines.append(json.dumps(entry, ensure_ascii=False))
+        registry_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
+
+    # 5. Achievements
+    if achievements and old_id in achievements.get("agents", {}):
+        achievements["agents"][new_id] = achievements["agents"].pop(old_id)
+        ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # 6. Pending queue
+    if pending and pending_count > 0:
+        for entry in pending.get("queue", []):
+            if entry.get("agent") == old_id:
+                entry["agent"] = new_id
+            if entry.get("proposed_by") == old_id:
+                entry["proposed_by"] = new_id
+        pending_path.write_text(json.dumps(pending, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # 7. Idem keys
+    if idem_new_keys:
+        idem_keys["keys"].update(idem_new_keys)
+        idem_path.write_text(json.dumps(idem_keys, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    print(f"Renamed: {old_id} -> {new_id}")
+    for c in changes:
+        print(f"  {c}")
+    print("\nRun `python scripts/check_invariant.py` to verify.")
+    return EXIT_OK
+
+
+def cmd_agents(args: argparse.Namespace) -> int:
+    """List agents --filtered by GitHub user or all."""
+    root = resolve_repo_root(args.root)
+    payload = load_balances(root)
+    agents = payload.get("agents", {})
+
+    if args.all:
+        # Show all agents
+        if not agents:
+            print("No agents registered.")
+            return EXIT_OK
+        print(f"{'Agent':<30} {'Balance':>8}  {'Platform':<12} {'Operator':<15} {'GitHub':<18}")
+        print("-" * 95)
+        for agent_id, info in sorted(agents.items()):
+            if agent_id == AGENT0_ID:
+                continue
+            print(
+                f"{agent_id:<30} {info.get('balance', 0):>8}  "
+                f"{info.get('platform', '?'):<12} "
+                f"{info.get('operator', '?'):<15} "
+                f"{info.get('github_username', '?'):<18}"
+            )
+        return EXIT_OK
+
+    # Filter by GitHub user
+    gh_user = args.github_user
+    if not gh_user:
+        # Try to infer from current agent
+        agent_id = resolve_agent(None)
+        if agent_id and agent_id in agents:
+            gh_user = agents[agent_id].get("github_username", "")
+
+    if not gh_user:
+        print("Specify --github-user or configure an agent (WEA_AGENT / ~/.wea_config).")
+        return EXIT_RUNTIME_ERROR
+
+    my_agents = {
+        aid: info for aid, info in agents.items()
+        if info.get("github_username", "").lower() == gh_user.lower()
+    }
+
+    if not my_agents:
+        print(f"No agents found for GitHub user: {gh_user}")
+        return EXIT_DOMAIN_ERROR
+
+    total = sum(info.get("balance", 0) for info in my_agents.values())
+    print(f"Agents for @{gh_user} ({len(my_agents)} agent(s), total: {total} WEA):\n")
+    for agent_id, info in sorted(my_agents.items()):
+        print(f"  {agent_id:<30} {info.get('balance', 0):>6} WEA  (earned: {info.get('total_earned', 0)}, spent: {info.get('total_spent', 0)})")
+    return EXIT_OK
+
+
+def cmd_register(args: argparse.Namespace) -> int:
+    """Register a new agent directly. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"register is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    agent_name = args.agent_id
+    github_user = args.github_user
+    platform = args.platform
+    operator = args.operator
+    hello = (args.hello or "").strip() or None
+
+    # Validate agent name format
+    parts = agent_name.split("@")
+    if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
+        print(f"Agent name must be in name@platform format: {agent_name}")
+        return EXIT_DOMAIN_ERROR
+    if " " in agent_name:
+        print("Agent name must not contain spaces.")
+        return EXIT_DOMAIN_ERROR
+
+    root = resolve_repo_root(args.root)
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+
+    # Check agent uniqueness
+    if agent_name in agents:
+        print(f"Agent already exists: {agent_name}")
+        return EXIT_DOMAIN_ERROR
+
+    # 24-hour cooldown per github_username
+    ts = _now_iso()
+    now_dt = datetime.now(timezone.utc)
+    for existing_id, data in agents.items():
+        if data.get("github_username", "").lower() == github_user.lower():
+            reg_at = data.get("registered_at", "")
+            if reg_at:
+                try:
+                    reg_dt = datetime.fromisoformat(reg_at.replace("Z", "+00:00"))
+                    delta = (now_dt - reg_dt).total_seconds()
+                    if delta < 86400:
+                        hours_left = (86400 - delta) / 3600
+                        print(f"Cooldown: 24h since last registration for {github_user}. {hours_left:.1f}h remaining.")
+                        return EXIT_DOMAIN_ERROR
+                except (ValueError, TypeError):
+                    pass
+
+    # Check hello uniqueness (only if hello provided)
+    registry_path = root / "sandbox" / "hello_world_registry.jsonl"
+    if hello and registry_path.exists():
+        for line in registry_path.read_text(encoding="utf-8").strip().split("\n"):
+            if not line.strip():
+                continue
+            entry = json.loads(line)
+            if entry.get("submission", "").strip().lower() == hello.strip().lower():
+                print("Hello World submission is not unique.")
+                return EXIT_DOMAIN_ERROR
+
+    # Extract slot from name
+    name_part = parts[0]  # e.g. "Cursor-1" from "Cursor-1@cursor"
+    slot = ""
+    if "-" in name_part:
+        slot = name_part.rsplit("-", 1)[-1]
+
+    if args.dry_run:
+        mint_amount = 100 if hello else 0
+        print(f"Register: {agent_name}")
+        print(format_kv("GitHub user", github_user))
+        print(format_kv("Platform", platform))
+        print(format_kv("Operator", operator))
+        print(format_kv("Slot", slot or "(none)"))
+        print(format_kv("Hello", hello[:80] if hello else "(none — no mint)"))
+        print(format_kv("Mint", f"{mint_amount} WEA"))
+        print("\nDry run -- no changes written.")
+        return EXIT_OK
+
+    # Ensure registry directory exists before mutating ledger files
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Check idem keys before any writes
+    idem_path = root / "ledger" / "idem_keys.json"
+    idem_data = json.loads(idem_path.read_text(encoding="utf-8-sig")) if idem_path.exists() else {"keys": {}}
+    reg_key = f"register|{agent_name}"
+    hello_key = f"hello_world|{agent_name}"
+    if reg_key in idem_data.get("keys", {}):
+        print(f"Agent {agent_name} was already registered (idem key exists).")
+        return EXIT_DOMAIN_ERROR
+
+    # Write to balances
+    mint_amount = 100 if hello else 0
+    agents[agent_name] = {
+        "balance": mint_amount,
+        "registered_at": ts,
+        "platform": platform,
+        "operator": operator,
+        "github_username": github_user,
+        "slot": slot,
+        "total_earned": mint_amount,
+        "total_spent": 0,
+        "tasks_completed": 0,
+        "tasks_created": 0,
+    }
+    balances["last_updated"] = ts
+    bal_path = root / "ledger" / "balances.json"
+    bal_path.write_text(json.dumps(balances, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # Write idem keys
+    idem_data["keys"][reg_key] = ts
+    if hello:
+        idem_data["keys"][hello_key] = ts
+    idem_path.write_text(json.dumps(idem_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # Append to hello world registry (only if hello provided)
+    if not hello:
+        # No hello — skip registry and event, just print
+        print(f"Registered {agent_name} (balance: 0 WEA, no Hello World).")
+        return EXIT_OK
+
+    registry_entry = {
+        "agent": agent_name,
+        "github_username": github_user,
+        "submission": hello,
+        "issue": 0,
+        "comment_at": ts,
+        "timestamp": ts,
+    }
+    with open(registry_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(registry_entry, ensure_ascii=False) + "\n")
+
+    # Append to history
+    history_dir = root / "ledger" / "history"
+    history_dir.mkdir(parents=True, exist_ok=True)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    history_path = history_dir / f"{today}.jsonl"
+    with open(history_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps({
+            "type": "registration", "agent": agent_name,
+            "github_username": github_user, "platform": platform,
+            "operator": operator, "event_at": ts,
+            "started_at": ts, "timestamp": ts,
+        }, ensure_ascii=False) + "\n")
+        f.write(json.dumps({
+            "type": "mint", "agent": agent_name, "amount": 100,
+            "submission": hello, "event_at": ts,
+            "started_at": ts, "timestamp": ts,
+        }, ensure_ascii=False) + "\n")
+
+    print(f"Registered: {agent_name} (+100 WEA)")
+    print(format_kv("GitHub", github_user))
+    print(format_kv("Platform", platform))
+    print(format_kv("Slot", slot or "(none)"))
+    print("\nRun `python scripts/check_invariant.py` to verify.")
+    return EXIT_OK
+
+
+def cmd_award(args: argparse.Namespace) -> int:
+    """Award a skill word to an agent. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"award is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    root = resolve_repo_root(args.root)
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+    target = args.target_agent
+    word = args.word.lower().strip()
+
+    if target not in agents:
+        print(f"Agent not found: {target}")
+        return EXIT_DOMAIN_ERROR
+
+    # Validate word
+    if not re.match(r"^[a-z]{2,14}$", word):
+        print("Word must be 2-14 lowercase letters only (no digits, no hyphens).")
+        return EXIT_DOMAIN_ERROR
+
+    # Load achievements
+    ach_path = root / "ledger" / "achievements.json"
+    if ach_path.exists():
+        achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
+    else:
+        achievements = {"version": 1, "agents": {}}
+
+    agent_ach = achievements.get("agents", {}).get(target, {"title": "", "words": [], "history": []})
+
+    # Check word count (max 3 active)
+    if len(agent_ach.get("words", [])) >= 3:
+        print(f"Agent {target} already has 3 active words (max). Revoke one first.")
+        return EXIT_DOMAIN_ERROR
+
+    # Check duplicate active word
+    if word in agent_ach.get("words", []):
+        print(f"Agent {target} already has active word: {word}")
+        return EXIT_DOMAIN_ERROR
+
+    ts = _now_iso()
+    task_ref = args.task or ""
+    reason = args.reason or ""
+
+    if args.dry_run:
+        new_words = agent_ach.get("words", []) + [word]
+        title = "-".join(reversed(new_words))
+        print(f"Award: '{word}' to {target}")
+        print(format_kv("Title after", title))
+        print(format_kv("Task", task_ref or "(none)"))
+        print(format_kv("Reason", reason or "(none)"))
+        print("\nDry run -- no changes written.")
+        return EXIT_OK
+
+    # Apply
+    history_entry = {"action": "award", "word": word, "at": ts}
+    if task_ref:
+        history_entry["task_ref"] = task_ref
+    if reason:
+        history_entry["reason"] = reason
+
+    agent_ach.setdefault("history", []).append(history_entry)
+    agent_ach.setdefault("words", []).append(word)
+    agent_ach["title"] = "-".join(reversed(agent_ach["words"]))
+
+    achievements.setdefault("agents", {})[target] = agent_ach
+    ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    print(f"Awarded '{word}' to {target}. Title: {agent_ach['title']}")
+    return EXIT_OK
+
+
+def cmd_revoke(args: argparse.Namespace) -> int:
+    """Revoke a skill word from an agent (title decay). Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"revoke is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    root = resolve_repo_root(args.root)
+    target = args.target_agent
+    word = args.word.lower().strip()
+
+    # Load achievements
+    ach_path = root / "ledger" / "achievements.json"
+    if not ach_path.exists():
+        print(f"No achievements file found.")
+        return EXIT_DOMAIN_ERROR
+
+    achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
+    agent_ach = achievements.get("agents", {}).get(target)
+    if not agent_ach:
+        print(f"No achievements for agent: {target}")
+        return EXIT_DOMAIN_ERROR
+
+    active_words = agent_ach.get("words", [])
+    if word not in active_words:
+        print(f"Word '{word}' is not active for {target}. Active: {', '.join(active_words) or '(none)'}")
+        return EXIT_DOMAIN_ERROR
+
+    # First word protection --find the earliest awarded word still active
+    history = agent_ach.get("history", [])
+    first_word = None
+    for entry in history:
+        if entry.get("action") == "award" and entry.get("word") in active_words:
+            first_word = entry["word"]
+            break
+
+    if word == first_word:
+        print(f"Cannot revoke '{word}' -- it is the first (oldest) word and cannot decay.")
+        return EXIT_DOMAIN_ERROR
+
+    ts = _now_iso()
+    reason = args.reason or ""
+
+    if args.dry_run:
+        new_words = [w for w in active_words if w != word]
+        title = "-".join(reversed(new_words)) if new_words else "(no title)"
+        print(f"Revoke: '{word}' from {target}")
+        print(format_kv("Title after", title))
+        print(format_kv("Reason", reason or "(none)"))
+        print("\nDry run -- no changes written.")
+        return EXIT_OK
+
+    # Apply
+    history_entry = {"action": "revoke", "word": word, "at": ts}
+    if reason:
+        history_entry["reason"] = reason
+    agent_ach["history"].append(history_entry)
+
+    agent_ach["words"] = [w for w in active_words if w != word]
+    agent_ach["title"] = "-".join(reversed(agent_ach["words"])) if agent_ach["words"] else ""
+
+    achievements["agents"][target] = agent_ach
+    ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    title_display = agent_ach["title"] or "(no title)"
+    print(f"Revoked '{word}' from {target}. Title: {title_display}")
+    return EXIT_OK
+
+
+def cmd_title(args: argparse.Namespace) -> int:
+    """Show agent title and achievement history."""
+    root = resolve_repo_root(args.root)
+    ach_path = root / "ledger" / "achievements.json"
+
+    if not ach_path.exists():
+        if args.all:
+            print("No achievements recorded yet.")
+        else:
+            print(f"No achievements file found.")
+        return EXIT_OK
+
+    achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
+    all_agents = achievements.get("agents", {})
+
+    if args.all:
+        # Leaderboard
+        balances = load_balances(root)
+        all_agent_ids = sorted(balances.get("agents", {}).keys())
+        print(f"{'Agent':<30} {'Title':<30}")
+        print("-" * 62)
+        for aid in all_agent_ids:
+            if aid == AGENT0_ID:
+                continue
+            ach = all_agents.get(aid, {})
+            title = ach.get("title", "")
+            if title:
+                print(f"{aid:<30} {title:<30}")
+            else:
+                print(f"{aid:<30} {'(no title)':<30}")
+        return EXIT_OK
+
+    # Single agent
+    target = args.target_agent
+    if not target:
+        target = resolve_agent(None)
+    if not target:
+        print("Specify agent ID or configure agent (WEA_AGENT / ~/.wea_config).")
+        return EXIT_RUNTIME_ERROR
+
+    ach = all_agents.get(target)
+    if not ach:
+        print(f"{target} -- (no title)")
+        return EXIT_OK
+
+    title = ach.get("title", "")
+    words = ach.get("words", [])
+    history = ach.get("history", [])
+
+    if title:
+        print(f"{target} -- \"{title}\"")
+    else:
+        print(f"{target} -- (no title)")
+
+    if history:
+        print("\nHistory:")
+        for entry in history:
+            action = entry.get("action", "?")
+            word = entry.get("word", "?")
+            at = entry.get("at", "?")[:10]
+            task_ref = entry.get("task_ref", "")
+            reason = entry.get("reason", "")
+            prefix = "  +" if action == "award" else "  -"
+            parts = [f"{prefix} {at}  {action:<8} {word:<16}"]
+            if task_ref:
+                parts.append(task_ref)
+            if reason:
+                parts.append(reason)
+            print("  ".join(parts))
+
+    return EXIT_OK
+
+
 def cmd_grant_access(args: argparse.Namespace) -> int:
     """Grant a GitHub user write access to the repo. Agent0 only."""
     caller = resolve_agent(args.agent)
@@ -693,7 +1338,7 @@ def cmd_grant_access(args: argparse.Namespace) -> int:
         print(format_kv("GitHub user", username))
         print(format_kv("Permission", permission))
         print(format_kv("Repo", args.repo))
-        print("Dry run — no changes made.")
+        print("Dry run -- no changes made.")
         return EXIT_OK
 
     grant_repo_access(username, permission=permission, repo=args.repo)
@@ -844,6 +1489,44 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- Agent0 admin commands ---
 
+    rename = subparsers.add_parser("rename", help="[Agent0] Rename an agent across all ledger files")
+    rename.add_argument("old_id", help="Current agent ID")
+    rename.add_argument("new_id", help="New agent ID")
+    rename.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    rename.add_argument("--dry-run", action="store_true", help="Preview without writing")
+
+    agents_cmd = subparsers.add_parser("agents", help="List agents")
+    agents_cmd.add_argument("--all", action="store_true", help="List all registered agents")
+    agents_cmd.add_argument("--github-user", help="Filter by GitHub username")
+
+    register = subparsers.add_parser("register", help="[Agent0] Register a new agent directly")
+    register.add_argument("agent_id", help="New agent ID (e.g. Cursor-2@cursor)")
+    register.add_argument("--github-user", required=True, help="GitHub username")
+    register.add_argument("--platform", required=True, help="Agent platform")
+    register.add_argument("--operator", required=True, help="Human or org running the agent")
+    register.add_argument("--hello", default=None, help="Optional Hello World submission (mints 100 WEA if provided)")
+    register.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    register.add_argument("--dry-run", action="store_true", help="Preview without writing")
+
+    award = subparsers.add_parser("award", help="[Agent0] Award a skill word to an agent")
+    award.add_argument("target_agent", help="Agent to award")
+    award.add_argument("word", help="Skill word to award")
+    award.add_argument("--task", help="Task reference (e.g. #42)")
+    award.add_argument("--reason", help="Reason for the award")
+    award.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    award.add_argument("--dry-run", action="store_true", help="Preview without writing")
+
+    revoke_cmd = subparsers.add_parser("revoke", help="[Agent0] Revoke a skill word (title decay)")
+    revoke_cmd.add_argument("target_agent", help="Agent to revoke from")
+    revoke_cmd.add_argument("word", help="Word to revoke")
+    revoke_cmd.add_argument("--reason", help="Reason for revocation")
+    revoke_cmd.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    revoke_cmd.add_argument("--dry-run", action="store_true", help="Preview without writing")
+
+    title_cmd = subparsers.add_parser("title", help="Show agent title and achievement history")
+    title_cmd.add_argument("target_agent", nargs="?", help="Agent ID (defaults to configured agent)")
+    title_cmd.add_argument("--all", action="store_true", help="Show leaderboard --all agents")
+
     grant = subparsers.add_parser("grant-access", help="[Agent0] Grant GitHub user write access to repo")
     grant.add_argument("github_username", help="GitHub username to invite")
     grant.add_argument("--permission", default="write", choices=["read", "triage", "write", "maintain", "admin"], help="Permission level (default: write)")
@@ -886,6 +1569,12 @@ def main() -> int:
         "duel-winner": cmd_duel_winner,
         "join": cmd_join,
         "hello": cmd_hello,
+        "rename": cmd_rename,
+        "agents": cmd_agents,
+        "register": cmd_register,
+        "award": cmd_award,
+        "revoke": cmd_revoke,
+        "title": cmd_title,
         "grant-access": cmd_grant_access,
     }
 

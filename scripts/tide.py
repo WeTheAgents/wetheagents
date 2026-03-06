@@ -66,13 +66,16 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _github_to_agent(balances: dict) -> dict[str, str]:
-    """Build reverse map: lowercase github_username -> agent_id."""
-    m: dict[str, str] = {}
+def _github_to_agents(balances: dict) -> dict[str, list[str]]:
+    """Build reverse map: lowercase github_username -> list of agent_ids.
+
+    One GitHub user may own multiple agents (multi-agent per operator).
+    """
+    m: dict[str, list[str]] = {}
     for agent_id, info in balances.get("agents", {}).items():
         gh = info.get("github_username", "")
         if gh:
-            m[gh.lower()] = agent_id
+            m.setdefault(gh.lower(), []).append(agent_id)
     return m
 
 
@@ -217,7 +220,7 @@ class TideProcessor:
         self.history: list[dict] = []
         self.count = 0
         self.started_at = _now_iso()
-        self._gh_map = _github_to_agent(balances)
+        self._gh_map = _github_to_agents(balances)
 
     # -- helpers --
 
@@ -230,8 +233,25 @@ class TideProcessor:
     def _agent_exists(self, agent: str) -> bool:
         return agent in self.balances.get("agents", {})
 
+    def _commenter_agents(self, gh_user: str) -> list[str]:
+        """All agent_ids owned by this GitHub user."""
+        return self._gh_map.get(gh_user.lower(), [])
+
+    def _commenter_as_author(self, gh_user: str, escrow_author: str) -> str | None:
+        """Resolve commenter to the specific agent that authored the escrow.
+
+        If the commenter owns the agent that created the task, return it.
+        This handles multi-agent operators correctly.
+        """
+        agents = self._commenter_agents(gh_user)
+        if escrow_author in agents:
+            return escrow_author
+        return None
+
     def _commenter_agent(self, gh_user: str) -> str | None:
-        return self._gh_map.get(gh_user.lower())
+        """Legacy compat: return first agent owned by this GitHub user."""
+        agents = self._commenter_agents(gh_user)
+        return agents[0] if agents else None
 
     def _comment(self, issue: int, body: str) -> None:
         self.actions.append(TideAction(issue=issue, action="comment", body=body))
@@ -470,8 +490,7 @@ class TideProcessor:
         if not escrow:
             return False
 
-        commenter = self._commenter_agent(ev.author_github)
-        if commenter != escrow["author"]:
+        if not self._commenter_as_author(ev.author_github, escrow["author"]):
             return False
 
         etype = escrow["type"]
@@ -546,8 +565,7 @@ class TideProcessor:
         if not escrow:
             return False
 
-        commenter = self._commenter_agent(ev.author_github)
-        if commenter != escrow["author"]:
+        if not self._commenter_as_author(ev.author_github, escrow["author"]):
             return False
 
         reason = ev.reason or "No reason given"
@@ -575,8 +593,7 @@ class TideProcessor:
         if escrow["type"] not in ("best_x", "standard"):
             return False
 
-        commenter = self._commenter_agent(ev.author_github)
-        if commenter != escrow["author"]:
+        if not self._commenter_as_author(ev.author_github, escrow["author"]):
             return False
 
         agents = ev.agents
@@ -631,10 +648,6 @@ class TideProcessor:
         if not pro or not con:
             return False
 
-        submitter = self._commenter_agent(ev.author_github)
-        if submitter not in (pro, con):
-            return False
-
         turn_count = escrow.get("turn_count", 0)
         rounds = escrow.get("rounds", 3)
         total_turns = 2 * rounds
@@ -642,6 +655,19 @@ class TideProcessor:
             return False
 
         expected = pro if turn_count % 2 == 0 else con
+
+        # Resolve commenter to duel participant, preferring expected turn
+        commenter_agents = self._commenter_agents(ev.author_github)
+        submitter = None
+        for ca in commenter_agents:
+            if ca == expected:
+                submitter = ca
+                break
+            if ca in (pro, con) and submitter is None:
+                submitter = ca
+        if not submitter:
+            return False
+
         if submitter != expected:
             self._comment(
                 ev.issue,
@@ -670,8 +696,7 @@ class TideProcessor:
         if not escrow or escrow["type"] != "duel":
             return False
 
-        commenter = self._commenter_agent(ev.author_github)
-        if commenter != escrow["author"]:
+        if not self._commenter_as_author(ev.author_github, escrow["author"]):
             return False
 
         winner = ev.agent

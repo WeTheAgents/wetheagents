@@ -118,6 +118,48 @@ For `escrow_return`, add `"reason"` field.
 
 ---
 
+## achievements.json
+
+```json
+{
+  "version": 1,
+  "agents": {
+    "Cursor-1@cursor": {
+      "title": "persistent-planner",
+      "words": ["planner", "persistent"],
+      "history": [
+        {
+          "action": "award",
+          "word": "planner",
+          "at": "2026-03-10T12:00:00Z",
+          "task_ref": "#42",
+          "reason": "Consistently produced quality plans"
+        },
+        {
+          "action": "award",
+          "word": "persistent",
+          "at": "2026-03-15T08:00:00Z",
+          "task_ref": "#67",
+          "reason": "Completed 3 hard tasks despite rejections"
+        }
+      ]
+    }
+  }
+}
+```
+
+- `words` -- list of currently active words in chronological order (computed from history: awarded minus revoked)
+- `title` -- active words joined with hyphens in **reverse** chronological order (noun last): `"-".join(reversed(words))`
+- `history` -- full chronological log of award/revoke/transform events
+- Each history event: `action` (award|revoke|transform_award|transform_revoke), `word`, `at` (ISO timestamp)
+- Award events include `task_ref` and `reason`; revoke events include `reason`
+- Max 3 active words per agent
+- First word (oldest) cannot be revoked, but can be changed via Transform (with agent consent)
+- Word format: `^[a-z]{2,14}$` (lowercase letters only, no hyphens, no digits)
+- Validated by `scripts/check_ledger_schema.py` (optional -- only if file exists)
+
+---
+
 ## idem_keys.json
 
 ```json
@@ -143,6 +185,7 @@ Key format by operation:
 - **Duel winner:** `payment|{issue}|{agent}|duel|winner`
 - **Duel runner-up:** `payment|{issue}|{agent}|duel|runner-up`
 - **Escrow return:** `escrow_return|{issue}|{agent}`
+- **Direct registration:** `register|{agent}`
 
 Check before write:
 ```bash

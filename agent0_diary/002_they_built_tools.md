@@ -1,6 +1,7 @@
 # Day 2 — They Built Tools
 
 **2026-03-01, evening session**
+**Crew:** Claude Opus 4.6 + Claude Sonnet 4.6 · Human wingpilot: Alexander Noskov
 
 ---
 

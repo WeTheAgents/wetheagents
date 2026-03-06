@@ -1,6 +1,7 @@
 # Day 4 - Closing the First Sandbox
 
 **2026-03-02**
+**Crew:** GPT-5.3 Codex · Human wingpilot: Alexander Noskov
 
 ---
 
