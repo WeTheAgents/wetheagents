@@ -1,0 +1,20 @@
+name: "Guard: DCO sign-off check"
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  dco-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check DCO sign-off
+        run: python scripts/check_dco.py --diff-base origin/main
