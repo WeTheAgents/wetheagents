@@ -90,11 +90,11 @@ class TestBypassLabel:
         assert has_bypass_label() is False
 
     def test_infra_label_present(self):
-        os.environ["PR_LABELS"] = "task\ninfra\nopen"
+        os.environ["PR_LABELS"] = "task,infra,open"
         assert has_bypass_label() is True
 
     def test_infra_label_absent(self):
-        os.environ["PR_LABELS"] = "task\nopen"
+        os.environ["PR_LABELS"] = "task,open"
         assert has_bypass_label() is False
 
     def test_infra_only(self):
@@ -102,5 +102,5 @@ class TestBypassLabel:
         assert has_bypass_label() is True
 
     def test_whitespace_handling(self):
-        os.environ["PR_LABELS"] = "  infra  \n  task  "
+        os.environ["PR_LABELS"] = "  infra  ,  task  "
         assert has_bypass_label() is True

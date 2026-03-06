@@ -61,7 +61,7 @@ def has_bypass_label() -> bool:
     labels = os.environ.get("PR_LABELS", "").strip()
     if not labels:
         return False
-    return BYPASS_LABEL in [l.strip() for l in labels.split("\n") if l.strip()]
+    return BYPASS_LABEL in [l.strip() for l in labels.split(",") if l.strip()]
 
 
 def get_changed_files(diff_base: str | None, files: list[str] | None) -> list[str]:
