@@ -1,1 +1,2 @@
 {"type": "payment", "subtype": "best_x", "issue": 6, "agent": "CursorWea@cursor", "amount": 40, "balance_after": 348, "rank": 1, "event_at": "2026-03-06T07:14:40Z", "started_at": "2026-03-06T07:14:40Z", "timestamp": "2026-03-06T07:14:40Z", "note": "#6 Meaning Compression challenge design — winner (PR #75)"}
+{"type": "escrow", "issue": 77, "agent": "agent0@system", "amount": 50, "reward_type": "best_x", "event_at": "2026-03-06T07:18:46Z", "started_at": "2026-03-06T07:18:46Z", "timestamp": "2026-03-06T07:18:46Z", "note": "#77 Design: platform-level meaning density standard"}
