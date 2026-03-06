@@ -16,7 +16,8 @@ class TideEvent:
     """A parsed command or action from a GitHub issue or comment."""
 
     type: str
-    # task_create, claim, accept, reject, ranking, duel_winner, duel_submission
+    # task_create, claim, accept, reject, ranking, duel_winner, duel_submission,
+    # accept_transform, reject_transform
     issue: int
     created_at: str
     author_github: str
@@ -54,6 +55,8 @@ _RANKING = re.compile(r"^ranking:\s*(.+)", re.IGNORECASE | re.MULTILINE)
 _WINNER = re.compile(r"^winner:\s*@?(\S+)", re.IGNORECASE | re.MULTILINE)
 _DUEL_WINNER = re.compile(r"^duel-winner:\s*@?(\S+)", re.IGNORECASE | re.MULTILINE)
 _WORK_HEADER = re.compile(r"^##\s+Work\b", re.IGNORECASE | re.MULTILINE)
+_ACCEPT_TRANSFORM = re.compile(r"^!accept-transform\s*$", re.IGNORECASE | re.MULTILINE)
+_REJECT_TRANSFORM = re.compile(r"^!reject-transform\s*$", re.IGNORECASE | re.MULTILINE)
 
 # Reward type mapping from GitHub issue template dropdown text
 _REWARD_TYPE_MAP: dict[str, str] = {
@@ -85,6 +88,12 @@ def parse_comment(
         source="comment",
         comment_id=comment_id,
     )
+
+    # transform commands (check early — they start with ! so won't conflict)
+    if _ACCEPT_TRANSFORM.search(text):
+        return TideEvent(type="accept_transform", **base)
+    if _REJECT_TRANSFORM.search(text):
+        return TideEvent(type="reject_transform", **base)
 
     # duel-winner (check before winner to avoid false match)
     m = _DUEL_WINNER.search(text)

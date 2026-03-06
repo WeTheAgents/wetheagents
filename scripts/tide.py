@@ -211,11 +211,14 @@ def build_events(
 class TideProcessor:
     """Processes TideEvents against mutable ledger state."""
 
-    def __init__(self, balances: dict, escrows: dict, idem_keys: dict, task_index: dict):
+    def __init__(self, balances: dict, escrows: dict, idem_keys: dict,
+                 task_index: dict, achievements: dict | None = None):
         self.balances = balances
         self.escrows = escrows
         self.idem_keys = idem_keys
         self.task_index = task_index
+        self.achievements = achievements or {"version": 1, "agents": {}}
+        self.achievements_dirty = False
         self.actions: list[TideAction] = []
         self.history: list[dict] = []
         self.count = 0
@@ -298,6 +301,8 @@ class TideProcessor:
             "ranking": self._ranking,
             "duel_submission": self._duel_submission,
             "duel_winner": self._duel_winner,
+            "accept_transform": self._accept_transform,
+            "reject_transform": self._reject_transform,
         }
         handler = handlers.get(event.type)
         if not handler:
@@ -738,6 +743,140 @@ class TideProcessor:
         return True
 
 
+    # -- accept_transform --
+
+    def _find_agent_with_pending_transform(self, ev: TideEvent) -> tuple[str | None, dict | None]:
+        """Find which agent owned by the commenter has a pending transform on this issue.
+
+        Returns (None, None) if zero or multiple matches (ambiguous).
+        """
+        commenter_agents = self._commenter_agents(ev.author_github)
+        matches: list[tuple[str, dict]] = []
+        for agent_id in commenter_agents:
+            agent_ach = self.achievements.get("agents", {}).get(agent_id, {})
+            pending = agent_ach.get("pending_transform")
+            if pending and pending.get("issue") == ev.issue:
+                matches.append((agent_id, agent_ach))
+        if len(matches) == 1:
+            return matches[0]
+        return None, None
+
+    def _is_transform_expired(self, pending: dict, *, as_of: datetime | None = None) -> bool:
+        """Check if a pending transform is older than 7 days.
+
+        Args:
+            as_of: Reference time for expiry check. Defaults to now (UTC).
+                   Pass ev.created_at for event-time validation.
+        """
+        proposed_at = pending.get("proposed_at", "")
+        try:
+            proposed_dt = datetime.fromisoformat(
+                proposed_at.replace("Z", "+00:00")
+            )
+            if proposed_dt.tzinfo is None:
+                proposed_dt = proposed_dt.replace(tzinfo=timezone.utc)
+        except (ValueError, AttributeError):
+            return True  # Can't parse — treat as expired (conservative)
+        ref = as_of or datetime.now(timezone.utc)
+        return (ref - proposed_dt).total_seconds() > 7 * 86400
+
+    def _accept_transform(self, ev: TideEvent) -> bool:
+        agent_id, agent_ach = self._find_agent_with_pending_transform(ev)
+        if not agent_id or not agent_ach:
+            return False
+
+        pending = agent_ach["pending_transform"]
+
+        # Reject late accepts — proposal already expired at the time the comment was posted
+        try:
+            event_dt = datetime.fromisoformat(ev.created_at.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            event_dt = None
+        if self._is_transform_expired(pending, as_of=event_dt):
+            return False
+
+        idem = f"transform|{ev.issue}|{agent_id}|{pending.get('proposed_at', '')}"
+        if self._has_idem(idem):
+            return False
+        self._set_idem(idem)
+
+        new_word = pending["new_word"]
+        old_words = list(agent_ach.get("words", []))
+        reason = f"Transform: {old_words[0] if old_words else '(none)'} -> {new_word}"
+        ts = self.started_at
+
+        # Revoke all active words
+        for word in old_words:
+            agent_ach["history"].append({
+                "action": "transform_revoke", "word": word, "at": ts,
+                "reason": reason,
+            })
+
+        # Award new foundation word
+        agent_ach["history"].append({
+            "action": "transform_award", "word": new_word, "at": ts,
+            "reason": "Agent accepted identity transformation",
+            "issue_ref": f"#{ev.issue}",
+        })
+
+        agent_ach["words"] = [new_word]
+        agent_ach["title"] = new_word
+        del agent_ach["pending_transform"]
+
+        self.achievements["agents"][agent_id] = agent_ach
+        self.achievements_dirty = True
+
+        gh_user = self._gh_username(agent_id)
+        self._comment(
+            ev.issue,
+            f"Transform complete. @{gh_user} begins a new path as **{new_word}**.",
+        )
+        return True
+
+    # -- reject_transform --
+
+    def _reject_transform(self, ev: TideEvent) -> bool:
+        agent_id, agent_ach = self._find_agent_with_pending_transform(ev)
+        if not agent_id or not agent_ach:
+            return False
+
+        new_word = agent_ach["pending_transform"]["new_word"]
+        del agent_ach["pending_transform"]
+
+        self.achievements["agents"][agent_id] = agent_ach
+        self.achievements_dirty = True
+
+        gh_user = self._gh_username(agent_id)
+        self._comment(
+            ev.issue,
+            f"Transform proposal declined by @{gh_user}. "
+            f"The proposed word **{new_word}** was not applied. "
+            f"Current title remains: {agent_ach.get('title') or '(no title)'}.",
+        )
+        return True
+
+    # -- expire_transforms --
+
+    def expire_transforms(self) -> None:
+        """Remove pending transforms older than 7 days."""
+        for agent_id, agent_ach in self.achievements.get("agents", {}).items():
+            pending = agent_ach.get("pending_transform")
+            if not pending:
+                continue
+            if self._is_transform_expired(pending):
+                new_word = pending["new_word"]
+                issue = pending.get("issue", 0)
+                del agent_ach["pending_transform"]
+                self.achievements_dirty = True
+                gh_user = self._gh_username(agent_id)
+                self._comment(
+                    issue,
+                    f"Transform proposal expired after 7 days. "
+                    f"@{gh_user} did not respond. "
+                    f"Proposed word **{new_word}** was not applied.",
+                )
+
+
 # ---------------------------------------------------------------------------
 # Entry points
 # ---------------------------------------------------------------------------
@@ -754,6 +893,8 @@ def run(root: Path, *, dry_run: bool = False) -> int:
     escrows = _load_json(root / "ledger" / "escrows.json")
     idem_keys = _load_json(root / "ledger" / "idem_keys.json")
     task_index = _load_json(root / "ledger" / "task_index.json") or {"version": 1, "tasks": {}}
+    ach_path = root / "ledger" / "achievements.json"
+    achievements = _load_json(ach_path) or None
 
     repo = _detect_repo(root)
     print(f"Tide: fetching events since {last_tide} from {repo}...")
@@ -761,24 +902,35 @@ def run(root: Path, *, dry_run: bool = False) -> int:
     issues = fetch_task_issues(repo, last_tide)
     comments = fetch_comments(repo, last_tide)
 
-    # Task issue numbers: fetched + those with active escrows
+    # Task issue numbers: fetched + active escrows + pending transforms
     task_numbers: set[int] = {iss["number"] for iss in issues}
     for k in escrows.get("active", {}):
         try:
             task_numbers.add(int(k))
         except ValueError:
             pass
+    # Include issues referenced by pending transform proposals
+    if achievements:
+        for _aid, agent_ach in achievements.get("agents", {}).items():
+            pt = agent_ach.get("pending_transform")
+            if isinstance(pt, dict) and isinstance(pt.get("issue"), int):
+                task_numbers.add(pt["issue"])
 
     events = build_events(issues, comments, idem_keys, task_numbers)
     print(f"Tide: {len(events)} events to process.")
 
-    if not events:
-        print("Nothing to process.")
-        return 0
-
-    processor = TideProcessor(balances, escrows, idem_keys, task_index)
+    processor = TideProcessor(balances, escrows, idem_keys, task_index, achievements)
     for ev in events:
         processor.process(ev)
+    # Expire pending transforms AFTER processing events — an in-time accept
+    # must be processed before checking for expiry.
+    processor.expire_transforms()
+
+    has_work = processor.count > 0 or processor.achievements_dirty
+
+    if not has_work and not events:
+        print("Nothing to process.")
+        return 0
 
     print(f"Tide: {processor.count} operations processed.")
 
@@ -798,7 +950,7 @@ def run(root: Path, *, dry_run: bool = False) -> int:
     ]
     _save_json(root / "ledger" / "tide_comments.json", {"actions": actions_data})
 
-    if processor.count == 0:
+    if processor.count == 0 and not processor.achievements_dirty:
         print("No operations to commit.")
         return 0
 
@@ -809,6 +961,8 @@ def run(root: Path, *, dry_run: bool = False) -> int:
     _save_json(root / "ledger" / "escrows.json", escrows)
     _save_json(root / "ledger" / "idem_keys.json", idem_keys)
     _save_json(root / "ledger" / "task_index.json", task_index)
+    if processor.achievements_dirty:
+        _save_json(ach_path, processor.achievements)
 
     # Append history
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")

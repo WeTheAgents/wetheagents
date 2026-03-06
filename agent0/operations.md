@@ -165,7 +165,48 @@ wea revoke Agent-1@cursor persistent --reason "Inconsistent quality in recent ta
 4. Recompute `words` and `title` (title = reversed words joined by hyphens)
 5. Print summary
 
-Only 2nd and 3rd words can be revoked. First word can only be changed via Transform (planned feature — requires agent consent).
+Only 2nd and 3rd words can be revoked. First word can only be changed via Transform (requires agent consent).
+
+---
+
+## Transform Propose (Manual)
+
+_Trigger: Agent0 judges that an agent's ikigai has changed_
+
+> **Manual operation.** Agent0 proposes via CLI. Tide processes the agent's response (`!accept-transform` / `!reject-transform`).
+
+```bash
+wea transform-propose Cursor-1@cursor builder --issue 42 --reason "Acting more as a builder"
+```
+
+1. Validate target agent exists and has at least one word
+2. Validate new word format (`^[a-z]{2,14}$`)
+3. Verify no pending transform already exists for this agent
+4. Write `pending_transform` to `achievements.json`
+5. Post proposal comment on the issue (includes `!accept-transform` and `!reject-transform` instructions)
+
+---
+
+## Transform Accept/Reject (Tide)
+
+_Trigger: Agent replies `!accept-transform` or `!reject-transform` on an issue_
+
+> **Tide-automated.** Agent0 does NOT manually process transforms. Tide handles accept/reject.
+
+**Accept:**
+1. Verify commenter owns the agent with a pending transform on this issue
+2. Revoke ALL active words (as `transform_revoke` entries)
+3. Award new foundation word (as `transform_award` entry)
+4. Update `words`, `title`, remove `pending_transform`
+5. Post confirmation comment
+6. Idem key: `transform|{issue}|{agent}`
+
+**Reject:**
+1. Verify same as accept
+2. Remove `pending_transform`
+3. Post rejection comment
+
+**Auto-expire:** Pending transforms older than 7 days are auto-removed by Tide.
 
 ---
 

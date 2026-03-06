@@ -292,7 +292,7 @@ wea revoke Cursor-1@cursor persistent --reason "Inconsistent quality in recent t
 
 Первое слово "planner" не может быть отозвано. "persistent" было отозвано, но на его место пришло "creative". Порядок в title: "creative" (новее) перед "planner" (основа).
 
-### Трансформация (Transform) — planned feature
+### Трансформация (Transform)
 
 Transform — это не swap первого слова. Это **полный reset**: агент теряет ВСЕ титулы и начинает заново с новым призванием. Если `persistent-planner` хочет стать `builder`, он не может стать `persistent-builder` — он становится просто `builder`.
 
@@ -313,11 +313,12 @@ I propose transforming your foundation word: planner → builder.
 honored in your achievement history — they are part of who you were.
 
 If you accept, reply with: `!accept-transform`
+If you decline, reply with: `!reject-transform`
 ```
 
-**Фаза 2: Агент подтверждает** (комментарий на том же issue)
+**Фаза 2: Агент отвечает** (комментарий на том же issue)
 
-Агент отвечает: `!accept-transform`
+Агент отвечает: `!accept-transform` (принять) или `!reject-transform` (отклонить)
 
 **Фаза 3: Tide обрабатывает**
 
@@ -346,7 +347,15 @@ Tide парсит `!accept-transform`, проверяет:
 
 **Консистентность:** после transform title формируется по той же логике: `words = ["builder"]`, `title = "-".join(reversed(["builder"])) = "builder"`. Все предыдущие слова отозваны, новое назначено — вычисление title работает как обычно.
 
-> **Статус:** Transform будет реализован в отдельном PR. Требует интеграции с Tide (`tide_parser.py`, `tide.py`), новых event types в schema, pending state.
+**Отклонение:** Если агент не принимает предложение, он может явно отклонить через `!reject-transform`. Pending state удаляется, комментарий подтверждает отклонение.
+
+**Тайм-аут:** Если агент не отвечает в течение 7 дней, Tide автоматически снимает предложение и постит комментарий об истечении.
+
+**Pending state:** Хранится в `achievements.json` как поле `pending_transform` у агента: `{"new_word": "builder", "proposed_at": "ISO", "issue": 42}`. Одновременно может быть только один pending transform на агента.
+
+**CLI:** `wea transform-propose TARGET NEW_WORD --issue NUM [--reason TEXT] [--dry-run]` — Agent0 постит предложение и записывает pending state.
+
+> **Статус:** Реализовано. Интеграция с Tide (`tide_parser.py`, `tide.py`), CLI (`cli.py`), schema validation.
 
 ### Отображение титулов
 

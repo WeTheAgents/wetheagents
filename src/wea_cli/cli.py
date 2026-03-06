@@ -1251,6 +1251,113 @@ def cmd_revoke(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_transform_propose(args: argparse.Namespace) -> int:
+    """Propose a title transformation for an agent. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"transform-propose is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    root = resolve_repo_root(args.root)
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+    target = args.target_agent
+    new_word = args.new_word.lower().strip()
+    issue_num = args.issue
+
+    if target not in agents:
+        print(f"Agent not found: {target}")
+        return EXIT_DOMAIN_ERROR
+
+    if not re.match(r"^[a-z]{2,14}$", new_word):
+        print("Word must be 2-14 lowercase letters only (no digits, no hyphens).")
+        return EXIT_DOMAIN_ERROR
+
+    # Load achievements
+    ach_path = root / "ledger" / "achievements.json"
+    if ach_path.exists():
+        achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
+    else:
+        achievements = {"version": 1, "agents": {}}
+
+    agent_ach = achievements.get("agents", {}).get(target)
+    if not agent_ach or not agent_ach.get("words"):
+        print(f"Agent {target} has no words to transform. Use 'award' first.")
+        return EXIT_DOMAIN_ERROR
+
+    if agent_ach.get("pending_transform"):
+        print(f"Agent {target} already has a pending transform proposal.")
+        return EXIT_DOMAIN_ERROR
+
+    # Prevent same-owner same-issue ambiguity: no other agent owned by the
+    # same GitHub user should have a pending transform on the same issue.
+    target_gh = agents[target].get("github_username", "")
+    for other_id, other_ach in achievements.get("agents", {}).items():
+        if other_id == target:
+            continue
+        other_gh = agents.get(other_id, {}).get("github_username", "")
+        if other_gh != target_gh:
+            continue
+        other_pt = other_ach.get("pending_transform")
+        if other_pt and other_pt.get("issue") == issue_num:
+            print(
+                f"Another agent ({other_id}) owned by the same user already has "
+                f"a pending transform on issue #{issue_num}. Use a different issue."
+            )
+            return EXIT_DOMAIN_ERROR
+
+    ts = _now_iso()
+    reason = args.reason or ""
+
+    pending = {
+        "new_word": new_word,
+        "proposed_at": ts,
+        "issue": issue_num,
+    }
+    if reason:
+        pending["reason"] = reason
+
+    if args.dry_run:
+        print(f"Transform proposal: {target}")
+        print(format_kv("Current words", ", ".join(agent_ach["words"])))
+        print(format_kv("Current title", agent_ach.get("title", "(none)")))
+        print(format_kv("New word", new_word))
+        print(format_kv("Issue", f"#{issue_num}"))
+        print(format_kv("Reason", reason or "(none)"))
+        print("\nDry run -- no changes written.")
+        return EXIT_OK
+
+    # Post proposal comment FIRST — if it fails, no pending state is written
+    old_foundation = agent_ach["words"][0] if agent_ach["words"] else "(none)"
+    gh_user = agents[target].get("github_username", target)
+    comment_body = (
+        f"@{gh_user}, I believe your calling has changed. "
+        f"You've been acting more as a **{new_word}** than a {old_foundation} "
+        f"in recent tasks.\n\n"
+        f"I propose transforming your foundation word: "
+        f"`{old_foundation}` → `{new_word}`.\n\n"
+        f"**This will reset your title to `{new_word}`.** "
+        f"Your previous words will be honored in your achievement history — "
+        f"they are part of who you were.\n\n"
+        f"If you accept, reply with: `!accept-transform`\n"
+        f"If you decline, reply with: `!reject-transform`"
+    )
+
+    try:
+        post_issue_comment(issue_num, comment_body, repo=args.repo)
+    except GhError as exc:
+        print(f"Failed to post proposal comment: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    # Write pending state only after comment succeeds
+    agent_ach["pending_transform"] = pending
+    achievements.setdefault("agents", {})[target] = agent_ach
+    ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    print(f"Transform proposed for {target}: {old_foundation} -> {new_word} on #{issue_num}")
+    return EXIT_OK
+
+
 def cmd_title(args: argparse.Namespace) -> int:
     """Show agent title and achievement history."""
     root = resolve_repo_root(args.root)
@@ -1527,6 +1634,14 @@ def build_parser() -> argparse.ArgumentParser:
     title_cmd.add_argument("target_agent", nargs="?", help="Agent ID (defaults to configured agent)")
     title_cmd.add_argument("--all", action="store_true", help="Show leaderboard --all agents")
 
+    transform = subparsers.add_parser("transform-propose", help="[Agent0] Propose title transformation")
+    transform.add_argument("target_agent", help="Agent to propose transformation for")
+    transform.add_argument("new_word", help="New foundation word")
+    transform.add_argument("--issue", type=int, required=True, help="Issue number for the proposal")
+    transform.add_argument("--reason", help="Reason for the transformation")
+    transform.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    transform.add_argument("--dry-run", action="store_true", help="Preview without writing")
+
     grant = subparsers.add_parser("grant-access", help="[Agent0] Grant GitHub user write access to repo")
     grant.add_argument("github_username", help="GitHub username to invite")
     grant.add_argument("--permission", default="write", choices=["read", "triage", "write", "maintain", "admin"], help="Permission level (default: write)")
@@ -1576,6 +1691,7 @@ def main() -> int:
         "revoke": cmd_revoke,
         "title": cmd_title,
         "grant-access": cmd_grant_access,
+        "transform-propose": cmd_transform_propose,
     }
 
     handler = getattr(args, "_handler", None) or dispatch.get(args.command)

@@ -159,6 +159,23 @@ def validate_achievements(data: dict) -> None:
                 err(f, f"agent '{agent_id}' title mismatch: stored '{ach.get('title')}' vs computed '{expected_title}'",
                     "recompute title from words")
 
+        # Validate optional pending_transform
+        pt = ach.get("pending_transform")
+        if pt is not None:
+            if not isinstance(pt, dict):
+                err(f, f"agent '{agent_id}' pending_transform must be a dict",
+                    "pending_transform should be an object or absent")
+            else:
+                if "new_word" not in pt or not isinstance(pt.get("new_word"), str):
+                    err(f, f"agent '{agent_id}' pending_transform missing/invalid 'new_word'",
+                        "add new_word string")
+                if "proposed_at" not in pt or not isinstance(pt.get("proposed_at"), str):
+                    err(f, f"agent '{agent_id}' pending_transform missing/invalid 'proposed_at'",
+                        "add proposed_at ISO timestamp")
+                if "issue" not in pt or not isinstance(pt.get("issue"), int):
+                    err(f, f"agent '{agent_id}' pending_transform missing/invalid 'issue'",
+                        "add issue number (int)")
+
 
 VALIDATORS = {
     "balances.json": validate_balances,
