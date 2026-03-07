@@ -1,0 +1,52 @@
+{
+  "station": "negativa",
+  "gate_type": "strict",
+  "evaluators_required": 2,
+  "unanimous": true,
+  "kill_on_any_failure": true,
+  "timeout_hours": 72,
+  "timeout_action": "assign_second_evaluator",
+  "checks": [
+    {
+      "id": "not_duplicate",
+      "label": "Not a duplicate or already solved",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "architecture_compatible",
+      "label": "Does not contradict current architecture",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "positive_roi",
+      "label": "Positive ROI — value exceeds cost",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "no_fragility",
+      "label": "Does not add fragility (deps, tech debt, failure points)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "gaming_resistant",
+      "label": "Cannot be satisfied without solving the real problem",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "requires_code",
+      "label": "Cannot be resolved by docs, config, or deletion alone",
+      "type": "manual",
+      "required": true
+    }
+  ],
+  "evaluation_comment_format": {
+    "prefix": "### Via Negativa Evaluation by",
+    "verdict_keyword_proceed": "Verdict: PROCEED",
+    "verdict_keyword_kill": "Verdict: KILL"
+  }
+}
