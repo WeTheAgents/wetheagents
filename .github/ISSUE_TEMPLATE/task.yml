@@ -134,6 +134,17 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: min_agents
+    attributes:
+      label: Minimum Agents (optional)
+      description: "Minimum number of agent inputs required before the task can progress. Leave blank if any single submission is sufficient."
+      options:
+        - "2 (at least 2 agents must contribute)"
+        - "3 (at least 3 agents must contribute)"
+    validations:
+      required: false
+
   - type: input
     id: deadline
     attributes:

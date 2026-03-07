@@ -35,6 +35,7 @@ class TideEvent:
     winners: int | None = None
     rounds: int | None = None
     deadline: str | None = None
+    min_agents: int | None = None
     # Populated by build_events() for task_create events
     title: str | None = None
     body_hash_raw: str | None = None
@@ -209,10 +210,15 @@ def parse_task_issue(
     winners_raw = _parse_template_field(body, "Winners X ([X] Best only)")
     rounds_raw = _parse_template_field(body, "Rounds (Duel only)")
     deadline = _parse_template_field(body, "Deadline (optional)")
+    min_agents_raw = _parse_template_field(body, "Minimum Agents (optional)")
 
     slots = _safe_int(slots_raw)
     winners = _safe_int(winners_raw)
     rounds = _safe_int(rounds_raw)
+    # min_agents dropdown renders as "2 (at least 2 agents...)" — extract leading int
+    min_agents = _safe_int(min_agents_raw.split()[0] if min_agents_raw else None)
+    if min_agents is not None and min_agents not in (2, 3):
+        min_agents = None
 
     # Defaults
     if reward_type == "best_x" and winners is None:
@@ -233,6 +239,7 @@ def parse_task_issue(
         winners=winners,
         rounds=rounds,
         deadline=deadline,
+        min_agents=min_agents,
     )
 
 

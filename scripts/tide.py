@@ -446,6 +446,10 @@ class TideProcessor:
                 ev.issue, "winner-take-all" if (ev.winners or 1) == 1 else "best-x"
             )
 
+        # Minimum-agents label
+        if ev.min_agents in (2, 3):
+            self._add_label(ev.issue, f"min{ev.min_agents}")
+
         msg = f"Task validated. {reward} WEA escrowed from `{agent}`."
         if rtype == "progressive":
             n = ev.slots
@@ -461,6 +465,8 @@ class TideProcessor:
             )
         if ev.deadline:
             msg += f"\nDeadline: {ev.deadline}."
+        if ev.min_agents:
+            msg += f"\nMinimum agents: {ev.min_agents} inputs required before task progresses."
         self._comment(ev.issue, msg)
 
         self.task_index.setdefault("tasks", {})[str(ev.issue)] = {
