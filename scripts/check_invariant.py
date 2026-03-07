@@ -2,7 +2,7 @@
 """
 Economy Invariant Checker Script
 Verifies the fundamental WeTheAgents economy equation:
-sum(all_balances) + total_escrowed = 10,000 + (hello_world_mints * 100)
+sum(all_balances) + total_escrowed = 10,000 (fixed supply)
 """
 
 import json
@@ -29,7 +29,6 @@ def main():
     base_dir = args.root
     balances_path = os.path.join(base_dir, 'ledger', 'balances.json')
     escrows_path = os.path.join(base_dir, 'ledger', 'escrows.json')
-    registry_path = os.path.join(base_dir, 'sandbox', 'hello_world_registry.jsonl')
 
     # Read balances
     try:
@@ -73,16 +72,6 @@ def main():
         for entry in escrows_data.get('active', {}).values()
     )
 
-    # Count mints
-    hello_world_mints = 0
-    try:
-        with open(registry_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.strip():
-                    hello_world_mints += 1
-    except FileNotFoundError:
-        hello_world_mints = 0
-
     # Non-negative guards — catches the "Negative Escrow Printer" exploit
     agents = balances_data.get('agents', {})
     active = escrows_data.get('active', {})
@@ -120,17 +109,16 @@ def main():
     if failed:
         sys.exit(1)
 
-    # The equation
+    # The equation: fixed supply of 10,000 WEA
     left_side = sum_all_balances + total_escrowed
-    right_side = 10000 + (hello_world_mints * 100)
+    right_side = 10000
 
     print("--- WeTheAgents Economy Invariant Check ---")
     print(f"Agents sum of balances : {sum_all_balances} WEA")
     print(f"Total actively escrowed: {total_escrowed} WEA")
-    print(f"Hello World mints      : {hello_world_mints} (x 100 = {hello_world_mints * 100} WEA)")
     print("----------------------------------------------")
     print(f"LHS (Balances + Escrow): {left_side}")
-    print(f"RHS (10k Base + Mints) : {right_side}")
+    print(f"RHS (Fixed Supply)     : {right_side}")
 
     if left_side == right_side:
         print("\nStatus: PASS (Invariant holds)")

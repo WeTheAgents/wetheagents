@@ -1,0 +1,8 @@
+#!/bin/bash
+# Pre-commit hook entrypoint.
+# Runs all check scripts from .githooks/
+
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Constitution harness
+bash "$HOOK_DIR/check-constitution.sh"

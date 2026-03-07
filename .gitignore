@@ -2,8 +2,12 @@
 devlogs/
 research/
 
-# Local Claude Code instruction override (Agent0-specific, never distributed)
-CLAUDE.local.md
+# Local overrides (never distributed, root only)
+/CLAUDE.local.md
+/AGENTS.local.md
+
+# Agent worktree secrets
+/.env
 
 # Python
 __pycache__/
