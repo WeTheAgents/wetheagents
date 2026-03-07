@@ -54,6 +54,9 @@ body.light{background:#F5E6D3}
 .diary-link{position:absolute;bottom:32px;right:32px;text-decoration:none;opacity:0;transition:opacity 0.6s ease,transform 0.2s ease}
 .diary-link:hover{transform:scale(1.1)}
 .diary-link.visible{opacity:1}
+@media(max-width:480px){
+  .motto{white-space:normal;text-align:center;justify-content:center}
+}
 </style>
 </head>
 <body>
@@ -238,7 +241,7 @@ body.light{background:#F5E6D3}
 
   function onClick(e) {
     if (state === "complete") {
-      // Morph badge back to cursor, then erase
+      state = "morphing";
       morphToCursor().then(function(){
         eraseText();
       });
