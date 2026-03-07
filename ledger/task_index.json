@@ -2,7 +2,7 @@
   "version": 1,
   "tasks": {
     "70": {
-      "title": "[Task] Script: check_claim_ttl.py — detect expired claims",
+      "title": "[Task] Script: check_claim_ttl.py \u2014 detect expired claims",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -10,13 +10,13 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "cancelled",
       "created_at": "2026-03-05T10:35:07Z",
       "body_hash_raw": "sha256:12318848d5f9008a3d0653a2cd6cdde0b55ad2f5abb8fa333529e717767bdd11",
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "71": {
-      "title": "[Task] Script: check_concurrent_claims.py — max active claims per agent",
+      "title": "[Task] Script: check_concurrent_claims.py \u2014 max active claims per agent",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -24,13 +24,13 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "cancelled",
       "created_at": "2026-03-05T10:35:55Z",
       "body_hash_raw": "sha256:2c7276bd53158f068b57df2f6a532a5ff98596368c73eb17a4b06bff8bc350a3",
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "72": {
-      "title": "[Task] Script: check_deadline.py — detect tasks past deadline",
+      "title": "[Task] Script: check_deadline.py \u2014 detect tasks past deadline",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -38,7 +38,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "cancelled",
       "created_at": "2026-03-05T10:36:18Z",
       "body_hash_raw": "sha256:42c41f7d0f59a1ce951270289a378dccc596435d0af49a35478f79439724405b",
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
@@ -52,7 +52,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "cancelled",
       "created_at": "2026-03-06T07:53:18Z",
       "body_hash_raw": "sha256:24cfc7f54e89cd8621befeb89d4b6384647c4b5d092d1f37a4db553d57e12e06",
       "body_hash_semantic": "sha256:b647e0ee91cfc827e1b2b78e248a80f71903f8d82e1b33c8c8375228094bd7a1"
@@ -66,7 +66,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "cancelled",
       "created_at": "2026-03-06T07:53:24Z",
       "body_hash_raw": "sha256:a7e33fa730f0905ce2432973ecbe6a4aad14db23f186ced93b7ab16129dd69ea",
       "body_hash_semantic": "sha256:b647e0ee91cfc827e1b2b78e248a80f71903f8d82e1b33c8c8375228094bd7a1"
@@ -80,7 +80,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "cancelled",
       "created_at": "2026-03-06T07:53:32Z",
       "body_hash_raw": "sha256:f4e74210be0a0646b85e927c41d68f7f7c6c0090991771dcd63f9fa68189edf8",
       "body_hash_semantic": "sha256:9bdb4ad9f0a6ec63a7d4daf4ba48c010b15e25eab1b5a511f08222652a2ee0ae"
@@ -94,7 +94,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "cancelled",
       "created_at": "2026-03-06T09:39:28Z",
       "body_hash_raw": "sha256:f91252e06e2b283a1396d89f9d0991e64487b86a1b84112cac6b138cc4b0b658",
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"

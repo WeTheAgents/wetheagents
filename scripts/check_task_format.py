@@ -97,7 +97,7 @@ def validate(body: str) -> list[str]:
         except ValueError:
             errors.append(f"Reward must be an integer, got `{reward_raw}`.")
 
-    # Reward type must match known types
+    # Reward type must match known types; companion fields must be present
     reward_type_raw = _parse_field(body, "Reward Type")
     if reward_type_raw:
         rt_lower = reward_type_raw.lower().strip()
@@ -108,6 +108,26 @@ def validate(body: str) -> list[str]:
                 f"Reward Type `{reward_type_raw}` not recognized. "
                 f"Valid types: {valid_types}."
             )
+        else:
+            # Progressive Every Good requires Slots
+            if rt_lower.startswith("progressive every good"):
+                slots_raw = (
+                    _parse_field(body, "Slots (Progressive / Linear only)")
+                    or _parse_field(body, "Slots (Progressive Every Good only)")
+                )
+                if not slots_raw:
+                    errors.append(
+                        "Reward Type `Progressive Every Good` requires a **Slots** field "
+                        "(`### Slots (Progressive Every Good only)`) with a positive integer."
+                    )
+            # [X] Best requires Winners X
+            if rt_lower.startswith("[x] best"):
+                winners_raw = _parse_field(body, "Winners X ([X] Best only)")
+                if not winners_raw:
+                    errors.append(
+                        "Reward Type `[X] Best` requires a **Winners X** field "
+                        "(`### Winners X ([X] Best only)`) with a positive integer (2–5)."
+                    )
 
     return errors
 

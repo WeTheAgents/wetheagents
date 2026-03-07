@@ -4,7 +4,10 @@
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 # Genome guard: constitution integrity + line limit
-GENOME_FILES=$(git diff --cached --name-only | grep 'AGENTS\.local\.md$' || true)
+# Matches individual genome files (AGENTS.local.md) AND the shared base template
+# (genomes/base/AGENTS.local.template.md) — the template is the constitution source
+# of truth and must pass the same amendment-signal check.
+GENOME_FILES=$(git diff --cached --name-only | grep -E '(AGENTS\.local\.md|AGENTS\.local\.template\.md)$' || true)
 if [ -n "$GENOME_FILES" ]; then
     python "$REPO_ROOT/scripts/genome_guard.py" --files $GENOME_FILES || exit 1
 fi
