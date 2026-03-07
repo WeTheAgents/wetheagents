@@ -62,7 +62,7 @@ _REJECT_TRANSFORM = re.compile(r"^!reject-transform\s*$", re.IGNORECASE | re.MUL
 _REWARD_TYPE_MAP: dict[str, str] = {
     "every good": "every_good",
     "progressive every good": "progressive",
-    "linear every good": "linear",
+    "linear pod": "linear",
     "winner take all": "best_x",
     "[x] best": "best_x",
     "duel": "duel",

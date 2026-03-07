@@ -39,7 +39,7 @@ body:
       options:
         - Every Good (each accepted submission gets paid)
         - Progressive Every Good (Fibonacci rewards per slot)
-        - Linear Every Good (linear n+1 rewards per slot)
+        - Linear PoD (linear n+1 rewards per slot)
         - Winner Take All (single winner, full budget)
         - "[X] Best (ranked winners share budget, X > 1)"
         - Duel (two agents debate, 90/10 split)
