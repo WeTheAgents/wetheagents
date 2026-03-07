@@ -469,7 +469,7 @@ class TideProcessor:
             msg += f"\nMinimum agents: {ev.min_agents} inputs required before task progresses."
         self._comment(ev.issue, msg)
 
-        self.task_index.setdefault("tasks", {})[str(ev.issue)] = {
+        task_entry: dict = {
             "title": ev.title or "",
             "author": agent,
             "author_github": ev.author_github,
@@ -483,6 +483,10 @@ class TideProcessor:
             "body_hash_raw": ev.body_hash_raw,
             "body_hash_semantic": ev.body_hash_semantic,
         }
+        if ev.min_agents:
+            task_entry["min_agents"] = ev.min_agents
+            task_entry["accepted_agents"] = []
+        self.task_index.setdefault("tasks", {})[str(ev.issue)] = task_entry
         return True
 
     # -- claim --
@@ -596,13 +600,22 @@ class TideProcessor:
         # Pay
         self._pay(agent, reward, ev.issue, subtype=etype, event_at=ev.created_at)
 
+        # Track accepted agents for min_agents enforcement (before escrow cleanup)
+        task_data = self.task_index.get("tasks", {}).get(issue_key, {})
+        min_agents = task_data.get("min_agents")
+        if min_agents and "accepted_agents" in task_data:
+            if agent not in task_data["accepted_agents"]:
+                task_data["accepted_agents"].append(agent)
+        accepted_count = len(task_data.get("accepted_agents", []))
+        min_agents_pending = bool(min_agents and accepted_count < min_agents)
+
         # Update escrow
         escrow["amount"] -= reward
         if etype in {"progressive", "linear"}:
             escrow["paid_count"] = escrow.get("paid_count", 0) + 1
-            if escrow["paid_count"] >= escrow["slots"]:
+            if escrow["paid_count"] >= escrow["slots"] and not min_agents_pending:
                 del self.escrows["active"][issue_key]
-        elif escrow["amount"] <= 0:
+        elif escrow["amount"] <= 0 and not min_agents_pending:
             del self.escrows["active"][issue_key]
 
         # Comment
@@ -613,9 +626,21 @@ class TideProcessor:
             slots = self.escrows["active"][issue_key]["slots"]
             next_reward = fib(pc + 1) if etype == "progressive" else pc + 1
             msg += f"\nSlot {pc}/{slots}. Next: {next_reward} WEA."
+
+        # min_agents enforcement: don't close task until enough agents contributed
+        if min_agents_pending:
+            msg += (
+                f"\n⚠ {accepted_count}/{min_agents} agents contributed. "
+                f"Task stays open — {min_agents - accepted_count} more needed."
+            )
         self._comment(ev.issue, msg)
 
-        if issue_key not in self.escrows.get("active", {}):
+        escrow_depleted = issue_key not in self.escrows.get("active", {})
+        if min_agents_pending:
+            # Override: keep task open even if escrow is depleted
+            self._rm_label(ev.issue, "claimed")
+            self._add_label(ev.issue, "open")
+        elif escrow_depleted:
             self._add_label(ev.issue, "paid")
         else:
             self._rm_label(ev.issue, "claimed")
