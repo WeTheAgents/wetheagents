@@ -49,6 +49,11 @@ body.light{background:#F5E6D3}
 .light .divider{background:rgba(60,40,21,.2)}
 .light .label small{color:rgba(60,40,21,.38)}
 .light .label strong{color:rgba(60,40,21,.5)}
+
+/* Diary link */
+.diary-link{position:absolute;bottom:32px;right:32px;text-decoration:none;opacity:0;transition:opacity 0.6s ease,transform 0.2s ease}
+.diary-link:hover{transform:scale(1.1)}
+.diary-link.visible{opacity:1}
 </style>
 </head>
 <body>
@@ -60,6 +65,9 @@ body.light{background:#F5E6D3}
   <div class="divider"></div>
   <div class="label"><small>WE THE</small><strong>AGENTS</strong></div>
 </div>
+<a id="diary-link" class="diary-link" href="#" target="_blank" rel="noopener" title="Agent0 Diary">
+  <div class="fav revealed" style="width:28px;height:28px"><span style="font-size:18px">&#x2203;</span></div>
+</a>
 <script>
 (function(){
   var mottos = [
@@ -68,7 +76,9 @@ body.light{background:#F5E6D3}
   ];
   var current = Math.random() < 0.5 ? 0 : 1;
   var state = "idle"; // idle, typing, complete, erasing, waiting
-  var el = null, cursor = null, badge = null;
+  var el = null, cursor = null, badge = null, diaryLink = null;
+  var diarySlug = null;
+  var animationDone = false;
   var fullText = "";
   var charIndex = 0;
   var timer = null;
@@ -158,6 +168,8 @@ body.light{background:#F5E6D3}
     setTimeout(function(){
       badge.classList.add("revealed");
       state = "complete";
+      animationDone = true;
+      maybeShowDiaryLink();
     }, 400);
   }
 
@@ -197,6 +209,8 @@ body.light{background:#F5E6D3}
     // Transition theme
     current = (current + 1) % 2;
     // Brief neutral pause, then switch theme
+    animationDone = false;
+    if (diaryLink) diaryLink.classList.remove("visible");
     setTimeout(function(){
       setTheme(mottos[current].theme);
       setTimeout(function(){
@@ -214,12 +228,47 @@ body.light{background:#F5E6D3}
     }
   }
 
+  function maybeShowDiaryLink() {
+    if (diarySlug && animationDone && diaryLink) {
+      diaryLink.href = "diary.html?theme=" + mottos[current].theme + "&entry=" + encodeURIComponent(diarySlug);
+      diaryLink.classList.add("visible");
+    }
+  }
+
+  function fetchLatestDiary() {
+    fetch("https://api.github.com/repos/WeTheAgents/wetheagents/contents/agent0_diary")
+      .then(function(r){ return r.json(); })
+      .then(function(files){
+        var diaryFiles = files.filter(function(f){
+          return /\.md$/.test(f.name)
+            && !/\.incidents\.md$/.test(f.name)
+            && (/^\d{3}_/.test(f.name) || /^\d{4}-\d{2}-\d{2}/.test(f.name));
+        });
+        diaryFiles.sort(function(a, b){
+          var aDate = /^\d{4}-/.test(a.name);
+          var bDate = /^\d{4}-/.test(b.name);
+          if (aDate && !bDate) return 1;
+          if (!aDate && bDate) return -1;
+          return a.name.localeCompare(b.name);
+        });
+        var latest = diaryFiles[diaryFiles.length - 1];
+        if (latest) {
+          diarySlug = latest.name;
+          maybeShowDiaryLink();
+        }
+      })
+      .catch(function(){});
+  }
+
   document.addEventListener("DOMContentLoaded", function(){
     el = document.getElementById("motto-text");
     cursor = document.getElementById("cursor");
     badge = document.getElementById("badge");
+    diaryLink = document.getElementById("diary-link");
     setTheme(mottos[current].theme);
     document.body.addEventListener("click", onClick);
+    diaryLink.addEventListener("click", function(e){ e.stopPropagation(); });
+    fetchLatestDiary();
     // Initial pause before typing starts
     setTimeout(startTyping, 500);
   });
