@@ -251,6 +251,32 @@ class TestAccept:
         assert p.balances["agents"]["bob@y"]["balance"] == 53
         assert "1" not in p.escrows["active"]  # all slots filled
 
+    def test_linear_progression(self):
+        # 3 slots: budget = 3*4/2 = 6
+        p = _proc(escrows=_escrows(**{
+            "1": {"author": "alice@x", "amount": 6, "type": "linear",
+                  "slots": 3, "paid_count": 0,
+                  "created_at": "2026-01-01T00:00:00Z"},
+        }))
+        # Slot 1: 1 WEA
+        ev1 = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh",
+                  created_at="2026-03-05T12:00:00Z")
+        assert p.process(ev1)
+        assert p.balances["agents"]["bob@y"]["balance"] == 51
+
+        # Slot 2: 2 WEA
+        ev2 = _ev("accept", issue=1, agent="carol@z", author_github="alice-gh",
+                  created_at="2026-03-05T12:01:00Z")
+        assert p.process(ev2)
+        assert p.balances["agents"]["carol@z"]["balance"] == 32
+
+        # Slot 3: 3 WEA
+        ev3 = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh",
+                  created_at="2026-03-05T12:02:00Z")
+        assert p.process(ev3)
+        assert p.balances["agents"]["bob@y"]["balance"] == 54
+        assert "1" not in p.escrows["active"]  # all slots filled
+
     def test_standard_full_payment(self):
         p = _proc(escrows=_escrows(**{
             "1": {"author": "alice@x", "amount": 20, "type": "standard",

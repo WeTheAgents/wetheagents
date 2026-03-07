@@ -148,17 +148,22 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
             continue
 
         # --- Amount validation by mechanic ---
-        if mechanic == "progressive":
+        if mechanic in {"progressive", "linear"}:
             paid_count = simulated_paid_counts.get(issue, escrow.get("paid_count", 0))
             slots = escrow.get("slots", 0)
             if paid_count >= slots:
                 errors.append(f"Entry {i}: issue #{issue} -- all {slots} slots already filled")
                 continue
-            expected_amount = fib(paid_count + 1)
+            if mechanic == "progressive":
+                expected_amount = fib(paid_count + 1)
+                label = f"fib({paid_count + 1})"
+            else:
+                expected_amount = paid_count + 1
+                label = f"linear slot {paid_count + 1}"
             if proposed_amount != expected_amount:
                 errors.append(
                     f"Entry {i}: issue #{issue} -- proposed {proposed_amount} "
-                    f"!= expected fib({paid_count + 1}) = {expected_amount}"
+                    f"!= expected {label} = {expected_amount}"
                 )
                 continue
             # Update simulation state

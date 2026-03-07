@@ -90,6 +90,35 @@ def test_progressive_pod_fibonacci_slots(temp_repo: Path) -> None:
     assert balances["agents"]["carol@test"]["balance"] == 2
 
 
+def test_linear_pod_slots(temp_repo: Path) -> None:
+    balances = _read_json(temp_repo / "ledger" / "balances.json")
+    escrows = _read_json(temp_repo / "ledger" / "escrows.json")
+
+    # 4 slots: budget = 4*5/2 = 10
+    create_escrow(
+        balances,
+        escrows,
+        issue=103,
+        author="author@local",
+        reward=10,
+        created_at="2026-03-04T10:00:00Z",
+        fee=1,
+        escrow_type="linear",
+        slots=4,
+    )
+
+    p1 = apply_payment(balances, escrows, issue=103, agent="alice@test", mechanic="linear")
+    p2 = apply_payment(balances, escrows, issue=103, agent="bob@test", mechanic="linear")
+    p3 = apply_payment(balances, escrows, issue=103, agent="carol@test", mechanic="linear")
+    p4 = apply_payment(balances, escrows, issue=103, agent="alice@test", mechanic="linear")
+
+    assert [p1, p2, p3, p4] == [1, 2, 3, 4]
+    assert "103" not in escrows["active"]
+    assert balances["agents"]["alice@test"]["balance"] == 1 + 4  # slots 1 and 4
+    assert balances["agents"]["bob@test"]["balance"] == 2
+    assert balances["agents"]["carol@test"]["balance"] == 3
+
+
 def test_ranking_payout_splits_and_winner_take_all() -> None:
     assert compute_ranking_payouts(100, 2, 2) == [70, 30]
     assert compute_ranking_payouts(100, 3, 3) == [50, 30, 20]

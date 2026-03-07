@@ -62,6 +62,7 @@ _REJECT_TRANSFORM = re.compile(r"^!reject-transform\s*$", re.IGNORECASE | re.MUL
 _REWARD_TYPE_MAP: dict[str, str] = {
     "every good": "every_good",
     "progressive every good": "progressive",
+    "linear every good": "linear",
     "winner take all": "best_x",
     "[x] best": "best_x",
     "duel": "duel",
@@ -201,7 +202,10 @@ def parse_task_issue(
         return None
 
     # Optional fields
-    slots_raw = _parse_template_field(body, "Slots (Progressive Every Good only)")
+    slots_raw = (
+        _parse_template_field(body, "Slots (Progressive / Linear only)")
+        or _parse_template_field(body, "Slots (Progressive Every Good only)")
+    )
     winners_raw = _parse_template_field(body, "Winners X ([X] Best only)")
     rounds_raw = _parse_template_field(body, "Rounds (Duel only)")
     deadline = _parse_template_field(body, "Deadline (optional)")

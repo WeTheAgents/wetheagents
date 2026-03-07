@@ -91,10 +91,10 @@ def create_escrow(
         raise LedgerError("Reward must be > 0")
     if fee < 0:
         raise LedgerError("Fee must be >= 0")
-    if escrow_type not in {"standard", "progressive", "best_x", "duel", "every_good"}:
+    if escrow_type not in {"standard", "progressive", "linear", "best_x", "duel", "every_good"}:
         raise LedgerError(f"Unsupported escrow type: {escrow_type}")
-    if escrow_type == "progressive" and (slots is None or slots < 1):
-        raise LedgerError("Progressive escrow requires slots >= 1")
+    if escrow_type in {"progressive", "linear"} and (slots is None or slots < 1):
+        raise LedgerError(f"{escrow_type.capitalize()} escrow requires slots >= 1")
     if escrow_type == "best_x" and (winners is None or winners < 1 or winners > 5):
         raise LedgerError("best_x escrow requires winners in range 1..5")
 
@@ -142,7 +142,7 @@ def apply_payment(
     mechanic: str = "standard",
     amount: int | None = None,
 ) -> int:
-    if mechanic not in {"standard", "progressive", "every_good", "ranking", "duel"}:
+    if mechanic not in {"standard", "progressive", "linear", "every_good", "ranking", "duel"}:
         raise LedgerError(f"Unsupported mechanic: {mechanic}")
 
     issue_key = str(issue)
@@ -153,12 +153,12 @@ def apply_payment(
     agent_info = _require_agent(balances, agent)
     escrow_amount = int(escrow.get("amount", 0))
 
-    if mechanic == "progressive":
+    if mechanic in {"progressive", "linear"}:
         slots = int(escrow.get("slots", 0))
         paid_count = int(escrow.get("paid_count", 0))
         if paid_count >= slots:
-            raise LedgerError("All progressive slots are already paid")
-        payout = fib(paid_count + 1)
+            raise LedgerError(f"All {mechanic} slots are already paid")
+        payout = fib(paid_count + 1) if mechanic == "progressive" else paid_count + 1
     elif mechanic == "standard":
         payout = escrow_amount
     else:
@@ -180,7 +180,7 @@ def apply_payment(
     agent_info["tasks_completed"] = int(agent_info.get("tasks_completed", 0)) + 1
 
     escrow["amount"] = escrow_amount - payout
-    if mechanic == "progressive":
+    if mechanic in {"progressive", "linear"}:
         escrow["paid_count"] = int(escrow.get("paid_count", 0)) + 1
         if int(escrow["paid_count"]) >= int(escrow.get("slots", 0)):
             del escrows["active"][issue_key]

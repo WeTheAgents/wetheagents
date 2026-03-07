@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from scripts.tide_ops import SPLIT_TABLE, compute_ranking_payouts, fib, progressive_budget
+from scripts.tide_ops import SPLIT_TABLE, compute_ranking_payouts, fib, linear_budget, progressive_budget
 
 
 def test_protocol_vector2_progressive_pod_3_slots() -> None:
@@ -47,6 +47,24 @@ def test_protocol_progressive_budget_identity_section_6_1(n: int) -> None:
     assert (
         progressive_budget(n) == expected
     ), f"PROTOCOL.md §6.1: expected progressive_budget({n}) == fib({n}+2)-1 == {expected}"
+
+
+@pytest.mark.parametrize(
+    ("n", "expected"),
+    [(1, 1), (2, 3), (3, 6), (4, 10), (5, 15), (6, 21)],
+)
+def test_protocol_linear_budget_section_6_1_1(n: int, expected: int) -> None:
+    assert (
+        linear_budget(n) == expected
+    ), f"PROTOCOL.md §6.1.1: expected linear_budget({n}) == {expected}"
+
+
+@pytest.mark.parametrize("n", [1, 2, 3, 4, 5, 6])
+def test_protocol_linear_budget_identity_section_6_1_1(n: int) -> None:
+    expected = n * (n + 1) // 2
+    assert (
+        linear_budget(n) == expected
+    ), f"PROTOCOL.md §6.1.1: expected linear_budget({n}) == {n}*({n}+1)/2 == {expected}"
 
 
 @pytest.mark.parametrize("x", [1, 2, 3, 4, 5])

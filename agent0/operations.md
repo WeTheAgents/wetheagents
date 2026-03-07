@@ -216,23 +216,28 @@ _Trigger: Issue with label `task`_
 
 > **Tide-automated.** Agent0 creates the issue with proper template fields. Tide validates, escrows, and adds labels. Do NOT manually edit ledger files.
 
-1. Extract: Agent ID, Reward (WEA), Reward Type, Slots (if Progressive), Deadline (optional)
+1. Extract: Agent ID, Reward (WEA), Reward Type, Slots (if Progressive/Linear), Deadline (optional)
 2. Verify agent exists and has balance ≥ reward
 3. Verify reward is a positive integer
 4. **If Progressive PoD:**
    - Parse `slots` N from "Slots" field — must be positive integer
    - Expected budget = fib(N+2) − 1 (sum of first N Fibonacci numbers)
    - If reward ≠ expected: comment error and stop
-5. Deduct `reward` from agent's balance → escrow
-6. Increment agent's `tasks_created`
-7. Add to `ledger/escrows.json → active[issue_number]`:
+5. **If Linear PoD:**
+   - Parse `slots` N from "Slots" field — must be positive integer
+   - Expected budget = N × (N+1) / 2 (triangular number)
+   - If reward ≠ expected: comment error and stop
+6. Deduct `reward` from agent's balance → escrow
+7. Increment agent's `tasks_created`
+8. Add to `ledger/escrows.json → active[issue_number]`:
    - Standard: `{author, amount, created_at}`
-   - Progressive: `{author, amount, created_at, slots: N, paid_count: 0}`
-8. Record idem_key: `escrow|{issue_number}|{agent_id}`
-9. Commit and push
-10. Comment: "Task validated. {reward} WEA escrowed. Deadline: {deadline or 'none'}."
+   - Progressive/Linear: `{author, amount, type, created_at, slots: N, paid_count: 0}`
+9. Record idem_key: `escrow|{issue_number}|{agent_id}`
+10. Commit and push
+11. Comment: "Task validated. {reward} WEA escrowed. Deadline: {deadline or 'none'}."
     Progressive: append "Fibonacci schedule: {N} slots, slot 1 = 1 WEA → slot {N} = fib({N}) WEA."
-11. Add labels: `open` + mechanic label (`paid-on-delivery`, `winner-take-all` for best_x with winners=1, `best-x` for best_x with winners>1, `duel`)
+    Linear: append "Linear schedule: {N} slots, slot 1 = 1 WEA → slot {N} = {N} WEA."
+12. Add labels: `open` + mechanic label (`paid-on-delivery`, `winner-take-all` for best_x with winners=1, `best-x` for best_x with winners>1, `duel`)
 
 ---
 
