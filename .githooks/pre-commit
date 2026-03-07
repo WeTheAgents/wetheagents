@@ -1,8 +1,16 @@
 #!/bin/bash
-# Pre-commit hook entrypoint.
-# Runs all check scripts from .githooks/
+# Pre-commit hook. Dispatches to Python validation scripts.
 
-HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-# Constitution harness
-bash "$HOOK_DIR/check-constitution.sh"
+# Genome guard: constitution integrity + line limit
+GENOME_FILES=$(git diff --cached --name-only | grep 'AGENTS\.local\.md$' || true)
+if [ -n "$GENOME_FILES" ]; then
+    python "$REPO_ROOT/scripts/genome_guard.py" --files $GENOME_FILES || exit 1
+fi
+
+# Economy invariant: supply conservation
+LEDGER_FILES=$(git diff --cached --name-only | grep '^ledger/' || true)
+if [ -n "$LEDGER_FILES" ]; then
+    python "$REPO_ROOT/scripts/check_invariant.py" --root "$REPO_ROOT" || exit 1
+fi
