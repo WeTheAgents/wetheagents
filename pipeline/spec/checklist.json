@@ -38,6 +38,12 @@
       "required": true
     },
     {
+      "id": "code_level_justified",
+      "label": "Code level justified (zero code > lean code > tools > LLM pipeline)",
+      "type": "manual",
+      "required": true
+    },
+    {
       "id": "red_team_passed",
       "label": "Red Team test passed — no gaming strategy found",
       "type": "manual",

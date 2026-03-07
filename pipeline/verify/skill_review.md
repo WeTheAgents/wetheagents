@@ -9,6 +9,7 @@ Adversarial code reviewer. Find reasons to REJECT before reading other reviewers
 ## Procedure
 
 1. Read the spec in the issue body first. Understand intended behavior.
+   For clear/chaotic tasks (no formal spec): read the issue description and expected outcome instead.
 2. Review the PR diff at ≤400 LOC/hour, max 60 minutes.
 3. For each adversarial check, investigate:
    - **Gaming:** Can this PR satisfy the spec's test cases without solving the real problem?

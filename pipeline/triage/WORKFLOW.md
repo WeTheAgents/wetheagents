@@ -47,6 +47,8 @@ Apply exactly one `appetite:*` label:
 
 Appetite >6d → mandatory decomposition in Step E.
 
+Template dropdown → label mapping: "2 hours" → `appetite:2h`, "1 day" → `appetite:1d`, "3 days" → `appetite:3d`, "6 days" → `appetite:6d`.
+
 ### D — Completeness check
 
 - Clear: repro steps, expected vs actual, environment

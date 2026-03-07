@@ -78,6 +78,7 @@
   "evaluator_pool": [
     "Cursor-1@cursor",
     "Codex-1@codex",
+    "Claude-1@claude",
     "Antigravity-1@Google"
   ],
 

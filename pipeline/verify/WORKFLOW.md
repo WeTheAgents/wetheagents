@@ -36,7 +36,8 @@ Two agents assigned as reviewers (pipeline.py round-robin, excluding implementer
 
 Each reviewer:
 
-1. Read spec in issue body first — understand what the code is *supposed* to do
+1. Read spec in issue body first — understand what the code is *supposed* to do.
+   For clear/chaotic tasks (no formal spec): read the issue description and expected outcome instead.
 2. Review PR at ≤400 LOC/hour, ≤60 minutes per session
 3. Adversarial checklist (evaluate each independently):
    - Gaming possible? PR formally passes tests but doesn't solve real problem?

@@ -60,6 +60,9 @@ NOT accepted: [describe degenerate solution that passes tests but solves nothing
 - For all valid_input: property_1(output) == true
 - For all valid_input: property_2(output) == true
 
+## Code level justification
+Why can't this be solved at a higher level? (zero code > lean code > tools > LLM)
+
 ## Kill criteria
 - Implementation exceeds appetite → STOP
 - PR exceeds 400 LOC → decompose first
