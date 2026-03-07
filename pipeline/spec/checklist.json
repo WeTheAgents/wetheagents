@@ -1,0 +1,46 @@
+{
+  "station": "spec",
+  "gate_type": "strict",
+  "evaluators_required": 2,
+  "kill_on_any_failure": false,
+  "checks": [
+    {
+      "id": "test_cases_count",
+      "label": "At least 3 test cases (positive, boundary, negative/anti-gaming)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "property_invariant",
+      "label": "At least 1 property-based invariant defined",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "not_accepted_section",
+      "label": "NOT accepted section is non-empty (degenerate solutions described)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "cicd_gate_defined",
+      "label": "CI/CD gate defined with runnable commands",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "red_team_passed",
+      "label": "Red Team test passed (no unpatched gaming strategy found)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "both_approved",
+      "label": "Both evaluators approved spec independently",
+      "type": "manual",
+      "required": true
+    }
+  ],
+  "timeout_hours": 72,
+  "timeout_action": "notify_agent0"
+}

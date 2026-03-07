@@ -1,0 +1,38 @@
+{
+  "station": "triage",
+  "gate_type": "soft",
+  "evaluators_required": 1,
+  "kill_on_any_failure": false,
+  "checks": [
+    {
+      "id": "cynefin_assigned",
+      "label": "Cynefin domain label assigned (exactly one complexity:* label)",
+      "type": "auto",
+      "required": true
+    },
+    {
+      "id": "appetite_assigned",
+      "label": "Appetite label assigned (exactly one appetite:* label)",
+      "type": "auto",
+      "required": true
+    },
+    {
+      "id": "shaping_complete",
+      "label": "For Complex tasks: shaping comment with A3 sections posted",
+      "type": "manual",
+      "required": false,
+      "condition": "complexity:complex"
+    },
+    {
+      "id": "decomposed",
+      "label": "For Complex tasks with appetite > 2h: decomposed into linked sub-tasks",
+      "type": "manual",
+      "required": false,
+      "condition": "complexity:complex AND appetite > 2h"
+    }
+  ],
+  "timeout_hours": 48,
+  "timeout_action": "request_clarification",
+  "hard_timeout_hours": 168,
+  "hard_timeout_action": "close_stale"
+}

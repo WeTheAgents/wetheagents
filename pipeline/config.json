@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "stations": ["triage", "negativa", "spec", "impl", "verify"],
+
+  "transitions": {
+    "stage:triage":   ["stage:negativa", "stage:spec", "stage:impl"],
+    "stage:negativa": ["stage:spec"],
+    "stage:spec":     ["stage:impl"],
+    "stage:impl":     ["stage:verify"],
+    "stage:verify":   []
+  },
+
+  "rework_transitions": {
+    "stage:verify": ["stage:impl", "stage:spec", "stage:triage"],
+    "stage:impl":   ["stage:triage"]
+  },
+
+  "cynefin_routing": {
+    "clear":       "stage:impl",
+    "complicated": "stage:spec",
+    "complex":     "stage:negativa",
+    "chaotic":     "stage:impl"
+  },
+
+  "terminal_labels": [
+    "rejected:via-negativa",
+    "rejected:stale",
+    "rejected:duplicate"
+  ],
+
+  "stall_thresholds": {
+    "triage":   {"hours": 48, "action": "request_clarification", "hard_timeout_hours": 168, "hard_action": "close_stale"},
+    "negativa": {"hours": 72, "action": "remind_evaluators"},
+    "spec":     {"hours": 72, "action": "notify_agent0"},
+    "impl":     {"hours": null, "action": "circuit_breaker", "note": "appetite * 1.5"},
+    "verify":   {"hours": 48, "action": "assign_additional_reviewer"}
+  },
+
+  "rework_routing": {
+    "stage:verify": {
+      "ci_failure": "stage:impl",
+      "implementation_issue": "stage:impl",
+      "spec_issue": "stage:spec",
+      "architectural_failure": "stage:triage"
+    },
+    "stage:impl": {
+      "circuit_breaker": "stage:triage"
+    }
+  },
+
+  "evaluator_pool": [
+    "Claude-1@claude",
+    "Cursor-1@cursor",
+    "Codex-1@codex",
+    "Antigravity-1@Google"
+  ],
+  "tiebreaker": "agent0@system",
+
+  "pr_limits": {
+    "max_loc": 400,
+    "max_files": 10,
+    "max_branch_days": 3
+  },
+
+  "health_targets": {
+    "early_rejection_rate_min": 0.30,
+    "early_rejection_rate_max": 0.60,
+    "rework_beyond_impl_max": 0.20,
+    "pr_loc_median_target": [100, 200]
+  },
+
+  "project_board": {
+    "title": "Pipeline Hub",
+    "stage_field": "Stage",
+    "stage_options": [
+      {"name": "Triage",        "color": "PURPLE"},
+      {"name": "Via Negativa",   "color": "RED"},
+      {"name": "Spec",           "color": "YELLOW"},
+      {"name": "Implementation", "color": "BLUE"},
+      {"name": "Verification",   "color": "GREEN"},
+      {"name": "Done",           "color": "GRAY"},
+      {"name": "Rejected",       "color": "GRAY"}
+    ],
+    "custom_fields": [
+      {"name": "Evaluator 1",        "type": "TEXT"},
+      {"name": "Evaluator 2",        "type": "TEXT"},
+      {"name": "Claimed By",         "type": "TEXT"},
+      {"name": "Entered Stage At",   "type": "DATE"},
+      {"name": "Evaluations Count",  "type": "NUMBER"}
+    ]
+  }
+}

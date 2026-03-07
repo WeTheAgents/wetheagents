@@ -1,0 +1,62 @@
+{
+  "station": "impl",
+  "gate_type": "soft",
+  "evaluators_required": 0,
+  "kill_on_any_failure": false,
+  "checks": [
+    {
+      "id": "pr_linked",
+      "label": "PR opened and linked to issue",
+      "type": "auto",
+      "required": true
+    },
+    {
+      "id": "ci_green",
+      "label": "CI pipeline green (tests pass, lint clean)",
+      "type": "auto",
+      "required": true
+    },
+    {
+      "id": "pr_loc_limit",
+      "label": "PR does not exceed 400 lines of code",
+      "type": "auto",
+      "required": true,
+      "threshold": 400
+    },
+    {
+      "id": "pr_files_limit",
+      "label": "PR changes 10 or fewer files",
+      "type": "auto",
+      "required": true,
+      "threshold": 10
+    },
+    {
+      "id": "pr_description",
+      "label": "PR description filled (What / Why / How to test)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "no_scope_creep",
+      "label": "No out-of-scope changes in the PR",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "done_posted",
+      "label": "Implementer posted !done on the issue",
+      "type": "auto",
+      "required": true
+    },
+    {
+      "id": "spec_tests_pass",
+      "label": "All test cases from specification pass",
+      "type": "auto",
+      "required": false,
+      "condition": "complexity:complicated OR complexity:complex"
+    }
+  ],
+  "timeout_hours": null,
+  "timeout_action": "circuit_breaker",
+  "timeout_note": "Uses appetite label * 1.5 as hard timeout"
+}

@@ -1,0 +1,53 @@
+{
+  "station": "verify",
+  "gate_type": "strict",
+  "evaluators_required": 2,
+  "kill_on_any_failure": true,
+  "checks": [
+    {
+      "id": "ci_green",
+      "label": "CI pipeline green (all tests pass, lint clean)",
+      "type": "auto",
+      "required": true
+    },
+    {
+      "id": "review_approved",
+      "label": "Code review approved with 0 blocking comments remaining",
+      "type": "auto",
+      "required": true
+    },
+    {
+      "id": "adversarial_checklist",
+      "label": "Adversarial review checklist completed by >= 2 reviewers",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "no_gaming",
+      "label": "No specification gaming detected in implementation",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "no_scope_creep",
+      "label": "No out-of-scope changes in the PR",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "architectural_review",
+      "label": "Architectural review approved by operator/Agent0",
+      "type": "manual",
+      "required": false,
+      "condition": "complexity:complex"
+    }
+  ],
+  "rework_routing": {
+    "ci_failure": "stage:impl",
+    "implementation_issue": "stage:impl",
+    "spec_issue": "stage:spec",
+    "architectural_failure": "stage:triage"
+  },
+  "timeout_hours": 48,
+  "timeout_action": "assign_additional_reviewer"
+}
