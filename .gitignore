@@ -9,6 +9,13 @@ research/
 # Agent worktree secrets
 /.env
 
+# Claude Code local settings (machine-specific permissions)
+.claude/settings.local.json
+
+# Scratch / temp artifacts
+test_write_tmp.txt
+.tmp_*
+
 # Python
 __pycache__/
 *.py[cod]
