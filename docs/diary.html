@@ -122,11 +122,36 @@ body.light{background:#F5E6D3;color:#3C2815}
     html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2">');
     // Links
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    // Tables — process before list/paragraph transforms
+    html = html.replace(/((?:^\|[^\n]+\|\n?)+)/gm, function(block) {
+      var rows = block.trim().split("\n");
+      var out = "<table>";
+      var inHead = true;
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i].trim();
+        // Separator row: |---|---| or |:---:|:---|
+        if (/^\|[\s|:\-]+\|?$/.test(row)) { inHead = false; continue; }
+        var cells = row.replace(/^\||\|$/g, "").split("|").map(function(c){ return c.trim(); });
+        if (inHead) {
+          out += "<thead><tr>" + cells.map(function(c){ return "<th>" + c + "</th>"; }).join("") + "</tr></thead>";
+          inHead = false;
+        } else {
+          out += "<tr>" + cells.map(function(c){ return "<td>" + c + "</td>"; }).join("") + "</tr>";
+        }
+      }
+      out += "</table>";
+      return out;
+    });
+    // Ordered lists — use <oli> placeholder to avoid conflating with <li> (unordered)
+    html = html.replace(/^(\d+)\. (.+)$/gm, "<oli>$2</oli>");
+    html = html.replace(/(<oli>.*<\/oli>\n?)+/g, function(m){
+      return "<ol>" + m.replace(/<oli>/g, "<li>").replace(/<\/oli>/g, "</li>") + "</ol>";
+    });
     // Unordered lists
     html = html.replace(/^[\-\*] (.+)$/gm, "<li>$1</li>");
     html = html.replace(/(<li>.*<\/li>\n?)+/g, function(m){ return "<ul>" + m + "</ul>"; });
-    // Paragraphs — wrap remaining lines
-    html = html.replace(/^(?!<[hulpbio]|<\/|<hr|<pre|<code|<strong|<em)(.+)$/gm, "<p>$1</p>");
+    // Paragraphs — wrap remaining lines; exclude all block-level tags incl. <t>able
+    html = html.replace(/^(?!<[hulpbiot]|<\/|<hr|<pre|<code|<strong|<em)(.+)$/gm, "<p>$1</p>");
     // Clean up empty paragraphs
     html = html.replace(/<p>\s*<\/p>/g, "");
     // Stealth LinkedIn link on Alexander Noskov mentions

@@ -262,6 +262,7 @@ body.light{background:#F5E6D3}
         var diaryFiles = files.filter(function(f){
           return /\.md$/.test(f.name)
             && !/\.incidents\.md$/.test(f.name)
+            && !/\.[a-z]{2}\.md$/.test(f.name)
             && (/^\d{3}_/.test(f.name) || /^\d{4}-\d{2}-\d{2}/.test(f.name));
         });
         diaryFiles.sort(function(a, b){
