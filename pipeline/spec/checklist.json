@@ -2,8 +2,8 @@
   "station": "spec",
   "gate_type": "strict",
   "evaluators_required": 2,
-  "unanimous": true,
   "kill_on_any_failure": false,
+  "tiebreak": "agent0@system",
   "timeout_hours": 72,
   "timeout_action": "notify_agent0",
   "checks": [
@@ -56,9 +56,5 @@
       "required": true
     }
   ],
-  "evaluation_comment_format": {
-    "prefix": "### Spec Review by",
-    "verdict_keyword_approved": "Approval: APPROVED",
-    "verdict_keyword_rejected": "Approval: REJECTED"
-  }
+  "evaluation_comment_prefix": "### Spec Review by"
 }

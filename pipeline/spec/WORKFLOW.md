@@ -81,7 +81,7 @@ Second agent (Red Teamer) reads the spec and tries to find a gaming strategy:
 a solution that satisfies all formal criteria without solving the real problem.
 
 If gaming strategy found → spec author revises, Red Teamer re-checks.
-Iterate until no gaming strategy can be found.
+Maximum 2 iterations. If still gaming-vulnerable after 2 → reject, return to negativa.
 
 ### Step 3 — Both evaluators approve
 

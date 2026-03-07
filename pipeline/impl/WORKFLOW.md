@@ -14,7 +14,7 @@ Everything after is verification.
 ## Input criteria
 
 - Issue has `stage:impl`
-- For clear: self-contained description with repro steps
+- For clear/chaotic: self-contained description with repro steps (no formal spec — issue description is the source of truth)
 - For complicated/complex: full specification in issue body
 
 ## Process

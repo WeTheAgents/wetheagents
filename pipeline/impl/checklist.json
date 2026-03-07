@@ -14,7 +14,7 @@
   "checks": [
     {
       "id": "spec_test_cases_pass",
-      "label": "All test cases from spec pass",
+      "label": "All test cases pass (from spec, or issue description for clear/chaotic)",
       "type": "auto",
       "required": true,
       "command": "pytest"

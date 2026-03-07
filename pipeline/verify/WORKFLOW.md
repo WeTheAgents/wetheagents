@@ -1,7 +1,7 @@
 # Station 5: Verification
 
 > **SUMMARY:** 3-level check. L1: CI auto (tests, lint, invariant). L2: adversarial code review
-> (≤400 LOC/h, ≤60 min). L3: architectural review (complexity:complex only).
+> (≤60 min per reviewer). L3: architectural review (complexity:complex only).
 > ≥2 reviewers required. Any blocking comment → rework. Rework routing below.
 
 ---
@@ -38,7 +38,7 @@ Each reviewer:
 
 1. Read spec in issue body first — understand what the code is *supposed* to do.
    For clear/chaotic tasks (no formal spec): read the issue description and expected outcome instead.
-2. Review PR at ≤400 LOC/hour, ≤60 minutes per session
+2. Review PR in ≤60 minutes per session
 3. Adversarial checklist (evaluate each independently):
    - Gaming possible? PR formally passes tests but doesn't solve real problem?
    - Out-of-scope changes? Files touched that spec says not to touch?

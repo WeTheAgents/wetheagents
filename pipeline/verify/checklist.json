@@ -17,7 +17,7 @@
     {
       "id": "reviewer_comments_posted",
       "label": "≥2 reviewer comments posted in required format",
-      "type": "auto",
+      "type": "manual",
       "required": true,
       "min_count": 2
     },
@@ -51,9 +51,5 @@
     "max_rework_beyond_impl": 0.20,
     "description": "If >20% of rework routes past stage:impl, spec quality is insufficient"
   },
-  "evaluation_comment_format": {
-    "prefix": "### Verification Review by",
-    "verdict_keyword_approved": "Verdict: APPROVED",
-    "verdict_keyword_changes": "Verdict: CHANGES REQUESTED"
-  }
+  "evaluation_comment_prefix": "### Verification Review by"
 }
