@@ -14,6 +14,21 @@ for file in $(git diff --cached --name-only | grep 'AGENTS\.local\.md$'); do
     # Skip newly added files (no HEAD version to compare)
     git show HEAD:"$file" > /dev/null 2>&1 || continue
 
+    # Validate that staged file has the --- divider
+    if ! git show :"$file" | grep -q '^---$'; then
+        BLOCKED=1
+        echo ""
+        echo "══════════════════════════════════════════════════════"
+        echo "  MALFORMED GENOME: $file"
+        echo "══════════════════════════════════════════════════════"
+        echo ""
+        echo "  Missing '---' divider between constitution and genome."
+        echo "  Without it, Zone 1 (principles) and Zone 2 (your genome)"
+        echo "  cannot be separated. Restore the divider."
+        echo ""
+        continue
+    fi
+
     # Extract constitution section: from start to first "---" line
     old=$(git show HEAD:"$file" | sed -n '1,/^---$/p')
     new=$(git show :"$file" | sed -n '1,/^---$/p')
