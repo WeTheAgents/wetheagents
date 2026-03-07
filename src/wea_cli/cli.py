@@ -434,7 +434,10 @@ def cmd_accept(args: argparse.Namespace) -> int:
     # Auto-detect mechanic if not specified
     mechanic = args.mechanic
     if mechanic is None:
-        if "paid_count" in escrow and "slots" in escrow:
+        etype = escrow.get("type", "standard")
+        if etype in {"progressive", "linear"}:
+            mechanic = etype
+        elif "paid_count" in escrow and "slots" in escrow:
             mechanic = "progressive"
         else:
             mechanic = "standard"
@@ -442,14 +445,14 @@ def cmd_accept(args: argparse.Namespace) -> int:
     # Determine amount based on mechanic
     ts = _now_iso()
 
-    if mechanic == "progressive":
+    if mechanic in {"progressive", "linear"}:
         paid_count = escrow["paid_count"]
         slots = escrow["slots"]
         if paid_count >= slots:
             print(f"Issue #{args.issue}: all {slots} slots already filled.")
             return EXIT_DOMAIN_ERROR
-        amount = fib(paid_count + 1)
-        label = f"progressive slot {paid_count + 1}/{slots}"
+        amount = fib(paid_count + 1) if mechanic == "progressive" else paid_count + 1
+        label = f"{mechanic} slot {paid_count + 1}/{slots}"
 
     elif mechanic == "every_good":
         if args.pay_amount is None:

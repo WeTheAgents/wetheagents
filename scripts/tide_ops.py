@@ -33,6 +33,13 @@ def progressive_budget(slots: int) -> int:
     return fib(slots + 2) - 1
 
 
+def linear_budget(slots: int) -> int:
+    """Expected budget for N linear-progressive slots: sum(1..N) = N*(N+1)/2."""
+    if slots < 1:
+        raise ValueError(f"Slots must be >= 1, got {slots}")
+    return slots * (slots + 1) // 2
+
+
 def idem_key_hash(key: str) -> str:
     """SHA-256 hash of a raw idempotency key string."""
     return hashlib.sha256(key.encode("utf-8")).hexdigest()

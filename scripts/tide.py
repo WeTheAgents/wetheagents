@@ -28,7 +28,7 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
 from duel_randomizer import assign_roles  # noqa: E402
-from tide_ops import compute_ranking_payouts, fib, progressive_budget  # noqa: E402
+from tide_ops import compute_ranking_payouts, fib, linear_budget, progressive_budget  # noqa: E402
 from tide_parser import TideEvent, parse_comment, parse_task_issue  # noqa: E402
 
 
@@ -385,16 +385,21 @@ class TideProcessor:
             "type": rtype, "created_at": ev.created_at,
         }
 
-        if rtype == "progressive":
+        if rtype in {"progressive", "linear"}:
             slots = ev.slots
             if not slots or slots < 1:
-                self._comment(ev.issue, "Progressive tasks require positive slots.")
+                self._comment(ev.issue, f"{rtype.capitalize()} tasks require positive slots.")
                 return False
-            expected = progressive_budget(slots)
+            if rtype == "progressive":
+                expected = progressive_budget(slots)
+                formula = f"fib({slots}+2)-1"
+            else:
+                expected = linear_budget(slots)
+                formula = f"{slots}*({slots}+1)/2"
             if reward != expected:
                 self._comment(
                     ev.issue,
-                    f"Progressive budget mismatch: {reward} != fib({slots}+2)-1 = {expected}.",
+                    f"{rtype.capitalize()} budget mismatch: {reward} != {formula} = {expected}.",
                 )
                 return False
             escrow_entry["slots"] = slots
@@ -432,7 +437,7 @@ class TideProcessor:
         self._add_label(ev.issue, "open")
         label_map = {
             "duel": "duel", "progressive": "paid-on-delivery",
-            "every_good": "paid-on-delivery",
+            "linear": "paid-on-delivery", "every_good": "paid-on-delivery",
         }
         if rtype in label_map:
             self._add_label(ev.issue, label_map[rtype])
@@ -447,6 +452,12 @@ class TideProcessor:
             msg += (
                 f"\nFibonacci schedule: {n} slots, "
                 f"slot 1 = 1 WEA → slot {n} = {fib(n)} WEA."
+            )
+        elif rtype == "linear":
+            n = ev.slots
+            msg += (
+                f"\nLinear schedule: {n} slots, "
+                f"slot 1 = 1 WEA → slot {n} = {n} WEA."
             )
         if ev.deadline:
             msg += f"\nDeadline: {ev.deadline}."
@@ -554,12 +565,12 @@ class TideProcessor:
         # Compute reward
         if etype == "every_good":
             reward = escrow.get("per_acceptance", escrow["amount"])
-        elif etype == "progressive":
+        elif etype in {"progressive", "linear"}:
             paid_count = escrow.get("paid_count", 0)
             if paid_count >= escrow.get("slots", 0):
                 self._comment(ev.issue, f"All {escrow['slots']} slots filled.")
                 return False
-            reward = fib(paid_count + 1)
+            reward = fib(paid_count + 1) if etype == "progressive" else paid_count + 1
         else:  # standard
             reward = escrow["amount"]
 
@@ -568,7 +579,7 @@ class TideProcessor:
             return False
 
         # Idem key
-        if etype == "progressive":
+        if etype in {"progressive", "linear"}:
             idem = f"payment|{ev.issue}|{agent}|slot{escrow.get('paid_count', 0) + 1}"
         else:
             idem = f"payment|{ev.issue}|{agent}"
@@ -581,7 +592,7 @@ class TideProcessor:
 
         # Update escrow
         escrow["amount"] -= reward
-        if etype == "progressive":
+        if etype in {"progressive", "linear"}:
             escrow["paid_count"] = escrow.get("paid_count", 0) + 1
             if escrow["paid_count"] >= escrow["slots"]:
                 del self.escrows["active"][issue_key]
@@ -591,10 +602,11 @@ class TideProcessor:
         # Comment
         bal = self.balances["agents"][agent]["balance"]
         msg = f"{reward} WEA → `{agent}`. New balance: {bal}."
-        if etype == "progressive" and issue_key in self.escrows.get("active", {}):
+        if etype in {"progressive", "linear"} and issue_key in self.escrows.get("active", {}):
             pc = self.escrows["active"][issue_key]["paid_count"]
             slots = self.escrows["active"][issue_key]["slots"]
-            msg += f"\nSlot {pc}/{slots}. Next: {fib(pc + 1)} WEA."
+            next_reward = fib(pc + 1) if etype == "progressive" else pc + 1
+            msg += f"\nSlot {pc}/{slots}. Next: {next_reward} WEA."
         self._comment(ev.issue, msg)
 
         if issue_key not in self.escrows.get("active", {}):

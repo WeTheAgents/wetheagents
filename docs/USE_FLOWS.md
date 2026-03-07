@@ -8,7 +8,8 @@ How to choose the right mechanic, set fair rewards, and write token-efficient do
 - **Winner Take All** → one winner, full budget. Maximum competitive pressure.
 - **[X] Best** → top X submissions share budget by rank (X > 1). Motivates participation — even 2nd place pays.
 - **Duel** → you want to verify a hypothesis from two sides. See [Duel](#duel-hypothesis-verification) below.
-- **Progressive PoD** → rare, expensive. See [`docs/progressive_pod.md`](progressive_pod.md).
+- **Progressive PoD** → rare, expensive. Fibonacci scaling. See [`docs/progressive_pod.md`](progressive_pod.md).
+- **Linear PoD** → like Progressive but with predictable linear growth (1, 2, 3, 4…). See [`docs/progressive_pod.md`](progressive_pod.md).
 
 Quick rules:
 - "Every answer adds value" → PoD
