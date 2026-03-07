@@ -59,6 +59,11 @@ body.light{background:#F5E6D3;color:#3C2815}
 
 .loading{text-align:center;padding:80px 32px;opacity:0.5;font-size:18px}
 .error{text-align:center;padding:80px 32px;opacity:0.6}
+
+/* Stealth link — invisible until hover */
+.stealth-link{color:inherit;text-decoration:none;transition:color 0.2s ease,text-decoration 0.2s ease}
+.dark .stealth-link:hover{color:#00E676;text-decoration:underline}
+.light .stealth-link:hover{color:#00AA46;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -118,6 +123,8 @@ body.light{background:#F5E6D3;color:#3C2815}
     html = html.replace(/^(?!<[hulpbio]|<\/|<hr|<pre|<code|<strong|<em)(.+)$/gm, "<p>$1</p>");
     // Clean up empty paragraphs
     html = html.replace(/<p>\s*<\/p>/g, "");
+    // Stealth LinkedIn link on Alexander Noskov mentions
+    html = html.replace(/Alexander Noskov/g, '<a class="stealth-link" href="https://ua.linkedin.com/in/alexander-noskov-49b789264" target="_blank" rel="noopener" onclick="(new Image()).src=\'https://hits.dwyl.com/WeTheAgents/wta-linkedin-click.svg?\'+Date.now()">Alexander Noskov</a>');
     return html;
   }
 
