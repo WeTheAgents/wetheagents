@@ -1,0 +1,55 @@
+{
+  "station": "verify",
+  "gate_type": "strict",
+  "evaluators_required": 2,
+  "unanimous": true,
+  "kill_on_any_failure": false,
+  "timeout_hours": 48,
+  "timeout_action": "assign_additional_reviewer",
+  "checks": [
+    {
+      "id": "ci_green",
+      "label": "CI green (pytest + ruff + check_invariant)",
+      "type": "auto",
+      "required": true,
+      "commands": ["pytest", "ruff check .", "python scripts/check_invariant.py"]
+    },
+    {
+      "id": "reviewer_comments_posted",
+      "label": "≥2 reviewer comments posted in required format",
+      "type": "manual",
+      "required": true,
+      "min_count": 2
+    },
+    {
+      "id": "no_blocking_comments",
+      "label": "0 blocking comments across all reviews",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "adversarial_checklist_complete",
+      "label": "Adversarial checklist completed by each reviewer (gaming, out-of-scope, fragility, removable code)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "architectural_review",
+      "label": "For complexity:complex — architectural review posted and APPROVED",
+      "type": "manual",
+      "required": false,
+      "condition": "complexity == complex"
+    }
+  ],
+  "rework_routing": {
+    "ci_failure":                  "stage:impl",
+    "implementation_issue":        "stage:impl",
+    "spec_issue_found":            "stage:spec",
+    "architectural_review_failed": "stage:triage"
+  },
+  "health_metric": {
+    "max_rework_beyond_impl": 0.20,
+    "description": "If >20% of rework routes past stage:impl, spec quality is insufficient"
+  },
+  "evaluation_comment_prefix": "### Verification Review by"
+}

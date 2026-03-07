@@ -1,0 +1,50 @@
+{
+  "station": "triage",
+  "gate_type": "soft",
+  "evaluators_required": 1,
+  "unanimous": false,
+  "kill_on_any_failure": false,
+  "timeout_hours": 48,
+  "timeout_action": "request_clarification",
+  "checks": [
+    {
+      "id": "not_spam_duplicate",
+      "label": "Not spam, duplicate, or out-of-scope",
+      "type": "manual",
+      "required": true,
+      "kill_if_failed": true
+    },
+    {
+      "id": "complexity_labeled",
+      "label": "Exactly one complexity:* label applied",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "appetite_labeled",
+      "label": "Exactly one appetite:* label applied",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "shaping_complete",
+      "label": "For complexity:complex — shaping comment posted (all 7 A3 sections)",
+      "type": "manual",
+      "required": false,
+      "condition": "complexity == complex"
+    },
+    {
+      "id": "decomposition_complete",
+      "label": "For complexity:complex with appetite >2h — child issues created",
+      "type": "manual",
+      "required": false,
+      "condition": "complexity == complex AND appetite > 2h"
+    },
+    {
+      "id": "routing_comment",
+      "label": "Routing comment posted on issue",
+      "type": "manual",
+      "required": true
+    }
+  ]
+}

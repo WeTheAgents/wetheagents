@@ -1,0 +1,60 @@
+{
+  "station": "spec",
+  "gate_type": "strict",
+  "evaluators_required": 2,
+  "kill_on_any_failure": false,
+  "tiebreak": "agent0@system",
+  "timeout_hours": 72,
+  "timeout_action": "notify_agent0",
+  "checks": [
+    {
+      "id": "spec_sections_complete",
+      "label": "Issue body contains all required sections (context, scope, preconditions, GWT, test cases, invariants, kill criteria, CI gate)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "test_cases_min3",
+      "label": "At least 3 test cases (positive, boundary, negative)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "invariant_min1",
+      "label": "At least 1 property-based invariant defined",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "not_accepted_nonempty",
+      "label": "NOT-accepted section is non-empty (anti-gaming)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "ci_gate_runnable",
+      "label": "CI/CD gate defined with runnable commands",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "code_level_justified",
+      "label": "Code level justified (zero code > lean code > tools > LLM pipeline)",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "red_team_passed",
+      "label": "Red Team test passed — no gaming strategy found",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "both_evaluators_approved",
+      "label": "Both evaluators posted APPROVED",
+      "type": "manual",
+      "required": true
+    }
+  ],
+  "evaluation_comment_prefix": "### Spec Review by"
+}

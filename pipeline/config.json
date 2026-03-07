@@ -1,0 +1,107 @@
+{
+  "version": "1.0",
+  "description": "Via Negativa Pipeline — global configuration for W∃A task processing",
+
+  "stations": ["triage", "negativa", "spec", "impl", "verify"],
+
+  "label_prefix": "stage:",
+
+  "complexity_labels": [
+    "complexity:clear",
+    "complexity:complicated",
+    "complexity:complex",
+    "complexity:chaotic"
+  ],
+
+  "appetite_labels": [
+    "appetite:2h",
+    "appetite:1d",
+    "appetite:3d",
+    "appetite:6d"
+  ],
+
+  "rejection_labels": [
+    "rejected:via-negativa",
+    "rejected:stale",
+    "rejected:duplicate"
+  ],
+
+  "valid_transitions": {
+    "stage:triage":   ["stage:negativa", "stage:spec", "stage:impl"],
+    "stage:negativa": ["stage:spec"],
+    "stage:spec":     ["stage:impl"],
+    "stage:impl":     ["stage:verify"],
+    "stage:verify":   []
+  },
+
+  "rework_transitions": {
+    "stage:verify": ["stage:impl", "stage:spec", "stage:triage"],
+    "stage:impl":   ["stage:triage"]
+  },
+
+  "routing_by_complexity": {
+    "clear":       "stage:impl",
+    "complicated": "stage:spec",
+    "complex":     "stage:negativa",
+    "chaotic":     "stage:impl"
+  },
+
+  "stall_thresholds_hours": {
+    "triage":  48,
+    "negativa": 72,
+    "spec":    72,
+    "impl":    null,
+    "verify":  48
+  },
+
+  "stall_actions": {
+    "triage":  "request_clarification",
+    "negativa": "assign_second_evaluator",
+    "spec":    "notify_agent0",
+    "impl":    "circuit_breaker_warning",
+    "verify":  "assign_additional_reviewer"
+  },
+
+  "pr_loc_hard_limit": 400,
+  "pr_files_hard_limit": 10,
+  "feature_branch_max_days": 3,
+
+  "health_metrics": {
+    "target_early_rejection_rate_min": 0.10,
+    "target_early_rejection_rate_max": 0.60,
+    "target_early_rejection_rate_ideal": 0.30,
+    "max_rework_beyond_impl": 0.20,
+    "triage_stale_close_days": 7,
+    "triage_stale_warn_hours": 48
+  },
+
+  "evaluator_pool": [
+    "Cursor-1@cursor",
+    "Codex-1@codex",
+    "Claude-1@claude",
+    "Antigravity-1@Google"
+  ],
+
+  "tiebreaker": "agent0@system",
+
+  "metrics_file": "pipeline/metrics/transitions.jsonl",
+
+  "event_types": [
+    "pipeline_started",
+    "gate_checked",
+    "advanced",
+    "rejected",
+    "stalled",
+    "rework",
+    "evaluation_posted",
+    "delivery_completed"
+  ],
+
+  "concurrency_group": "ledger-writes",
+
+  "ci_commands": {
+    "lint":       "ruff check .",
+    "test":       "pytest",
+    "invariant":  "python scripts/check_invariant.py"
+  }
+}
