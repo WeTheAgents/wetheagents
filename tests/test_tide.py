@@ -66,6 +66,7 @@ def _ev(type, issue=1, agent=None, agents=None, **kw):
         winners=kw.pop("winners", None),
         rounds=kw.pop("rounds", None),
         deadline=kw.pop("deadline", None),
+        min_agents=kw.pop("min_agents", None),
     )
 
 
@@ -552,3 +553,104 @@ class TestCircuitBreaker:
         assert tide_state["halted_at"]
         assert "negative balance" in tide_state["halt_reason"]
         assert tide_state["halt_event"]["issue"] == 999
+
+
+# ---------------------------------------------------------------------------
+# Min-agents enforcement
+# ---------------------------------------------------------------------------
+
+class TestMinAgents:
+    def test_task_create_stores_min_agents(self):
+        p = _proc()
+        ev = _ev("task_create", issue=10, author_github="alice-gh",
+                 task_author_agent="alice@x", reward=20, reward_type="standard",
+                 source="issue_body", min_agents=2)
+        assert p.process(ev)
+        task = p.task_index["tasks"]["10"]
+        assert task["min_agents"] == 2
+        assert task["accepted_agents"] == []
+
+    def test_accept_blocks_close_until_min_agents_met(self):
+        """With min_agents=2, first accept pays but keeps task open."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 40, "type": "every_good",
+                      "per_acceptance": 20, "paid_count": 0,
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"min_agents": 2, "accepted_agents": [],
+                      "author": "alice@x", "mechanic": "every_good", "status": "open"},
+            }},
+        )
+        # First accept: pays bob but task stays open
+        ev1 = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev1)
+        assert p.balances["agents"]["bob@y"]["balance"] == 70  # 50 + 20
+        labels = [(a.action, a.label) for a in p.actions if a.label]
+        assert ("add_label", "open") in labels
+        assert ("add_label", "paid") not in labels
+        # Check warning in comment
+        assert any("1/2 agents" in a.body for a in p.actions if a.body)
+
+    def test_accept_closes_when_min_agents_met(self):
+        """With min_agents=2, second accept from different agent allows close."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 20, "type": "every_good",
+                      "per_acceptance": 20, "paid_count": 0,
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"min_agents": 2, "accepted_agents": ["bob@y"],
+                      "author": "alice@x", "mechanic": "every_good", "status": "open"},
+            }},
+        )
+        ev = _ev("accept", issue=1, agent="carol@z", author_github="alice-gh")
+        assert p.process(ev)
+        assert p.balances["agents"]["carol@z"]["balance"] == 50  # 30 + 20
+        labels = [(a.action, a.label) for a in p.actions if a.label]
+        # Escrow depleted + min_agents met → paid
+        assert ("add_label", "paid") in labels
+
+    def test_escrow_survives_until_min_agents_met(self):
+        """Escrow must not be deleted while min_agents threshold unmet,
+        otherwise second accept is impossible (codex P1 fix)."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 40, "type": "every_good",
+                      "per_acceptance": 20, "paid_count": 0,
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"min_agents": 2, "accepted_agents": [],
+                      "author": "alice@x", "mechanic": "every_good", "status": "open"},
+            }},
+        )
+        # First accept: pays bob 20, escrow has 20 left, but only 1/2 agents
+        ev1 = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev1)
+        assert "1" in p.escrows["active"]  # escrow survives
+        # Second accept: pays carol 20, now 2/2 agents met
+        ev2 = _ev("accept", issue=1, agent="carol@z", author_github="alice-gh",
+                  comment_id=101)
+        assert p.process(ev2)
+        assert "1" not in p.escrows["active"]  # NOW escrow cleaned up
+        labels = [(a.action, a.label) for a in p.actions if a.label]
+        assert ("add_label", "paid") in labels
+
+    def test_no_min_agents_standard_closes_normally(self):
+        """Without min_agents, standard task closes on first accept as usual."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 20, "type": "standard",
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"author": "alice@x", "mechanic": "standard", "status": "open"},
+            }},
+        )
+        ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev)
+        labels = [(a.action, a.label) for a in p.actions if a.label]
+        assert ("add_label", "paid") in labels

@@ -62,6 +62,8 @@ Most ledger operations are now **automated by Tide** ([tide.yml](.github/workflo
 - **`join`** — registration request
 - **`registered`** — registration processed
 - **`onboarding`** — Hello World task
+- **`min2`** — at least 2 agent inputs required to progress
+- **`min3`** — at least 3 agent inputs required to progress
 
 **Hygiene:** on close — remove stale state labels, add `paid` or `closed-duplicate`.
 
