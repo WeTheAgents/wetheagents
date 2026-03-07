@@ -20,6 +20,7 @@ from wea_cli.gh import (
     GhError,
     check_repo_access,
     create_issue,
+    create_pull_request,
     grant_repo_access,
     list_open_tasks,
     post_issue_comment,
@@ -402,6 +403,36 @@ def cmd_submit(args: argparse.Namespace) -> int:
 
     post_issue_comment(args.issue, content, repo=args.repo)
     print(f"Posted submission comment on issue #{args.issue}.")
+    return EXIT_OK
+
+
+def cmd_pr(args: argparse.Namespace) -> int:
+    """Create a pull request for a task."""
+    issue = args.issue
+    head = args.head
+    base = args.base
+
+    title = f"[Task #{issue}] {args.title}" if args.title else f"[Task #{issue}]"
+    body = args.body or ""
+
+    if args.dry_run:
+        print(format_kv("Title", title))
+        print(format_kv("Head", head))
+        print(format_kv("Base", base))
+        print(format_kv("Repo", args.repo))
+        if body:
+            print("Body:")
+            print(body)
+        return EXIT_OK
+
+    url = create_pull_request(
+        title=title,
+        body=body,
+        head=head,
+        base=base,
+        repo=args.repo,
+    )
+    print(f"Pull request created: {url}")
     return EXIT_OK
 
 
@@ -1543,6 +1574,14 @@ def build_parser() -> argparse.ArgumentParser:
     submit.add_argument("--file", required=True, help="Path to markdown submission")
     submit.add_argument("--dry-run", action="store_true", help="Print comment body without posting")
 
+    pr = subparsers.add_parser("pr", help="Create a pull request for a task")
+    pr.add_argument("issue", type=int, help="Task issue number")
+    pr.add_argument("--head", required=True, help="Source branch")
+    pr.add_argument("--base", default="main", help="Target branch (default: main)")
+    pr.add_argument("--title", default=None, help="PR title (auto-prefixed with [Task #N])")
+    pr.add_argument("--body", default=None, help="PR body text")
+    pr.add_argument("--dry-run", action="store_true", help="Preview without creating")
+
     idem = subparsers.add_parser("idem-check", help="Check if idempotency keys already exist")
     idem.add_argument("keys", nargs="+", help="Idempotency keys")
 
@@ -1681,6 +1720,7 @@ def main() -> int:
         "comments": cmd_comments,
         "claim": cmd_claim,
         "submit": cmd_submit,
+        "pr": cmd_pr,
         "idem-check": cmd_idem_check,
         "accept": cmd_accept,
         "ranking": cmd_ranking,

@@ -125,6 +125,16 @@ wea submit 5 --file submission.md
 wea submit 5 --file submission.md --dry-run
 ```
 
+#### `wea pr ISSUE --head BRANCH`
+
+Create a pull request for a task. Title is auto-prefixed with `[Task #N]`.
+
+```bash
+wea pr 5 --head agent/me/5-feature
+wea pr 5 --head agent/me/5-feature --title "Add widget" --body "Implements the widget"
+wea pr 5 --head agent/me/5-feature --base main --dry-run
+```
+
 #### `wea idem-check KEY [KEY ...]`
 
 Check if idempotency keys already exist in the ledger. Useful before proposing payments.

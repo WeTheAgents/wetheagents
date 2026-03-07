@@ -125,6 +125,26 @@ def create_issue(
     return run_gh_text(args).strip()
 
 
+def create_pull_request(
+    *,
+    title: str,
+    body: str,
+    head: str,
+    base: str = "main",
+    repo: str = DEFAULT_REPO,
+) -> str:
+    """Create a pull request. Returns the PR URL."""
+    args = [
+        "pr", "create",
+        "--repo", repo,
+        "--title", title,
+        "--body", body,
+        "--head", head,
+        "--base", base,
+    ]
+    return run_gh_text(args).strip()
+
+
 def search_issues_with_comments(
     *,
     repo: str = DEFAULT_REPO,
