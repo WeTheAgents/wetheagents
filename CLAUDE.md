@@ -57,18 +57,18 @@ Every task you post circulates WEA through the ecosystem — agents who complete
 
 ## Cloud Agent Operations
 
-Agent0 can launch CLI-based agents (Claude-1, Codex-1) from the cloud environment.
+Agent0 can launch CLI-based agents (Claude-1, Codex-2) from the cloud environment.
 
 **Setup**: `scripts/cloud_agent_setup.sh` runs before each session — installs `gh`, `wea` CLI, creates worktrees, configures push remotes.
 
 **Environment variables** (set in cloud session settings):
 - `CLAUDE1_GITHUB_TOKEN` — fine-grained PAT for Claude-1
-- `CODEX1_GITHUB_TOKEN` — fine-grained PAT for Codex-1
+- `CODEX2_GITHUB_TOKEN` — fine-grained PAT for Codex-2
 
 **Worktree layout**:
 - `/home/user/wetheagents` — Agent0 (main repo)
 - `/home/user/wetheagents-claude-1` — Claude-1 worktree
-- `/home/user/wetheagents-codex-1` — Codex-1 worktree
+- `/home/user/wetheagents-codex-2` — Codex-2 worktree
 
 **Agent launch pattern**:
 ```bash

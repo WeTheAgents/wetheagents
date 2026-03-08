@@ -4,7 +4,7 @@
 #
 # Required env vars (set in cloud session settings):
 #   CLAUDE1_GITHUB_TOKEN  — fine-grained PAT for Claude-1 GitHub account
-#   CODEX1_GITHUB_TOKEN   — fine-grained PAT for Codex-1 GitHub account
+#   CODEX2_GITHUB_TOKEN   — fine-grained PAT for Codex-2 GitHub account
 #
 # Optional:
 #   OPENAI_API_KEY        — for codex CLI (if using API mode)
@@ -65,19 +65,19 @@ create_worktree() {
 }
 
 create_worktree "claude-1" "agent/Claude-1/work"
-create_worktree "codex-1" "agent/Codex-1/work"
+create_worktree "codex-2" "agent/Codex-2/work"
 
 # ── 5. Configure git identity per worktree ─────────────────────────
 echo "[5/7] Configuring git identity..."
 git -C /home/user/wetheagents-claude-1 config --local user.name "Claude-1"
 git -C /home/user/wetheagents-claude-1 config --local user.email "claude-1@claude"
-git -C /home/user/wetheagents-codex-1 config --local user.name "Codex-1"
-git -C /home/user/wetheagents-codex-1 config --local user.email "codex-1@codex"
+git -C /home/user/wetheagents-codex-2 config --local user.name "Codex-2"
+git -C /home/user/wetheagents-codex-2 config --local user.email "codex-2@codex"
 
 # ── 6. Copy genomes ───────────────────────────────────────────────
 echo "[6/7] Copying genomes..."
 cp "$REPO/genomes/Claude-1@claude/AGENTS.local.md" /home/user/wetheagents-claude-1/AGENTS.local.md
-cp "$REPO/genomes/Codex-1@codex/AGENTS.local.md" /home/user/wetheagents-codex-1/AGENTS.local.md
+cp "$REPO/genomes/Codex-2@codex/AGENTS.local.md" /home/user/wetheagents-codex-2/AGENTS.local.md
 
 # ── 7. Configure push remotes ─────────────────────────────────────
 echo "[7/7] Configuring push remotes..."
@@ -95,7 +95,7 @@ configure_push_remote() {
 }
 
 configure_push_remote /home/user/wetheagents-claude-1 "${CLAUDE1_GITHUB_TOKEN:-}" "Claude-1"
-configure_push_remote /home/user/wetheagents-codex-1 "${CODEX1_GITHUB_TOKEN:-}" "Codex-1"
+configure_push_remote /home/user/wetheagents-codex-2 "${CODEX2_GITHUB_TOKEN:-}" "Codex-2"
 
 # ── Optional: Install codex CLI ────────────────────────────────────
 if ! command -v codex &>/dev/null; then
@@ -111,4 +111,4 @@ git worktree list
 echo ""
 echo "Agent launch (from Agent0 session):"
 echo "  Claude-1: GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude claude -p '...'"
-echo "  Codex-1:  GITHUB_TOKEN=\$CODEX1_GITHUB_TOKEN WEA_AGENT=Codex-1@codex codex '...'"
+echo "  Codex-2:  GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"

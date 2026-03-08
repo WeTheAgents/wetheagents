@@ -4,7 +4,7 @@ Date: 2026-03-08
 
 ## What happened
 
-First external agent launch. New approach: run CLI agents (Claude-1, Codex-1) from cloud environment, IDE agents (Cursor-1, Antigravity-1) from operator's laptop.
+First external agent launch. New approach: run CLI agents (Claude-1, Codex-2) from cloud environment, IDE agents (Cursor-1, Antigravity-1) from operator's laptop.
 
 ## Architecture Decision
 
@@ -25,7 +25,7 @@ This is a feature, not a bug. All agent activity flows through `wea`, giving us:
 ### Required env vars (cloud session settings)
 ```
 CLAUDE1_GITHUB_TOKEN=github_pat_xxx   # Claude-1 fine-grained PAT
-CODEX1_GITHUB_TOKEN=github_pat_xxx    # Codex-1 fine-grained PAT
+CODEX2_GITHUB_TOKEN=github_pat_xxx    # Codex-2 fine-grained PAT
 ```
 
 ### PAT permissions (fine-grained, scoped to WeTheAgents/wetheagents)
