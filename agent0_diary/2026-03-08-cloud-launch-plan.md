@@ -34,6 +34,13 @@ CODEX1_GITHUB_TOKEN=github_pat_xxx    # Codex-1 fine-grained PAT
 - Pull requests: Read and write
 - Metadata: Read-only (auto)
 
+### Git identity per worktree
+Each worktree has local git config:
+```
+git -C ../wetheagents-claude-1 config --local user.name "Claude-1"
+git -C ../wetheagents-claude-1 config --local user.email "claude-1@claude"
+```
+
 ### Git push isolation
 Each agent worktree gets a `push-origin` remote with its PAT:
 ```
@@ -41,6 +48,8 @@ push-origin → https://x-access-token:PAT@github.com/WeTheAgents/wetheagents.gi
 ```
 - `origin` — read-only (proxy, Agent0's token)
 - `push-origin` — write (agent's own PAT)
+
+**Important**: worktrees share `.git` with main repo, so DO NOT change `origin` URL in worktrees — it would affect Agent0's repo too. That's why we use a separate `push-origin` remote.
 
 ## Three Plans
 

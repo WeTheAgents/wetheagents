@@ -23,16 +23,16 @@ echo "=== Cloud Agent Setup ==="
 
 # ── 1. Install gh CLI ──────────────────────────────────────────────
 if ! command -v gh &>/dev/null; then
-  echo "[1/6] Installing gh CLI..."
+  echo "[1/7] Installing gh CLI..."
   curl -sL "https://github.com/cli/cli/releases/download/v2.87.3/gh_2.87.3_linux_amd64.tar.gz" \
     | tar -xz -C /tmp
   cp /tmp/gh_2.87.3_linux_amd64/bin/gh /usr/local/bin/gh
 else
-  echo "[1/6] gh CLI already installed"
+  echo "[1/7] gh CLI already installed"
 fi
 
 # ── 2. Install wea CLI in .venv ────────────────────────────────────
-echo "[2/6] Installing wea CLI..."
+echo "[2/7] Installing wea CLI..."
 cd "$REPO"
 if [ ! -d .venv ]; then
   python3 -m venv .venv
@@ -40,47 +40,67 @@ fi
 . .venv/bin/activate
 pip install -q -e .
 
-# ── 3. Create agent worktrees ─────────────────────────────────────
-echo "[3/6] Creating worktrees..."
-for agent in claude-1 codex-1; do
-  wt="/home/user/wetheagents-${agent}"
-  if [ ! -d "$wt" ]; then
-    git worktree add "$wt" -b "worktree/${agent}" HEAD
-  else
-    echo "  worktree ${agent} already exists"
-  fi
-done
+# ── 3. Fetch latest main ──────────────────────────────────────────
+echo "[3/7] Fetching latest main..."
+git fetch origin main 2>/dev/null || true
 
-# ── 4. Copy genomes ───────────────────────────────────────────────
-echo "[4/6] Copying genomes..."
+# ── 4. Create agent worktrees ─────────────────────────────────────
+echo "[4/7] Creating worktrees..."
+
+create_worktree() {
+  local agent_slug="$1" branch_name="$2"
+  local wt="/home/user/wetheagents-${agent_slug}"
+  if [ -d "$wt" ]; then
+    echo "  worktree ${agent_slug} already exists, syncing..."
+    git -C "$wt" merge origin/main --no-edit 2>/dev/null || true
+    return
+  fi
+  # Check if branch exists locally or on remote
+  if git show-ref --verify --quiet "refs/heads/${branch_name}" 2>/dev/null; then
+    git worktree add "$wt" "$branch_name"
+  else
+    git worktree add "$wt" -b "$branch_name" origin/main 2>/dev/null \
+      || git worktree add "$wt" -b "$branch_name" HEAD
+  fi
+}
+
+create_worktree "claude-1" "agent/Claude-1/work"
+create_worktree "codex-1" "agent/Codex-1/work"
+
+# ── 5. Configure git identity per worktree ─────────────────────────
+echo "[5/7] Configuring git identity..."
+git -C /home/user/wetheagents-claude-1 config --local user.name "Claude-1"
+git -C /home/user/wetheagents-claude-1 config --local user.email "claude-1@claude"
+git -C /home/user/wetheagents-codex-1 config --local user.name "Codex-1"
+git -C /home/user/wetheagents-codex-1 config --local user.email "codex-1@codex"
+
+# ── 6. Copy genomes ───────────────────────────────────────────────
+echo "[6/7] Copying genomes..."
 cp "$REPO/genomes/Claude-1@claude/AGENTS.local.md" /home/user/wetheagents-claude-1/AGENTS.local.md
 cp "$REPO/genomes/Codex-1@codex/AGENTS.local.md" /home/user/wetheagents-codex-1/AGENTS.local.md
 
-# ── 5. Configure push remotes ─────────────────────────────────────
-echo "[5/6] Configuring push remotes..."
+# ── 7. Configure push remotes ─────────────────────────────────────
+echo "[7/7] Configuring push remotes..."
 
 configure_push_remote() {
   local wt_path="$1" token="$2" label="$3"
   if [ -z "$token" ]; then
-    echo "  ⚠ ${label}: no token, skipping push-origin"
+    echo "  warning: ${label}: no token, skipping push-origin"
     return
   fi
-  # Remove existing push-origin if present, then add fresh
   git -C "$wt_path" remote remove push-origin 2>/dev/null || true
   git -C "$wt_path" remote add push-origin \
     "https://x-access-token:${token}@github.com/WeTheAgents/wetheagents.git"
-  echo "  ✓ ${label}: push-origin configured"
+  echo "  ok: ${label}: push-origin configured"
 }
 
 configure_push_remote /home/user/wetheagents-claude-1 "${CLAUDE1_GITHUB_TOKEN:-}" "Claude-1"
 configure_push_remote /home/user/wetheagents-codex-1 "${CODEX1_GITHUB_TOKEN:-}" "Codex-1"
 
-# ── 6. Install codex CLI (optional) ───────────────────────────────
-echo "[6/6] Codex CLI..."
+# ── Optional: Install codex CLI ────────────────────────────────────
 if ! command -v codex &>/dev/null; then
-  npm install -g @openai/codex 2>/dev/null && echo "  ✓ codex installed" || echo "  ⚠ codex install failed (non-fatal)"
-else
-  echo "  codex already installed"
+  npm install -g @openai/codex 2>/dev/null && echo "codex CLI installed" \
+    || echo "codex CLI install failed (non-fatal)"
 fi
 
 # ── Summary ────────────────────────────────────────────────────────
@@ -89,6 +109,6 @@ echo "=== Setup Complete ==="
 echo "Worktrees:"
 git worktree list
 echo ""
-echo "Agent launch commands:"
+echo "Agent launch (from Agent0 session):"
 echo "  Claude-1: GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude claude -p '...'"
 echo "  Codex-1:  GITHUB_TOKEN=\$CODEX1_GITHUB_TOKEN WEA_AGENT=Codex-1@codex codex '...'"
