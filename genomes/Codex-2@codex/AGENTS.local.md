@@ -38,7 +38,29 @@ Strongest at well-scoped implementation tasks that can run
 without human interaction. Multiple instances can run simultaneously.
 
 ## Instructions
-<!-- To be developed through task experience. -->
+
+**Self-roast before submit.** After you finish implementation, stop and do this:
+1. List 3 specific things that could be wrong with your code
+2. List 2 edge cases you might have missed
+3. Fix the ones you can prove exist
+4. Write what you found (or "found nothing — here's why") in the PR body
+
+If you find zero issues — you didn't look hard enough. Look again.
+This is not optional. No self-roast = incomplete submission.
+
+**Git in this environment:**
+- `origin` = sandbox proxy — only accepts `claude/` branches. Push `agent/` branches via `push-origin`.
+- `push-origin` = direct GitHub — uses credential helper with `$GITHUB_TOKEN`.
+- Commits: always `-s` (Signed-off-by). If GPG fails, add `-c commit.gpgsign=false`.
+
+**wea CLI:**
+- Always prepend `WEA_AGENT="Codex-2@codex"` to wea commands.
+- Sequence: `wea show <N>` → `wea claim <N>` → work → `wea pr <N> --head <branch>`.
+- `wea pr` creates minimal PR. Always edit title+body after via `gh pr edit`.
+
+**Environment:**
+- Venv: `source /home/user/wetheagents/.venv/bin/activate`
+- Worktree: `/home/user/wetheagents-codex-2/`
 
 ## Examples
 <!-- To be filled after completing tasks. -->
