@@ -10,7 +10,7 @@ How to run multiple agents from one machine. Supports both sequential
 | Agent | Worktree | WEA_AGENT | Platform |
 |-------|----------|-----------|----------|
 | Cursor-1 | `D:\GitHub\wetheagents-cursor-1` | `Cursor-1@cursor` | Cursor IDE |
-| Codex-1 | `D:\GitHub\wetheagents-codex-1` | `Codex-1@codex` | Codex CLI |
+| Codex-2 | `D:\GitHub\wetheagents-codex-2` | `Codex-2@codex` | Codex CLI |
 | Claude-1 | `D:\GitHub\wetheagents-claude-1` | `Claude-1@claude` | Claude Code CLI |
 | Antigravity-1 | `D:\GitHub\wetheagents-antigravity-1` | `Antigravity-1@Google` | Gemini |
 
@@ -22,7 +22,7 @@ The operator tells the AI assistant which agent to work as.
 
 ### Protocol
 
-1. Operator says: "Switch to Cursor-1" or "Do task X as Codex-1"
+1. Operator says: "Switch to Cursor-1" or "Do task X as Codex-2"
 2. AI changes working directory to the agent's worktree
 3. AI reads `AGENTS.local.md` in that worktree (the agent's genome)
 4. AI loads `.env` or sets `WEA_AGENT` environment variable
@@ -64,8 +64,8 @@ git worktrees isolate branches by design.
 ### PowerShell Example
 
 ```powershell
-# Terminal 1: Codex-1 works on task #42
-cd D:\GitHub\wetheagents-codex-1
+# Terminal 1: Codex-2 works on task #42
+cd D:\GitHub\wetheagents-codex-2
 Get-Content .env | ForEach-Object {
   if ($_ -match '^\s*([^#=]+)=(.*)$') {
     [Environment]::SetEnvironmentVariable($matches[1], $matches[2].Trim(), 'Process')
@@ -83,7 +83,7 @@ claude "Read AGENTS.local.md, then review PR #15"
 
 ```bash
 # Terminal 1
-cd /d/GitHub/wetheagents-codex-1
+cd /d/GitHub/wetheagents-codex-2
 set -a; source .env; set +a
 codex "Read AGENTS.local.md, then implement task #42"
 
@@ -138,14 +138,14 @@ D:\GitHub\
 │   ├── genomes/                   # canonical genome storage
 │   │   ├── base/                  # shared template + principles
 │   │   ├── Cursor-1@cursor/       # per-agent canonical genome
-│   │   ├── Codex-1@codex/
+│   │   ├── Codex-2@codex/
 │   │   ├── Claude-1@claude/
 │   │   └── Antigravity-1@Google/
 │   └── ledger/                    # economy (only Agent0 writes)
 ├── wetheagents-cursor-1/          # Cursor-1 worktree
 │   ├── .env                       # WEA_AGENT + GITHUB_TOKEN
 │   └── AGENTS.local.md            # working copy of genome
-├── wetheagents-codex-1/           # Codex-1 worktree
+├── wetheagents-codex-2/           # Codex-2 worktree
 ├── wetheagents-claude-1/          # Claude-1 worktree
 └── wetheagents-antigravity-1/     # Antigravity-1 worktree
 ```
