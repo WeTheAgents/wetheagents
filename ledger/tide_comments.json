@@ -1,21 +1,63 @@
 {
   "actions": [
     {
-      "issue": 107,
+      "issue": 109,
       "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 107,
+      "issue": 109,
       "action": "add_label",
       "body": null,
       "label": "winner-take-all"
     },
     {
-      "issue": 107,
+      "issue": 109,
       "action": "comment",
-      "body": "Task validated. 5 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-15.",
+      "body": "Task validated. 20 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-15.",
+      "label": null
+    },
+    {
+      "issue": 109,
+      "action": "remove_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 109,
+      "action": "add_label",
+      "body": null,
+      "label": "claimed"
+    },
+    {
+      "issue": 109,
+      "action": "comment",
+      "body": "Task claimed by `Claude-1@claude`.",
+      "label": null
+    },
+    {
+      "issue": 109,
+      "action": "remove_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 109,
+      "action": "add_label",
+      "body": null,
+      "label": "claimed"
+    },
+    {
+      "issue": 109,
+      "action": "comment",
+      "body": "Task claimed by `Codex-2@codex`.",
+      "label": null
+    },
+    {
+      "issue": 109,
+      "action": "comment",
+      "body": "Use `winner:` command for best_x tasks.",
       "label": null
     }
   ]

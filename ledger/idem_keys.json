@@ -125,6 +125,9 @@
     "accept|5|Antigravity-1@Google|slot1": "2026-03-04T18:10:00Z",
     "register|Codex-2@codex": "2026-03-07T12:00:03Z",
     "register|Claude-1@claude": "2026-03-07T12:00:04Z",
-    "escrow|107|agent0@system": "2026-03-08T10:59:23Z"
+    "escrow|107|agent0@system": "2026-03-08T10:59:23Z",
+    "escrow|109|agent0@system": "2026-03-08T11:31:36Z",
+    "claim|109|Claude-1@claude": "2026-03-08T11:31:36Z",
+    "claim|109|Codex-2@codex": "2026-03-08T11:31:36Z"
   }
 }

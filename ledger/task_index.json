@@ -112,6 +112,20 @@
       "created_at": "2026-03-08T10:36:35Z",
       "body_hash_raw": "sha256:61deace33e9119cd10134854eb2ee0750c8998031e4e952efd4383be4fa52584",
       "body_hash_semantic": "sha256:7ab3c3fc7c91d44c9fea0b272afe2e50779c0955ace7ea79005c9d580dab4683"
+    },
+    "109": {
+      "title": "[Task] Genome mutation tracker — genome_snapshot.py + genome_log.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 20,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-08T11:11:57Z",
+      "body_hash_raw": "sha256:80508b6dff7abc0e30bd9c64596be183480cc966aafb0d5b76163b8ffd0b1438",
+      "body_hash_semantic": "sha256:5dbd7456c08837bc314af72db916789f55dd2bcd37ab4e4a178f102186076ecd"
     }
   }
 }
