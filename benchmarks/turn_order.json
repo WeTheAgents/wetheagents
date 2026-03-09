@@ -1,0 +1,29 @@
+{
+  "_comment": "Who submits FIRST on each round. Second mover sees nothing before submitting. Gemini evaluates blind.",
+  "rounds": [
+    {
+      "round": 1,
+      "type": "warm-up",
+      "issue": 112,
+      "task": "Design gunnery/ shared toolbox",
+      "first": "codex",
+      "second": "claude"
+    },
+    {
+      "round": 2,
+      "type": "warm-up",
+      "issue": 80,
+      "task": "Tide circuit breaker",
+      "first": "claude",
+      "second": "codex"
+    },
+    {
+      "round": 3,
+      "type": "gauntlet",
+      "issue": null,
+      "task": "Design infinite hardening trajectory set",
+      "first": "codex",
+      "second": "claude"
+    }
+  ]
+}
