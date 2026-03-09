@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import json
 import os
 import tempfile
 from datetime import datetime, timezone
+from io import BufferedRandom
 from pathlib import Path
 from typing import Any
+
+if os.name == "nt":
+    import msvcrt
+else:
+    import fcntl
 
 KNOWN_EVENT_TYPES = {
     "run_started",
@@ -75,17 +82,58 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     rendered = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
-    with tempfile.NamedTemporaryFile(
-        "w",
-        encoding="utf-8",
-        dir=path.parent,
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        delete=False,
-    ) as handle:
-        handle.write(rendered)
-        temp_name = handle.name
-    os.replace(temp_name, path)
+    temp_name: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            handle.write(rendered)
+            temp_name = handle.name
+        os.replace(temp_name, path)
+    except Exception:
+        if temp_name:
+            try:
+                os.unlink(temp_name)
+            except FileNotFoundError:
+                pass
+        raise
+
+
+def _lock_handle(handle: BufferedRandom) -> None:
+    handle.seek(0)
+    if os.name == "nt":
+        if handle.seek(0, os.SEEK_END) == 0:
+            handle.write(b"\0")
+            handle.flush()
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+        return
+    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+
+
+def _unlock_handle(handle: BufferedRandom) -> None:
+    handle.seek(0)
+    if os.name == "nt":
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
+@contextmanager
+def _run_lock(run_dir: Path):
+    lock_path = run_dir / ".trace.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+b") as handle:
+        _lock_handle(handle)
+        try:
+            yield
+        finally:
+            _unlock_handle(handle)
 
 
 def _derive_status(event_type: str, current_status: str | None) -> str:
@@ -131,11 +179,12 @@ def emit_event(run_dir: Path, event: dict[str, Any]) -> dict[str, Any]:
             f"run_id {normalized['run_id']!r} does not match run directory name {run_dir.name!r}"
         )
 
-    events_path = run_dir / "events.jsonl"
-    with events_path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(normalized, ensure_ascii=False) + "\n")
+    with _run_lock(run_dir):
+        events_path = run_dir / "events.jsonl"
+        with events_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(normalized, ensure_ascii=False) + "\n")
 
-    status_path = run_dir / "status.json"
-    snapshot = update_status_snapshot(_load_json(status_path), normalized)
-    _write_json_atomic(status_path, snapshot)
-    return snapshot
+        status_path = run_dir / "status.json"
+        snapshot = update_status_snapshot(_load_json(status_path), normalized)
+        _write_json_atomic(status_path, snapshot)
+        return snapshot

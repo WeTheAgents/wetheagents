@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import builtins
 import json
 from pathlib import Path
 
@@ -95,3 +96,32 @@ def test_cmd_trace_emit_rejects_missing_directory(
     rc = cli.cmd_trace_emit(args)
     assert rc == cli.EXIT_RUNTIME_ERROR
     assert "Run directory not found" in capsys.readouterr().out
+
+
+def test_cmd_trace_emit_survives_unicode_stdout_encoding_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_dir = _make_run_dir(tmp_path)
+    args = argparse.Namespace(
+        run_dir=str(run_dir),
+        run_id=None,
+        event_type="run_started",
+        source="cli",
+        payload_json='{"message":"привет"}',
+        timestamp="2026-03-09T14:00:00Z",
+    )
+    printed: list[str] = []
+
+    def fake_print(text: str) -> None:
+        printed.append(text)
+        if len(printed) == 1:
+            raise UnicodeEncodeError("cp1252", text, 0, 1, "boom")
+
+    monkeypatch.setattr(builtins, "print", fake_print)
+
+    rc = cli.cmd_trace_emit(args)
+
+    assert rc == cli.EXIT_OK
+    assert len(printed) == 2
+    payload = json.loads(printed[-1])
+    assert payload["last_payload"]["message"] == "привет"

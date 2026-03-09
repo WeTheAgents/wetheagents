@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import threading
+import time
 
 import pytest
 
+from wea_cli import run_events
 from wea_cli.run_events import emit_event, update_status_snapshot, validate_event
 
 
@@ -123,3 +126,73 @@ def test_update_status_snapshot_marks_failure() -> None:
     )
     assert snapshot["status"] == "failed"
     assert snapshot["event_count"] == 1
+
+
+def test_emit_event_serializes_status_updates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    run_dir = _make_run_dir(tmp_path)
+    real_load_json = run_events._load_json
+    first_reader_entered = threading.Event()
+    release_first_reader = threading.Event()
+    call_count = 0
+    call_lock = threading.Lock()
+    errors: list[BaseException] = []
+
+    def delayed_load_json(path: Path) -> dict[str, object]:
+        nonlocal call_count
+        with call_lock:
+            call_count += 1
+            current_call = call_count
+        if current_call == 1:
+            first_reader_entered.set()
+            assert release_first_reader.wait(timeout=2)
+        return real_load_json(path)
+
+    monkeypatch.setattr(run_events, "_load_json", delayed_load_json)
+
+    def worker(event: dict[str, object]) -> None:
+        try:
+            emit_event(run_dir, event)
+        except BaseException as exc:  # pragma: no cover - failure path asserted below
+            errors.append(exc)
+
+    first = threading.Thread(
+        target=worker,
+        args=(
+            {
+                "timestamp": "2026-03-09T14:00:00Z",
+                "run_id": "run_123",
+                "event_type": "run_started",
+                "source": "cli",
+                "payload": {"step": 1},
+            },
+        ),
+    )
+    second = threading.Thread(
+        target=worker,
+        args=(
+            {
+                "timestamp": "2026-03-09T14:00:01Z",
+                "run_id": "run_123",
+                "event_type": "run_failed",
+                "source": "cli",
+                "payload": {"step": 2},
+            },
+        ),
+    )
+
+    first.start()
+    assert first_reader_entered.wait(timeout=2)
+    second.start()
+    time.sleep(0.05)
+    release_first_reader.set()
+    first.join(timeout=2)
+    second.join(timeout=2)
+
+    assert not errors
+    status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+    assert status["event_count"] == 2
+    assert status["status"] == "failed"
+    assert status["last_event_type"] == "run_failed"
+
+    lines = (run_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 2

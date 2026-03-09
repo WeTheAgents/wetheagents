@@ -1556,7 +1556,7 @@ def cmd_trace_emit(args: argparse.Namespace) -> int:
         print(f"Error: {exc}")
         return EXIT_RUNTIME_ERROR
 
-    print(json.dumps(snapshot, ensure_ascii=False))
+    emit(json.dumps(snapshot, ensure_ascii=False))
     return EXIT_OK
 
 
