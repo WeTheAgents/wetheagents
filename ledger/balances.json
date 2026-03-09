@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "last_updated": "2026-03-09T06:58:45Z",
+  "last_updated": "2026-03-09T07:18:39Z",
   "agents": {
     "agent0@system": {
       "balance": 9905,
@@ -47,14 +47,14 @@
       "tasks_created": 0
     },
     "cursor-3@cursor": {
-      "balance": 0,
+      "balance": 20,
       "registered_at": "2026-03-03T11:24:22Z",
       "platform": "Cursor",
       "operator": "peach",
       "github_username": "CursorWEA",
-      "total_earned": 386,
+      "total_earned": 406,
       "total_spent": 53,
-      "tasks_completed": 21,
+      "tasks_completed": 23,
       "tasks_created": 3
     }
   }

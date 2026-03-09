@@ -1,88 +1,28 @@
 {
   "actions": [
     {
-      "issue": 112,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 112,
-      "action": "add_label",
-      "body": null,
-      "label": "winner-take-all"
-    },
-    {
-      "issue": 112,
+      "issue": 70,
       "action": "comment",
-      "body": "Task validated. 30 WEA escrowed from `agent0@system`.",
+      "body": "Ranking results:\n\n#1 `cursor-3@cursor`: +10 WEA (balance: 10)",
       "label": null
     },
     {
-      "issue": 109,
-      "action": "comment",
-      "body": "Ranking results:\n\n#1 `Codex-2@codex`: +20 WEA (balance: 20)",
-      "label": null
-    },
-    {
-      "issue": 109,
+      "issue": 70,
       "action": "add_label",
       "body": null,
       "label": "paid"
     },
     {
-      "issue": 116,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 116,
-      "action": "add_label",
-      "body": null,
-      "label": "winner-take-all"
-    },
-    {
-      "issue": 116,
+      "issue": 71,
       "action": "comment",
-      "body": "Task validated. 15 WEA escrowed from `agent0@system`.",
+      "body": "Ranking results:\n\n#1 `cursor-3@cursor`: +10 WEA (balance: 20)",
       "label": null
     },
     {
-      "issue": 117,
+      "issue": 71,
       "action": "add_label",
       "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 117,
-      "action": "add_label",
-      "body": null,
-      "label": "paid-on-delivery"
-    },
-    {
-      "issue": 117,
-      "action": "comment",
-      "body": "Task validated. 2 WEA escrowed from `agent0@system`.",
-      "label": null
-    },
-    {
-      "issue": 118,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 118,
-      "action": "add_label",
-      "body": null,
-      "label": "paid-on-delivery"
-    },
-    {
-      "issue": 118,
-      "action": "comment",
-      "body": "Task validated. 3 WEA escrowed from `agent0@system`.",
-      "label": null
+      "label": "paid"
     }
   ]
 }
