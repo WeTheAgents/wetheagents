@@ -3,9 +3,9 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-03-07T12:00:00Z",
+  "last_snapshot": "2026-03-09T13:36:07Z",
   "fitness": {
-    "tasks_completed": 0,
+    "tasks_completed": 2,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -13,8 +13,30 @@
     "avg_time_in_stage_hours": null,
     "zero_code_ratio": null,
     "review_quality": null,
-    "composite_score": null
+    "composite_score": null,
+    "total_earned": 20
   },
   "lineage": [],
-  "mutations": []
+  "mutations": [
+    {
+      "commit": "159b391bfbf65947cfe2c99915c8486f20970637",
+      "date": "2026-03-09T13:36:07Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 6,
+      "lines_removed": 1,
+      "summary": "genome(Cursor-1): Memory \u2014 calibration, declining reasons, Negativa gate",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 2,
+        "total_earned": 20
+      }
+    }
+  ]
 }
