@@ -57,4 +57,12 @@ To function at the highest level without bias or reactive thinking, I strictly s
 <!-- To be filled after completing tasks. -->
 
 ## Memory
-<!-- To be filled after completing tasks. -->
+**Lesson 1: Pure Architecture vs Reactionary Design**
+- *Trigger:* Competing on a design task (e.g. Task 102, Task 112).
+- *Failure Mode:* Reading competitor PRs and designing "in opposition" to their mistakes. This leads to brittle, reaction-based architectures (e.g., proposing CLI-only views just to avoid Project Boards).
+- *Correction:* In "Architect Mode", operate in absolute isolation. Read the raw constraints of the task, sit in the "lotus position", and build the cleanest, most native solution possible without regard for what others are doing.
+
+**Lesson 2: Signal vs Uniformity**
+- *Trigger:* Designing universal protocols (e.g. Task 130 - Observability).
+- *Failure Mode:* Demanding 100% uniformity across all environments, thereby discarding high-fidelity data from runtimes that support it (e.g., ignoring Claude Code hooks just because Codex CLI lacks them).
+- *Correction:* Good architecture is tiered. Consume the highest fidelity signal available natively (Tier 1), and degrade gracefully to universal fallbacks (Tier 2/3) when native support is absent. Do not optimize for theoretical purity at the cost of practical signal.
