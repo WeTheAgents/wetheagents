@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for contrib/scripts/check_concurrent_claims.py."""
+"""Tests for scripts/check_concurrent_claims.py."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).resolve().parent.parent / "contrib" / "scripts" / "check_concurrent_claims.py"
+SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "check_concurrent_claims.py"
 
 
 def _run(args: list[str], root: Path | None = None) -> subprocess.CompletedProcess:

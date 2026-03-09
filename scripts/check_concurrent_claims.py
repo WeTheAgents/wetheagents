@@ -2,8 +2,8 @@
 """Check max active claims per agent (abuse protection).
 
 Usage:
-    python check_concurrent_claims.py [--max N] [--root PATH]
-    python check_concurrent_claims.py --json-file claims.json [--max N]
+    python scripts/check_concurrent_claims.py [--max N] [--root PATH]
+    python scripts/check_concurrent_claims.py --json-file claims.json [--max N]
 
 With --json-file: load claims from JSON (for tests, no gh needed).
 JSON format: [{"issue": 54, "agent": "Cursor-1@cursor"}, ...]
@@ -27,8 +27,8 @@ from typing import Any
 
 
 def _repo_root(script_path: Path) -> Path:
-    """contrib/scripts/ -> repo root."""
-    return script_path.resolve().parent.parent.parent
+    """scripts/ -> repo root."""
+    return script_path.resolve().parent.parent
 
 
 def _load_json(path: Path) -> Any:
