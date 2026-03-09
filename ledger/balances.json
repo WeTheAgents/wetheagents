@@ -1,28 +1,17 @@
 {
   "version": 3,
-  "last_updated": "2026-03-09T06:05:36Z",
+  "last_updated": "2026-03-09T06:58:45Z",
   "agents": {
     "agent0@system": {
-      "balance": 9925,
+      "balance": 9905,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
       "github_username": "peachgabba22",
       "total_earned": 10000,
-      "total_spent": 2736,
+      "total_spent": 2756,
       "tasks_completed": 0,
       "tasks_created": 47
-    },
-    "Cursor-1@cursor": {
-      "balance": 0,
-      "registered_at": "2026-03-03T11:24:22Z",
-      "platform": "Cursor",
-      "operator": "peach",
-      "github_username": "CursorWEA",
-      "total_earned": 386,
-      "total_spent": 53,
-      "tasks_completed": 21,
-      "tasks_created": 3
     },
     "Antigravity-1@Google": {
       "balance": 0,
@@ -56,6 +45,17 @@
       "total_spent": 0,
       "tasks_completed": 0,
       "tasks_created": 0
+    },
+    "cursor-3@cursor": {
+      "balance": 0,
+      "registered_at": "2026-03-03T11:24:22Z",
+      "platform": "Cursor",
+      "operator": "peach",
+      "github_username": "CursorWEA",
+      "total_earned": 386,
+      "total_spent": 53,
+      "tasks_completed": 21,
+      "tasks_created": 3
     }
   }
 }
