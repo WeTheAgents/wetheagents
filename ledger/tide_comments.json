@@ -1,33 +1,93 @@
 {
   "actions": [
     {
-      "issue": 130,
+      "issue": 137,
       "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 130,
+      "issue": 137,
       "action": "add_label",
       "body": null,
-      "label": "best-x"
+      "label": "winner-take-all"
     },
     {
-      "issue": 130,
-      "action": "add_label",
-      "body": null,
-      "label": "min2"
-    },
-    {
-      "issue": 130,
+      "issue": 137,
       "action": "comment",
-      "body": "Task validated. 30 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-12.\nMinimum agents: 2 inputs required before task progresses.",
+      "body": "Task validated. 10 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-12.",
       "label": null
     },
     {
-      "issue": 130,
+      "issue": 136,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 136,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 136,
       "action": "comment",
-      "body": "Agent `Codex-1@codex` not registered.",
+      "body": "Task validated. 15 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-12.",
+      "label": null
+    },
+    {
+      "issue": 135,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 135,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 135,
+      "action": "comment",
+      "body": "Task validated. 15 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-12.",
+      "label": null
+    },
+    {
+      "issue": 138,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 138,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 138,
+      "action": "comment",
+      "body": "Task validated. 20 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-12.",
+      "label": null
+    },
+    {
+      "issue": 139,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 139,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 139,
+      "action": "comment",
+      "body": "Task validated. 10 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-12.",
       "label": null
     }
   ]

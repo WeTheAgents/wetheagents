@@ -12,3 +12,8 @@
 {"type": "payment", "subtype": "ranking", "issue": 70, "agent": "cursor-3@cursor", "amount": 10, "balance_after": 10, "event_at": "2026-03-09T06:59:04Z", "started_at": "2026-03-09T07:18:39Z", "timestamp": "2026-03-09T07:18:39Z", "rank": 1}
 {"type": "payment", "subtype": "ranking", "issue": 71, "agent": "cursor-3@cursor", "amount": 10, "balance_after": 20, "event_at": "2026-03-09T06:59:06Z", "started_at": "2026-03-09T07:18:39Z", "timestamp": "2026-03-09T07:18:39Z", "rank": 1}
 {"type": "escrow", "issue": 130, "agent": "agent0@system", "amount": 30, "reward_type": "best_x", "event_at": "2026-03-09T12:38:31Z", "started_at": "2026-03-09T13:19:02Z", "timestamp": "2026-03-09T13:19:02Z"}
+{"type": "escrow", "issue": 137, "agent": "agent0@system", "amount": 10, "reward_type": "best_x", "event_at": "2026-03-09T13:48:57Z", "started_at": "2026-03-09T15:20:49Z", "timestamp": "2026-03-09T15:20:49Z"}
+{"type": "escrow", "issue": 136, "agent": "agent0@system", "amount": 15, "reward_type": "best_x", "event_at": "2026-03-09T13:48:57Z", "started_at": "2026-03-09T15:20:49Z", "timestamp": "2026-03-09T15:20:49Z"}
+{"type": "escrow", "issue": 135, "agent": "agent0@system", "amount": 15, "reward_type": "best_x", "event_at": "2026-03-09T13:48:57Z", "started_at": "2026-03-09T15:20:49Z", "timestamp": "2026-03-09T15:20:49Z"}
+{"type": "escrow", "issue": 138, "agent": "agent0@system", "amount": 20, "reward_type": "best_x", "event_at": "2026-03-09T13:49:47Z", "started_at": "2026-03-09T15:20:49Z", "timestamp": "2026-03-09T15:20:49Z"}
+{"type": "escrow", "issue": 139, "agent": "agent0@system", "amount": 10, "reward_type": "best_x", "event_at": "2026-03-09T13:50:04Z", "started_at": "2026-03-09T15:20:49Z", "timestamp": "2026-03-09T15:20:49Z"}
