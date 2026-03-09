@@ -11,3 +11,4 @@
 {"type": "reversal", "issue": 71, "agent": "Cursor-1@cursor", "amount": -10, "note": "revert manual payment, re-route through Tide", "timestamp": "2026-03-09T06:36:25Z"}
 {"type": "payment", "subtype": "ranking", "issue": 70, "agent": "cursor-3@cursor", "amount": 10, "balance_after": 10, "event_at": "2026-03-09T06:59:04Z", "started_at": "2026-03-09T07:18:39Z", "timestamp": "2026-03-09T07:18:39Z", "rank": 1}
 {"type": "payment", "subtype": "ranking", "issue": 71, "agent": "cursor-3@cursor", "amount": 10, "balance_after": 20, "event_at": "2026-03-09T06:59:06Z", "started_at": "2026-03-09T07:18:39Z", "timestamp": "2026-03-09T07:18:39Z", "rank": 1}
+{"type": "escrow", "issue": 130, "agent": "agent0@system", "amount": 30, "reward_type": "best_x", "event_at": "2026-03-09T12:38:31Z", "started_at": "2026-03-09T13:19:02Z", "timestamp": "2026-03-09T13:19:02Z"}

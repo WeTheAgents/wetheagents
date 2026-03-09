@@ -167,6 +167,7 @@
     "claim|74|cursor-3@cursor": "2026-03-05T21:42:38Z",
     "payment|6|cursor-3@cursor|ranking|1": "2026-03-06T07:14:40Z",
     "payment|70|cursor-3@cursor|ranking|1": "2026-03-09T07:18:39Z",
-    "payment|71|cursor-3@cursor|ranking|1": "2026-03-09T07:18:39Z"
+    "payment|71|cursor-3@cursor|ranking|1": "2026-03-09T07:18:39Z",
+    "escrow|130|agent0@system": "2026-03-09T13:19:02Z"
   }
 }
