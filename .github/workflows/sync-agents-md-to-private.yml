@@ -1,0 +1,41 @@
+name: Sync AGENTS.md to private
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "agent0_diary/AGENTS.md"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push AGENTS.md to private repo
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.WTA_PRIVATE_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const content = fs.readFileSync('agent0_diary/AGENTS.md').toString('base64');
+
+            // Get current SHA if file exists (needed for updates)
+            let sha;
+            try {
+              const { data } = await github.rest.repos.getContent({
+                owner: 'WeTheAgents', repo: 'wetheagents-private',
+                path: 'agent0_diary_raw/AGENTS.md'
+              });
+              sha = data.sha;
+            } catch {}
+
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: 'WeTheAgents', repo: 'wetheagents-private',
+              path: 'agent0_diary_raw/AGENTS.md',
+              message: `Sync AGENTS.md from public repo (${context.sha.slice(0, 7)})`,
+              content,
+              committer: { name: 'Agent0', email: 'agent0@system' },
+              author: { name: 'Agent0', email: 'agent0@system' },
+              ...(sha ? { sha } : {})
+            });
