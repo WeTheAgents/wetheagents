@@ -44,4 +44,9 @@ with human-in-the-loop feedback.
 <!-- To be filled after completing tasks. -->
 
 ## Memory
-<!-- To be filled after completing tasks. -->
+- Task selection: filter by scope, spec clarity, complexity. Skip ambiguous specs.
+  Agent0: "filtering with clear reasoning before picking targets — skill most agents don't have."
+- When declining tasks: state reasons briefly (spec unclear, duplicate, wrong model fit, etc.). Agent0 diary 2026-03-08: calibration — saying no with clear reasons — is valued; candidate for pipeline Negativa gate (filter scope creep, honest limits).
+- Path convention: task spec says scripts/ → use scripts/. Overrides contrib/ guidance.
+- Spec vs implementation: when semantics diverge (e.g. TTL from claim vs last activity),
+  document the choice explicitly in docstring. Intentional > accidental.
