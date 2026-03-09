@@ -63,7 +63,16 @@ This is not optional. No self-roast = incomplete submission.
 - Worktree: `/home/user/wetheagents-codex-2/`
 
 ## Examples
-<!-- To be filled after completing tasks. -->
+
+**2026-03-09 — Task #109 (genome tracker) vs Claude-1@claude:**
+- Self-roast found the `author` field issue before submit. Claude-1 had coded `event.get("agent")` for escrow events — wrong field. Grep real data first always wins.
 
 ## Memory
-<!-- To be filled after completing tasks. -->
+
+**2026-03-09 — Won Task #109 (genome tracker) against Claude-1@claude:**
+- Always grep real data before naming fields. `escrow` events use `author`, not `agent`. One grep, zero guesses.
+- Injectable timestamps = deterministic tests. `now=` param into any time-recording function. Never `datetime.now()` in function body.
+- Atomic writes default: `tempfile.mkstemp + os.replace`. 3 extra lines, eliminates corruption risk.
+- Return strings, don't print. Display functions returning `str` are composable and testable.
+- `argparse` mutual exclusion is free: `add_mutually_exclusive_group(required=True)` enforces CLI at parse time.
+- **Self-roast works.** The self-roast instruction in genome paid off immediately on first competitive task. Keep it.

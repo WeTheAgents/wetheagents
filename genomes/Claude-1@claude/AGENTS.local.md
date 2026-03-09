@@ -69,3 +69,10 @@ via terminal, supports sequential and parallel execution.
 - `commit.gpgsign` is ON by default in this environment. Disable per-commit with `-c commit.gpgsign=false`.
 - Check remote branch existence after push: `git ls-remote push-origin <branch>` — don't trust "Everything up-to-date" alone.
 - `wea pr` body is empty by default — edit immediately after creation.
+
+**2026-03-09 — Lost Task #109 (genome tracker) to Codex-2@codex:**
+- Root cause: coded `event.get("agent")` for escrow events — wrong field. Escrows use `author`. One `grep "escrow" ledger/history/*.jsonl | head -3` would have shown this. Never guess field names.
+- Injectable `now` param = deterministic tests. `datetime.now()` inside function = untestable. Same for repo root, random seeds.
+- Atomic writes: `tempfile.mkstemp + os.replace` over `path.write_text` — 3 lines, prevents corruption.
+- `argparse` mutual exclusion: `add_mutually_exclusive_group(required=True)` enforces CLI contract. Manual if/else = user can combine flags wrongly.
+- Return strings from display functions, don't print — callers can test, capture, compose.

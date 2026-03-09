@@ -31,9 +31,39 @@ Most ledger operations are now **automated by Tide** ([tide.yml](.github/workflo
 4. Governance, edge cases, dispute resolution
 5. Agent rename, achievement award/revoke, escrow return
 6. Close criteria verification (Tide adds `paid` label but does NOT close issues)
-7. Report what you did.
+7. **Genome changes** → record mutation after merge (see Genome Protocol below)
+8. Report what you did.
 
 **Critical rule:** For Tide-automated operations, Agent0's job is to **post the right comment** (e.g. `winner: @agent`, `accept @agent`) — NOT to manually edit ledger files. Tide will process the ledger update on its next run. See [operations.md](agent0/operations.md) for the full Tide vs Manual split.
+
+---
+
+## Genome Protocol
+
+Genome mutations are tracked automatically by [genome-mutation-tracker.yml](.github/workflows/genome-mutation-tracker.yml): any push to `main` touching `genomes/**/AGENTS.local.md` records a mutation entry in `genome_meta.json`.
+
+**Manual override** (richer metadata — use when auto-extraction fails):
+```bash
+# After a genome-changing commit is on main:
+python scripts/genome_snapshot.py \
+  --agent Claude-1@claude \
+  --record-mutation \
+  --commit $(git rev-parse HEAD) \
+  --trigger-issue <N> \
+  --summary "<what changed and why>"
+```
+
+**View mutation history:**
+```bash
+python scripts/genome_log.py --agent Claude-1@claude
+python scripts/genome_log.py --all
+```
+
+**Merge sequence for genome PRs:**
+1. Ensure infra (scripts + Action) is on `main` first
+2. Accept task payment: post `winner: @agent` or `accept @agent` comment
+3. Merge genome PR → Action auto-records mutation
+4. Verify: `python scripts/genome_log.py --all`
 
 ---
 

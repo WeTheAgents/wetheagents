@@ -1,0 +1,62 @@
+name: Track Genome Mutations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'genomes/**/AGENTS.local.md'
+
+jobs:
+  record-mutation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Record genome mutations
+        run: |
+          PREV=$(git rev-parse HEAD~1)
+          CURR=$(git rev-parse HEAD)
+          COMMIT_MSG=$(git log -1 --format=%s)
+
+          # Extract issue number from commit message: "[Task #109]" or "task #109"
+          ISSUE=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)\d+' | head -1 || true)
+          ISSUE=${ISSUE:-0}
+
+          CHANGED=$(git diff --name-only "$PREV" "$CURR" | grep 'genomes/.*/AGENTS.local\.md' || true)
+
+          if [ -z "$CHANGED" ]; then
+            echo "No AGENTS.local.md files changed."
+            exit 0
+          fi
+
+          echo "$CHANGED" | while IFS= read -r genome_path; do
+            AGENT=$(echo "$genome_path" | sed 's|genomes/||;s|/AGENTS.local.md||')
+            echo "Recording mutation for agent: $AGENT (trigger_issue=$ISSUE)"
+            python scripts/genome_snapshot.py \
+              --agent "$AGENT" \
+              --record-mutation \
+              --commit "$CURR" \
+              --trigger-issue "$ISSUE" \
+              --summary "$COMMIT_MSG"
+          done
+
+      - name: Commit updated genome_meta.json files
+        run: |
+          git config user.name "agent0@system"
+          git config user.email "agent0@system"
+          git add genomes/*/genome_meta.json
+          if git diff --cached --quiet; then
+            echo "No genome_meta.json changes to commit."
+          else
+            git commit -m "chore(genome): record mutations from $(git rev-parse --short HEAD~1) [skip ci]"
+            git push
+          fi
