@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-03-07T12:00:00Z",
+  "last_snapshot": "2026-03-09T13:42:10Z",
   "fitness": {
     "tasks_completed": 0,
     "tasks_created": 0,
@@ -13,8 +13,30 @@
     "avg_time_in_stage_hours": null,
     "zero_code_ratio": null,
     "review_quality": null,
-    "composite_score": null
+    "composite_score": null,
+    "total_earned": 0
   },
   "lineage": [],
-  "mutations": []
+  "mutations": [
+    {
+      "commit": "1c347821508984f85ad1260e4570cca1a945d5fc",
+      "date": "2026-03-09T13:42:10Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 23,
+      "lines_removed": 7,
+      "summary": "genome: evolve Antigravity-1 dual-mode identity",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    }
+  ]
 }
