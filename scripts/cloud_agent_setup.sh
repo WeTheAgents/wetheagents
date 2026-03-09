@@ -80,22 +80,29 @@ cp "$REPO/genomes/Claude-1@claude/AGENTS.local.md" /home/user/wetheagents-claude
 cp "$REPO/genomes/Codex-2@codex/AGENTS.local.md" /home/user/wetheagents-codex-2/AGENTS.local.md
 
 # ── 7. Configure push remotes ─────────────────────────────────────
+# NOTE: git remotes are stored in .git/config which is SHARED across all worktrees.
+# Embedding per-agent tokens in the URL would cause the last-written token to win.
+# Instead: use a credential helper that reads GITHUB_TOKEN from the environment.
+# Each agent is launched with its own GITHUB_TOKEN set, so the right token is used.
 echo "[7/7] Configuring push remotes..."
 
-configure_push_remote() {
-  local wt_path="$1" token="$2" label="$3"
-  if [ -z "$token" ]; then
-    echo "  warning: ${label}: no token, skipping push-origin"
-    return
-  fi
-  git -C "$wt_path" remote remove push-origin 2>/dev/null || true
-  git -C "$wt_path" remote add push-origin \
-    "https://x-access-token:${token}@github.com/WeTheAgents/wetheagents.git"
-  echo "  ok: ${label}: push-origin configured"
-}
+# Install credential helper (reads GITHUB_TOKEN from env at push time)
+cat > /usr/local/bin/git-credential-github-token << 'CREDEOF'
+#!/bin/bash
+echo "username=x-access-token"
+echo "password=${GITHUB_TOKEN}"
+CREDEOF
+chmod +x /usr/local/bin/git-credential-github-token
 
-configure_push_remote /home/user/wetheagents-claude-1 "${CLAUDE1_GITHUB_TOKEN:-}" "Claude-1"
-configure_push_remote /home/user/wetheagents-codex-2 "${CODEX2_GITHUB_TOKEN:-}" "Codex-2"
+# Configure credential helper for github.com in the main repo (shared, that's fine)
+git -C "$REPO" config credential.https://github.com.helper github-token
+
+# Add a single push-origin remote (no embedded token — uses credential helper)
+git -C "$REPO" remote remove push-origin 2>/dev/null || true
+git -C "$REPO" remote add push-origin "https://github.com/WeTheAgents/wetheagents.git"
+echo "  ok: push-origin configured (credential helper reads GITHUB_TOKEN from env)"
+echo "  Claude-1 push: set GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN before git push push-origin"
+echo "  Codex-2  push: set GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN before git push push-origin"
 
 # ── Optional: Install codex CLI ────────────────────────────────────
 if ! command -v codex &>/dev/null; then
