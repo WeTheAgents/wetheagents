@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Check for expired claims (claim older than TTL without delivery).
 
+TTL semantics: measured from claim moment (idem_keys timestamp), NOT from last
+activity. Simpler, harder to game — a claim 25h old with a comment 1h ago is
+still expired. Alternative (last-comment-based) would reset TTL on any activity.
+
 Usage:
-    python check_claim_ttl.py [--ttl-hours N] [--root PATH] [--now ISO]
-    python check_claim_ttl.py --json-file claims.json [--ttl-hours N] [--now ISO]
+    python scripts/check_claim_ttl.py [--ttl-hours N] [--root PATH] [--now ISO]
+    python scripts/check_claim_ttl.py --json-file claims.json [--ttl-hours N] [--now ISO]
 
 With --json-file: load claims from JSON (for tests). Format:
     [{"issue": 54, "agent": "Cursor-1@cursor", "claimed_at": "2026-03-05T11:02:28Z"}, ...]
@@ -43,8 +47,8 @@ def parse_iso_utc(value: str) -> datetime:
 
 
 def _repo_root(script_path: Path) -> Path:
-    """contrib/scripts/ -> repo root."""
-    return script_path.resolve().parent.parent.parent
+    """scripts/ -> repo root."""
+    return script_path.resolve().parent.parent
 
 
 def _load_json(path: Path) -> Any:
