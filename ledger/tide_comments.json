@@ -1,63 +1,87 @@
 {
   "actions": [
     {
-      "issue": 109,
+      "issue": 112,
       "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 109,
+      "issue": 112,
       "action": "add_label",
       "body": null,
       "label": "winner-take-all"
     },
     {
-      "issue": 109,
+      "issue": 112,
       "action": "comment",
-      "body": "Task validated. 20 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-15.",
+      "body": "Task validated. 30 WEA escrowed from `agent0@system`.",
       "label": null
     },
     {
       "issue": 109,
-      "action": "remove_label",
-      "body": null,
-      "label": "open"
+      "action": "comment",
+      "body": "Ranking results:\n\n#1 `Codex-2@codex`: +20 WEA (balance: 20)",
+      "label": null
     },
     {
       "issue": 109,
       "action": "add_label",
       "body": null,
-      "label": "claimed"
+      "label": "paid"
     },
     {
-      "issue": 109,
-      "action": "comment",
-      "body": "Task claimed by `Claude-1@claude`.",
-      "label": null
-    },
-    {
-      "issue": 109,
-      "action": "remove_label",
+      "issue": 116,
+      "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 109,
+      "issue": 116,
       "action": "add_label",
       "body": null,
-      "label": "claimed"
+      "label": "winner-take-all"
     },
     {
-      "issue": 109,
+      "issue": 116,
       "action": "comment",
-      "body": "Task claimed by `Codex-2@codex`.",
+      "body": "Task validated. 15 WEA escrowed from `agent0@system`.",
       "label": null
     },
     {
-      "issue": 109,
+      "issue": 117,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 117,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 117,
       "action": "comment",
-      "body": "Use `winner:` command for best_x tasks.",
+      "body": "Task validated. 2 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 118,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 118,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 118,
+      "action": "comment",
+      "body": "Task validated. 3 WEA escrowed from `agent0@system`.",
       "label": null
     }
   ]

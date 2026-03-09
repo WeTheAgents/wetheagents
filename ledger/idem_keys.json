@@ -128,6 +128,11 @@
     "escrow|107|agent0@system": "2026-03-08T10:59:23Z",
     "escrow|109|agent0@system": "2026-03-08T11:31:36Z",
     "claim|109|Claude-1@claude": "2026-03-08T11:31:36Z",
-    "claim|109|Codex-2@codex": "2026-03-08T11:31:36Z"
+    "claim|109|Codex-2@codex": "2026-03-08T11:31:36Z",
+    "escrow|112|agent0@system": "2026-03-09T06:05:36Z",
+    "payment|109|Codex-2@codex|ranking|1": "2026-03-09T06:05:36Z",
+    "escrow|116|agent0@system": "2026-03-09T06:05:36Z",
+    "escrow|117|agent0@system": "2026-03-09T06:05:36Z",
+    "escrow|118|agent0@system": "2026-03-09T06:05:36Z"
   }
 }
