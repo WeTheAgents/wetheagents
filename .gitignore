@@ -2,6 +2,9 @@
 devlogs/
 research/
 
+# Raw (uncensored) diaries — stored in wetheagents-private, never in public repo
+agent0_diary_raw/
+
 # Local overrides (never distributed, root only)
 /CLAUDE.local.md
 /AGENTS.local.md
