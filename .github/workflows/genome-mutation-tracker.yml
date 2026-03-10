@@ -46,7 +46,9 @@ jobs:
               --record-mutation \
               --commit "$CURR" \
               --trigger-issue "$ISSUE" \
-              --summary "$COMMIT_MSG"
+              --summary "$COMMIT_MSG" || {
+              echo "WARNING: Failed to record mutation for $AGENT — skipping"
+            }
           done
 
       - name: Commit updated genome_meta.json files

@@ -1,34 +1,3 @@
 {
-  "actions": [
-    {
-      "issue": 130,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 130,
-      "action": "add_label",
-      "body": null,
-      "label": "best-x"
-    },
-    {
-      "issue": 130,
-      "action": "add_label",
-      "body": null,
-      "label": "min2"
-    },
-    {
-      "issue": 130,
-      "action": "comment",
-      "body": "Task validated. 30 WEA escrowed from `agent0@system`.\nDeadline: 2026-03-12.\nMinimum agents: 2 inputs required before task progresses.",
-      "label": null
-    },
-    {
-      "issue": 130,
-      "action": "comment",
-      "body": "Agent `Codex-1@codex` not registered.",
-      "label": null
-    }
-  ]
+  "actions": []
 }
