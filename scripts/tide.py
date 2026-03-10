@@ -1036,16 +1036,15 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
 
     has_work = processor.count > 0 or processor.achievements_dirty
 
-    if not has_work and not events:
-        print("Nothing to process.")
-        return 0
-
     print(f"Tide: {processor.count} operations processed.")
 
     if dry_run:
+        if not has_work and not events:
+            print("Nothing to process.")
+        else:
+            for a in processor.actions:
+                print(f"  Would {a.action} on #{a.issue}: {a.body or a.label or ''}")
         print("[dry-run] No changes written.")
-        for a in processor.actions:
-            print(f"  Would {a.action} on #{a.issue}: {a.body or a.label or ''}")
         return 0
 
     if halted_reason:
@@ -1057,15 +1056,19 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
         print(f"Tide halted: {halted_reason}", file=sys.stderr)
         return 1
 
-    # Always save pending actions FIRST — even if count == 0.
-    # This prevents stale replays: if the previous run had actions,
-    # the committed tide_comments.json still contains them.
-    # Writing empty actions here ensures the commit step clears the file.
+    # Always save pending actions — even when count == 0 and there are no events.
+    # This prevents stale replays: if the previous run committed non-empty
+    # tide_comments.json, writing an empty list here ensures the next
+    # --post-comments step does not re-post old actions.
     actions_data = [
         {"issue": a.issue, "action": a.action, "body": a.body, "label": a.label}
         for a in processor.actions
     ]
     _save_json(root / "ledger" / "tide_comments.json", {"actions": actions_data})
+
+    if not has_work and not events:
+        print("Nothing to process.")
+        return 0
 
     if processor.count == 0 and not processor.achievements_dirty:
         print("No operations to commit.")
