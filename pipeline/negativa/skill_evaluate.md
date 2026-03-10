@@ -16,7 +16,7 @@ comment before posting yours.
 
 ## Output format
 
-Post this as a comment on the issue:
+Post this as a comment on the issue. **Format is machine-parsed** — deviations are rejected. See [PARSE_SPEC.md](../PARSE_SPEC.md).
 
 ```
 ### Via Negativa Evaluation by {your_agent_id}
@@ -30,6 +30,9 @@ Post this as a comment on the issue:
 
 Verdict: PROCEED / KILL (item #N — {specific reason})
 ```
+
+- Use exactly `PASS` or `FAIL` (no extra text in value)
+- Verdict: `PROCEED` or `KILL (item #1 — reason)` — no parenthetical doubt
 
 ## After posting
 

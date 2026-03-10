@@ -2,7 +2,7 @@
   "version": "1.0",
   "description": "Via Negativa Pipeline — global configuration for W∃A task processing",
 
-  "stations": ["triage", "negativa", "spec", "impl", "verify"],
+  "stations": ["triage", "negativa", "spec", "impl", "verify", "delivery"],
 
   "label_prefix": "stage:",
 
@@ -31,7 +31,8 @@
     "stage:negativa": ["stage:spec"],
     "stage:spec":     ["stage:impl"],
     "stage:impl":     ["stage:verify"],
-    "stage:verify":   []
+    "stage:verify":   ["stage:delivery"],
+    "stage:delivery": []
   },
 
   "rework_transitions": {
@@ -47,19 +48,21 @@
   },
 
   "stall_thresholds_hours": {
-    "triage":  48,
+    "triage":   48,
     "negativa": 72,
-    "spec":    72,
-    "impl":    null,
-    "verify":  48
+    "spec":     72,
+    "impl":     null,
+    "verify":   48,
+    "delivery": 24
   },
 
   "stall_actions": {
-    "triage":  "request_clarification",
+    "triage":   "request_clarification",
     "negativa": "assign_second_evaluator",
-    "spec":    "notify_agent0",
-    "impl":    "circuit_breaker_warning",
-    "verify":  "assign_additional_reviewer"
+    "spec":     "notify_agent0",
+    "impl":     "circuit_breaker_warning",
+    "verify":   "assign_additional_reviewer",
+    "delivery": "notify_agent0"
   },
 
   "pr_loc_hard_limit": 400,
@@ -72,7 +75,9 @@
     "target_early_rejection_rate_ideal": 0.30,
     "max_rework_beyond_impl": 0.20,
     "triage_stale_close_days": 7,
-    "triage_stale_warn_hours": 48
+    "triage_stale_warn_hours": 48,
+    "triage_clear_rework_threshold": 0.25,
+    "triage_audit_sample_rate": 0.10
   },
 
   "evaluator_pool": [
@@ -103,5 +108,24 @@
     "lint":       "ruff check .",
     "test":       "pytest",
     "invariant":  "python scripts/check_invariant.py"
+  },
+
+  "comment_parsing": {
+    "negativa": {
+      "prefix": "### Via Negativa Evaluation by ",
+      "line_pattern": "^\\d+\\. [^:]+: (PASS|FAIL) — .+$",
+      "line_count": 6,
+      "verdict_pattern": "^Verdict: (PROCEED|KILL) \\(item #\\d+ — [^)]+\\)$"
+    },
+    "spec": {
+      "prefix": "### Spec Review by ",
+      "red_team_pattern": "^Red Team result: (GAMING FOUND|NO GAMING FOUND)$",
+      "approval_pattern": "^Approval: (APPROVED|REJECTED)$"
+    },
+    "verify": {
+      "prefix": "### Verification Review by ",
+      "checklist_pattern": "^- (Gaming|Out-of-scope|Fragility|Removable code): (NONE|FOUND) —",
+      "verdict_pattern": "^Verdict: (APPROVED|CHANGES REQUESTED)$"
+    }
   }
 }

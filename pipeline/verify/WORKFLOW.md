@@ -75,7 +75,7 @@ Post verdict as comment. Format same as L2 but with "Architectural Review" heade
 
 pipeline.py aggregates all reviews:
 
-- All APPROVED + CI green → advance to delivery
+- All APPROVED + CI green → advance to `stage:delivery`
 - Any CHANGES REQUESTED → rework routing (see below)
 - Not enough reviews yet → wait (fan-in incomplete)
 
@@ -115,4 +115,4 @@ Health target: ≤20% of rework goes beyond `stage:impl`. More = spec quality pr
 
 All reviewer comments with structured format posted. CI green.
 For complex: architectural review approved.
-Issue advanced to delivery (automatic post-verification).
+Issue advanced to `stage:delivery` (automatic post-verification).

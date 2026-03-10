@@ -1,0 +1,25 @@
+{
+  "station": "delivery",
+  "gate_type": "manual",
+  "evaluators_required": 1,
+  "checks": [
+    {
+      "id": "pr_approved",
+      "label": "PR approved, CI green, no conflicts",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "merge_performed",
+      "label": "Squash-merge performed by Agent0 or operator",
+      "type": "manual",
+      "required": true
+    },
+    {
+      "id": "issue_closed",
+      "label": "Issue closed with resolved",
+      "type": "manual",
+      "required": true
+    }
+  ]
+}

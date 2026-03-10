@@ -54,11 +54,14 @@ Expected output: ...
 ### Case 3: [name] — negative / anti-gaming
 Input: ...
 Expected output: ...
-NOT accepted: [describe degenerate solution that passes tests but solves nothing]
+NOT accepted: [≥1 concrete degenerate with Input/Expected — tests must reject it]
+Example: "NOT accepted: Input X yields output Y that passes Case 1–2 but violates intent because Z"
 
 ## Invariants (property-based)
 - For all valid_input: property_1(output) == true
 - For all valid_input: property_2(output) == true
+
+Invalid (too weak): `len(output) >= 0`, `output is not None`, `true == true`
 
 ## Code level justification
 Why can't this be solved at a higher level? (zero code > lean code > tools > LLM)
@@ -81,7 +84,7 @@ Second agent (Red Teamer) reads the spec and tries to find a gaming strategy:
 a solution that satisfies all formal criteria without solving the real problem.
 
 If gaming strategy found → spec author revises, Red Teamer re-checks.
-Maximum 2 iterations. If still gaming-vulnerable after 2 → reject, return to negativa.
+Maximum 3 iterations. If still gaming-vulnerable after 3 → reject, return to negativa.
 
 ### Step 3 — Both evaluators approve
 
@@ -104,14 +107,14 @@ pipeline.py aggregates: both APPROVED → advance to `stage:impl`.
 - [ ] Issue body updated with complete spec (all required sections present)
 - [ ] ≥3 test cases (positive, boundary, negative)
 - [ ] ≥1 property-based invariant
-- [ ] NOT-accepted section is non-empty
+- [ ] NOT-accepted section contains ≥1 concrete degenerate (Input + Expected) that tests must reject
 - [ ] CI/CD gate defined with runnable commands
 - [ ] Red Team test passed (no gaming strategy found)
 - [ ] Both evaluators posted APPROVED
 
 ## Kill criteria
 
-- Spec cannot be made gaming-resistant after 2 iterations → reject, return to negativa
+- Spec cannot be made gaming-resistant after 3 iterations → reject, return to negativa
 - 72h no evaluator activity → notify Agent0
 - Evaluator finds fundamental ambiguity → return to author, restart review cycle
 

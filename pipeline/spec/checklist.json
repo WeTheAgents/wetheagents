@@ -21,13 +21,13 @@
     },
     {
       "id": "invariant_min1",
-      "label": "At least 1 property-based invariant defined",
+      "label": "At least 1 property-based invariant defined (not trivial: reject len(x)>=0, x is not None, true==true)",
       "type": "manual",
       "required": true
     },
     {
-      "id": "not_accepted_nonempty",
-      "label": "NOT-accepted section is non-empty (anti-gaming)",
+      "id": "not_accepted_concrete",
+      "label": "NOT-accepted section contains ≥1 concrete degenerate with Input/Expected that tests must reject (no filler like 'solutions that don't work')",
       "type": "manual",
       "required": true
     },

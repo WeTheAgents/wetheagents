@@ -12,8 +12,8 @@ the real problem. If you find one, the spec is broken and must be revised.
 1. Read the full specification in the issue body.
 2. Try to construct a degenerate solution: one that passes all test cases and CI checks
    but does not actually solve the problem as intended.
-3. Check: is the NOT-accepted section sufficient to block your degenerate solution?
-4. Check: do the property-based invariants actually constrain meaningful behavior?
+3. Check: does NOT-accepted contain ≥1 concrete degenerate (Input + Expected)? Is it sufficient to block your degenerate solution?
+4. Check: do the property-based invariants actually constrain meaningful behavior? Reject trivial ones: `len(x)>=0`, `x is not None`, `true==true`.
 5. Post your review comment.
 
 ## Output format
@@ -31,4 +31,4 @@ Approval: APPROVED / REJECTED
 ## If GAMING FOUND
 
 Do not advance. The spec author must revise the NOT-accepted section and/or invariants,
-then request another Red Team review.
+then request another Red Team review. Maximum 3 iterations total.

@@ -120,6 +120,12 @@ Routing logic:
 
 Not applicable. Single triager (Agent0 or designated).
 
+## Triage audit (Clear/Chaotic)
+
+Sample 10% of issues routed `complexity:clear` or `complexity:chaotic` → `stage:impl`.
+If rework rate (return to spec/negativa) exceeds 25% for sampled clear tasks → triager under review.
+Agent0 or pipeline.py logs rework-by-triage for audit.
+
 ## Output artifact
 
 Labels `complexity:*` and `appetite:*` applied. Routing comment posted. Issue advanced to next `stage:*`.

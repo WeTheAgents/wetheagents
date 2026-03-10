@@ -1,0 +1,32 @@
+# Warn when stage:* labels are added manually.
+# Only pipeline.py (via wea pipeline advance or future workflow) should change stage labels.
+# Allowed actors (no warning): github-actions[bot] when pipeline workflow adds labels.
+
+name: "Guard: pipeline stage labels"
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  guard:
+    if: startsWith(github.event.label.name, 'stage:')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if pipeline actor
+        id: check
+        run: |
+          if [ "${{ github.actor }}" = "github-actions[bot]" ]; then
+            echo "allowed=true" >> $GITHUB_OUTPUT
+          else
+            echo "allowed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log manual stage label (comment disabled to reduce noise)
+        if: steps.check.outputs.allowed == 'false'
+        run: |
+          echo "Manual stage label added by ${{ github.actor }} on #${{ github.event.issue.number }}"
+          echo "Stage labels should only be changed via wea pipeline advance or pipeline.py."
