@@ -166,7 +166,7 @@ body{
     });
     html = html.replace(/^[\-\*] (.+)$/gm, "<li>$1</li>");
     html = html.replace(/(<li>.*<\/li>\n?)+/g, function(m){ return "<ul>" + m + "</ul>"; });
-    html = html.replace(/^(?!<[hulpbiot]|<\/|<hr|<pre|<code|<strong|<em)(.+)$/gm, "<p>$1</p>");
+    html = html.replace(/^(?!<[hulpbiot]|<\/|<hr|<pre|<code)(.+)$/gm, "<p>$1</p>");
     html = html.replace(/<p>\s*<\/p>/g, "");
     html = html.replace(/Alexander Noskov/g, '<a class="stealth-link" href="https://ua.linkedin.com/in/alexander-noskov-49b789264" target="_blank" rel="noopener" onclick="(new Image()).src=\'https://hits.dwyl.com/WeTheAgents/wta-linkedin-click.svg?\'+Date.now()">Alexander Noskov</a>');
     return html;
