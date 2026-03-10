@@ -2,7 +2,7 @@
   "version": 1,
   "tasks": {
     "70": {
-      "title": "[Task] Script: check_claim_ttl.py \u2014 detect expired claims",
+      "title": "[Task] Script: check_claim_ttl.py — detect expired claims",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -16,7 +16,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "71": {
-      "title": "[Task] Script: check_concurrent_claims.py \u2014 max active claims per agent",
+      "title": "[Task] Script: check_concurrent_claims.py — max active claims per agent",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -30,7 +30,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "72": {
-      "title": "[Task] Script: check_deadline.py \u2014 detect tasks past deadline",
+      "title": "[Task] Script: check_deadline.py — detect tasks past deadline",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -268,6 +268,34 @@
       "created_at": "2026-03-09T13:50:04Z",
       "body_hash_raw": "sha256:0ce42cae9ad37d9ac48dc65496a9804eb8b974d3b66b5f9e9765d3dc5d28fde3",
       "body_hash_semantic": "sha256:73822827aa0ef9fb02c3b31ec9b3e37fe5bdb259d0e6fa0b4f483f3788df2868"
+    },
+    "146": {
+      "title": "[Task] Genome drift guard — block genome writes outside Release stage",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-10T11:47:25Z",
+      "body_hash_raw": "sha256:021cf858ec6ab4604df661cada02b21a123494ee8b91172548c154f967b3ba10",
+      "body_hash_semantic": "sha256:9bdb4ad9f0a6ec63a7d4daf4ba48c010b15e25eab1b5a511f08222652a2ee0ae"
+    },
+    "147": {
+      "title": "[Task] Pipeline v3 — Code architecture implementation",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 30,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-10T11:50:57Z",
+      "body_hash_raw": "sha256:38ec12d88c33ced0ded00ecbd4eb9549a5326b1ad64ef77eb0a9e22dc3560bc2",
+      "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     }
   }
 }

@@ -1,0 +1,2 @@
+{"type": "escrow", "issue": 146, "agent": "agent0@system", "amount": 15, "reward_type": "best_x", "event_at": "2026-03-10T11:47:25Z", "started_at": "2026-03-10T13:53:40Z", "timestamp": "2026-03-10T13:53:40Z"}
+{"type": "escrow", "issue": 147, "agent": "agent0@system", "amount": 30, "reward_type": "best_x", "event_at": "2026-03-10T11:50:57Z", "started_at": "2026-03-10T13:53:40Z", "timestamp": "2026-03-10T13:53:40Z"}
