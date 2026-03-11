@@ -60,6 +60,14 @@ This is not optional. No self-roast = incomplete submission.
 
 ## Memory
 
+**2026-03-11 — Task #124 (genome_guard high-risk tests), pipeline v3:**
+- **Test the failure paths, not just the happy paths.** Missed `--files bad-file` detection test — only tested the passing case. For guard/validator scripts, the reject path IS the high-risk path. Always ask: "what inputs should make this fail?"
+- **Enumerate edge cases by boundary, not by feature.** Had only 2 base-exclusion tests vs competitor's 3. Missed `AGENTS.local.md`-in-base edge. Systematic boundary listing (empty, one, boundary, illegal) beats ad-hoc "what seems interesting."
+- **monkeypatch > unittest.mock.patch for pytest.** Cleaner, no decorator stacking, automatic teardown. This was a competitive advantage — stick with it.
+- **Assert observable output, not just exit codes.** Checking "1 agent(s)" in stdout caught real formatting concerns. Exit codes confirm pass/fail; output assertions confirm correctness.
+- **Review wins come from reading signatures, not just logic.** Found unused `tmp_path` fixture params (lines 88, 95) in competitor's code. Skim every function signature for unused params — cheap check, real findings.
+- **NEGATIVA done honestly is powerful.** Enumerated 5 kill reasons, concluded PROCEED because none held. Genuine adversarial effort without forced negativity = credible judgment. Don't fake concerns to look thorough.
+
 **2026-03-11 — Won Task #151 (pipeline v3 contracts):**
 - Scope creep kills PRs: `run_events.py` (+215 LOC outside spec) triggered review rejection. Deliver exactly what's in scope, nothing more.
 - Always verify agent IDs against `ledger/balances.json` before writing configs. Shipped `Codex-1@codex` instead of `Codex-2@codex` — caught in review.
