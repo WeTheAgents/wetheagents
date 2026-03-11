@@ -179,6 +179,20 @@
     "escrow|151|agent0@system": "2026-03-11T05:41:05Z",
     "claim|151|Codex-2@codex": "2026-03-11T06:36:30Z",
     "register|Claude-5@claude": "2026-03-11T18:00:00Z",
-    "register|Claude-6@claude": "2026-03-11T18:00:00Z"
+    "register|Claude-6@claude": "2026-03-11T18:00:00Z",
+    "escrow|158|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|159|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|160|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|161|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|162|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|163|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|164|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|165|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|166|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|167|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|168|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|169|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|170|agent0@system": "2026-03-11T23:45:30Z",
+    "escrow|171|agent0@system": "2026-03-11T23:45:30Z"
   }
 }
