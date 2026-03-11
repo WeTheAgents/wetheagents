@@ -135,16 +135,16 @@ echo "=== Cloud Agent Setup ==="
 
 # ── 1. Install gh CLI ──────────────────────────────────────────────
 if ! command -v gh &>/dev/null; then
-  echo "[1/7] Installing gh CLI..."
+  echo "[1/8] Installing gh CLI..."
   curl -sL "https://github.com/cli/cli/releases/download/v2.87.3/gh_2.87.3_linux_amd64.tar.gz" \
     | tar -xz -C /tmp
   cp /tmp/gh_2.87.3_linux_amd64/bin/gh /usr/local/bin/gh
 else
-  echo "[1/7] gh CLI already installed"
+  echo "[1/8] gh CLI already installed"
 fi
 
 # ── 2. Install wea CLI in .venv ────────────────────────────────────
-echo "[2/7] Installing wea CLI..."
+echo "[2/8] Installing wea CLI..."
 cd "$REPO"
 if [ ! -d .venv ]; then
   python3 -m venv .venv
@@ -153,18 +153,18 @@ fi
 pip install -q -e .
 
 # ── 3. Fetch latest main ──────────────────────────────────────────
-echo "[3/7] Fetching latest main..."
+echo "[3/8] Fetching latest main..."
 git fetch origin main 2>/dev/null || true
 
 # ── 4. Create agent worktrees ─────────────────────────────────────
-echo "[4/7] Creating worktrees..."
+echo "[4/8] Creating worktrees..."
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type branch _name _email <<< "$entry"
   create_worktree "$slug" "$branch"
 done
 
 # ── 5. Configure git identity per worktree ─────────────────────────
-echo "[5/7] Configuring git identity..."
+echo "[5/8] Configuring git identity..."
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type _branch name email <<< "$entry"
   local_wt="/home/user/wetheagents-${slug}"
@@ -173,7 +173,7 @@ for entry in "${AGENTS[@]}"; do
 done
 
 # ── 6. Deploy genomes ─────────────────────────────────────────────
-echo "[6/7] Deploying genomes..."
+echo "[6/8] Deploying genomes..."
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug genome_id agent_type _branch _name _email <<< "$entry"
   deploy_genome "$slug" "$genome_id" "$agent_type"
@@ -184,7 +184,7 @@ done
 # Embedding per-agent tokens in the URL would cause the last-written token to win.
 # Instead: use a credential helper that reads GITHUB_TOKEN from the environment.
 # Each agent is launched with its own GITHUB_TOKEN set, so the right token is used.
-echo "[7/7] Configuring push remotes..."
+echo "[7/8] Configuring push remotes..."
 
 # Install credential helper (reads GITHUB_TOKEN from env at push time)
 cat > /usr/local/bin/git-credential-github-token << 'CREDEOF'
@@ -202,6 +202,36 @@ git -C "$REPO" remote remove push-origin 2>/dev/null || true
 git -C "$REPO" remote add push-origin "https://github.com/WeTheAgents/wetheagents.git"
 echo "  ok: push-origin configured (credential helper reads GITHUB_TOKEN from env)"
 
+# ── 8. Start auth proxy for subprocess launches ──────────────────────
+# In cloud sessions, Claude Code authenticates via session ingress (WebSocket).
+# Child `claude -p` processes cannot inherit this auth directly.
+# The session ingress token (sk-ant-si-*) works as a Bearer token but NOT
+# as x-api-key. This proxy rewrites x-api-key → Authorization: Bearer,
+# allowing child processes to authenticate through the parent's subscription.
+AUTH_PROXY_SCRIPT="$REPO/scripts/auth_proxy.py"
+AUTH_PROXY_PORT=18080
+AUTH_PROXY_PIDFILE="/tmp/auth-proxy.pid"
+
+if [ -f "$AUTH_PROXY_SCRIPT" ]; then
+  # Kill any existing proxy
+  if [ -f "$AUTH_PROXY_PIDFILE" ]; then
+    kill "$(cat "$AUTH_PROXY_PIDFILE")" 2>/dev/null || true
+    rm -f "$AUTH_PROXY_PIDFILE"
+  fi
+
+  python3 "$AUTH_PROXY_SCRIPT" "$AUTH_PROXY_PORT" &
+  echo $! > "$AUTH_PROXY_PIDFILE"
+  sleep 0.5
+
+  if kill -0 "$(cat "$AUTH_PROXY_PIDFILE")" 2>/dev/null; then
+    echo "[8/8] Auth proxy started on port $AUTH_PROXY_PORT (PID $(cat "$AUTH_PROXY_PIDFILE"))"
+  else
+    echo "[8/8] WARN: Auth proxy failed to start"
+  fi
+else
+  echo "[8/8] SKIP: auth_proxy.py not found at $AUTH_PROXY_SCRIPT"
+fi
+
 # ── Optional: Install codex CLI ────────────────────────────────────
 if ! command -v codex &>/dev/null; then
   npm install -g @openai/codex 2>/dev/null && echo "codex CLI installed" \
@@ -209,13 +239,23 @@ if ! command -v codex &>/dev/null; then
 fi
 
 # ── Summary ────────────────────────────────────────────────────────
+SESSION_TOKEN_FILE="/home/claude/.claude/remote/.session_ingress_token"
+
 echo ""
 echo "=== Setup Complete ==="
 echo "Worktrees:"
 git worktree list
 echo ""
 echo "Agent launch (from Agent0 session):"
-echo "  Claude-1:      GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude claude -p '...'"
+echo "  Claude-1:"
+echo "    cd /home/user/wetheagents-claude-1"
+echo "    source $REPO/.venv/bin/activate"
+echo "    GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude \\"
+echo "      env -u CLAUDECODE -u CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR -u CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR \\"
+echo "      ANTHROPIC_API_KEY=\"\$(cat $SESSION_TOKEN_FILE)\" \\"
+echo "      ANTHROPIC_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT\" \\"
+echo "      claude -p --model haiku --permission-mode default '...'"
+echo ""
 echo "  Codex-2:       GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"
 echo "  Cursor-3:      (IDE — reads AGENTS.md in worktree)"
 echo "  Antigravity-4: (IDE — reads AGENTS.md in worktree)"
