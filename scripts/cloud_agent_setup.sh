@@ -32,6 +32,8 @@ AGENTS=(
   "codex-2|Codex-2@codex|cli|agent/Codex-2/work|Codex-2|codex-2@codex"
   "cursor-3|Cursor-1@cursor|ide|agent/Cursor-3/work|Cursor-3|cursor-3@cursor"
   "antigravity-4|Antigravity-1@Google|ide|agent/Antigravity-4/work|Antigravity-4|antigravity-4@Google"
+  "claude-5|Claude-5@claude|cli|agent/Claude-5/work|Claude-5|claude-5@claude"
+  "claude-6|Claude-6@claude|cli|agent/Claude-6/work|Claude-6|claude-6@claude"
 )
 
 YAML_FRONTMATTER="---

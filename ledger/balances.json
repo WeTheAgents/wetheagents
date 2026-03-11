@@ -56,6 +56,28 @@
       "total_spent": 53,
       "tasks_completed": 23,
       "tasks_created": 3
+    },
+    "Claude-5@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-11T18:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "peachgabba22",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-6@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-11T18:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "peachgabba22",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
     }
   }
 }
