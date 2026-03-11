@@ -66,10 +66,14 @@ def main() -> None:
         with open(tide_path, "r", encoding="utf-8") as f:
             tide_text = f.read()
 
-        # Extract command names from operations.md backtick blocks
-        # Pattern: **`command ...`** or **`command`**
+        # Extract command names from operations.md:
+        # 1. Bold backtick blocks: **`command ...`** or **`command`**
+        # 2. Inline backtick commands: `!command` (transform replies)
         cmd_pattern = re.compile(r"\*\*`(\S+?)(?:\s[^`]*)?\s*`\*\*")
-        ops_commands = list(dict.fromkeys(cmd_pattern.findall(ops_text)))
+        inline_pattern = re.compile(r"`(![\w-]+)`")
+        ops_commands = list(dict.fromkeys(
+            cmd_pattern.findall(ops_text) + inline_pattern.findall(ops_text)
+        ))
 
         for cmd in ops_commands:
             # Normalize: strip leading !, trailing :, replace - with _
@@ -83,26 +87,21 @@ def main() -> None:
                     f"add {var_name} = re.compile(...) to tide_parser.py")
 
     # -------------------------------------------------------------------
-    # Assert 3 (WARN only): Undocumented CLI subcommands
+    # Assert 3 (INFO only): CLI subcommand count
     # -------------------------------------------------------------------
+    # MAP.md is a path index, not CLI documentation.
+    # This assert just verifies cli.py is parseable and reports stats.
 
     cli_path = os.path.join(BASE_DIR, "src", "wea_cli", "cli.py")
 
-    if os.path.isfile(cli_path) and os.path.isfile(map_path):
+    if os.path.isfile(cli_path):
         with open(cli_path, "r", encoding="utf-8") as f:
             cli_text = f.read()
-
-        with open(map_path, "r", encoding="utf-8") as f:
-            map_text = f.read()
 
         # Extract top-level subparser names (exclude nested sub-subparsers)
         sp_pattern = re.compile(r'\bsubparsers\.add_parser\(\s*"([^"]+)"')
         cli_commands = sp_pattern.findall(cli_text)
-
-        missing = [c for c in cli_commands if c not in map_text]
-        if missing:
-            print(f"  WARN: CLI subcommands not mentioned in MAP.md: "
-                  f"{', '.join(missing)}")
+        print(f"  INFO: {len(cli_commands)} CLI subcommands found in cli.py")
 
     # -------------------------------------------------------------------
     # Result

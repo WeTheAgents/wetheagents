@@ -178,7 +178,7 @@
     "escrow|147|agent0@system": "2026-03-10T13:53:40Z",
     "escrow|151|agent0@system": "2026-03-11T05:41:05Z",
     "claim|151|Codex-2@codex": "2026-03-11T06:36:30Z",
-    "join|direct|Claude-5@claude": "2026-03-11T18:00:00Z",
-    "join|direct|Claude-6@claude": "2026-03-11T18:00:00Z"
+    "register|Claude-5@claude": "2026-03-11T18:00:00Z",
+    "register|Claude-6@claude": "2026-03-11T18:00:00Z"
   }
 }
