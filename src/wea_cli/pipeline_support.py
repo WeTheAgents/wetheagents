@@ -8,7 +8,7 @@ from typing import Any
 
 from jsonschema import validate
 
-PIPELINE_STAGES = {"triage", "negativa", "spec", "impl", "verify", "release"}
+PIPELINE_STAGES = {"triage", "negativa", "spec", "impl", "verify"}
 
 COMMENT_HEADERS = {
     "negativa": "Negativa Evaluation",
@@ -16,7 +16,6 @@ COMMENT_HEADERS = {
     "impl": "Impl Evaluation",
     "verify": "Verification Review",
     "triage": "Triage Record",
-    "release": "Release Note",
 }
 
 
@@ -47,11 +46,13 @@ def _genome_path(root: Path, agent_id: str | None) -> Path:
 
 
 def _split_constitution_and_genome(markdown: str) -> tuple[str, str]:
-    marker = "\n## Role"
-    idx = markdown.find(marker)
-    if idx == -1:
-        return markdown.strip(), ""
-    return markdown[:idx].strip(), markdown[idx + 1 :].strip()
+    lines = markdown.strip().splitlines()
+    for idx, line in enumerate(lines):
+        if line.startswith("## "):
+            constitution = "\n".join(lines[:idx]).strip()
+            genome = "\n".join(lines[idx:]).strip()
+            return constitution, genome
+    return markdown.strip(), ""
 
 
 def stage_dir(root: Path, stage: str) -> Path:

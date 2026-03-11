@@ -6,11 +6,17 @@ from dataclasses import dataclass, field
 import json
 from pathlib import Path
 import re
+import sys
 from typing import Any
 
 from jsonschema import validate
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from wea_cli.pipeline_support import load_stage_schema, normalize_stage  # noqa: E402
 JSON_BLOCK_RE = re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL | re.IGNORECASE)
 HEADER_RE = re.compile(r"^###\s+.+?\s+by\s+([^\n]+)\s*$", re.MULTILINE)
 LEGACY_SEPARATOR_RE = r"\s+[—-]\s+"
@@ -25,6 +31,22 @@ class EvaluationResult:
     payload: dict[str, Any]
     raw_comment: str
 
+    @property
+    def checks(self) -> dict[str, Any]:
+        for key in ("checks", "checklist"):
+            value = self.payload.get(key)
+            if isinstance(value, dict):
+                return value
+        return {}
+
+    @property
+    def reasoning(self) -> str:
+        for key in ("reasoning", "summary", "notes"):
+            value = self.payload.get(key)
+            if isinstance(value, str):
+                return value
+        return ""
+
 
 @dataclass
 class AggregateResult:
@@ -34,23 +56,8 @@ class AggregateResult:
     reasons: list[str] = field(default_factory=list)
 
 
-def _normalize_stage(station: str) -> str:
-    return station.strip().lower()
-
-
-def _schema_path(station: str, root: Path | None = None) -> Path:
-    repo_root = root or ROOT
-    path = repo_root / "pipeline" / _normalize_stage(station) / "evaluation.schema.json"
-    if not path.exists():
-        raise FileNotFoundError(f"Schema not found for stage {station!r}: {path}")
-    return path
-
-
 def load_station_schema(station: str, root: Path | None = None) -> dict[str, Any]:
-    payload = json.loads(_schema_path(station, root).read_text(encoding="utf-8-sig"))
-    if not isinstance(payload, dict):
-        raise ValueError(f"Schema payload must be an object for stage {station!r}")
-    return payload
+    return load_stage_schema(root or ROOT, station)
 
 
 def _extract_json_payloads(body: str) -> list[dict[str, Any]]:
@@ -71,7 +78,7 @@ def _extract_agent_from_header(body: str) -> str:
 
 
 def _payload_verdict(station: str, payload: dict[str, Any]) -> str:
-    keys = ("approval",) if _normalize_stage(station) == "spec" else ("verdict",)
+    keys = ("approval",) if normalize_stage(station) == "spec" else ("verdict",)
     for key in keys:
         value = payload.get(key)
         if isinstance(value, str) and value.strip():
@@ -86,21 +93,14 @@ def _validate_json_payload(station: str, payload: dict[str, Any], root: Path | N
 
 def _parse_negativa_legacy(body: str) -> EvaluationResult:
     checks: dict[str, dict[str, str]] = {}
-    for idx, slug in enumerate(
-        (
-            "not_duplicate",
-            "architecture_compatible",
-            "positive_roi",
-            "no_fragility",
-            "gaming_resistant",
-            "requires_code",
-        ),
-        start=1,
+    for label, slug in (
+        ("Architecture compatible", "architecture_compatible"),
+        ("No fragility", "no_fragility"),
     ):
-        pattern = rf"^{idx}\.\s+.+?:\s+(PASS|FAIL){LEGACY_SEPARATOR_RE}(.+)$"
+        pattern = rf"^\d+\.\s+{re.escape(label)}:\s+(PASS|FAIL){LEGACY_SEPARATOR_RE}(.+)$"
         match = re.search(pattern, body, re.MULTILINE)
         if not match:
-            raise ValueError(f"Missing legacy negativa check #{idx}.")
+            raise ValueError(f"Missing legacy negativa check: {label}.")
         checks[slug] = {"status": match.group(1), "note": match.group(2).strip()}
 
     verdict_match = re.search(r"^Verdict:\s+(PROCEED|KILL)(?:\s*\((.+)\))?$", body, re.MULTILINE)
@@ -173,7 +173,7 @@ def _parse_verify_legacy(body: str) -> EvaluationResult:
 
 
 def _parse_legacy_comment(body: str, station: str) -> EvaluationResult:
-    normalized = _normalize_stage(station)
+    normalized = normalize_stage(station)
     if normalized == "negativa":
         return _parse_negativa_legacy(body)
     if normalized == "spec":
@@ -191,7 +191,7 @@ def parse_evaluation_comment(body: str, station: str, root: Path | None = None) 
         validated = _validate_json_payload(station, payloads[0], root=root)
         agent_id = str(validated.get("agent_id", "")).strip() or _extract_agent_from_header(body)
         return EvaluationResult(
-            station=_normalize_stage(station),
+            station=normalize_stage(station),
             agent_id=agent_id,
             verdict=_payload_verdict(station, validated),
             format="json",
@@ -201,16 +201,29 @@ def parse_evaluation_comment(body: str, station: str, root: Path | None = None) 
     return _parse_legacy_comment(body, station)
 
 
-def aggregate_results(station: str, evaluations: list[EvaluationResult]) -> AggregateResult:
-    normalized = _normalize_stage(station)
+def aggregate_results(
+    station: str,
+    evaluations: list[EvaluationResult],
+    evaluators_required: int | None = None,
+    kill_on_any_failure: bool | None = None,
+) -> AggregateResult:
+    normalized = normalize_stage(station)
     if not evaluations:
         raise ValueError("At least one evaluation is required.")
+    if evaluators_required is not None and len(evaluations) < evaluators_required:
+        raise ValueError(
+            f"Expected at least {evaluators_required} evaluations for {normalized}, got {len(evaluations)}."
+        )
 
     verdicts = [item.verdict for item in evaluations]
     reasons = [str(item.payload.get("summary", "")).strip() for item in evaluations if item.payload.get("summary")]
 
     if normalized == "negativa":
-        verdict = "KILL" if "KILL" in verdicts else "PROCEED"
+        kill_wins = True if kill_on_any_failure is None else kill_on_any_failure
+        if kill_wins:
+            verdict = "KILL" if "KILL" in verdicts else "PROCEED"
+        else:
+            verdict = "KILL" if all(verdict == "KILL" for verdict in verdicts) else "PROCEED"
     elif normalized == "spec":
         verdict = "APPROVED" if all(verdict == "APPROVED" for verdict in verdicts) else "REJECTED"
     elif normalized == "verify":
@@ -223,3 +236,17 @@ def aggregate_results(station: str, evaluations: list[EvaluationResult]) -> Aggr
         verdict = verdicts[-1]
 
     return AggregateResult(station=normalized, verdict=verdict, evaluations=evaluations, reasons=reasons)
+
+
+def aggregate_evaluations(
+    station: str,
+    evaluations: list[EvaluationResult],
+    evaluators_required: int | None = None,
+    kill_on_any_failure: bool | None = None,
+) -> AggregateResult:
+    return aggregate_results(
+        station,
+        evaluations,
+        evaluators_required=evaluators_required,
+        kill_on_any_failure=kill_on_any_failure,
+    )

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -14,116 +15,16 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from scripts.pipeline_parser import aggregate_results, parse_evaluation_comment  # noqa: E402
+from scripts.pipeline_parser import aggregate_evaluations, aggregate_results, parse_evaluation_comment  # noqa: E402
 from wea_cli import cli  # noqa: E402
-
-
-NEGATIVA_SCHEMA = {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["station", "agent_id", "verdict", "summary", "checks"],
-    "properties": {
-        "station": {"const": "negativa"},
-        "agent_id": {"type": "string", "minLength": 1},
-        "verdict": {"enum": ["PROCEED", "KILL"]},
-        "summary": {"type": "string", "minLength": 1},
-        "checks": {
-            "type": "object",
-            "additionalProperties": False,
-            "required": [
-                "not_duplicate",
-                "architecture_compatible",
-                "positive_roi",
-                "no_fragility",
-                "gaming_resistant",
-                "requires_code",
-            ],
-            "properties": {
-                name: {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "required": ["status", "note"],
-                    "properties": {
-                        "status": {"enum": ["PASS", "FAIL"]},
-                        "note": {"type": "string", "minLength": 1},
-                    },
-                }
-                for name in (
-                    "not_duplicate",
-                    "architecture_compatible",
-                    "positive_roi",
-                    "no_fragility",
-                    "gaming_resistant",
-                    "requires_code",
-                )
-            },
-        },
-    },
-}
-
-SPEC_SCHEMA = {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["station", "agent_id", "red_team_result", "approval", "notes"],
-    "properties": {
-        "station": {"const": "spec"},
-        "agent_id": {"type": "string", "minLength": 1},
-        "red_team_result": {"enum": ["NO_GAMING_FOUND", "GAMING_FOUND"]},
-        "approval": {"enum": ["APPROVED", "REJECTED"]},
-        "notes": {"type": "string", "minLength": 1},
-        "findings": {
-            "type": "array",
-            "items": {"type": "string", "minLength": 1},
-        },
-    },
-}
-
-VERIFY_SCHEMA = {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["station", "agent_id", "verdict", "summary", "checklist", "blocking_comments"],
-    "properties": {
-        "station": {"const": "verify"},
-        "agent_id": {"type": "string", "minLength": 1},
-        "verdict": {"enum": ["APPROVED", "CHANGES_REQUESTED"]},
-        "summary": {"type": "string", "minLength": 1},
-        "blocking_comments": {
-            "type": "array",
-            "items": {"type": "string", "minLength": 1},
-        },
-        "checklist": {
-            "type": "object",
-            "additionalProperties": False,
-            "required": ["gaming", "out_of_scope", "fragility", "removable_code"],
-            "properties": {
-                name: {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "required": ["status", "note"],
-                    "properties": {
-                        "status": {"enum": ["NONE", "FOUND"]},
-                        "note": {"type": "string", "minLength": 1},
-                    },
-                }
-                for name in ("gaming", "out_of_scope", "fragility", "removable_code")
-            },
-        },
-    },
-}
-
-
-def _write_json(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-
-
+from wea_cli.pipeline_support import normalize_stage, validate_stage_payload  # noqa: E402
 def _prepare_repo(root: Path) -> None:
-    _write_json(root / "pipeline" / "negativa" / "evaluation.schema.json", NEGATIVA_SCHEMA)
-    _write_json(root / "pipeline" / "spec" / "evaluation.schema.json", SPEC_SCHEMA)
-    _write_json(root / "pipeline" / "verify" / "evaluation.schema.json", VERIFY_SCHEMA)
+    for stage in ("triage", "negativa", "spec", "impl", "verify"):
+        source_dir = ROOT / "pipeline" / stage
+        target_dir = root / "pipeline" / stage
+        target_dir.mkdir(parents=True, exist_ok=True)
+        for name in ("evaluation.schema.json", "checklist.json", "WORKFLOW.md"):
+            shutil.copyfile(source_dir / name, target_dir / name)
 
 
 def _prepare_context_files(root: Path) -> None:
@@ -136,14 +37,6 @@ def _prepare_context_files(root: Path) -> None:
         "Batch executor.\n",
         encoding="utf-8",
     )
-    _write_json(
-        root / "pipeline" / "negativa" / "checklist.json",
-        {"station": "negativa", "checks": ["not duplicate"]},
-    )
-    (root / "pipeline" / "negativa" / "WORKFLOW.md").write_text(
-        "# Negativa\n\nUse schema.\n",
-        encoding="utf-8",
-    )
 
 
 def _valid_negativa_payload() -> dict:
@@ -153,12 +46,8 @@ def _valid_negativa_payload() -> dict:
         "verdict": "PROCEED",
         "summary": "Looks worth doing.",
         "checks": {
-            "not_duplicate": {"status": "PASS", "note": "new work"},
             "architecture_compatible": {"status": "PASS", "note": "fits current CLI"},
-            "positive_roi": {"status": "PASS", "note": "worth the effort"},
             "no_fragility": {"status": "PASS", "note": "no new risky deps"},
-            "gaming_resistant": {"status": "PASS", "note": "schema is explicit"},
-            "requires_code": {"status": "PASS", "note": "cannot be solved by docs only"},
         },
     }
 
@@ -229,7 +118,14 @@ def test_parse_evaluation_json_valid(temp_repo: Path) -> None:
     assert result.format == "json"
     assert result.agent_id == "Codex-2@codex"
     assert result.verdict == "PROCEED"
-    assert result.payload["checks"]["gaming_resistant"]["status"] == "PASS"
+    assert result.payload["checks"]["architecture_compatible"]["status"] == "PASS"
+    assert result.checks["architecture_compatible"]["status"] == "PASS"
+    assert result.reasoning == "Looks worth doing."
+
+
+def test_release_stage_removed_from_supported_stage_set() -> None:
+    with pytest.raises(ValueError, match="Unknown pipeline stage"):
+        normalize_stage("release")
 
 
 def test_parse_evaluation_json_invalid_missing_verdict(temp_repo: Path) -> None:
@@ -269,12 +165,8 @@ def test_parse_evaluation_legacy_negativa(temp_repo: Path) -> None:
     _prepare_repo(temp_repo)
     comment = """### Via Negativa Evaluation by Codex-2@codex
 
-1. Not duplicate: PASS - new task
-2. Architecture compatible: PASS - fits design
-3. Positive ROI: PASS - leverage is real
-4. No fragility: PASS - no new risk
-5. Gaming-resistant: PASS - anti-gaming present
-6. Requires code: PASS - docs are not enough
+1. Architecture compatible: PASS - fits design
+2. No fragility: PASS - no new risk
 
 Verdict: PROCEED (item #0 - looks good)
 """
@@ -328,6 +220,8 @@ def test_cmd_pipeline_submit_valid_dry_run(
     temp_repo: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     _prepare_repo(temp_repo)
+    monkeypatch.delenv("WEA_AGENT", raising=False)
+    monkeypatch.setattr(cli, "resolve_agent", lambda explicit=None: None)
     args = argparse.Namespace(
         root=str(temp_repo),
         stage="negativa",
@@ -350,6 +244,8 @@ def test_cmd_pipeline_submit_invalid_reports_specific_error(
     temp_repo: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     _prepare_repo(temp_repo)
+    monkeypatch.delenv("WEA_AGENT", raising=False)
+    monkeypatch.setattr(cli, "resolve_agent", lambda explicit=None: None)
     payload = _valid_negativa_payload()
     del payload["verdict"]
     args = argparse.Namespace(
@@ -372,6 +268,8 @@ def test_cmd_pipeline_submit_station_mismatch_rejected(
     temp_repo: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     _prepare_repo(temp_repo)
+    monkeypatch.delenv("WEA_AGENT", raising=False)
+    monkeypatch.setattr(cli, "resolve_agent", lambda explicit=None: None)
     payload = _valid_negativa_payload()
     payload["station"] = "spec"
     args = argparse.Namespace(
@@ -393,6 +291,83 @@ def test_cmd_pipeline_submit_station_mismatch_rejected(
     assert "negativa" in out
 
 
+def test_cmd_pipeline_submit_explicit_agent_overrides_payload_agent(
+    temp_repo: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _prepare_repo(temp_repo)
+    payload = _valid_negativa_payload()
+    payload["agent_id"] = "stale-agent@old"
+    args = argparse.Namespace(
+        root=str(temp_repo),
+        stage="negativa",
+        issue=151,
+        agent="Codex-2@codex",
+        dry_run=True,
+        repo="WeTheAgents/wetheagents",
+    )
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+
+    rc = cli.cmd_pipeline_submit(args)
+
+    assert rc == cli.EXIT_OK
+    out = capsys.readouterr().out
+    assert "### Negativa Evaluation by Codex-2@codex" in out
+    assert "\"agent_id\": \"Codex-2@codex\"" in out
+
+
+def test_cmd_pipeline_submit_explicit_agent_fills_blank_payload_agent(
+    temp_repo: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _prepare_repo(temp_repo)
+    payload = _valid_negativa_payload()
+    payload["agent_id"] = "   "
+    args = argparse.Namespace(
+        root=str(temp_repo),
+        stage="negativa",
+        issue=151,
+        agent="Codex-2@codex",
+        dry_run=True,
+        repo="WeTheAgents/wetheagents",
+    )
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+
+    rc = cli.cmd_pipeline_submit(args)
+
+    assert rc == cli.EXIT_OK
+    out = capsys.readouterr().out
+    assert "### Negativa Evaluation by Codex-2@codex" in out
+    assert "\"agent_id\": \"Codex-2@codex\"" in out
+
+
+def test_validate_triage_no_go_does_not_require_route(temp_repo: Path) -> None:
+    _prepare_repo(temp_repo)
+    payload = {
+        "station": "triage",
+        "agent_id": "Codex-2@codex",
+        "vote": "NO_GO",
+        "summary": "Stop here.",
+    }
+
+    assert validate_stage_payload(temp_repo, "triage", payload) == payload
+
+
+def test_validate_impl_requires_ci(temp_repo: Path) -> None:
+    _prepare_repo(temp_repo)
+    payload = {
+        "station": "impl",
+        "agent_id": "Codex-2@codex",
+        "verdict": "WIN",
+        "summary": "Ship it.",
+        "artifacts": {
+            "branch": "agent/Codex-2/151-pipeline",
+            "pr_url": "https://example.invalid/pr/151",
+        },
+    }
+
+    with pytest.raises(ValidationError, match="ci"):
+        validate_stage_payload(temp_repo, "impl", payload)
+
+
 def test_aggregate_results_negativa_kill_wins(temp_repo: Path) -> None:
     _prepare_repo(temp_repo)
     proceed = parse_evaluation_comment(
@@ -411,6 +386,24 @@ def test_aggregate_results_negativa_kill_wins(temp_repo: Path) -> None:
     aggregate = aggregate_results("negativa", [proceed, kill])
 
     assert aggregate.verdict == "KILL"
+
+
+def test_aggregate_evaluations_backward_compatible_kwargs(temp_repo: Path) -> None:
+    _prepare_repo(temp_repo)
+    proceed = parse_evaluation_comment(
+        f"```json\n{json.dumps(_valid_negativa_payload(), indent=2)}\n```",
+        station="negativa",
+        root=temp_repo,
+    )
+
+    aggregate = aggregate_evaluations(
+        "negativa",
+        [proceed],
+        evaluators_required=1,
+        kill_on_any_failure=True,
+    )
+
+    assert aggregate.verdict == "PROCEED"
 
 
 def test_aggregate_results_spec_uses_approval(temp_repo: Path) -> None:

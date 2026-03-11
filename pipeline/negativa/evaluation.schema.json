@@ -13,20 +13,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "not_duplicate",
         "architecture_compatible",
-        "positive_roi",
-        "no_fragility",
-        "gaming_resistant",
-        "requires_code"
+        "no_fragility"
       ],
       "properties": {
-        "not_duplicate": { "$ref": "#/$defs/check" },
         "architecture_compatible": { "$ref": "#/$defs/check" },
-        "positive_roi": { "$ref": "#/$defs/check" },
-        "no_fragility": { "$ref": "#/$defs/check" },
-        "gaming_resistant": { "$ref": "#/$defs/check" },
-        "requires_code": { "$ref": "#/$defs/check" }
+        "no_fragility": { "$ref": "#/$defs/check" }
       }
     }
   },

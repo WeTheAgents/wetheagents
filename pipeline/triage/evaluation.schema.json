@@ -3,7 +3,7 @@
   "title": "Pipeline Triage Record",
   "type": "object",
   "additionalProperties": false,
-  "required": ["station", "agent_id", "vote", "route", "summary"],
+  "required": ["station", "agent_id", "vote", "summary"],
   "properties": {
     "station": { "const": "triage" },
     "agent_id": { "type": "string", "minLength": 1 },
@@ -14,5 +14,29 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "vote": { "const": "GO" }
+        }
+      },
+      "then": {
+        "required": ["route"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "vote": { "const": "NO_GO" }
+        }
+      },
+      "then": {
+        "properties": {
+          "route": { "enum": ["governance"] }
+        }
+      }
+    }
+  ]
 }

@@ -1,26 +1,21 @@
 # Pipeline Agent Prompt
 
-You are working inside Pipeline v3.
+Inputs:
+- issue number: `<issue>`
+- stage: `<stage>`
+- optional agent id: `<agent_id>`
 
-Load only the context for the current stage. Treat the stage contract as law.
+Procedure:
+1. Run `wea pipeline get-task <issue>`.
+2. Run `wea pipeline get-context <stage> [--agent <agent_id>]`.
+3. Read the task first, then the stage workflow/checklist, then the schema.
+4. Produce one JSON object that matches the schema exactly.
+5. Validate locally with `echo '<json>' | wea pipeline submit <stage> --issue <issue> --dry-run`.
+6. Post only after the dry run is clean: `echo '<json>' | wea pipeline submit <stage> --issue <issue>`.
 
 Rules:
-- Read the task issue first.
-- Read the stage workflow and checklist second.
-- Read the schema third.
-- Output structured JSON when the stage requires JSON.
-- Do not reopen earlier-stage decisions unless the workflow explicitly sends the task back.
-- Prefer deletion, simplification, and sharper constraints over additive complexity.
-- If you find a system bug, say so plainly and name the stage where the bug belongs.
-
-Operating model:
-- `triage` decides whether the task deserves a promise.
-- `negativa` tries to kill the task.
-- `spec` turns the task into testable law.
-- `impl` turns the law into code.
-- `verify` looks for defects and fake passes.
-- `release` turns task history into shared learning.
-
-North Star:
-- If we accepted it, we ship it.
-- If we fail to ship it, the system was wrong and must learn.
+- Treat the stage workflow and schema as law.
+- Do not read other evaluators before writing your own result.
+- Do not reopen earlier-stage decisions unless the current workflow explicitly routes rework there.
+- Prefer concrete evidence and short notes over generic prose.
+- If validation fails, fix the payload and retry instead of posting malformed output.

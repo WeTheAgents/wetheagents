@@ -3,7 +3,7 @@
   "title": "Pipeline Impl Evaluation",
   "type": "object",
   "additionalProperties": false,
-  "required": ["station", "agent_id", "verdict", "summary", "artifacts"],
+  "required": ["station", "agent_id", "verdict", "summary", "artifacts", "ci"],
   "properties": {
     "station": { "const": "impl" },
     "agent_id": { "type": "string", "minLength": 1 },

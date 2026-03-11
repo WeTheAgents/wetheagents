@@ -9,12 +9,8 @@ Protocol:
 - Any decisive kill reason stops the task.
 
 Checklist:
-1. Not duplicate
-2. Architecture compatible
-3. Positive ROI
-4. No fragility
-5. Gaming resistant
-6. Requires code
+1. Architecture compatible
+2. No fragility
 
 Output:
 - one structured JSON evaluation per participant,

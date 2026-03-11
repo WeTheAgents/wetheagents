@@ -4,11 +4,7 @@
   "roles": ["advocate", "skeptic"],
   "kill_on_any_kill": true,
   "checks": [
-    "not duplicate",
     "architecture compatible",
-    "positive ROI",
-    "no fragility",
-    "gaming resistant",
-    "requires code"
+    "no fragility"
   ]
 }

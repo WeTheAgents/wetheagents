@@ -37,7 +37,6 @@ from wea_cli.pipeline_support import (
     render_pipeline_context,
     validate_stage_payload,
 )
-from wea_cli.run_events import emit_event, now_iso
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 
 EXIT_OK = 0
@@ -118,7 +117,7 @@ def save_pending(path: Path, pending: dict) -> None:
 
 
 def _now_iso() -> str:
-    return now_iso()
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def emit(text: str) -> None:
@@ -1607,9 +1606,12 @@ def cmd_pipeline_submit(args: argparse.Namespace) -> int:
         emit(f"Error: station mismatch: payload={submitted_stage!r}, command={stage!r}.")
         return EXIT_DOMAIN_ERROR
 
-    agent = resolve_agent(getattr(args, "agent", None)) or str(payload.get("agent_id", "")).strip()
-    if agent:
-        payload.setdefault("agent_id", agent)
+    explicit_agent = resolve_agent(getattr(args, "agent", None))
+    payload_agent = str(payload.get("agent_id", "")).strip()
+    if explicit_agent:
+        payload["agent_id"] = explicit_agent
+    elif payload_agent:
+        payload["agent_id"] = payload_agent
     payload.setdefault("station", stage)
 
     try:
@@ -1629,35 +1631,6 @@ def cmd_pipeline_submit(args: argparse.Namespace) -> int:
 
     post_issue_comment(args.issue, comment, repo=args.repo)
     emit(f"Posted {stage} pipeline comment on issue #{args.issue}.")
-    return EXIT_OK
-
-
-def cmd_trace_emit(args: argparse.Namespace) -> int:
-    run_dir = Path(args.run_dir).resolve()
-    run_id = args.run_id or run_dir.name
-
-    try:
-        payload = json.loads(args.payload_json)
-    except json.JSONDecodeError as exc:
-        print(f"Error: invalid --payload-json: {exc}")
-        return EXIT_RUNTIME_ERROR
-
-    try:
-        snapshot = emit_event(
-            run_dir,
-            {
-                "timestamp": args.timestamp or _now_iso(),
-                "run_id": run_id,
-                "event_type": args.event_type,
-                "source": args.source,
-                "payload": payload,
-            },
-        )
-    except (FileNotFoundError, ValueError) as exc:
-        print(f"Error: {exc}")
-        return EXIT_RUNTIME_ERROR
-
-    emit(json.dumps(snapshot, ensure_ascii=False))
     return EXIT_OK
 
 
@@ -1832,27 +1805,6 @@ def build_parser() -> argparse.ArgumentParser:
     issue_edit.add_argument("--swap", action="append", nargs=2, metavar=("OLD", "NEW"), default=[], help="Atomically swap OLD label to NEW (repeatable)")
     issue_edit.add_argument("--dry-run", action="store_true", help="Preview planned operations")
     issue_edit.set_defaults(_handler=cmd_issue_edit)
-
-    trace = subparsers.add_parser("trace", help="Run event observability utilities")
-    trace_subparsers = trace.add_subparsers(dest="trace_command")
-    trace_subparsers.required = True
-
-    trace_emit = trace_subparsers.add_parser("emit", help="Append one event to a local run directory")
-    trace_emit.add_argument("--run-dir", required=True, help="Path to .wea_runs/<run_id> directory")
-    trace_emit.add_argument("--run-id", default=None, help="Run identifier (defaults to run-dir name)")
-    trace_emit.add_argument("--event-type", required=True, help="Event type enum")
-    trace_emit.add_argument("--source", required=True, help="Emitter identity")
-    trace_emit.add_argument(
-        "--payload-json",
-        default="{}",
-        help="Event payload as JSON object (default: {})",
-    )
-    trace_emit.add_argument(
-        "--timestamp",
-        default=None,
-        help="ISO 8601 UTC timestamp (default: now)",
-    )
-    trace_emit.set_defaults(_handler=cmd_trace_emit)
 
     pipeline = subparsers.add_parser("pipeline", help="Pipeline v3 utilities")
     pipeline_subparsers = pipeline.add_subparsers(dest="pipeline_command")
