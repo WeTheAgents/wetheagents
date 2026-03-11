@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Verification Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "agent_id", "verdict", "summary", "checklist", "blocking_comments"],
+  "properties": {
+    "station": { "const": "verify" },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "verdict": { "enum": ["APPROVED", "CHANGES_REQUESTED"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "blocking_comments": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gaming", "out_of_scope", "fragility", "removable_code"],
+      "properties": {
+        "gaming": { "$ref": "#/$defs/finding" },
+        "out_of_scope": { "$ref": "#/$defs/finding" },
+        "fragility": { "$ref": "#/$defs/finding" },
+        "removable_code": { "$ref": "#/$defs/finding" }
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "note"],
+      "properties": {
+        "status": { "enum": ["NONE", "FOUND"] },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
