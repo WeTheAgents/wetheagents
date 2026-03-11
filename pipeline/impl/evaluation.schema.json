@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Impl Evaluation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "agent_id", "verdict", "summary", "artifacts", "ci"],
+  "properties": {
+    "station": { "const": "impl" },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "verdict": { "enum": ["WIN", "LOSE", "OBSERVE"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "pr_url"],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "pr_url": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ci": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["PASS", "FAIL"] },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
