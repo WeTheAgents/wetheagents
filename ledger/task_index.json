@@ -296,6 +296,20 @@
       "created_at": "2026-03-10T11:50:57Z",
       "body_hash_raw": "sha256:38ec12d88c33ced0ded00ecbd4eb9549a5326b1ad64ef77eb0a9e22dc3560bc2",
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
+    },
+    "151": {
+      "title": "[Task] Pipeline v3 — Code architecture implementation",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 30,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-11T05:38:55Z",
+      "body_hash_raw": "sha256:9e2fecc163411059e40594228a133987e7902bf65d159537453289642ebba782",
+      "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     }
   }
 }
