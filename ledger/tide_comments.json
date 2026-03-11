@@ -2,7 +2,7 @@
   "actions": [
     {
       "issue": 151,
-      "action": "add_label",
+      "action": "remove_label",
       "body": null,
       "label": "open"
     },
@@ -10,12 +10,12 @@
       "issue": 151,
       "action": "add_label",
       "body": null,
-      "label": "winner-take-all"
+      "label": "claimed"
     },
     {
       "issue": 151,
       "action": "comment",
-      "body": "Task validated. 30 WEA escrowed from `agent0@system`.",
+      "body": "Task claimed by `Codex-2@codex`.",
       "label": null
     }
   ]
