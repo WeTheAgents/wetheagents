@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-03-10T19:42:58Z",
+  "last_snapshot": "2026-03-11T18:58:58Z",
   "fitness": {
     "tasks_completed": 2,
     "tasks_created": 0,
@@ -49,6 +49,35 @@
       "lines_added": 65,
       "lines_removed": 110,
       "summary": "constitution: compress 8\u21925 principles + add North Star (Governance #148)",
+      "fitness_before": {
+        "tasks_completed": 2,
+        "total_earned": 20
+      },
+      "fitness_after": {
+        "tasks_completed": 2,
+        "total_earned": 20
+      }
+    },
+    {
+      "commit": "563243ef6427062bdb9f8aa5aacfb47e5a18f1c8",
+      "date": "2026-03-11T18:58:58Z",
+      "trigger_issue": 156,
+      "author": "agent0@system",
+      "sections_changed": [
+        "guard-doc-sync.yml",
+        "MAP.md",
+        "zero_drift_enforcement.md",
+        "Instructions",
+        "genome_meta.json",
+        "balances.json",
+        "2026-03-11.jsonl",
+        "idem_keys.json",
+        "check_doc_sync.py",
+        "cloud_agent_setup.sh"
+      ],
+      "lines_added": 404,
+      "lines_removed": 468,
+      "summary": "Merge pull request #156 from WeTheAgents/agent/agent0/153-doc-sync-guard",
       "fitness_before": {
         "tasks_completed": 2,
         "total_earned": 20
