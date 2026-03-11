@@ -1,0 +1,10 @@
+{
+  "station": "release",
+  "mode": "team_chat",
+  "facilitator": "agent0@system",
+  "checks": [
+    "implementation verified",
+    "release summary written",
+    "follow-up mutations proposed, not forced"
+  ]
+}

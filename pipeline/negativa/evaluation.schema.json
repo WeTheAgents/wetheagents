@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Negativa Evaluation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "agent_id", "verdict", "summary", "checks"],
+  "properties": {
+    "station": { "const": "negativa" },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "verdict": { "enum": ["PROCEED", "KILL"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "not_duplicate",
+        "architecture_compatible",
+        "positive_roi",
+        "no_fragility",
+        "gaming_resistant",
+        "requires_code"
+      ],
+      "properties": {
+        "not_duplicate": { "$ref": "#/$defs/check" },
+        "architecture_compatible": { "$ref": "#/$defs/check" },
+        "positive_roi": { "$ref": "#/$defs/check" },
+        "no_fragility": { "$ref": "#/$defs/check" },
+        "gaming_resistant": { "$ref": "#/$defs/check" },
+        "requires_code": { "$ref": "#/$defs/check" }
+      }
+    }
+  },
+  "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "note"],
+      "properties": {
+        "status": { "enum": ["PASS", "FAIL"] },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,63 +1,12 @@
 {
   "station": "impl",
-  "gate_type": "auto_soft",
-  "evaluators_required": 1,
-  "unanimous": false,
-  "kill_on_any_failure": false,
-  "timeout_hours": 72,
-  "timeout_action": "circuit_breaker_warning",
-  "unclaimed_timeout_hours": 48,
-  "circuit_breaker": {
-    "trigger": "branch_age_days_exceeds_appetite",
-    "action": "close_pr_return_to_triage"
-  },
+  "gate_type": "duel",
+  "judge": "ci",
   "checks": [
-    {
-      "id": "spec_test_cases_pass",
-      "label": "All test cases pass (from spec, or issue description for clear/chaotic)",
-      "type": "auto",
-      "required": true,
-      "command": "pytest"
-    },
-    {
-      "id": "ci_green",
-      "label": "CI green (ruff + pytest + check_invariant)",
-      "type": "auto",
-      "required": true,
-      "commands": ["ruff check .", "pytest", "python scripts/check_invariant.py"]
-    },
-    {
-      "id": "pr_loc_limit",
-      "label": "PR diff ≤400 LOC",
-      "type": "auto",
-      "required": true,
-      "threshold": 400
-    },
-    {
-      "id": "pr_files_limit",
-      "label": "≤10 files changed",
-      "type": "auto",
-      "required": true,
-      "threshold": 10
-    },
-    {
-      "id": "no_out_of_scope",
-      "label": "No changes outside spec scope",
-      "type": "manual",
-      "required": true
-    },
-    {
-      "id": "pr_description_filled",
-      "label": "PR description contains all required sections",
-      "type": "manual",
-      "required": true
-    },
-    {
-      "id": "done_posted",
-      "label": "!done posted on the issue by implementer",
-      "type": "auto",
-      "required": true,
-      "trigger_command": "!done"
-    }
+    "spec honored",
+    "CI green",
+    "scope respected",
+    "branch and PR recorded",
+    "winner and loser artifacts available for Gene Judge"
   ]
 }

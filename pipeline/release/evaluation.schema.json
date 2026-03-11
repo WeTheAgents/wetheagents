@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Release Note",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "agent_id", "summary"],
+  "properties": {
+    "station": { "const": "release" },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "mutations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

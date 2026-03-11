@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Spec Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "agent_id", "red_team_result", "approval", "notes"],
+  "properties": {
+    "station": { "const": "spec" },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "red_team_result": { "enum": ["NO_GAMING_FOUND", "GAMING_FOUND"] },
+    "approval": { "enum": ["APPROVED", "REJECTED"] },
+    "notes": { "type": "string", "minLength": 1 },
+    "findings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

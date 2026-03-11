@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from jsonschema import ValidationError
+
 from wea_cli.config import resolve_agent
 from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gh import (
@@ -29,6 +31,13 @@ from wea_cli.gh import (
     view_issue_comments,
 )
 from wea_cli.parsers import parse_task_metadata
+from wea_cli.pipeline_support import (
+    normalize_stage,
+    render_pipeline_comment,
+    render_pipeline_context,
+    validate_stage_payload,
+)
+from wea_cli.run_events import emit_event, now_iso
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 
 EXIT_OK = 0
@@ -109,7 +118,7 @@ def save_pending(path: Path, pending: dict) -> None:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return now_iso()
 
 
 def emit(text: str) -> None:
@@ -120,6 +129,19 @@ def emit(text: str) -> None:
         encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
         safe_text = text.encode(encoding, errors="replace").decode(encoding, errors="replace")
         print(safe_text)
+
+
+def configure_stdio() -> None:
+    """Prefer UTF-8 output, but degrade safely on terminals that cannot use it."""
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except ValueError:
+                # Some redirected streams cannot be reconfigured; the emit() fallback still applies.
+                pass
 
 
 def _idem_key_hash(key: str) -> str:
@@ -274,7 +296,7 @@ def cmd_start(args: argparse.Namespace) -> int:
 def cmd_show(args: argparse.Namespace) -> int:
     issue = view_issue(args.issue, repo=args.repo)
     if not issue:
-        print(f"Issue not found or unavailable: #{args.issue}")
+        emit(f"Issue not found or unavailable: #{args.issue}")
         return EXIT_DOMAIN_ERROR
 
     title = str(issue.get("title", ""))
@@ -283,21 +305,26 @@ def cmd_show(args: argparse.Namespace) -> int:
     body = str(issue.get("body", ""))
     metadata = parse_task_metadata(body)
 
-    print(format_kv("Issue", f"#{issue.get('number')} {title}"))
-    print(format_kv("State", state))
-    print(format_kv("URL", url))
-    print(format_kv("Agent ID", metadata.get("agent_id")))
-    print(format_kv("Reward", metadata.get("reward")))
-    print(format_kv("Mechanic", metadata.get("reward_type")))
-    print(format_kv("Deadline", metadata.get("deadline")))
-    print(format_kv("Skills", metadata.get("skills_needed")))
+    emit(format_kv("Issue", f"#{issue.get('number')} {title}"))
+    emit(format_kv("State", state))
+    emit(format_kv("URL", url))
+    emit(format_kv("Agent ID", metadata.get("agent_id")))
+    emit(format_kv("Reward", metadata.get("reward")))
+    emit(format_kv("Mechanic", metadata.get("reward_type")))
+    emit(format_kv("Deadline", metadata.get("deadline")))
+    emit(format_kv("Skills", metadata.get("skills_needed")))
+    if body.strip():
+        emit("")
+        emit("Body")
+        emit("----")
+        emit(body.replace("\r\n", "\n").replace("\r", "\n").strip())
     return EXIT_OK
 
 
 def cmd_comments(args: argparse.Namespace) -> int:
     issue = view_issue_comments(args.issue, repo=args.repo)
     if not issue:
-        print(f"Issue not found or unavailable: #{args.issue}")
+        emit(f"Issue not found or unavailable: #{args.issue}")
         return EXIT_DOMAIN_ERROR
 
     number = issue.get("number", args.issue)
@@ -307,11 +334,11 @@ def cmd_comments(args: argparse.Namespace) -> int:
         comments = []
 
     header = f"#{number} - {title}"
-    print(header)
-    print("-" * max(34, len(header)))
+    emit(header)
+    emit("-" * max(34, len(header)))
 
     if not comments:
-        print("No comments yet.")
+        emit("No comments yet.")
         return EXIT_OK
 
     for idx, comment in enumerate(comments):
@@ -322,10 +349,10 @@ def cmd_comments(args: argparse.Namespace) -> int:
         # GitHub API can return CRLF bodies; normalize to keep terminal output readable.
         body = body_raw.replace("\r\n", "\n").replace("\r", "\n").strip()
 
-        print(f"@{login} | {created_at}")
-        print(body if body else "(empty comment)")
+        emit(f"@{login} | {created_at}")
+        emit(body if body else "(empty comment)")
         if idx != len(comments) - 1:
-            print()
+            emit("")
 
     return EXIT_OK
 
@@ -828,7 +855,7 @@ def cmd_rename(args: argparse.Namespace) -> int:
     # 4. hello_world_registry.jsonl --update agent field
     hw_count = 0
     if registry_path.exists():
-        lines = [l for l in registry_path.read_text(encoding="utf-8").strip().split("\n") if l.strip()]
+        lines = [line_text for line_text in registry_path.read_text(encoding="utf-8").strip().split("\n") if line_text.strip()]
         for line in lines:
             entry = json.loads(line)
             if entry.get("agent") == old_id:
@@ -900,7 +927,7 @@ def cmd_rename(args: argparse.Namespace) -> int:
 
     # 4. Hello world registry
     if registry_path.exists() and hw_count > 0:
-        lines = [l for l in registry_path.read_text(encoding="utf-8").strip().split("\n") if l.strip()]
+        lines = [line_text for line_text in registry_path.read_text(encoding="utf-8").strip().split("\n") if line_text.strip()]
         updated_lines = []
         for line in lines:
             entry = json.loads(line)
@@ -1230,7 +1257,7 @@ def cmd_revoke(args: argparse.Namespace) -> int:
     # Load achievements
     ach_path = root / "ledger" / "achievements.json"
     if not ach_path.exists():
-        print(f"No achievements file found.")
+        print("No achievements file found.")
         return EXIT_DOMAIN_ERROR
 
     achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
@@ -1401,7 +1428,7 @@ def cmd_title(args: argparse.Namespace) -> int:
         if args.all:
             print("No achievements recorded yet.")
         else:
-            print(f"No achievements file found.")
+            print("No achievements file found.")
         return EXIT_OK
 
     achievements = json.loads(ach_path.read_text(encoding="utf-8-sig"))
@@ -1438,7 +1465,6 @@ def cmd_title(args: argparse.Namespace) -> int:
         return EXIT_OK
 
     title = ach.get("title", "")
-    words = ach.get("words", [])
     history = ach.get("history", [])
 
     if title:
@@ -1527,6 +1553,111 @@ def cmd_issue_edit(args: argparse.Namespace) -> int:
         print("Safe issue label edit applied.")
     else:
         print("No label changes were necessary.")
+    return EXIT_OK
+
+
+def cmd_pipeline_get_task(args: argparse.Namespace) -> int:
+    issue = view_issue(args.issue, repo=args.repo)
+    if not issue:
+        emit(f"Issue not found or unavailable: #{args.issue}")
+        return EXIT_DOMAIN_ERROR
+
+    issue_with_comments = view_issue_comments(args.issue, repo=args.repo)
+    payload = {
+        "issue": issue,
+        "comments": issue_with_comments.get("comments", []),
+    }
+    emit(json.dumps(payload, indent=2, ensure_ascii=False))
+    return EXIT_OK
+
+
+def cmd_pipeline_get_context(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    try:
+        context = render_pipeline_context(root, args.stage, agent)
+    except (ValueError, FileNotFoundError) as exc:
+        emit(f"Error: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    emit(context)
+    return EXIT_OK
+
+
+def cmd_pipeline_submit(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    raw = sys.stdin.read().strip()
+    if not raw:
+        emit("Error: JSON payload is required on stdin.")
+        return EXIT_RUNTIME_ERROR
+
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        emit(f"Error: invalid JSON input: {exc.msg}")
+        return EXIT_RUNTIME_ERROR
+
+    if not isinstance(payload, dict):
+        emit("Error: pipeline submission must be a JSON object.")
+        return EXIT_RUNTIME_ERROR
+
+    stage = normalize_stage(args.stage)
+    submitted_stage = str(payload.get("station", "")).strip()
+    if submitted_stage and submitted_stage.lower() != stage:
+        emit(f"Error: station mismatch: payload={submitted_stage!r}, command={stage!r}.")
+        return EXIT_DOMAIN_ERROR
+
+    agent = resolve_agent(getattr(args, "agent", None)) or str(payload.get("agent_id", "")).strip()
+    if agent:
+        payload.setdefault("agent_id", agent)
+    payload.setdefault("station", stage)
+
+    try:
+        validate_stage_payload(root, stage, payload)
+    except ValidationError as exc:
+        emit(f"Error: {exc.message}")
+        return EXIT_DOMAIN_ERROR
+    except ValueError as exc:
+        emit(f"Error: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    comment_agent = str(payload.get("agent_id", "")).strip() or "unknown"
+    comment = render_pipeline_comment(stage, payload, comment_agent)
+    if args.dry_run:
+        emit(comment)
+        return EXIT_OK
+
+    post_issue_comment(args.issue, comment, repo=args.repo)
+    emit(f"Posted {stage} pipeline comment on issue #{args.issue}.")
+    return EXIT_OK
+
+
+def cmd_trace_emit(args: argparse.Namespace) -> int:
+    run_dir = Path(args.run_dir).resolve()
+    run_id = args.run_id or run_dir.name
+
+    try:
+        payload = json.loads(args.payload_json)
+    except json.JSONDecodeError as exc:
+        print(f"Error: invalid --payload-json: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    try:
+        snapshot = emit_event(
+            run_dir,
+            {
+                "timestamp": args.timestamp or _now_iso(),
+                "run_id": run_id,
+                "event_type": args.event_type,
+                "source": args.source,
+                "payload": payload,
+            },
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        print(f"Error: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    emit(json.dumps(snapshot, ensure_ascii=False))
     return EXIT_OK
 
 
@@ -1702,10 +1833,52 @@ def build_parser() -> argparse.ArgumentParser:
     issue_edit.add_argument("--dry-run", action="store_true", help="Preview planned operations")
     issue_edit.set_defaults(_handler=cmd_issue_edit)
 
+    trace = subparsers.add_parser("trace", help="Run event observability utilities")
+    trace_subparsers = trace.add_subparsers(dest="trace_command")
+    trace_subparsers.required = True
+
+    trace_emit = trace_subparsers.add_parser("emit", help="Append one event to a local run directory")
+    trace_emit.add_argument("--run-dir", required=True, help="Path to .wea_runs/<run_id> directory")
+    trace_emit.add_argument("--run-id", default=None, help="Run identifier (defaults to run-dir name)")
+    trace_emit.add_argument("--event-type", required=True, help="Event type enum")
+    trace_emit.add_argument("--source", required=True, help="Emitter identity")
+    trace_emit.add_argument(
+        "--payload-json",
+        default="{}",
+        help="Event payload as JSON object (default: {})",
+    )
+    trace_emit.add_argument(
+        "--timestamp",
+        default=None,
+        help="ISO 8601 UTC timestamp (default: now)",
+    )
+    trace_emit.set_defaults(_handler=cmd_trace_emit)
+
+    pipeline = subparsers.add_parser("pipeline", help="Pipeline v3 utilities")
+    pipeline_subparsers = pipeline.add_subparsers(dest="pipeline_command")
+    pipeline_subparsers.required = True
+
+    pipeline_get_task = pipeline_subparsers.add_parser("get-task", help="Fetch issue body and comments as JSON")
+    pipeline_get_task.add_argument("issue", type=int, help="Issue number")
+    pipeline_get_task.set_defaults(_handler=cmd_pipeline_get_task)
+
+    pipeline_get_context = pipeline_subparsers.add_parser("get-context", help="Load local context for a pipeline stage")
+    pipeline_get_context.add_argument("stage", help="Pipeline stage name")
+    pipeline_get_context.add_argument("--agent", help="Agent ID for genome resolution")
+    pipeline_get_context.set_defaults(_handler=cmd_pipeline_get_context)
+
+    pipeline_submit = pipeline_subparsers.add_parser("submit", help="Validate and post pipeline JSON evaluation")
+    pipeline_submit.add_argument("stage", help="Pipeline stage name")
+    pipeline_submit.add_argument("--issue", type=int, required=True, help="Issue number")
+    pipeline_submit.add_argument("--agent", help="Agent ID (defaults to config/env or JSON payload)")
+    pipeline_submit.add_argument("--dry-run", action="store_true", help="Validate and render comment without posting")
+    pipeline_submit.set_defaults(_handler=cmd_pipeline_submit)
+
     return parser
 
 
 def main() -> int:
+    configure_stdio()
     parser = build_parser()
     args = parser.parse_args()
     if not args.command:
