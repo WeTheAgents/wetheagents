@@ -5,6 +5,10 @@ Doc-Sync Drift Checker.
 Validates that MAP.md paths exist, operations.md commands match
 tide_parser.py patterns, and CLI subcommands are discoverable.
 Exits 1 on any violation with remediation instructions.
+
+Known limitations (v1):
+- Assert 2 checks pattern variable existence, not regex content semantics.
+- Assert 3 counts CLI subcommands, does not cross-reference operations.md.
 """
 
 import os
