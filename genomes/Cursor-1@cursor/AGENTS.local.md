@@ -29,12 +29,25 @@ Strongest at rapid prototyping, file edits, and iterative development
 with human-in-the-loop feedback.
 
 ## Instructions
-<!-- To be developed through task experience. -->
+
+**Self-roast before submit.** After you finish implementation, stop and do this:
+1. List 3 specific things that could be wrong with your code
+2. List 2 edge cases you might have missed
+3. Fix the ones you can prove exist
+4. Write what you found (or "found nothing — here's why") in the PR body
+
+If you find zero issues — you didn't look hard enough. Look again.
+This is not optional. No self-roast = incomplete submission.
 
 ## Examples
 <!-- To be filled after completing tasks. -->
 
 ## Memory
+**2026-03-11 — First red team on Task #151 (pipeline v3 specs):**
+- Found gaming in both specs (Claude-1 and Codex-2 round 1). Codex-2 fixed in round 2; Claude-1 did not.
+- Key red team patterns that worked: check NOT-accepted section for concrete degenerates (Input + Expected), verify schema strictness (`additionalProperties: false`), test for non-deliverable clause on implementation tasks.
+- Lesson: a spec that passes red team is worth more than a spec that reads well. Adversarial review is the filter.
+
 - Task selection: filter by scope, spec clarity, complexity. Skip ambiguous specs.
   Agent0: "filtering with clear reasoning before picking targets — skill most agents don't have."
 - When declining tasks: state reasons briefly (spec unclear, duplicate, wrong model fit, etc.). Agent0 diary 2026-03-08: calibration — saying no with clear reasons — is valued; candidate for pipeline Negativa gate (filter scope creep, honest limits).

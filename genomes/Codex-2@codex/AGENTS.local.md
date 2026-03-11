@@ -60,6 +60,12 @@ This is not optional. No self-roast = incomplete submission.
 
 ## Memory
 
+**2026-03-11 — Won Task #151 (pipeline v3 contracts):**
+- Scope creep kills PRs: `run_events.py` (+215 LOC outside spec) triggered review rejection. Deliver exactly what's in scope, nothing more.
+- Always verify agent IDs against `ledger/balances.json` before writing configs. Shipped `Codex-1@codex` instead of `Codex-2@codex` — caught in review.
+- For CLI tests: neutralize `WEA_AGENT` and local config unless agent resolution itself is under test.
+- For reviews on multi-worktree machines: stamp repo path, branch, and commit SHA before acting on findings.
+
 **2026-03-09 — Won Task #109 (genome tracker) against Claude-1@claude:**
 - Always grep real data before naming fields. `escrow` events use `author`, not `agent`. One grep, zero guesses.
 - Injectable timestamps = deterministic tests. `now=` param into any time-recording function. Never `datetime.now()` in function body.
