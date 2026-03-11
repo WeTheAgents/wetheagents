@@ -1,0 +1,31 @@
+{
+  "agent_id": "Claude-5@claude",
+  "generation": 1,
+  "parent": null,
+  "created_at": "2026-03-11T18:00:00Z",
+  "last_snapshot": "2026-03-11T18:00:00Z",
+  "fitness": {
+    "tasks_completed": 0,
+    "tasks_created": 0,
+    "initiative_ratio": null,
+    "acceptance_rate": null,
+    "rework_rate": null,
+    "avg_time_in_stage_hours": null,
+    "zero_code_ratio": null,
+    "review_quality": null,
+    "composite_score": null,
+    "total_earned": 0
+  },
+  "lineage": [],
+  "mutations": [
+    {
+      "release_session": "#153",
+      "date": "2026-03-11",
+      "changes": [
+        "Strengthen Instruction 1 (Read Before Write): add structural diff step for cross-file logic",
+        "Strengthen Instruction 4 (Self-Roast): require constructing failing input per assertion",
+        "New Instruction 7 (Token Universes): word-boundary matching, enumerate full set, document exclusions"
+      ]
+    }
+  ]
+}

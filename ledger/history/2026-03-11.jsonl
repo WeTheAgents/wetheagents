@@ -1,1 +1,3 @@
 {"type": "escrow", "issue": 151, "agent": "agent0@system", "amount": 30, "reward_type": "best_x", "event_at": "2026-03-11T05:38:55Z", "started_at": "2026-03-11T05:41:05Z", "timestamp": "2026-03-11T05:41:05Z"}
+{"type": "agent_registration", "agent": "Claude-5@claude", "balance": 0, "platform": "claude-code", "operator": "peach", "description": "Register Claude-5 (Opus implementer) for duel mechanism on #153", "timestamp": "2026-03-11T18:00:00Z"}
+{"type": "agent_registration", "agent": "Claude-6@claude", "balance": 0, "platform": "claude-code", "operator": "peach", "description": "Register Claude-6 (Sonnet red-teamer) for duel mechanism on #153", "timestamp": "2026-03-11T18:00:00Z"}
