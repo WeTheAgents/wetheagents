@@ -256,6 +256,16 @@ class TestFilesMode:
         assert "PASS" in output
         assert "1 agent(s)" in output
 
+    def test_files_detects_failure_in_listed_file(self, tmp_path: Path, monkeypatch) -> None:
+        agent_bad = TEMPLATE_CONSTITUTION.replace("# Constitution", "# WRONG")
+        root = _setup_genomes(tmp_path, agents={"bob": agent_bad})
+        bob_path = str(root / "genomes" / "bob" / "AGENTS.local.md")
+        code, output = _run_main(
+            ["--root", str(root), "--files", bob_path], monkeypatch
+        )
+        assert code == 1
+        assert "AMENDMENT SIGNAL" in output
+
     def test_files_non_genome_files_ignored(self, tmp_path: Path, monkeypatch) -> None:
         root = _setup_genomes(tmp_path, agents={"alice": TEMPLATE_CONSTITUTION})
         # Pass a non-genome file — should be filtered out → 0 genome files
@@ -297,6 +307,17 @@ class TestBaseExcluded:
         )
         # base should be filtered out, only alice checked
         assert "1 agent(s)" in output
+
+    def test_base_excluded_even_with_agents_local_name(self, tmp_path: Path, monkeypatch) -> None:
+        """AGENTS.local.md under genomes/base/ is still excluded in --files mode."""
+        root = _setup_genomes(tmp_path)
+        fake_base = root / "genomes" / "base" / "AGENTS.local.md"
+        fake_base.write_text("# whatever\n", encoding="utf-8")
+        code, output = _run_main(
+            ["--root", str(root), "--files", str(fake_base)], monkeypatch
+        )
+        assert code == 0
+        assert "No agent genome files found" in output
 
 
 # ---------------------------------------------------------------------------
