@@ -23,6 +23,14 @@
 set -euo pipefail
 
 REPO=/home/user/wetheagents
+SESSION_ID="a0-$(hostname -s 2>/dev/null || echo local)-$(date +%s)"
+ACQUIRED_AGENTS=()
+AGENT_LOCK="$REPO/scripts/agent_lock.py"
+
+# NOTE: No trap EXIT for lock cleanup here.
+# Locks persist beyond setup — they protect agents during their entire runtime.
+# Locks auto-expire via TTL (default 2h). To release manually:
+#   python3 scripts/agent_lock.py release-all --session "$SESSION_ID"
 
 # ── Agent registry ──────────────────────────────────────────
 # Format: "slug|genome_id|agent_type|branch|display_name|email"
@@ -137,16 +145,16 @@ echo "=== Cloud Agent Setup ==="
 
 # ── 1. Install gh CLI ──────────────────────────────────────────────
 if ! command -v gh &>/dev/null; then
-  echo "[1/7] Installing gh CLI..."
+  echo "[1/8] Installing gh CLI..."
   curl -sL "https://github.com/cli/cli/releases/download/v2.87.3/gh_2.87.3_linux_amd64.tar.gz" \
     | tar -xz -C /tmp
   cp /tmp/gh_2.87.3_linux_amd64/bin/gh /usr/local/bin/gh
 else
-  echo "[1/7] gh CLI already installed"
+  echo "[1/8] gh CLI already installed"
 fi
 
 # ── 2. Install wea CLI in .venv ────────────────────────────────────
-echo "[2/7] Installing wea CLI..."
+echo "[2/8] Installing wea CLI..."
 cd "$REPO"
 if [ ! -d .venv ]; then
   python3 -m venv .venv
@@ -155,29 +163,60 @@ fi
 pip install -q -e .
 
 # ── 3. Fetch latest main ──────────────────────────────────────────
-echo "[3/7] Fetching latest main..."
+echo "[3/8] Fetching latest main..."
 git fetch origin main 2>/dev/null || true
 
-# ── 4. Create agent worktrees ─────────────────────────────────────
-echo "[4/7] Creating worktrees..."
+# ── 4. Acquire locks + create worktrees ──────────────────────────
+echo "[4/8] Acquiring locks and creating worktrees... (session: $SESSION_ID)"
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type branch _name _email <<< "$entry"
-  create_worktree "$slug" "$branch"
+  lock_stderr=$(mktemp)
+  if python3 "$AGENT_LOCK" acquire "$slug" --session "$SESSION_ID" --ttl 7200 2>"$lock_stderr"; then
+    ACQUIRED_AGENTS+=("$slug")
+    create_worktree "$slug" "$branch"
+  else
+    lock_rc=$?
+    if [ "$lock_rc" -eq 1 ]; then
+      echo "  SKIP: $slug locked by another session"
+    else
+      echo "  ERROR: failed to acquire $slug (exit $lock_rc):" >&2
+      cat "$lock_stderr" >&2
+      rm -f "$lock_stderr"
+      exit 1  # fail-fast on real errors (gh auth, network, etc.)
+    fi
+  fi
+  rm -f "$lock_stderr"
 done
 
+# ── Helper: check if agent was acquired ─────────────────────────────
+is_acquired() {
+  local needle="$1"
+  # ${arr[@]+...} pattern: safe with set -u on bash < 4.4 (empty array)
+  for a in ${ACQUIRED_AGENTS[@]+"${ACQUIRED_AGENTS[@]}"}; do
+    [ "$a" = "$needle" ] && return 0
+  done
+  return 1
+}
+
 # ── 5. Configure git identity per worktree ─────────────────────────
-echo "[5/7] Configuring git identity..."
+# --worktree writes to .git/worktrees/<name>/config.worktree (isolated).
+# --local would write to the shared .git/config (last-write-wins bug).
+echo "[5/8] Configuring git identity..."
+git -C "$REPO" config extensions.worktreeConfig true 2>/dev/null || true
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type _branch name email <<< "$entry"
+  is_acquired "$slug" || continue  # skip agents we didn't acquire
   local_wt="/home/user/wetheagents-${slug}"
-  git -C "$local_wt" config --local user.name "$name"
-  git -C "$local_wt" config --local user.email "$email"
+  [ -d "$local_wt" ] || continue
+  git -C "$local_wt" config --worktree user.name "$name"
+  git -C "$local_wt" config --worktree user.email "$email"
 done
 
 # ── 6. Deploy genomes ─────────────────────────────────────────────
-echo "[6/7] Deploying genomes..."
+echo "[6/8] Deploying genomes..."
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug genome_id agent_type _branch _name _email <<< "$entry"
+  is_acquired "$slug" || continue  # skip agents we didn't acquire
   deploy_genome "$slug" "$genome_id" "$agent_type"
 done
 
@@ -186,7 +225,7 @@ done
 # Embedding per-agent tokens in the URL would cause the last-written token to win.
 # Instead: use a credential helper that reads GITHUB_TOKEN from the environment.
 # Each agent is launched with its own GITHUB_TOKEN set, so the right token is used.
-echo "[7/7] Configuring push remotes..."
+echo "[7/8] Configuring push remotes..."
 
 # Install credential helper (reads GITHUB_TOKEN from env at push time)
 cat > /usr/local/bin/git-credential-github-token << 'CREDEOF'
@@ -204,6 +243,38 @@ git -C "$REPO" remote remove push-origin 2>/dev/null || true
 git -C "$REPO" remote add push-origin "https://github.com/WeTheAgents/wetheagents.git"
 echo "  ok: push-origin configured (credential helper reads GITHUB_TOKEN from env)"
 
+# ── 8. Start multi-provider auth proxy ────────────────────────────────
+# Routes API requests by path prefix (/anthropic, /openai, /gemini) to upstream,
+# transforms auth headers, and streams SSE responses.
+AUTH_PROXY_SCRIPT="$REPO/scripts/auth_proxy.py"
+AUTH_PROXY_PORT=18080
+AUTH_PROXY_PIDFILE="/tmp/auth-proxy.pid"
+
+if [ -f "$AUTH_PROXY_SCRIPT" ]; then
+  # Kill any existing proxy
+  if [ -f "$AUTH_PROXY_PIDFILE" ]; then
+    kill "$(cat "$AUTH_PROXY_PIDFILE")" 2>/dev/null || true
+    rm -f "$AUTH_PROXY_PIDFILE"
+  fi
+
+  python3 "$AUTH_PROXY_SCRIPT" "$AUTH_PROXY_PORT" &
+  echo $! > "$AUTH_PROXY_PIDFILE"
+  sleep 0.5
+
+  # Health check via /health endpoint
+  HEALTH=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$AUTH_PROXY_PORT/health" 2>/dev/null || echo "000")
+  if [ "$HEALTH" = "200" ]; then
+    PROVIDERS=$(curl -s "http://127.0.0.1:$AUTH_PROXY_PORT/health" | python3 -c "import sys,json; print(', '.join(json.load(sys.stdin)['providers']))" 2>/dev/null || echo "?")
+    echo "[8/8] Auth proxy started on port $AUTH_PROXY_PORT (PID $(cat "$AUTH_PROXY_PIDFILE"), providers: $PROVIDERS)"
+  elif kill -0 "$(cat "$AUTH_PROXY_PIDFILE")" 2>/dev/null; then
+    echo "[8/8] Auth proxy started on port $AUTH_PROXY_PORT (PID $(cat "$AUTH_PROXY_PIDFILE")) — health check failed"
+  else
+    echo "[8/8] WARN: Auth proxy failed to start"
+  fi
+else
+  echo "[8/8] SKIP: auth_proxy.py not found at $AUTH_PROXY_SCRIPT"
+fi
+
 # ── Optional: Install codex CLI ────────────────────────────────────
 if ! command -v codex &>/dev/null; then
   npm install -g @openai/codex 2>/dev/null && echo "codex CLI installed" \
@@ -211,14 +282,39 @@ if ! command -v codex &>/dev/null; then
 fi
 
 # ── Summary ────────────────────────────────────────────────────────
+SESSION_TOKEN_FILE="/home/claude/.claude/remote/.session_ingress_token"
+
 echo ""
-echo "=== Setup Complete ==="
+echo "=== Setup Complete (session: $SESSION_ID) ==="
+if [ ${#ACQUIRED_AGENTS[@]} -gt 0 ]; then
+  echo "Acquired agents: ${ACQUIRED_AGENTS[*]}"
+else
+  echo "Acquired agents: none"
+fi
+echo ""
 echo "Worktrees:"
 git worktree list
 echo ""
+echo "Auth proxy: http://127.0.0.1:$AUTH_PROXY_PORT"
+echo "  /anthropic/v1/...  → api.anthropic.com"
+echo "  /openai/v1/...     → api.openai.com"
+echo "  /gemini/v1beta/... → generativelanguage.googleapis.com"
+echo "  /health            → status + provider list"
+echo ""
 echo "Agent launch (from Agent0 session):"
-echo "  Claude-1:      GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude claude -p '...'"
-echo "  Codex-2:       GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"
+echo "  Claude-1:"
+echo "    cd /home/user/wetheagents-claude-1"
+echo "    source $REPO/.venv/bin/activate"
+echo "    GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude \\"
+echo "      env -u CLAUDECODE -u CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR -u CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR \\"
+echo "      ANTHROPIC_API_KEY=\"\$(cat $SESSION_TOKEN_FILE)\" \\"
+echo "      ANTHROPIC_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/anthropic\" \\"
+echo "      claude -p --model haiku --permission-mode default '...'"
+echo ""
+echo "  Codex-2:"
+echo "    OPENAI_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/openai\" \\"
+echo "      GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"
+echo ""
 echo "  Cursor-3:      (IDE — reads AGENTS.md in worktree)"
 echo "  Antigravity-4: (IDE — reads AGENTS.md in worktree)"
 echo ""
