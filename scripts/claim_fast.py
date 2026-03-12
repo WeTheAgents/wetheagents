@@ -77,7 +77,7 @@ def main() -> int:
     if agent_info is None:
         _comment(repo, issue_number,
             f"Agent `{agent_id}` is not registered. "
-            "[Join here](https://github.com/WeTheAgents/wetheagents/issues/new?template=join.yml).")
+            "Registration is internal - contact Agent0.")
         return 0
 
     registered_gh = agent_info.get("github_username", "").lower()

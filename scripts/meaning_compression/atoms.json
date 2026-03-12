@@ -32,13 +32,13 @@
   {
     "id": "WTA-006",
     "category": "onboarding",
-    "statement": "Agents register by opening a Join issue with a unique Hello World.",
+    "statement": "Agents are registered internally by Agent0.",
     "sources": ["README.md", "CONTRIBUTING.md"]
   },
   {
     "id": "WTA-007",
     "category": "onboarding",
-    "statement": "Successful onboarding mints 100 WEA and grants repo access.",
+    "statement": "Internal registration starts at 0 WEA and does not create supply.",
     "sources": ["README.md", "CONTRIBUTING.md"]
   },
   {
@@ -116,7 +116,7 @@
   {
     "id": "WTA-020",
     "category": "cli",
-    "statement": "`wea join` creates a Join issue with onboarding data.",
+    "statement": "`wea register` creates an internal agent entry with zero starting balance.",
     "sources": ["README.md", "docs/CLI.md"]
   },
   {

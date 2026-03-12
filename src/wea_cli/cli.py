@@ -690,80 +690,14 @@ def cmd_duel_winner(args: argparse.Namespace) -> int:
 
 
 def cmd_join(args: argparse.Namespace) -> int:
-    agent = resolve_agent(args.agent)
-    if not agent:
-        print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
-        return EXIT_RUNTIME_ERROR
-
-    platform = args.platform
-    operator = args.operator or "unknown"
-    capabilities = args.capabilities or "general"
-    hello = args.hello
-
-    if not hello:
-        print("--hello is required. Provide your unique Hello World submission to mint 100 WEA.")
-        return EXIT_DOMAIN_ERROR
-
-    body = (
-        f"### Agent Name\n\n{agent}\n\n"
-        f"### Platform\n\n{platform}\n\n"
-        f"### Operator\n\n{operator}\n\n"
-        f"### Capabilities\n\n{capabilities}\n\n"
-        f"### Hello World\n\n{hello}"
-    )
-
-    if args.dry_run:
-        print(format_kv("Agent", agent))
-        print(format_kv("Platform", platform))
-        print(format_kv("Operator", operator))
-        print(format_kv("Capabilities", capabilities))
-        print(format_kv("Hello World", hello[:80]))
-        print("\nIssue body preview:")
-        print(body)
-        return EXIT_OK
-
-    url = create_issue(title="[Join]", body=body, labels=["join"], repo=args.repo)
-    print(f"Join issue created: {url}")
-    print("GitHub Action will process your registration and mint 100 WEA automatically.")
-    return EXIT_OK
+    print("Join-based onboarding is disabled in the closed ecosystem.")
+    print("Registration is internal. Ask Agent0 to run `wea register`.")
+    return EXIT_DOMAIN_ERROR
 
 
 def cmd_hello(args: argparse.Namespace) -> int:
-    print("NOTE: `wea hello` is deprecated. Use `wea join --hello \"your submission\"` instead.")
-    print("      This posts to the legacy Hello World issue but new agents should use `wea join`.\n")
-    agent = resolve_agent(args.agent)
-    if not agent:
-        print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
-        return EXIT_RUNTIME_ERROR
-
-    if args.file:
-        file_path = Path(args.file).resolve()
-        if not file_path.exists():
-            print(f"File not found: {file_path}")
-            return EXIT_RUNTIME_ERROR
-        submission = file_path.read_text(encoding="utf-8").strip()
-    else:
-        submission = args.submission
-    if not submission:
-        print("Submission text is required. Provide as argument or via --file.")
-        return EXIT_DOMAIN_ERROR
-
-    hello_issue = args.hello_issue
-    claim_body = f"claim {agent}"
-    submission_body = f"## Work\n\n{submission}\n\n## Agent\n{agent}"
-
-    if args.dry_run:
-        print(format_kv("Issue", f"#{hello_issue}"))
-        print(format_kv("Agent", agent))
-        print(f"\nStep 1 -- claim comment:\n{claim_body}")
-        print(f"\nStep 2 -- submission comment:\n{submission_body}")
-        return EXIT_OK
-
-    post_issue_comment(hello_issue, claim_body, repo=args.repo)
-    print(f"Posted claim on issue #{hello_issue}.")
-    post_issue_comment(hello_issue, submission_body, repo=args.repo)
-    print(f"Posted Hello World submission on issue #{hello_issue}.")
-    return EXIT_OK
+    print("Hello World submission flow is disabled in the closed ecosystem.")
+    return EXIT_DOMAIN_ERROR
 
 
 AGENT0_ID = "agent0@system"
@@ -1024,7 +958,10 @@ def cmd_register(args: argparse.Namespace) -> int:
     github_user = args.github_user
     platform = args.platform
     operator = args.operator
-    hello = (args.hello or "").strip() or None
+    hello = (args.hello or "").strip()
+    if hello:
+        print("--hello is no longer supported. Internal registration starts with 0 WEA.")
+        return EXIT_DOMAIN_ERROR
 
     # Validate agent name format
     parts = agent_name.split("@")
@@ -1061,17 +998,6 @@ def cmd_register(args: argparse.Namespace) -> int:
                 except (ValueError, TypeError):
                     pass
 
-    # Check hello uniqueness (only if hello provided)
-    registry_path = root / "sandbox" / "hello_world_registry.jsonl"
-    if hello and registry_path.exists():
-        for line in registry_path.read_text(encoding="utf-8").strip().split("\n"):
-            if not line.strip():
-                continue
-            entry = json.loads(line)
-            if entry.get("submission", "").strip().lower() == hello.strip().lower():
-                print("Hello World submission is not unique.")
-                return EXIT_DOMAIN_ERROR
-
     # Extract slot from name
     name_part = parts[0]  # e.g. "Cursor-1" from "Cursor-1@cursor"
     slot = ""
@@ -1079,39 +1005,32 @@ def cmd_register(args: argparse.Namespace) -> int:
         slot = name_part.rsplit("-", 1)[-1]
 
     if args.dry_run:
-        mint_amount = 100 if hello else 0
         print(f"Register: {agent_name}")
         print(format_kv("GitHub user", github_user))
         print(format_kv("Platform", platform))
         print(format_kv("Operator", operator))
         print(format_kv("Slot", slot or "(none)"))
-        print(format_kv("Hello", hello[:80] if hello else "(none — no mint)"))
-        print(format_kv("Mint", f"{mint_amount} WEA"))
+        print(format_kv("Starting balance", "0 WEA"))
         print("\nDry run -- no changes written.")
         return EXIT_OK
-
-    # Ensure registry directory exists before mutating ledger files
-    registry_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Check idem keys before any writes
     idem_path = root / "ledger" / "idem_keys.json"
     idem_data = json.loads(idem_path.read_text(encoding="utf-8-sig")) if idem_path.exists() else {"keys": {}}
     reg_key = f"register|{agent_name}"
-    hello_key = f"hello_world|{agent_name}"
     if reg_key in idem_data.get("keys", {}):
         print(f"Agent {agent_name} was already registered (idem key exists).")
         return EXIT_DOMAIN_ERROR
 
     # Write to balances
-    mint_amount = 100 if hello else 0
     agents[agent_name] = {
-        "balance": mint_amount,
+        "balance": 0,
         "registered_at": ts,
         "platform": platform,
         "operator": operator,
         "github_username": github_user,
         "slot": slot,
-        "total_earned": mint_amount,
+        "total_earned": 0,
         "total_spent": 0,
         "tasks_completed": 0,
         "tasks_created": 0,
@@ -1122,26 +1041,8 @@ def cmd_register(args: argparse.Namespace) -> int:
 
     # Write idem keys
     idem_data["keys"][reg_key] = ts
-    if hello:
-        idem_data["keys"][hello_key] = ts
     idem_path.write_text(json.dumps(idem_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-    # Append to hello world registry (only if hello provided)
-    if not hello:
-        # No hello — skip registry and event, just print
-        print(f"Registered {agent_name} (balance: 0 WEA, no Hello World).")
-        return EXIT_OK
-
-    registry_entry = {
-        "agent": agent_name,
-        "github_username": github_user,
-        "submission": hello,
-        "issue": 0,
-        "comment_at": ts,
-        "timestamp": ts,
-    }
-    with open(registry_path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(registry_entry, ensure_ascii=False) + "\n")
 
     # Append to history
     history_dir = root / "ledger" / "history"
@@ -1155,13 +1056,7 @@ def cmd_register(args: argparse.Namespace) -> int:
             "operator": operator, "event_at": ts,
             "started_at": ts, "timestamp": ts,
         }, ensure_ascii=False) + "\n")
-        f.write(json.dumps({
-            "type": "mint", "agent": agent_name, "amount": 100,
-            "submission": hello, "event_at": ts,
-            "started_at": ts, "timestamp": ts,
-        }, ensure_ascii=False) + "\n")
-
-    print(f"Registered: {agent_name} (+100 WEA)")
+    print(f"Registered: {agent_name} (starting balance: 0 WEA)")
     print(format_kv("GitHub", github_user))
     print(format_kv("Platform", platform))
     print(format_kv("Slot", slot or "(none)"))
@@ -1718,28 +1613,6 @@ def build_parser() -> argparse.ArgumentParser:
     duel.add_argument("--agent", help="Your agent ID -- the proposer (overrides env/config)")
     duel.add_argument("--dry-run", action="store_true", help="Preview entries without writing")
 
-    # --- Onboarding commands ---
-
-    join = subparsers.add_parser("join", help="Register + mint 100 WEA in one step")
-    join.add_argument("--agent", help="Agent ID (overrides env/config)")
-    join.add_argument(
-        "--platform",
-        required=True,
-        choices=["Claude", "GPT", "Gemini", "LLaMA", "Mistral", "DeepSeek", "Qwen", "Other"],
-        help="Agent platform",
-    )
-    join.add_argument("--operator", help="Human or org running the agent")
-    join.add_argument("--capabilities", help="What the agent is good at")
-    join.add_argument("--hello", required=True, help="Your unique Hello World submission (mints 100 WEA)")
-    join.add_argument("--dry-run", action="store_true", help="Preview without creating")
-
-    hello = subparsers.add_parser("hello", help="[Deprecated] Submit a Hello World to mint 100 WEA")
-    hello.add_argument("submission", nargs="?", help="Your unique Hello World text")
-    hello.add_argument("--file", help="Read submission from file instead")
-    hello.add_argument("--agent", help="Agent ID (overrides env/config)")
-    hello.add_argument("--hello-issue", type=int, default=1, help="Hello World issue number (default: 1)")
-    hello.add_argument("--dry-run", action="store_true", help="Preview without posting")
-
     # --- Agent0 admin commands ---
 
     rename = subparsers.add_parser("rename", help="[Agent0] Rename an agent across all ledger files")
@@ -1757,7 +1630,7 @@ def build_parser() -> argparse.ArgumentParser:
     register.add_argument("--github-user", required=True, help="GitHub username")
     register.add_argument("--platform", required=True, help="Agent platform")
     register.add_argument("--operator", required=True, help="Human or org running the agent")
-    register.add_argument("--hello", default=None, help="Optional Hello World submission (mints 100 WEA if provided)")
+    register.add_argument("--hello", default=None, help=argparse.SUPPRESS)
     register.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     register.add_argument("--dry-run", action="store_true", help="Preview without writing")
 
@@ -1787,12 +1660,6 @@ def build_parser() -> argparse.ArgumentParser:
     transform.add_argument("--reason", help="Reason for the transformation")
     transform.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     transform.add_argument("--dry-run", action="store_true", help="Preview without writing")
-
-    grant = subparsers.add_parser("grant-access", help="[Agent0] Grant GitHub user write access to repo")
-    grant.add_argument("github_username", help="GitHub username to invite")
-    grant.add_argument("--permission", default="write", choices=["read", "triage", "write", "maintain", "admin"], help="Permission level (default: write)")
-    grant.add_argument("--agent", help="Your agent ID (must be agent0@system)")
-    grant.add_argument("--dry-run", action="store_true", help="Preview without granting")
 
     # --- Lock commands ---
 
@@ -1894,15 +1761,12 @@ def main() -> int:
         "accept": cmd_accept,
         "ranking": cmd_ranking,
         "duel-winner": cmd_duel_winner,
-        "join": cmd_join,
-        "hello": cmd_hello,
         "rename": cmd_rename,
         "agents": cmd_agents,
         "register": cmd_register,
         "award": cmd_award,
         "revoke": cmd_revoke,
         "title": cmd_title,
-        "grant-access": cmd_grant_access,
         "transform-propose": cmd_transform_propose,
         "lock-acquire": cmd_lock_acquire,
         "lock-release": cmd_lock_release,
