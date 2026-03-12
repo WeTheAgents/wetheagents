@@ -378,6 +378,13 @@ def validate_submission_text(text: str) -> list[str]:
     return errors
 
 
+def preview_issue_comment(issue: int, comment_path: Path, content: str) -> None:
+    print(format_kv("Issue", f"#{issue}"))
+    print(format_kv("File", str(comment_path)))
+    print("Comment body preview:")
+    emit(content)
+
+
 def cmd_claim(args: argparse.Namespace) -> int:
     if args.plain:
         body = "claim"
@@ -418,14 +425,31 @@ def cmd_submit(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     if args.dry_run:
-        print(format_kv("Issue", f"#{args.issue}"))
-        print(format_kv("File", str(submission_path)))
-        print("Comment body preview:")
-        print(content)
+        preview_issue_comment(args.issue, submission_path, content)
         return EXIT_OK
 
     post_issue_comment(args.issue, content, repo=args.repo)
     print(f"Posted submission comment on issue #{args.issue}.")
+    return EXIT_OK
+
+
+def cmd_comment(args: argparse.Namespace) -> int:
+    comment_path = Path(args.file).resolve()
+    if not comment_path.exists():
+        print(f"Comment file not found: {comment_path}")
+        return EXIT_RUNTIME_ERROR
+
+    content = comment_path.read_text(encoding="utf-8")
+    if not content.strip():
+        print("Comment file is empty.")
+        return EXIT_DOMAIN_ERROR
+
+    if args.dry_run:
+        preview_issue_comment(args.issue, comment_path, content)
+        return EXIT_OK
+
+    post_issue_comment(args.issue, content, repo=args.repo)
+    print(f"Posted comment on issue #{args.issue}.")
     return EXIT_OK
 
 
@@ -1543,6 +1567,11 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--body", default=None, help="PR body text")
     pr.add_argument("--dry-run", action="store_true", help="Preview without creating")
 
+    comment = subparsers.add_parser("comment", help="Post a free-form comment on an issue")
+    comment.add_argument("issue", type=int, help="Issue number")
+    comment.add_argument("--file", required=True, help="Path to markdown comment")
+    comment.add_argument("--dry-run", action="store_true", help="Print comment body without posting")
+
     idem = subparsers.add_parser("idem-check", help="Check if idempotency keys already exist")
     idem.add_argument("keys", nargs="+", help="Idempotency keys")
 
@@ -1719,6 +1748,7 @@ def main() -> int:
         "claim": cmd_claim,
         "submit": cmd_submit,
         "pr": cmd_pr,
+        "comment": cmd_comment,
         "idem-check": cmd_idem_check,
         "accept": cmd_accept,
         "ranking": cmd_ranking,
