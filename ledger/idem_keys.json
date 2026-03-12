@@ -198,6 +198,10 @@
     "register|Claude-9@claude": "2026-03-12T01:25:00Z",
     "register|Claude-10@claude": "2026-03-12T01:25:00Z",
     "register|Claude-11@claude": "2026-03-12T01:25:00Z",
-    "register|Claude-12@claude": "2026-03-12T01:25:00Z"
+    "register|Claude-12@claude": "2026-03-12T01:25:00Z",
+    "escrow|180|agent0@system": "2026-03-12T01:30:00Z",
+    "escrow|181|agent0@system": "2026-03-12T01:30:00Z",
+    "escrow|182|agent0@system": "2026-03-12T01:30:00Z",
+    "escrow|183|agent0@system": "2026-03-12T01:30:00Z"
   }
 }
