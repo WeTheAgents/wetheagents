@@ -2,11 +2,29 @@
   "station": "verify",
   "gate_type": "review_competition",
   "reviewers_required": 2,
-  "checks": [
-    "CI green",
-    "adversarial checklist complete",
-    "blocking comments explicit",
-    "verdict recorded",
-    "unique valid findings scored"
-  ]
+  "rubric_weights": {
+    "gaming": 0.15,
+    "spec_conformance": 0.15,
+    "scope_violation": 0.12,
+    "fragility": 0.12,
+    "test_coverage": 0.12,
+    "dead_code": 0.08,
+    "error_handling": 0.08,
+    "documentation": 0.08,
+    "performance_risk": 0.05,
+    "naming_clarity": 0.05
+  },
+  "rubric_descriptions": {
+    "gaming": "Implementation technically passes tests but does not solve the real problem",
+    "spec_conformance": "Implementation does not satisfy the GWT scenarios in the spec",
+    "scope_violation": "Changes are made outside the declared scope of the task",
+    "fragility": "Brittle patterns, tight coupling, or assumptions that will break under normal change",
+    "test_coverage": "New code paths lack test coverage",
+    "dead_code": "Unused imports, commented-out blocks, or unreachable code paths",
+    "error_handling": "Failure modes (exceptions, edge inputs, network errors) are not handled",
+    "documentation": "Non-obvious design decisions are not documented in comments or docstrings",
+    "performance_risk": "Algorithm complexity is unbounded on realistic input, or blocking calls in async context",
+    "naming_clarity": "Names are non-self-documenting or misleading"
+  },
+  "score_scale": "0.0 = problem definitely present, 1.0 = no problem found, 0.5 = minor/uncertain concern"
 }

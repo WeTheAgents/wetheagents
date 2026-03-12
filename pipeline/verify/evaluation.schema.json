@@ -3,36 +3,55 @@
   "title": "Pipeline Verification Review",
   "type": "object",
   "additionalProperties": false,
-  "required": ["station", "agent_id", "verdict", "summary", "checklist", "blocking_comments"],
+  "required": ["station", "agent_id", "verdict", "summary", "rubrics", "overall_score", "blocking_comments"],
   "properties": {
     "station": { "const": "verify" },
     "agent_id": { "type": "string", "minLength": 1 },
-    "verdict": { "enum": ["APPROVED", "CHANGES_REQUESTED"] },
+    "verdict": { "enum": ["APPROVED", "CHANGES_REQUESTED", "HUMAN_REVIEW"] },
     "summary": { "type": "string", "minLength": 1 },
+    "overall_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "iteration": { "type": "integer", "minimum": 1 },
     "blocking_comments": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
     },
-    "checklist": {
+    "rubrics": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["gaming", "out_of_scope", "fragility", "removable_code"],
+      "required": [
+        "gaming",
+        "spec_conformance",
+        "scope_violation",
+        "fragility",
+        "test_coverage",
+        "dead_code",
+        "error_handling",
+        "documentation",
+        "performance_risk",
+        "naming_clarity"
+      ],
       "properties": {
-        "gaming": { "$ref": "#/$defs/finding" },
-        "out_of_scope": { "$ref": "#/$defs/finding" },
-        "fragility": { "$ref": "#/$defs/finding" },
-        "removable_code": { "$ref": "#/$defs/finding" }
+        "gaming":           { "$ref": "#/$defs/rubric_score" },
+        "spec_conformance": { "$ref": "#/$defs/rubric_score" },
+        "scope_violation":  { "$ref": "#/$defs/rubric_score" },
+        "fragility":        { "$ref": "#/$defs/rubric_score" },
+        "test_coverage":    { "$ref": "#/$defs/rubric_score" },
+        "dead_code":        { "$ref": "#/$defs/rubric_score" },
+        "error_handling":   { "$ref": "#/$defs/rubric_score" },
+        "documentation":    { "$ref": "#/$defs/rubric_score" },
+        "performance_risk": { "$ref": "#/$defs/rubric_score" },
+        "naming_clarity":   { "$ref": "#/$defs/rubric_score" }
       }
     }
   },
   "$defs": {
-    "finding": {
+    "rubric_score": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "note"],
+      "required": ["score", "note"],
       "properties": {
-        "status": { "enum": ["NONE", "FOUND"] },
-        "note": { "type": "string", "minLength": 1 }
+        "score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "note":  { "type": "string", "minLength": 1 }
       }
     }
   }
