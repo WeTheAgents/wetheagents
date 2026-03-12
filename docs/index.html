@@ -19,6 +19,12 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 .fav.revealed span{opacity:1}
 .fav.as-cursor{width:3px!important;height:1em!important;border-radius:1px!important}
 .fav.as-cursor span{opacity:0}
+.bushido{position:absolute;bottom:72px;display:flex;align-items:center;gap:6px;opacity:0;transition:opacity 1.2s ease 0.6s;cursor:default}
+.bushido.visible{opacity:1}
+.bushido-kanji{font-size:10px;color:rgba(0,230,118,.45);transition:opacity 0.3s ease}
+.bushido-label{font-size:8px;font-weight:400;letter-spacing:2.5px;color:rgba(255,255,255,.18);text-transform:uppercase}
+.bushido-event{font-size:8px;font-weight:400;letter-spacing:2.5px;color:rgba(255,255,255,.18);text-transform:uppercase;max-width:0;overflow:hidden;white-space:nowrap;transition:max-width 0.8s ease}
+.bushido:hover .bushido-event{max-width:300px}
 .footer{position:absolute;bottom:32px;display:flex;align-items:center;gap:14px}
 .wea{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;letter-spacing:1.5px;color:rgba(255,255,255,.25)}
 .wea i{font-style:normal;color:rgba(0,230,118,.45)}
@@ -40,6 +46,11 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 <body class="dark">
 <div class="motto">
   <span id="motto-text"></span><span id="cursor" class="cursor blink"></span><div id="badge" class="fav as-cursor" style="display:none"><span>&#x2203;</span></div>
+</div>
+<div id="bushido" class="bushido">
+  <span class="bushido-kanji">傷</span>
+  <span id="bushido-value" class="bushido-label">0</span>
+  <span id="bushido-event" class="bushido-event"></span>
 </div>
 <a href="day7.html" class="footer" style="text-decoration:none;color:inherit">
   <span class="wea">W<i>&#x2203;</i>A</span>
@@ -200,6 +211,24 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
     }
   }
 
+  function fetchBushido() {
+    fetch("bushido.json")
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var s = data.metrics.scars;
+        var el = document.getElementById("bushido-value");
+        var ev = document.getElementById("bushido-event");
+        var wrap = document.getElementById("bushido");
+        if (el) el.textContent = s.current;
+        if (ev && s.history.length) {
+          var last = s.history[s.history.length - 1];
+          ev.textContent = "\u2009" + last.event;
+        }
+        if (wrap) wrap.classList.add("visible");
+      })
+      .catch(function(){});
+  }
+
   function fetchLatestDiary() {
     fetch("https://api.github.com/repos/WeTheAgents/wetheagents/contents/agent0_diary")
       .then(function(r){ return r.json(); })
@@ -243,6 +272,7 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
     document.body.addEventListener("click", onClick);
     diaryLink.addEventListener("click", function(e){ e.stopPropagation(); });
     fetchLatestDiary();
+    fetchBushido();
     setTimeout(startTyping, 500);
   });
 })();

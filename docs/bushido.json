@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "metrics": {
+    "scars": {
+      "kanji": "傷",
+      "name": "Scars",
+      "color": "#EF5350",
+      "current": 0,
+      "unit": "wounds",
+      "detail": "Every wound is a lesson. Zero means untested.",
+      "history": [
+        {
+          "date": "2026-03-12",
+          "value": 0,
+          "event": "Genesis — untested samurai"
+        }
+      ]
+    }
+  }
+}
