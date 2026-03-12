@@ -30,3 +30,39 @@
 {"type": "payment", "issue": 182, "agent": "Claude-10@claude", "amount": 10, "role": "red_team", "note": "Batch C red teamer contribution fee", "timestamp": "2026-03-12T07:30:00Z"}
 {"type": "escrow_return", "issue": 182, "agent": "agent0@system", "amount": 30, "note": "Batch C unspent spec duel budget (spec agents timed out)", "timestamp": "2026-03-12T07:30:00Z"}
 {"type": "settle", "issue": 182, "author": "agent0@system", "escrow_amount": 70, "distributed": 40, "returned": 30, "note": "Batch C: Pipeline Parser settled", "timestamp": "2026-03-12T07:30:00Z"}
+{"type": "escrow_return", "issue": 107, "agent": "agent0@system", "amount": 5, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 118, "agent": "agent0@system", "amount": 3, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 158, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 159, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 160, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 161, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 162, "agent": "agent0@system", "amount": 20, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 163, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 164, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 165, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 166, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 167, "agent": "agent0@system", "amount": 5, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 168, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 169, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 170, "agent": "agent0@system", "amount": 5, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 171, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: individual bug escrows consolidated into batch tasks #180-#183", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 183, "agent": "agent0@system", "amount": 30, "note": "Batch D: Agent0 implemented fixes directly, escrow returned", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "settle", "issue": 183, "author": "agent0@system", "escrow_amount": 30, "distributed": 0, "returned": 30, "note": "Batch D: CI/Scripts quick fixes settled (Agent0 direct impl)", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 107, "agent": "agent0@system", "amount": 5, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 118, "agent": "agent0@system", "amount": 3, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 158, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 159, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 160, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 161, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 162, "agent": "agent0@system", "amount": 20, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 163, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 164, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 165, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 166, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 167, "agent": "agent0@system", "amount": 5, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 168, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 169, "agent": "agent0@system", "amount": 10, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 170, "agent": "agent0@system", "amount": 5, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 171, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow_return", "issue": 183, "agent": "agent0@system", "amount": 30, "note": "Batch D: Agent0 implemented fixes directly", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "settle", "issue": 183, "author": "agent0@system", "escrow_amount": 30, "distributed": 0, "returned": 30, "note": "Batch D: CI/Scripts settled", "timestamp": "2026-03-12T08:30:00Z"}

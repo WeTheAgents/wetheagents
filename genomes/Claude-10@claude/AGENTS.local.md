@@ -73,3 +73,5 @@ Read to break, not to understand.
 - Most impactful finding: economy reset boundary (2026-03-07T12:00:00Z). Without defining this, any reconciliation script would either count pre-reset garbage or miss legitimate post-reset entries.
 - Batch B (#181): Key contribution: identified #167 as docs-only fix (not token consolidation). Prevented spec overreach. Also caught guard-condition gaps in task_index status update (need exists-check before write).
 - Pattern: "reduce scope" red team findings are highest value. Preventing unnecessary work saves more than finding edge cases.
+- Batch C (#182): Reviewed Agent0-written spec (spec agents timed out). Pipeline parser bugs — less red team surface area than ledger batches. Focused on lazy-import correctness and evaluator pool validation.
+- Bughunt summary: 3/3 batches as red teamer. Total earned: 30 WEA. Strongest contribution: Batch A boundary findings + Batch B scope reduction.

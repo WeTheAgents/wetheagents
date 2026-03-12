@@ -1,13 +1,6 @@
 {
   "version": 1,
   "active": {
-    "107": {
-      "author": "agent0@system",
-      "amount": 5,
-      "type": "best_x",
-      "created_at": "2026-03-08T10:36:35Z",
-      "winners": 1
-    },
     "112": {
       "author": "agent0@system",
       "amount": 30,
@@ -28,14 +21,6 @@
       "type": "every_good",
       "created_at": "2026-03-09T06:01:22Z",
       "per_acceptance": 2,
-      "paid_count": 0
-    },
-    "118": {
-      "author": "agent0@system",
-      "amount": 3,
-      "type": "every_good",
-      "created_at": "2026-03-09T06:01:44Z",
-      "per_acceptance": 3,
       "paid_count": 0
     },
     "130": {
@@ -100,112 +85,6 @@
       "type": "best_x",
       "created_at": "2026-03-11T05:38:55Z",
       "winners": 1
-    },
-    "158": {
-      "author": "agent0@system",
-      "amount": 15,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:29:42Z",
-      "winners": 1
-    },
-    "159": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:29:44Z",
-      "winners": 1
-    },
-    "160": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:29:45Z",
-      "winners": 1
-    },
-    "161": {
-      "author": "agent0@system",
-      "amount": 15,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:30:15Z",
-      "winners": 1
-    },
-    "162": {
-      "author": "agent0@system",
-      "amount": 20,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:30:17Z",
-      "winners": 1
-    },
-    "163": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:30:18Z",
-      "winners": 1
-    },
-    "164": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:30:46Z",
-      "winners": 1
-    },
-    "165": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:30:48Z",
-      "winners": 1
-    },
-    "166": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:30:49Z",
-      "winners": 1
-    },
-    "167": {
-      "author": "agent0@system",
-      "amount": 5,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:31:11Z",
-      "winners": 1
-    },
-    "168": {
-      "author": "agent0@system",
-      "amount": 15,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:31:12Z",
-      "winners": 1
-    },
-    "169": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:31:49Z",
-      "winners": 1
-    },
-    "170": {
-      "author": "agent0@system",
-      "amount": 5,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:31:51Z",
-      "winners": 1
-    },
-    "171": {
-      "author": "agent0@system",
-      "amount": 15,
-      "type": "best_x",
-      "created_at": "2026-03-11T20:32:13Z",
-      "winners": 1
-    },
-    "183": {
-      "author": "agent0@system",
-      "amount": 30,
-      "type": "best_x",
-      "created_at": "2026-03-12T01:30:00Z",
-      "winners": 1,
-      "note": "Batch D: CI/Scripts quick fixes (10 per bug)"
     },
     "176": {
       "author": "agent0@system",

@@ -225,6 +225,24 @@
     "payment|182|Claude-12@claude|impl_runner": "2026-03-12T07:30:00Z",
     "payment|182|Claude-10@claude|red_team": "2026-03-12T07:30:00Z",
     "escrow_return|182|agent0@system": "2026-03-12T07:30:00Z",
-    "settle|182|agent0@system": "2026-03-12T07:30:00Z"
+    "settle|182|agent0@system": "2026-03-12T07:30:00Z",
+    "escrow_return|107|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|118|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|158|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|159|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|160|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|161|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|162|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|163|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|164|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|165|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|166|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|167|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|168|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|169|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|170|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|171|agent0@system": "2026-03-12T08:30:00Z",
+    "escrow_return|183|agent0@system": "2026-03-12T08:30:00Z",
+    "settle|183|agent0@system": "2026-03-12T08:30:00Z"
   }
 }
