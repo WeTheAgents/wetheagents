@@ -10,7 +10,7 @@
     "verdict": { "enum": ["APPROVED", "CHANGES_REQUESTED", "HUMAN_REVIEW"] },
     "summary": { "type": "string", "minLength": 1 },
     "overall_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
-    "iteration": { "type": "integer", "minimum": 1 },
+    "iteration": { "type": "integer", "minimum": 1, "default": 1, "description": "Review cycle number. Iteration 1 = first review. Increment by 1 for each re-review after a refinement request." },
     "blocking_comments": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 }

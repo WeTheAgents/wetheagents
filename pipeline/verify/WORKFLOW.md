@@ -43,3 +43,36 @@ Output:
 - `overall_score` float (aggregator recomputes from rubrics),
 - verdict: `APPROVED`, `HUMAN_REVIEW`, or `CHANGES_REQUESTED`,
 - rework route if needed.
+
+## Refinement Loop
+
+Two loops exist at Verify. Only the external loop creates GitHub artifacts.
+
+### Internal loop (no protocol)
+
+Implementor self-polishes before submitting the PR: codex review, fix, roast, fix.
+No GitHub comments. No iteration tracking. Ends when the implementor is satisfied.
+
+### External loop (structured protocol)
+
+Triggered when a verify reviewer posts CHANGES_REQUESTED.
+
+Steps:
+
+1. **request-refinement**: run `wea pipeline request-refinement --issue <N>`. Reads the latest
+   CHANGES_REQUESTED evaluation, validates and posts a refinement_request JSON comment
+   listing exact blocking_comments. Fails if a request for that iteration already exists.
+
+2. **Fix**: implementor addresses every item in blocking_comments, updates the PR.
+
+3. **Re-review**: reviewer posts a new verify evaluation with `"iteration": <previous + 1>`.
+   The reviewer increments the counter. The CLI does not.
+
+4. **Loop or close**: APPROVED = done. CHANGES_REQUESTED and iteration < verify_max_iterations:
+   repeat from step 1.
+
+5. **ESCALATE**: CHANGES_REQUESTED and current_iteration >= verify_max_iterations (default 3).
+   `wea pipeline refinement-status --issue <N>` reports ESCALATE. Human judgment required.
+   No automated action is taken. Exit code is 0.
+
+Check state at any time: `wea pipeline refinement-status --issue <N>`

@@ -63,6 +63,7 @@
     }
   },
   "spec_max_iterations": 3,
+  "verify_max_iterations": 3,
   "verify_engine": {
     "selection": "most_unique_valid_findings",
     "candidates": ["Codex", "Claude"]
