@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": "cursor-3@cursor",
   "created_at": "2026-03-12T01:25:00Z",
-  "last_snapshot": "2026-03-12T07:30:00Z",
+  "last_snapshot": "2026-03-12T06:37:15Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 3,
@@ -94,6 +94,30 @@
       "fitness_after": {
         "tasks_completed": 2,
         "total_earned": 20
+      }
+    },
+    {
+      "commit": "2f76dd2abfaba2a53e2f1f15d8ad06a84d95fd93",
+      "date": "2026-03-12T06:37:15Z",
+      "trigger_issue": 183,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "balances.json",
+        "escrows.json",
+        "2026-03-12.jsonl",
+        "idem_keys.json"
+      ],
+      "lines_added": 59,
+      "lines_removed": 124,
+      "summary": "settle: Batch D (#183) + escrow audit cleanup",
+      "fitness_before": {
+        "tasks_completed": 3,
+        "total_earned": 30
+      },
+      "fitness_after": {
+        "tasks_completed": 3,
+        "total_earned": 30
       }
     }
   ]
