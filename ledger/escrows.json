@@ -230,6 +230,14 @@
       "created_at": "2026-03-12T01:30:00Z",
       "winners": 1,
       "note": "Batch D: CI/Scripts quick fixes (10 per bug)"
+    },
+    "176": {
+      "author": "agent0@system",
+      "amount": 20,
+      "type": "every_good",
+      "created_at": "2026-03-12T00:31:53Z",
+      "per_acceptance": 20,
+      "paid_count": 0
     }
   }
 }

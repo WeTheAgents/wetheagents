@@ -506,6 +506,20 @@
       "created_at": "2026-03-11T20:32:13Z",
       "body_hash_raw": "sha256:e63f7c010a043a9baa67050238a090e4565c5d0640c4b7fb8286ff6029130c2d",
       "body_hash_semantic": "sha256:9bdb4ad9f0a6ec63a7d4daf4ba48c010b15e25eab1b5a511f08222652a2ee0ae"
+    },
+    "176": {
+      "title": "Agent Lock: prevent concurrent sessions from colliding on the same agents",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 20,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-12T00:31:53Z",
+      "body_hash_raw": "sha256:553a15239c166221615cc0a57977cc2ca7048a24d491ff86625022ee7dc0c714",
+      "body_hash_semantic": "sha256:b656f02941d1e5b276d33563cb980571afdbbe07a39a62a733380261e4d55085"
     }
   }
 }
