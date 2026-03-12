@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": "cursor-3@cursor",
   "created_at": "2026-03-12T01:25:00Z",
-  "last_snapshot": "2026-03-12T06:30:00Z",
+  "last_snapshot": "2026-03-12T05:57:22Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 2,
@@ -69,6 +69,31 @@
       "fitness_after": {
         "tasks_completed": 1,
         "total_earned": 10
+      }
+    },
+    {
+      "commit": "2efae229edf4618829f4a62251be333498e13b50",
+      "date": "2026-03-12T05:57:22Z",
+      "trigger_issue": 181,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json",
+        "balances.json",
+        "escrows.json",
+        "2026-03-12.jsonl",
+        "idem_keys.json"
+      ],
+      "lines_added": 56,
+      "lines_removed": 42,
+      "summary": "settle: Batch B (#181) \u2014 70 WEA distributed, genome release",
+      "fitness_before": {
+        "tasks_completed": 2,
+        "total_earned": 20
+      },
+      "fitness_after": {
+        "tasks_completed": 2,
+        "total_earned": 20
       }
     }
   ]
