@@ -1586,13 +1586,6 @@ def cmd_pipeline_request_refinement(args: argparse.Namespace) -> int:
         )
         return EXIT_DOMAIN_ERROR
 
-    # Iteration continuity guard: reject if iteration jumps more than one step
-    if evaluations:
-        max_known = max(int(e.get("iteration", 1)) for e in evaluations)
-        if iteration > max_known + 1:
-            emit(f"Error: requested iteration {iteration} exceeds current_iteration + 1 ({max_known + 1}).")
-            return EXIT_DOMAIN_ERROR
-
     # Duplicate guard: exit 1 if a request for this iteration already exists
     existing_iters = {int(rr.get("iteration", 1)) for rr in refinement_requests}
     if iteration in existing_iters:

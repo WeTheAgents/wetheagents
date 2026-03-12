@@ -127,12 +127,48 @@ def compute_overall_score(rubrics: dict[str, dict], weights: dict[str, float]) -
     return round(min(1.0, max(0.0, score)), 10)
 
 
+_VERIFY_WEIGHTS: dict[str, float] = {
+    "gaming": 0.15,
+    "spec_conformance": 0.15,
+    "scope_violation": 0.12,
+    "fragility": 0.12,
+    "test_coverage": 0.12,
+    "dead_code": 0.08,
+    "error_handling": 0.08,
+    "documentation": 0.08,
+    "performance_risk": 0.05,
+    "naming_clarity": 0.05,
+}
+
+_AUTO_APPROVE_THRESHOLD = 0.85
+_REFINEMENT_THRESHOLD = 0.60
+
+
+def _eval_score(eval_payload: dict[str, Any]) -> float:
+    """Extract or compute a score for a single verify evaluation payload.
+
+    Priority order:
+    1. overall_score field (recomputed by aggregator from rubrics).
+    2. rubrics field — compute via VERIFY_WEIGHTS.
+    3. Legacy fallback: APPROVED verdict → 1.0, anything else → 0.0.
+    """
+    if "overall_score" in eval_payload:
+        return float(eval_payload["overall_score"])
+    if "rubrics" in eval_payload:
+        return compute_overall_score(eval_payload["rubrics"], _VERIFY_WEIGHTS)
+    # Legacy format: map verdict to binary score
+    return 1.0 if eval_payload.get("verdict") == "APPROVED" else 0.0
+
+
 def derive_status(
     evaluations: list[dict[str, Any]],
     refinement_requests: list[dict[str, Any]],
     verify_max_iterations: int,
 ) -> str:
     """Derive the current verify loop status from pre-parsed lists.
+
+    Uses score-based thresholds (same as aggregate_results) so the two tools
+    always agree on mixed-verdict groups.
 
     Pure function — no network access. Suitable for unit testing without mocking.
     Module: src/wea_cli/pipeline_support.py
@@ -151,10 +187,12 @@ def derive_status(
 
     current_iteration = max(int(e.get("iteration", 1)) for e in evaluations)
     latest_group = [e for e in evaluations if int(e.get("iteration", 1)) == current_iteration]
-    all_approved = all(e.get("verdict") == "APPROVED" for e in latest_group)
 
-    # APPROVED checked before ESCALATE — guarantees agreement with aggregate_results
-    if all_approved:
+    scores = [_eval_score(e) for e in latest_group]
+    avg = sum(scores) / len(scores)
+
+    # APPROVED checked first — mirrors aggregate_results to guarantee agreement
+    if avg >= _AUTO_APPROVE_THRESHOLD:
         return "APPROVED"
     if current_iteration >= verify_max_iterations:
         return "ESCALATE"

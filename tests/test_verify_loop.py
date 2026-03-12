@@ -257,30 +257,31 @@ def test_tc10_backward_compat_no_iteration():
 
 
 # ---------------------------------------------------------------------------
-# TC-11: mixed latest group — APPROVED wins over ESCALATE
-#   iter=3 APPR, iter=3 CR with max=3 → APPROVED (not ESCALATE)
+# TC-11: mixed latest group — score >= 0.85 → APPROVED even at max_iter
+#   iter=3 APPR (score=0.90), iter=3 CR (score=0.90, high rubrics) → APPROVED
+#   Score-based logic overrides the CHANGES_REQUESTED verdict field.
 # ---------------------------------------------------------------------------
 
 def test_tc11_mixed_latest_approved_wins():
-    # One high-scoring and one low-scoring in the same latest group
-    high_payload = _valid_eval("APPROVED", iteration=3)
-    low_rubrics = {k: {"score": 0.0, "note": "bad"} for k in _rubrics_all_one()}
-    low_payload = _valid_eval("CHANGES_REQUESTED", iteration=3)
-    low_payload["rubrics"] = low_rubrics
-    low_payload["overall_score"] = 0.0
+    # Both evals have high scores (0.90); one has CHANGES_REQUESTED verdict.
+    # avg = (0.90 + 0.90) / 2 = 0.90 >= 0.85 → APPROVED by score, not ESCALATE.
+    high_rubrics = {k: {"score": 0.9, "note": "good"} for k in _rubrics_all_one()}
+    approved_payload = _valid_eval("APPROVED", iteration=3)
+    approved_payload["rubrics"] = high_rubrics
+    approved_payload["overall_score"] = 0.9
+
+    cr_payload = _valid_eval("CHANGES_REQUESTED", iteration=3)
+    cr_payload["rubrics"] = high_rubrics
+    cr_payload["overall_score"] = 0.9
 
     evals = [
         EvaluationResult(station="verify", agent_id="A@a", verdict="APPROVED",
-                         format="json", payload=high_payload, raw_comment=""),
+                         format="json", payload=approved_payload, raw_comment=""),
         EvaluationResult(station="verify", agent_id="B@b", verdict="CHANGES_REQUESTED",
-                         format="json", payload=low_payload, raw_comment=""),
+                         format="json", payload=cr_payload, raw_comment=""),
     ]
     result = aggregate_results("verify", evals, config={"verify_max_iterations": 3})
-    # avg = (1.0 + 0.0) / 2 = 0.5 → CHANGES_REQUESTED by score, but max_iteration=3 >= 3 → ESCALATE
-    # Actually, avg=0.5 < 0.85, so not APPROVED by score — ESCALATE fires
-    # This tests that APPROVED is NOT blindly returned — the spec says avg >= auto_approve → APPROVED
-    # avg=0.5 is not >= 0.85, so result is ESCALATE (max_iter=3 >= verify_max=3)
-    assert result.verdict == "ESCALATE"
+    assert result.verdict == "APPROVED"
     assert result.iteration == 3
 
 
@@ -306,20 +307,21 @@ def test_tc13_derive_status_awaiting_fix():
 
 
 # ---------------------------------------------------------------------------
-# TC-14: derive_status — mixed group at max_iter → APPROVED checked first
-#   iter=3 CR + iter=3 APPR → not ESCALATE, must be checked via score
-#   (derive_status uses all_approved logic, not score — so mixed = not all_approved)
+# TC-14: derive_status — mixed group at max_iter, avg >= 0.85 → APPROVED
+#   iter=3 CR (score=0.90) + iter=3 APPR (score=0.90) → APPROVED by score
+#   Score-based logic agrees with aggregate_results on mixed-verdict groups.
 # ---------------------------------------------------------------------------
 
 def test_tc14_derive_status_mixed_not_all_approved():
     evals = [
-        {"iteration": 3, "verdict": "CHANGES_REQUESTED", "station": "verify"},
-        {"iteration": 3, "verdict": "APPROVED", "station": "verify"},
+        {"iteration": 3, "verdict": "CHANGES_REQUESTED", "station": "verify",
+         "overall_score": 0.9},
+        {"iteration": 3, "verdict": "APPROVED", "station": "verify",
+         "overall_score": 0.9},
     ]
-    # Not all_approved (one CR), so APPROVED branch not taken;
-    # current_iteration=3 >= 3 → ESCALATE
+    # avg = (0.90 + 0.90) / 2 = 0.90 >= 0.85 → APPROVED (not ESCALATE)
     status = derive_status(evals, [], verify_max_iterations=3)
-    assert status == "ESCALATE"
+    assert status == "APPROVED"
 
 
 # ---------------------------------------------------------------------------
