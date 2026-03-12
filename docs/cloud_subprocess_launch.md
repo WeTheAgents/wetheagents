@@ -159,6 +159,54 @@ Created by `environment-manager` at session startup. Persists for the session li
 2. Add an entry to the `PROVIDERS` dict
 3. Requests to `/{new_provider}/...` are automatically routed
 
+## Agent Locks (Concurrent Session Safety)
+
+When multiple Agent0 sessions run simultaneously (cloud + local), agent locks prevent two sessions from using the same agent.
+
+### How it works
+
+Locks are stored as JSON comments on GitHub issue #177 (labeled `agent-locks`). Each comment is a single JSON line:
+
+```json
+{"action":"acquire","agent":"claude-1","session":"a0-cloud-1741740622","expires":"2026-03-12T16:30:22Z","ts":"2026-03-12T14:30:22Z"}
+```
+
+- `cloud_agent_setup.sh` acquires locks automatically before creating worktrees
+- Locks expire after 2 hours (configurable via `--ttl`)
+- On session exit (or crash), locks are released via `trap EXIT`
+
+### Manual lock management
+
+```bash
+# Check status
+python3 scripts/agent_lock.py status
+wea lock-status
+
+# Acquire
+python3 scripts/agent_lock.py acquire claude-1 --session my-session --ttl 7200
+
+# Release
+python3 scripts/agent_lock.py release claude-1 --session my-session
+
+# Release all locks for a session
+python3 scripts/agent_lock.py release-all --session my-session
+```
+
+### Releasing a stuck lock
+
+If a session crashed without cleanup and the lock hasn't expired yet:
+
+```bash
+# Check who holds it
+python3 scripts/agent_lock.py status
+# → claude-1: LOCKED by a0-cloud-1741740622 (expires 2026-03-12T16:30:22Z)
+
+# Force release by posting a release comment with the holder's session ID
+python3 scripts/agent_lock.py release claude-1 --session a0-cloud-1741740622
+```
+
+Or just wait — locks expire automatically after TTL.
+
 ## Limitations
 
 - **Session-bound**: Anthropic token expires when the cloud session ends
@@ -170,7 +218,8 @@ Created by `environment-manager` at session startup. Persists for the session li
 | File | Purpose |
 |------|---------|
 | `scripts/auth_proxy.py` | Multi-provider streaming proxy (~240 lines) |
-| `scripts/cloud_agent_setup.sh` | Step 8 starts proxy with health check |
+| `scripts/agent_lock.py` | Agent lock manager (acquire/release/status) |
+| `scripts/cloud_agent_setup.sh` | Setup: worktrees, locks, proxy, genomes |
 | `/home/claude/.claude/remote/.session_ingress_token` | Session token (runtime) |
 
 ## Research Log

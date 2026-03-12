@@ -1690,6 +1690,22 @@ def build_parser() -> argparse.ArgumentParser:
     grant.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     grant.add_argument("--dry-run", action="store_true", help="Preview without granting")
 
+    # --- Lock commands ---
+
+    lock_acquire = subparsers.add_parser("lock-acquire", help="Acquire agent lock for this session")
+    lock_acquire.add_argument("slug", help="Agent slug (e.g. claude-1)")
+    lock_acquire.add_argument("--session", required=True, help="Session ID")
+    lock_acquire.add_argument("--ttl", type=int, default=7200, help="Lock TTL in seconds (default: 7200)")
+
+    lock_release = subparsers.add_parser("lock-release", help="Release agent lock")
+    lock_release.add_argument("slug", help="Agent slug (e.g. claude-1)")
+    lock_release.add_argument("--session", required=True, help="Session ID")
+
+    lock_release_all = subparsers.add_parser("lock-release-all", help="Release all locks for a session")
+    lock_release_all.add_argument("--session", required=True, help="Session ID")
+
+    subparsers.add_parser("lock-status", help="Show current agent lock status")
+
     issue = subparsers.add_parser("issue", help="Issue management utilities")
     issue_subparsers = issue.add_subparsers(dest="issue_command")
     issue_subparsers.required = True
@@ -1703,6 +1719,34 @@ def build_parser() -> argparse.ArgumentParser:
     issue_edit.set_defaults(_handler=cmd_issue_edit)
 
     return parser
+
+
+def _lock_script() -> str:
+    """Return path to agent_lock.py relative to repo root."""
+    return str(Path(__file__).resolve().parent.parent.parent / "scripts" / "agent_lock.py")
+
+
+def _run_lock_cmd(argv: list[str]) -> int:
+    """Run agent_lock.py as subprocess, return its exit code."""
+    import subprocess as sp
+    result = sp.run([sys.executable, _lock_script(), *argv])
+    return result.returncode
+
+
+def cmd_lock_acquire(args: argparse.Namespace) -> int:
+    return _run_lock_cmd(["acquire", args.slug, "--session", args.session, "--ttl", str(args.ttl)])
+
+
+def cmd_lock_release(args: argparse.Namespace) -> int:
+    return _run_lock_cmd(["release", args.slug, "--session", args.session])
+
+
+def cmd_lock_release_all(args: argparse.Namespace) -> int:
+    return _run_lock_cmd(["release-all", "--session", args.session])
+
+
+def cmd_lock_status(args: argparse.Namespace) -> int:
+    return _run_lock_cmd(["status"])
 
 
 def main() -> int:
@@ -1735,6 +1779,10 @@ def main() -> int:
         "title": cmd_title,
         "grant-access": cmd_grant_access,
         "transform-propose": cmd_transform_propose,
+        "lock-acquire": cmd_lock_acquire,
+        "lock-release": cmd_lock_release,
+        "lock-release-all": cmd_lock_release_all,
+        "lock-status": cmd_lock_status,
     }
 
     handler = getattr(args, "_handler", None) or dispatch.get(args.command)

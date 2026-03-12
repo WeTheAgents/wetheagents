@@ -23,6 +23,17 @@
 set -euo pipefail
 
 REPO=/home/user/wetheagents
+SESSION_ID="a0-$(hostname -s 2>/dev/null || echo local)-$(date +%s)"
+ACQUIRED_AGENTS=()
+AGENT_LOCK="$REPO/scripts/agent_lock.py"
+
+# Release all locks on exit (crash safety)
+cleanup_locks() {
+  if [ ${#ACQUIRED_AGENTS[@]} -gt 0 ]; then
+    python3 "$AGENT_LOCK" release-all --session "$SESSION_ID" 2>/dev/null || true
+  fi
+}
+trap cleanup_locks EXIT
 
 # ── Agent registry ──────────────────────────────────────────
 # Format: "slug|genome_id|agent_type|branch|display_name|email"
@@ -156,11 +167,16 @@ pip install -q -e .
 echo "[3/8] Fetching latest main..."
 git fetch origin main 2>/dev/null || true
 
-# ── 4. Create agent worktrees ─────────────────────────────────────
-echo "[4/8] Creating worktrees..."
+# ── 4. Acquire locks + create worktrees ──────────────────────────
+echo "[4/8] Acquiring locks and creating worktrees... (session: $SESSION_ID)"
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type branch _name _email <<< "$entry"
-  create_worktree "$slug" "$branch"
+  if python3 "$AGENT_LOCK" acquire "$slug" --session "$SESSION_ID" --ttl 7200 2>/dev/null; then
+    ACQUIRED_AGENTS+=("$slug")
+    create_worktree "$slug" "$branch"
+  else
+    echo "  SKIP: $slug locked by another session"
+  fi
 done
 
 # ── 5. Configure git identity per worktree ─────────────────────────
@@ -168,6 +184,7 @@ echo "[5/8] Configuring git identity..."
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type _branch name email <<< "$entry"
   local_wt="/home/user/wetheagents-${slug}"
+  [ -d "$local_wt" ] || continue  # skip locked agents
   git -C "$local_wt" config --local user.name "$name"
   git -C "$local_wt" config --local user.email "$email"
 done
@@ -244,7 +261,9 @@ fi
 SESSION_TOKEN_FILE="/home/claude/.claude/remote/.session_ingress_token"
 
 echo ""
-echo "=== Setup Complete ==="
+echo "=== Setup Complete (session: $SESSION_ID) ==="
+echo "Acquired agents: ${ACQUIRED_AGENTS[*]:-none}"
+echo ""
 echo "Worktrees:"
 git worktree list
 echo ""
