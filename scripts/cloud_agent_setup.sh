@@ -202,12 +202,9 @@ git -C "$REPO" remote remove push-origin 2>/dev/null || true
 git -C "$REPO" remote add push-origin "https://github.com/WeTheAgents/wetheagents.git"
 echo "  ok: push-origin configured (credential helper reads GITHUB_TOKEN from env)"
 
-# ── 8. Start auth proxy for subprocess launches ──────────────────────
-# In cloud sessions, Claude Code authenticates via session ingress (WebSocket).
-# Child `claude -p` processes cannot inherit this auth directly.
-# The session ingress token (sk-ant-si-*) works as a Bearer token but NOT
-# as x-api-key. This proxy rewrites x-api-key → Authorization: Bearer,
-# allowing child processes to authenticate through the parent's subscription.
+# ── 8. Start multi-provider auth proxy ────────────────────────────────
+# Routes API requests by path prefix (/anthropic, /openai, /gemini) to upstream,
+# transforms auth headers, and streams SSE responses.
 AUTH_PROXY_SCRIPT="$REPO/scripts/auth_proxy.py"
 AUTH_PROXY_PORT=18080
 AUTH_PROXY_PIDFILE="/tmp/auth-proxy.pid"
@@ -223,8 +220,13 @@ if [ -f "$AUTH_PROXY_SCRIPT" ]; then
   echo $! > "$AUTH_PROXY_PIDFILE"
   sleep 0.5
 
-  if kill -0 "$(cat "$AUTH_PROXY_PIDFILE")" 2>/dev/null; then
-    echo "[8/8] Auth proxy started on port $AUTH_PROXY_PORT (PID $(cat "$AUTH_PROXY_PIDFILE"))"
+  # Health check via /health endpoint
+  HEALTH=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$AUTH_PROXY_PORT/health" 2>/dev/null || echo "000")
+  if [ "$HEALTH" = "200" ]; then
+    PROVIDERS=$(curl -s "http://127.0.0.1:$AUTH_PROXY_PORT/health" | python3 -c "import sys,json; print(', '.join(json.load(sys.stdin)['providers']))" 2>/dev/null || echo "?")
+    echo "[8/8] Auth proxy started on port $AUTH_PROXY_PORT (PID $(cat "$AUTH_PROXY_PIDFILE"), providers: $PROVIDERS)"
+  elif kill -0 "$(cat "$AUTH_PROXY_PIDFILE")" 2>/dev/null; then
+    echo "[8/8] Auth proxy started on port $AUTH_PROXY_PORT (PID $(cat "$AUTH_PROXY_PIDFILE")) — health check failed"
   else
     echo "[8/8] WARN: Auth proxy failed to start"
   fi
@@ -246,6 +248,12 @@ echo "=== Setup Complete ==="
 echo "Worktrees:"
 git worktree list
 echo ""
+echo "Auth proxy: http://127.0.0.1:$AUTH_PROXY_PORT"
+echo "  /anthropic/v1/...  → api.anthropic.com"
+echo "  /openai/v1/...     → api.openai.com"
+echo "  /gemini/v1beta/... → generativelanguage.googleapis.com"
+echo "  /health            → status + provider list"
+echo ""
 echo "Agent launch (from Agent0 session):"
 echo "  Claude-1:"
 echo "    cd /home/user/wetheagents-claude-1"
@@ -253,10 +261,13 @@ echo "    source $REPO/.venv/bin/activate"
 echo "    GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude \\"
 echo "      env -u CLAUDECODE -u CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR -u CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR \\"
 echo "      ANTHROPIC_API_KEY=\"\$(cat $SESSION_TOKEN_FILE)\" \\"
-echo "      ANTHROPIC_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT\" \\"
+echo "      ANTHROPIC_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/anthropic\" \\"
 echo "      claude -p --model haiku --permission-mode default '...'"
 echo ""
-echo "  Codex-2:       GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"
+echo "  Codex-2:"
+echo "    OPENAI_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/openai\" \\"
+echo "      GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"
+echo ""
 echo "  Cursor-3:      (IDE — reads AGENTS.md in worktree)"
 echo "  Antigravity-4: (IDE — reads AGENTS.md in worktree)"
 echo ""
