@@ -9,8 +9,6 @@ import re
 import sys
 from typing import Any
 
-from jsonschema import validate
-
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
@@ -63,7 +61,10 @@ def load_station_schema(station: str, root: Path | None = None) -> dict[str, Any
 def _extract_json_payloads(body: str) -> list[dict[str, Any]]:
     payloads: list[dict[str, Any]] = []
     for match in JSON_BLOCK_RE.finditer(body):
-        payload = json.loads(match.group(1))
+        try:
+            payload = json.loads(match.group(1))
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Malformed JSON in evaluation block at line {e.lineno}, col {e.colno}: {e.msg}") from e
         if not isinstance(payload, dict):
             raise ValueError("JSON evaluation block must be an object.")
         payloads.append(payload)
@@ -87,6 +88,10 @@ def _payload_verdict(station: str, payload: dict[str, Any]) -> str:
 
 
 def _validate_json_payload(station: str, payload: dict[str, Any], root: Path | None) -> dict[str, Any]:
+    try:
+        from jsonschema import validate
+    except ImportError:
+        raise ImportError("jsonschema is required for pipeline commands. Install with: pip install jsonschema")
     validate(instance=payload, schema=load_station_schema(station, root=root))
     return payload
 
@@ -172,6 +177,36 @@ def _parse_verify_legacy(body: str) -> EvaluationResult:
     return EvaluationResult("verify", payload["agent_id"], payload["verdict"], "legacy", payload, body)
 
 
+def _parse_triage_legacy(body: str) -> EvaluationResult:
+    verdict_match = re.search(r"^Verdict:\s+(GO|NO_GO)(?:\s*\((.+)\))?$", body, re.MULTILINE)
+    agent_id = _extract_agent_from_header(body)
+    if not verdict_match:
+        payload = {"station": "triage", "agent_id": agent_id, "verdict": "UNKNOWN", "summary": "unparseable triage evaluation"}
+        return EvaluationResult("triage", agent_id, "UNKNOWN", "legacy_unparsed", payload, body)
+    payload = {
+        "station": "triage",
+        "agent_id": agent_id,
+        "verdict": verdict_match.group(1),
+        "summary": (verdict_match.group(2) or "legacy triage evaluation").strip(),
+    }
+    return EvaluationResult("triage", agent_id, payload["verdict"], "legacy", payload, body)
+
+
+def _parse_impl_legacy(body: str) -> EvaluationResult:
+    verdict_match = re.search(r"^Verdict:\s+(PASS|FAIL)(?:\s*\((.+)\))?$", body, re.MULTILINE)
+    agent_id = _extract_agent_from_header(body)
+    if not verdict_match:
+        payload = {"station": "impl", "agent_id": agent_id, "verdict": "UNKNOWN", "summary": "unparseable impl evaluation"}
+        return EvaluationResult("impl", agent_id, "UNKNOWN", "legacy_unparsed", payload, body)
+    payload = {
+        "station": "impl",
+        "agent_id": agent_id,
+        "verdict": verdict_match.group(1),
+        "summary": (verdict_match.group(2) or "legacy impl evaluation").strip(),
+    }
+    return EvaluationResult("impl", agent_id, payload["verdict"], "legacy", payload, body)
+
+
 def _parse_legacy_comment(body: str, station: str) -> EvaluationResult:
     normalized = normalize_stage(station)
     if normalized == "negativa":
@@ -180,6 +215,10 @@ def _parse_legacy_comment(body: str, station: str) -> EvaluationResult:
         return _parse_spec_legacy(body)
     if normalized == "verify":
         return _parse_verify_legacy(body)
+    if normalized == "triage":
+        return _parse_triage_legacy(body)
+    if normalized == "impl":
+        return _parse_impl_legacy(body)
     raise ValueError(f"Legacy parser not implemented for stage {station!r}")
 
 
@@ -206,6 +245,7 @@ def aggregate_results(
     evaluations: list[EvaluationResult],
     evaluators_required: int | None = None,
     kill_on_any_failure: bool | None = None,
+    config: dict | None = None,
 ) -> AggregateResult:
     normalized = normalize_stage(station)
     if not evaluations:
@@ -223,17 +263,30 @@ def aggregate_results(
         if kill_wins:
             verdict = "KILL" if "KILL" in verdicts else "PROCEED"
         else:
-            verdict = "KILL" if all(verdict == "KILL" for verdict in verdicts) else "PROCEED"
+            verdict = "KILL" if all(v == "KILL" for v in verdicts) else "PROCEED"
     elif normalized == "spec":
-        verdict = "APPROVED" if all(verdict == "APPROVED" for verdict in verdicts) else "REJECTED"
+        verdict = "APPROVED" if all(v == "APPROVED" for v in verdicts) else "REJECTED"
     elif normalized == "verify":
         verdict = (
             "APPROVED"
-            if all(verdict == "APPROVED" for verdict in verdicts)
+            if all(v == "APPROVED" for v in verdicts)
             else "CHANGES_REQUESTED"
         )
-    else:
+    elif normalized == "triage":
+        go_threshold = (config or {}).get("go_threshold", 3)
+        no_go_threshold = (config or {}).get("no_go_threshold", 3)
+        go_count = sum(1 for v in verdicts if v == "GO")
+        nogo_count = sum(1 for v in verdicts if v == "NO_GO")
+        if go_count >= go_threshold:
+            verdict = "GO"
+        elif nogo_count >= no_go_threshold:
+            verdict = "NO_GO"
+        else:
+            verdict = "TIE"
+    elif normalized == "impl":
         verdict = verdicts[-1]
+    else:
+        raise ValueError(f"Unknown stage for aggregation: {normalized!r}")
 
     return AggregateResult(station=normalized, verdict=verdict, evaluations=evaluations, reasons=reasons)
 
@@ -243,10 +296,12 @@ def aggregate_evaluations(
     evaluations: list[EvaluationResult],
     evaluators_required: int | None = None,
     kill_on_any_failure: bool | None = None,
+    config: dict | None = None,
 ) -> AggregateResult:
     return aggregate_results(
         station,
         evaluations,
         evaluators_required=evaluators_required,
         kill_on_any_failure=kill_on_any_failure,
+        config=config,
     )

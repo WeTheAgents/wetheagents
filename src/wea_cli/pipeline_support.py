@@ -6,8 +6,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from jsonschema import validate
-
 PIPELINE_STAGES = {"triage", "negativa", "spec", "impl", "verify"}
 
 COMMENT_HEADERS = {
@@ -98,6 +96,10 @@ def render_pipeline_context(root: Path, stage: str, agent_id: str | None) -> str
 
 def validate_stage_payload(root: Path, stage: str, payload: dict[str, Any]) -> dict[str, Any]:
     normalized = normalize_stage(stage)
+    try:
+        from jsonschema import validate
+    except ImportError:
+        raise ImportError("jsonschema is required for pipeline commands. Install with: pip install jsonschema")
     validate(instance=payload, schema=load_stage_schema(root, normalized))
     return payload
 

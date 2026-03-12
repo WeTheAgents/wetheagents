@@ -70,8 +70,11 @@
   "evaluator_pool": [
     "cursor-3@cursor",
     "Codex-2@codex",
-    "Claude-1@claude",
-    "Antigravity-1@Google"
+    "Claude-8@claude",
+    "Claude-9@claude",
+    "Claude-10@claude",
+    "Claude-11@claude",
+    "Claude-12@claude"
   ],
   "metrics_file": "pipeline/metrics/transitions.jsonl",
   "ci_commands": {

@@ -15,7 +15,15 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from scripts.pipeline_parser import aggregate_evaluations, aggregate_results, parse_evaluation_comment  # noqa: E402
+from scripts.pipeline_parser import (  # noqa: E402
+    EvaluationResult,
+    aggregate_evaluations,
+    aggregate_results,
+    parse_evaluation_comment,
+    _extract_json_payloads,
+    _parse_triage_legacy,
+    _parse_impl_legacy,
+)
 from wea_cli import cli  # noqa: E402
 from wea_cli.pipeline_support import normalize_stage, validate_stage_payload  # noqa: E402
 def _prepare_repo(root: Path) -> None:
@@ -482,3 +490,258 @@ def test_aggregate_results_verify_requires_unanimous_approval(temp_repo: Path) -
     )
 
     assert aggregate_results("verify", [approved, changes]).verdict == "CHANGES_REQUESTED"
+
+
+# ---------------------------------------------------------------------------
+# Bug #171 — aggregate_results triage/impl explicit branches, no else fallback
+# ---------------------------------------------------------------------------
+
+class TestAggregateResultsTriage:
+    """Tests for the triage branch in aggregate_results (Bug #171)."""
+
+    @staticmethod
+    def _make_eval(verdict: str) -> EvaluationResult:
+        return EvaluationResult(
+            station="triage",
+            agent_id="test-agent@test",
+            verdict=verdict,
+            format="synthetic",
+            payload={"summary": f"vote {verdict}"},
+            raw_comment="",
+        )
+
+    def test_triage_go_with_default_threshold(self) -> None:
+        evals = [self._make_eval("GO")] * 3 + [self._make_eval("NO_GO")]
+        result = aggregate_results("triage", evals)
+        assert result.verdict == "GO"
+
+    def test_triage_no_go_with_default_threshold(self) -> None:
+        evals = [self._make_eval("NO_GO")] * 3 + [self._make_eval("GO")]
+        result = aggregate_results("triage", evals)
+        assert result.verdict == "NO_GO"
+
+    def test_triage_tie_when_below_thresholds(self) -> None:
+        evals = [self._make_eval("GO")] * 2 + [self._make_eval("NO_GO")] * 2
+        result = aggregate_results("triage", evals)
+        assert result.verdict == "TIE"
+
+    def test_triage_custom_go_threshold_via_config(self) -> None:
+        evals = [self._make_eval("GO")] * 2
+        result = aggregate_results("triage", evals, config={"go_threshold": 2})
+        assert result.verdict == "GO"
+
+    def test_triage_custom_no_go_threshold_via_config(self) -> None:
+        evals = [self._make_eval("NO_GO")] * 2
+        result = aggregate_results("triage", evals, config={"no_go_threshold": 2})
+        assert result.verdict == "NO_GO"
+
+    def test_triage_config_none_uses_default_thresholds(self) -> None:
+        evals = [self._make_eval("GO")] * 2 + [self._make_eval("NO_GO")]
+        result = aggregate_results("triage", evals, config=None)
+        assert result.verdict == "TIE"
+
+
+class TestAggregateResultsImpl:
+    """Tests for the impl branch in aggregate_results (Bug #171)."""
+
+    @staticmethod
+    def _make_eval(verdict: str) -> EvaluationResult:
+        return EvaluationResult(
+            station="impl",
+            agent_id="test-agent@test",
+            verdict=verdict,
+            format="synthetic",
+            payload={"summary": f"CI {verdict}"},
+            raw_comment="",
+        )
+
+    def test_impl_uses_last_verdict(self) -> None:
+        evals = [self._make_eval("FAIL"), self._make_eval("PASS")]
+        result = aggregate_results("impl", evals)
+        assert result.verdict == "PASS"
+
+    def test_impl_single_evaluation(self) -> None:
+        evals = [self._make_eval("FAIL")]
+        result = aggregate_results("impl", evals)
+        assert result.verdict == "FAIL"
+
+
+class TestAggregateResultsUnknownStage:
+    """Tests that unknown stages raise ValueError (Bug #171 — no else fallback)."""
+
+    def test_unknown_stage_raises_value_error(self) -> None:
+        with pytest.raises(ValueError, match="Unknown pipeline stage"):
+            aggregate_results("nonexistent", [])
+
+
+class TestAggregateEvaluationsConfig:
+    """Tests that aggregate_evaluations passes config through (Bug #171)."""
+
+    @staticmethod
+    def _make_eval(verdict: str) -> EvaluationResult:
+        return EvaluationResult(
+            station="triage",
+            agent_id="test-agent@test",
+            verdict=verdict,
+            format="synthetic",
+            payload={"summary": "vote"},
+            raw_comment="",
+        )
+
+    def test_aggregate_evaluations_passes_config(self) -> None:
+        evals = [self._make_eval("GO")] * 2
+        result = aggregate_evaluations("triage", evals, config={"go_threshold": 2})
+        assert result.verdict == "GO"
+
+
+# ---------------------------------------------------------------------------
+# Bug #169 — jsonschema lazy import
+# ---------------------------------------------------------------------------
+
+class TestJsonschemaLazyImport:
+    """Tests that jsonschema is imported lazily (Bug #169)."""
+
+    def test_pipeline_parser_no_top_level_jsonschema_import(self) -> None:
+        import scripts.pipeline_parser as pp
+        source = Path(pp.__file__).read_text(encoding="utf-8")
+        lines = source.splitlines()
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("#") or stripped.startswith("from __future__"):
+                continue
+            if "from jsonschema import" in stripped and "def " not in stripped:
+                # Check it's not inside a function (indented)
+                if not line.startswith(" ") and not line.startswith("\t"):
+                    pytest.fail(f"Top-level jsonschema import found: {stripped}")
+
+    def test_pipeline_support_no_top_level_jsonschema_import(self) -> None:
+        import wea_cli.pipeline_support as ps
+        source = Path(ps.__file__).read_text(encoding="utf-8")
+        lines = source.splitlines()
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("#") or stripped.startswith("from __future__"):
+                continue
+            if "from jsonschema import" in stripped and "def " not in stripped:
+                if not line.startswith(" ") and not line.startswith("\t"):
+                    pytest.fail(f"Top-level jsonschema import found: {stripped}")
+
+
+# ---------------------------------------------------------------------------
+# Bug #170 — stale evaluator_pool
+# ---------------------------------------------------------------------------
+
+class TestEvaluatorPool:
+    """Tests for updated evaluator_pool in config.json (Bug #170)."""
+
+    def test_evaluator_pool_contains_new_agents(self) -> None:
+        config = json.loads((ROOT / "pipeline" / "config.json").read_text(encoding="utf-8"))
+        pool = config["evaluator_pool"]
+        for agent in ("Claude-8@claude", "Claude-9@claude", "Claude-10@claude", "Claude-11@claude", "Claude-12@claude"):
+            assert agent in pool, f"Missing {agent} from evaluator_pool"
+
+    def test_evaluator_pool_does_not_contain_stale_agents(self) -> None:
+        config = json.loads((ROOT / "pipeline" / "config.json").read_text(encoding="utf-8"))
+        pool = config["evaluator_pool"]
+        assert "Claude-1@claude" not in pool
+        assert "Antigravity-1@Google" not in pool
+
+    def test_evaluator_pool_retains_active_agents(self) -> None:
+        config = json.loads((ROOT / "pipeline" / "config.json").read_text(encoding="utf-8"))
+        pool = config["evaluator_pool"]
+        assert "cursor-3@cursor" in pool
+        assert "Codex-2@codex" in pool
+
+
+# ---------------------------------------------------------------------------
+# Bug #164 — legacy parser for triage and impl
+# ---------------------------------------------------------------------------
+
+class TestTriageLegacyParser:
+    """Tests for _parse_triage_legacy (Bug #164)."""
+
+    def test_triage_legacy_go_verdict(self) -> None:
+        body = "### Triage Record by cursor-3@cursor\n\nVerdict: GO (worth pursuing)\n"
+        result = _parse_triage_legacy(body)
+        assert result.station == "triage"
+        assert result.agent_id == "cursor-3@cursor"
+        assert result.verdict == "GO"
+        assert result.format == "legacy"
+        assert result.payload["summary"] == "worth pursuing"
+
+    def test_triage_legacy_no_go_verdict(self) -> None:
+        body = "### Triage Record by Codex-2@codex\n\nVerdict: NO_GO\n"
+        result = _parse_triage_legacy(body)
+        assert result.verdict == "NO_GO"
+        assert result.payload["summary"] == "legacy triage evaluation"
+
+    def test_triage_legacy_unparseable(self) -> None:
+        body = "### Triage Record by cursor-3@cursor\n\nNo verdict here.\n"
+        result = _parse_triage_legacy(body)
+        assert result.verdict == "UNKNOWN"
+        assert result.format == "legacy_unparsed"
+
+    def test_triage_legacy_via_parse_evaluation_comment(self, temp_repo: Path) -> None:
+        _prepare_repo(temp_repo)
+        body = "### Triage Record by cursor-3@cursor\n\nVerdict: GO (good task)\n"
+        result = parse_evaluation_comment(body, station="triage", root=temp_repo)
+        assert result.station == "triage"
+        assert result.verdict == "GO"
+        assert result.format == "legacy"
+
+
+class TestImplLegacyParser:
+    """Tests for _parse_impl_legacy (Bug #164)."""
+
+    def test_impl_legacy_pass_verdict(self) -> None:
+        body = "### Impl Evaluation by Claude-11@claude\n\nVerdict: PASS (all tests green)\n"
+        result = _parse_impl_legacy(body)
+        assert result.station == "impl"
+        assert result.agent_id == "Claude-11@claude"
+        assert result.verdict == "PASS"
+        assert result.format == "legacy"
+        assert result.payload["summary"] == "all tests green"
+
+    def test_impl_legacy_fail_verdict(self) -> None:
+        body = "### Impl Evaluation by Codex-2@codex\n\nVerdict: FAIL\n"
+        result = _parse_impl_legacy(body)
+        assert result.verdict == "FAIL"
+        assert result.payload["summary"] == "legacy impl evaluation"
+
+    def test_impl_legacy_unparseable(self) -> None:
+        body = "### Impl Evaluation by Claude-11@claude\n\nNo CI result.\n"
+        result = _parse_impl_legacy(body)
+        assert result.verdict == "UNKNOWN"
+        assert result.format == "legacy_unparsed"
+
+    def test_impl_legacy_via_parse_evaluation_comment(self, temp_repo: Path) -> None:
+        _prepare_repo(temp_repo)
+        body = "### Impl Evaluation by Codex-2@codex\n\nVerdict: PASS (CI green)\n"
+        result = parse_evaluation_comment(body, station="impl", root=temp_repo)
+        assert result.station == "impl"
+        assert result.verdict == "PASS"
+        assert result.format == "legacy"
+
+
+# ---------------------------------------------------------------------------
+# Bug #165 — malformed JSON error message
+# ---------------------------------------------------------------------------
+
+class TestMalformedJsonError:
+    """Tests for malformed JSON raising ValueError (Bug #165)."""
+
+    def test_malformed_json_raises_value_error(self) -> None:
+        body = '```json\n{"key": value_without_quotes}\n```'
+        with pytest.raises(ValueError, match="Malformed JSON in evaluation block"):
+            _extract_json_payloads(body)
+
+    def test_malformed_json_includes_position_info(self) -> None:
+        body = '```json\n{"key": }\n```'
+        with pytest.raises(ValueError, match=r"line \d+, col \d+"):
+            _extract_json_payloads(body)
+
+    def test_valid_json_still_works(self) -> None:
+        body = '```json\n{"station": "triage", "verdict": "GO"}\n```'
+        result = _extract_json_payloads(body)
+        assert len(result) == 1
+        assert result[0]["verdict"] == "GO"
