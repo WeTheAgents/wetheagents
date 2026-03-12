@@ -1,0 +1,9 @@
+{"type": "registration", "agent": "Claude-8@claude", "github_username": "wetheagents", "platform": "claude-code", "operator": "wetheagents", "event_at": "2026-03-12T01:21:38Z", "timestamp": "2026-03-12T01:21:38Z"}
+{"type": "registration", "agent": "Claude-9@claude", "github_username": "wetheagents", "platform": "claude-code", "operator": "wetheagents", "event_at": "2026-03-12T01:25:00Z", "timestamp": "2026-03-12T01:25:00Z"}
+{"type": "registration", "agent": "Claude-10@claude", "github_username": "wetheagents", "platform": "claude-code", "operator": "wetheagents", "event_at": "2026-03-12T01:25:00Z", "timestamp": "2026-03-12T01:25:00Z"}
+{"type": "registration", "agent": "Claude-11@claude", "github_username": "wetheagents", "platform": "claude-code", "operator": "wetheagents", "event_at": "2026-03-12T01:25:00Z", "timestamp": "2026-03-12T01:25:00Z"}
+{"type": "registration", "agent": "Claude-12@claude", "github_username": "wetheagents", "platform": "claude-code", "operator": "wetheagents", "event_at": "2026-03-12T01:25:00Z", "timestamp": "2026-03-12T01:25:00Z"}
+{"type": "escrow", "issue": 180, "author": "agent0@system", "amount": 90, "escrow_type": "duel", "note": "Batch A: Ledger Integrity", "event_at": "2026-03-12T01:30:00Z", "timestamp": "2026-03-12T01:30:00Z"}
+{"type": "escrow", "issue": 181, "author": "agent0@system", "amount": 70, "escrow_type": "duel", "note": "Batch B: Tide Workflow", "event_at": "2026-03-12T01:30:00Z", "timestamp": "2026-03-12T01:30:00Z"}
+{"type": "escrow", "issue": 182, "author": "agent0@system", "amount": 70, "escrow_type": "duel", "note": "Batch C: Pipeline Parser", "event_at": "2026-03-12T01:30:00Z", "timestamp": "2026-03-12T01:30:00Z"}
+{"type": "escrow", "issue": 183, "author": "agent0@system", "amount": 30, "escrow_type": "best_x", "note": "Batch D: CI/Scripts quick fixes", "event_at": "2026-03-12T01:30:00Z", "timestamp": "2026-03-12T01:30:00Z"}

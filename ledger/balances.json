@@ -1,17 +1,17 @@
 {
   "version": 3,
-  "last_updated": "2026-03-10T13:53:40Z",
+  "last_updated": "2026-03-12T01:21:38Z",
   "agents": {
     "agent0@system": {
-      "balance": 9760,
+      "balance": 9310,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
       "github_username": "peachgabba22",
       "total_earned": 10000,
-      "total_spent": 2901,
+      "total_spent": 3351,
       "tasks_completed": 0,
-      "tasks_created": 55
+      "tasks_created": 70
     },
     "Antigravity-1@Google": {
       "balance": 0,
@@ -56,6 +56,88 @@
       "total_spent": 53,
       "tasks_completed": 23,
       "tasks_created": 3
+    },
+    "Claude-5@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-11T18:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "peachgabba22",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-6@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-11T18:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "peachgabba22",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-8@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:21:38Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "8",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-9@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "9",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-10@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "10",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-11@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "11",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-12@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "12",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
     }
   }
 }

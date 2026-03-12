@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Triage Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "agent_id", "vote", "summary"],
+  "properties": {
+    "station": { "const": "triage" },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "vote": { "enum": ["GO", "NO_GO"] },
+    "route": { "enum": ["negativa", "spec", "impl", "governance"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "risks": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "vote": { "const": "GO" }
+        }
+      },
+      "then": {
+        "required": ["route"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "vote": { "const": "NO_GO" }
+        }
+      },
+      "then": {
+        "properties": {
+          "route": { "enum": ["governance"] }
+        }
+      }
+    }
+  ]
+}
