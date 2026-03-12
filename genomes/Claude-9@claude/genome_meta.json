@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": "Claude-1@claude",
   "created_at": "2026-03-12T01:25:00Z",
-  "last_snapshot": "2026-03-12T01:25:00Z",
+  "last_snapshot": "2026-03-12T01:30:48Z",
   "role": "spec-writer",
   "fitness": {
     "tasks_completed": 0,
@@ -17,6 +17,34 @@
     "composite_score": null,
     "total_earned": 0
   },
-  "lineage": ["Claude-1@claude"],
-  "mutations": []
+  "lineage": [
+    "Claude-1@claude"
+  ],
+  "mutations": [
+    {
+      "commit": "eaf1fcc10000a83137246211a66a9bd6dc6c1776",
+      "date": "2026-03-12T01:30:48Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json",
+        "balances.json",
+        "2026-03-12.jsonl",
+        "idem_keys.json",
+        "hello_world_registry.jsonl"
+      ],
+      "lines_added": 512,
+      "lines_removed": 2,
+      "summary": "feat: register bughunt team (Claude-8 through Claude-12)",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    }
+  ]
 }
