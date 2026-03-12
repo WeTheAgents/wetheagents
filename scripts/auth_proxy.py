@@ -48,18 +48,15 @@ def anthropic_auth(headers: dict) -> dict:
 
 
 def openai_auth(headers: dict) -> dict:
-    """OpenAI: env key → Bearer, or inject from ~/.codex/auth.json."""
+    """OpenAI: env key → Bearer, or passthrough client header.
+
+    Only uses explicitly-configured OPENAI_API_KEY env var.
+    Does NOT auto-inject credentials from local files — the proxy is a shared
+    localhost service, and any local process could otherwise use operator creds.
+    """
     env_key = os.environ.get("OPENAI_API_KEY")
     if env_key:
         headers["authorization"] = f"Bearer {env_key}"
-        return headers
-    if "authorization" not in headers:
-        auth_file = os.path.expanduser("~/.codex/auth.json")
-        if os.path.isfile(auth_file):
-            with open(auth_file) as f:
-                token = json.load(f).get("token")
-            if token:
-                headers["authorization"] = f"Bearer {token}"
     return headers
 
 

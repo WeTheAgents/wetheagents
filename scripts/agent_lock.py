@@ -14,6 +14,14 @@ Usage:
     python3 scripts/agent_lock.py status
 
 Exit codes: 0 = success, 1 = locked by another session, 2 = error.
+
+Limitations (advisory lock, not hard mutual exclusion):
+- GitHub comments API is eventually consistent. Double-verify with a settle
+  delay reduces the race window but cannot eliminate it entirely.
+- Session ownership is based on the --session string passed by the caller.
+  Any process that knows (or can read) the session ID can forge a release.
+  This is acceptable for a single-operator (Agent0) setup; for multi-tenant
+  use, a signed token protocol would be needed.
 """
 
 from __future__ import annotations
@@ -22,11 +30,13 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 
 REPO = "WeTheAgents/wetheagents"
 LOCK_LABEL = "agent-locks"
 DEFAULT_TTL = 7200  # 2 hours
+ACQUIRE_SETTLE_SECS = 2  # delay between post and verify to let GitHub propagate
 
 
 def _now() -> datetime:
@@ -57,15 +67,19 @@ def _find_lock_issue() -> int | None:
     return issues[0]["number"] if issues else None
 
 
+class FetchError(Exception):
+    """Raised when comment fetch fails (network, auth, etc.)."""
+
+
 def _fetch_comments(issue: int) -> list[dict]:
-    """Fetch all comments on the lock issue."""
+    """Fetch all comments on the lock issue. Raises FetchError on failure."""
     result = subprocess.run(
         ["gh", "issue", "view", str(issue), "--repo", REPO,
          "--comments", "--json", "comments"],
         capture_output=True, text=True,
     )
     if result.returncode != 0:
-        return []
+        raise FetchError(f"gh failed (exit {result.returncode}): {result.stderr.strip()}")
     data = json.loads(result.stdout or "{}")
     return data.get("comments", [])
 
@@ -81,7 +95,6 @@ def _post_comment(issue: int, payload: dict) -> None:
         if result.returncode == 0:
             return
         if attempt == 0:
-            import time
             time.sleep(2)
     raise RuntimeError(f"failed to post comment: {result.stderr.strip()}")
 
@@ -129,6 +142,21 @@ def get_lock_status(issue: int) -> dict[str, dict]:
 # ── Commands ─────────────────────────────────────────────────
 
 
+def _verify_acquire(issue: int, slug: str, session: str) -> str | None:
+    """Re-read lock state and check we still hold it.
+
+    Returns None if we hold it, or an error/competitor description if we lost.
+    Raises FetchError if the API call fails.
+    """
+    state = get_lock_status(issue)
+    entry = state.get(slug)
+    if not entry:
+        return "unknown (our acquire comment not visible)"
+    if entry.get("session") != session and _is_locked(entry, _now()):
+        return entry.get("session", "?")
+    return None
+
+
 def cmd_acquire(issue: int, slug: str, session: str, ttl: int) -> int:
     now = _now()
     state = get_lock_status(issue)
@@ -152,16 +180,22 @@ def cmd_acquire(issue: int, slug: str, session: str, ttl: int) -> int:
         "ts": _iso(now),
     })
 
-    # Read-after-write: verify we won the race
-    state2 = get_lock_status(issue)
-    entry2 = state2.get(slug)
-    if entry2 and entry2.get("session") != session and _is_locked(entry2, _now()):
-        # Another session's acquire is the latest — we lost the race.
-        # Do NOT post a release: that would overwrite the winner's lock
-        # (since _parse_lock_state uses "last comment wins" semantics).
-        # Our stale acquire will expire harmlessly via TTL.
-        holder = entry2.get("session", "?")
-        print(f"RACE LOST: {slug} locked by {holder}", file=sys.stderr)
+    # Double-verify with settle delay.
+    # GitHub's comment API is eventually consistent — an immediate re-read
+    # may miss a concurrent acquire. We wait ACQUIRE_SETTLE_SECS to let
+    # both posts propagate, then verify twice.
+    #
+    # Verify 1: immediate (catches fast races)
+    competitor = _verify_acquire(issue, slug, session)
+    if competitor:
+        print(f"RACE LOST: {slug} locked by {competitor}", file=sys.stderr)
+        return 1
+
+    # Verify 2: after settle delay (catches slow propagation)
+    time.sleep(ACQUIRE_SETTLE_SECS)
+    competitor = _verify_acquire(issue, slug, session)
+    if competitor:
+        print(f"RACE LOST: {slug} locked by {competitor}", file=sys.stderr)
         return 1
 
     print(f"acquired {slug} (session={session}, expires={expires})")
@@ -259,14 +293,18 @@ def main():
         print("ERROR: no open issue with label 'agent-locks' found", file=sys.stderr)
         return 2
 
-    if args.command == "acquire":
-        return cmd_acquire(issue, args.slug, args.session, args.ttl)
-    elif args.command == "release":
-        return cmd_release(issue, args.slug, args.session)
-    elif args.command == "release-all":
-        return cmd_release_all(issue, args.session)
-    elif args.command == "status":
-        return cmd_status(issue)
+    try:
+        if args.command == "acquire":
+            return cmd_acquire(issue, args.slug, args.session, args.ttl)
+        elif args.command == "release":
+            return cmd_release(issue, args.slug, args.session)
+        elif args.command == "release-all":
+            return cmd_release_all(issue, args.session)
+        elif args.command == "status":
+            return cmd_status(issue)
+    except (FetchError, RuntimeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
     return 2
 
 

@@ -175,6 +175,8 @@ Locks are stored as JSON comments on GitHub issue #177 (labeled `agent-locks`). 
 - Locks expire after 2 hours (configurable via `--ttl`)
 - Locks persist beyond setup — they protect agents during their entire runtime
 - Locks auto-expire via TTL; release manually with `release-all` when done
+- Acquire uses double-verify with a settle delay to reduce (but not eliminate) race conditions
+- **Advisory lock** — not hard mutual exclusion. Session ownership is string-based; acceptable for single-operator (Agent0) use
 
 ### Manual lock management
 
