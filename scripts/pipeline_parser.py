@@ -73,6 +73,7 @@ class AggregateResult:
     verdict: str
     evaluations: list[EvaluationResult] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
+    iteration: int = 1  # highest iteration group that produced the verdict
 
 
 def load_station_schema(station: str, root: Path | None = None) -> dict[str, Any]:
@@ -278,6 +279,7 @@ def aggregate_results(
 
     verdicts = [item.verdict for item in evaluations]
     reasons = [str(item.payload.get("summary", "")).strip() for item in evaluations if item.payload.get("summary")]
+    max_iteration = 1  # overwritten inside the verify branch
 
     if normalized == "negativa":
         kill_wins = True if kill_on_any_failure is None else kill_on_any_failure
@@ -288,12 +290,21 @@ def aggregate_results(
     elif normalized == "spec":
         verdict = "APPROVED" if all(v == "APPROVED" for v in verdicts) else "REJECTED"
     elif normalized == "verify":
+        # Group by iteration. Missing field defaults to 1 (backward compat).
+        iter_groups: dict[int, list[EvaluationResult]] = {}
+        for ev in evaluations:
+            it = int(ev.payload.get("iteration", 1))
+            iter_groups.setdefault(it, []).append(ev)
+        max_iteration = max(iter_groups)
+        latest_evals = iter_groups[max_iteration]
+
         thresholds = config or {}
         auto_approve = thresholds.get("auto_approve", 0.85)
         refinement = thresholds.get("refinement", 0.6)
+        verify_max = int(thresholds.get("verify_max_iterations", 3))
 
         scores: list[float] = []
-        for item in evaluations:
+        for item in latest_evals:
             if "rubrics" in item.payload:
                 scores.append(compute_overall_score(item.payload["rubrics"], VERIFY_WEIGHTS))
             else:
@@ -306,8 +317,11 @@ def aggregate_results(
                 scores.append(compute_overall_score(legacy_rubrics, VERIFY_LEGACY_WEIGHTS))
 
         avg = sum(scores) / len(scores)
+        # APPROVED checked first — mirrors derive_status to guarantee agreement
         if avg >= auto_approve:
             verdict = "APPROVED"
+        elif max_iteration >= verify_max:
+            verdict = "ESCALATE"
         elif avg >= refinement:
             verdict = "HUMAN_REVIEW"
         else:
@@ -328,7 +342,7 @@ def aggregate_results(
     else:
         raise ValueError(f"Unknown stage for aggregation: {normalized!r}")
 
-    return AggregateResult(station=normalized, verdict=verdict, evaluations=evaluations, reasons=reasons)
+    return AggregateResult(station=normalized, verdict=verdict, evaluations=evaluations, reasons=reasons, iteration=max_iteration)
 
 
 def aggregate_evaluations(

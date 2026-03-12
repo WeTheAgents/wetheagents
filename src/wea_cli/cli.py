@@ -29,6 +29,7 @@ from wea_cli.gh import (
 )
 from wea_cli.parsers import parse_task_metadata
 from wea_cli.pipeline_support import (
+    derive_status,
     normalize_stage,
     render_pipeline_comment,
     render_pipeline_context,
@@ -1515,6 +1516,168 @@ def cmd_pipeline_submit(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _load_pipeline_config(root: Path) -> dict[str, Any]:
+    path = root / "pipeline" / "config.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _parse_verify_comments(comments: list[dict[str, Any]]) -> tuple[list[dict], list[dict]]:
+    """Split issue comments into verify evaluations and refinement_requests.
+
+    Returns (evaluations, refinement_requests). Both lists contain raw JSON payloads.
+    A comment is a candidate if it contains a ```json block with station=="verify".
+    Evaluations have a 'verdict' field and type != 'refinement_request'.
+    Refinement requests have type == 'refinement_request'.
+    """
+    import re as _re
+    _json_block_re = _re.compile(r"```json\s*(\{.*?\})\s*```", _re.DOTALL | _re.IGNORECASE)
+    evaluations: list[dict] = []
+    refinement_requests: list[dict] = []
+    for comment in comments:
+        body = comment.get("body", "")
+        for match in _json_block_re.finditer(body):
+            try:
+                payload = json.loads(match.group(1))
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(payload, dict):
+                continue
+            if payload.get("station") != "verify":
+                continue
+            if payload.get("type") == "refinement_request":
+                refinement_requests.append(payload)
+            elif "verdict" in payload:
+                evaluations.append(payload)
+    return evaluations, refinement_requests
+
+
+def cmd_pipeline_request_refinement(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    config = _load_pipeline_config(root)
+    verify_max = int(config.get("verify_max_iterations", 3))
+
+    try:
+        data = view_issue_comments(args.issue, repo=args.repo)
+    except GhError as exc:
+        emit(f"Error: failed to fetch issue comments: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    comments = data.get("comments", [])
+    evaluations, refinement_requests = _parse_verify_comments(comments)
+
+    # Find latest CHANGES_REQUESTED evaluation
+    cr_evals = [e for e in evaluations if e.get("verdict") == "CHANGES_REQUESTED"]
+    if not cr_evals:
+        emit("Error: no CHANGES_REQUESTED evaluation found on this issue.")
+        return EXIT_DOMAIN_ERROR
+
+    # Highest iteration wins; ties broken by order (last in list wins)
+    source_eval = max(cr_evals, key=lambda e: int(e.get("iteration", 1)))
+    iteration = int(source_eval.get("iteration", 1))
+
+    # Iteration-jumping guard: block propagation of fabricated high-iteration states
+    if iteration >= verify_max:
+        emit(
+            f"Error: source evaluation is at or beyond verify_max_iterations ({verify_max})"
+            " — run refinement-status to check escalation state."
+        )
+        return EXIT_DOMAIN_ERROR
+
+    # Iteration continuity guard: reject if iteration jumps more than one step
+    if evaluations:
+        max_known = max(int(e.get("iteration", 1)) for e in evaluations)
+        if iteration > max_known + 1:
+            emit(f"Error: requested iteration {iteration} exceeds current_iteration + 1 ({max_known + 1}).")
+            return EXIT_DOMAIN_ERROR
+
+    # Duplicate guard: exit 1 if a request for this iteration already exists
+    existing_iters = {int(rr.get("iteration", 1)) for rr in refinement_requests}
+    if iteration in existing_iters:
+        emit(f"Error: refinement request already posted for iteration {iteration}.")
+        return EXIT_DOMAIN_ERROR
+
+    blocking = source_eval.get("blocking_comments", [])
+    if not blocking:
+        emit("Error: no blocking comments in the CHANGES_REQUESTED evaluation.")
+        return EXIT_DOMAIN_ERROR
+
+    reviewer_agent_id = str(source_eval.get("agent_id", "unknown")).strip() or "unknown"
+
+    payload: dict[str, Any] = {
+        "station": "verify",
+        "type": "refinement_request",
+        "issue_number": args.issue,
+        "iteration": iteration,
+        "blocking_comments": blocking,
+        "reviewer_agent_id": reviewer_agent_id,
+    }
+
+    # Validate against refinement_request schema
+    schema_path = root / "pipeline" / "verify" / "refinement_request.schema.json"
+    try:
+        schema = json.loads(schema_path.read_text(encoding="utf-8-sig"))
+    except (FileNotFoundError, json.JSONDecodeError) as exc:
+        emit(f"Error: cannot load refinement_request schema: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    try:
+        from jsonschema import validate, ValidationError as _VE
+        validate(instance=payload, schema=schema)
+    except _VE as exc:
+        emit(f"Error: {exc.message}")
+        return EXIT_DOMAIN_ERROR
+
+    comment_body = (
+        f"### Refinement Request by {reviewer_agent_id}\n\n"
+        f"```json\n{json.dumps(payload, indent=2, ensure_ascii=False)}\n```"
+    )
+
+    if args.dry_run:
+        emit(comment_body)
+        return EXIT_OK
+
+    try:
+        post_issue_comment(args.issue, comment_body, repo=args.repo)
+    except GhError as exc:
+        emit(f"Error: failed to post comment: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    emit(f"Posted refinement request for iteration {iteration} on issue #{args.issue}.")
+    return EXIT_OK
+
+
+def cmd_pipeline_refinement_status(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    config = _load_pipeline_config(root)
+    verify_max = int(config.get("verify_max_iterations", 3))
+
+    try:
+        data = view_issue_comments(args.issue, repo=args.repo)
+    except GhError as exc:
+        emit(f"Error: failed to fetch issue comments: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    comments = data.get("comments", [])
+    evaluations, refinement_requests = _parse_verify_comments(comments)
+
+    current_iteration = max((int(e.get("iteration", 1)) for e in evaluations), default=1)
+    status = derive_status(evaluations, refinement_requests, verify_max)
+
+    result = {
+        "issue": args.issue,
+        "current_iteration": current_iteration,
+        "verify_max_iterations": verify_max,
+        "status": status,
+        "evaluations_seen": len(evaluations),
+        "refinement_requests_seen": len(refinement_requests),
+    }
+    emit(json.dumps(result, indent=2))
+    return EXIT_OK
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -1699,6 +1862,19 @@ def build_parser() -> argparse.ArgumentParser:
     pipeline_submit.add_argument("--agent", help="Agent ID (defaults to config/env or JSON payload)")
     pipeline_submit.add_argument("--dry-run", action="store_true", help="Validate and render comment without posting")
     pipeline_submit.set_defaults(_handler=cmd_pipeline_submit)
+
+    pipeline_req_ref = pipeline_subparsers.add_parser(
+        "request-refinement", help="Post a structured refinement request from latest CHANGES_REQUESTED evaluation"
+    )
+    pipeline_req_ref.add_argument("--issue", type=int, required=True, help="Issue number")
+    pipeline_req_ref.add_argument("--dry-run", action="store_true", help="Print comment body without posting")
+    pipeline_req_ref.set_defaults(_handler=cmd_pipeline_request_refinement)
+
+    pipeline_ref_status = pipeline_subparsers.add_parser(
+        "refinement-status", help="Report current verify loop state for an issue"
+    )
+    pipeline_ref_status.add_argument("--issue", type=int, required=True, help="Issue number")
+    pipeline_ref_status.set_defaults(_handler=cmd_pipeline_refinement_status)
 
     return parser
 

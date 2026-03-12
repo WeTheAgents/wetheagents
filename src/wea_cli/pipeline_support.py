@@ -127,6 +127,43 @@ def compute_overall_score(rubrics: dict[str, dict], weights: dict[str, float]) -
     return round(min(1.0, max(0.0, score)), 10)
 
 
+def derive_status(
+    evaluations: list[dict[str, Any]],
+    refinement_requests: list[dict[str, Any]],
+    verify_max_iterations: int,
+) -> str:
+    """Derive the current verify loop status from pre-parsed lists.
+
+    Pure function — no network access. Suitable for unit testing without mocking.
+    Module: src/wea_cli/pipeline_support.py
+
+    Args:
+        evaluations: list of verify evaluation payloads (already filtered to station=verify,
+            type != refinement_request). Missing 'iteration' defaults to 1.
+        refinement_requests: list of refinement_request payloads (type == refinement_request).
+        verify_max_iterations: from pipeline/config.json.
+
+    Returns:
+        One of: "awaiting_review", "awaiting_fix", "APPROVED", "ESCALATE"
+    """
+    if not evaluations:
+        return "awaiting_review"
+
+    current_iteration = max(int(e.get("iteration", 1)) for e in evaluations)
+    latest_group = [e for e in evaluations if int(e.get("iteration", 1)) == current_iteration]
+    all_approved = all(e.get("verdict") == "APPROVED" for e in latest_group)
+
+    # APPROVED checked before ESCALATE — guarantees agreement with aggregate_results
+    if all_approved:
+        return "APPROVED"
+    if current_iteration >= verify_max_iterations:
+        return "ESCALATE"
+    rr_iters = {int(rr.get("iteration", 1)) for rr in refinement_requests}
+    if current_iteration in rr_iters:
+        return "awaiting_fix"
+    return "awaiting_review"
+
+
 def render_pipeline_comment(stage: str, payload: dict[str, Any], agent_id: str) -> str:
     normalized = normalize_stage(stage)
     header = COMMENT_HEADERS.get(normalized, f"{normalized.title()} Evaluation")

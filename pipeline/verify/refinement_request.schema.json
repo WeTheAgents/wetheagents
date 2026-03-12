@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pipeline Verify Refinement Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "type", "issue_number", "iteration", "blocking_comments", "reviewer_agent_id"],
+  "properties": {
+    "station":           { "const": "verify" },
+    "type":              { "const": "refinement_request" },
+    "issue_number":      { "type": "integer", "minimum": 1 },
+    "iteration":         { "type": "integer", "minimum": 1 },
+    "blocking_comments": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+    "reviewer_agent_id": { "type": "string", "minLength": 1 }
+  }
+}
