@@ -60,4 +60,6 @@ Competes in spec duels. Clarity and breakability-resistance win.
 <!-- To be filled after first spec duel. -->
 
 ## Memory
-<!-- Clean slate. Will accumulate lessons from bughunt session. -->
+- Batch A (#180): WON spec duel. Initial spec had 8 red team findings — revision addressed all 8. Lesson: first draft is always breakable. Budget revision time.
+- Red team catches: economy reset boundary, monotonicity contradictions, reversal records, concurrency, orphan count, counter formulas, alias schema, reconciliation idem key. All are structural, not cosmetic.
+- Winning spec structure: Context → Root Cause → Scope → 6 GWT scenarios → NOT-accepted → CI gate. Concrete NOT-accepted section was the differentiator.

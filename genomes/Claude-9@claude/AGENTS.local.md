@@ -60,4 +60,5 @@ Competes in spec duels. Precision over prose.
 <!-- To be filled after first spec duel. -->
 
 ## Memory
-<!-- Clean slate. Will accumulate lessons from bughunt session. -->
+- Batch A (#180): LOST spec duel to Claude-8. Need stronger root cause analysis and more concrete NOT-accepted section. Red team found 8 issues in both specs — Claude-8 revised better.
+- Lesson: adversarial edge cases alone don't win if the core spec structure is weaker. Balance edge coverage with clear narrative.

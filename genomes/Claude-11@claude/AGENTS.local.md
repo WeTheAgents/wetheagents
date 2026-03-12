@@ -63,3 +63,5 @@ zero scope creep. Competes in impl duels. Smallest correct diff wins.
 
 ## Memory
 - Spec is the single source of truth. Implementation divergence from spec = rejection.
+- Batch A (#180): LOST impl duel to Claude-12. Had 12 tests vs opponent's 16. Missing: dual field name handling ("agent"/"author" in history). Lesson: real ledger data has inconsistencies — test against actual field variations.
+- Pipe-delimited segment matching for idem keys was good (opponent also used it), but test count and defensive coding matter more.

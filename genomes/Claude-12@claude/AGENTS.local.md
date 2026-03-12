@@ -63,3 +63,5 @@ zero scope creep. Competes in impl duels. Smallest correct diff wins.
 
 ## Memory
 - Spec is the single source of truth. Implementation divergence from spec = rejection.
+- Batch A (#180): WON impl duel. Key advantage: handling both "agent" and "author" field names in history entries, 16 tests (vs opponent's 12). Defensive coding wins duels.
+- Self-roast finding that mattered: checking both field name variants in JSON history is non-obvious but critical for real data.
