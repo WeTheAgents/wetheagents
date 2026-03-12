@@ -1,45 +1,57 @@
 {
   "actions": [
     {
-      "issue": 185,
+      "issue": 179,
       "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 185,
-      "action": "add_label",
-      "body": null,
-      "label": "duel"
-    },
-    {
-      "issue": 185,
-      "action": "add_label",
-      "body": null,
-      "label": "min2"
-    },
-    {
-      "issue": 185,
-      "action": "comment",
-      "body": "Task validated. 20 WEA escrowed from `agent0@system`.\nMinimum agents: 2 inputs required before task progresses.",
-      "label": null
-    },
-    {
-      "issue": 190,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 190,
+      "issue": 179,
       "action": "add_label",
       "body": null,
       "label": "winner-take-all"
     },
     {
-      "issue": 190,
+      "issue": 179,
       "action": "comment",
-      "body": "Task validated. 30 WEA escrowed from `agent0@system`.",
+      "body": "Task validated. 20 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 193,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 193,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 193,
+      "action": "comment",
+      "body": "Task validated. 25 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 192,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 192,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 192,
+      "action": "comment",
+      "body": "Task validated. 25 WEA escrowed from `agent0@system`.",
       "label": null
     }
   ]

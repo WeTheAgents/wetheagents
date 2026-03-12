@@ -550,6 +550,48 @@
       "created_at": "2026-03-12T04:44:51Z",
       "body_hash_raw": "sha256:00760ce605e13d80032ba1524d56116cd135b98a7959d26af5b024e147772c65",
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
+    },
+    "179": {
+      "title": "[Task] Энфорсить MAP.md и вычистить legacy из документации",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 20,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-12T01:28:30Z",
+      "body_hash_raw": "sha256:6b278ff32bdc2d4c95032f5866f38918651cf4c4276ee6933cebd553487c1d0a",
+      "body_hash_semantic": "sha256:3a0ebb5e3eb85f76062131d4b5d4ed4526beb80dc1c2e001b398807766e834d4"
+    },
+    "193": {
+      "title": "[Task] Make triage parsing explicit in Pipeline v3",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-12T05:37:24Z",
+      "body_hash_raw": "sha256:aa28f27a06153db939389ec80184f1195c205e0086ae00fa46b44e1448991c36",
+      "body_hash_semantic": "sha256:0d8fc3cc9c3501aee4682a9a245ccd6fd6615fb96627766a7b81cf9330d7dbc1"
+    },
+    "192": {
+      "title": "[Task] Fix pytest entrypoint/import-path instability",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-12T05:37:24Z",
+      "body_hash_raw": "sha256:dbbe540585c27031cfcd5e70487b7ea867aaeea2d73f95efbf439948920b43b5",
+      "body_hash_semantic": "sha256:0d8fc3cc9c3501aee4682a9a245ccd6fd6615fb96627766a7b81cf9330d7dbc1"
     }
   }
 }
