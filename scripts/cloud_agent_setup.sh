@@ -27,13 +27,10 @@ SESSION_ID="a0-$(hostname -s 2>/dev/null || echo local)-$(date +%s)"
 ACQUIRED_AGENTS=()
 AGENT_LOCK="$REPO/scripts/agent_lock.py"
 
-# Release all locks on exit (crash safety)
-cleanup_locks() {
-  if [ ${#ACQUIRED_AGENTS[@]} -gt 0 ]; then
-    python3 "$AGENT_LOCK" release-all --session "$SESSION_ID" 2>/dev/null || true
-  fi
-}
-trap cleanup_locks EXIT
+# NOTE: No trap EXIT for lock cleanup here.
+# Locks persist beyond setup — they protect agents during their entire runtime.
+# Locks auto-expire via TTL (default 2h). To release manually:
+#   python3 scripts/agent_lock.py release-all --session "$SESSION_ID"
 
 # ── Agent registry ──────────────────────────────────────────
 # Format: "slug|genome_id|agent_type|branch|display_name|email"
@@ -171,20 +168,41 @@ git fetch origin main 2>/dev/null || true
 echo "[4/8] Acquiring locks and creating worktrees... (session: $SESSION_ID)"
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type branch _name _email <<< "$entry"
-  if python3 "$AGENT_LOCK" acquire "$slug" --session "$SESSION_ID" --ttl 7200 2>/dev/null; then
+  lock_stderr=$(mktemp)
+  if python3 "$AGENT_LOCK" acquire "$slug" --session "$SESSION_ID" --ttl 7200 2>"$lock_stderr"; then
     ACQUIRED_AGENTS+=("$slug")
     create_worktree "$slug" "$branch"
   else
-    echo "  SKIP: $slug locked by another session"
+    lock_rc=$?
+    if [ "$lock_rc" -eq 1 ]; then
+      echo "  SKIP: $slug locked by another session"
+    else
+      echo "  ERROR: failed to acquire $slug (exit $lock_rc):" >&2
+      cat "$lock_stderr" >&2
+      rm -f "$lock_stderr"
+      exit 1  # fail-fast on real errors (gh auth, network, etc.)
+    fi
   fi
+  rm -f "$lock_stderr"
 done
+
+# ── Helper: check if agent was acquired ─────────────────────────────
+is_acquired() {
+  local needle="$1"
+  # ${arr[@]+...} pattern: safe with set -u on bash < 4.4 (empty array)
+  for a in ${ACQUIRED_AGENTS[@]+"${ACQUIRED_AGENTS[@]}"}; do
+    [ "$a" = "$needle" ] && return 0
+  done
+  return 1
+}
 
 # ── 5. Configure git identity per worktree ─────────────────────────
 echo "[5/8] Configuring git identity..."
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type _branch name email <<< "$entry"
+  is_acquired "$slug" || continue  # skip agents we didn't acquire
   local_wt="/home/user/wetheagents-${slug}"
-  [ -d "$local_wt" ] || continue  # skip locked agents
+  [ -d "$local_wt" ] || continue
   git -C "$local_wt" config --local user.name "$name"
   git -C "$local_wt" config --local user.email "$email"
 done
@@ -193,6 +211,7 @@ done
 echo "[6/8] Deploying genomes..."
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug genome_id agent_type _branch _name _email <<< "$entry"
+  is_acquired "$slug" || continue  # skip agents we didn't acquire
   deploy_genome "$slug" "$genome_id" "$agent_type"
 done
 
@@ -262,7 +281,11 @@ SESSION_TOKEN_FILE="/home/claude/.claude/remote/.session_ingress_token"
 
 echo ""
 echo "=== Setup Complete (session: $SESSION_ID) ==="
-echo "Acquired agents: ${ACQUIRED_AGENTS[*]:-none}"
+if [ ${#ACQUIRED_AGENTS[@]} -gt 0 ]; then
+  echo "Acquired agents: ${ACQUIRED_AGENTS[*]}"
+else
+  echo "Acquired agents: none"
+fi
 echo ""
 echo "Worktrees:"
 git worktree list

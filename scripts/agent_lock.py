@@ -156,13 +156,10 @@ def cmd_acquire(issue: int, slug: str, session: str, ttl: int) -> int:
     state2 = get_lock_status(issue)
     entry2 = state2.get(slug)
     if entry2 and entry2.get("session") != session and _is_locked(entry2, _now()):
-        # Another session beat us — release ours
-        _post_comment(issue, {
-            "action": "release",
-            "agent": slug,
-            "session": session,
-            "ts": _iso(_now()),
-        })
+        # Another session's acquire is the latest — we lost the race.
+        # Do NOT post a release: that would overwrite the winner's lock
+        # (since _parse_lock_state uses "last comment wins" semantics).
+        # Our stale acquire will expire harmlessly via TTL.
         holder = entry2.get("session", "?")
         print(f"RACE LOST: {slug} locked by {holder}", file=sys.stderr)
         return 1
@@ -172,6 +169,19 @@ def cmd_acquire(issue: int, slug: str, session: str, ttl: int) -> int:
 
 
 def cmd_release(issue: int, slug: str, session: str) -> int:
+    now = _now()
+    state = get_lock_status(issue)
+    entry = state.get(slug)
+
+    if not entry or not _is_locked(entry, now):
+        print(f"{slug} is not locked, nothing to release")
+        return 0
+
+    holder = entry.get("session", "?")
+    if holder != session:
+        print(f"DENIED: {slug} is locked by {holder}, not {session}", file=sys.stderr)
+        return 1
+
     _post_comment(issue, {
         "action": "release",
         "agent": slug,

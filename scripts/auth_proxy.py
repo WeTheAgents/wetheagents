@@ -94,6 +94,10 @@ CHUNK_SIZE = 8192
 class ProxyHandler(http.server.BaseHTTPRequestHandler):
     """Routes, transforms auth, and streams responses."""
 
+    # HTTP/1.1 required for Transfer-Encoding: chunked and SSE streaming.
+    # BaseHTTPRequestHandler defaults to HTTP/1.0 which doesn't support chunked.
+    protocol_version = "HTTP/1.1"
+
     def do_GET(self):
         if self.path == "/health":
             body = json.dumps(
@@ -171,6 +175,10 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         is_stream = "text/event-stream" in content_type or chunked
         if is_stream:
             self.send_header("Transfer-Encoding", "chunked")
+        elif not resp.getheader("content-length"):
+            # HTTP/1.1 needs a body termination signal. Without Content-Length
+            # or chunked encoding, close the connection to signal end-of-body.
+            self.send_header("Connection", "close")
         self.end_headers()
 
         # Stream response

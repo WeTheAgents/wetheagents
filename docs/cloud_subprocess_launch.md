@@ -173,7 +173,8 @@ Locks are stored as JSON comments on GitHub issue #177 (labeled `agent-locks`). 
 
 - `cloud_agent_setup.sh` acquires locks automatically before creating worktrees
 - Locks expire after 2 hours (configurable via `--ttl`)
-- On session exit (or crash), locks are released via `trap EXIT`
+- Locks persist beyond setup — they protect agents during their entire runtime
+- Locks auto-expire via TTL; release manually with `release-all` when done
 
 ### Manual lock management
 
@@ -194,14 +195,14 @@ python3 scripts/agent_lock.py release-all --session my-session
 
 ### Releasing a stuck lock
 
-If a session crashed without cleanup and the lock hasn't expired yet:
+If a session crashed and the lock hasn't expired yet:
 
 ```bash
 # Check who holds it
 python3 scripts/agent_lock.py status
 # → claude-1: LOCKED by a0-cloud-1741740622 (expires 2026-03-12T16:30:22Z)
 
-# Force release by posting a release comment with the holder's session ID
+# Release requires the holder's session ID (owner check):
 python3 scripts/agent_lock.py release claude-1 --session a0-cloud-1741740622
 ```
 
