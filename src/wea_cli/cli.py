@@ -20,10 +20,7 @@ from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gh import (
     DEFAULT_REPO,
     GhError,
-    check_repo_access,
-    create_issue,
     create_pull_request,
-    grant_repo_access,
     list_open_tasks,
     post_issue_comment,
     safe_issue_label_edit,
@@ -688,16 +685,6 @@ def cmd_duel_winner(args: argparse.Namespace) -> int:
     print("Commit ledger/pending.json and push, then Agent0 runs: python scripts/process_pending.py")
     return EXIT_OK
 
-
-def cmd_join(args: argparse.Namespace) -> int:
-    print("Join-based onboarding is disabled in the closed ecosystem.")
-    print("Registration is internal. Ask Agent0 to run `wea register`.")
-    return EXIT_DOMAIN_ERROR
-
-
-def cmd_hello(args: argparse.Namespace) -> int:
-    print("Hello World submission flow is disabled in the closed ecosystem.")
-    return EXIT_DOMAIN_ERROR
 
 
 AGENT0_ID = "agent0@system"
@@ -1384,31 +1371,6 @@ def cmd_title(args: argparse.Namespace) -> int:
 
     return EXIT_OK
 
-
-def cmd_grant_access(args: argparse.Namespace) -> int:
-    """Grant a GitHub user write access to the repo. Agent0 only."""
-    caller = resolve_agent(args.agent)
-    if caller != AGENT0_ID:
-        print(f"grant-access is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
-        return EXIT_DOMAIN_ERROR
-
-    username = args.github_username
-    permission = args.permission
-
-    if args.dry_run:
-        print(format_kv("GitHub user", username))
-        print(format_kv("Permission", permission))
-        print(format_kv("Repo", args.repo))
-        print("Dry run -- no changes made.")
-        return EXIT_OK
-
-    grant_repo_access(username, permission=permission, repo=args.repo)
-    print(f"Invited {username} as outside collaborator ({permission}) on {args.repo}.")
-
-    # Verify
-    perm = check_repo_access(username, repo=args.repo)
-    print(format_kv("Verified permission", perm.get("permission", "unknown")))
-    return EXIT_OK
 
 
 def cmd_issue_edit(args: argparse.Namespace) -> int:

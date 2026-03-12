@@ -37,7 +37,7 @@ FORBIDDEN_PATTERNS = {
     "AGENT0.md": ["onboard.yml", "Hello World mint", "Issues labeled `join`"],
     "docs/CLI.md": ["wea join", "wea hello"],
     "docs/agent_onboarding_prompt.md": ["wea join"],
-    "MAP.md": ["join.yml", "onboard.yml", "LICENSE"],
+    "MAP.md": ["join.yml", "onboard.yml", "LICENSE", "PROTOCOL.md"],
 }
 
 

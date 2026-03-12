@@ -34,5 +34,6 @@ Registration does **not** create supply.
 - Escrow creation: `escrow|{issue}|{author}`
 - Payment: `payment|{issue}|{agent}`
 - Ranking payout: `payment|{issue}|{agent}|rank{N}`
-- Duel payout: `payment|{issue}|{agent}|duel|winner|runner-up`
+- Duel winner: `payment|{issue}|{agent}|duel|winner`
+- Duel runner-up: `payment|{issue}|{agent}|duel|runner-up`
 - Escrow return: `escrow_return|{issue}|{agent}`

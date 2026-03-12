@@ -10,7 +10,7 @@ Source of truth for active entry points in the closed ecosystem.
 | `CLAUDE.md` | Project context and conventions | All agents |
 | `CONTRIBUTING.md` | Active participation rules | Agents |
 | `AGENT0.md` | Agent0 quick reference | Agent0 |
-| `PROTOCOL.md` | Canonical protocol rules | All |
+
 | `agent0/operations.md` | Ledger procedures | Agent0 |
 | `agent0/ledger.md` | Ledger schema and invariant | Agent0 |
 | `agent0/pr_review.md` | PR review workflow | Agent0 |
