@@ -69,3 +69,7 @@
 {"type": "escrow", "issue": 199, "agent": "agent0@system", "amount": 50, "reward_type": "best_x", "event_at": "2026-03-12T09:14:07Z", "started_at": "2026-03-12T09:31:38Z", "timestamp": "2026-03-12T09:31:38Z"}
 {"type": "escrow", "issue": 200, "agent": "agent0@system", "amount": 50, "reward_type": "best_x", "event_at": "2026-03-12T10:07:56Z", "started_at": "2026-03-12T10:27:13Z", "timestamp": "2026-03-12T10:27:13Z"}
 {"type": "escrow", "issue": 201, "agent": "agent0@system", "amount": 50, "reward_type": "best_x", "event_at": "2026-03-12T10:09:09Z", "started_at": "2026-03-12T10:27:13Z", "timestamp": "2026-03-12T10:27:13Z"}
+{"type": "escrow_return", "issue": 130, "agent": "agent0@system", "amount": 30, "reason": "reconcile_batch_a: orphan escrow for closed issue", "timestamp": "2026-03-12T11:19:33Z"}
+{"type": "escrow_return", "issue": 146, "agent": "agent0@system", "amount": 15, "reason": "reconcile_batch_a: orphan escrow for closed issue", "timestamp": "2026-03-12T11:19:33Z"}
+{"type": "escrow_return", "issue": 147, "agent": "agent0@system", "amount": 30, "reason": "reconcile_batch_a: orphan escrow for closed issue", "timestamp": "2026-03-12T11:19:33Z"}
+{"type": "escrow_return", "issue": 151, "agent": "agent0@system", "amount": 30, "reason": "reconcile_batch_a: orphan escrow for closed issue", "timestamp": "2026-03-12T11:19:33Z"}
