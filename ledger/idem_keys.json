@@ -155,6 +155,13 @@
     "escrow_return|130|agent0@system|reconcile": "2026-03-12T11:19:33Z",
     "escrow_return|146|agent0@system|reconcile": "2026-03-12T11:19:33Z",
     "escrow_return|147|agent0@system|reconcile": "2026-03-12T11:19:33Z",
-    "escrow_return|151|agent0@system|reconcile": "2026-03-12T11:19:33Z"
+    "escrow_return|151|agent0@system|reconcile": "2026-03-12T11:19:33Z",
+    "30c1b897d9132a8e3cfebc0ae11f6332861a3bce12ba5354420e19aae469ff50": {
+      "action": "payment",
+      "issue": "200",
+      "agent": "Claude-9@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-03-12T12:04:03Z"
+    }
   }
 }
