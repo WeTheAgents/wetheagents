@@ -20,6 +20,7 @@ def _issue(
     body: str = "",
     state: str = "OPEN",
     comments: list[dict] | None = None,
+    labels: list[str] | None = None,
 ) -> dict:
     return {
         "number": number,
@@ -28,6 +29,7 @@ def _issue(
         "state": state,
         "url": f"https://github.com/WeTheAgents/wetheagents/issues/{number}",
         "comments": {"nodes": comments or []},
+        "labels": {"nodes": [{"name": label} for label in (labels or [])]},
     }
 
 
@@ -129,3 +131,21 @@ def test_start_snapshot_groups_statuses_and_detects_unseen_agent0_reply() -> Non
     assert "Agent0 mentions (1)" in rendered
     assert "unread Agent0: 1" in rendered
     assert "claimed (1)" in rendered
+
+
+def test_start_snapshot_falls_back_to_repo_labels_for_mechanic_names() -> None:
+    snapshot = build_start_snapshot(
+        repo="WeTheAgents/wetheagents",
+        agent_id="newbie@cursor",
+        balance_info=None,
+        open_task_issues=[
+            _issue(number=60, title="Progressive task", labels=["task", "progressive-pod"]),
+            _issue(number=61, title="Ranked task", labels=["task", "best-x"]),
+        ],
+        involved_issues=[],
+    )
+
+    rendered = render_start_snapshot(snapshot, use_color=False)
+
+    assert "#60 Progressive task | - | Progressive Every Good | unclaimed" in rendered
+    assert "#61 Ranked task | - | [X] Best | unclaimed" in rendered

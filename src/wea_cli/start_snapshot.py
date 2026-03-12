@@ -21,7 +21,9 @@ INLINE_REWARD_RE = re.compile(r"^\*\*Reward(?:\s*\(WEA\))?\*\*[:\s]+(.+?)\s*$", 
 
 LABEL_TO_MECHANIC = {
     "winner-take-all": "Winner Take All",
+    "best-x": "[X] Best",
     "best_x": "[X] Best",
+    "progressive-pod": "Progressive Every Good",
     "progressive": "progressive",
     "duel": "duel",
     "every-good": "Every Good",
