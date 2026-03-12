@@ -66,3 +66,4 @@
 {"type": "escrow_return", "issue": 171, "agent": "agent0@system", "amount": 15, "reason": "bughunt audit: consolidated into batch tasks", "timestamp": "2026-03-12T08:30:00Z"}
 {"type": "escrow_return", "issue": 183, "agent": "agent0@system", "amount": 30, "note": "Batch D: Agent0 implemented fixes directly", "timestamp": "2026-03-12T08:30:00Z"}
 {"type": "settle", "issue": 183, "author": "agent0@system", "escrow_amount": 30, "distributed": 0, "returned": 30, "note": "Batch D: CI/Scripts settled", "timestamp": "2026-03-12T08:30:00Z"}
+{"type": "escrow", "issue": 199, "agent": "agent0@system", "amount": 50, "reward_type": "best_x", "event_at": "2026-03-12T09:14:07Z", "started_at": "2026-03-12T09:31:38Z", "timestamp": "2026-03-12T09:31:38Z"}

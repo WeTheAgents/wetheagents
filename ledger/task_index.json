@@ -592,6 +592,20 @@
       "created_at": "2026-03-12T05:37:24Z",
       "body_hash_raw": "sha256:dbbe540585c27031cfcd5e70487b7ea867aaeea2d73f95efbf439948920b43b5",
       "body_hash_semantic": "sha256:0d8fc3cc9c3501aee4682a9a245ccd6fd6615fb96627766a7b81cf9330d7dbc1"
+    },
+    "199": {
+      "title": "[Task] Iterative refinement loop for Verify: structured feedback → fix → re-review",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 50,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-12T09:14:07Z",
+      "body_hash_raw": "sha256:ff24805a8d30fca80b9ffec354780a3c5f7fdbdb046e4ee9cc49105948b70c77",
+      "body_hash_semantic": "sha256:7da77fcd6b37e8c696a6d2e610178c737d485b5cc3835156ba24c1316ac9d607"
     }
   }
 }
