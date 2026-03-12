@@ -11,7 +11,7 @@ SCRIPT = os.path.join(os.path.dirname(__file__), "..", "scripts", "check_invaria
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
-def _make_ledger(tmp, balances_agents, escrows_active, hello_count=0):
+def _make_ledger(tmp, balances_agents, escrows_active):
     """Create a temporary ledger directory with given data."""
     os.makedirs(os.path.join(tmp, "ledger"), exist_ok=True)
     os.makedirs(os.path.join(tmp, "sandbox"), exist_ok=True)
@@ -23,8 +23,7 @@ def _make_ledger(tmp, balances_agents, escrows_active, hello_count=0):
         json.dump({"version": 1, "active": escrows_active}, f)
 
     with open(os.path.join(tmp, "sandbox", "hello_world_registry.jsonl"), "w") as f:
-        for i in range(hello_count):
-            f.write(json.dumps({"agent": f"agent{i}"}) + "\n")
+        f.write("")
 
 
 def _run(tmp):
@@ -82,7 +81,6 @@ def test_balanced_ledger_passes():
                 "bob@test": {"balance": 3000},
             },
             escrows_active={"1": {"author": "alice@test", "amount": 2000, "type": "standard", "created_at": "2026-01-01T00:00:00Z"}},
-            hello_count=0,
         )
         code, out = _run(tmp)
         assert code == 0, f"Expected pass, got: {out}"
@@ -97,7 +95,6 @@ def test_unbalanced_sum_fails():
         _make_ledger(tmp,
             balances_agents={"alice@test": {"balance": 9000}},
             escrows_active={"1": {"author": "alice@test", "amount": 2000, "type": "standard", "created_at": "2026-01-01T00:00:00Z"}},
-            hello_count=0,
         )
         code, out = _run(tmp)
         assert code == 1, f"Expected failure (sum 11000 != 10000), got: {out}"
@@ -108,19 +105,21 @@ def test_unbalanced_sum_fails():
         shutil.rmtree(tmp)
 
 
-def test_with_hello_mints():
+def test_registry_does_not_change_fixed_supply():
     tmp = tempfile.mkdtemp()
     try:
         _make_ledger(tmp,
             balances_agents={
-                "alice@test": {"balance": 5100},
-                "bob@test": {"balance": 5100},
+                "alice@test": {"balance": 5000},
+                "bob@test": {"balance": 5000},
             },
             escrows_active={},
-            hello_count=2,
         )
+        with open(os.path.join(tmp, "sandbox", "hello_world_registry.jsonl"), "w") as f:
+            f.write(json.dumps({"agent": "legacy-1"}) + "\n")
+            f.write(json.dumps({"agent": "legacy-2"}) + "\n")
         code, out = _run(tmp)
-        assert code == 0, f"Expected pass (10200 = 10000 + 2*100), got: {out}"
+        assert code == 0, f"Expected pass (registry no longer changes supply), got: {out}"
         assert "PASS" in out
     finally:
         shutil.rmtree(tmp)
@@ -154,7 +153,6 @@ def test_empty_agents_fails():
         _make_ledger(tmp,
             balances_agents={},
             escrows_active={},
-            hello_count=0,
         )
         code, out = _run(tmp)
         assert code == 1, f"Expected failure (sum 0 != 10000), got: {out}"
@@ -170,7 +168,6 @@ def test_missing_balance_key_defaults_zero():
         _make_ledger(tmp,
             balances_agents={"a@test": {}},
             escrows_active={},
-            hello_count=0,
         )
         code, out = _run(tmp)
         assert code == 1, f"Expected failure (sum 0 != 10000), got: {out}"
@@ -185,7 +182,6 @@ def test_missing_escrow_amount_defaults_zero():
         _make_ledger(tmp,
             balances_agents={"a@test": {"balance": 10000}},
             escrows_active={"1": {"author": "a@test", "type": "standard", "created_at": "2026-01-01T00:00:00Z"}},
-            hello_count=0,
         )
         code, out = _run(tmp)
         assert code == 0, f"Expected pass (10000 + 0 = 10000), got: {out}"

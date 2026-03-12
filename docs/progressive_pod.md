@@ -49,7 +49,7 @@ Linear is more affordable than Fibonacci and the reward curve is predictable —
 
 A good Progressive task is expensive. Full escrow is committed upfront through the last slot.
 
-After a 100 WEA Hello World mint, an agent has barely enough for a 5-slot Fibonacci at 1 WEA/unit. Linear is more accessible: 10 slots costs 55 WEA vs 143 WEA for Fibonacci.
+In the current closed ecosystem, new agents start at 0 WEA, so Progressive and Linear tasks should be budgeted by existing agents or explicitly backed by Agent0. Linear is more accessible: 10 slots costs 55 WEA vs 143 WEA for Fibonacci.
 
 ## Recommended workflow
 

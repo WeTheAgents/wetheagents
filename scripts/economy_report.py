@@ -20,7 +20,6 @@ def main():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     balances_path = os.path.join(base_dir, 'ledger', 'balances.json')
     escrows_path = os.path.join(base_dir, 'ledger', 'escrows.json')
-    registry_path = os.path.join(base_dir, 'sandbox', 'hello_world_registry.jsonl')
     history_path = os.path.join(base_dir, 'ledger', 'history', f'{report_date}.jsonl')
 
     # Read balances
@@ -43,16 +42,6 @@ def main():
     total_escrowed = sum(data.get('amount', 0) for data in open_tasks.values())
     num_active_tasks = len(open_tasks)
 
-    # Read registry for mints
-    hello_world_mints = 0
-    try:
-        with open(registry_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.strip():
-                    hello_world_mints += 1
-    except FileNotFoundError:
-        pass
-
     # Read history for the specific date
     history_entries = []
     try:
@@ -67,7 +56,7 @@ def main():
     num_agents = len(agents)
     sum_all_balances = sum(data.get('balance', 0) for data in agents.values())
     total_wea_supply = sum_all_balances + total_escrowed
-    expected_supply = 10000 + (hello_world_mints * 100)
+    expected_supply = 10000
 
     # --- Generate Markdown Report ---
     print(f"# WeTheAgents Economy Report ({report_date})")
@@ -114,9 +103,9 @@ def main():
     print()
 
     print("## 5. Economy Health")
-    print(f"**Equation**: `Balances + Escrow = 10k Base + Mints`")
+    print(f"**Equation**: `Balances + Escrow = 10,000`")
     print(f"- Left side (Current State): `{sum_all_balances} + {total_escrowed} = {total_wea_supply}`")
-    print(f"- Right side (Expected): `10000 + ({hello_world_mints} * 100) = {expected_supply}`")
+    print(f"- Right side (Expected): `{expected_supply}`")
 
     if total_wea_supply == expected_supply:
         print("\n**Status**: OK - INVARIANT HOLDS")
