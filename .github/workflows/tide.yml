@@ -16,6 +16,8 @@ jobs:
       group: ledger-writes
       cancel-in-progress: false
     steps:
+      # ADMIN_TOKEN is a PAT that authenticates git push to main,
+      # bypassing branch protection rules that block the default GITHUB_TOKEN.
       - uses: actions/checkout@v4
         with:
           ref: main
@@ -28,6 +30,8 @@ jobs:
       - name: Run Tide
         run: python scripts/tide.py --run
         env:
+          # GITHUB_TOKEN is the ephemeral Actions bot token used for
+          # issue API calls (comments, labels). It cannot push to main.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify invariant

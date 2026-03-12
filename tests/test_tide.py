@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 import math
+from pathlib import Path
 
 import pytest
 
@@ -654,3 +655,155 @@ class TestMinAgents:
         assert p.process(ev)
         labels = [(a.action, a.label) for a in p.actions if a.label]
         assert ("add_label", "paid") in labels
+
+
+# ---------------------------------------------------------------------------
+# Bug #168 — task_index status update on payout
+# ---------------------------------------------------------------------------
+
+class TestTaskIndexStatusOnPayout:
+    """task_index status must be set to 'paid' whenever _add_label(ev.issue, 'paid')."""
+
+    def test_accept_escrow_depleted_sets_paid(self):
+        """accept + escrow depleted -> status='paid'."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 20, "type": "standard",
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"author": "alice@x", "mechanic": "standard", "status": "open"},
+            }},
+        )
+        ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev)
+        assert p.task_index["tasks"]["1"]["status"] == "paid"
+
+    def test_accept_min_agents_pending_stays_open(self):
+        """accept + min_agents pending -> status stays 'open'."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 40, "type": "every_good",
+                      "per_acceptance": 20, "paid_count": 0,
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"min_agents": 2, "accepted_agents": [],
+                      "author": "alice@x", "mechanic": "every_good", "status": "open"},
+            }},
+        )
+        ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev)
+        assert p.task_index["tasks"]["1"]["status"] == "open"
+
+    def test_accept_min_agents_met_on_final_sets_paid(self):
+        """accept + min_agents met on final accept -> status='paid'."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 20, "type": "every_good",
+                      "per_acceptance": 20, "paid_count": 0,
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"min_agents": 2, "accepted_agents": ["bob@y"],
+                      "author": "alice@x", "mechanic": "every_good", "status": "open"},
+            }},
+        )
+        ev = _ev("accept", issue=1, agent="carol@z", author_github="alice-gh")
+        assert p.process(ev)
+        assert p.task_index["tasks"]["1"]["status"] == "paid"
+
+    def test_missing_task_index_entry_no_crash(self):
+        """Missing task_index entry -> no crash, no new entry created."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 20, "type": "standard",
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {}},  # no entry for issue 1
+        )
+        ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev)
+        # Must not crash and must not create synthetic entry
+        assert "1" not in p.task_index["tasks"]
+
+    def test_ranking_sets_paid(self):
+        """ranking -> status='paid'."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 30, "type": "best_x",
+                      "winners": 1, "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"author": "alice@x", "mechanic": "best_x", "status": "open"},
+            }},
+        )
+        ev = _ev("ranking", issue=1, agents=["bob@y"], author_github="alice-gh")
+        assert p.process(ev)
+        assert p.task_index["tasks"]["1"]["status"] == "paid"
+
+    def test_duel_winner_sets_paid(self):
+        """duel_winner -> status='paid'."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 20, "type": "duel",
+                      "rounds": 2, "created_at": "2026-01-01T00:00:00Z",
+                      "participants": ["bob@y", "carol@z"],
+                      "pro": "bob@y", "con": "carol@z", "turn_count": 0},
+            }),
+            task_index={"version": 1, "tasks": {
+                "1": {"author": "alice@x", "mechanic": "duel", "status": "open"},
+            }},
+        )
+        ev = _ev("duel_winner", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev)
+        assert p.task_index["tasks"]["1"]["status"] == "paid"
+
+    def test_idem_replay_status_unchanged(self):
+        """idem replay -> status unchanged (stays 'open')."""
+        p = _proc(
+            escrows=_escrows(**{
+                "1": {"author": "alice@x", "amount": 20, "type": "standard",
+                      "created_at": "2026-01-01T00:00:00Z"},
+            }),
+            idem_keys=_idem("payment|1|bob@y"),  # already processed
+            task_index={"version": 1, "tasks": {
+                "1": {"author": "alice@x", "mechanic": "standard", "status": "open"},
+            }},
+        )
+        ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert not p.process(ev)
+        assert p.task_index["tasks"]["1"]["status"] == "open"
+
+
+# ---------------------------------------------------------------------------
+# Bug #159 — Repo name fallback
+# ---------------------------------------------------------------------------
+
+class TestDetectRepoFallback:
+    """_detect_repo must fall back to 'WeTheAgents/wetheagents'."""
+
+    def test_file_not_found_fallback(self, monkeypatch):
+        """FileNotFoundError -> 'WeTheAgents/wetheagents'."""
+        def _raise_fnf(*a, **kw):
+            raise FileNotFoundError("gh not found")
+        monkeypatch.setattr(tide.subprocess, "run", _raise_fnf)
+        result = tide._detect_repo(Path("."))
+        assert result == "WeTheAgents/wetheagents"
+
+    def test_called_process_error_fallback(self, monkeypatch):
+        """CalledProcessError -> 'WeTheAgents/wetheagents'."""
+        def _raise_cpe(*a, **kw):
+            raise tide.subprocess.CalledProcessError(1, "gh")
+        monkeypatch.setattr(tide.subprocess, "run", _raise_cpe)
+        result = tide._detect_repo(Path("."))
+        assert result == "WeTheAgents/wetheagents"
+
+    def test_empty_stdout_fallback(self, monkeypatch):
+        """Empty stdout -> 'WeTheAgents/wetheagents'."""
+        class FakeResult:
+            stdout = ""
+            returncode = 0
+        monkeypatch.setattr(tide.subprocess, "run", lambda *a, **kw: FakeResult())
+        result = tide._detect_repo(Path("."))
+        assert result == "WeTheAgents/wetheagents"

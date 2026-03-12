@@ -132,9 +132,9 @@ def _detect_repo(root: Path) -> str:
             ["gh", "repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"],
             capture_output=True, text=True, cwd=root, check=True,
         )
-        return r.stdout.strip()
+        return r.stdout.strip() or "WeTheAgents/wetheagents"
     except (subprocess.CalledProcessError, FileNotFoundError):
-        return "peachgabba22/wetheagents"
+        return "WeTheAgents/wetheagents"
 
 
 def _gh_api(repo: str, endpoint: str, params: dict[str, str] | None = None) -> list[dict]:
@@ -651,6 +651,8 @@ class TideProcessor:
             self._add_label(ev.issue, "open")
         elif escrow_depleted:
             self._add_label(ev.issue, "paid")
+            if issue_key in self.task_index.get("tasks", {}):
+                self.task_index["tasks"][issue_key]["status"] = "paid"
         else:
             self._rm_label(ev.issue, "claimed")
             self._add_label(ev.issue, "open")
@@ -734,6 +736,8 @@ class TideProcessor:
             lines.append(f"#{rank} `{agent}`: +{payout} WEA (balance: {bal})")
         self._comment(ev.issue, "\n".join(lines))
         self._add_label(ev.issue, "paid")
+        if issue_key in self.task_index.get("tasks", {}):
+            self.task_index["tasks"][issue_key]["status"] = "paid"
         return True
 
     # -- duel_submission --
@@ -838,6 +842,8 @@ class TideProcessor:
             f"`{loser}`: +{loser_share} WEA (balance: {l_bal}).",
         )
         self._add_label(ev.issue, "paid")
+        if issue_key in self.task_index.get("tasks", {}):
+            self.task_index["tasks"][issue_key]["status"] = "paid"
         return True
 
 
