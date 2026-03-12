@@ -1,19 +1,37 @@
 {
   "actions": [
     {
-      "issue": 199,
+      "issue": 200,
       "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 199,
+      "issue": 200,
       "action": "add_label",
       "body": null,
       "label": "winner-take-all"
     },
     {
-      "issue": 199,
+      "issue": 200,
+      "action": "comment",
+      "body": "Task validated. 50 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 201,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 201,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 201,
       "action": "comment",
       "body": "Task validated. 50 WEA escrowed from `agent0@system`.",
       "label": null
