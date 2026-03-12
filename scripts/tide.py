@@ -267,6 +267,7 @@ class TideProcessor:
         self.count = 0
         self.started_at = _now_iso()
         self._gh_map = _github_to_agents(balances)
+        self._completed_set: set[tuple[str, int]] = set()  # (agent, issue) dedup
 
     # -- helpers --
 
@@ -317,7 +318,6 @@ class TideProcessor:
         ag = self.balances["agents"][agent]
         ag["balance"] += amount
         ag["total_earned"] = ag.get("total_earned", 0) + amount
-        ag["tasks_completed"] = ag.get("tasks_completed", 0) + 1
         entry: dict[str, Any] = {
             "type": "payment", "subtype": subtype, "issue": issue,
             "agent": agent, "amount": amount, "balance_after": ag["balance"],
@@ -327,6 +327,14 @@ class TideProcessor:
         if extra:
             entry.update(extra)
         self.history.append(entry)
+
+    def _track_completed(self, agent: str, issue: int) -> None:
+        """Increment tasks_completed if (agent, issue) not already counted."""
+        key = (agent, issue)
+        if key not in self._completed_set:
+            self._completed_set.add(key)
+            ag = self.balances["agents"][agent]
+            ag["tasks_completed"] = ag.get("tasks_completed", 0) + 1
 
     def _gh_username(self, agent_id: str) -> str:
         return self.balances.get("agents", {}).get(agent_id, {}).get(
@@ -599,6 +607,7 @@ class TideProcessor:
 
         # Pay
         self._pay(agent, reward, ev.issue, subtype=etype, event_at=ev.created_at)
+        self._track_completed(agent, ev.issue)
 
         # Track accepted agents for min_agents enforcement (before escrow cleanup)
         task_data = self.task_index.get("tasks", {}).get(issue_key, {})
@@ -715,6 +724,7 @@ class TideProcessor:
             self._set_idem(f"payment|{ev.issue}|{agent}|ranking|{rank}")
             self._pay(agent, payout, ev.issue, subtype="ranking",
                       extra={"rank": rank}, event_at=ev.created_at)
+            self._track_completed(agent, ev.issue)
 
         del self.escrows["active"][issue_key]
 
@@ -815,6 +825,8 @@ class TideProcessor:
                   extra={"duel_role": "winner"}, event_at=ev.created_at)
         self._pay(loser, loser_share, ev.issue, subtype="duel",
                   extra={"duel_role": "runner-up"}, event_at=ev.created_at)
+        self._track_completed(winner, ev.issue)
+        self._track_completed(loser, ev.issue)
 
         del self.escrows["active"][issue_key]
 
