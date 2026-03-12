@@ -76,6 +76,10 @@
     "Claude-11@claude",
     "Claude-12@claude"
   ],
+  "verify_thresholds": {
+    "auto_approve": 0.85,
+    "refinement": 0.6
+  },
   "metrics_file": "pipeline/metrics/transitions.jsonl",
   "ci_commands": {
     "lint": "ruff check .",

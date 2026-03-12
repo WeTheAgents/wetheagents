@@ -14,7 +14,28 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from wea_cli.pipeline_support import load_stage_schema, normalize_stage  # noqa: E402
+from wea_cli.pipeline_support import compute_overall_score, load_stage_schema, normalize_stage  # noqa: E402
+
+VERIFY_WEIGHTS: dict[str, float] = {
+    "gaming": 0.15,
+    "spec_conformance": 0.15,
+    "scope_violation": 0.12,
+    "fragility": 0.12,
+    "test_coverage": 0.12,
+    "dead_code": 0.08,
+    "error_handling": 0.08,
+    "documentation": 0.08,
+    "performance_risk": 0.05,
+    "naming_clarity": 0.05,
+}
+
+VERIFY_LEGACY_WEIGHTS: dict[str, float] = {
+    "gaming": 0.40,
+    "out_of_scope": 0.20,
+    "fragility": 0.25,
+    "removable_code": 0.15,
+}
+
 JSON_BLOCK_RE = re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL | re.IGNORECASE)
 HEADER_RE = re.compile(r"^###\s+.+?\s+by\s+([^\n]+)\s*$", re.MULTILINE)
 LEGACY_SEPARATOR_RE = r"\s+[—-]\s+"
@@ -267,11 +288,30 @@ def aggregate_results(
     elif normalized == "spec":
         verdict = "APPROVED" if all(v == "APPROVED" for v in verdicts) else "REJECTED"
     elif normalized == "verify":
-        verdict = (
-            "APPROVED"
-            if all(v == "APPROVED" for v in verdicts)
-            else "CHANGES_REQUESTED"
-        )
+        thresholds = config or {}
+        auto_approve = thresholds.get("auto_approve", 0.85)
+        refinement = thresholds.get("refinement", 0.6)
+
+        scores: list[float] = []
+        for item in evaluations:
+            if "rubrics" in item.payload:
+                scores.append(compute_overall_score(item.payload["rubrics"], VERIFY_WEIGHTS))
+            else:
+                # Legacy binary checklist: FOUND->0.0, NONE->1.0
+                checklist = item.payload.get("checklist", {})
+                legacy_rubrics = {
+                    k: {"score": 0.0 if v.get("status") == "FOUND" else 1.0, "note": v.get("note", "")}
+                    for k, v in checklist.items()
+                }
+                scores.append(compute_overall_score(legacy_rubrics, VERIFY_LEGACY_WEIGHTS))
+
+        avg = sum(scores) / len(scores)
+        if avg >= auto_approve:
+            verdict = "APPROVED"
+        elif avg >= refinement:
+            verdict = "HUMAN_REVIEW"
+        else:
+            verdict = "CHANGES_REQUESTED"
     elif normalized == "triage":
         go_threshold = (config or {}).get("go_threshold", 3)
         no_go_threshold = (config or {}).get("no_go_threshold", 3)

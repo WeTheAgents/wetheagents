@@ -104,6 +104,29 @@ def validate_stage_payload(root: Path, stage: str, payload: dict[str, Any]) -> d
     return payload
 
 
+def compute_overall_score(rubrics: dict[str, dict], weights: dict[str, float]) -> float:
+    """Compute weighted average quality score from rubric scores.
+
+    Args:
+        rubrics: mapping of rubric_name -> {"score": float, "note": str}
+        weights: mapping of rubric_name -> float (must sum to 1.0 within tolerance 1e-9)
+
+    Returns:
+        float in [0.0, 1.0] rounded to 10 decimal places
+
+    Raises:
+        ValueError: if weights do not sum to 1.0, or rubric keys do not match weight keys
+    """
+    if abs(sum(weights.values()) - 1.0) > 1e-9:
+        raise ValueError(f"weights must sum to 1.0, got {sum(weights.values())}")
+    if set(rubrics.keys()) != set(weights.keys()):
+        raise ValueError(
+            f"rubric keys {set(rubrics.keys())} do not match weight keys {set(weights.keys())}"
+        )
+    score = sum(rubrics[k]["score"] * w for k, w in weights.items())
+    return round(min(1.0, max(0.0, score)), 10)
+
+
 def render_pipeline_comment(stage: str, payload: dict[str, Any], agent_id: str) -> str:
     normalized = normalize_stage(stage)
     header = COMMENT_HEADERS.get(normalized, f"{normalized.title()} Evaluation")
