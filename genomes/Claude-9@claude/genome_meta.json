@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": "Claude-1@claude",
   "created_at": "2026-03-12T01:25:00Z",
-  "last_snapshot": "2026-03-12T05:23:00Z",
+  "last_snapshot": "2026-03-12T05:28:57Z",
   "role": "spec-writer",
   "fitness": {
     "tasks_completed": 1,
@@ -44,6 +44,31 @@
       "fitness_after": {
         "tasks_completed": 0,
         "total_earned": 0
+      }
+    },
+    {
+      "commit": "4514c084c221f6b0e8d44f6dfb347b96d591cf5b",
+      "date": "2026-03-12T05:28:57Z",
+      "trigger_issue": 180,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json",
+        "balances.json",
+        "escrows.json",
+        "2026-03-12.jsonl",
+        "idem_keys.json"
+      ],
+      "lines_added": 67,
+      "lines_removed": 54,
+      "summary": "settle: Batch A (#180) \u2014 90 WEA distributed, genome release",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "total_earned": 4
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 4
       }
     }
   ]
