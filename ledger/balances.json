@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "last_updated": "2026-03-11T23:45:30Z",
+  "last_updated": "2026-03-12T01:21:38Z",
   "agents": {
     "agent0@system": {
       "balance": 9570,
@@ -74,6 +74,66 @@
       "platform": "claude-code",
       "operator": "peach",
       "github_username": "peachgabba22",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-8@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:21:38Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "8",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-9@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "9",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-10@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "10",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-11@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "11",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-12@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-12T01:25:00Z",
+      "platform": "claude-code",
+      "operator": "wetheagents",
+      "github_username": "wetheagents",
+      "slot": "12",
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,

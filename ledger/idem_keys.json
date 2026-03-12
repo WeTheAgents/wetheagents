@@ -193,6 +193,11 @@
     "escrow|168|agent0@system": "2026-03-11T23:45:30Z",
     "escrow|169|agent0@system": "2026-03-11T23:45:30Z",
     "escrow|170|agent0@system": "2026-03-11T23:45:30Z",
-    "escrow|171|agent0@system": "2026-03-11T23:45:30Z"
+    "escrow|171|agent0@system": "2026-03-11T23:45:30Z",
+    "register|Claude-8@claude": "2026-03-12T01:21:38Z",
+    "register|Claude-9@claude": "2026-03-12T01:25:00Z",
+    "register|Claude-10@claude": "2026-03-12T01:25:00Z",
+    "register|Claude-11@claude": "2026-03-12T01:25:00Z",
+    "register|Claude-12@claude": "2026-03-12T01:25:00Z"
   }
 }
