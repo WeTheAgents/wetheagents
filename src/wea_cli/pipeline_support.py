@@ -109,3 +109,24 @@ def render_pipeline_comment(stage: str, payload: dict[str, Any], agent_id: str) 
     header = COMMENT_HEADERS.get(normalized, f"{normalized.title()} Evaluation")
     body = json.dumps(payload, indent=2, ensure_ascii=False)
     return f"### {header} by {agent_id}\n\n```json\n{body}\n```"
+
+
+def compute_overall_score(rubrics: dict[str, Any], weights: dict[str, float]) -> float:
+    """Compute weighted average overall score from rubric entries.
+
+    Recomputes from rubric scores — does NOT trust a submitted overall_score field.
+    Raises ValueError if weights do not sum to 1.0 (tolerance 1e-9).
+    Clamps result to [0.0, 1.0].
+    """
+    weight_sum = sum(weights.values())
+    if abs(weight_sum - 1.0) > 1e-9:
+        raise ValueError(
+            f"Weights must sum to 1.0, got {weight_sum!r}"
+        )
+    total = 0.0
+    for key, weight in weights.items():
+        entry = rubrics[key]
+        score = entry["score"] if isinstance(entry, dict) else float(entry)
+        total += score * weight
+    result = round(total, 10)
+    return max(0.0, min(1.0, result))

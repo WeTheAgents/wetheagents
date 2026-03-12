@@ -14,7 +14,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from wea_cli.pipeline_support import load_stage_schema, normalize_stage  # noqa: E402
+from wea_cli.pipeline_support import compute_overall_score, load_stage_schema, normalize_stage  # noqa: E402
 JSON_BLOCK_RE = re.compile(r"```json\s*(\{.*?\})\s*```", re.DOTALL | re.IGNORECASE)
 HEADER_RE = re.compile(r"^###\s+.+?\s+by\s+([^\n]+)\s*$", re.MULTILINE)
 LEGACY_SEPARATOR_RE = r"\s+[—-]\s+"
@@ -267,11 +267,43 @@ def aggregate_results(
     elif normalized == "spec":
         verdict = "APPROVED" if all(v == "APPROVED" for v in verdicts) else "REJECTED"
     elif normalized == "verify":
-        verdict = (
-            "APPROVED"
-            if all(v == "APPROVED" for v in verdicts)
-            else "CHANGES_REQUESTED"
-        )
+        # Collect per-reviewer overall_score, recomputing from rubrics when available.
+        # Legacy binary verdicts (FOUND→1.0, NONE→0.0) are handled by _parse_verify_legacy;
+        # those evaluations carry a "checklist" payload with no "rubrics" key, so we map
+        # their verdict directly: APPROVED→1.0, CHANGES_REQUESTED→0.0.
+        _LEGACY_BINARY_VERDICT_MAP = {"APPROVED": 1.0, "CHANGES_REQUESTED": 0.0}
+        scores: list[float] = []
+        for ev in evaluations:
+            rubrics = ev.payload.get("rubrics")
+            if rubrics:
+                # Load weights from checklist.json if config provides a root, else fall back
+                # to the canonical weights defined in the spec.
+                _CANONICAL_WEIGHTS: dict[str, float] = {
+                    "gaming": 0.15,
+                    "spec_conformance": 0.15,
+                    "scope_violation": 0.12,
+                    "fragility": 0.12,
+                    "test_coverage": 0.12,
+                    "dead_code": 0.08,
+                    "error_handling": 0.08,
+                    "documentation": 0.08,
+                    "performance_risk": 0.05,
+                    "naming_clarity": 0.05,
+                }
+                scores.append(compute_overall_score(rubrics, _CANONICAL_WEIGHTS))
+            else:
+                # Legacy binary evaluation: map verdict string to float score.
+                scores.append(_LEGACY_BINARY_VERDICT_MAP.get(ev.verdict, 0.0))
+        avg_score = sum(scores) / len(scores)
+        thresholds = (config or {}).get("verify_thresholds", {})
+        auto_approve = thresholds.get("auto_approve", 0.85)
+        refinement = thresholds.get("refinement", 0.6)
+        if avg_score >= auto_approve:
+            verdict = "APPROVED"
+        elif avg_score < refinement:
+            verdict = "CHANGES_REQUESTED"
+        else:
+            verdict = "HUMAN_REVIEW"
     elif normalized == "triage":
         go_threshold = (config or {}).get("go_threshold", 3)
         no_go_threshold = (config or {}).get("no_go_threshold", 3)

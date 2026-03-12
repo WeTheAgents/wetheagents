@@ -2,11 +2,33 @@
   "station": "verify",
   "gate_type": "review_competition",
   "reviewers_required": 2,
-  "checks": [
-    "CI green",
-    "adversarial checklist complete",
-    "blocking comments explicit",
-    "verdict recorded",
-    "unique valid findings scored"
-  ]
+  "rubric_weights": {
+    "gaming":           0.15,
+    "spec_conformance": 0.15,
+    "scope_violation":  0.12,
+    "fragility":        0.12,
+    "test_coverage":    0.12,
+    "dead_code":        0.08,
+    "error_handling":   0.08,
+    "documentation":    0.08,
+    "performance_risk": 0.05,
+    "naming_clarity":   0.05
+  },
+  "rubric_descriptions": {
+    "gaming":           "Does the implementation game the tests or CI instead of solving the real problem?",
+    "spec_conformance": "Does the implementation match the approved spec exactly (no scope creep, no skipped requirements)?",
+    "scope_violation":  "Does the implementation touch files or modules outside the declared scope?",
+    "fragility":        "Does the implementation introduce brittle patterns (hardcoded values, implicit ordering, tight coupling)?",
+    "test_coverage":    "Are the relevant code paths covered by tests? Are edge cases exercised?",
+    "dead_code":        "Is there unused, unreachable, or leftover code that should be removed?",
+    "error_handling":   "Are error paths handled explicitly and not swallowed silently?",
+    "documentation":    "Are public functions, non-obvious logic, and schema fields documented adequately?",
+    "performance_risk": "Does the implementation introduce O(n^2) or worse patterns, unbounded loops, or memory leaks?",
+    "naming_clarity":   "Are names (variables, functions, files) clear, consistent, and unambiguous?"
+  },
+  "score_semantics": {
+    "0.0": "Problem definitely present",
+    "0.5": "Uncertain or minor concern",
+    "1.0": "No problem found"
+  }
 }
