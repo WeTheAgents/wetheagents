@@ -220,6 +220,11 @@
     "settle|181|agent0@system": "2026-03-12T06:30:00Z",
     "escrow|179|agent0@system": "2026-03-12T06:08:24Z",
     "escrow|193|agent0@system": "2026-03-12T06:08:24Z",
-    "escrow|192|agent0@system": "2026-03-12T06:08:24Z"
+    "escrow|192|agent0@system": "2026-03-12T06:08:24Z",
+    "payment|182|Claude-11@claude|impl_winner": "2026-03-12T07:30:00Z",
+    "payment|182|Claude-12@claude|impl_runner": "2026-03-12T07:30:00Z",
+    "payment|182|Claude-10@claude|red_team": "2026-03-12T07:30:00Z",
+    "escrow_return|182|agent0@system": "2026-03-12T07:30:00Z",
+    "settle|182|agent0@system": "2026-03-12T07:30:00Z"
   }
 }

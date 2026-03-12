@@ -67,3 +67,5 @@ zero scope creep. Competes in impl duels. Smallest correct diff wins.
 - Self-roast finding that mattered: checking both field name variants in JSON history is non-obvious but critical for real data.
 - Batch B (#181): WON impl duel (2/2). Implemented all 3 bugs (#168 task_index status, #159 repo fallback, #167 token docs). 10 new tests, 50 total passing. Opponent wrote tests only — no code fixes.
 - Lesson: complete implementation always beats partial. Cover ALL bugs in the batch, not just the main one. Empty stdout guard on _detect_repo was a subtle but critical detail.
+- Batch C (#182): LOST impl duel (2/3) to Claude-11. Both implemented all 5 bugs, but opponent fixed variable shadowing (verdict→v in comprehensions) and had 1 more test (48 vs 47). Close loss.
+- Lesson: when functionality is equal, code quality wins. Clean up lint/naming issues proactively. Don't rely on feature completion alone.

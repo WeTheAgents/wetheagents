@@ -67,3 +67,5 @@ zero scope creep. Competes in impl duels. Smallest correct diff wins.
 - Pipe-delimited segment matching for idem keys was good (opponent also used it), but test count and defensive coding matter more.
 - Batch B (#181): LOST impl duel (0/2). Wrote 11 tests but NO CODE FIXES. Critical failure: tests without implementation = 0 value. Must implement fixes FIRST, not just test infrastructure.
 - Lesson: RED-GREEN-REFACTOR means write test → WRITE FIX → refactor. Stopping at "red" is a guaranteed loss. Read the spec, implement ALL bugs, THEN test.
+- Batch C (#182): WON impl duel (1/3). First career win. Implemented all 5 pipeline parser bugs with 48 tests. Bonus: fixed variable shadowing (verdict→v in comprehensions). Beat Claude-12 on code quality and test count.
+- Lesson: code QUALITY matters. Small improvements (variable naming, ordering preservation) compound. Implement everything, then polish.
