@@ -30,11 +30,18 @@ def load_issues(json_file: str | None) -> list[dict]:
     if json_file:
         with open(json_file) as f:
             return json.load(f)
-    result = subprocess.run(
-        ["gh", "issue", "list", "--label", "task,open", "--state", "open",
-         "--json", "number,title,body", "--limit", "200"],
-        capture_output=True, text=True, check=True,
-    )
+    try:
+        result = subprocess.run(
+            ["gh", "issue", "list", "--label", "task,open", "--state", "open",
+             "--json", "number,title,body", "--limit", "200"],
+            capture_output=True, text=True, check=True,
+        )
+    except FileNotFoundError:
+        print("ERROR: 'gh' CLI not found. Install GitHub CLI to use live issue fetching.", file=sys.stderr)
+        return []
+    except subprocess.CalledProcessError as exc:
+        print(f"ERROR: 'gh' command failed (exit {exc.returncode}): {exc.stderr.strip()}", file=sys.stderr)
+        return []
     return json.loads(result.stdout)
 
 

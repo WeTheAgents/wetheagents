@@ -28,6 +28,10 @@ jobs:
           test -f scripts/check_invariant.py
           test -f scripts/check_claim_ttl.py
           test -f scripts/check_concurrent_claims.py
+          test -f scripts/check_cross_file_integrity.py
+          test -f scripts/check_ledger_schema.py
+          test -f scripts/check_doc_sync.py
+          test -f scripts/check_genome_trailer.py
 
       - name: Check invariant
         run: python scripts/check_invariant.py --root .
@@ -37,3 +41,15 @@ jobs:
 
       - name: Check concurrent claims
         run: python scripts/check_concurrent_claims.py --root . --repo "$REPO"
+
+      - name: Check cross-file integrity
+        run: python scripts/check_cross_file_integrity.py --root . --repo "$REPO"
+
+      - name: Check ledger schema
+        run: python scripts/check_ledger_schema.py --root .
+
+      - name: Check doc sync
+        run: python scripts/check_doc_sync.py --root .
+
+      - name: Check genome trailer
+        run: python scripts/check_genome_trailer.py --root .

@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Record genome mutations
         run: |
-          PREV=$(git rev-parse HEAD~1)
+          PREV=${{ github.event.before }}
           CURR=$(git rev-parse HEAD)
           COMMIT_MSG=$(git log -1 --format=%s)
 
