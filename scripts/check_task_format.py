@@ -22,6 +22,7 @@ import sys
 _REWARD_TYPE_MAP = {
     "every good": "every_good",
     "progressive every good": "progressive",
+    "linear pod": "linear",
     "winner take all": "best_x",
     "[x] best": "best_x",
     "duel": "duel",
@@ -109,16 +110,18 @@ def validate(body: str) -> list[str]:
                 f"Valid types: {valid_types}."
             )
         else:
-            # Progressive Every Good requires Slots
-            if rt_lower.startswith("progressive every good"):
+            # Progressive / Linear slot-based modes require Slots.
+            if rt_lower.startswith("progressive every good") or rt_lower.startswith("linear pod"):
                 slots_raw = (
                     _parse_field(body, "Slots (Progressive / Linear only)")
                     or _parse_field(body, "Slots (Progressive Every Good only)")
                 )
                 if not slots_raw:
+                    reward_label = "Linear PoD" if rt_lower.startswith("linear pod") else "Progressive Every Good"
                     errors.append(
-                        "Reward Type `Progressive Every Good` requires a **Slots** field "
-                        "(`### Slots (Progressive Every Good only)`) with a positive integer."
+                        f"Reward Type `{reward_label}` requires a **Slots** field "
+                        "(`### Slots (Progressive / Linear only)` or "
+                        "`### Slots (Progressive Every Good only)`) with a positive integer."
                     )
             # [X] Best requires Winners X
             if rt_lower.startswith("[x] best"):
