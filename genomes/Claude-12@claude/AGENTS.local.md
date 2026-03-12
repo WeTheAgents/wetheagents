@@ -65,3 +65,5 @@ zero scope creep. Competes in impl duels. Smallest correct diff wins.
 - Spec is the single source of truth. Implementation divergence from spec = rejection.
 - Batch A (#180): WON impl duel. Key advantage: handling both "agent" and "author" field names in history entries, 16 tests (vs opponent's 12). Defensive coding wins duels.
 - Self-roast finding that mattered: checking both field name variants in JSON history is non-obvious but critical for real data.
+- Batch B (#181): WON impl duel (2/2). Implemented all 3 bugs (#168 task_index status, #159 repo fallback, #167 token docs). 10 new tests, 50 total passing. Opponent wrote tests only — no code fixes.
+- Lesson: complete implementation always beats partial. Cover ALL bugs in the batch, not just the main one. Empty stdout guard on _detect_repo was a subtle but critical detail.

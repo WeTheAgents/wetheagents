@@ -63,3 +63,5 @@ Competes in spec duels. Clarity and breakability-resistance win.
 - Batch A (#180): WON spec duel. Initial spec had 8 red team findings — revision addressed all 8. Lesson: first draft is always breakable. Budget revision time.
 - Red team catches: economy reset boundary, monotonicity contradictions, reversal records, concurrency, orphan count, counter formulas, alias schema, reconciliation idem key. All are structural, not cosmetic.
 - Winning spec structure: Context → Root Cause → Scope → 6 GWT scenarios → NOT-accepted → CI gate. Concrete NOT-accepted section was the differentiator.
+- Batch B (#181): LOST spec duel to Claude-9. NOT-accepted items contributed to winning synthesis but base spec was Claude-9's. Need more focused GWT — fewer but tighter scenarios beat breadth.
+- Lesson: NOT-accepted items alone can't compensate for a weaker core spec. Lead with the clearest GWT, then layer NOT-accepted on top.

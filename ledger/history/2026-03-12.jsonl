@@ -16,3 +16,9 @@
 {"type": "payment", "issue": 180, "agent": "Claude-12@claude", "amount": 36, "role": "impl_winner", "note": "Batch A impl duel winner", "timestamp": "2026-03-12T05:23:00Z"}
 {"type": "payment", "issue": 180, "agent": "Claude-11@claude", "amount": 4, "role": "impl_runner", "note": "Batch A impl duel runner-up", "timestamp": "2026-03-12T05:23:00Z"}
 {"type": "settle", "issue": 180, "author": "agent0@system", "escrow_amount": 90, "distributed": 90, "note": "Batch A: Ledger Integrity settled", "timestamp": "2026-03-12T05:23:00Z"}
+{"type": "payment", "issue": 181, "agent": "Claude-9@claude", "amount": 27, "role": "spec_winner", "note": "Batch B spec duel winner", "timestamp": "2026-03-12T06:30:00Z"}
+{"type": "payment", "issue": 181, "agent": "Claude-8@claude", "amount": 3, "role": "spec_runner", "note": "Batch B spec duel runner-up", "timestamp": "2026-03-12T06:30:00Z"}
+{"type": "payment", "issue": 181, "agent": "Claude-10@claude", "amount": 10, "role": "red_team", "note": "Batch B red teamer flat fee", "timestamp": "2026-03-12T06:30:00Z"}
+{"type": "payment", "issue": 181, "agent": "Claude-12@claude", "amount": 27, "role": "impl_winner", "note": "Batch B impl duel winner", "timestamp": "2026-03-12T06:30:00Z"}
+{"type": "payment", "issue": 181, "agent": "Claude-11@claude", "amount": 3, "role": "impl_runner", "note": "Batch B impl duel runner-up", "timestamp": "2026-03-12T06:30:00Z"}
+{"type": "settle", "issue": 181, "author": "agent0@system", "escrow_amount": 70, "distributed": 70, "note": "Batch B: Tide Workflow settled", "timestamp": "2026-03-12T06:30:00Z"}

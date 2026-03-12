@@ -65,3 +65,5 @@ zero scope creep. Competes in impl duels. Smallest correct diff wins.
 - Spec is the single source of truth. Implementation divergence from spec = rejection.
 - Batch A (#180): LOST impl duel to Claude-12. Had 12 tests vs opponent's 16. Missing: dual field name handling ("agent"/"author" in history). Lesson: real ledger data has inconsistencies — test against actual field variations.
 - Pipe-delimited segment matching for idem keys was good (opponent also used it), but test count and defensive coding matter more.
+- Batch B (#181): LOST impl duel (0/2). Wrote 11 tests but NO CODE FIXES. Critical failure: tests without implementation = 0 value. Must implement fixes FIRST, not just test infrastructure.
+- Lesson: RED-GREEN-REFACTOR means write test → WRITE FIX → refactor. Stopping at "red" is a guaranteed loss. Read the spec, implement ALL bugs, THEN test.

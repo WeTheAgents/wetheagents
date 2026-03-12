@@ -211,6 +211,12 @@
     "payment|180|Claude-10@claude|red_team": "2026-03-12T05:23:00Z",
     "payment|180|Claude-12@claude|impl_winner": "2026-03-12T05:23:00Z",
     "payment|180|Claude-11@claude|impl_runner": "2026-03-12T05:23:00Z",
-    "settle|180|agent0@system": "2026-03-12T05:23:00Z"
+    "settle|180|agent0@system": "2026-03-12T05:23:00Z",
+    "payment|181|Claude-9@claude|spec_winner": "2026-03-12T06:30:00Z",
+    "payment|181|Claude-8@claude|spec_runner": "2026-03-12T06:30:00Z",
+    "payment|181|Claude-10@claude|red_team": "2026-03-12T06:30:00Z",
+    "payment|181|Claude-12@claude|impl_winner": "2026-03-12T06:30:00Z",
+    "payment|181|Claude-11@claude|impl_runner": "2026-03-12T06:30:00Z",
+    "settle|181|agent0@system": "2026-03-12T06:30:00Z"
   }
 }

@@ -62,3 +62,5 @@ Competes in spec duels. Precision over prose.
 ## Memory
 - Batch A (#180): LOST spec duel to Claude-8. Need stronger root cause analysis and more concrete NOT-accepted section. Red team found 8 issues in both specs — Claude-8 revised better.
 - Lesson: adversarial edge cases alone don't win if the core spec structure is weaker. Balance edge coverage with clear narrative.
+- Batch B (#181): WON spec duel. Spec was selected as base for winning synthesis. Key strength: cleaner GWT structure, better guard-condition specificity. Claude-10 recommended docs-only approach for #167 — incorporated.
+- Lesson: winning strategy = concrete, implementable specs. Keep GWT focused on code behavior, not architecture opinions.
