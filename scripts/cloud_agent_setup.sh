@@ -197,14 +197,17 @@ is_acquired() {
 }
 
 # ── 5. Configure git identity per worktree ─────────────────────────
+# --worktree writes to .git/worktrees/<name>/config.worktree (isolated).
+# --local would write to the shared .git/config (last-write-wins bug).
 echo "[5/8] Configuring git identity..."
+git -C "$REPO" config extensions.worktreeConfig true 2>/dev/null || true
 for entry in "${AGENTS[@]}"; do
   IFS='|' read -r slug _gid _type _branch name email <<< "$entry"
   is_acquired "$slug" || continue  # skip agents we didn't acquire
   local_wt="/home/user/wetheagents-${slug}"
   [ -d "$local_wt" ] || continue
-  git -C "$local_wt" config --local user.name "$name"
-  git -C "$local_wt" config --local user.email "$email"
+  git -C "$local_wt" config --worktree user.name "$name"
+  git -C "$local_wt" config --worktree user.email "$email"
 done
 
 # ── 6. Deploy genomes ─────────────────────────────────────────────

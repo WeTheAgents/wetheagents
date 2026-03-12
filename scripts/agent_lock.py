@@ -142,16 +142,22 @@ def get_lock_status(issue: int) -> dict[str, dict]:
 # ── Commands ─────────────────────────────────────────────────
 
 
-def _verify_acquire(issue: int, slug: str, session: str) -> str | None:
+_NOT_VISIBLE = object()  # sentinel: our comment hasn't propagated yet
+
+
+def _verify_acquire(issue: int, slug: str, session: str) -> str | object | None:
     """Re-read lock state and check we still hold it.
 
-    Returns None if we hold it, or an error/competitor description if we lost.
+    Returns:
+        None          — we hold the lock
+        _NOT_VISIBLE  — our comment hasn't propagated (transient)
+        str           — competing session that holds the lock
     Raises FetchError if the API call fails.
     """
     state = get_lock_status(issue)
     entry = state.get(slug)
     if not entry:
-        return "unknown (our acquire comment not visible)"
+        return _NOT_VISIBLE
     if entry.get("session") != session and _is_locked(entry, _now()):
         return entry.get("session", "?")
     return None
@@ -185,17 +191,23 @@ def cmd_acquire(issue: int, slug: str, session: str, ttl: int) -> int:
     # may miss a concurrent acquire. We wait ACQUIRE_SETTLE_SECS to let
     # both posts propagate, then verify twice.
     #
-    # Verify 1: immediate (catches fast races)
-    competitor = _verify_acquire(issue, slug, session)
-    if competitor:
-        print(f"RACE LOST: {slug} locked by {competitor}", file=sys.stderr)
+    # Verify 1: immediate (catches fast races where a *different* session
+    # already wrote an acquire).  _NOT_VISIBLE means GitHub hasn't
+    # propagated our own comment yet — that's expected, not a failure.
+    result = _verify_acquire(issue, slug, session)
+    if result is not None and result is not _NOT_VISIBLE:
+        print(f"RACE LOST: {slug} locked by {result}", file=sys.stderr)
         return 1
 
-    # Verify 2: after settle delay (catches slow propagation)
+    # Verify 2: after settle delay (catches slow propagation).
+    # By now our comment should be visible; treat _NOT_VISIBLE as failure.
     time.sleep(ACQUIRE_SETTLE_SECS)
-    competitor = _verify_acquire(issue, slug, session)
-    if competitor:
-        print(f"RACE LOST: {slug} locked by {competitor}", file=sys.stderr)
+    result = _verify_acquire(issue, slug, session)
+    if result is not None and result is not _NOT_VISIBLE:
+        print(f"RACE LOST: {slug} locked by {result}", file=sys.stderr)
+        return 1
+    if result is _NOT_VISIBLE:
+        print(f"WARN: acquire comment still not visible after settle delay", file=sys.stderr)
         return 1
 
     print(f"acquired {slug} (session={session}, expires={expires})")
