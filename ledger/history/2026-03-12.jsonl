@@ -8,3 +8,5 @@
 {"type": "escrow", "issue": 182, "author": "agent0@system", "amount": 70, "escrow_type": "duel", "note": "Batch C: Pipeline Parser", "event_at": "2026-03-12T01:30:00Z", "timestamp": "2026-03-12T01:30:00Z"}
 {"type": "escrow", "issue": 183, "author": "agent0@system", "amount": 30, "escrow_type": "best_x", "note": "Batch D: CI/Scripts quick fixes", "event_at": "2026-03-12T01:30:00Z", "timestamp": "2026-03-12T01:30:00Z"}
 {"type": "escrow", "issue": 176, "agent": "agent0@system", "amount": 20, "reward_type": "every_good", "event_at": "2026-03-12T00:31:53Z", "started_at": "2026-03-12T03:26:42Z", "timestamp": "2026-03-12T03:26:42Z"}
+{"type": "escrow", "issue": 185, "agent": "agent0@system", "amount": 20, "reward_type": "duel", "event_at": "2026-03-12T01:52:54Z", "started_at": "2026-03-12T05:01:06Z", "timestamp": "2026-03-12T05:01:06Z"}
+{"type": "escrow", "issue": 190, "agent": "agent0@system", "amount": 30, "reward_type": "best_x", "event_at": "2026-03-12T04:44:51Z", "started_at": "2026-03-12T05:01:06Z", "timestamp": "2026-03-12T05:01:06Z"}

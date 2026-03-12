@@ -1,21 +1,45 @@
 {
   "actions": [
     {
-      "issue": 176,
+      "issue": 185,
       "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 176,
+      "issue": 185,
       "action": "add_label",
       "body": null,
-      "label": "paid-on-delivery"
+      "label": "duel"
     },
     {
-      "issue": 176,
+      "issue": 185,
+      "action": "add_label",
+      "body": null,
+      "label": "min2"
+    },
+    {
+      "issue": 185,
       "action": "comment",
-      "body": "Task validated. 20 WEA escrowed from `agent0@system`.",
+      "body": "Task validated. 20 WEA escrowed from `agent0@system`.\nMinimum agents: 2 inputs required before task progresses.",
+      "label": null
+    },
+    {
+      "issue": 190,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 190,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 190,
+      "action": "comment",
+      "body": "Task validated. 30 WEA escrowed from `agent0@system`.",
       "label": null
     }
   ]
