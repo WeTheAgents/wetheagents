@@ -74,6 +74,7 @@ class AggregateResult:
     evaluations: list[EvaluationResult] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
     iteration: int = 1  # highest iteration group that produced the verdict
+    a_c: float | None = None  # Normalized Change metric from ci_delta (verify only)
 
 
 def load_station_schema(station: str, root: Path | None = None) -> dict[str, Any]:
@@ -280,6 +281,7 @@ def aggregate_results(
     verdicts = [item.verdict for item in evaluations]
     reasons = [str(item.payload.get("summary", "")).strip() for item in evaluations if item.payload.get("summary")]
     max_iteration = 1  # overwritten inside the verify branch
+    a_c_avg: float | None = None  # set inside verify branch when ci_delta present
 
     if normalized == "negativa":
         kill_wins = True if kill_on_any_failure is None else kill_on_any_failure
@@ -326,6 +328,15 @@ def aggregate_results(
             verdict = "HUMAN_REVIEW"
         else:
             verdict = "CHANGES_REQUESTED"
+
+        # Extract a(c) from ci_delta if present in latest evaluations
+        a_c_values = [
+            float(item.payload["ci_delta"]["a_c"])
+            for item in latest_evals
+            if "ci_delta" in item.payload
+        ]
+        if a_c_values:
+            a_c_avg = sum(a_c_values) / len(a_c_values)
     elif normalized == "triage":
         go_threshold = (config or {}).get("go_threshold", 3)
         no_go_threshold = (config or {}).get("no_go_threshold", 3)
@@ -342,7 +353,7 @@ def aggregate_results(
     else:
         raise ValueError(f"Unknown stage for aggregation: {normalized!r}")
 
-    return AggregateResult(station=normalized, verdict=verdict, evaluations=evaluations, reasons=reasons, iteration=max_iteration)
+    return AggregateResult(station=normalized, verdict=verdict, evaluations=evaluations, reasons=reasons, iteration=max_iteration, a_c=a_c_avg)
 
 
 def aggregate_evaluations(

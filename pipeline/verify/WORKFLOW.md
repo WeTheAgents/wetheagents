@@ -42,7 +42,40 @@ Output:
 - structured reviewer findings (rubric scores + notes),
 - `overall_score` float (aggregator recomputes from rubrics),
 - verdict: `APPROVED`, `HUMAN_REVIEW`, or `CHANGES_REQUESTED`,
-- rework route if needed.
+- rework route if needed,
+- `ci_delta` with Normalized Change `a(c)` (optional, when CI data available).
+
+## Normalized Change — a(c)
+
+Adapted from SWE-CI (arxiv.org/abs/2603.03823). Measures test improvement vs regression on a continuous scale instead of binary pass/fail.
+
+**Formula:**
+- `delta = passed_after - passed_before`
+- If `delta >= 0`: `a(c) = min(1.0, delta / max(1, failed_before))` — fraction of gap closed
+- If `delta < 0`: `a(c) = max(-1.0, delta / max(1, passed_before))` — fraction of baseline broken
+
+**Scale:**
+- `+1.0` = all previously failing tests fixed, zero regressions
+- ` 0.0` = no net change in test outcomes
+- `-1.0` = all previously passing tests now fail
+
+**How to report:** Include `ci_delta` in the evaluation payload:
+```json
+{
+  "ci_delta": {
+    "passed_before": 142,
+    "failed_before": 3,
+    "passed_after": 145,
+    "failed_after": 0,
+    "a_c": 1.0
+  }
+}
+```
+
+**Usage:**
+- Duel tiebreaker: when both implementations pass CI, higher `a(c)` wins
+- Genome signal: track per-agent `a(c)` across batches for longitudinal quality (EvoScore)
+- Quality gate: zero-regression rate = fraction of submissions with `a(c) >= 0.0`
 
 ## Refinement Loop
 
