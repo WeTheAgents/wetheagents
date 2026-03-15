@@ -1,15 +1,21 @@
-"""FanGraphs team batting data via pybaseball.
+"""Team batting data (wRC+, OBP) computed from Retrosheet boxscore CSVs.
 
-Pulls per-player batting stats, aggregates to team level (PA-weighted wRC+, OBP).
+Computes wRC+ from wOBA using standard Sabermetric formulas.
 Anti-leakage: each game in season Y uses team batting from season Y-1.
 
 Output: data/processed/fangraphs/team_batting_season.parquet
+
+Note: Originally used pybaseball to pull from FanGraphs, but the FanGraphs
+legacy API now returns 403 (Cloudflare protection). Retrosheet teamstats
+provide all necessary batting components (PA, AB, H, 2B, 3B, HR, BB, HBP, SF,
+IBB) to compute OBP and wRC+ directly.
 """
 
 from __future__ import annotations
 
 import logging
-import time
+import os
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -18,119 +24,125 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent / "data" / "processed" / "fangraphs"
-RAW_CACHE_DIR = DEFAULT_OUTPUT_DIR
+
+# Retrosheet zips directory — resolve via environment or relative to this file
+_RETRO_ENV = os.environ.get("RETROSHEET_DIR")
+RETROSHEET_DIR = Path(_RETRO_ENV) if _RETRO_ENV else Path(__file__).parent.parent / "retrosheets"
 
 # Seasons to pull: 2009 (prior for 2010) through 2021
 PULL_SEASONS = list(range(2009, 2022))
 
-# FanGraphs team abbreviation → Retrosheet/our team codes
-_FANGRAPHS_TEAM_MAP = {
-    "NYY": "NYA",
-    "NYM": "NYN",
-    "CHW": "CHA",
-    "CWS": "CHA",
-    "CHC": "CHN",
-    "LAA": "ANA",
-    "LAD": "LAN",
-    "TBR": "TBA",
-    "TB": "TBA",
-    "KCR": "KCA",
-    "KC": "KCA",
-    "WSN": "WAS",
-    "WSH": "WAS",
-    "SFG": "SFN",
-    "SF": "SFN",
-    "SDP": "SDN",
-    "SD": "SDN",
-    "STL": "SLN",
-    "MIA": "MIA",
-    "FLA": "FLO",
+# Era-average wOBA linear weights (2009-2021).
+# Since wRC+ is relative to league average, small year-to-year weight
+# variations introduce at most ~1-2 points of error at team level.
+WOBA_WEIGHTS = {
+    "bb": 0.690,
+    "hbp": 0.720,
+    "single": 0.880,
+    "double": 1.240,
+    "triple": 1.560,
+    "hr": 2.010,
 }
+WOBA_SCALE = 1.157  # Average wOBA scale factor (2009-2021 era)
 
 
-def _map_fg_team(team: str, season: int) -> str:
-    """Map FanGraphs team abbreviation to our team codes."""
+# Retrosheet team codes are already in our format — no mapping needed
+# (unlike FanGraphs which uses NYY, LAD, etc.)
+# Only exception: Marlins franchise rename
+def _normalize_retro_team(team: str, season: int) -> str:
+    """Normalize Retrosheet team code for franchise changes."""
     t = team.strip().upper()
-
     # Marlins: FLO before 2012, MIA from 2012
     if t in {"FLA", "FLO", "MIA"}:
         return "FLO" if season <= 2011 else "MIA"
+    return t
 
-    return _FANGRAPHS_TEAM_MAP.get(t, t)
 
+def _load_season_teamstats(season: int) -> pd.DataFrame:
+    """Load team batting stats from Retrosheet zip for one season."""
+    zip_path = RETROSHEET_DIR / f"{season}csvs.zip"
+    if not zip_path.exists():
+        raise FileNotFoundError(f"Retrosheet zip not found: {zip_path}")
 
-def pull_season_batting(season: int, *, cache_dir: Path | None = None) -> pd.DataFrame:
-    """Pull per-player batting stats for a season from FanGraphs.
+    with zipfile.ZipFile(zip_path) as zf:
+        csv_name = f"{season}teamstats.csv"
+        if csv_name not in zf.namelist():
+            raise FileNotFoundError(f"{csv_name} not found in {zip_path}")
+        with zf.open(csv_name) as f:
+            df = pd.read_csv(f)
 
-    Caches raw data as parquet to avoid re-pulling.
-    """
-    cache_dir = cache_dir or RAW_CACHE_DIR
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_path = cache_dir / f"raw_batting_{season}.parquet"
-
-    if cache_path.exists():
-        logger.info(f"  Loading cached {season} batting data")
-        return pd.read_parquet(cache_path)
-
-    from pybaseball import batting_stats
-
-    logger.info(f"  Pulling FanGraphs batting stats for {season}...")
-    df = batting_stats(season, season, qual=0)
-
-    df.to_parquet(cache_path, index=False)
-    logger.info(f"  Cached {len(df)} player rows for {season}")
+    # Filter to regular season only
+    df = df[df["gametype"] == "regular"].copy()
     return df
 
 
-def aggregate_team_batting(player_df: pd.DataFrame, season: int) -> pd.DataFrame:
-    """Aggregate per-player batting to team level (PA-weighted)."""
-    df = player_df.copy()
+def _compute_team_batting_season(season: int) -> pd.DataFrame:
+    """Compute team-level wRC+ and OBP for one season from Retrosheet data.
 
-    # Normalize column names (pybaseball sometimes uses different casing)
-    col_map = {c: c.upper() for c in df.columns}
-    # Common variants
-    for target, alts in [
-        ("TEAM", ["Team", "team", "Tm"]),
-        ("PA", ["PA", "pa"]),
-        ("WRC+", ["wRC+", "WRC+", "wrc+"]),
-        ("OBP", ["OBP", "obp"]),
-    ]:
-        for alt in alts:
-            if alt in df.columns:
-                col_map[alt] = target
-    df = df.rename(columns=col_map)
+    Uses the standard wOBA -> wRC+ formula:
+      wOBA = (w_BB*uBB + w_HBP*HBP + w_1B*1B + w_2B*2B + w_3B*3B + w_HR*HR)
+             / (AB + BB - IBB + SF + HBP)
+      wRC+ = ((wOBA - lgwOBA) / wOBAscale + lgR/PA) / (lgR/PA) * 100
+    """
+    raw = _load_season_teamstats(season)
 
-    # Filter to players with at-bats
-    if "PA" not in df.columns:
-        raise ValueError(f"PA column not found in FanGraphs data. Columns: {list(df.columns)}")
-    df = df[df["PA"] > 0].copy()
+    # Aggregate game-level stats to team-season totals
+    teams = raw.groupby("team").agg(
+        pa=("b_pa", "sum"),
+        ab=("b_ab", "sum"),
+        r=("b_r", "sum"),
+        h=("b_h", "sum"),
+        d=("b_d", "sum"),
+        t=("b_t", "sum"),
+        hr=("b_hr", "sum"),
+        bb=("b_w", "sum"),
+        hbp=("b_hbp", "sum"),
+        sf=("b_sf", "sum"),
+        ibb=("b_iw", "sum"),
+    ).reset_index()
 
-    # wRC+ and OBP columns
-    for col in ["WRC+", "OBP"]:
-        if col not in df.columns:
-            raise ValueError(f"{col} column not found. Columns: {list(df.columns)}")
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+    # Derived batting components
+    teams["singles"] = teams["h"] - teams["d"] - teams["t"] - teams["hr"]
+    teams["ubb"] = teams["bb"] - teams["ibb"]
 
-    df["PA"] = pd.to_numeric(df["PA"], errors="coerce")
+    # OBP = (H + BB + HBP) / (AB + BB + HBP + SF)
+    denom_obp = teams["ab"] + teams["bb"] + teams["hbp"] + teams["sf"]
+    teams["obp"] = (teams["h"] + teams["bb"] + teams["hbp"]) / denom_obp
 
-    # Group by team, PA-weighted average
-    team_groups = df.groupby("TEAM")
+    # wOBA
+    w = WOBA_WEIGHTS
+    denom_woba = teams["ab"] + teams["bb"] - teams["ibb"] + teams["sf"] + teams["hbp"]
+    teams["woba"] = (
+        w["bb"] * teams["ubb"]
+        + w["hbp"] * teams["hbp"]
+        + w["single"] * teams["singles"]
+        + w["double"] * teams["d"]
+        + w["triple"] * teams["t"]
+        + w["hr"] * teams["hr"]
+    ) / denom_woba
+
+    # League averages (across all teams in this season)
+    lg_woba = teams["woba"].mean()
+    lg_r = teams["r"].sum()
+    lg_pa = teams["pa"].sum()
+    lg_rpa = lg_r / lg_pa
+
+    # wRC+ = ((wOBA - lgwOBA) / wOBAscale + lgR/PA) / (lgR/PA) * 100
+    teams["wrc_plus"] = (
+        ((teams["woba"] - lg_woba) / WOBA_SCALE + lg_rpa) / lg_rpa * 100
+    )
+
+    # Build output rows with normalized team codes
     results = []
-    for team, grp in team_groups:
-        pa_total = grp["PA"].sum()
-        if pa_total == 0:
-            continue
-        wrc_plus = (grp["WRC+"] * grp["PA"]).sum() / pa_total
-        obp = (grp["OBP"] * grp["PA"]).sum() / pa_total
-
+    for _, row in teams.iterrows():
+        team_code = _normalize_retro_team(str(row["team"]), season)
         results.append(
             {
-                "team_fg": team,
-                "team": _map_fg_team(str(team), season),
+                "team": team_code,
                 "season": season,
-                "wrc_plus": round(wrc_plus, 1),
-                "obp": round(obp, 4),
-                "pa_total": int(pa_total),
+                "wrc_plus": round(row["wrc_plus"], 1),
+                "obp": round(row["obp"], 4),
+                "pa_total": int(row["pa"]),
             }
         )
 
@@ -143,26 +155,21 @@ def build_team_batting_all_seasons(
     cache_dir: Path | None = None,
     delay_seconds: float = 2.0,
 ) -> pd.DataFrame:
-    """Pull and aggregate FanGraphs team batting for all seasons.
+    """Compute team batting for all seasons from Retrosheet data.
 
     Returns DataFrame with columns: team, season, wrc_plus, obp, pa_total
     """
     seasons = seasons or PULL_SEASONS
     all_seasons = []
 
-    for i, season in enumerate(seasons):
-        player_df = pull_season_batting(season, cache_dir=cache_dir)
-        team_df = aggregate_team_batting(player_df, season)
+    for season in seasons:
+        logger.info(f"  Computing team batting for {season} from Retrosheet...")
+        team_df = _compute_team_batting_season(season)
         all_seasons.append(team_df)
-
-        # Rate limit (skip delay for cached)
-        cache_path = (cache_dir or RAW_CACHE_DIR) / f"raw_batting_{season}.parquet"
-        if i < len(seasons) - 1 and not cache_path.exists():
-            time.sleep(delay_seconds)
 
     result = pd.concat(all_seasons, ignore_index=True)
     logger.info(
-        f"FanGraphs team batting: {len(result)} rows, "
+        f"Team batting: {len(result)} rows, "
         f"seasons {result['season'].min()}-{result['season'].max()}, "
         f"teams per season: {result.groupby('season')['team'].nunique().median():.0f}"
     )

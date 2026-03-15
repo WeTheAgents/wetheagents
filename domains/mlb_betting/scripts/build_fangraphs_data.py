@@ -1,4 +1,4 @@
-"""Pull and aggregate FanGraphs team batting data (wRC+, OBP).
+"""Build team batting data (wRC+, OBP) from Retrosheet boxscore CSVs.
 
 Usage:
     python scripts/build_fangraphs_data.py
@@ -35,16 +35,17 @@ def parse_args() -> argparse.Namespace:
         default=Path("data/processed/fangraphs"),
         help="Output directory",
     )
-    p.add_argument("--delay", type=float, default=2.0, help="Delay between API calls (seconds)")
+    # --delay kept for CLI compatibility but unused (no API calls needed)
+    p.add_argument("--delay", type=float, default=2.0, help="(unused, kept for compatibility)")
     return p.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     seasons = list(range(args.start, args.end + 1))
-    logger.info(f"Building FanGraphs team batting for seasons: {seasons[0]}..{seasons[-1]}")
+    logger.info(f"Building team batting for seasons: {seasons[0]}..{seasons[-1]}")
 
-    df = build_team_batting_all_seasons(seasons, cache_dir=args.out, delay_seconds=args.delay)
+    df = build_team_batting_all_seasons(seasons)
 
     # Validate
     report = validate_team_batting(df)
