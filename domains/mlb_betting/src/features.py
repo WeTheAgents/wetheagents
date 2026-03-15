@@ -118,9 +118,15 @@ def calc_rolling_wp(log: pd.DataFrame) -> pd.DataFrame:
                     games_home_cum[i] = games_home_cum[i - 1]
 
         # Rolling last N
+        wp_last3 = np.full(n, np.nan)
+        wp_last6 = np.full(n, np.nan)
         wp_last10 = np.full(n, np.nan)
         wp_last20 = np.full(n, np.nan)
         for i in range(n):
+            if i >= 3:
+                wp_last3[i] = won[i - 3 : i].mean()
+            if i >= 6:
+                wp_last6[i] = won[i - 6 : i].mean()
             if i >= 10:
                 wp_last10[i] = won[i - 10 : i].mean()
             if i >= 20:
@@ -145,6 +151,8 @@ def calc_rolling_wp(log: pd.DataFrame) -> pd.DataFrame:
                         if games_away_cum[i] > 0
                         else 0.5
                     ),
+                    "wp_last3": wp_last3[i],
+                    "wp_last6": wp_last6[i],
                     "wp_last10": wp_last10[i],
                     "wp_last20": wp_last20[i],
                 }
@@ -349,11 +357,52 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(results)
 
 
+# ── Pythagorean Win Percentage ────────────────────────────────────────────
+
+
+def calc_pythagorean_wp(log: pd.DataFrame) -> pd.DataFrame:
+    """Calculate Pythagorean win percentage from cumulative RPG/RAPG.
+
+    Formula: pyth_wp = rpg^1.83 / (rpg^1.83 + rapg^1.83)
+    Uses only data available BEFORE the game (entering-game cumulative RPG/RAPG).
+    """
+    results = []
+
+    for (team, season), grp in log.groupby(["team", "season"]):
+        grp = grp.sort_values("date").reset_index(drop=True)
+        rs = grp["runs_scored"].values
+        ra = grp["runs_allowed"].values
+        n = len(grp)
+
+        for i in range(n):
+            if i == 0:
+                rpg = 4.5  # MLB average prior
+                rapg = 4.5
+            else:
+                rpg = rs[:i].mean()
+                rapg = ra[:i].mean()
+
+            pyth_wp = rpg**1.83 / (rpg**1.83 + rapg**1.83) if (rpg + rapg) > 0 else 0.5
+
+            results.append(
+                {
+                    "team": team,
+                    "season": season,
+                    "date": grp.iloc[i]["date"],
+                    "pyth_wp": pyth_wp,
+                }
+            )
+
+    return pd.DataFrame(results)
+
+
 # ── Master Feature Builder ───────────────────────────────────────────────
 
 
 def build_all_features(
-    games: pd.DataFrame, include_pitcher: bool = True
+    games: pd.DataFrame,
+    include_pitcher: bool = True,
+    include_retrosheet: bool = True,
 ) -> pd.DataFrame:
     """Build all rolling features and merge back to game-level data.
 
@@ -362,6 +411,8 @@ def build_all_features(
     - For away team: rpi_away, wp_away, streak_away, rpg_away, etc.
     - Synthetic: rpi_diff, wp_diff, streak_diff, etc.
     - Pitcher proxy: home_sp_*, away_sp_*, sp_* (if include_pitcher=True)
+    - Retrosheet entering features: WHIP, K/BB, K9, BB9, HR9, IP (if include_retrosheet=True)
+    - Pythagorean win%: pyth_wp_home, pyth_wp_away, pyth_wp_diff
     """
     logger.info("Building team game log...")
     log = build_team_game_log(games)
@@ -375,6 +426,9 @@ def build_all_features(
     logger.info("Computing runs per game...")
     runs_df = calc_rolling_runs(log)
 
+    logger.info("Computing Pythagorean win%...")
+    pyth_df = calc_pythagorean_wp(log)
+
     logger.info("Computing RPI (this may take a while)...")
     rpi_df = calc_rolling_rpi(log)
 
@@ -383,6 +437,8 @@ def build_all_features(
         streak_df, on=["team", "season", "date"], how="left"
     ).merge(
         runs_df, on=["team", "season", "date"], how="left"
+    ).merge(
+        pyth_df, on=["team", "season", "date"], how="left"
     ).merge(
         rpi_df[["team", "season", "date", "rpi", "owp_component"]],
         on=["team", "season", "date"],
@@ -395,6 +451,8 @@ def build_all_features(
             "wp": "wp_home",
             "wp_home": "wp_home_at_home",
             "wp_away": "wp_home_on_road",
+            "wp_last3": "wp_last3_home",
+            "wp_last6": "wp_last6_home",
             "wp_last10": "wp_last10_home",
             "wp_last20": "wp_last20_home",
             "games_played": "games_played_home",
@@ -403,6 +461,7 @@ def build_all_features(
             "rapg": "rapg_home",
             "rpg_last10": "rpg_last10_home",
             "rapg_last10": "rapg_last10_home",
+            "pyth_wp": "pyth_wp_home",
             "rpi": "rpi_home",
             "owp_component": "sos_home",
         }
@@ -416,6 +475,8 @@ def build_all_features(
             "wp": "wp_away",
             "wp_home": "wp_away_at_home",
             "wp_away": "wp_away_on_road",
+            "wp_last3": "wp_last3_away",
+            "wp_last6": "wp_last6_away",
             "wp_last10": "wp_last10_away",
             "wp_last20": "wp_last20_away",
             "games_played": "games_played_away",
@@ -424,6 +485,7 @@ def build_all_features(
             "rapg": "rapg_away",
             "rpg_last10": "rpg_last10_away",
             "rapg_last10": "rapg_last10_away",
+            "pyth_wp": "pyth_wp_away",
             "rpi": "rpi_away",
             "owp_component": "sos_away",
         }
@@ -441,10 +503,13 @@ def build_all_features(
     # Synthetic features (diffs)
     enriched["rpi_diff"] = enriched["rpi_home"] - enriched["rpi_away"]
     enriched["wp_diff"] = enriched["wp_home"] - enriched["wp_away"]
+    enriched["wp_last3_diff"] = enriched["wp_last3_home"] - enriched["wp_last3_away"]
+    enriched["wp_last6_diff"] = enriched["wp_last6_home"] - enriched["wp_last6_away"]
     enriched["wp_last10_diff"] = enriched["wp_last10_home"] - enriched["wp_last10_away"]
     enriched["streak_diff"] = enriched["streak_home"] - enriched["streak_away"]
     enriched["rpg_diff"] = enriched["rpg_home"] - enriched["rpg_away"]
     enriched["rapg_diff"] = enriched["rapg_home"] - enriched["rapg_away"]
+    enriched["pyth_wp_diff"] = enriched["pyth_wp_home"] - enriched["pyth_wp_away"]
     enriched["rpi_min"] = enriched[["rpi_home", "rpi_away"]].min(axis=1)
     enriched["rpi_max"] = enriched[["rpi_home", "rpi_away"]].max(axis=1)
     enriched["games_played_min"] = enriched[
@@ -467,6 +532,39 @@ def build_all_features(
 
         logger.info("Merging pitcher features to games...")
         enriched = merge_pitcher_features_to_games(enriched, pitcher_features)
+
+    # Retrosheet entering features (WHIP, K/BB, K9, BB9, HR9, IP)
+    if include_retrosheet:
+        from pathlib import Path
+
+        from src.data_loader import (
+            PROCESSED_DIR,
+            merge_retrosheet_pitchers,
+            merge_retrosheet_starter_entering_features,
+        )
+
+        bridge_path = PROCESSED_DIR / "pitchers" / "game_id_bridge.parquet"
+        entering_path = PROCESSED_DIR / "pitchers" / "starter_entering_features.parquet"
+
+        if bridge_path.exists() and entering_path.exists():
+            logger.info("Merging Retrosheet starter IDs...")
+            enriched = merge_retrosheet_pitchers(enriched, bridge_path=bridge_path)
+
+            logger.info("Merging Retrosheet entering features (WHIP, K/BB, K9, etc.)...")
+            enriched = merge_retrosheet_starter_entering_features(
+                enriched, entering_path=entering_path
+            )
+        else:
+            missing = []
+            if not bridge_path.exists():
+                missing.append(str(bridge_path))
+            if not entering_path.exists():
+                missing.append(str(entering_path))
+            logger.warning(
+                f"Retrosheet parquets not found: {missing}. "
+                "Run scripts/build_retrosheet_pitchers.py first. "
+                "Skipping Retrosheet entering features."
+            )
 
     n_features = len([c for c in enriched.columns if c not in games.columns])
     logger.info(f"Added {n_features} features to {len(enriched)} games")
