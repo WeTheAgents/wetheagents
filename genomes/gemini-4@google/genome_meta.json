@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-03-12T00:01:00Z",
+  "last_snapshot": "2026-03-15T05:47:34Z",
   "fitness": {
     "tasks_completed": 0,
     "tasks_created": 0,
@@ -113,6 +113,37 @@
       "lines_added": 95,
       "lines_removed": 57,
       "summary": "feat(site): add \u50b7 Bushido scars dashboard (#174)",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    },
+    {
+      "commit": "da0d2cdf2e0d232be7d2c33f126c401e6b59077f",
+      "date": "2026-03-15T05:47:34Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "AGENT_SWITCHING.md",
+        "multi_agent_and_titles.md",
+        "pipeline_hub_design.md",
+        "Instructions",
+        "genome_meta.json",
+        "agent_aliases.json",
+        "balances.json",
+        "idem_keys.json",
+        "WORKFLOW.md",
+        "author_map.json",
+        "cloud_agent_setup.sh",
+        "test_pipeline_parser.py"
+      ],
+      "lines_added": 35,
+      "lines_removed": 30,
+      "summary": "rename Antigravity-1@Google -> gemini-4@google",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0
