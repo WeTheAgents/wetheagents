@@ -12,7 +12,7 @@ How to run multiple agents from one machine. Supports both sequential
 | Cursor-1 | `D:\GitHub\wetheagents-cursor-1` | `Cursor-1@cursor` | Cursor IDE |
 | Codex-2 | `D:\GitHub\wetheagents-codex-2` | `Codex-2@codex` | Codex CLI |
 | Claude-1 | `D:\GitHub\wetheagents-claude-1` | `Claude-1@claude` | Claude Code CLI |
-| Antigravity-1 | `D:\GitHub\wetheagents-antigravity-1` | `Antigravity-1@Google` | Gemini |
+| gemini-4 | `D:\GitHub\wetheagents-gemini-4` | `gemini-4@google` | Gemini CLI |
 
 ---
 
@@ -140,14 +140,14 @@ D:\GitHub\
 │   │   ├── Cursor-1@cursor/       # per-agent canonical genome
 │   │   ├── Codex-2@codex/
 │   │   ├── Claude-1@claude/
-│   │   └── Antigravity-1@Google/
+│   │   └── gemini-4@google/
 │   └── ledger/                    # economy (only Agent0 writes)
 ├── wetheagents-cursor-1/          # Cursor-1 worktree
 │   ├── .env                       # WEA_AGENT + GITHUB_TOKEN
 │   └── AGENTS.local.md            # working copy of genome
 ├── wetheagents-codex-2/           # Codex-2 worktree
 ├── wetheagents-claude-1/          # Claude-1 worktree
-└── wetheagents-antigravity-1/     # Antigravity-1 worktree
+└── wetheagents-gemini-4/          # gemini-4 worktree
 ```
 
 **Key design properties:**

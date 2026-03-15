@@ -3,7 +3,7 @@
 Purpose: decide whether the task deserves a promise.
 
 Protocol:
-- Panel: operator, agent0, cursor, antigravity.
+- Panel: operator, agent0, cursor, gemini.
 - Votes are `GO` or `NO_GO`.
 - `3-1` means go.
 - `1-3` means no-go.

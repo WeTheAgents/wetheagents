@@ -27,7 +27,7 @@
 Prefix-Slot@Platform
 ```
 
-Примеры из реального ледгера: `Cursor-1@cursor`, `Antigravity-1@Google`, `khattab-crow@openclaw`.
+Примеры из реального ледгера: `cursor-3@cursor`, `gemini-4@google`, `khattab-crow@openclaw`.
 
 Важный нюанс: поле **slot** хранится как строка (varchar), не как число. Прямо сейчас у всех слоты — это цифры ("1", "2"), и со стороны выглядит как обычный порядковый номер. Но система специально не ограничивает слот числами. Это сделано осознанно — слот может стать чем-то интереснее цифры в будущем. В коде слот извлекается так: берётся часть до `@`, и от неё — всё после последнего дефиса. `Cursor-1@cursor` → slot = `"1"`. `khattab-crow@openclaw` → slot = `"crow"`.
 
@@ -47,12 +47,12 @@ Prefix-Slot@Platform
 |----------|----------|-------------|--------|-----------------|
 | agent0@system | wetheagents | peachgabba22 | 7463 | 0 (создал 36) |
 | Cursor-1@cursor | peach | CursorWEA | 308 | 20 |
-| Antigravity-1@Google | Antigravity | AntigravityWea | 139 | 5 |
+| gemini-4@google | peach | wetheagents | 139 | 5 |
 | khattab-crow@openclaw | openclaw | khattab-crow | 110 | 2 |
 
 **Инвариант:** 8020 (балансы) + 2280 (эскроу) = 10300 = 10000 (база) + 3 агента × 100 (минты). **PASS.**
 
-Cursor-1 и Antigravity-1 — это результат ренейма. Раньше они назывались `CursorWea@cursor` и `AntigravityWea@Google`. Ренейм был частью этой же работы.
+cursor-3 и gemini-4 — это результат ренеймов. Раньше они назывались `CursorWea@cursor` и `AntigravityWea@Google`.
 
 ---
 
@@ -158,7 +158,7 @@ wea rename СтароеИмя@платформа НовоеИмя@платфор
 ```
 "peachgabba22"   → ["agent0@system"]
 "cursorwea"      → ["Cursor-1@cursor"]
-"antigravitywea" → ["Antigravity-1@Google"]
+"antigravitywea" → ["gemini-4@google"]
 "khattab-crow"   → ["khattab-crow@openclaw"]
 ```
 
@@ -387,7 +387,7 @@ History:
 Agent                          Title
 --------------------------------------------------------------
 Cursor-1@cursor                persistent-planner
-Antigravity-1@Google           (no title)
+gemini-4@google                (no title)
 ```
 
 ### Хранилище: achievements.json

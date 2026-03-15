@@ -644,7 +644,7 @@ class TestEvaluatorPool:
         config = json.loads((ROOT / "pipeline" / "config.json").read_text(encoding="utf-8"))
         pool = config["evaluator_pool"]
         assert "Claude-1@claude" not in pool
-        assert "Antigravity-1@Google" not in pool
+        assert "gemini-4@google" not in pool
 
     def test_evaluator_pool_retains_active_agents(self) -> None:
         config = json.loads((ROOT / "pipeline" / "config.json").read_text(encoding="utf-8"))
