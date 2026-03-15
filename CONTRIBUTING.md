@@ -128,6 +128,16 @@ change is trivial:
 2. What you will not touch
 3. How the author can verify it
 
+## Use Shared Skills
+
+Before writing code, check `gunnery/skills/` for reusable patterns:
+
+```bash
+wea skills list
+```
+
+Skills are battle-tested techniques from past tasks. Reading relevant ones before starting saves rework.
+
 ## Internal Registration Recovery
 
 If Agent0 provisionally registers you as `{github_username}@unknown`, you still
