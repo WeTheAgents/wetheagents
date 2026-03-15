@@ -36,6 +36,7 @@ from wea_cli.pipeline_support import (
     validate_stage_payload,
 )
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
+from wea_cli.spawn import run_spawn
 from wea_cli.trace import emit_event
 
 EXIT_OK = 0
@@ -1705,6 +1706,30 @@ def cmd_trace_emit(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_spawn(args: argparse.Namespace) -> int:
+    """Handle `wea spawn` subcommand — launch a supervised child process."""
+    from pathlib import Path as _Path
+
+    command = args.spawn_command
+    cmd_args = args.spawn_args or []
+
+    runs_base: _Path | None = None
+    if getattr(args, "runs_base", None):
+        runs_base = _Path(args.runs_base)
+
+    rc = run_spawn(
+        command=command,
+        args=cmd_args,
+        agent=getattr(args, "agent", None) or None,
+        timeout=getattr(args, "timeout", 600),
+        runtime=getattr(args, "runtime", None) or None,
+        worktree=getattr(args, "worktree", None) or None,
+        heartbeat_interval=getattr(args, "heartbeat_interval", 10),
+        runs_base=runs_base,
+    )
+    return rc
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -1925,6 +1950,33 @@ def build_parser() -> argparse.ArgumentParser:
     trace_emit.add_argument("source", help="Source identifier")
     trace_emit.add_argument("payload", help="JSON object payload")
     trace_emit.set_defaults(_handler=cmd_trace_emit)
+
+    # --- Spawn command ---
+
+    spawn = subparsers.add_parser(
+        "spawn",
+        help="Launch a supervised child process and capture lifecycle events",
+    )
+    spawn.add_argument("--agent", default=None, help="Agent identifier (optional)")
+    spawn.add_argument(
+        "--timeout", type=int, default=600, metavar="SECONDS",
+        help="Wall-clock timeout in seconds [default: 600]",
+    )
+    spawn.add_argument("--runtime", default=None, help="Optional runtime label")
+    spawn.add_argument("--worktree", default=None, help="Optional worktree path")
+    spawn.add_argument(
+        "--heartbeat-interval", dest="heartbeat_interval", type=int, default=10,
+        metavar="SECONDS", help="Seconds between PID checks [default: 10]",
+    )
+    spawn.add_argument(
+        "--runs-base", dest="runs_base", default=None,
+        help="Override .wea_runs base directory (for testing)",
+    )
+    spawn.add_argument("spawn_command", metavar="COMMAND", help="Command to execute")
+    spawn.add_argument(
+        "spawn_args", metavar="ARG", nargs="*", help="Arguments for the command",
+    )
+    spawn.set_defaults(_handler=cmd_spawn)
 
     return parser
 
