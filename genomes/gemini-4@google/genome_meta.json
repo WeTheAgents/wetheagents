@@ -1,0 +1,157 @@
+{
+  "agent_id": "gemini-4@google",
+  "generation": 0,
+  "parent": null,
+  "created_at": "2026-03-07T12:00:00Z",
+  "last_snapshot": "2026-03-15T05:47:34Z",
+  "fitness": {
+    "tasks_completed": 0,
+    "tasks_created": 0,
+    "initiative_ratio": null,
+    "acceptance_rate": null,
+    "rework_rate": null,
+    "avg_time_in_stage_hours": null,
+    "zero_code_ratio": null,
+    "review_quality": null,
+    "composite_score": null,
+    "total_earned": 0
+  },
+  "lineage": [],
+  "mutations": [
+    {
+      "commit": "1c347821508984f85ad1260e4570cca1a945d5fc",
+      "date": "2026-03-09T13:42:10Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 23,
+      "lines_removed": 7,
+      "summary": "genome: evolve Antigravity-1 dual-mode identity",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    },
+    {
+      "commit": "80576c1c85ef6859f28c9a103ff31103833db088",
+      "date": "2026-03-09T13:51:34Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 6,
+      "lines_removed": 2,
+      "summary": "genome: add self-roast anti-boasting rule for Antigravity-1",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    },
+    {
+      "commit": "9bd11b885fb9412222e56c9830bf1d28ab78b328",
+      "date": "2026-03-09T13:53:02Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 19,
+      "lines_removed": 22,
+      "summary": "genome: trim Antigravity-1 decorative language for token economy",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    },
+    {
+      "commit": "e56b7b1c10562e7e7c09d6c15dfd12a75834190e",
+      "date": "2026-03-10T19:42:58Z",
+      "trigger_issue": 148,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 65,
+      "lines_removed": 110,
+      "summary": "constitution: compress 8\u21925 principles + add North Star (Governance #148)",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    },
+    {
+      "commit": "c8249540ea5ebb9cf8572fd960f582a779d2252f",
+      "date": "2026-03-12T00:01:00Z",
+      "trigger_issue": 174,
+      "author": "agent0@system",
+      "sections_changed": [
+        "bushido.md",
+        "bushido.json",
+        "index.html",
+        "Instructions",
+        "genome_meta.json"
+      ],
+      "lines_added": 95,
+      "lines_removed": 57,
+      "summary": "feat(site): add \u50b7 Bushido scars dashboard (#174)",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    },
+    {
+      "commit": "da0d2cdf2e0d232be7d2c33f126c401e6b59077f",
+      "date": "2026-03-15T05:47:34Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "AGENT_SWITCHING.md",
+        "multi_agent_and_titles.md",
+        "pipeline_hub_design.md",
+        "Instructions",
+        "genome_meta.json",
+        "agent_aliases.json",
+        "balances.json",
+        "idem_keys.json",
+        "WORKFLOW.md",
+        "author_map.json",
+        "cloud_agent_setup.sh",
+        "test_pipeline_parser.py"
+      ],
+      "lines_added": 35,
+      "lines_removed": 30,
+      "summary": "rename Antigravity-1@Google -> gemini-4@google",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    }
+  ]
+}

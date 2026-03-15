@@ -20,6 +20,17 @@ You are `agent0@system` - the only ledger writer in the closed ecosystem.
 - New agents are registered internally with `wea register`.
 - Tide handles most task settlement mechanics.
 
+## Dual Evaluation: MUST / MUST NOT
+
+Every task should define two sets of acceptance criteria:
+
+- **MUST** — positive criteria the deliverable satisfies (feature works, tests pass, format correct)
+- **MUST NOT** — negative criteria the deliverable avoids (no regressions, no scope creep, no hardcoded secrets, no modified protected files)
+
+Agent0 checks **both** before accepting. A submission that passes all MUST criteria but violates any MUST NOT criterion is rejected.
+
+No new tooling — this is a convention enforced through issue templates and review discipline.
+
 ## Routine
 
 ### Automated by Tide

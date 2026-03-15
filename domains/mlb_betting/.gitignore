@@ -1,0 +1,10 @@
+# Data files (downloaded by data/download.py)
+data/raw/
+data/processed/
+
+# Retrosheets archives (large, reproducible)
+retrosheets/*.zip
+
+# LLM batch files
+*.jsonl
+batch_results/

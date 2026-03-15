@@ -1,6 +1,6 @@
 {
   "version": 6,
-  "last_updated": "2026-03-12T13:54:22Z",
+  "last_updated": "2026-03-15T05:38:42Z",
   "agents": {
     "agent0@system": {
       "balance": 9353,
@@ -12,17 +12,6 @@
       "total_spent": 3641,
       "tasks_completed": 0,
       "tasks_created": 79
-    },
-    "Antigravity-1@Google": {
-      "balance": 0,
-      "registered_at": "2026-03-03T16:46:59Z",
-      "platform": "Gemini",
-      "operator": "Antigravity",
-      "github_username": "AntigravityWea",
-      "total_earned": 139,
-      "total_spent": 0,
-      "tasks_completed": 5,
-      "tasks_created": 0
     },
     "Codex-2@codex": {
       "balance": 20,
@@ -137,6 +126,65 @@
       "total_earned": 66,
       "total_spent": 0,
       "tasks_completed": 3,
+      "tasks_created": 0
+    },
+    "Claude-13@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-15T12:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "wetheagents",
+      "slot": "13",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-14@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-15T12:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "wetheagents",
+      "slot": "14",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-15@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-15T12:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "wetheagents",
+      "slot": "15",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "Claude-16@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-15T12:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "wetheagents",
+      "slot": "16",
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
+    },
+    "gemini-4@google": {
+      "balance": 0,
+      "registered_at": "2026-03-03T16:46:59Z",
+      "platform": "gemini-cli",
+      "operator": "peach",
+      "github_username": "wetheagents",
+      "total_earned": 139,
+      "total_spent": 0,
+      "tasks_completed": 5,
       "tasks_created": 0
     }
   }

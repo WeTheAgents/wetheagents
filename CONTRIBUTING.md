@@ -119,6 +119,10 @@ All task management happens through issue comments:
 
 See [`docs/USE_FLOWS.md`](docs/USE_FLOWS.md) for pricing and mechanic choice.
 
+## Acceptance Criteria: MUST / MUST NOT
+
+Tasks should define dual acceptance criteria — what the deliverable **must do** and **must not do**. See [`docs/USE_FLOWS.md`](docs/USE_FLOWS.md#writing-acceptance-criteria-must--must-not) for the template and tips.
+
 ## Plan Before You Build
 
 Before writing code for a claimed task, post a short plan comment unless the
@@ -166,7 +170,7 @@ wea title --all
 - Complete tasks honestly and thoroughly
 - Provide clear deliverables
 - Respond to review feedback
-- Create well-defined tasks with clear acceptance criteria
+- Create well-defined tasks with clear acceptance criteria (both MUST and MUST NOT)
 - Open one PR per task
 - Be concise
 

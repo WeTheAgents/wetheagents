@@ -36,6 +36,10 @@ from wea_cli.pipeline_support import (
     validate_stage_payload,
 )
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
+from wea_cli.spawn import run_spawn
+from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
+from wea_cli.trace import emit_event
+from wea_cli.hooks_adapter import handle_hook
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -1671,6 +1675,116 @@ def cmd_pipeline_refinement_status(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_trace_emit(args: argparse.Namespace) -> int:
+    """Handle `wea trace emit` subcommand."""
+    run_dir = Path(args.run_dir)
+
+    if not run_dir.is_dir():
+        print("Run directory not found")
+        return EXIT_DOMAIN_ERROR
+
+    # Parse payload JSON
+    try:
+        payload = json.loads(args.payload)
+    except (json.JSONDecodeError, TypeError):
+        print("Invalid JSON")
+        return EXIT_DOMAIN_ERROR
+
+    if not isinstance(payload, dict):
+        print("Invalid JSON")
+        return EXIT_DOMAIN_ERROR
+
+    try:
+        emit_event(
+            run_dir=run_dir,
+            event_type=args.event_type,
+            source=args.source,
+            payload=payload,
+        )
+    except ValueError as exc:
+        print(str(exc))
+        return EXIT_DOMAIN_ERROR
+
+    return EXIT_OK
+
+
+def cmd_runs(args: argparse.Namespace) -> int:
+    """Handle `wea runs` subcommand — list all run directories."""
+    runs_dir = Path(getattr(args, "runs_dir", None) or ".wea_runs")
+    snapshots = list_runs(runs_dir)
+
+    if getattr(args, "json", False):
+        emit(json.dumps(snapshots, ensure_ascii=False))
+        return EXIT_OK
+
+    emit(format_runs_table(snapshots))
+    return EXIT_OK
+
+
+def cmd_run_status(args: argparse.Namespace) -> int:
+    """Handle `wea run-status <run_id>` subcommand — JSON snapshot of one run."""
+    runs_dir = Path(getattr(args, "runs_dir", None) or ".wea_runs")
+    run_id = args.run_id
+
+    if not runs_dir.exists() or not runs_dir.is_dir():
+        emit(f"Error: .wea_runs directory not found: {runs_dir}")
+        return EXIT_DOMAIN_ERROR
+
+    run_dir = runs_dir / run_id
+    if not run_dir.exists() or not run_dir.is_dir():
+        emit(f"Error: run not found: {run_id}")
+        return EXIT_DOMAIN_ERROR
+
+    snapshot = read_run_snapshot(run_dir)
+    emit(json.dumps(snapshot, ensure_ascii=False))
+    return EXIT_OK
+
+
+def cmd_spawn(args: argparse.Namespace) -> int:
+    """Handle `wea spawn` subcommand — launch a supervised child process."""
+    from pathlib import Path as _Path
+
+    command = args.spawn_command
+    cmd_args = args.spawn_args or []
+
+    runs_base: _Path | None = None
+    if getattr(args, "runs_base", None):
+        runs_base = _Path(args.runs_base)
+
+    rc = run_spawn(
+        command=command,
+        args=cmd_args,
+        agent=getattr(args, "agent", None) or None,
+        timeout=getattr(args, "timeout", 600),
+        runtime=getattr(args, "runtime", None) or None,
+        worktree=getattr(args, "worktree", None) or None,
+        heartbeat_interval=getattr(args, "heartbeat_interval", 10),
+        runs_base=runs_base,
+    )
+    return rc
+
+
+def cmd_hooks_handle(args: argparse.Namespace) -> int:
+    """Handle `wea hooks handle` subcommand — read JSON from stdin, emit trace event."""
+    import json as _json
+
+    raw = sys.stdin.read()
+    try:
+        payload = _json.loads(raw)
+    except _json.JSONDecodeError as exc:
+        print(f"wea hooks handle: invalid JSON on stdin: {exc}", file=sys.stderr)
+        return EXIT_DOMAIN_ERROR
+
+    if not isinstance(payload, dict):
+        print("wea hooks handle: expected a JSON object on stdin", file=sys.stderr)
+        return EXIT_DOMAIN_ERROR
+
+    run_dir_arg = getattr(args, "run_dir", None)
+    run_dir = Path(run_dir_arg) if run_dir_arg else None
+
+    return handle_hook(payload, run_dir=run_dir)
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -1808,6 +1922,16 @@ def build_parser() -> argparse.ArgumentParser:
     transform.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     transform.add_argument("--dry-run", action="store_true", help="Preview without writing")
 
+    # --- Domain commands ---
+
+    subparsers.add_parser("domains", help="List domains and agent assignments")
+
+    assign_cmd = subparsers.add_parser("assign", help="[Agent0] Assign agent to a domain")
+    assign_cmd.add_argument("target_agent", help="Agent to assign")
+    assign_cmd.add_argument("domain", help="Target domain (e.g. mlb_betting)")
+    assign_cmd.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    assign_cmd.add_argument("--dry-run", action="store_true", help="Preview without writing")
+
     # --- Lock commands ---
 
     lock_acquire = subparsers.add_parser("lock-acquire", help="Acquire agent lock for this session")
@@ -1886,6 +2010,83 @@ def build_parser() -> argparse.ArgumentParser:
     skills_suggest = skills_subparsers.add_parser("suggest", help="Suggest skills for a task")
     skills_suggest.add_argument("issue", type=int, help="Issue number")
     skills_suggest.set_defaults(_handler=cmd_skills_suggest)
+
+    # --- Trace commands ---
+
+    trace = subparsers.add_parser("trace", help="Trace event utilities")
+    trace_subparsers = trace.add_subparsers(dest="trace_command")
+    trace_subparsers.required = True
+
+    trace_emit = trace_subparsers.add_parser("emit", help="Emit a trace event to a run directory")
+    trace_emit.add_argument("run_dir", help="Path to the run directory")
+    trace_emit.add_argument("event_type", help="Event type (e.g. run_started, heartbeat)")
+    trace_emit.add_argument("source", help="Source identifier")
+    trace_emit.add_argument("payload", help="JSON object payload")
+    trace_emit.set_defaults(_handler=cmd_trace_emit)
+
+    # --- Hooks commands ---
+
+    hooks = subparsers.add_parser("hooks", help="Claude Code hook adapter utilities")
+    hooks_subparsers = hooks.add_subparsers(dest="hooks_command")
+    hooks_subparsers.required = True
+
+    hooks_handle = hooks_subparsers.add_parser(
+        "handle",
+        help="Read a Claude Code hook JSON payload from stdin and emit a trace event",
+    )
+    hooks_handle.add_argument(
+        "--run-dir", dest="run_dir", default=None,
+        help="Path to run directory (overrides WEA_RUN_DIR env var)",
+    )
+    hooks_handle.set_defaults(_handler=cmd_hooks_handle)
+
+    # --- Runs commands ---
+
+    runs_cmd = subparsers.add_parser("runs", help="List all run directories in .wea_runs")
+    runs_cmd.add_argument(
+        "--json", action="store_true", dest="json",
+        help="Output as JSON array instead of human-readable table",
+    )
+    runs_cmd.add_argument(
+        "--runs-dir", dest="runs_dir", default=None,
+        help="Override .wea_runs base directory (default: .wea_runs in cwd)",
+    )
+    runs_cmd.set_defaults(_handler=cmd_runs)
+
+    run_status_cmd = subparsers.add_parser("run-status", help="Show JSON snapshot of a single run")
+    run_status_cmd.add_argument("run_id", help="Run ID (directory name under .wea_runs)")
+    run_status_cmd.add_argument(
+        "--runs-dir", dest="runs_dir", default=None,
+        help="Override .wea_runs base directory (default: .wea_runs in cwd)",
+    )
+    run_status_cmd.set_defaults(_handler=cmd_run_status)
+
+    # --- Spawn command ---
+
+    spawn = subparsers.add_parser(
+        "spawn",
+        help="Launch a supervised child process and capture lifecycle events",
+    )
+    spawn.add_argument("--agent", default=None, help="Agent identifier (optional)")
+    spawn.add_argument(
+        "--timeout", type=int, default=600, metavar="SECONDS",
+        help="Wall-clock timeout in seconds [default: 600]",
+    )
+    spawn.add_argument("--runtime", default=None, help="Optional runtime label")
+    spawn.add_argument("--worktree", default=None, help="Optional worktree path")
+    spawn.add_argument(
+        "--heartbeat-interval", dest="heartbeat_interval", type=int, default=10,
+        metavar="SECONDS", help="Seconds between PID checks [default: 10]",
+    )
+    spawn.add_argument(
+        "--runs-base", dest="runs_base", default=None,
+        help="Override .wea_runs base directory (for testing)",
+    )
+    spawn.add_argument("spawn_command", metavar="COMMAND", help="Command to execute")
+    spawn.add_argument(
+        "spawn_args", metavar="ARG", nargs="*", help="Arguments for the command",
+    )
+    spawn.set_defaults(_handler=cmd_spawn)
 
     return parser
 
@@ -1992,6 +2193,121 @@ def _run_lock_cmd(argv: list[str]) -> int:
     return result.returncode
 
 
+def load_domains(root: Path) -> dict[str, Any]:
+    """Load ledger/domains.json."""
+    path = root / "ledger" / "domains.json"
+    if not path.exists():
+        return {"version": 1, "domains": {}, "assignments": {}}
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def save_domains(root: Path, data: dict) -> None:
+    """Write ledger/domains.json."""
+    path = root / "ledger" / "domains.json"
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def cmd_domains(args: argparse.Namespace) -> int:
+    """List domains and current agent assignments."""
+    root = resolve_repo_root(args.root)
+    domains_data = load_domains(root)
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+
+    domains = domains_data.get("domains", {})
+    assignments = domains_data.get("assignments", {})
+
+    if not domains:
+        print("No domains defined.")
+        return EXIT_OK
+
+    # Build reverse map: domain → list of agents
+    domain_agents: dict[str, list[str]] = {d: [] for d in domains}
+    for agent_id, info in assignments.items():
+        d = info.get("domain", "core")
+        domain_agents.setdefault(d, []).append(agent_id)
+
+    for name, meta in domains.items():
+        desc = meta.get("description", "")
+        label = meta.get("label", "")
+        assigned = domain_agents.get(name, [])
+        print(f"\n{name}  [{label}]")
+        print(f"  {desc}")
+        if assigned:
+            for a in sorted(assigned):
+                status = "registered" if a in agents else "unknown"
+                print(f"    - {a}  ({status})")
+        else:
+            print("    (no agents assigned)")
+
+    # Show unassigned agents
+    assigned_set = set(assignments.keys())
+    unassigned = [a for a in agents if a not in assigned_set]
+    if unassigned:
+        print(f"\nUnassigned (default → core): {len(unassigned)} agents")
+
+    return EXIT_OK
+
+
+def cmd_assign(args: argparse.Namespace) -> int:
+    """Assign an agent to a domain. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"assign is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    root = resolve_repo_root(args.root)
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+    domains_data = load_domains(root)
+    domains = domains_data.get("domains", {})
+
+    target = args.target_agent
+    domain = args.domain
+
+    if target not in agents:
+        print(f"Agent not found: {target}")
+        return EXIT_DOMAIN_ERROR
+
+    if domain not in domains:
+        print(f"Domain not found: {domain}. Available: {', '.join(sorted(domains.keys()))}")
+        return EXIT_DOMAIN_ERROR
+
+    ts = _now_iso()
+    old_assignment = domains_data.get("assignments", {}).get(target)
+    old_domain = old_assignment["domain"] if old_assignment else "core (default)"
+
+    if args.dry_run:
+        print(f"Assign: {target} → {domain}")
+        print(format_kv("Previous", old_domain))
+        print(format_kv("New", domain))
+        print("\nDry run -- no changes written.")
+        return EXIT_OK
+
+    domains_data.setdefault("assignments", {})[target] = {
+        "domain": domain,
+        "assigned_at": ts,
+    }
+    save_domains(root, domains_data)
+
+    # Log to daily history
+    history_dir = root / "ledger" / "history"
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    history_path = history_dir / f"{today}.jsonl"
+    entry = json.dumps({
+        "type": "domain_assign",
+        "agent": target,
+        "domain": domain,
+        "previous": old_domain,
+        "at": ts,
+    }, ensure_ascii=False)
+    with open(history_path, "a", encoding="utf-8") as f:
+        f.write(entry + "\n")
+
+    print(f"Assigned {target} → {domain}")
+    return EXIT_OK
+
+
 def cmd_lock_acquire(args: argparse.Namespace) -> int:
     return _run_lock_cmd(["acquire", args.slug, "--session", args.session, "--ttl", str(args.ttl)])
 
@@ -2037,6 +2353,8 @@ def main() -> int:
         "revoke": cmd_revoke,
         "title": cmd_title,
         "transform-propose": cmd_transform_propose,
+        "domains": cmd_domains,
+        "assign": cmd_assign,
         "lock-acquire": cmd_lock_acquire,
         "lock-release": cmd_lock_release,
         "lock-release-all": cmd_lock_release_all,

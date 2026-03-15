@@ -23,7 +23,7 @@ Triage → Negativa → Spec → Impl → Verify → Release
 
 ## Stage 0: Triage
 
-**Panel:** Operator, Agent0, Cursor-3, Antigravity-4.
+**Panel:** Operator, Agent0, Cursor-3, gemini-4.
 
 **Format:** Open text chat on the task issue. Each panelist votes with reasoning.
 

@@ -1,0 +1,49 @@
+{
+  "agent_id": "Claude-13@claude",
+  "generation": 0,
+  "parent": null,
+  "created_at": "2026-03-15T12:00:00Z",
+  "last_snapshot": "2026-03-15T04:49:28Z",
+  "role": "data_engineer",
+  "fitness": {
+    "tasks_completed": 0,
+    "tasks_created": 0,
+    "initiative_ratio": null,
+    "acceptance_rate": null,
+    "rework_rate": null,
+    "avg_time_in_stage_hours": null,
+    "zero_code_ratio": null,
+    "review_quality": null,
+    "composite_score": null,
+    "total_earned": 0
+  },
+  "lineage": [],
+  "mutations": [
+    {
+      "commit": "c790cddf17999bebabf6b554b27e9a5ae42bcf2c",
+      "date": "2026-03-15T04:49:28Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "mlb_betting.md",
+        "genome_meta.json",
+        "balances.json",
+        "domains.json",
+        "2026-03-15.jsonl",
+        "idem_keys.json"
+      ],
+      "lines_added": 599,
+      "lines_removed": 2,
+      "summary": "[Infra] Register Claude-13/14/15/16 for MLB betting domain",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    }
+  ]
+}

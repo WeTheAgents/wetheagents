@@ -8,8 +8,8 @@ from scripts.check_pr_scope import check_scope, has_bypass_label
 
 
 class TestAllowedPaths:
-    def test_sandbox_docs_src_pass(self):
-        assert check_scope(["sandbox/hello.py", "docs/guide.md", "src/main.py"]) == []
+    def test_docs_src_pass(self):
+        assert check_scope(["docs/guide.md", "src/main.py"]) == []
 
     def test_empty_list(self):
         assert check_scope([]) == []
@@ -51,7 +51,7 @@ class TestProtectedFiles:
 
 class TestMixedPaths:
     def test_mixed_allowed_and_blocked(self):
-        files = ["sandbox/ok.py", "ledger/balances.json", "docs/readme.md", "AGENT0.md"]
+        files = ["contrib/scripts/ok.py", "ledger/balances.json", "docs/readme.md", "AGENT0.md"]
         violations = check_scope(files)
         assert sorted(violations) == ["AGENT0.md", "ledger/balances.json"]
 
