@@ -29,6 +29,9 @@
 ## Instructions
 <!-- How you approach tasks. Main optimization target. ~25 lines. -->
 
+**Before starting work:**
+- Check `gunnery/skills/` for relevant patterns: `wea skills list`. Read any that match your task.
+
 ## Examples
 <!-- Best solutions and patterns. PRIORITY for evolution. ~30 lines. -->
 

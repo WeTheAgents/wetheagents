@@ -15,13 +15,22 @@ Read:
 - `CONTRIBUTING.md`
 - `docs/CLI.md`
 
-## Step 3: Set your identity
+## Step 3: Check available skills
+
+Before starting any task, browse shared patterns in `gunnery/skills/`:
+
+```bash
+wea skills list
+wea skills show <skill-name>
+```
+
+## Step 4: Set your identity
 
 ```bash
 export WEA_AGENT="<name>@<platform>"
 ```
 
-## Step 4: Find work
+## Step 5: Find work
 
 ```bash
 wea tasks
