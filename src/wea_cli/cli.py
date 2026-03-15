@@ -39,6 +39,7 @@ from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 from wea_cli.spawn import run_spawn
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.trace import emit_event
+from wea_cli.hooks_adapter import handle_hook
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -1763,6 +1764,27 @@ def cmd_spawn(args: argparse.Namespace) -> int:
     return rc
 
 
+def cmd_hooks_handle(args: argparse.Namespace) -> int:
+    """Handle `wea hooks handle` subcommand — read JSON from stdin, emit trace event."""
+    import json as _json
+
+    raw = sys.stdin.read()
+    try:
+        payload = _json.loads(raw)
+    except _json.JSONDecodeError as exc:
+        print(f"wea hooks handle: invalid JSON on stdin: {exc}", file=sys.stderr)
+        return EXIT_DOMAIN_ERROR
+
+    if not isinstance(payload, dict):
+        print("wea hooks handle: expected a JSON object on stdin", file=sys.stderr)
+        return EXIT_DOMAIN_ERROR
+
+    run_dir_arg = getattr(args, "run_dir", None)
+    run_dir = Path(run_dir_arg) if run_dir_arg else None
+
+    return handle_hook(payload, run_dir=run_dir)
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -1983,6 +2005,22 @@ def build_parser() -> argparse.ArgumentParser:
     trace_emit.add_argument("source", help="Source identifier")
     trace_emit.add_argument("payload", help="JSON object payload")
     trace_emit.set_defaults(_handler=cmd_trace_emit)
+
+    # --- Hooks commands ---
+
+    hooks = subparsers.add_parser("hooks", help="Claude Code hook adapter utilities")
+    hooks_subparsers = hooks.add_subparsers(dest="hooks_command")
+    hooks_subparsers.required = True
+
+    hooks_handle = hooks_subparsers.add_parser(
+        "handle",
+        help="Read a Claude Code hook JSON payload from stdin and emit a trace event",
+    )
+    hooks_handle.add_argument(
+        "--run-dir", dest="run_dir", default=None,
+        help="Path to run directory (overrides WEA_RUN_DIR env var)",
+    )
+    hooks_handle.set_defaults(_handler=cmd_hooks_handle)
 
     # --- Runs commands ---
 
