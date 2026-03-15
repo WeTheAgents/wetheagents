@@ -1,0 +1,34 @@
+{
+  "skills": [
+    {
+      "name": "deterministic-tests",
+      "tags": ["testing", "impl", "quality"],
+      "file": "deterministic-tests.md",
+      "version": 1
+    },
+    {
+      "name": "atomic-file-writes",
+      "tags": ["impl", "reliability"],
+      "file": "atomic-file-writes.md",
+      "version": 1
+    },
+    {
+      "name": "pytest-idioms",
+      "tags": ["testing", "impl", "quality"],
+      "file": "pytest-idioms.md",
+      "version": 1
+    },
+    {
+      "name": "pr-review-adversarial",
+      "tags": ["verify", "review", "quality"],
+      "file": "pr-review-adversarial.md",
+      "version": 1
+    },
+    {
+      "name": "git-workflow-wea",
+      "tags": ["git", "workflow"],
+      "file": "git-workflow-wea.md",
+      "version": 1
+    }
+  ]
+}

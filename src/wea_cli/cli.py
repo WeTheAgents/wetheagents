@@ -1869,7 +1869,115 @@ def build_parser() -> argparse.ArgumentParser:
     pipeline_ref_status.add_argument("--issue", type=int, required=True, help="Issue number")
     pipeline_ref_status.set_defaults(_handler=cmd_pipeline_refinement_status)
 
+    # --- Skills (gunnery/skills/) ---
+
+    skills = subparsers.add_parser("skills", help="Browse shared skill library")
+    skills_subparsers = skills.add_subparsers(dest="skills_command")
+    skills_subparsers.required = True
+
+    skills_list = skills_subparsers.add_parser("list", help="List available skills")
+    skills_list.add_argument("--tag", help="Filter by tag")
+    skills_list.set_defaults(_handler=cmd_skills_list)
+
+    skills_show = skills_subparsers.add_parser("show", help="Print a skill's content")
+    skills_show.add_argument("name", help="Skill name (e.g. deterministic-tests)")
+    skills_show.set_defaults(_handler=cmd_skills_show)
+
+    skills_suggest = skills_subparsers.add_parser("suggest", help="Suggest skills for a task")
+    skills_suggest.add_argument("issue", type=int, help="Issue number")
+    skills_suggest.set_defaults(_handler=cmd_skills_suggest)
+
     return parser
+
+
+# --- Skills command handlers ---
+
+
+def _skills_dir(root: Path) -> Path:
+    return root / "gunnery" / "skills"
+
+
+def _load_skill_index(root: Path) -> list[dict[str, Any]]:
+    index_path = _skills_dir(root) / "_index.json"
+    if not index_path.exists():
+        return []
+    data = json.loads(index_path.read_text(encoding="utf-8"))
+    return data.get("skills", [])
+
+
+def cmd_skills_list(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    skills = _load_skill_index(root)
+    if not skills:
+        emit("No skills found.")
+        return EXIT_OK
+
+    tag_filter = getattr(args, "tag", None)
+    if tag_filter:
+        skills = [s for s in skills if tag_filter in s.get("tags", [])]
+
+    if not skills:
+        emit(f"No skills matching tag '{tag_filter}'.")
+        return EXIT_OK
+
+    for s in skills:
+        tags = ", ".join(s.get("tags", []))
+        emit(f"  {s['name']:<30s} [{tags}]")
+    return EXIT_OK
+
+
+def cmd_skills_show(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    skill_file = _skills_dir(root) / f"{args.name}.md"
+    if not skill_file.exists():
+        emit(f"Skill not found: {args.name}")
+        emit(f"Available skills: {', '.join(s['name'] for s in _load_skill_index(root))}")
+        return EXIT_DOMAIN_ERROR
+    emit(skill_file.read_text(encoding="utf-8"))
+    return EXIT_OK
+
+
+def cmd_skills_suggest(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(args.root)
+    issue_data = view_issue(args.issue, repo=args.repo)
+    if not issue_data:
+        emit(f"Issue not found: #{args.issue}")
+        return EXIT_DOMAIN_ERROR
+
+    # Extract text to match against
+    title = issue_data.get("title", "").lower()
+    body = (issue_data.get("body") or "").lower()
+    issue_text = f"{title} {body}"
+
+    # Simple keyword matching: check if any skill tag appears in issue text
+    skills = _load_skill_index(root)
+    # Map common issue keywords to skill tags
+    keyword_tags = {
+        "test": "testing", "tests": "testing", "pytest": "testing",
+        "review": "review", "verify": "verify",
+        "implement": "impl", "build": "impl", "code": "impl",
+        "git": "git", "branch": "git", "push": "git", "commit": "git",
+        "file": "reliability", "write": "reliability", "json": "reliability",
+        "quality": "quality",
+    }
+
+    matched_tags: set[str] = set()
+    for keyword, tag in keyword_tags.items():
+        if keyword in issue_text:
+            matched_tags.add(tag)
+
+    suggested = [s for s in skills if matched_tags & set(s.get("tags", []))]
+
+    if not suggested:
+        emit("No skill suggestions for this task.")
+        return EXIT_OK
+
+    emit(f"Suggested skills for #{args.issue}:")
+    for s in suggested:
+        tags = ", ".join(s.get("tags", []))
+        emit(f"  {s['name']:<30s} [{tags}]")
+    emit(f"\nRun: wea skills show <name> to read a skill.")
+    return EXIT_OK
 
 
 def _lock_script() -> str:

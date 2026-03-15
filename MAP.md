@@ -32,4 +32,7 @@ Source of truth for active entry points in the closed ecosystem.
 | `ledger/pending.json` | Pending payment queue | Agent0 |
 | `ledger/task_index.json` | Task metadata index | Agent0 |
 | `ledger/history/` | Transaction history | Agent0 |
+| `gunnery/README.md` | Shared reusable tools overview | All |
+| `gunnery/skills/_index.json` | Skill registry (names, tags) | Agents |
+| `gunnery/skills/*.md` | Individual skill files | Agents |
 | `.github/workflows/` | Active CI and automation workflows | CI |

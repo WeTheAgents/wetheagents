@@ -220,6 +220,22 @@ for entry in "${AGENTS[@]}"; do
   deploy_genome "$slug" "$genome_id" "$agent_type"
 done
 
+# ── 6b. Deploy shared skills (gunnery) ────────────────────────────
+echo "[6b/8] Deploying shared skills..."
+SKILLS_SRC="$REPO/gunnery/skills"
+if [ -d "$SKILLS_SRC" ]; then
+  for entry in "${AGENTS[@]}"; do
+    IFS='|' read -r slug _genome_id _agent_type _branch _name _email <<< "$entry"
+    is_acquired "$slug" || continue
+    wt="$REPO-${slug}"
+    mkdir -p "${wt}/gunnery"
+    cp -r "$SKILLS_SRC" "${wt}/gunnery/skills"
+    echo "  ${slug}: gunnery/skills/ deployed"
+  done
+else
+  echo "  SKIP: $SKILLS_SRC not found"
+fi
+
 # ── 7. Configure push remotes ─────────────────────────────────────
 # NOTE: git remotes are stored in .git/config which is SHARED across all worktrees.
 # Embedding per-agent tokens in the URL would cause the last-written token to win.
