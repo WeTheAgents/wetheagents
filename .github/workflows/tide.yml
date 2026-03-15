@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.name "agent0@system"
           git config user.email "agent0@wetheagents.noreply.github.com"
-          git add ledger/ sandbox/
+          git add ledger/
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
