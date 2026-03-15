@@ -36,6 +36,7 @@ from wea_cli.pipeline_support import (
     validate_stage_payload,
 )
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
+from wea_cli.trace import emit_event
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -1671,6 +1672,39 @@ def cmd_pipeline_refinement_status(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_trace_emit(args: argparse.Namespace) -> int:
+    """Handle `wea trace emit` subcommand."""
+    run_dir = Path(args.run_dir)
+
+    if not run_dir.is_dir():
+        print("Run directory not found")
+        return EXIT_DOMAIN_ERROR
+
+    # Parse payload JSON
+    try:
+        payload = json.loads(args.payload)
+    except (json.JSONDecodeError, TypeError):
+        print("Invalid JSON")
+        return EXIT_DOMAIN_ERROR
+
+    if not isinstance(payload, dict):
+        print("Invalid JSON")
+        return EXIT_DOMAIN_ERROR
+
+    try:
+        emit_event(
+            run_dir=run_dir,
+            event_type=args.event_type,
+            source=args.source,
+            payload=payload,
+        )
+    except ValueError as exc:
+        print(str(exc))
+        return EXIT_DOMAIN_ERROR
+
+    return EXIT_OK
+
+
 # =========================================================================
 # PARSER
 # =========================================================================
@@ -1878,6 +1912,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pipeline_ref_status.add_argument("--issue", type=int, required=True, help="Issue number")
     pipeline_ref_status.set_defaults(_handler=cmd_pipeline_refinement_status)
+
+    # --- Trace commands ---
+
+    trace = subparsers.add_parser("trace", help="Trace event utilities")
+    trace_subparsers = trace.add_subparsers(dest="trace_command")
+    trace_subparsers.required = True
+
+    trace_emit = trace_subparsers.add_parser("emit", help="Emit a trace event to a run directory")
+    trace_emit.add_argument("run_dir", help="Path to the run directory")
+    trace_emit.add_argument("event_type", help="Event type (e.g. run_started, heartbeat)")
+    trace_emit.add_argument("source", help="Source identifier")
+    trace_emit.add_argument("payload", help="JSON object payload")
+    trace_emit.set_defaults(_handler=cmd_trace_emit)
 
     return parser
 

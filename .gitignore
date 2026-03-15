@@ -19,6 +19,9 @@ agent0_diary_raw/
 test_write_tmp.txt
 .tmp_*
 
+# Run event store (local observability data)
+.wea_runs/
+
 # Python
 __pycache__/
 *.py[cod]
