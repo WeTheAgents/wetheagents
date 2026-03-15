@@ -144,6 +144,38 @@ _AUTO_APPROVE_THRESHOLD = 0.85
 _REFINEMENT_THRESHOLD = 0.60
 
 
+def compute_normalized_change(
+    passed_before: int,
+    failed_before: int,
+    passed_after: int,
+    failed_after: int,
+) -> float:
+    """Compute the Normalized Change metric a(c) from SWE-CI.
+
+    Measures how much of the test gap an implementation closes (positive)
+    or how much of the passing baseline it breaks (negative).
+
+    Args:
+        passed_before: tests passing before the PR
+        failed_before: tests failing before the PR
+        passed_after:  tests passing after the PR
+        failed_after:  tests failing after the PR
+
+    Returns:
+        float in [-1.0, 1.0]:
+          +1.0 = all previously failing tests fixed, zero regressions
+           0.0 = no net change
+          -1.0 = all previously passing tests now fail
+    """
+    delta = passed_after - passed_before
+    if delta >= 0:
+        denominator = max(1, failed_before)
+        return min(1.0, delta / denominator)
+    else:
+        denominator = max(1, passed_before)
+        return max(-1.0, delta / denominator)
+
+
 def _eval_score(eval_payload: dict[str, Any]) -> float:
     """Extract or compute a score for a single verify evaluation payload.
 
