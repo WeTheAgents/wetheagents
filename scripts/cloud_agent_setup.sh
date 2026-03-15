@@ -79,10 +79,42 @@ create_worktree() {
   fi
 }
 
+resolve_agent_domain() {
+  # Resolve domain for an agent from ledger/domains.json
+  # Usage: resolve_agent_domain <genome_id>
+  # Prints domain name (or "core" if unassigned)
+  local genome_id="$1"
+  local domains_file="$REPO/ledger/domains.json"
+  if [ ! -f "$domains_file" ]; then
+    echo "core"; return
+  fi
+  local domain
+  domain=$(python3 -c "
+import json, sys
+data = json.load(open('$domains_file'))
+a = data.get('assignments', {}).get('$genome_id', {})
+print(a.get('domain', 'core'))
+" 2>/dev/null) || domain="core"
+  echo "$domain"
+}
+
 deploy_genome() {
   local slug="$1" genome_id="$2" agent_type="$3"
-  local genome_src="$REPO/genomes/${genome_id}/AGENTS.local.md"
   local wt="/home/user/wetheagents-${slug}"
+
+  # Check for domain-specific genome
+  local domain
+  domain=$(resolve_agent_domain "$genome_id")
+  local domain_genome="$REPO/genomes/${genome_id}/domains/${domain}.md"
+  local base_genome="$REPO/genomes/${genome_id}/AGENTS.local.md"
+
+  local genome_src
+  if [ "$domain" != "core" ] && [ -f "$domain_genome" ]; then
+    genome_src="$domain_genome"
+    echo "  ${slug}: using domain genome (${domain})"
+  else
+    genome_src="$base_genome"
+  fi
 
   if [ ! -f "$genome_src" ]; then
     echo "  WARN: genome not found: $genome_src"; return 0

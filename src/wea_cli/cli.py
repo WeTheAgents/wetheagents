@@ -1808,6 +1808,16 @@ def build_parser() -> argparse.ArgumentParser:
     transform.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     transform.add_argument("--dry-run", action="store_true", help="Preview without writing")
 
+    # --- Domain commands ---
+
+    subparsers.add_parser("domains", help="List domains and agent assignments")
+
+    assign_cmd = subparsers.add_parser("assign", help="[Agent0] Assign agent to a domain")
+    assign_cmd.add_argument("target_agent", help="Agent to assign")
+    assign_cmd.add_argument("domain", help="Target domain (e.g. mlb_betting)")
+    assign_cmd.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    assign_cmd.add_argument("--dry-run", action="store_true", help="Preview without writing")
+
     # --- Lock commands ---
 
     lock_acquire = subparsers.add_parser("lock-acquire", help="Acquire agent lock for this session")
@@ -1884,6 +1894,121 @@ def _run_lock_cmd(argv: list[str]) -> int:
     return result.returncode
 
 
+def load_domains(root: Path) -> dict[str, Any]:
+    """Load ledger/domains.json."""
+    path = root / "ledger" / "domains.json"
+    if not path.exists():
+        return {"version": 1, "domains": {}, "assignments": {}}
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def save_domains(root: Path, data: dict) -> None:
+    """Write ledger/domains.json."""
+    path = root / "ledger" / "domains.json"
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def cmd_domains(args: argparse.Namespace) -> int:
+    """List domains and current agent assignments."""
+    root = resolve_repo_root(args.root)
+    domains_data = load_domains(root)
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+
+    domains = domains_data.get("domains", {})
+    assignments = domains_data.get("assignments", {})
+
+    if not domains:
+        print("No domains defined.")
+        return EXIT_OK
+
+    # Build reverse map: domain → list of agents
+    domain_agents: dict[str, list[str]] = {d: [] for d in domains}
+    for agent_id, info in assignments.items():
+        d = info.get("domain", "core")
+        domain_agents.setdefault(d, []).append(agent_id)
+
+    for name, meta in domains.items():
+        desc = meta.get("description", "")
+        label = meta.get("label", "")
+        assigned = domain_agents.get(name, [])
+        print(f"\n{name}  [{label}]")
+        print(f"  {desc}")
+        if assigned:
+            for a in sorted(assigned):
+                status = "registered" if a in agents else "unknown"
+                print(f"    - {a}  ({status})")
+        else:
+            print("    (no agents assigned)")
+
+    # Show unassigned agents
+    assigned_set = set(assignments.keys())
+    unassigned = [a for a in agents if a not in assigned_set]
+    if unassigned:
+        print(f"\nUnassigned (default → core): {len(unassigned)} agents")
+
+    return EXIT_OK
+
+
+def cmd_assign(args: argparse.Namespace) -> int:
+    """Assign an agent to a domain. Agent0 only."""
+    caller = resolve_agent(args.agent)
+    if caller != AGENT0_ID:
+        print(f"assign is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        return EXIT_DOMAIN_ERROR
+
+    root = resolve_repo_root(args.root)
+    balances = load_balances(root)
+    agents = balances.get("agents", {})
+    domains_data = load_domains(root)
+    domains = domains_data.get("domains", {})
+
+    target = args.target_agent
+    domain = args.domain
+
+    if target not in agents:
+        print(f"Agent not found: {target}")
+        return EXIT_DOMAIN_ERROR
+
+    if domain not in domains:
+        print(f"Domain not found: {domain}. Available: {', '.join(sorted(domains.keys()))}")
+        return EXIT_DOMAIN_ERROR
+
+    ts = _now_iso()
+    old_assignment = domains_data.get("assignments", {}).get(target)
+    old_domain = old_assignment["domain"] if old_assignment else "core (default)"
+
+    if args.dry_run:
+        print(f"Assign: {target} → {domain}")
+        print(format_kv("Previous", old_domain))
+        print(format_kv("New", domain))
+        print("\nDry run -- no changes written.")
+        return EXIT_OK
+
+    domains_data.setdefault("assignments", {})[target] = {
+        "domain": domain,
+        "assigned_at": ts,
+    }
+    save_domains(root, domains_data)
+
+    # Log to daily history
+    history_dir = root / "ledger" / "history"
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    history_path = history_dir / f"{today}.jsonl"
+    entry = json.dumps({
+        "type": "domain_assign",
+        "agent": target,
+        "domain": domain,
+        "previous": old_domain,
+        "at": ts,
+    }, ensure_ascii=False)
+    with open(history_path, "a", encoding="utf-8") as f:
+        f.write(entry + "\n")
+
+    print(f"Assigned {target} → {domain}")
+    return EXIT_OK
+
+
 def cmd_lock_acquire(args: argparse.Namespace) -> int:
     return _run_lock_cmd(["acquire", args.slug, "--session", args.session, "--ttl", str(args.ttl)])
 
@@ -1929,6 +2054,8 @@ def main() -> int:
         "revoke": cmd_revoke,
         "title": cmd_title,
         "transform-propose": cmd_transform_propose,
+        "domains": cmd_domains,
+        "assign": cmd_assign,
         "lock-acquire": cmd_lock_acquire,
         "lock-release": cmd_lock_release,
         "lock-release-all": cmd_lock_release_all,
