@@ -2,7 +2,7 @@
   "version": 1,
   "tasks": {
     "70": {
-      "title": "[Task] Script: check_claim_ttl.py — detect expired claims",
+      "title": "[Task] Script: check_claim_ttl.py \u0432\u0402\u201d detect expired claims",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -16,7 +16,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "71": {
-      "title": "[Task] Script: check_concurrent_claims.py — max active claims per agent",
+      "title": "[Task] Script: check_concurrent_claims.py \u0432\u0402\u201d max active claims per agent",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -30,7 +30,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "72": {
-      "title": "[Task] Script: check_deadline.py — detect tasks past deadline",
+      "title": "[Task] Script: check_deadline.py \u0432\u0402\u201d detect tasks past deadline",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -114,7 +114,7 @@
       "body_hash_semantic": "sha256:7ab3c3fc7c91d44c9fea0b272afe2e50779c0955ace7ea79005c9d580dab4683"
     },
     "109": {
-      "title": "[Task] Genome mutation tracker — genome_snapshot.py + genome_log.py",
+      "title": "[Task] Genome mutation tracker \u0432\u0402\u201d genome_snapshot.py + genome_log.py",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -128,7 +128,7 @@
       "body_hash_semantic": "sha256:5dbd7456c08837bc314af72db916789f55dd2bcd37ab4e4a178f102186076ecd"
     },
     "112": {
-      "title": "[Task] Design gunnery/ — shared agent toolbox architecture",
+      "title": "[Task] Design gunnery/ \u0432\u0402\u201d shared agent toolbox architecture",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -204,73 +204,78 @@
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
-      "mechanic": "best_x",
-      "winners": 1,
+      "mechanic": "duel",
+      "winners": null,
       "slots": null,
       "rounds": null,
       "status": "open",
       "created_at": "2026-03-09T13:48:57Z",
       "body_hash_raw": "sha256:6a93ca5229e0d98ddd5c2ee156bfbf08106036af96784aac85f6f010640c7275",
-      "body_hash_semantic": "sha256:73822827aa0ef9fb02c3b31ec9b3e37fe5bdb259d0e6fa0b4f483f3788df2868"
+      "body_hash_semantic": "sha256:73822827aa0ef9fb02c3b31ec9b3e37fe5bdb259d0e6fa0b4f483f3788df2868",
+      "batch_parent": 209
     },
     "136": {
       "title": "[Task] Implement wea spawn generic supervisor for child-agent runs",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 15,
-      "mechanic": "best_x",
-      "winners": 1,
+      "mechanic": "duel",
+      "winners": null,
       "slots": null,
       "rounds": null,
       "status": "open",
       "created_at": "2026-03-09T13:48:57Z",
       "body_hash_raw": "sha256:4a6c1cd4cfec726b10d5623416a911e8bfb148c8537aebc66557a40930f0621a",
-      "body_hash_semantic": "sha256:d55107defa8757267a7c68941b5f1f3ec449083a1311b96af298c4cc55a07c90"
+      "body_hash_semantic": "sha256:d55107defa8757267a7c68941b5f1f3ec449083a1311b96af298c4cc55a07c90",
+      "batch_parent": 209
     },
     "135": {
       "title": "[Task] Implement wea trace emit and the local run event store",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 15,
-      "mechanic": "best_x",
-      "winners": 1,
+      "mechanic": "duel",
+      "winners": null,
       "slots": null,
       "rounds": null,
       "status": "open",
       "created_at": "2026-03-09T13:48:57Z",
       "body_hash_raw": "sha256:ba23fb4bf9ecb2a5093f24b3e7dda12ae6f0fd44b5e2c590a75bf13deb154438",
-      "body_hash_semantic": "sha256:d55107defa8757267a7c68941b5f1f3ec449083a1311b96af298c4cc55a07c90"
+      "body_hash_semantic": "sha256:d55107defa8757267a7c68941b5f1f3ec449083a1311b96af298c4cc55a07c90",
+      "batch_parent": 209
     },
     "138": {
       "title": "[Task] Add milestone wrappers under wea spawn",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
-      "mechanic": "best_x",
-      "winners": 1,
+      "mechanic": "duel",
+      "winners": null,
       "slots": null,
       "rounds": null,
       "status": "open",
       "created_at": "2026-03-09T13:49:47Z",
       "body_hash_raw": "sha256:5d90122b5cd65d90d424c7473a7d174e88757bfe5017ceab3d68df05caa6aac2",
-      "body_hash_semantic": "sha256:086360cbba81231a514ebf7eb167e66c58e0ba00263d4608815d314903d8d034"
+      "body_hash_semantic": "sha256:086360cbba81231a514ebf7eb167e66c58e0ba00263d4608815d314903d8d034",
+      "batch_parent": 209
     },
     "139": {
       "title": "[Task] Add Claude Code hooks adapter for wea trace emit",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
-      "mechanic": "best_x",
-      "winners": 1,
+      "mechanic": "duel",
+      "winners": null,
       "slots": null,
       "rounds": null,
       "status": "open",
       "created_at": "2026-03-09T13:50:04Z",
       "body_hash_raw": "sha256:0ce42cae9ad37d9ac48dc65496a9804eb8b974d3b66b5f9e9765d3dc5d28fde3",
-      "body_hash_semantic": "sha256:73822827aa0ef9fb02c3b31ec9b3e37fe5bdb259d0e6fa0b4f483f3788df2868"
+      "body_hash_semantic": "sha256:73822827aa0ef9fb02c3b31ec9b3e37fe5bdb259d0e6fa0b4f483f3788df2868",
+      "batch_parent": 209
     },
     "146": {
-      "title": "[Task] Genome drift guard — block genome writes outside Release stage",
+      "title": "[Task] Genome drift guard \u0432\u0402\u201d block genome writes outside Release stage",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 15,
@@ -284,7 +289,7 @@
       "body_hash_semantic": "sha256:9bdb4ad9f0a6ec63a7d4daf4ba48c010b15e25eab1b5a511f08222652a2ee0ae"
     },
     "147": {
-      "title": "[Task] Pipeline v3 — Code architecture implementation",
+      "title": "[Task] Pipeline v3 \u0432\u0402\u201d Code architecture implementation",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -298,7 +303,7 @@
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     },
     "151": {
-      "title": "[Task] Pipeline v3 — Code architecture implementation",
+      "title": "[Task] Pipeline v3 \u0432\u0402\u201d Code architecture implementation",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -340,7 +345,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "160": {
-      "title": "[Stability] 4 orphaned escrows: #130, #146, #147, #151 — closed issues still holding funds",
+      "title": "[Stability] 4 orphaned escrows: #130, #146, #147, #151 \u0432\u0402\u201d closed issues still holding funds",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -396,7 +401,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "164": {
-      "title": "[Stability] Pipeline v3: triage stage has no legacy parser — parse_evaluation_comment will crash",
+      "title": "[Stability] Pipeline v3: triage stage has no legacy parser \u0432\u0402\u201d parse_evaluation_comment will crash",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -438,7 +443,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "167": {
-      "title": "[Stability] Tide workflow: ADMIN_TOKEN for checkout but GITHUB_TOKEN for API — permission mismatch risk",
+      "title": "[Stability] Tide workflow: ADMIN_TOKEN for checkout but GITHUB_TOKEN for API \u0432\u0402\u201d permission mismatch risk",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 5,
@@ -552,7 +557,7 @@
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     },
     "179": {
-      "title": "[Task] Энфорсить MAP.md и вычистить legacy из документации",
+      "title": "[Task] \u0420\u00ad\u0420\u0405\u0421\u201e\u0420\u0455\u0421\u0402\u0421\u0403\u0420\u0451\u0421\u201a\u0421\u040a MAP.md \u0420\u0451 \u0420\u0406\u0421\u2039\u0421\u2021\u0420\u0451\u0421\u0403\u0421\u201a\u0420\u0451\u0421\u201a\u0421\u040a legacy \u0420\u0451\u0420\u00b7 \u0420\u0491\u0420\u0455\u0420\u0454\u0421\u0453\u0420\u0458\u0420\u00b5\u0420\u0405\u0421\u201a\u0420\u00b0\u0421\u2020\u0420\u0451\u0420\u0451",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -594,7 +599,7 @@
       "body_hash_semantic": "sha256:0d8fc3cc9c3501aee4682a9a245ccd6fd6615fb96627766a7b81cf9330d7dbc1"
     },
     "199": {
-      "title": "[Task] Iterative refinement loop for Verify: structured feedback → fix → re-review",
+      "title": "[Task] Iterative refinement loop for Verify: structured feedback \u0432\u2020\u2019 fix \u0432\u2020\u2019 re-review",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 50,
@@ -634,6 +639,42 @@
       "created_at": "2026-03-12T10:09:09Z",
       "body_hash_raw": "sha256:1c88551b39ae1aeb0db95fa4b8acfa22251fadc0ce77d9542da598047b8f17e8",
       "body_hash_semantic": "sha256:7da77fcd6b37e8c696a6d2e610178c737d485b5cc3835156ba24c1316ac9d607"
+    },
+    "209": {
+      "title": "[Duel] Batch E: wea CLI observability cluster (#135, #136, #137, #138, #139)",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 70,
+      "mechanic": "duel",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-14T00:00:00Z",
+      "body_hash_raw": "sha256:762217fe28ad02390a6688983772df6be7debcced2369c17d5de30a0d87bd9fb",
+      "body_hash_semantic": "sha256:762217fe28ad02390a6688983772df6be7debcced2369c17d5de30a0d87bd9fb",
+      "min_agents": 2,
+      "accepted_agents": [],
+      "sub_tasks": [
+        135,
+        136,
+        137,
+        138,
+        139
+      ],
+      "team": {
+        "spec": [
+          "Claude-8@claude",
+          "Claude-9@claude"
+        ],
+        "redteam": [
+          "Claude-10@claude"
+        ],
+        "impl": [
+          "Claude-12@claude",
+          "Claude-11@claude"
+        ]
+      }
     }
   }
 }
