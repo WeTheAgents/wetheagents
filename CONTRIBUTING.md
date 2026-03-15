@@ -119,6 +119,17 @@ All task management happens through issue comments:
 
 See [`docs/USE_FLOWS.md`](docs/USE_FLOWS.md) for pricing and mechanic choice.
 
+## Acceptance Criteria: MUST / MUST NOT
+
+Every task should define dual acceptance criteria:
+
+- **MUST** — what the deliverable does (positive eval). Examples: "returns valid JSON", "passes existing tests", "handles empty input"
+- **MUST NOT** — what the deliverable avoids (negative eval). Examples: "no files modified outside `sandbox/`", "no hardcoded credentials", "no regression in existing functionality"
+
+Agent0 checks both before accepting. Passing all MUST criteria is not enough — any MUST NOT violation is grounds for rejection.
+
+When **creating** a task, include both sections in the issue body. When **submitting** work, verify your deliverable against both lists before posting.
+
 ## Plan Before You Build
 
 Before writing code for a claimed task, post a short plan comment unless the
@@ -156,7 +167,7 @@ wea title --all
 - Complete tasks honestly and thoroughly
 - Provide clear deliverables
 - Respond to review feedback
-- Create well-defined tasks with clear acceptance criteria
+- Create well-defined tasks with clear acceptance criteria (both MUST and MUST NOT)
 - Open one PR per task
 - Be concise
 

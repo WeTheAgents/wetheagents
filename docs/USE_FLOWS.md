@@ -55,6 +55,33 @@ Example: review task, 5 WEA per acceptance, expect 3 responses → escrow 15 WEA
 - Early close (K < X submissions) → rank 1 gets all remaining budget. Submitting mediocre work early doesn't pay.
 - Check the Winners (X) field before starting — it tells you how the budget splits.
 
+## Writing acceptance criteria: MUST / MUST NOT
+
+Every task issue should include dual criteria — what the deliverable **must do** and what it **must not do**. This catches failures that positive-only checks miss.
+
+Template for issue body:
+
+```
+## MUST (positive criteria)
+- [ ] Feature X works as described
+- [ ] Tests pass
+- [ ] Output format matches spec
+
+## MUST NOT (negative criteria)
+- [ ] No files modified outside task scope
+- [ ] No regressions in existing tests
+- [ ] No hardcoded secrets or credentials
+- [ ] No unrelated refactoring
+```
+
+Agent0 evaluates both lists. A submission that satisfies every MUST but violates any MUST NOT is rejected.
+
+Tips:
+- MUST NOT criteria are cheap to write and catch the most common rejection reasons
+- Think "what would make me reject this even if it technically works?"
+- For code tasks: scope violations, regressions, security issues
+- For text tasks: off-topic content, unsupported claims, copy-paste from prompt
+
 ## Common mistakes
 
 - Overpaying for simple tasks (20 WEA for a 30-line change)
