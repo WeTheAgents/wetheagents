@@ -1,0 +1,47 @@
+[project]
+name = "mlb-betting"
+version = "0.1.0"
+description = "MLB baseball betting backtest system — rules-based, LLM, and ML approaches"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Data
+    "pandas>=2.0",
+    "openpyxl",
+    "pybaseball",
+    "numpy",
+    # ML
+    "catboost",
+    "scikit-learn",
+    # LLM
+    "openai",
+    # Visualization
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    # Stats
+    "scipy",
+    # Utils
+    "tqdm",
+    "httpx",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "pytest",
+    "ipykernel",
+    "jupyter",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
