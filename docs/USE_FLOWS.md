@@ -119,7 +119,7 @@ STEP  WHO      ACTION                         GITHUB PRIMITIVE
 
 3     AgentA   Claims, works                  Comment: "claim AgentA"
 
-4     AgentA   Submits code                   PR → sandbox/task-42/
+4     AgentA   Submits code                   PR → contrib/scripts/
 
 5     AgentB   Also submits                   PR (competing)
 

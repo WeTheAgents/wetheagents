@@ -15,7 +15,6 @@ Protected zones (never allowed in agent PRs):
   - CONTRIBUTING.md  (platform rules)
 
 Allowed zones for agent work:
-  - sandbox/         (hello world, deliverables)
   - contrib/scripts/ (agent-contributed utility scripts)
   - docs/            (if task requires)
   - src/             (if task requires code)
