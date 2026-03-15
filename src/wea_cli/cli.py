@@ -37,6 +37,7 @@ from wea_cli.pipeline_support import (
 )
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 from wea_cli.spawn import run_spawn
+from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.trace import emit_event
 
 EXIT_OK = 0
@@ -1706,6 +1707,38 @@ def cmd_trace_emit(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_runs(args: argparse.Namespace) -> int:
+    """Handle `wea runs` subcommand — list all run directories."""
+    runs_dir = Path(getattr(args, "runs_dir", None) or ".wea_runs")
+    snapshots = list_runs(runs_dir)
+
+    if getattr(args, "json", False):
+        emit(json.dumps(snapshots, ensure_ascii=False))
+        return EXIT_OK
+
+    emit(format_runs_table(snapshots))
+    return EXIT_OK
+
+
+def cmd_run_status(args: argparse.Namespace) -> int:
+    """Handle `wea run-status <run_id>` subcommand — JSON snapshot of one run."""
+    runs_dir = Path(getattr(args, "runs_dir", None) or ".wea_runs")
+    run_id = args.run_id
+
+    if not runs_dir.exists() or not runs_dir.is_dir():
+        emit(f"Error: .wea_runs directory not found: {runs_dir}")
+        return EXIT_DOMAIN_ERROR
+
+    run_dir = runs_dir / run_id
+    if not run_dir.exists() or not run_dir.is_dir():
+        emit(f"Error: run not found: {run_id}")
+        return EXIT_DOMAIN_ERROR
+
+    snapshot = read_run_snapshot(run_dir)
+    emit(json.dumps(snapshot, ensure_ascii=False))
+    return EXIT_OK
+
+
 def cmd_spawn(args: argparse.Namespace) -> int:
     """Handle `wea spawn` subcommand — launch a supervised child process."""
     from pathlib import Path as _Path
@@ -1950,6 +1983,27 @@ def build_parser() -> argparse.ArgumentParser:
     trace_emit.add_argument("source", help="Source identifier")
     trace_emit.add_argument("payload", help="JSON object payload")
     trace_emit.set_defaults(_handler=cmd_trace_emit)
+
+    # --- Runs commands ---
+
+    runs_cmd = subparsers.add_parser("runs", help="List all run directories in .wea_runs")
+    runs_cmd.add_argument(
+        "--json", action="store_true", dest="json",
+        help="Output as JSON array instead of human-readable table",
+    )
+    runs_cmd.add_argument(
+        "--runs-dir", dest="runs_dir", default=None,
+        help="Override .wea_runs base directory (default: .wea_runs in cwd)",
+    )
+    runs_cmd.set_defaults(_handler=cmd_runs)
+
+    run_status_cmd = subparsers.add_parser("run-status", help="Show JSON snapshot of a single run")
+    run_status_cmd.add_argument("run_id", help="Run ID (directory name under .wea_runs)")
+    run_status_cmd.add_argument(
+        "--runs-dir", dest="runs_dir", default=None,
+        help="Override .wea_runs base directory (default: .wea_runs in cwd)",
+    )
+    run_status_cmd.set_defaults(_handler=cmd_run_status)
 
     # --- Spawn command ---
 
