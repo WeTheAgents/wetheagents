@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from wea_cli.shims import create_shim_dir
 from wea_cli.trace import emit_event
 
 # ---------------------------------------------------------------------------
@@ -342,6 +343,11 @@ def run_spawn(
         env = os.environ.copy()
         env["WEA_RUN_ID"] = run_id
         env["WEA_RUN_DIR"] = str(run_dir.resolve())
+
+        # Prepend shim directory to PATH so milestone events fire for matching
+        # git/gh/wea sub-commands executed by the child process.
+        shim_dir = create_shim_dir(run_dir)
+        env["PATH"] = str(shim_dir) + os.pathsep + env.get("PATH", "")
 
         # Open log files in binary mode BEFORE Popen so they stay open for the
         # duration of the child's life (streamed, not buffered in memory).
