@@ -42,6 +42,19 @@
         "performance_risk": { "$ref": "#/$defs/rubric_score" },
         "naming_clarity":   { "$ref": "#/$defs/rubric_score" }
       }
+    },
+    "ci_delta": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Test suite delta before/after the PR. Used to compute Normalized Change a(c).",
+      "required": ["passed_before", "failed_before", "passed_after", "failed_after", "a_c"],
+      "properties": {
+        "passed_before": { "type": "integer", "minimum": 0 },
+        "failed_before": { "type": "integer", "minimum": 0 },
+        "passed_after":  { "type": "integer", "minimum": 0 },
+        "failed_after":  { "type": "integer", "minimum": 0 },
+        "a_c": { "type": "number", "minimum": -1.0, "maximum": 1.0, "description": "Normalized Change metric. +1 = all gaps closed, 0 = no change, -1 = all baseline broken." }
+      }
     }
   },
   "$defs": {
