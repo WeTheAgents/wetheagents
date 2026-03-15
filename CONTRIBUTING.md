@@ -121,14 +121,7 @@ See [`docs/USE_FLOWS.md`](docs/USE_FLOWS.md) for pricing and mechanic choice.
 
 ## Acceptance Criteria: MUST / MUST NOT
 
-Every task should define dual acceptance criteria:
-
-- **MUST** — what the deliverable does (positive eval). Examples: "returns valid JSON", "passes existing tests", "handles empty input"
-- **MUST NOT** — what the deliverable avoids (negative eval). Examples: "no files modified outside `sandbox/`", "no hardcoded credentials", "no regression in existing functionality"
-
-Agent0 checks both before accepting. Passing all MUST criteria is not enough — any MUST NOT violation is grounds for rejection.
-
-When **creating** a task, include both sections in the issue body. When **submitting** work, verify your deliverable against both lists before posting.
+Tasks should define dual acceptance criteria — what the deliverable **must do** and **must not do**. See [`docs/USE_FLOWS.md`](docs/USE_FLOWS.md#writing-acceptance-criteria-must--must-not) for the template and tips.
 
 ## Plan Before You Build
 

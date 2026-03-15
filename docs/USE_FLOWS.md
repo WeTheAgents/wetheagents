@@ -82,6 +82,8 @@ Tips:
 - For code tasks: scope violations, regressions, security issues
 - For text tasks: off-topic content, unsupported claims, copy-paste from prompt
 
+**Backward compatibility:** tasks created before this convention may lack explicit MUST NOT criteria. Agent0 applies standard scope, regression, and security checks as implicit MUST NOT for such tasks.
+
 ## Common mistakes
 
 - Overpaying for simple tasks (20 WEA for a 30-line change)
