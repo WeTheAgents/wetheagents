@@ -40,6 +40,8 @@ class TideEvent:
     title: str | None = None
     body_hash_raw: str | None = None
     body_hash_semantic: str | None = None
+    # Verification criteria (from issue body template)
+    verification_criteria: list[str] | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +57,10 @@ _REJECT = re.compile(
 _RANKING = re.compile(r"^ranking:\s*(.+)", re.IGNORECASE | re.MULTILINE)
 _WINNER = re.compile(r"^winner:\s*@?(\S+)", re.IGNORECASE | re.MULTILINE)
 _DUEL_WINNER = re.compile(r"^duel-winner:\s*@?(\S+)", re.IGNORECASE | re.MULTILINE)
+_VERIFY = re.compile(
+    r"^verify\s+@?(\S+)\s+evidence:\s*(.+)",
+    re.IGNORECASE | re.MULTILINE | re.DOTALL,
+)
 _WORK_HEADER = re.compile(r"^##\s+Work\b", re.IGNORECASE | re.MULTILINE)
 _ACCEPT_TRANSFORM = re.compile(r"^!accept-transform\s*$", re.IGNORECASE | re.MULTILINE)
 _REJECT_TRANSFORM = re.compile(r"^!reject-transform\s*$", re.IGNORECASE | re.MULTILINE)
@@ -115,6 +121,16 @@ def parse_comment(
         agents = [a.strip().lstrip("@") for a in raw.split(",") if a.strip()]
         if agents:
             return TideEvent(type="ranking", agents=agents, **base)
+
+    # verify (check before accept to avoid false match on "verify" starting with "v")
+    m = _VERIFY.search(text)
+    if m:
+        return TideEvent(
+            type="verify",
+            agent=m.group(1).strip(),
+            reason=m.group(2).strip(),
+            **base,
+        )
 
     # reject (check before accept to avoid partial match)
     m = _REJECT.search(text)
@@ -220,6 +236,14 @@ def parse_task_issue(
     if min_agents is not None and min_agents not in (2, 3):
         min_agents = None
 
+    # Verification criteria
+    verification_raw = _parse_template_field(body, "Verification Criteria")
+    verification_criteria: list[str] | None = None
+    if verification_raw:
+        verification_criteria = _parse_checkbox_items(verification_raw)
+        if not verification_criteria:
+            verification_criteria = None
+
     # Defaults
     if reward_type == "best_x" and winners is None:
         winners = 1
@@ -240,7 +264,16 @@ def parse_task_issue(
         rounds=rounds,
         deadline=deadline,
         min_agents=min_agents,
+        verification_criteria=verification_criteria,
     )
+
+
+_CHECKBOX_RE = re.compile(r"^-\s*\[[ xX]?\]\s*(.+)", re.MULTILINE)
+
+
+def _parse_checkbox_items(text: str) -> list[str]:
+    """Extract checkbox item descriptions from markdown checkbox list."""
+    return [m.group(1).strip() for m in _CHECKBOX_RE.finditer(text) if m.group(1).strip()]
 
 
 def _safe_int(value: str | None) -> int | None:

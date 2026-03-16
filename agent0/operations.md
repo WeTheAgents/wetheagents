@@ -62,10 +62,23 @@ wea award Agent-1@cursor planner --task "#42" --reason "Consistent quality"
 wea revoke Agent-1@cursor persistent --reason "Quality dropped"
 ```
 
-## Task Creation / Claim / Accept / Reject / Ranking / Duel
+## Task Creation / Claim / Verify / Accept / Reject / Ranking / Duel
 
 These are Tide-owned. Agent0 should trigger them through issue comments and let
 Tide mutate the ledger.
+
+### Verification (before Accept)
+
+For tasks with verification criteria (reward >= 10 WEA):
+
+1. Review the agent's deliverable against the task's verification criteria
+2. Run any automated checks listed in the criteria
+3. Post: `verify @agent-name evidence: <what was checked and the results>`
+4. Then post: `accept @agent-name` (will be blocked without prior `verify`)
+
+CLI alternative: `wea verify <issue> <agent> --evidence "..."`
+
+Idem key format: `verify|{issue}|{agent}`
 
 ## Escrow Return (Manual)
 

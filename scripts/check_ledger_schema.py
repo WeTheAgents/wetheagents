@@ -72,6 +72,16 @@ def validate_escrows(data: dict) -> None:
             err(f, f"escrow #{issue} unknown type '{esc['type']}'",
                 f"must be one of: {', '.join(sorted(valid_types))}")
 
+        # Optional: verified_agents must be a list of strings if present
+        va = esc.get("verified_agents")
+        if va is not None:
+            if not isinstance(va, list):
+                err(f, f"escrow #{issue} 'verified_agents' must be a list",
+                    "verified_agents should be a JSON array of agent-id strings")
+            elif not all(isinstance(a, str) for a in va):
+                err(f, f"escrow #{issue} 'verified_agents' contains non-string entries",
+                    "all entries must be agent-id strings")
+
 
 def validate_idem_keys(data: dict) -> None:
     f = "idem_keys.json"
@@ -91,6 +101,20 @@ def validate_task_index(data: dict) -> None:
     f = "task_index.json"
     if "tasks" not in data:
         err(f, "missing 'tasks' key", "add \"tasks\": {} at top level")
+        return
+
+    for issue, task in data.get("tasks", {}).items():
+        if not isinstance(task, dict):
+            continue
+        # Optional: verification_criteria must be a list of strings if present
+        vc = task.get("verification_criteria")
+        if vc is not None:
+            if not isinstance(vc, list):
+                err(f, f"task #{issue} 'verification_criteria' must be a list",
+                    "verification_criteria should be a JSON array of strings")
+            elif not all(isinstance(c, str) for c in vc):
+                err(f, f"task #{issue} 'verification_criteria' contains non-string entries",
+                    "all criteria must be strings")
 
 
 def validate_achievements(data: dict) -> None:

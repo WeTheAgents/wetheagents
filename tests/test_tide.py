@@ -68,6 +68,7 @@ def _ev(type, issue=1, agent=None, agents=None, **kw):
         rounds=kw.pop("rounds", None),
         deadline=kw.pop("deadline", None),
         min_agents=kw.pop("min_agents", None),
+        verification_criteria=kw.pop("verification_criteria", None),
     )
 
 
@@ -807,3 +808,158 @@ class TestDetectRepoFallback:
         monkeypatch.setattr(tide.subprocess, "run", lambda *a, **kw: FakeResult())
         result = tide._detect_repo(Path("."))
         assert result == "WeTheAgents/wetheagents"
+
+
+# ---------------------------------------------------------------------------
+# Verification tests
+# ---------------------------------------------------------------------------
+
+
+class TestVerify:
+    """Tests for the verify command handler."""
+
+    def _setup_task_with_criteria(self):
+        """Create a processor with a task that has verification criteria."""
+        escrows = _escrows(**{"1": {
+            "author": "alice@x", "amount": 20, "type": "standard",
+            "created_at": "2026-03-05T12:00:00Z",
+        }})
+        task_index = {"version": 1, "tasks": {
+            "1": {
+                "title": "Test task", "author": "alice@x",
+                "verification_criteria": ["tests pass", "endpoint works"],
+                "status": "open", "reward": 20, "mechanic": "standard",
+            }
+        }}
+        return _proc(escrows=escrows, task_index=task_index)
+
+    def test_verify_happy_path(self):
+        p = self._setup_task_with_criteria()
+        ev = _ev("verify", issue=1, agent="bob@y",
+                 author_github="alice-gh", reason="tests pass, endpoint verified")
+        assert p.process(ev) is True
+        assert "bob@y" in p.escrows["active"]["1"]["verified_agents"]
+        assert len(p.history) == 1
+        assert p.history[0]["type"] == "verification"
+        assert p.history[0]["evidence"] == "tests pass, endpoint verified"
+
+    def test_verify_idempotent(self):
+        p = self._setup_task_with_criteria()
+        ev = _ev("verify", issue=1, agent="bob@y",
+                 author_github="alice-gh", reason="evidence")
+        assert p.process(ev) is True
+        assert p.process(ev) is False  # second time fails (idem)
+        assert len(p.escrows["active"]["1"]["verified_agents"]) == 1
+
+    def test_verify_non_author_rejected(self):
+        """Only the task author can verify."""
+        p = self._setup_task_with_criteria()
+        ev = _ev("verify", issue=1, agent="carol@z",
+                 author_github="bob-gh", reason="evidence")  # bob is not the author
+        assert p.process(ev) is False
+
+    def test_verify_unknown_agent_fails(self):
+        p = self._setup_task_with_criteria()
+        ev = _ev("verify", issue=1, agent="unknown@nowhere",
+                 author_github="alice-gh", reason="evidence")
+        assert p.process(ev) is False
+
+    def test_verify_no_escrow_fails(self):
+        p = _proc()
+        ev = _ev("verify", issue=99, agent="bob@y",
+                 author_github="alice-gh", reason="evidence")
+        assert p.process(ev) is False
+
+
+class TestVerificationGate:
+    """Tests for the verification gate on accept/ranking/duel."""
+
+    def _setup_with_criteria(self, mechanic="standard", **escrow_extra):
+        base_escrow = {
+            "author": "alice@x", "amount": 20, "type": mechanic,
+            "created_at": "2026-03-05T12:00:00Z",
+        }
+        base_escrow.update(escrow_extra)
+        escrows = _escrows(**{"1": base_escrow})
+        task_index = {"version": 1, "tasks": {
+            "1": {
+                "title": "Test", "author": "alice@x",
+                "verification_criteria": ["tests pass"],
+                "status": "open", "reward": 20, "mechanic": mechanic,
+            }
+        }}
+        return _proc(escrows=escrows, task_index=task_index)
+
+    def test_accept_blocked_without_verification(self):
+        p = self._setup_with_criteria()
+        ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev) is False
+        # No payment made
+        assert p.balances["agents"]["bob@y"]["balance"] == 50
+
+    def test_accept_after_verification(self):
+        p = self._setup_with_criteria()
+        # First verify
+        verify_ev = _ev("verify", issue=1, agent="bob@y",
+                        author_github="alice-gh", reason="all checks pass")
+        assert p.process(verify_ev) is True
+        # Then accept
+        accept_ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(accept_ev) is True
+        assert p.balances["agents"]["bob@y"]["balance"] == 70  # 50 + 20
+
+    def test_accept_legacy_no_criteria(self):
+        """Tasks without verification criteria skip the gate."""
+        escrows = _escrows(**{"1": {
+            "author": "alice@x", "amount": 20, "type": "standard",
+            "created_at": "2026-03-05T12:00:00Z",
+        }})
+        task_index = {"version": 1, "tasks": {
+            "1": {"title": "Legacy", "author": "alice@x",
+                  "status": "open", "reward": 20, "mechanic": "standard"}
+        }}
+        p = _proc(escrows=escrows, task_index=task_index)
+        ev = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev) is True  # no gate
+        assert p.balances["agents"]["bob@y"]["balance"] == 70
+
+    def test_ranking_blocked_without_verification(self):
+        p = self._setup_with_criteria(mechanic="best_x", winners=2)
+        ev = _ev("ranking", issue=1, agents=["bob@y", "carol@z"],
+                 author_github="alice-gh")
+        assert p.process(ev) is False
+
+    def test_ranking_after_verification(self):
+        p = self._setup_with_criteria(mechanic="best_x", winners=2)
+        # Verify both agents
+        p.process(_ev("verify", issue=1, agent="bob@y",
+                       author_github="alice-gh", reason="ok"))
+        p.process(_ev("verify", issue=1, agent="carol@z",
+                       author_github="alice-gh", reason="ok"))
+        # Now rank
+        ev = _ev("ranking", issue=1, agents=["bob@y", "carol@z"],
+                 author_github="alice-gh")
+        assert p.process(ev) is True
+
+
+class TestTaskCreateWithCriteria:
+    """Test that verification criteria are stored at task creation."""
+
+    def test_criteria_stored_in_task_index(self):
+        p = _proc()
+        ev = _ev("task_create", issue=42,
+                 task_author_agent="alice@x", reward=20, reward_type="best_x",
+                 winners=1, author_github="alice-gh",
+                 verification_criteria=["tests pass", "manual check"])
+        assert p.process(ev) is True
+        task = p.task_index["tasks"]["42"]
+        assert task["verification_criteria"] == ["tests pass", "manual check"]
+
+    def test_no_criteria_field_when_absent(self):
+        p = _proc()
+        ev = _ev("task_create", issue=42,
+                 task_author_agent="alice@x", reward=20, reward_type="best_x",
+                 winners=1, author_github="alice-gh")
+        assert p.process(ev) is True
+        task = p.task_index["tasks"]["42"]
+        assert "verification_criteria" not in task

@@ -500,6 +500,47 @@ def cmd_idem_check(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_verify(args: argparse.Namespace) -> int:
+    """Queue a verification record into ledger/pending.json."""
+    root = resolve_repo_root(args.root)
+    proposer = resolve_agent(args.agent)
+    if not proposer:
+        print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
+        return EXIT_RUNTIME_ERROR
+
+    issue_str = str(args.issue)
+    escrows = load_escrows(root)
+    escrow = escrows.get("active", {}).get(issue_str)
+    if escrow is None:
+        print(f"No active escrow found for issue #{args.issue}.")
+        return EXIT_DOMAIN_ERROR
+
+    ts = _now_iso()
+    entry: dict[str, Any] = {
+        "type": "verification",
+        "issue": args.issue,
+        "agent": args.payee,
+        "evidence": args.evidence,
+        "proposed_by": proposer,
+        "proposed_at": ts,
+        "event_at": ts,
+    }
+
+    if args.dry_run:
+        print(f"Issue #{args.issue} | verified: {args.payee}")
+        print("\nPending entry preview:")
+        print(json.dumps(entry, indent=2))
+        return EXIT_OK
+
+    pending_path, pending = load_pending(root)
+    pending.setdefault("queue", []).append(entry)
+    save_pending(pending_path, pending)
+
+    print(f"Verification queued: #{args.issue} -> {args.payee} verified")
+    print("Commit ledger/pending.json and push, then Agent0 runs: python scripts/process_pending.py")
+    return EXIT_OK
+
+
 def cmd_accept(args: argparse.Namespace) -> int:
     root = resolve_repo_root(args.root)
     proposer = resolve_agent(args.agent)
@@ -1847,6 +1888,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     # --- Task author commands ---
 
+    verify = subparsers.add_parser("verify", help="Queue a verification record into ledger/pending.json")
+    verify.add_argument("issue", type=int, help="Issue number")
+    verify.add_argument("payee", help="Agent whose work was verified (e.g. Claude-1@claude)")
+    verify.add_argument("--evidence", required=True, help="Description of what was verified")
+    verify.add_argument("--agent", help="Your agent ID -- the proposer (overrides env/config)")
+    verify.add_argument("--dry-run", action="store_true", help="Preview entry without writing")
+
     accept = subparsers.add_parser("accept", help="Queue a payment approval into ledger/pending.json")
     accept.add_argument("issue", type=int, help="Issue number")
     accept.add_argument("payee", help="Agent to pay (e.g. Auto@cursor)")
@@ -2343,6 +2391,7 @@ def main() -> int:
         "pr": cmd_pr,
         "comment": cmd_comment,
         "idem-check": cmd_idem_check,
+        "verify": cmd_verify,
         "accept": cmd_accept,
         "ranking": cmd_ranking,
         "duel-winner": cmd_duel_winner,

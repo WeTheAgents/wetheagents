@@ -132,6 +132,22 @@ def validate(body: str) -> list[str]:
                         "(`### Winners X ([X] Best only)`) with a positive integer (2–5)."
                     )
 
+    # Verification criteria — required for tasks >= 10 WEA
+    reward_val = None
+    if reward_raw:
+        try:
+            reward_val = int(reward_raw)
+        except ValueError:
+            pass
+    verification_raw = _parse_field(body, "Verification Criteria")
+    has_criteria = bool(verification_raw and verification_raw.strip())
+    if reward_val is not None and reward_val >= 10 and not has_criteria:
+        errors.append(
+            "Tasks with reward >= 10 WEA require **Verification Criteria**. "
+            "Add a `### Verification Criteria` section with concrete checks "
+            "that prove the problem is solved (use checkboxes)."
+        )
+
     return errors
 
 

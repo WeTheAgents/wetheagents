@@ -77,18 +77,82 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     history_path = root / "ledger" / "history" / f"{today}.jsonl"
 
+    # Load task_index for verification criteria lookup
+    task_index_path = root / "ledger" / "task_index.json"
+    task_index = load_json(task_index_path) if task_index_path.exists() else {}
+
     errors: list[str] = []
+    verifications: list[dict] = []
     payments: list[dict] = []
     seen_keys: set[str] = set()
+
+    # Track which agents get verified in this batch (for gating payments)
+    batch_verified: dict[str, set[str]] = {}  # issue -> set of verified agents
 
     # Batch simulation state: track progressive paid_count and remaining budget per issue
     simulated_paid_counts: dict[str, int] = {}
     simulated_remaining: dict[str, int] = {}
 
     # =========================================================================
-    # VALIDATION LOOP
+    # VALIDATION LOOP — verifications first, then payments
     # =========================================================================
+
+    # --- Pass 1: validate verification entries ---
     for i, entry in enumerate(queue):
+        if entry.get("type") != "verification":
+            continue
+
+        issue = str(entry.get("issue", ""))
+        agent = entry.get("agent", "")
+        proposed_by = entry.get("proposed_by", "unknown")
+        event_at = entry.get("event_at", "")
+
+        if not issue or not agent:
+            errors.append(f"Entry {i} (verify): missing issue or agent")
+            continue
+        if not event_at:
+            errors.append(f"Entry {i} (verify): missing event_at")
+            continue
+
+        raw_key = f"verify|{issue}|{agent}"
+        key_hash = idem_key_hash(raw_key)
+        if key_hash in idem_keys.get("keys", {}) or key_hash in seen_keys:
+            errors.append(f"Entry {i} (verify): idem key already exists -- {raw_key}")
+            continue
+        seen_keys.add(key_hash)
+
+        escrow = escrows.get("active", {}).get(issue)
+        if escrow is None:
+            errors.append(f"Entry {i} (verify): no escrow for issue #{issue}")
+            continue
+
+        if proposed_by != escrow.get("author"):
+            errors.append(
+                f"Entry {i} (verify): proposed_by '{proposed_by}' != escrow author "
+                f"'{escrow.get('author')}'"
+            )
+            continue
+
+        if agent not in balances.get("agents", {}):
+            errors.append(f"Entry {i} (verify): agent not found: {agent}")
+            continue
+
+        batch_verified.setdefault(issue, set()).add(agent)
+        verifications.append({
+            "entry": entry,
+            "issue": issue,
+            "agent": agent,
+            "key_hash": key_hash,
+            "raw_key": raw_key,
+            "proposed_by": proposed_by,
+            "event_at": event_at,
+        })
+
+    # --- Pass 2: validate payment entries ---
+    for i, entry in enumerate(queue):
+        if entry.get("type") == "verification":
+            continue
+
         issue = str(entry.get("issue", ""))
         agent = entry.get("agent", "")
         proposed_amount = entry.get("amount", 0)
@@ -146,6 +210,19 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
         if agent not in balances.get("agents", {}):
             errors.append(f"Entry {i}: agent not found in balances: {agent}")
             continue
+
+        # --- Verification gate ---
+        task_data = task_index.get("tasks", {}).get(issue, {})
+        criteria = task_data.get("verification_criteria")
+        if criteria:
+            already_verified = set(escrow.get("verified_agents", []))
+            newly_verified = batch_verified.get(issue, set())
+            if agent not in already_verified and agent not in newly_verified:
+                errors.append(
+                    f"Entry {i}: agent '{agent}' not verified for issue #{issue}. "
+                    f"Add a verification entry first."
+                )
+                continue
 
         # --- Amount validation by mechanic ---
         if mechanic in {"progressive", "linear"}:
@@ -246,6 +323,10 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
         return 1
 
     # --- Preview ---
+    if verifications:
+        print(f"Validated {len(verifications)} verification(s):")
+        for v in verifications:
+            print(f"  #{v['issue']} -> {v['agent']}: verified")
     print(f"Validated {len(payments)} payment(s):")
     for p in payments:
         label = p["mechanic"]
@@ -260,11 +341,44 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
         return 0
 
     # =========================================================================
-    # EXECUTE PAYMENTS
+    # EXECUTE VERIFICATIONS (before payments — order matters for gating)
     # =========================================================================
     ts = now_iso()
     history_lines: list[str] = []
 
+    for v in verifications:
+        issue = v["issue"]
+        agent = v["agent"]
+
+        # Add to escrow's verified_agents
+        escrow = escrows.get("active", {}).get(issue)
+        if escrow is not None:
+            escrow.setdefault("verified_agents", []).append(agent)
+
+        # Record idem key
+        idem_keys.setdefault("keys", {})[v["key_hash"]] = {
+            "action": "verification",
+            "issue": issue,
+            "agent": agent,
+            "timestamp": ts,
+        }
+
+        # History entry
+        history_entry = {
+            "timestamp": ts,
+            "event_at": v["event_at"],
+            "started_at": started_at,
+            "type": "verification",
+            "issue": int(issue),
+            "agent": agent,
+            "verified_by": v["proposed_by"],
+            "evidence": v["entry"].get("evidence", ""),
+        }
+        history_lines.append(json.dumps(history_entry, ensure_ascii=False))
+
+    # =========================================================================
+    # EXECUTE PAYMENTS
+    # =========================================================================
     for p in payments:
         issue = p["issue"]
         agent = p["agent"]
@@ -345,7 +459,11 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
     pending["version"] = pending.get("version", 1) + 1
     save_json(pending_path, pending)
 
-    print(f"\nDone. {len(payments)} payment(s) processed. Queue cleared.")
+    parts = []
+    if verifications:
+        parts.append(f"{len(verifications)} verification(s)")
+    parts.append(f"{len(payments)} payment(s)")
+    print(f"\nDone. {', '.join(parts)} processed. Queue cleared.")
     return 0
 
 

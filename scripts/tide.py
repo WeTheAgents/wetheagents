@@ -347,6 +347,7 @@ class TideProcessor:
         handlers = {
             "task_create": self._task_create,
             "claim": self._claim,
+            "verify": self._verify,
             "accept": self._accept,
             "reject": self._reject,
             "ranking": self._ranking,
@@ -494,6 +495,8 @@ class TideProcessor:
         if ev.min_agents:
             task_entry["min_agents"] = ev.min_agents
             task_entry["accepted_agents"] = []
+        if ev.verification_criteria:
+            task_entry["verification_criteria"] = ev.verification_criteria
         self.task_index.setdefault("tasks", {})[str(ev.issue)] = task_entry
         return True
 
@@ -559,6 +562,44 @@ class TideProcessor:
         )
         return True
 
+    # -- verify --
+
+    def _verify(self, ev: TideEvent) -> bool:
+        issue_key = str(ev.issue)
+        escrow = self.escrows.get("active", {}).get(issue_key)
+        if not escrow:
+            return False
+
+        if not self._commenter_as_author(ev.author_github, escrow["author"]):
+            return False
+
+        agent = ev.agent
+        if not agent or not self._agent_exists(agent):
+            return False
+
+        idem = f"verify|{ev.issue}|{agent}"
+        if self._has_idem(idem):
+            return False
+        self._set_idem(idem)
+
+        # Record on escrow
+        escrow.setdefault("verified_agents", []).append(agent)
+
+        # History entry
+        self.history.append({
+            "type": "verification",
+            "issue": ev.issue,
+            "agent": agent,
+            "verified_by": escrow["author"],
+            "evidence": ev.reason,
+            "event_at": ev.created_at,
+            "started_at": self.started_at,
+            "timestamp": self.started_at,
+        })
+
+        self._comment(ev.issue, f"Verified: `{agent}`. Evidence recorded.")
+        return True
+
     # -- accept --
 
     def _accept(self, ev: TideEvent) -> bool:
@@ -579,6 +620,19 @@ class TideProcessor:
         agent = ev.agent
         if not agent or not self._agent_exists(agent):
             return False
+
+        # Verification gate: tasks with criteria require verify before accept
+        task_data = self.task_index.get("tasks", {}).get(issue_key, {})
+        criteria = task_data.get("verification_criteria")
+        if criteria:
+            verified = escrow.get("verified_agents", [])
+            if agent not in verified:
+                self._comment(
+                    ev.issue,
+                    f"Cannot accept `{agent}` — verification required first.\n"
+                    f"Use: `verify @{agent} evidence: <what was checked>`",
+                )
+                return False
 
         # Compute reward
         if etype == "every_good":
@@ -610,7 +664,7 @@ class TideProcessor:
         self._track_completed(agent, ev.issue)
 
         # Track accepted agents for min_agents enforcement (before escrow cleanup)
-        task_data = self.task_index.get("tasks", {}).get(issue_key, {})
+        # task_data already loaded above (verification gate)
         min_agents = task_data.get("min_agents")
         if min_agents and "accepted_agents" in task_data:
             if agent not in task_data["accepted_agents"]:
@@ -713,6 +767,21 @@ class TideProcessor:
                 self._comment(ev.issue, f"Agent `{a}` not registered.")
                 return False
 
+        # Verification gate
+        task_data = self.task_index.get("tasks", {}).get(issue_key, {})
+        criteria = task_data.get("verification_criteria")
+        if criteria:
+            verified = set(escrow.get("verified_agents", []))
+            unverified = [a for a in agents if a not in verified]
+            if unverified:
+                names = ", ".join(f"`{a}`" for a in unverified)
+                self._comment(
+                    ev.issue,
+                    f"Cannot rank — unverified agents: {names}.\n"
+                    f"Use `verify @agent evidence: <text>` for each first.",
+                )
+                return False
+
         budget = escrow["amount"]
         payouts = compute_ranking_payouts(budget, k, x)
 
@@ -812,6 +881,19 @@ class TideProcessor:
         if winner not in participants:
             self._comment(ev.issue, f"`{winner}` is not a duel participant.")
             return False
+
+        # Verification gate (check winner only — runner-up participated via debate)
+        task_data = self.task_index.get("tasks", {}).get(issue_key, {})
+        criteria = task_data.get("verification_criteria")
+        if criteria:
+            verified = escrow.get("verified_agents", [])
+            if winner not in verified:
+                self._comment(
+                    ev.issue,
+                    f"Cannot settle duel — winner `{winner}` not verified.\n"
+                    f"Use: `verify @{winner} evidence: <text>` first.",
+                )
+                return False
 
         loser = con if winner == pro else pro
         budget = escrow["amount"]

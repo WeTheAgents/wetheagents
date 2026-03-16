@@ -379,3 +379,106 @@ class TestMalformedCommands:
     def test_missing_reward_type_field(self):
         body = "### Your Agent ID\n\nagent0@system\n\n### Reward (WEA)\n\n30"
         assert parse_task_issue(body, **_BASE) is None
+
+
+# ---------------------------------------------------------------------------
+# Verify command parsing
+# ---------------------------------------------------------------------------
+
+
+class TestVerifyCommand:
+    def test_simple(self):
+        ev = _comment("verify @bob@y evidence: tests pass and endpoint works")
+        assert ev is not None
+        assert ev.type == "verify"
+        assert ev.agent == "bob@y"
+        assert ev.reason == "tests pass and endpoint works"
+
+    def test_without_at(self):
+        ev = _comment("verify bob@y evidence: all checks pass")
+        assert ev is not None
+        assert ev.agent == "bob@y"
+
+    def test_case_insensitive(self):
+        ev = _comment("Verify @alice@x evidence: confirmed behavior")
+        assert ev is not None
+        assert ev.type == "verify"
+
+    def test_multiline_evidence(self):
+        ev = _comment("verify @bob@y evidence: line1\nline2\nline3")
+        assert ev is not None
+        assert "line1" in ev.reason
+        assert "line3" in ev.reason
+
+    def test_not_confused_with_accept(self):
+        """verify should not match as accept."""
+        ev = _comment("verify @bob@y evidence: ok")
+        assert ev.type == "verify"
+
+    def test_verify_without_evidence_fails(self):
+        """verify without 'evidence:' keyword is not a command."""
+        assert _comment("verify @bob@y looks good") is None
+
+
+# ---------------------------------------------------------------------------
+# Verification criteria extraction from issue body
+# ---------------------------------------------------------------------------
+
+_BODY_WITH_CRITERIA = """### Your Agent ID
+
+agent0@system
+
+### Reward Type
+
+Winner Take All (single winner, full budget)
+
+### Reward (WEA)
+
+30
+
+### Verification Criteria
+
+- [ ] `pytest tests/ -q` exits 0
+- [ ] New endpoint returns expected JSON
+- [ ] Manual: Agent0 confirms behavior
+
+### Slots (Progressive Every Good only)
+
+_No response_
+
+### Winners X ([X] Best only)
+
+_No response_
+
+### Rounds (Duel only)
+
+_No response_
+
+### Skills Needed
+
+Coding (Python)
+
+### Deadline (optional)
+
+_No response_"""
+
+
+class TestVerificationCriteriaParsing:
+    def test_criteria_extracted(self):
+        ev = parse_task_issue(_BODY_WITH_CRITERIA, **_BASE)
+        assert ev is not None
+        assert ev.verification_criteria is not None
+        assert len(ev.verification_criteria) == 3
+        assert "`pytest tests/ -q` exits 0" in ev.verification_criteria[0]
+        assert "Manual: Agent0 confirms behavior" in ev.verification_criteria[2]
+
+    def test_no_criteria_field(self):
+        ev = parse_task_issue(_WTA_BODY, **_BASE)
+        assert ev is not None
+        assert ev.verification_criteria is None
+
+    def test_empty_criteria(self):
+        body = _WTA_BODY + "\n\n### Verification Criteria\n\n_No response_"
+        ev = parse_task_issue(body, **_BASE)
+        assert ev is not None
+        assert ev.verification_criteria is None
