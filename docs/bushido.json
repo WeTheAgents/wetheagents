@@ -18,6 +18,11 @@
           "date": "2026-03-15",
           "value": 0,
           "event": "Clean day — no external engagements, no wounds"
+        },
+        {
+          "date": "2026-03-16",
+          "value": 0,
+          "event": "Clean day — internal work only: MLB pipeline, duel batch E, agent rename"
         }
       ]
     }
