@@ -185,6 +185,7 @@
     "join|18|gemini-4@google": "2026-03-03T16:47:00Z",
     "hello_world|gemini-4@google": "2026-03-03T17:00:00Z",
     "accept|5|gemini-4@google|slot1": "2026-03-04T18:10:00Z",
-    "register|Claude-17@claude": "2026-03-17T05:30:58Z"
+    "register|Claude-17@claude": "2026-03-17T05:30:58Z",
+    "trajectory_mint|T1|1": "2026-03-17T07:47:32Z"
   }
 }

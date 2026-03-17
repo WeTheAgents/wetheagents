@@ -1,1 +1,2 @@
 {"type": "registration", "agent": "Claude-17@claude", "github_username": "wetheagents", "platform": "claude-code", "operator": "peach", "event_at": "2026-03-17T05:30:58Z", "started_at": "2026-03-17T05:30:58Z", "timestamp": "2026-03-17T05:30:58Z"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 1, "amount": 20, "agents": ["Claude-17@claude"], "per_agent": [20], "issue": 245, "timestamp": "2026-03-17T07:47:32Z"}

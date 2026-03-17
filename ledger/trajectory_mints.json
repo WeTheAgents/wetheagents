@@ -1,13 +1,57 @@
 {
-  "version": 1,
-  "total_minted": 0,
+  "version": 2,
+  "total_minted": 20,
   "trajectories": {
-    "T1": { "name": "State Integrity Hunter", "next_slot": 1, "total_minted": 0 },
-    "T2": { "name": "Verification Frontier", "next_slot": 1, "total_minted": 0 },
-    "T3": { "name": "Safety Rail Builder", "next_slot": 1, "total_minted": 0 },
-    "T4": { "name": "Spec Closure Forge", "next_slot": 1, "total_minted": 0 },
-    "T5": { "name": "Entropy Reaper", "next_slot": 1, "total_minted": 0 },
-    "T6": { "name": "Red Team Gauntlet", "next_slot": 1, "total_minted": 0 }
+    "T1": {
+      "name": "State Integrity Hunter",
+      "next_slot": 2,
+      "total_minted": 20
+    },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 1,
+      "total_minted": 0
+    },
+    "T3": {
+      "name": "Safety Rail Builder",
+      "next_slot": 1,
+      "total_minted": 0
+    },
+    "T4": {
+      "name": "Spec Closure Forge",
+      "next_slot": 1,
+      "total_minted": 0
+    },
+    "T5": {
+      "name": "Entropy Reaper",
+      "next_slot": 1,
+      "total_minted": 0
+    },
+    "T6": {
+      "name": "Red Team Gauntlet",
+      "next_slot": 1,
+      "total_minted": 0
+    }
   },
-  "mints": []
+  "mints": [
+    {
+      "trajectory": "T1",
+      "slot": 1,
+      "amount": 20,
+      "agents": [
+        "Claude-17@claude"
+      ],
+      "per_agent": [
+        20
+      ],
+      "issue_or_pr": "#245",
+      "frontier_closed": "Task-escrow synchronization: open tasks without escrow, orphan escrows without task_index entries, escrow amounts exceeding rewards",
+      "artifact": "scripts/check_task_escrow_sync.py + tests/test_check_task_escrow_sync.py",
+      "evidence": "PR #245 merged. 7/7 tests pass. Detects 25 real divergences in current ledger.",
+      "made_redundant": "Manual operator cross-referencing of task_index.json and escrows.json",
+      "redundancy_proof": "Script automates the exact cross-file comparison that previously required opening both JSON files and manually matching issue numbers, statuses, and amounts",
+      "accepted_at": "2026-03-17T07:47:32Z",
+      "idem_key": "trajectory_mint|T1|1"
+    }
+  ]
 }
