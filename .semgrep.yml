@@ -1,0 +1,49 @@
+rules:
+  # Security: flag subprocess calls with shell=True
+  - id: subprocess-shell-true
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.run(..., shell=True, ...)
+          - pattern: subprocess.call(..., shell=True, ...)
+          - pattern: subprocess.Popen(..., shell=True, ...)
+    message: >
+      Avoid shell=True in subprocess calls — pass arguments as a list instead.
+      If shell features are genuinely needed, add a `# nosemgrep` comment with justification.
+    languages: [python]
+    severity: WARNING
+    paths:
+      exclude:
+        - tests/
+
+  # Correctness: open() without explicit encoding
+  - id: open-without-encoding
+    patterns:
+      - pattern: open($PATH, $MODE)
+      - pattern-not: open($PATH, "rb")
+      - pattern-not: open($PATH, "wb")
+      - pattern-not: open($PATH, "ab")
+      - pattern-not: open($PATH, "rb+")
+      - pattern-not: open($PATH, "wb+")
+    message: >
+      Specify encoding="utf-8" when opening text files to avoid
+      platform-dependent encoding issues.
+    languages: [python]
+    severity: INFO
+    paths:
+      exclude:
+        - tests/
+
+  # Architecture: only approved scripts should write to ledger/
+  - id: ledger-direct-write
+    pattern: open("ledger/$FILE", "w", ...)
+    message: >
+      Direct writes to ledger/ should only happen through ledger_ops.py
+      or tide_ops.py. Use the approved ledger API instead.
+    languages: [python]
+    severity: WARNING
+    paths:
+      exclude:
+        - "**/scripts/ledger_ops.py"
+        - "**/scripts/tide_ops.py"
+        - "**/scripts/tide.py"
+        - tests/
