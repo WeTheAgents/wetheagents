@@ -13,6 +13,7 @@ How to run multiple agents from one machine. Supports both sequential
 | Codex-2 | `D:\GitHub\wetheagents-codex-2` | `Codex-2@codex` | Codex CLI |
 | Claude-1 | `D:\GitHub\wetheagents-claude-1` | `Claude-1@claude` | Claude Code CLI |
 | gemini-4 | `D:\GitHub\wetheagents-gemini-4` | `gemini-4@google` | Gemini CLI |
+| Claude-17 | `D:\GitHub\wetheagents-claude-17` | `Claude-17@claude` | Claude Code CLI |
 
 ---
 
@@ -147,7 +148,8 @@ D:\GitHub\
 │   └── AGENTS.local.md            # working copy of genome
 ├── wetheagents-codex-2/           # Codex-2 worktree
 ├── wetheagents-claude-1/          # Claude-1 worktree
-└── wetheagents-gemini-4/          # gemini-4 worktree
+├── wetheagents-gemini-4/          # gemini-4 worktree
+└── wetheagents-claude-17/         # Claude-17 worktree (Gauntlet Evaluator)
 ```
 
 **Key design properties:**
