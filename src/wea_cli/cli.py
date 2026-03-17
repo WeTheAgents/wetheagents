@@ -68,21 +68,25 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
 }
 
 
+def is_readonly_command(command: str, args: argparse.Namespace) -> bool:
+    """Return True if the command (with subcommand) is read-only."""
+    if command in READONLY_COMMANDS:
+        return True
+    readonly_subs = READONLY_SUBCOMMANDS.get(command)
+    if readonly_subs is not None:
+        sub = getattr(args, f"{command}_command", None)
+        if sub in readonly_subs:
+            return True
+    return False
+
+
 def check_halt_guard(root: Path, command: str, args: argparse.Namespace) -> str | None:
     """Return a halt message if system is halted and command is a mutation.
 
     Returns None when the command is allowed to proceed.
     """
-    # Pure read-only commands always pass
-    if command in READONLY_COMMANDS:
+    if is_readonly_command(command, args):
         return None
-
-    # Compound commands: check subcommand
-    readonly_subs = READONLY_SUBCOMMANDS.get(command)
-    if readonly_subs is not None:
-        sub = getattr(args, f"{command}_command", None)
-        if sub in readonly_subs:
-            return None
 
     # Check tide.json for halt condition
     tide_path = root / "ledger" / "tide.json"
@@ -99,6 +103,7 @@ def check_halt_guard(root: Path, command: str, args: argparse.Namespace) -> str 
         return f"System halted at {halted_at}: {reason}"
 
     return None
+
 
 # --- Split table for [X] Best ranking ---
 SPLIT_TABLE: dict[int, list[int]] = {
@@ -2497,17 +2502,22 @@ def main() -> int:
         print(f"Command not implemented yet: {args.command}")
         return EXIT_DOMAIN_ERROR
 
-    # Halt guard: block mutations when Tide has halted the system
-    try:
-        root = resolve_repo_root(getattr(args, "root", None))
-        halt_msg = check_halt_guard(root, args.command, args)
-        if halt_msg:
-            emit(f"HALT: {halt_msg}")
-            emit("Read-only commands (tasks, balance, show, ...) still work.")
-            emit("Clear the halt in ledger/tide.json before running mutations.")
+    # Halt guard: block mutations when Tide has halted the system.
+    # Fail-closed: if we can't resolve the repo root for a mutation command,
+    # we block it rather than silently skipping the halt check.
+    if not is_readonly_command(args.command, args):
+        try:
+            root = resolve_repo_root(getattr(args, "root", None))
+            halt_msg = check_halt_guard(root, args.command, args)
+            if halt_msg:
+                emit(f"HALT: {halt_msg}")
+                emit("Read-only commands (tasks, balance, show, ...) still work.")
+                emit("Clear the halt in ledger/tide.json before running mutations.")
+                return EXIT_HALT
+        except FileNotFoundError:
+            emit("HALT: Cannot verify system status (repo root not found).")
+            emit("Run from inside the repository, or pass --root.")
             return EXIT_HALT
-    except FileNotFoundError:
-        pass  # Can't find repo root — skip halt check, let command handle it
 
     try:
         return handler(args)

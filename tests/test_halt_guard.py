@@ -25,6 +25,7 @@ from wea_cli.cli import (
     READONLY_COMMANDS,
     READONLY_SUBCOMMANDS,
     check_halt_guard,
+    is_readonly_command,
 )
 
 HALTED_TIDE = {
@@ -171,3 +172,26 @@ def test_halt_reason_in_message(tmp_path: Path) -> None:
     assert result is not None
     assert "negative balance" in result
     assert "2026-03-17T10:05:00Z" in result
+
+
+# ── Test 8: is_readonly_command helper ─────────────────────────────────
+
+
+def test_is_readonly_for_toplevel() -> None:
+    args = _make_args(command="balance")
+    assert is_readonly_command("balance", args) is True
+
+
+def test_is_not_readonly_for_mutation() -> None:
+    args = _make_args(command="claim")
+    assert is_readonly_command("claim", args) is False
+
+
+def test_is_readonly_for_compound_subcommand() -> None:
+    args = _make_args(command="gauntlet", gauntlet_command="status")
+    assert is_readonly_command("gauntlet", args) is True
+
+
+def test_is_not_readonly_for_compound_mutation() -> None:
+    args = _make_args(command="gauntlet", gauntlet_command="mint")
+    assert is_readonly_command("gauntlet", args) is False
