@@ -1,0 +1,36 @@
+name: "Semgrep"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config p/python \
+            --config p/security-audit \
+            --config .semgrep.yml \
+            --error \
+            --severity WARNING \
+            --verbose \
+            --exclude='tests/*' \
+            --exclude='domains/*/data/*' \
+            --exclude='*.json'
