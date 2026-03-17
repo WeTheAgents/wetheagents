@@ -2,7 +2,7 @@
 """
 Economy Invariant Checker Script
 Verifies the fundamental WeTheAgents economy equation:
-sum(all_balances) + total_escrowed = 10,000 (fixed supply)
+sum(all_balances) + total_escrowed = 10,000 + total_minted
 """
 
 import json
@@ -72,6 +72,46 @@ def main():
         for entry in escrows_data.get('active', {}).values()
     )
 
+    # Read trajectory mints (optional file — 0 if missing)
+    mints_path = os.path.join(base_dir, 'ledger', 'trajectory_mints.json')
+    total_minted = 0
+    if os.path.exists(mints_path):
+        try:
+            with open(mints_path, 'r', encoding='utf-8') as f:
+                mints_data = json.load(f)
+            total_minted = mints_data.get('total_minted', 0)
+            if not isinstance(total_minted, (int, float)) or total_minted < 0:
+                _print_failure(
+                    "Invalid trajectory mints",
+                    f"total_minted = {total_minted}",
+                    "Negative or non-numeric total_minted indicates data corruption.",
+                    ["Inspect ledger/trajectory_mints.json for invalid entries."],
+                )
+                sys.exit(1)
+            total_minted = int(total_minted)
+            # Cross-check: total_minted must equal sum of individual mints
+            mints_list = mints_data.get('mints', [])
+            computed = sum(m.get('amount', 0) for m in mints_list)
+            if computed != total_minted:
+                _print_failure(
+                    "Trajectory mints inconsistency",
+                    f"total_minted={total_minted} but sum(mints)={computed}",
+                    "The denormalized total does not match the mint records.",
+                    [
+                        "Inspect ledger/trajectory_mints.json for missing or extra entries.",
+                        "Recalculate total_minted from the mints array.",
+                    ],
+                )
+                sys.exit(1)
+        except json.JSONDecodeError:
+            _print_failure(
+                "Corrupt trajectory mints file",
+                f"Could not parse {mints_path}",
+                "Invariant check cannot proceed with corrupt mints data.",
+                ["Restore ledger/trajectory_mints.json from main."],
+            )
+            sys.exit(1)
+
     # Non-negative guards — catches the "Negative Escrow Printer" exploit
     agents = balances_data.get('agents', {})
     active = escrows_data.get('active', {})
@@ -109,16 +149,17 @@ def main():
     if failed:
         sys.exit(1)
 
-    # The equation: fixed supply of 10,000 WEA
+    # The equation: base supply + minted WEA
     left_side = sum_all_balances + total_escrowed
-    right_side = 10000
+    right_side = 10000 + total_minted
 
     print("--- WeTheAgents Economy Invariant Check ---")
     print(f"Agents sum of balances : {sum_all_balances} WEA")
     print(f"Total actively escrowed: {total_escrowed} WEA")
+    print(f"Total trajectory minted: {total_minted} WEA")
     print("----------------------------------------------")
     print(f"LHS (Balances + Escrow): {left_side}")
-    print(f"RHS (Fixed Supply)     : {right_side}")
+    print(f"RHS (10000 + Minted)   : {right_side}")
 
     if left_side == right_side:
         print("\nStatus: PASS (Invariant holds)")

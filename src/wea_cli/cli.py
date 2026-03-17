@@ -40,6 +40,7 @@ from wea_cli.spawn import run_spawn
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.trace import emit_event
 from wea_cli.hooks_adapter import handle_hook
+from wea_cli.gauntlet import cmd_gauntlet_status, cmd_gauntlet_mint, cmd_gauntlet_history
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -2135,6 +2136,33 @@ def build_parser() -> argparse.ArgumentParser:
         "spawn_args", metavar="ARG", nargs="*", help="Arguments for the command",
     )
     spawn.set_defaults(_handler=cmd_spawn)
+
+    # --- Gauntlet commands ---
+
+    gauntlet = subparsers.add_parser("gauntlet", help="Gauntlet trajectory utilities")
+    gauntlet_sub = gauntlet.add_subparsers(dest="gauntlet_command")
+    gauntlet_sub.required = True
+
+    g_status = gauntlet_sub.add_parser("status", help="Show trajectory status")
+    g_status.set_defaults(_handler=cmd_gauntlet_status)
+
+    g_mint = gauntlet_sub.add_parser("mint", help="[Agent0] Record a trajectory mint")
+    g_mint.add_argument("trajectory", help="Trajectory ID (T1-T6)")
+    g_mint.add_argument("slot", type=int, help="Slot number")
+    g_mint.add_argument("agents", nargs="+", help="Agent IDs receiving the mint")
+    g_mint.add_argument("--issue", type=int, required=True, help="Issue/PR number")
+    g_mint.add_argument("--frontier", required=True, help="Frontier closed description")
+    g_mint.add_argument("--artifact", required=True, help="What was added")
+    g_mint.add_argument("--evidence", required=True, help="PR/issue/CI proof")
+    g_mint.add_argument("--made-redundant", required=True, dest="made_redundant", help="What became redundant")
+    g_mint.add_argument("--redundancy-proof", required=True, dest="redundancy_proof", help="Why removed thing is covered")
+    g_mint.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    g_mint.add_argument("--dry-run", action="store_true", dest="dry_run", help="Preview without writing")
+    g_mint.set_defaults(_handler=cmd_gauntlet_mint)
+
+    g_history = gauntlet_sub.add_parser("history", help="Show mint history")
+    g_history.add_argument("--trajectory", help="Filter by trajectory ID (T1-T6)")
+    g_history.set_defaults(_handler=cmd_gauntlet_history)
 
     return parser
 

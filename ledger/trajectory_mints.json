@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "total_minted": 0,
+  "trajectories": {
+    "T1": { "name": "State Integrity Hunter", "next_slot": 1, "total_minted": 0 },
+    "T2": { "name": "Verification Frontier", "next_slot": 1, "total_minted": 0 },
+    "T3": { "name": "Safety Rail Builder", "next_slot": 1, "total_minted": 0 },
+    "T4": { "name": "Spec Closure Forge", "next_slot": 1, "total_minted": 0 },
+    "T5": { "name": "Entropy Reaper", "next_slot": 1, "total_minted": 0 },
+    "T6": { "name": "Red Team Gauntlet", "next_slot": 1, "total_minted": 0 }
+  },
+  "mints": []
+}
