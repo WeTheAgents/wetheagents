@@ -45,6 +45,65 @@ from wea_cli.gauntlet import cmd_gauntlet_status, cmd_gauntlet_mint, cmd_gauntle
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
 EXIT_RUNTIME_ERROR = 2
+EXIT_HALT = 3
+
+# ---------------------------------------------------------------------------
+# Halt guard — block mutations when Tide has halted the system
+# ---------------------------------------------------------------------------
+
+# Commands that are safe to run even when the system is halted.
+# Default-deny: anything NOT in this set is blocked during a halt.
+READONLY_COMMANDS: frozenset[str] = frozenset({
+    "tasks", "start", "balance", "show", "comments", "agents",
+    "idem-check", "title", "domains", "lock-status",
+    "runs", "run-status",
+})
+
+# Compound commands where only some subcommands are read-only.
+# Key = top-level command, value = frozenset of safe subcommand names.
+READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
+    "gauntlet": frozenset({"status", "history"}),
+    "skills": frozenset({"list", "show", "suggest"}),
+    "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
+}
+
+
+def is_readonly_command(command: str, args: argparse.Namespace) -> bool:
+    """Return True if the command (with subcommand) is read-only."""
+    if command in READONLY_COMMANDS:
+        return True
+    readonly_subs = READONLY_SUBCOMMANDS.get(command)
+    if readonly_subs is not None:
+        sub = getattr(args, f"{command}_command", None)
+        if sub in readonly_subs:
+            return True
+    return False
+
+
+def check_halt_guard(root: Path, command: str, args: argparse.Namespace) -> str | None:
+    """Return a halt message if system is halted and command is a mutation.
+
+    Returns None when the command is allowed to proceed.
+    """
+    if is_readonly_command(command, args):
+        return None
+
+    # Check tide.json for halt condition
+    tide_path = root / "ledger" / "tide.json"
+    if not tide_path.exists():
+        return None
+    try:
+        tide = json.loads(tide_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+    halted_at = tide.get("halted_at")
+    if halted_at:
+        reason = tide.get("halt_reason", "unknown")
+        return f"System halted at {halted_at}: {reason}"
+
+    return None
+
 
 # --- Split table for [X] Best ranking ---
 SPLIT_TABLE: dict[int, list[int]] = {
@@ -2442,6 +2501,23 @@ def main() -> int:
     if not handler:
         print(f"Command not implemented yet: {args.command}")
         return EXIT_DOMAIN_ERROR
+
+    # Halt guard: block mutations when Tide has halted the system.
+    # Fail-closed: if we can't resolve the repo root for a mutation command,
+    # we block it rather than silently skipping the halt check.
+    if not is_readonly_command(args.command, args):
+        try:
+            root = resolve_repo_root(getattr(args, "root", None))
+            halt_msg = check_halt_guard(root, args.command, args)
+            if halt_msg:
+                emit(f"HALT: {halt_msg}")
+                emit("Read-only commands (tasks, balance, show, ...) still work.")
+                emit("Clear the halt in ledger/tide.json before running mutations.")
+                return EXIT_HALT
+        except FileNotFoundError:
+            emit("HALT: Cannot verify system status (repo root not found).")
+            emit("Run from inside the repository, or pass --root.")
+            return EXIT_HALT
 
     try:
         return handler(args)

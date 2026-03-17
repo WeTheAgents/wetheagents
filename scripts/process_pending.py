@@ -31,6 +31,56 @@ except ModuleNotFoundError:  # pragma: no cover - script execution fallback
 VALID_MECHANICS = {"standard", "progressive", "every_good", "ranking", "duel"}
 
 
+# ---------------------------------------------------------------------------
+# Circuit breaker — pre-write invariant check (T3 Slot 2)
+# ---------------------------------------------------------------------------
+
+def _sum_balances_and_escrows(balances: dict, escrows: dict) -> int:
+    """Compute sum(all balances) + sum(all escrows)."""
+    bal = sum(
+        info.get("balance", 0)
+        for info in balances.get("agents", {}).values()
+        if isinstance(info, dict)
+    )
+    esc = sum(
+        escrow.get("amount", 0)
+        for escrow in escrows.get("active", {}).values()
+        if isinstance(escrow, dict)
+    )
+    return bal + esc
+
+
+def _invariant_failure(balances: dict, escrows: dict, *, expected_total: int) -> str | None:
+    """Return failure description if invariant is broken, else None.
+
+    Checks:
+    1. No negative balances
+    2. No negative escrows
+    3. Conservation: sum(balances) + sum(escrows) == expected_total
+    """
+    negative_balances = [
+        f"{agent}={info.get('balance')}"
+        for agent, info in balances.get("agents", {}).items()
+        if isinstance(info, dict) and info.get("balance", 0) < 0
+    ]
+    if negative_balances:
+        return f"negative balance(s): {', '.join(negative_balances)}"
+
+    negative_escrows = [
+        f"#{issue}={esc.get('amount')}"
+        for issue, esc in escrows.get("active", {}).items()
+        if isinstance(esc, dict) and esc.get("amount", 0) < 0
+    ]
+    if negative_escrows:
+        return f"negative escrow(s): {', '.join(negative_escrows)}"
+
+    current_total = _sum_balances_and_escrows(balances, escrows)
+    if current_total != expected_total:
+        return f"invariant drift: expected {expected_total}, got {current_total}"
+
+    return None
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -73,6 +123,9 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
     balances = load_json(balances_path)
     escrows = load_json(escrows_path)
     idem_keys = load_json(idem_path)
+
+    # Circuit breaker: snapshot invariant total before any modifications
+    expected_total = _sum_balances_and_escrows(balances, escrows)
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     history_path = root / "ledger" / "history" / f"{today}.jsonl"
@@ -437,6 +490,16 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
             if field in p["entry"]:
                 history_entry[field] = p["entry"][field]
         history_lines.append(json.dumps(history_entry, ensure_ascii=False))
+
+    # =========================================================================
+    # CIRCUIT BREAKER — verify invariant before writing (T3 Slot 2)
+    # =========================================================================
+    failure = _invariant_failure(balances, escrows, expected_total=expected_total)
+    if failure:
+        print(f"\nCIRCUIT BREAKER: {failure}")
+        print("Batch produced invalid ledger state. NO FILES WRITTEN.")
+        print("Investigate the batch entries above and fix before re-running.")
+        return 1
 
     # Bump versions + timestamps
     balances["version"] = balances.get("version", 1) + 1
