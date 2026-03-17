@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-17T12:00:00Z",
-  "last_snapshot": "2026-03-17T12:00:00Z",
+  "last_snapshot": "2026-03-17T05:43:47Z",
   "role": "gauntlet_evaluator",
   "fitness": {
     "tasks_completed": 0,
@@ -18,5 +18,35 @@
     "total_earned": 0
   },
   "lineage": [],
-  "mutations": []
+  "mutations": [
+    {
+      "commit": "e180fe7ce803a601332e99d90613bbdc0a306bce",
+      "date": "2026-03-17T05:43:47Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "gauntlet.md",
+        "Instructions",
+        "genome_meta.json",
+        "balances.json",
+        "2026-03-17.jsonl",
+        "idem_keys.json",
+        "trajectory_mints.json",
+        "check_invariant.py",
+        "cli.py",
+        "gauntlet.py"
+      ],
+      "lines_added": 674,
+      "lines_removed": 6,
+      "summary": "feat: gauntlet framework \u2014 6 trajectories, minting, evaluator agent",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    }
+  ]
 }
