@@ -1,0 +1,13 @@
+{
+  "_doc": "Loose-aggressive. VPIP ~30%, PFR ~25%. Plays many hands aggressively. High variance.",
+  "name": "LAG",
+  "preflop_tier": "deep",
+  "adjustments": {
+    "open_wider": true,
+    "cbet_frequency": 0.75,
+    "bluff_frequency": 0.50,
+    "value_bet_threshold": 0.55,
+    "fold_to_3bet_light": false,
+    "extra_steal_hands": ["K9o", "K8o", "Q9o", "Q8o", "J9o", "J8o", "T8o", "97o", "86o", "75o", "64o", "53o"]
+  }
+}

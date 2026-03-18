@@ -1,0 +1,17 @@
+{
+    "id": "priority-01",
+    "category": "multi-step",
+    "difficulty": "medium",
+    "instruction": "Which bug should I fix first? Rank them according to our triage policy.",
+    "vault": "bug-triage",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "BUG-104.*first|first.*BUG-104|1\\.?\\s*BUG-104|highest.*BUG-104|BUG-104.*highest",
+        "refs_required": ["policies/bug-triage.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

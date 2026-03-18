@@ -1,0 +1,17 @@
+{
+    "id": "amb-chain-01",
+    "category": "ambiguity",
+    "difficulty": "hard",
+    "instruction": "What was the approved Q2 budget amount? I remember we discussed it at the weekly meeting.",
+    "vault": "amb-chain",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(145[,.]?000|\\$145[,.]?000)",
+        "refs_required": ["docs/proposals/q2-budget-final.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "id": "amb-multi-01",
+    "category": "ambiguity",
+    "difficulty": "medium",
+    "instruction": "What is the current status of Project Alpha? How far along are we?",
+    "vault": "amb-multi",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(testing|Testing|85%|85 ?percent)",
+        "refs_required": ["projects/alpha-update-march.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

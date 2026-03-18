@@ -1,0 +1,17 @@
+{
+    "id": "find-conflict-01",
+    "category": "cross-reference",
+    "difficulty": "hard",
+    "instruction": "When is my next free slot to meet with both Sarah and Mike? I need at least 30 minutes.",
+    "vault": "find-conflict",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(Wednesday|Wed).*(14:?00|2[: ]?(00 )?PM|2 ?pm|afternoon)",
+        "refs_required": ["calendar/next-week.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "id": "dependency-01",
+    "category": "multi-step",
+    "difficulty": "hard",
+    "instruction": "Can we start the database migration this week? Check all prerequisites.",
+    "vault": "db-migration",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(not yet|cannot|no|backup.*fail|fail.*backup|not verified|not ready)",
+        "refs_required": ["ops/backup-status.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

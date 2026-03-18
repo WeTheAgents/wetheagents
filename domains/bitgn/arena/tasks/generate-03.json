@@ -1,0 +1,17 @@
+{
+    "id": "generate-03",
+    "category": "generation",
+    "difficulty": "medium",
+    "instruction": "Create an onboarding task list for the new backend developer starting Monday. Customize it based on their role.",
+    "vault": "onboarding",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(created|saved|written|Jordan)",
+        "refs_required": ["templates/onboarding-checklist.md", "contacts/new-hire.md"],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {"onboarding/jordan-rivera-onboarding.md": "Backend"},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

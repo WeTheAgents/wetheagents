@@ -1,0 +1,39 @@
+{
+  "_doc": "Nash equilibrium push/fold charts for short stacks (<20BB). Format: position -> list of hands to push all-in with. Based on standard Nash charts for 6-max.",
+
+  "push": {
+    "_doc": "Open-shove ranges by position and stack depth (BB). Push with listed hands when folded to you.",
+
+    "15bb": {
+      "UTG": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "AKs", "AQs", "AJs", "ATs", "AKo", "AQo", "KQs"],
+      "MP":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "AKs", "AQs", "AJs", "ATs", "A9s", "AKo", "AQo", "AJo", "KQs", "KJs"],
+      "CO":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A5s", "A4s", "AKo", "AQo", "AJo", "ATo", "KQs", "KJs", "KTs", "K9s", "QJs", "QTs", "JTs"],
+      "BTN": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "AKo", "AQo", "AJo", "ATo", "A9o", "A8o", "A7o", "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "KQo", "KJo", "KTo", "QJs", "QTs", "Q9s", "Q8s", "QJo", "JTs", "J9s", "J8s", "T9s", "T8s", "98s", "87s", "76s", "65s", "54s"],
+      "SB":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "AKo", "AQo", "AJo", "ATo", "A9o", "A8o", "A7o", "A6o", "A5o", "A4o", "A3o", "A2o", "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s", "K5s", "K4s", "KQo", "KJo", "KTo", "K9o", "K8o", "QJs", "QTs", "Q9s", "Q8s", "Q7s", "Q6s", "QJo", "QTo", "Q9o", "JTs", "J9s", "J8s", "J7s", "JTo", "J9o", "T9s", "T8s", "T7s", "T9o", "98s", "97s", "96s", "87s", "86s", "76s", "75s", "65s", "64s", "54s", "53s", "43s"]
+    },
+
+    "10bb": {
+      "UTG": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "AKo", "AQo", "AJo", "KQs", "KJs", "QJs"],
+      "MP":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A5s", "AKo", "AQo", "AJo", "ATo", "KQs", "KJs", "KTs", "K9s", "QJs", "QTs", "JTs", "T9s"],
+      "CO":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "AKo", "AQo", "AJo", "ATo", "A9o", "KQs", "KJs", "KTs", "K9s", "K8s", "KQo", "KJo", "QJs", "QTs", "Q9s", "QJo", "JTs", "J9s", "T9s", "T8s", "98s", "87s", "76s", "65s"],
+      "BTN": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "AKo", "AQo", "AJo", "ATo", "A9o", "A8o", "A7o", "A6o", "A5o", "A4o", "A3o", "A2o", "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s", "K5s", "K4s", "K3s", "KQo", "KJo", "KTo", "K9o", "K8o", "K7o", "QJs", "QTs", "Q9s", "Q8s", "Q7s", "Q6s", "Q5s", "QJo", "QTo", "Q9o", "Q8o", "JTs", "J9s", "J8s", "J7s", "J6s", "JTo", "J9o", "J8o", "T9s", "T8s", "T7s", "T6s", "T9o", "T8o", "98s", "97s", "96s", "98o", "87s", "86s", "85s", "87o", "76s", "75s", "74s", "65s", "64s", "54s", "53s", "43s"],
+      "SB":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "AKo", "AQo", "AJo", "ATo", "A9o", "A8o", "A7o", "A6o", "A5o", "A4o", "A3o", "A2o", "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s", "K5s", "K4s", "K3s", "K2s", "KQo", "KJo", "KTo", "K9o", "K8o", "K7o", "K6o", "K5o", "QJs", "QTs", "Q9s", "Q8s", "Q7s", "Q6s", "Q5s", "Q4s", "Q3s", "Q2s", "QJo", "QTo", "Q9o", "Q8o", "Q7o", "JTs", "J9s", "J8s", "J7s", "J6s", "J5s", "JTo", "J9o", "J8o", "J7o", "T9s", "T8s", "T7s", "T6s", "T5s", "T9o", "T8o", "T7o", "98s", "97s", "96s", "95s", "98o", "97o", "87s", "86s", "85s", "87o", "86o", "76s", "75s", "74s", "76o", "65s", "64s", "63s", "65o", "54s", "53s", "52s", "54o", "43s", "42s", "32s"]
+    },
+
+    "8bb": {
+      "_doc": "At 8BB nearly everything is a push from late position",
+      "UTG": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A5s", "AKo", "AQo", "AJo", "ATo", "KQs", "KJs", "KTs", "QJs", "QTs", "JTs"],
+      "MP":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "AKo", "AQo", "AJo", "ATo", "A9o", "KQs", "KJs", "KTs", "K9s", "K8s", "KQo", "KJo", "QJs", "QTs", "Q9s", "JTs", "J9s", "T9s", "98s", "87s"],
+      "CO":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22", "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "AKo", "AQo", "AJo", "ATo", "A9o", "A8o", "A7o", "A5o", "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s", "K5s", "KQo", "KJo", "KTo", "K9o", "QJs", "QTs", "Q9s", "Q8s", "Q7s", "QJo", "QTo", "JTs", "J9s", "J8s", "J7s", "JTo", "T9s", "T8s", "T7s", "T9o", "98s", "97s", "96s", "87s", "86s", "76s", "75s", "65s", "64s", "54s", "53s", "43s"],
+      "BTN": "any",
+      "SB":  "any"
+    }
+  },
+
+  "call_push": {
+    "_doc": "Calling ranges when someone pushes all-in ahead of you. Conservative.",
+    "vs_15bb_push": ["AA", "KK", "QQ", "JJ", "TT", "AKs", "AQs", "AKo"],
+    "vs_10bb_push": ["AA", "KK", "QQ", "JJ", "TT", "99", "AKs", "AQs", "AJs", "AKo", "AQo", "KQs"],
+    "vs_8bb_push":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "AKs", "AQs", "AJs", "ATs", "AKo", "AQo", "AJo", "KQs", "KJs"]
+  }
+}

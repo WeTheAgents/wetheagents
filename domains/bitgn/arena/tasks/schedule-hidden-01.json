@@ -1,0 +1,17 @@
+{
+    "id": "schedule-hidden-01",
+    "category": "hidden-condition",
+    "difficulty": "hard",
+    "instruction": "Schedule 3 client meetings next week: Acme Corp (1 hour), GlobalCo (30 min), StartupX (1 hour). Put them in my free slots and write the updated calendar.",
+    "vault": "schedule-clients",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(Tuesday|Thursday).*(GlobalCo|Lisa)|GlobalCo.*(Tuesday|Thursday)",
+        "refs_required": ["emails/globalco-scheduling.md"],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

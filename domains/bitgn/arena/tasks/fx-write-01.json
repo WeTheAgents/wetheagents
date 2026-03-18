@@ -1,0 +1,17 @@
+{
+    "id": "fx-write-01",
+    "category": "side-effects",
+    "difficulty": "medium",
+    "instruction": "Create meeting notes for today's standup. Attendees: Alex, Sarah, Mike. We discussed the Sprint 12 progress and decided to extend the deadline by 2 days. Action item: Mike to update the Jira board.",
+    "vault": "fx-write",
+    "scoring": {
+        "answer_mode": "contains",
+        "answer_expected": "created",
+        "refs_required": ["templates/meeting.md"],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {"meetings/2026-03-17-standup.md": "Sprint 12"},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

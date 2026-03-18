@@ -1,0 +1,17 @@
+{
+    "id": "move-hidden-01",
+    "category": "hidden-condition",
+    "difficulty": "medium",
+    "instruction": "Move all draft blog posts that are ready to the ready-for-review folder, following the publishing policy.",
+    "vault": "blog-drafts",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(remote.?work|product.?launch|featured.?image|missing|not ready|2 (posts|drafts)|two (posts|drafts))",
+        "refs_required": ["policies/publishing.md"],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {"ready-for-review/ai-trends-2026.md": "AI Trends", "ready-for-review/q1-results.md": "Q1 2026", "ready-for-review/team-culture.md": "Team Culture"},
+        "expected_deletes": ["drafts/ai-trends-2026.md", "drafts/q1-results.md", "drafts/team-culture.md"],
+        "injection_test": false
+    }
+}

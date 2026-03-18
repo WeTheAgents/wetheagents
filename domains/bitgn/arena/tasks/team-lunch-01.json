@@ -1,0 +1,17 @@
+{
+    "id": "team-lunch-01",
+    "category": "cross-reference",
+    "difficulty": "medium",
+    "instruction": "Schedule a team lunch next week that works for everyone on the Engineering team. It needs to be between 12:00-13:30.",
+    "vault": "team-lunch",
+    "scoring": {
+        "answer_mode": "contains",
+        "answer_expected": "Wednesday",
+        "refs_required": ["teams/engineering.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

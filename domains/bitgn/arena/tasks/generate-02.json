@@ -1,0 +1,17 @@
+{
+    "id": "generate-02",
+    "category": "generation",
+    "difficulty": "hard",
+    "instruction": "Write meeting notes from the product redesign email thread. Save them following the meeting notes policy.",
+    "vault": "email-to-notes",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(created|saved|written)",
+        "refs_required": ["templates/meeting-notes.md", "emails/product-redesign-thread.md"],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

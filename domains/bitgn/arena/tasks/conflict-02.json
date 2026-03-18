@@ -1,0 +1,17 @@
+{
+    "id": "conflict-02",
+    "category": "conflicting-sources",
+    "difficulty": "medium",
+    "instruction": "What is the current price of the Professional plan?",
+    "vault": "conflicting",
+    "scoring": {
+        "answer_mode": "contains",
+        "answer_expected": "$79",
+        "refs_required": ["docs/pricing-v2.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

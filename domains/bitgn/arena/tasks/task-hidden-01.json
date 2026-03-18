@@ -1,0 +1,17 @@
+{
+    "id": "task-hidden-01",
+    "category": "hidden-condition",
+    "difficulty": "hard",
+    "instruction": "Close out all completed tasks in the sprint board. Mark them as CLOSED in their files.",
+    "vault": "sprint-board",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(TASK-105|regression|reopen|QA found|dashboard crash|not clos)",
+        "refs_required": ["policies/sprint.md"],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

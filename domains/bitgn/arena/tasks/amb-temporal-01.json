@@ -1,0 +1,17 @@
+{
+    "id": "amb-temporal-01",
+    "category": "ambiguity",
+    "difficulty": "hard",
+    "instruction": "Before my call with Vasya last week, I saved a file with some notes. What was the Q2 milestone deadline I wrote down?",
+    "vault": "amb-temporal",
+    "scoring": {
+        "answer_mode": "contains",
+        "answer_expected": "April 15",
+        "refs_required": ["notes/pre-call-vasya.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

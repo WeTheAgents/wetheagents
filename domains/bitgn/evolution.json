@@ -1,0 +1,18 @@
+{
+  "current_gen": 1,
+  "best_gen": 0,
+  "best_score": 1.0,
+  "best_prompt_file": "D:\\GitHub\\wetheagents\\domains\\bitgn\\prompts\\gen_000.txt",
+  "mutations_accepted": 0,
+  "mutations_rejected": 0,
+  "history": [
+    {
+      "gen": 0,
+      "desc": "tuned baseline (trust model + injection defense)",
+      "score": 1.0,
+      "delta": 0.0,
+      "accepted": true,
+      "regressed": []
+    }
+  ]
+}

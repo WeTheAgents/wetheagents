@@ -1,0 +1,17 @@
+{
+    "id": "chain-calc-01",
+    "category": "multi-step",
+    "difficulty": "medium",
+    "instruction": "What was the ROI on our Google Ads campaign last month?",
+    "vault": "marketing-roi",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "200\\s*%|200 percent",
+        "refs_required": ["marketing/google-ads-march.md", "analytics/channel-attribution.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

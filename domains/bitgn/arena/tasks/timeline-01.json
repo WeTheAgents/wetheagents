@@ -1,0 +1,17 @@
+{
+    "id": "timeline-01",
+    "category": "cross-reference",
+    "difficulty": "hard",
+    "instruction": "Build a timeline of Project Beta — what has happened so far and what's still pending?",
+    "vault": "timeline-beta",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "March 28|Mar 28|3/28",
+        "refs_required": ["projects/beta/status.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}
