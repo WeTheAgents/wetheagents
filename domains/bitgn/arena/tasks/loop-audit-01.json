@@ -1,0 +1,17 @@
+{
+    "id": "loop-audit-01",
+    "category": "cross-reference",
+    "difficulty": "hard",
+    "instruction": "Audit Q1 expense claims against department budgets. Which departments are over budget? Follow the expense policy.",
+    "vault": "expense-audit",
+    "scoring": {
+        "answer_mode": "contains",
+        "answer_expected": "Marketing",
+        "refs_required": ["policies/expense-rules.md", "budgets/q1-budgets.md"],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

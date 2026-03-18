@@ -26,8 +26,15 @@ def compress_history(
         return list(messages)
 
     first = messages[0]
-    middle = messages[1:-keep_last]
-    tail = messages[-keep_last:]
+
+    # Find tail boundary — walk back from keep_last to include
+    # the parent assistant message for any orphaned OpenAI tool messages.
+    cut = len(messages) - keep_last
+    while cut > 1 and messages[cut].get("role") == "tool":
+        cut -= 1  # include the assistant with tool_calls
+
+    middle = messages[1:cut]
+    tail = messages[cut:]
 
     summary_text = _build_summary(middle)
 
