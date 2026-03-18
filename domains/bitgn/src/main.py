@@ -196,6 +196,10 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
             config.defense_mode = args[i + 1]
             config.enrichment = True  # defense requires enrichment
             i += 2
+        elif args[i] == "--validate":
+            config.step_validator = True
+            config.enrichment = True  # validator lives in enrichment layer
+            i += 1
         elif args[i] == "--cache":
             config.cache_aware_prompt = True
             i += 1
@@ -203,6 +207,7 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
             config.warmup = True
             config.compress_history = True
             config.enrichment = True
+            config.step_validator = True
             config.defense_mode = "soft_block"
             config.cache_aware_prompt = True
             i += 1
@@ -239,6 +244,8 @@ def main() -> None:
         print("Features: compression=ON")
     if config.enrichment:
         print(f"Features: enrichment=ON, defense={config.defense_mode}")
+    if config.step_validator:
+        print("Features: step_validator=ON")
 
     trace = run_benchmark(
         provider_name=provider_name,

@@ -30,6 +30,9 @@ class AgentConfig:
     # --- Injection defense mode ---
     defense_mode: str = "soft_hint"  # "hard" | "soft_block" | "soft_hint"
 
+    # --- Step validator (loop detection) ---
+    step_validator: bool = False
+
     # --- Prompt cache optimization ---
     cache_aware_prompt: bool = False
 

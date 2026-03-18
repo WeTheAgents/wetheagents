@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from src.config import AgentConfig
 from src.defense import DefenseMode, sanitize_content
 from src.models import ReadTool, ToolAction
+from src.step_validator import StepValidator
 from src.tools import Dispatcher
 
 MAX_STEPS = 30
@@ -66,11 +67,18 @@ def enriched_dispatcher(
     ``ctx.step`` before each agent iteration.
     """
     mode = _defense_mode_from_str(config.defense_mode)
+    validator = StepValidator() if config.step_validator else None
 
     def _dispatch(tool: ToolAction) -> str:
         result = base(tool)
 
         parts: list[str] = []
+
+        # 0. Loop detection (before everything else — most impactful)
+        if validator is not None:
+            warning = validator.check(tool)
+            if warning:
+                parts.append(warning)
 
         # 1. Step budget
         if config.step_budget_in_results:

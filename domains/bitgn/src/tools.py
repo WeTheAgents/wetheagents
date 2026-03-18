@@ -74,7 +74,7 @@ def _call_grpc(vm: MiniRuntimeClientSync, tool: ToolAction):
         case SearchTool(pattern=pattern, count=count, path=path):
             return vm.search(SearchRequest(path=path, pattern=pattern, count=count))
         case WriteTool(path=path, content=content):
-            return vm.write(WriteRequest(path=path, content=content))
+            return vm.write(WriteRequest(path=path, content=content.rstrip("\n")))
         case DeleteTool(path=path):
             return vm.delete(DeleteRequest(path=path))
         case ReportCompletion(answer=answer, refs=refs):
@@ -103,7 +103,7 @@ def local_dispatcher(vault_runtime) -> Dispatcher:
             case SearchTool(pattern=pattern, count=count, path=path):
                 return vr.search(pattern, count, path)
             case WriteTool(path=path, content=content):
-                return vr.write(path, content)
+                return vr.write(path, content.rstrip("\n"))
             case DeleteTool(path=path):
                 return vr.delete(path)
             case ReportCompletion(answer=answer, refs=refs):
