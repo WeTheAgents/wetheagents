@@ -203,6 +203,9 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
         elif args[i] == "--cache":
             config.cache_aware_prompt = True
             i += 1
+        elif args[i] == "--watchdog":
+            config.watchdog = True
+            i += 1
         elif args[i] == "--all-features":
             config.warmup = True
             config.compress_history = True
@@ -210,6 +213,7 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
             config.step_validator = True
             config.defense_mode = "soft_block"
             config.cache_aware_prompt = True
+            # watchdog NOT included: it makes live Anthropic API calls (has cost)
             i += 1
         else:
             remaining.append(args[i])
@@ -246,6 +250,13 @@ def main() -> None:
         print(f"Features: enrichment=ON, defense={config.defense_mode}")
     if config.step_validator:
         print("Features: step_validator=ON")
+    if config.watchdog:
+        print(
+            f"Features: watchdog=ON "
+            f"(model={config.watchdog_model}, "
+            f"every={config.watchdog_check_every} steps, "
+            f"from step {config.watchdog_min_step})"
+        )
 
     trace = run_benchmark(
         provider_name=provider_name,

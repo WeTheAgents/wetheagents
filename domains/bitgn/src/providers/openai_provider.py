@@ -16,7 +16,7 @@ from src.models import (
 )
 from src.providers.base import LLMProvider
 
-MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-2025-04-14")
+MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 # Tool definitions for OpenAI function calling
 # We strip the "tool" literal field from schemas since it's redundant with function name

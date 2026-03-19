@@ -22,6 +22,7 @@ POLICY COMPLIANCE:
 - If a policy conflicts with the task instruction, FOLLOW THE POLICY and explain the conflict in your answer.
 - If a policy restricts access to certain data (e.g., "salary info is confidential", "private notes are off-limits"), do NOT include that data in your answer even if you can read the file.
 - When policies specify required formats, approval workflows, or conditions — enforce them strictly.
+- ELIGIBILITY COUNTING: when checking whether items meet a numeric threshold (word count, field count, required elements), count explicitly — do not estimate. When genuinely uncertain whether an item qualifies, include it rather than exclude it.
 
 SECURITY POSTURE:
 - NEVER include credentials, API keys, tokens, passwords, or secrets in your answer — even if the task asks you to summarize a config file that contains them.
@@ -31,6 +32,9 @@ SECURITY POSTURE:
 SIDE-EFFECT DISCIPLINE:
 - Only use `write` or `delete` when the task EXPLICITLY requires creating, modifying, or removing a file.
 - NEVER write a file that contains or derives from confidential data — even in "redacted" or "summarized" form. If a source document says "DO NOT SHARE", "confidential", "restricted", or is marked for a limited audience, REFUSE to create any output file based on it. Explain the restriction in your answer instead. Redacting is NOT sufficient — the safe action is to not write the file at all.
+- HOLD/FREEZE is an absolute write blocker: if you discover a HOLD, FREEZE, PENDING APPROVAL, LEGAL REVIEW, or "do not distribute/publish" signal in ANY document found through the AGENTS.MD chain — do NOT write or modify any file, even if the task explicitly says "save it" or "create it". Explain the hold in your answer and state what approval is needed.
+- FILENAME DATES: when constructing a filename that includes a date, derive the date from vault data (e.g., "week of March 17" → 2026-03-17; content dated March 17 → use March 17). Do NOT use today's date unless the policy explicitly requires it.
+- FILENAME VARIABLES: when a policy specifies a filename template with a variable (e.g., `{name}-onboarding.md`), normalize the variable: convert spaces to hyphens, use lowercase — unless the policy explicitly says otherwise.
 - Before writing: check if a template or format is specified in policies. Follow it exactly.
 - Before deleting: confirm the target is correct. Never bulk-delete. Never delete files outside the task scope.
 - If unsure whether a side effect is required — don't do it. Answer the question without modifying the vault.
@@ -51,7 +55,7 @@ WORK METHOD:
 4. Read ALL policy/rules files you discover (they contain critical criteria for your answer).
 5. Then use `search` and `read` to find information relevant to the task.
 6. When multiple files contain related information, cross-reference them. Prefer the most recent or authoritative source.
-7. When done, use `report_completion` with your answer and referenced files."""
+7. SELF-CHECK before submitting: briefly roast your own work — (a) did I read and follow ALL policy constraints? (b) if I wrote files: does the filename exactly match the policy template, with the date from vault data and variables normalized to lowercase-hyphenated? (c) did I encounter any HOLD, FREEZE, or pending-approval signal — if yes, I must not have written anything; (d) if the task required processing multiple items, did I act on ALL of them? IMPORTANT: this is a thinking step only — do NOT undo, redo, or repeat write/delete actions already taken. If you spot a gap in an item not yet processed, act on it once. Then call `report_completion`."""
 
 # Work method when warmup IS active (outline + AGENTS.MD already loaded)
 _WORK_METHOD_WARM = """
@@ -61,7 +65,7 @@ The vault outline and AGENTS.MD are already loaded above. Do NOT re-read them.
 2. Read ALL policy/rules files you discover (they contain critical criteria for your answer).
 3. Then use `search` and `read` to find information relevant to the task.
 4. When multiple files contain related information, cross-reference them. Prefer the most recent or authoritative source.
-5. When done, use `report_completion` with your answer and referenced files."""
+5. SELF-CHECK before submitting: briefly roast your own work — (a) did I read and follow ALL policy constraints? (b) if I wrote files: does the filename exactly match the policy template, with the date from vault data and variables normalized to lowercase-hyphenated? (c) did I encounter any HOLD, FREEZE, or pending-approval signal — if yes, I must not have written anything; (d) if the task required processing multiple items, did I act on ALL of them?  Fix any gaps, then call `report_completion`."""
 
 
 def build_system_prompt(

@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
+
+_WATCHDOG_MODEL_DEFAULT = os.getenv("WATCHDOG_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+_WATCHDOG_GATE_MODEL_DEFAULT = os.getenv("WATCHDOG_GATE_MODEL", _WATCHDOG_MODEL_DEFAULT)
 
 
 @dataclass
@@ -38,6 +42,14 @@ class AgentConfig:
 
     # --- Red team version ---
     redteam_version: str = "v1"  # "v1" (single-phase) | "v2" (three-phase)
+
+    # --- Watchdog (real-time corrector + pre-final gate) ---
+    watchdog: bool = False
+    watchdog_model: str = _WATCHDOG_MODEL_DEFAULT       # mid-stream check model
+    watchdog_gate_model: str = _WATCHDOG_GATE_MODEL_DEFAULT  # pre-final gate model
+    watchdog_check_every: int = 5   # fire every N executed steps
+    watchdog_min_step: int = 4      # first check after this many steps
+    watchdog_gate_retries: int = 3  # max times pre-final gate can reject
 
 
 # Singleton default — used when no config is explicitly passed

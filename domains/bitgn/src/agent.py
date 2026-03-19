@@ -19,6 +19,7 @@ from src.providers.anthropic_provider import AnthropicProvider
 from src.tools import Dispatcher
 from src.trace import StepRecord, TaskTrace, truncate_output
 from src.warmup import warmup_vault
+from src.watchdog import Watchdog
 
 CLI_RED = "\x1B[31m"
 CLI_GREEN = "\x1B[32m"
@@ -79,6 +80,17 @@ def run_agent_anthropic(
     """Run agent loop using Anthropic's native tool_use protocol."""
     config = config or DEFAULT_CONFIG
 
+    watchdog = (
+        Watchdog(
+            model=config.watchdog_model,
+            gate_model=config.watchdog_gate_model,
+            check_every=config.watchdog_check_every,
+            min_step=config.watchdog_min_step,
+        )
+        if config.watchdog
+        else None
+    )
+
     system_prompt, dispatcher, ctx = _prepare_agent(
         dispatcher, task_text, system_prompt_override, config
     )
@@ -103,6 +115,8 @@ def run_agent_anthropic(
         "write": WriteTool,
         "delete": DeleteTool,
     }
+
+    gate_retries = 0  # pre-final gate retry counter
 
     for i in range(MAX_STEPS):
         ctx.step = i + 1
@@ -158,8 +172,25 @@ def run_agent_anthropic(
 
             step_started = time.time()
 
-            # Handle report_completion — stop processing further tool calls
+            # Handle report_completion — pre-final gate runs first
             if tool_name == "report_completion":
+                # Gate: reject and redirect if watchdog finds a problem
+                if watchdog is not None and gate_retries < config.watchdog_gate_retries:
+                    gate_correction = watchdog.check_final(task_text, trace.steps, tool_input)
+                    if gate_correction:
+                        gate_retries += 1
+                        print(f"  {CLI_RED}[GATE] {gate_correction}{CLI_CLR}")
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": tool_call.id,
+                            "content": (
+                                f"[REDTEAM]: {gate_correction} "
+                                "Correct the issue and resubmit."
+                            ),
+                        })
+                        break  # don't accept completion; re-enter outer loop
+
+                # Gate passed (or disabled/exhausted) — process normally
                 completion = ReportCompletion.model_validate(tool_input)
                 result_text = dispatcher(completion)
                 tool_results.append({
@@ -215,6 +246,13 @@ def run_agent_anthropic(
             trace.total_steps = len(trace.steps)
             return trace
 
+        # Watchdog: Haiku checks for stuck/looping behavior every N executed steps
+        if watchdog is not None and watchdog.should_check(len(trace.steps)):
+            correction = watchdog.check(task_text, trace.steps)
+            if correction:
+                print(f"  {CLI_RED}[WATCHDOG] {correction}{CLI_CLR}")
+                messages.append({"role": "user", "content": f"[WATCHDOG]: {correction}"})
+
         # Budget warning (only if enrichment not active — enrichment handles this)
         if not config.enrichment and i == FORCE_ANSWER_AT - 1:
             messages.append({
@@ -242,6 +280,17 @@ def run_agent_openai(
     """Run agent loop using OpenAI native function calling (tools API)."""
     config = config or DEFAULT_CONFIG
 
+    watchdog = (
+        Watchdog(
+            model=config.watchdog_model,
+            gate_model=config.watchdog_gate_model,
+            check_every=config.watchdog_check_every,
+            min_step=config.watchdog_min_step,
+        )
+        if config.watchdog
+        else None
+    )
+
     system_prompt, dispatcher, ctx = _prepare_agent(
         dispatcher, task_text, system_prompt_override, config
     )
@@ -267,6 +316,8 @@ def run_agent_openai(
 
     # Messages list (without system — raw_call prepends it)
     messages = [{"role": "user", "content": task_text}]
+
+    gate_retries = 0  # pre-final gate retry counter
 
     for i in range(MAX_STEPS):
         ctx.step = i + 1
@@ -329,8 +380,25 @@ def run_agent_openai(
 
             step_started = time.time()
 
-            # Handle report_completion
+            # Handle report_completion — pre-final gate runs first
             if tool_name == "report_completion":
+                # Gate: reject and redirect if watchdog finds a problem
+                if watchdog is not None and gate_retries < config.watchdog_gate_retries:
+                    gate_correction = watchdog.check_final(task_text, trace.steps, tool_input)
+                    if gate_correction:
+                        gate_retries += 1
+                        print(f"  {CLI_RED}[GATE] {gate_correction}{CLI_CLR}")
+                        messages.append({
+                            "role": "tool",
+                            "content": (
+                                f"[REDTEAM]: {gate_correction} "
+                                "Correct the issue and resubmit."
+                            ),
+                            "tool_call_id": tc.id,
+                        })
+                        break  # don't accept completion; re-enter outer loop
+
+                # Gate passed (or disabled/exhausted) — process normally
                 completion = ReportCompletion.model_validate(tool_input)
                 result_text = dispatcher(completion)
                 messages.append({"role": "tool", "content": result_text, "tool_call_id": tc.id})
@@ -375,6 +443,13 @@ def run_agent_openai(
         if completed:
             trace.total_steps = len(trace.steps)
             return trace
+
+        # Watchdog: Haiku checks for stuck/looping behavior every N executed steps
+        if watchdog is not None and watchdog.should_check(len(trace.steps)):
+            correction = watchdog.check(task_text, trace.steps)
+            if correction:
+                print(f"  {CLI_RED}[WATCHDOG] {correction}{CLI_CLR}")
+                messages.append({"role": "user", "content": f"[WATCHDOG]: {correction}"})
 
         # Budget warning (only if enrichment not active)
         if not config.enrichment and i == FORCE_ANSWER_AT - 1:
