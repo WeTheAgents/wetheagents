@@ -1,9 +1,14 @@
-"""Load and combine MLB historical odds data from sports-statistics.com xlsx files.
+"""Load and combine MLB historical odds data from xlsx files.
 
 Each xlsx row represents one team in one game (2 rows per game: visitor + home).
 We pair them into game-level records with all inning scores, odds, and pitchers.
 
-Data covers seasons 2010-2019, 2021 (2020 excluded — COVID).
+Data sources:
+  - sports-statistics.com xlsx: 2010-2019, 2021
+  - SportsDatabase.com SDQL API: 2004-2009 (moneyline, total, scores, starters)
+  - ArnavSaraogi JSON + SDQL merge: 2022-2025 (multi-book moneyline, run line, starters)
+
+2020 excluded — COVID season (60 games, 7-inning DH, runner on 2nd in extras).
 """
 
 import logging
@@ -47,17 +52,33 @@ XLSX_COLUMNS = [
 
 INNING_COLS = [f"inn_{i}" for i in range(1, 10)]
 
-# Seasons to load (2020 excluded)
-SEASONS = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021]
+# Seasons to load (2020 excluded — COVID)
+SEASONS = [
+    2004, 2005, 2006, 2007, 2008, 2009,  # SDQL (sportsdatabase.com)
+    2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,  # sports-statistics.com
+    2021,  # sports-statistics.com
+    2022, 2023, 2024, 2025,  # ArnavSaraogi JSON + SDQL merge
+]
 
 
 def load_single_season(filepath: Path, season: int) -> pd.DataFrame:
     """Load a single season xlsx file into a DataFrame with standardized columns."""
     df = pd.read_excel(filepath, header=0)
 
-    # The xlsx has 23 columns, some unnamed (run_line_odds, open_ou_odds, close_ou_odds)
-    # Rename them to our standard names
-    df.columns = XLSX_COLUMNS[: len(df.columns)]
+    n_cols = len(df.columns)
+    if n_cols == 23:
+        # Full schema: all columns including run_line, run_line_odds
+        df.columns = XLSX_COLUMNS
+    elif n_cols == 21:
+        # 2010-2013 xlsx files: no run_line or run_line_odds columns.
+        # Columns are: date..close_ml, open_ou, open_ou_odds, close_ou, close_ou_odds
+        cols_21 = XLSX_COLUMNS[:17] + XLSX_COLUMNS[19:]  # skip run_line, run_line_odds
+        df.columns = cols_21
+        df["run_line"] = np.nan
+        df["run_line_odds"] = np.nan
+    else:
+        # Fallback: truncate column names to match
+        df.columns = XLSX_COLUMNS[: n_cols]
 
     # Add season
     df["season"] = season
@@ -246,9 +267,14 @@ def apply_data_filters(df: pd.DataFrame) -> pd.DataFrame:
     # Soft flags (keep rows, filter later as needed)
     df["involves_col"] = (df["home_team"] == "COL") | (df["away_team"] == "COL")
 
-    # Extra innings: inning sum != final score
-    df["is_extra_innings"] = (df["away_innings_sum"] != df["away_final"]) | (
-        df["home_innings_sum"] != df["home_final"]
+    # Extra innings: inning sum != final score.
+    # Guard: if all inning scores are 0 (SDQL/JSON sources lack inning data),
+    # the sum==0 comparison would false-positive every game. Only flag when
+    # at least one inning column is non-zero (meaning we have real inning data).
+    has_inning_data = (df["away_innings_sum"] > 0) | (df["home_innings_sum"] > 0)
+    df["is_extra_innings"] = has_inning_data & (
+        (df["away_innings_sum"] != df["away_final"])
+        | (df["home_innings_sum"] != df["home_final"])
     )
 
     # Extreme favorite: closing ML > ±300
@@ -373,6 +399,8 @@ def _map_team_code_to_retrosheet(team: str, season: int | None = None) -> str:
         "SDG": "SDN",
         "STL": "SLN",
         "TAM": "TBA",
+        # Athletics renamed Sacramento Athletics 2025, same Retrosheet franchise
+        "ATH": "OAK",
     }
     return mapping.get(t, t)
 
