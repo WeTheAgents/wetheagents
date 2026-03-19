@@ -3,6 +3,9 @@
 Downloads xlsx files for seasons 2010-2019 and 2021 (2020 excluded — COVID).
 Files are saved to data/raw/odds/.
 
+For additional seasons (2004-2009, 2022-2025), use:
+    python data/download_historical.py
+
 Usage:
     python data/download.py
 """
