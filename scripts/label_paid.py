@@ -89,6 +89,23 @@ def apply_label_changes(number: int, add: list[str], remove: list[str]) -> None:
     subprocess.run(cmd, capture_output=True, text=True, check=True)
 
 
+def load_task_index(root: str) -> dict:
+    """Load task_index.json."""
+    path = os.path.join(root, "ledger", "task_index.json")
+    if not os.path.isfile(path):
+        return {"version": 1, "tasks": {}}
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_task_index(root: str, data: dict) -> None:
+    """Save task_index.json."""
+    path = os.path.join(root, "ledger", "task_index.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Post-closure label hygiene for WeTheAgents tasks"
@@ -108,6 +125,8 @@ def main() -> None:
     # Load ledger data
     paid_issues = load_history(args.root)
     active_escrows = load_escrows(args.root)
+    task_index = load_task_index(args.root)
+    task_index_dirty = False
 
     print(f"Ledger: {len(paid_issues)} issues with payments, "
           f"{len(active_escrows)} active escrows")
@@ -141,6 +160,13 @@ def main() -> None:
         if was_paid and not has_paid:
             to_add.append(TERMINAL_LABEL)
 
+        # Sync task_index.json status for paid/closed tasks
+        issue_key = str(num)
+        if was_paid and issue_key in task_index.get("tasks", {}):
+            if task_index["tasks"][issue_key].get("status") != "paid":
+                task_index["tasks"][issue_key]["status"] = "paid"
+                task_index_dirty = True
+
         # Remove stale state labels from closed issues
         stale = labels & STALE_LABELS
         to_remove.extend(sorted(stale))
@@ -161,6 +187,11 @@ def main() -> None:
                 print(f"    ✓ applied")
             except subprocess.CalledProcessError as e:
                 print(f"    ✗ failed: {e}", file=sys.stderr)
+
+    # Save task_index if changed
+    if task_index_dirty and args.apply:
+        save_task_index(args.root, task_index)
+        print("  task_index.json updated.")
 
     print(f"\n{'Applied' if args.apply else 'Would fix'} {changes_needed} issue(s).")
 
