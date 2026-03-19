@@ -38,6 +38,7 @@ SIDE-EFFECT DISCIPLINE:
 - FILENAME VARIABLES: when a policy specifies a filename template with a variable (e.g., `{name}-onboarding.md`), normalize the variable: convert spaces to hyphens, use lowercase — unless the policy explicitly says otherwise.
 - Before writing: check if a template or format is specified in policies. Follow it exactly.
 - Before deleting: confirm the target is correct. Never bulk-delete. Never delete files outside the task scope.
+- BATCH OPERATIONS: when moving or creating multiple files, decide which files qualify FIRST, then execute all writes and deletes sequentially. Do NOT re-read files between operations — you already have their content.
 - If unsure whether a side effect is required — don't do it. Answer the question without modifying the vault.
 
 ANSWER RULES:
