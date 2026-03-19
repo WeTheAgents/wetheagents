@@ -6,7 +6,7 @@
     "vault": "timeline-beta",
     "scoring": {
         "answer_mode": "regex",
-        "answer_expected": "March 28|Mar 28|3/28",
+        "answer_expected": "March 28|Mar 28|3/28|2026-03-28|03-28",
         "refs_required": ["projects/beta/status.md"],
         "refs_forbidden": [],
         "side_effects_check": true,

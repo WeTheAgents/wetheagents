@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import signal
 import sys
 from pathlib import Path
 
@@ -33,6 +34,8 @@ def setup_logging(verbose: bool = False) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="WEA Poker Bot")
     parser.add_argument("--url", required=True, help="PokerNow game URL")
+    parser.add_argument("--name", default="WEA-Bot", help="Bot player name")
+    parser.add_argument("--buy-in", type=int, default=1000, help="Buy-in chip amount")
     parser.add_argument("--profile", default=None, help="Chrome profile directory (for multi-bot)")
     parser.add_argument("--headless", action="store_true", help="Run Chrome headless")
     parser.add_argument("--no-humanize", action="store_true", help="Disable human-like delays")
@@ -73,7 +76,17 @@ def main() -> None:
         profile_dir=args.profile,
         headless=args.headless,
         humanize=not args.no_humanize,
+        bot_name=args.name,
+        buy_in=args.buy_in,
     )
+
+    # Ensure clean shutdown on SIGTERM (from taskkill)
+    def _shutdown(signum, frame):
+        logger.info(f"Signal {signum} received, shutting down...")
+        connector.disconnect()
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, _shutdown)
 
     try:
         connector.connect(args.url)

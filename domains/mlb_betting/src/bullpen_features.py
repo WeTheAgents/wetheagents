@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from src.retrosheet_pitchers import (
+    FIP_CONSTANT,
     RETROSHEETS_DIR,
     _ensure_int,
     _find_member,
@@ -149,6 +150,11 @@ def _compute_rolling_bullpen_quality(
                     row[f"bp_whip_{label}"] = (h_sum + bb_sum) / ip if ip > 0 else np.nan
                     row[f"bp_kbb_{label}"] = (so_sum + 1.0) / (bb_sum + 1.0)
                     row[f"bp_k9_{label}"] = (9.0 * so_sum / ip) if ip > 0 else np.nan
+                    hr_sum = grp.iloc[start:i]["bp_hr"].values.astype(float).sum()
+                    row[f"bp_fip_{label}"] = (
+                        (13.0 * hr_sum + 3.0 * bb_sum - 2.0 * so_sum) / ip + FIP_CONSTANT
+                        if ip > 0 else np.nan
+                    )
 
             results.append(row)
 
@@ -287,6 +293,7 @@ def build_bullpen_features(
     Returns DataFrame with columns:
     - team, season, date (keys)
     - bp_whip_short, bp_whip_long, bp_kbb_short, bp_kbb_long, bp_k9_short, bp_k9_long
+    - bp_fip_short, bp_fip_long
     - bp_close_win_pct
     - bp_ip_1d, bp_ip_3d, bp_pitchers_3d
     """
@@ -321,6 +328,18 @@ def build_bullpen_features(
     # Aggregate to team-game level
     team_game_bp = _aggregate_team_game_relievers(relievers)
     logger.info(f"Team-game bullpen aggregates: {len(team_game_bp)}")
+
+    # Deduplicate doubleheader dates: keep game-1 entering state per (team, date).
+    # Retrosheet has both DH games; rolling features must produce exactly 1 row
+    # per (team, season, date) to avoid fan-out when merged to games.
+    before_dedup = len(team_game_bp)
+    team_game_bp = team_game_bp.sort_values(["team", "date", "gid"])
+    team_game_bp = team_game_bp.drop_duplicates(
+        subset=["team", "season", "date"], keep="first"
+    )
+    n_dropped = before_dedup - len(team_game_bp)
+    if n_dropped > 0:
+        logger.info(f"Deduped {n_dropped} doubleheader bullpen rows (kept game-1 per team-date)")
 
     # 1. Rolling quality (WHIP, K/BB, K9)
     logger.info("Computing rolling bullpen quality...")

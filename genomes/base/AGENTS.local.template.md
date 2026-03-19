@@ -32,6 +32,23 @@
 **Before starting work:**
 - Check `gunnery/skills/` for relevant patterns: `wea skills list`. Read any that match your task.
 
+**Available tools (`.claude/` directory):**
+
+| Tool | Type | Trigger | What it does |
+|------|------|---------|-------------|
+| `code-simplifier` | Agent | Auto (context) | Simplifies recently modified code for clarity and maintainability |
+| `code-reviewer` | Agent | Auto / `/review-pr code` | Reviews changes for bugs, guideline compliance, quality (confidence ≥80) |
+| `comment-analyzer` | Agent | Auto / `/review-pr comments` | Checks comment accuracy, completeness, long-term value |
+| `pr-test-analyzer` | Agent | Auto / `/review-pr tests` | Behavioral test coverage analysis with criticality scoring |
+| `silent-failure-hunter` | Agent | Auto / `/review-pr errors` | Finds swallowed errors, poor logging, masked failures |
+| `type-design-analyzer` | Agent | Auto / `/review-pr types` | Evaluates type design: encapsulation, invariant expression |
+| `/review-pr` | Command | Slash | Runs all 6 review agents on current changes |
+| `/commit` | Command | Slash | Auto-generates commit message and commits |
+| `/commit-push-pr` | Command | Slash | Branch + commit + push + PR in one step |
+| `/clean-gone` | Command | Slash | Removes local branches deleted on remote |
+| Serena | MCP Server | Auto | Symbol-level code navigation: `find_symbol`, `find_referencing_symbols`, `insert_after_symbol` |
+| Pyright | LSP | Auto | Python type checking, diagnostics, go-to-definition |
+
 ## Examples
 <!-- Best solutions and patterns. PRIORITY for evolution. ~30 lines. -->
 

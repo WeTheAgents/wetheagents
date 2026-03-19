@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+from src.strategy.icm import icm_adjustment
 from src.table.state import Action, ActionType, GameState, Position, canonicalize_hand
 from src.tracker.stats import OpponentTracker
 
@@ -91,13 +92,17 @@ class PokerEngine:
         logger.info(
             f"\n{'='*60}\n"
             f"Hand #{self._hand_count}: {hand} ({state.hole_cards[0]} {state.hole_cards[1]}) "
-            f"| Position: {state.my_position.value if state.my_position else '?'} "
+            f"| Pos: {state.my_position.value if state.my_position else '?'}"
+            f"({state.position_dist}/{state.num_players}) "
             f"| Stack: {state.effective_stack_bb:.0f}BB "
             f"| Pot: {state.pot:.0f} | To call: {state.to_call:.0f}"
         )
 
         if state.community_cards:
             logger.info(f"Board: {' '.join(state.community_cards)}")
+
+        # Populate exploit context from tracker
+        self._populate_exploit_context(state)
 
         if state.is_preflop:
             action = self._preflop_decision(state)
@@ -124,6 +129,60 @@ class PokerEngine:
         state.villain_aggression = self._estimate_villain_aggression(state)
         state.in_position = self._is_in_position(state)
         return get_postflop_action(state)
+
+    def _populate_exploit_context(self, state: GameState) -> None:
+        """Populate exploit flags on GameState from tracker data.
+
+        Sets bb_is_afk, sb_is_afk, has_limper, limper_frequency based on
+        per-player stats from the opponent tracker.
+        """
+        if not state.is_preflop:
+            return  # exploit context is preflop-only for now
+
+        for p in state.players:
+            if not p.name:
+                continue
+            stats = self.tracker.get_stats(p.name)
+
+            # Identify BB and SB by their forced bets
+            # BB has bet == big_blind, SB has bet == big_blind / 2
+            if abs(p.bet - state.big_blind) < 1.0:
+                # Likely BB
+                state.bb_is_afk = stats.is_likely_afk
+                state.bb_consecutive_folds = stats.consecutive_folds
+                # Passive short stack: <10BB and low PFR
+                if (state.big_blind > 0
+                        and p.stack / state.big_blind < 10
+                        and stats.hands_seen >= 5
+                        and stats.pfr < 0.25):
+                    state.bb_is_passive_short = True
+            elif abs(p.bet - state.big_blind / 2) < 1.0:
+                # Likely SB
+                state.sb_is_afk = stats.is_likely_afk
+
+            # Limp station detection
+            if p.is_active and stats.limp_frequency > 0.30:
+                state.has_limper = True
+                state.limper_frequency = max(state.limper_frequency, stats.limp_frequency)
+
+            # Opener detection: find who raised (bet > BB = raiser)
+            if (p.is_active and p.bet > state.big_blind * 1.5
+                    and p.name != self._get_my_name(state)):
+                # Estimate opener's position from their bet relative to others
+                # If they have the largest bet, they're the opener
+                state.opener_pfr = stats.pfr
+                # Heuristic: if many players folded, opener is in late position
+                folded = state.num_players - state.players_in_hand
+                if folded >= 2:
+                    state.opener_is_steal = True
+
+    def _get_my_name(self, state: GameState) -> str:
+        """Get our name from player list (player with no bet or specific flag)."""
+        # Heuristic: our name is the one associated with our stack
+        for p in state.players:
+            if abs(p.stack - state.my_stack) < 1.0:
+                return p.name
+        return ""
 
     def _estimate_villain_fold_pct(self, state: GameState) -> float:
         """Estimate how often the current villain folds to a raise.
@@ -178,52 +237,52 @@ class PokerEngine:
         return state.my_position in (Position.BTN, Position.CO)
 
     def _apply_bubble_adjustment(self, state: GameState, action: Action) -> Action:
-        """Bubble aggression: widen stealing ranges, pressure medium stacks.
+        """ICM-driven tournament adjustments.
 
-        Key insight: on the bubble, medium stacks (15-30BB) are terrified of
-        busting before the money. They fold WAY too much. We exploit this by:
-        1. Opening wider from steal positions (CO/BTN/SB)
-        2. 3-betting lighter vs opens from scared players
-        3. Never folding to their steals with a big stack
-
-        When WE are the short stack on the bubble, we tighten up and wait for
-        premium hands, since everyone else is also tightening and we can pick
-        up blinds with less risk.
+        Uses icm_adjustment() to determine aggression level:
+        - multiplier > 1.2: predator mode (steal wider, pressure medium stacks)
+        - multiplier < 0.9: survival mode (tighten opening ranges)
+        - ~1.0: normal play
         """
-        if not self.tournament.is_bubble and not self.tournament.is_near_bubble:
-            return action
+        icm = icm_adjustment(
+            self.tournament.players_remaining,
+            self.tournament.players_paid,
+            state.effective_stack_bb,
+            self.tournament.avg_stack_bb,
+        )
+
+        if abs(icm - 1.0) < 0.05:
+            return action  # no significant ICM pressure
 
         eff_bb = state.effective_stack_bb
         is_steal_position = state.my_position in (Position.CO, Position.BTN, Position.SB)
 
-        # Big stack on bubble = predator mode
-        if eff_bb > 30 and self.tournament.is_bubble:
-            logger.info("BUBBLE: Big stack predator mode active")
+        # Predator mode: widen stealing, convert calls to raises
+        if icm >= 1.2:
+            logger.info(f"ICM PREDATOR: multiplier={icm:.2f}")
 
-            # Convert folds to raises from steal positions
             if action.type == ActionType.FOLD and is_steal_position and state.to_call <= state.big_blind:
                 hand = canonicalize_hand(state.hole_cards[0], state.hole_cards[1])
                 if self._is_bubble_steal_hand(hand):
                     raise_amount = state.big_blind * 2.5
                     raise_amount = min(raise_amount, state.my_stack)
-                    logger.info(f"BUBBLE STEAL: {hand} from {state.my_position.value} -> RAISE")
+                    logger.info(f"ICM STEAL: {hand} from {state.my_position.value} -> RAISE")
                     return Action(ActionType.RAISE, raise_amount)
 
-            # Increase aggression: convert calls to raises
             if action.type == ActionType.CALL and is_steal_position and state.is_preflop:
-                from src.strategy.sizing import get_bet_size
                 raise_amount = state.to_call * 3
                 raise_amount = min(raise_amount, state.my_stack)
-                logger.info("BUBBLE: Converting call to raise (pressure)")
+                logger.info("ICM: Converting call to raise (pressure)")
                 return Action(ActionType.RAISE, raise_amount)
 
-        # Medium stack on bubble = survival mode (tighten slightly)
-        elif 15 <= eff_bb <= 30 and self.tournament.is_bubble:
-            # Don't open marginal hands — risk of getting 3-bet jammed
+        # Survival mode: tighten preflop opens
+        elif icm <= 0.85:
+            logger.info(f"ICM SURVIVAL: multiplier={icm:.2f}")
+
             if action.type == ActionType.RAISE and state.is_preflop:
                 hand = canonicalize_hand(state.hole_cards[0], state.hole_cards[1])
                 if not self._is_bubble_safe_open(hand):
-                    logger.info(f"BUBBLE SURVIVAL: {hand} too marginal to open, folding")
+                    logger.info(f"ICM SURVIVAL: {hand} too marginal to open, folding")
                     return Action(ActionType.FOLD)
 
         return action

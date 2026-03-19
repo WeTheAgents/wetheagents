@@ -83,6 +83,7 @@ class GameState:
 
     # Position & table
     my_position: Position | None = None
+    position_dist: int = -1  # clockwise distance from dealer: 0=BTN,1=SB,2=BB,3=CO...
     num_players: int = 0  # total at table
     players_in_hand: int = 0  # still active this hand
     players: list[PlayerState] = field(default_factory=list)
@@ -97,6 +98,20 @@ class GameState:
     villain_fold_pct: float = 0.45  # how often villain folds to raises (0.0-1.0)
     villain_aggression: float = 1.5  # aggression factor: (bets+raises)/calls
     in_position: bool = True  # are we last to act postflop?
+
+    # Action tracking (populated by connector/engine)
+    checked_this_street: bool = False  # did we check earlier this street? (for check-raise)
+    villain_checked_back_flop: bool = False  # did villain check back on flop? (for probe bet)
+
+    # Exploit context (populated by engine from tracker)
+    bb_is_afk: bool = False  # BB is likely AFK (6+ consecutive folds)
+    bb_consecutive_folds: int = 0  # BB's current fold streak
+    sb_is_afk: bool = False  # SB is likely AFK
+    has_limper: bool = False  # there is a known limping station in the hand
+    limper_frequency: float = 0.0  # highest limp freq among active limpers
+    bb_is_passive_short: bool = False  # BB is short-stacked (<10BB) and passive (PFR<0.25)
+    opener_is_steal: bool = False  # raiser opened from CO/BTN/SB (steal position)
+    opener_pfr: float = 0.0  # raiser's PFR stat from tracker
 
     # Pre-computed helpers
     @property

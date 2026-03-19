@@ -31,9 +31,21 @@
   },
 
   "call_push": {
-    "_doc": "Calling ranges when someone pushes all-in ahead of you. Conservative.",
-    "vs_15bb_push": ["AA", "KK", "QQ", "JJ", "TT", "AKs", "AQs", "AKo"],
-    "vs_10bb_push": ["AA", "KK", "QQ", "JJ", "TT", "99", "AKs", "AQs", "AJs", "AKo", "AQo", "KQs"],
-    "vs_8bb_push":  ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "AKs", "AQs", "AJs", "ATs", "AKo", "AQo", "AJo", "KQs", "KJs"]
+    "_doc": "Calling ranges vs all-in shove. Position-aware: tighter vs EP (they push tighter), wider vs LP/SB (they push wider).",
+    "vs_15bb_push": {
+      "vs_EP": ["AA", "KK", "QQ", "JJ", "AKs", "AKo"],
+      "vs_LP": ["AA", "KK", "QQ", "JJ", "TT", "AKs", "AQs", "AKo"],
+      "vs_SB": ["AA", "KK", "QQ", "JJ", "TT", "99", "AKs", "AQs", "AJs", "AKo", "AQo"]
+    },
+    "vs_10bb_push": {
+      "vs_EP": ["AA", "KK", "QQ", "JJ", "TT", "AKs", "AKo"],
+      "vs_LP": ["AA", "KK", "QQ", "JJ", "TT", "99", "AKs", "AQs", "AJs", "AKo", "AQo", "KQs"],
+      "vs_SB": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "AKs", "AQs", "AJs", "ATs", "AKo", "AQo", "AJo", "KQs", "KJs"]
+    },
+    "vs_8bb_push": {
+      "vs_EP": ["AA", "KK", "QQ", "JJ", "TT", "99", "AKs", "AQs", "AKo", "AQo"],
+      "vs_LP": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "AKs", "AQs", "AJs", "ATs", "AKo", "AQo", "AJo", "KQs", "KJs"],
+      "vs_SB": ["AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "AKs", "AQs", "AJs", "ATs", "A9s", "AKo", "AQo", "AJo", "ATo", "KQs", "KJs", "KTs"]
+    }
   }
 }

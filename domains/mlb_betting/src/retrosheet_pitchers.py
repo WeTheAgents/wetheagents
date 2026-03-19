@@ -28,6 +28,10 @@ import pandas as pd
 RETROSHEETS_DIR = Path(__file__).parent.parent / "retrosheets"
 DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent / "data" / "processed" / "pitchers"
 
+# League-average FIP constant (~3.10 across modern MLB).
+# Cancels in differentials but kept for interpretability.
+FIP_CONSTANT = 3.10
+
 
 @dataclass(frozen=True)
 class BullpenConfig:
@@ -382,6 +386,9 @@ def build_entering_features(
         # (SO+1)/(BB+1) is a common pragmatic smoothing.
         return (so_sum + 1.0) / (bb_sum + 1.0)
 
+    def _fip(hr_sum: pd.Series, bb_sum: pd.Series, so_sum: pd.Series, ip: pd.Series) -> pd.Series:
+        return _safe_div(13.0 * hr_sum + 3.0 * bb_sum - 2.0 * so_sum, ip) + FIP_CONSTANT
+
     for prefix in ["short", "long"]:
         h_sum = df[f"h_{prefix}_sum"]
         bb_sum = df[f"bb_{prefix}_sum"]
@@ -394,7 +401,12 @@ def build_entering_features(
         df[f"k9_{prefix}"] = _k9(so_sum, ip)
         df[f"bb9_{prefix}"] = _bb9(bb_sum, ip)
         df[f"hr9_{prefix}"] = _hr9(hr_sum, ip)
+        df[f"fip_{prefix}"] = _fip(hr_sum, bb_sum, so_sum, ip)
         df[f"ip_{prefix}"] = ip
+
+    # IP per start (average innings pitched per appearance in window)
+    df["ip_per_start_short"] = _safe_div(df["ip_short"], df["starts_short"].clip(lower=1).astype(float))
+    df["ip_per_start_long"] = _safe_div(df["ip_long"], df["starts_long"].clip(lower=1).astype(float))
 
     # Keep only a focused set of columns: keys + computed features + reliability.
     keep = [
@@ -424,6 +436,10 @@ def build_entering_features(
         "bb9_long",
         "hr9_short",
         "hr9_long",
+        "fip_short",
+        "fip_long",
+        "ip_per_start_short",
+        "ip_per_start_long",
     ]
     keep = [c for c in keep if c in df.columns]
     return df[keep].copy()

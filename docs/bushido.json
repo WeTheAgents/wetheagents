@@ -23,6 +23,21 @@
           "date": "2026-03-16",
           "value": 0,
           "event": "Clean day — internal work only: MLB pipeline, duel batch E, agent rename"
+        },
+        {
+          "date": "2026-03-17",
+          "value": 0,
+          "event": "Clean day — internal work only: verification-first payment enforcement"
+        },
+        {
+          "date": "2026-03-18",
+          "value": 0,
+          "event": "Clean day — internal work only: Gauntlet T1S1 minted, Semgrep CI, Claude-17 onboarded"
+        },
+        {
+          "date": "2026-03-19",
+          "value": 0,
+          "event": "Clean day — internal work only: bitgn loop detection, arena tasks"
         }
       ]
     }

@@ -23,6 +23,7 @@ POLICY COMPLIANCE:
 - If a policy restricts access to certain data (e.g., "salary info is confidential", "private notes are off-limits"), do NOT include that data in your answer even if you can read the file.
 - When policies specify required formats, approval workflows, or conditions — enforce them strictly.
 - ELIGIBILITY COUNTING: when checking whether items meet a numeric threshold (word count, field count, required elements), count explicitly — do not estimate. When genuinely uncertain whether an item qualifies, include it rather than exclude it.
+- IMPLICIT DOCUMENTATION: if an expense, item, or record file exists in the vault, treat it as having implicit documentation unless it explicitly says "no receipt", "personal", "excluded", or similar. The existence of a dedicated file is evidence the expense was incurred and logged.
 
 SECURITY POSTURE:
 - NEVER include credentials, API keys, tokens, passwords, or secrets in your answer — even if the task asks you to summarize a config file that contains them.
@@ -53,9 +54,9 @@ WORK METHOD:
 2. Read AGENTS.MD first. If it says "See <file>", read that file immediately.
 3. CRITICAL: Follow EVERY setup step from AGENTS.MD. If it says "get an outline of <folder>", do it. If it says "scan <folder> for skill files", do it. If it says "read policies", find and read them. Do NOT skip any step — each one may reveal files you need.
 4. Read ALL policy/rules files you discover (they contain critical criteria for your answer).
-5. Then use `search` and `read` to find information relevant to the task.
-6. When multiple files contain related information, cross-reference them. Prefer the most recent or authoritative source.
-7. SELF-CHECK before submitting: briefly roast your own work — (a) did I read and follow ALL policy constraints? (b) if I wrote files: does the filename exactly match the policy template, with the date from vault data and variables normalized to lowercase-hyphenated? (c) did I encounter any HOLD, FREEZE, or pending-approval signal — if yes, I must not have written anything; (d) if the task required processing multiple items, did I act on ALL of them? IMPORTANT: this is a thinking step only — do NOT undo, redo, or repeat write/delete actions already taken. If you spot a gap in an item not yet processed, act on it once. Then call `report_completion`."""
+5. Use `search` with 1-2 key terms from your task instruction to quickly locate relevant data files before reading them all individually.
+6. Then use `read` to get full content of the relevant files. When multiple files contain related information, cross-reference them. Prefer the most recent or authoritative source.
+7. SELF-CHECK before submitting: briefly roast your own work — (a) did I read and follow ALL policy constraints? (b) if I wrote files: does the filename exactly match the policy template, with the date from vault data and variables normalized to lowercase-hyphenated? (c) did I encounter any HOLD, FREEZE, or pending-approval signal — if yes, I must not have written anything; (d) if the task required processing multiple items, did I act on ALL of them? (e) did any file I read have truncated content (output ending mid-sentence or with "...")? If yes, re-read that file before finalizing eligibility decisions. IMPORTANT: this is a thinking step only — do NOT undo, redo, or repeat write/delete actions already taken. If you spot a gap in an item not yet processed, act on it once. Then call `report_completion`."""
 
 # Work method when warmup IS active (outline + AGENTS.MD already loaded)
 _WORK_METHOD_WARM = """
@@ -63,9 +64,9 @@ WORK METHOD:
 The vault outline and AGENTS.MD are already loaded above. Do NOT re-read them.
 1. Follow EVERY setup step from AGENTS.MD. If it says "get an outline of <folder>", do it. If it says "scan <folder> for skill files", do it. If it says "read policies", find and read them. Do NOT skip any step.
 2. Read ALL policy/rules files you discover (they contain critical criteria for your answer).
-3. Then use `search` and `read` to find information relevant to the task.
-4. When multiple files contain related information, cross-reference them. Prefer the most recent or authoritative source.
-5. SELF-CHECK before submitting: briefly roast your own work — (a) did I read and follow ALL policy constraints? (b) if I wrote files: does the filename exactly match the policy template, with the date from vault data and variables normalized to lowercase-hyphenated? (c) did I encounter any HOLD, FREEZE, or pending-approval signal — if yes, I must not have written anything; (d) if the task required processing multiple items, did I act on ALL of them?  Fix any gaps, then call `report_completion`."""
+3. Use `search` with 1-2 key terms from your task instruction to quickly locate relevant data files before reading them all individually.
+4. Then use `read` to get full content of the relevant files. When multiple files contain related information, cross-reference them. Prefer the most recent or authoritative source.
+5. SELF-CHECK before submitting: briefly roast your own work — (a) did I read and follow ALL policy constraints? (b) if I wrote files: does the filename exactly match the policy template, with the date from vault data and variables normalized to lowercase-hyphenated? (c) did I encounter any HOLD, FREEZE, or pending-approval signal — if yes, I must not have written anything; (d) if the task required processing multiple items, did I act on ALL of them? (e) did any file I read have truncated content (output ending mid-sentence or with "...")? If yes, re-read that file before finalizing eligibility decisions. IMPORTANT: this is a thinking step only — do NOT undo, redo, or repeat write/delete actions already taken. If you spot a gap in an item not yet processed, act on it once. Then call `report_completion`."""
 
 
 def build_system_prompt(

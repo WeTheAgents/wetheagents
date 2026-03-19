@@ -7,7 +7,9 @@ import random
 
 from treys import Card, Deck, Evaluator
 
-from src.table.state import Action, ActionType, GameState, Street
+from src.strategy.blockers import blocker_adjustment
+from src.strategy.board import board_wetness, range_advantage
+from src.table.state import Action, ActionType, GameState, Position, Street
 
 logger = logging.getLogger(__name__)
 
@@ -82,78 +84,8 @@ def get_hand_strength_class(equity: float) -> str:
 
 
 
-def board_wetness(community_cards: list[str]) -> float:
-    """Analyze board texture: 0.0 = bone dry, 1.0 = soaking wet.
 
-    Factors:
-    - Flush draws: 2+ cards of same suit = wet
-    - Straight draws: connected/close ranks = wet
-    - Paired board: slightly dry (fewer combos connect)
-    - High card density: more broadway = more potential hands
-
-    Dry board (K-7-2 rainbow) = bluffs work great, WA/WB applies.
-    Wet board (J-T-9 two-tone) = bluffs fail, opponents have draws.
-    """
-    if len(community_cards) < 3:
-        return 0.5  # can't evaluate preflop
-
-    rank_values = {
-        "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8,
-        "9": 9, "T": 10, "J": 11, "Q": 12, "K": 13, "A": 14,
-    }
-
-    ranks = []
-    suits: dict[str, int] = {}
-    for card in community_cards:
-        r, s = card[0].upper(), card[1].lower()
-        ranks.append(rank_values.get(r, 7))
-        suits[s] = suits.get(s, 0) + 1
-
-    score = 0.0
-
-    # --- Flush draw potential ---
-    max_suited = max(suits.values())
-    if max_suited >= 4:
-        score += 0.40  # 4-flush on board = extremely wet
-    elif max_suited == 3:
-        score += 0.35  # monotone flop = very wet
-    elif max_suited == 2:
-        score += 0.15  # two-tone = moderately wet
-
-    # --- Straight draw potential ---
-    sorted_ranks = sorted(set(ranks))
-    # Count how many ranks are within 4 of each other (straight window)
-    gaps = []
-    for i in range(len(sorted_ranks) - 1):
-        gaps.append(sorted_ranks[i + 1] - sorted_ranks[i])
-
-    if gaps:
-        min_gap = min(gaps)
-        if min_gap == 1:
-            score += 0.25  # connected (e.g., 9-T or J-Q)
-        elif min_gap == 2:
-            score += 0.15  # one-gapper
-        elif min_gap == 3:
-            score += 0.05  # two-gapper
-
-    # Bonus: 3+ ranks within a 5-card window
-    if len(sorted_ranks) >= 3:
-        spread = sorted_ranks[-1] - sorted_ranks[0]
-        if spread <= 4:
-            score += 0.15  # very connected board
-
-    # --- Paired board = slightly drier ---
-    if len(set(ranks)) < len(ranks):
-        score -= 0.10
-
-    # --- High card density (broadway cards give more combos) ---
-    broadway = sum(1 for r in ranks if r >= 10)
-    if broadway >= 3:
-        score += 0.10
-    elif broadway >= 2:
-        score += 0.05
-
-    return max(0.0, min(1.0, score))
+# board_wetness is now in src.strategy.board (imported above)
 
 
 def stack_leverage(spr: float) -> float:
@@ -185,14 +117,15 @@ def is_wawb(equity: float, wetness: float, players_in_hand: int) -> bool:
     - Correct play: pot control (check) and let villain bluff
 
     Conditions:
-    - Medium equity (0.45-0.68): not strong enough to value-bet heavy,
-      not weak enough to fold
+    - Medium equity (0.45-0.62): not strong enough to value-bet heavy,
+      not weak enough to fold. Hands with 63%+ equity (TPTK, overpairs)
+      should value-bet, not pot-control.
     - Dry board (wetness < 0.30): few draws means the situation won't
       change much on later streets
     - Heads-up: multiway pots have too many ranges to WA/WB
     """
     return (
-        0.45 <= equity <= 0.72
+        0.45 <= equity <= 0.62
         and wetness < 0.30
         and players_in_hand <= 2
     )
@@ -272,8 +205,11 @@ def semi_bluff_ev(
     # Stack leverage: deep stacks threaten future bets
     leverage = stack_leverage(state.spr)
 
+    # Blocker effect: holding cards that block villain's strong hands
+    blocker_adj = blocker_adjustment(state.hole_cards, state.community_cards)
+
     # Effective fold probability (clamped to 0.05-0.90)
-    fold_pct = max(0.05, min(0.90, base_fold * leverage + texture_adj))
+    fold_pct = max(0.05, min(0.90, base_fold * leverage + texture_adj + blocker_adj))
 
     pot = state.pot + state.to_call  # pot including villain's bet
 
@@ -363,6 +299,28 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
             logger.info(f"  -> VALUE BET {bet:.0f} (monster equity {equity:.2f})")
             return Action(ActionType.RAISE, bet)
 
+    # Probe bet: villain checked back on flop, showing weakness. Bet wider on turn.
+    if state.villain_checked_back_flop and state.street == Street.TURN and equity >= 0.30:
+        bet = get_bet_size(state, equity, is_cbet=True)
+        if bet > 0:
+            logger.info(
+                f"  -> PROBE BET {bet:.0f} (villain checked back flop, equity {equity:.2f})"
+            )
+            return Action(ActionType.RAISE, bet)
+
+    # Donk-bet: BB with range advantage leads out instead of checking to aggressor
+    if (state.street == Street.FLOP
+            and state.my_position == Position.BB
+            and not state.in_position):
+        ra = range_advantage(state.community_cards, Position.BB, False)
+        if ra > 0.20 and equity >= 0.50:
+            bet = get_bet_size(state, equity, is_cbet=True)
+            if bet > 0:
+                logger.info(
+                    f"  -> DONK BET {bet:.0f} (BB range advantage {ra:.2f}, equity {equity:.2f})"
+                )
+                return Action(ActionType.RAISE, bet)
+
     # WA/WB: medium-to-strong hand on dry board — pot control
     # "Betting accomplishes nothing: worse folds, better calls"
     # This MUST come before regular value bet: on dry boards, even 65%
@@ -400,12 +358,18 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
             logger.info(f"  -> VALUE BET {bet:.0f} (equity {equity:.2f} wet={wetness:.2f})")
             return Action(ActionType.RAISE, bet)
 
-    # Medium hand on flop -> continuation bet (only on non-WA/WB boards)
-    if equity >= 0.45 and state.street == Street.FLOP:
-        bet = get_bet_size(state, equity, is_cbet=True)
-        if bet > 0:
-            logger.info(f"  -> C-BET {bet:.0f} (equity {equity:.2f} wetness={wetness:.2f})")
-            return Action(ActionType.RAISE, bet)
+    # Medium hand on flop -> continuation bet (range-advantage-aware)
+    if state.street == Street.FLOP:
+        ra = range_advantage(state.community_cards, state.my_position, state.in_position)
+        cbet_threshold = 0.45 - ra * 0.10  # lower threshold when we have range advantage
+        if equity >= cbet_threshold:
+            bet = get_bet_size(state, equity, is_cbet=True)
+            if bet > 0:
+                logger.info(
+                    f"  -> C-BET {bet:.0f} (equity {equity:.2f} "
+                    f"wetness={wetness:.2f} range_adv={ra:.2f})"
+                )
+                return Action(ActionType.RAISE, bet)
 
     # Semi-bluff with draws (equity 0.25-0.50 on flop/turn)
     # Use fold equity EV instead of random coin flip
@@ -424,6 +388,68 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
 
     logger.info(f"  -> CHECK (equity {equity:.2f})")
     return Action(ActionType.CHECK)
+
+
+def _should_check_raise(state: GameState, equity: float, wetness: float) -> bool:
+    """Decide if we should check-raise (after checking this street).
+
+    Check-raise is an OOP play: we check, villain bets, we raise.
+    Two branches:
+    - Value CR: strong hands that benefit from building pot OOP
+    - Bluff CR: draws with fold equity on wet boards
+    """
+    if state.in_position:
+        return False  # check-raise is an OOP play
+    if not state.checked_this_street:
+        return False  # only when we already checked
+    if state.players_in_hand > 3:
+        return False  # too many players, check-raise less effective
+
+    # Value check-raise: strong hands OOP (sets, two pair+)
+    if equity >= 0.75:
+        return random.random() < 0.70  # 70% of the time
+
+    # Bluff check-raise: draws on wet boards with fold equity
+    if 0.35 <= equity <= 0.50 and state.street == Street.FLOP:
+        if wetness > 0.30 and state.villain_fold_pct > 0.40:
+            return random.random() < 0.25  # 25% of the time
+
+    return False
+
+
+def _strong_hand_raise_frequency(state: GameState, equity: float, wetness: float) -> float:
+    """Dynamic raise frequency for strong (0.60-0.75) hands facing a bet.
+
+    Replaces the fixed 35% raise rate. Varies by:
+    - Board texture: wet -> raise more (protect equity)
+    - Villain type: passive -> raise more (value), aggressive -> call more (trap)
+    - SPR: low -> raise more (approaching commitment)
+    - Street: river -> slightly less (villain's range defined)
+    """
+    base = 0.35
+
+    # Wet board: raise more often (deny draws)
+    if wetness > 0.40:
+        base += 0.15
+    elif wetness > 0.25:
+        base += 0.08
+
+    # Passive villain: raise more (they call too much = value)
+    if state.villain_aggression < 1.0:
+        base += 0.10
+    # Aggressive villain: call more (let them bluff into us)
+    elif state.villain_aggression > 2.5:
+        base -= 0.10
+
+    # Low SPR: raise more (commit)
+    if state.spr < 4:
+        base += 0.10
+
+    # River: slightly less (ranges defined)
+    if state.street == Street.RIVER:
+        base -= 0.10
+
+    return max(0.15, min(0.65, base))
 
 
 def _decide_call_raise_fold(
@@ -447,6 +473,17 @@ def _decide_call_raise_fold(
 
     # Check if we're committed (SPR < 2)
     committed = state.spr < 2
+    wetness = board_wetness(state.community_cards)
+
+    # Check-raise: if we checked this street and villain bet, raise with strong hands OOP
+    if _should_check_raise(state, equity, wetness):
+        raise_amount = get_bet_size(state, equity, is_value=(equity >= 0.75))
+        cr_type = "value" if equity >= 0.75 else "bluff"
+        logger.info(
+            f"  -> CHECK-RAISE ({cr_type}) {raise_amount:.0f} "
+            f"(equity {equity:.2f} wetness={wetness:.2f})"
+        )
+        return Action(ActionType.RAISE, raise_amount)
 
     # Monster -> raise
     if equity >= 0.75:
@@ -462,7 +499,6 @@ def _decide_call_raise_fold(
     # should not raise — villain's bet is either a bluff or they crush us.
     # Vs aggressive villain: call (they bluff a lot, we catch them)
     # Vs passive villain: lean fold (they only bet with goods)
-    wetness = board_wetness(state.community_cards)
     if is_wawb(equity, wetness, state.players_in_hand):
         if state.villain_aggression > 2.0:
             # Aggressive villain fires a lot — they're often bluffing.
@@ -491,7 +527,7 @@ def _decide_call_raise_fold(
 
     # Strong hand on non-dry board -> raise sometimes, call otherwise
     if equity >= 0.60:
-        if random.random() < 0.35:
+        if random.random() < _strong_hand_raise_frequency(state, equity, wetness):
             raise_amount = get_bet_size(state, equity, is_value=True)
             logger.info(f"  -> RAISE {raise_amount:.0f} (strong equity {equity:.2f})")
             return Action(ActionType.RAISE, raise_amount)

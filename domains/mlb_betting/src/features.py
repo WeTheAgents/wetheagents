@@ -570,3 +570,221 @@ def build_all_features(
     logger.info(f"Added {n_features} features to {len(enriched)} games")
 
     return enriched
+
+
+# ── Spec Feature Columns ────────────────────────────────────────────────
+
+SPEC_FEATURES = [
+    "starter_fip_diff",
+    "starter_whip_diff",
+    "starter_kbb_diff",
+    "starter_recent_ip_diff",
+    "team_wrc_plus_diff",
+    "team_obp_diff",
+    "pyth_wp_diff",
+    "bullpen_fip_diff",
+    "bullpen_workload_3d_diff",
+    "wp_last3_diff",
+    "wp_last6_diff",
+    "wp_last10_diff",
+    "elo_diff",
+    "home_advantage",
+]
+
+
+def build_spec_features(
+    games: pd.DataFrame | None = None,
+    *,
+    enriched: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build the 14-feature matrix from mlb_feature_spec.md.
+
+    Either pass raw `games` (will call build_all_features internally)
+    or pass pre-enriched `enriched` DataFrame from build_all_features().
+
+    Returns DataFrame with:
+    - 14 spec feature columns (SPEC_FEATURES)
+    - regime label: 'M2' (fav won 2+), 'M3' (fav won 1), 'M4' (fav lost)
+    - target: closing_decimal_odds_favorite
+    - metadata: season, date, home_team, away_team, home_win, etc.
+    """
+    from pathlib import Path
+
+    from src.data_loader import (
+        PROCESSED_DIR,
+        _map_team_code_to_retrosheet,
+        add_derived_odds,
+        american_to_decimal,
+        apply_data_filters,
+        load_all_seasons,
+    )
+    from src.elo import compute_elo
+
+    # Step 0: Load and enrich games if needed
+    if enriched is None:
+        if games is None:
+            logger.info("Loading all seasons...")
+            games = load_all_seasons()
+            games = apply_data_filters(games)
+            games = add_derived_odds(games)
+        logger.info("Building all features (team + pitcher + Retrosheet)...")
+        enriched = build_all_features(games)
+
+    df = enriched.copy()
+
+    # ── Starter pitcher diffs (from Retrosheet entering features) ────────
+    # These columns are merged by build_all_features() with home_sp_ / away_sp_ prefixes
+    for col, home_col, away_col in [
+        ("starter_fip_diff", "home_sp_fip_short", "away_sp_fip_short"),
+        ("starter_whip_diff", "home_sp_whip_short", "away_sp_whip_short"),
+        ("starter_kbb_diff", "home_sp_kbb_short", "away_sp_kbb_short"),
+        ("starter_recent_ip_diff", "home_sp_ip_per_start_short", "away_sp_ip_per_start_short"),
+    ]:
+        if home_col in df.columns and away_col in df.columns:
+            df[col] = df[home_col] - df[away_col]
+        else:
+            logger.warning(f"Missing columns for {col}: {home_col} / {away_col}")
+            df[col] = np.nan
+
+    # ── FanGraphs team offense (wRC+, OBP) with Y-1 anti-leakage ────────
+    fg_path = PROCESSED_DIR / "fangraphs" / "team_batting_season.parquet"
+    if fg_path.exists():
+        fg = pd.read_parquet(fg_path)
+        # Anti-leakage: season Y stats → used for season Y+1 games
+        fg = fg.rename(columns={"season": "stat_season"})
+        fg["season"] = fg["stat_season"] + 1
+        # Map team codes to match our games
+        for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+            df[f"_fg_{side}_team"] = df.apply(
+                lambda r: _map_team_code_to_retrosheet(r[team_col], r["season"]), axis=1
+            )
+            side_fg = fg.rename(columns={
+                "team": f"_fg_{side}_team",
+                "wrc_plus": f"wrc_plus_{side}",
+                "obp": f"obp_{side}",
+            })[["season", f"_fg_{side}_team", f"wrc_plus_{side}", f"obp_{side}"]]
+            df = df.merge(side_fg, on=["season", f"_fg_{side}_team"], how="left")
+            df = df.drop(columns=[f"_fg_{side}_team"])
+
+        df["team_wrc_plus_diff"] = df["wrc_plus_home"] - df["wrc_plus_away"]
+        df["team_obp_diff"] = df["obp_home"] - df["obp_away"]
+    else:
+        logger.warning(f"FanGraphs data not found at {fg_path}. Using NaN for wRC+/OBP diffs.")
+        df["team_wrc_plus_diff"] = np.nan
+        df["team_obp_diff"] = np.nan
+
+    # ── Bullpen diffs ────────────────────────────────────────────────────
+    bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
+    if bp_path.exists():
+        bp = pd.read_parquet(bp_path)
+        bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
+        df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+
+        for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+            df[f"_bp_{side}_team"] = df.apply(
+                lambda r: _map_team_code_to_retrosheet(r[team_col], r["season"]), axis=1
+            )
+            bp_cols_to_merge = ["team", "date"]
+            bp_rename = {"team": f"_bp_{side}_team"}
+            for bc in ["bp_fip_short", "bp_ip_3d"]:
+                if bc in bp.columns:
+                    bp_cols_to_merge.append(bc)
+                    bp_rename[bc] = f"{bc}_{side}"
+            side_bp = bp[bp_cols_to_merge].rename(columns=bp_rename)
+            # Safety: ensure unique (team, date) keys to prevent fan-out
+            side_bp = side_bp.drop_duplicates(
+                subset=[f"_bp_{side}_team", "date"], keep="first"
+            )
+            df = df.merge(side_bp, on=[f"_bp_{side}_team", "date"], how="left")
+            df = df.drop(columns=[f"_bp_{side}_team"])
+
+        if "bp_fip_short_home" in df.columns:
+            df["bullpen_fip_diff"] = df["bp_fip_short_home"] - df["bp_fip_short_away"]
+        else:
+            df["bullpen_fip_diff"] = np.nan
+
+        if "bp_ip_3d_home" in df.columns:
+            df["bullpen_workload_3d_diff"] = df["bp_ip_3d_home"] - df["bp_ip_3d_away"]
+        else:
+            df["bullpen_workload_3d_diff"] = np.nan
+    else:
+        logger.warning(f"Bullpen features not found at {bp_path}. Using NaN.")
+        df["bullpen_fip_diff"] = np.nan
+        df["bullpen_workload_3d_diff"] = np.nan
+
+    # ── Elo ──────────────────────────────────────────────────────────────
+    logger.info("Computing Elo ratings...")
+    elo_df = compute_elo(df)
+    df = df.merge(
+        elo_df[["season", "date", "home_team", "away_team", "elo_diff"]],
+        on=["season", "date", "home_team", "away_team"],
+        how="left",
+    )
+
+    # ── Home advantage (constant) ────────────────────────────────────────
+    df["home_advantage"] = 1
+
+    # ── Existing diffs (already computed by build_all_features) ──────────
+    # pyth_wp_diff, wp_last3_diff, wp_last6_diff, wp_last10_diff — already present
+
+    # ── Integrity check: no duplicate games ──────────────────────────────
+    dup_count = df.duplicated(subset=["season", "date", "home_team", "away_team"]).sum()
+    if dup_count > 0:
+        logger.error(f"Duplicate games detected: {dup_count} rows. Deduplicating as safety net.")
+        df = df.drop_duplicates(
+            subset=["season", "date", "home_team", "away_team"], keep="first"
+        )
+
+    # ── Spec filters ─────────────────────────────────────────────────────
+    n_before = len(df)
+    mask = pd.Series(True, index=df.index)
+
+    # Colorado
+    if "involves_col" in df.columns:
+        mask &= ~df["involves_col"]
+    # April (early season)
+    if "month" in df.columns:
+        mask &= df["month"] != 4
+    # September: kept in dataset — away underdog edge is strongest in Sep
+    # (WR 50%, ROI +22%, MaxL 4). Tanking home teams boost dog value.
+    # Extra innings
+    if "is_extra_innings" in df.columns:
+        mask &= ~df["is_extra_innings"]
+    # Extreme lines (>200 or pick'em zone)
+    if "home_close_ml" in df.columns:
+        home_abs = df["home_close_ml"].abs()
+        away_abs = df["away_close_ml"].abs()
+        fav_ml = pd.concat([home_abs, away_abs], axis=1).max(axis=1)
+        mask &= fav_ml > 105  # not pick'em
+        mask &= fav_ml <= 200  # not extreme
+
+    df = df[mask].copy()
+    logger.info(f"Spec filters: {n_before} -> {len(df)} games")
+
+    # ── Regime labels (by outcome) ───────────────────────────────────────
+    # Determine which team is the favorite (lower implied odds = higher probability)
+    df["fav_is_home"] = df["home_implied_prob"] > df["away_implied_prob"]
+    df["fav_final"] = np.where(df["fav_is_home"], df["home_final"], df["away_final"])
+    df["dog_final"] = np.where(df["fav_is_home"], df["away_final"], df["home_final"])
+    df["fav_margin"] = df["fav_final"] - df["dog_final"]
+
+    df["regime"] = np.where(
+        df["fav_margin"] >= 2, "M2",
+        np.where(df["fav_margin"] == 1, "M3", "M4"),
+    )
+
+    # ── Target: closing decimal odds of favorite ─────────────────────────
+    df["closing_decimal_odds_favorite"] = np.where(
+        df["fav_is_home"],
+        df["home_decimal_odds"],
+        df["away_decimal_odds"],
+    )
+
+    # ── Final feature check ──────────────────────────────────────────────
+    available = [f for f in SPEC_FEATURES if f in df.columns and df[f].notna().any()]
+    missing = [f for f in SPEC_FEATURES if f not in available]
+    if missing:
+        logger.warning(f"Spec features with no data: {missing}")
+    logger.info(f"Spec features available: {len(available)}/{len(SPEC_FEATURES)}")
+
+    return df

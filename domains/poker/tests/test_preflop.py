@@ -126,6 +126,52 @@ class TestPushFold:
         assert action_btn.type == ActionType.ALL_IN
 
 
+class TestPreflopSizing:
+    """Test position-aware preflop sizing."""
+
+    def test_3bet_oop_larger(self):
+        """SB/BB should 3-bet at 3.8x (larger OOP)."""
+        state = _make_state(
+            ["Ah", "Kh"], position=Position.BB,
+            to_call=50,  # facing a raise (2.5x BB=20)
+        )
+        action = get_preflop_action(state)
+        if action.type == ActionType.RAISE and action.amount:
+            # 3-bet from BB: 50 * 3.8 = 190
+            assert action.amount >= 50 * 3.5, \
+                f"BB 3-bet should be ~3.8x, got {action.amount / 50:.1f}x"
+
+    def test_3bet_ip_smaller(self):
+        """BTN/CO should 3-bet at 2.8x (smaller IP)."""
+        state = _make_state(
+            ["Ah", "Kh"], position=Position.BTN,
+            to_call=50,  # facing a raise
+        )
+        action = get_preflop_action(state)
+        if action.type == ActionType.RAISE and action.amount:
+            # 3-bet from BTN: 50 * 2.8 = 140
+            assert action.amount <= 50 * 3.3, \
+                f"BTN 3-bet should be ~2.8x, got {action.amount / 50:.1f}x"
+
+    def test_open_raise_with_limpers(self):
+        """Open raise should be +1BB per limper."""
+        from src.table.state import PlayerState
+        state = _make_state(["Ah", "Kh"], position=Position.CO)
+        # Add 2 limpers (players who put in 1BB)
+        state.players = [
+            PlayerState(name="SB", stack=2000, bet=10),   # SB
+            PlayerState(name="BB", stack=2000, bet=20),   # BB
+            PlayerState(name="Limper1", stack=2000, bet=20),  # limper
+            PlayerState(name="Limper2", stack=2000, bet=20),  # limper
+            PlayerState(name="Hero", stack=2000, bet=0),
+        ]
+        action = get_preflop_action(state)
+        if action.type == ActionType.RAISE and action.amount:
+            # Base 2.5x + 2 limpers = 4.5x BB = 90
+            assert action.amount >= 20 * 4, \
+                f"With 2 limpers, raise should be ~4.5x BB, got {action.amount:.0f}"
+
+
 class TestThreeBetDefense:
     """Test 3-bet defense logic."""
 

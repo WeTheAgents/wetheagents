@@ -5,8 +5,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src.strategy.board import board_wetness
 from src.strategy.postflop import (
-    board_wetness,
     calculate_equity,
     call_ev,
     get_postflop_action,
@@ -315,6 +315,15 @@ class TestWAWB:
     def test_wawb_not_with_strong_hand(self):
         """Strong hand is not WA/WB (should value bet)."""
         assert is_wawb(0.75, 0.10, 2) is False
+
+    def test_wawb_not_with_good_hand(self):
+        """67% equity (TPTK/overpair) should value-bet, not pot-control."""
+        assert is_wawb(0.67, 0.10, 2) is False
+
+    def test_wawb_boundary_at_62(self):
+        """WA/WB upper bound is 0.62 — 0.62 is in, 0.63 is out."""
+        assert is_wawb(0.62, 0.10, 2) is True
+        assert is_wawb(0.63, 0.10, 2) is False
 
     def test_wawb_check_behind_ip_dry_board(self):
         """Pocket pair under board on dry board IP: check behind (pot control).

@@ -164,9 +164,11 @@ def pair_games(df: pd.DataFrame) -> pd.DataFrame:
     games["away_open_ml"] = visitors["open_ml"].values
     games["away_close_ml"] = visitors["close_ml"].values
 
-    # Run line (home perspective)
+    # Run line (both perspectives)
     games["home_run_line"] = homes["run_line"].values
     games["home_run_line_odds"] = homes["run_line_odds"].values
+    games["away_run_line"] = visitors["run_line"].values
+    games["away_run_line_odds"] = visitors["run_line_odds"].values
 
     # Over/Under
     games["open_ou"] = homes["open_ou"].values
