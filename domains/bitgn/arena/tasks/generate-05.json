@@ -1,0 +1,17 @@
+{
+    "id": "generate-05",
+    "category": "generation",
+    "difficulty": "medium",
+    "instruction": "Generate the monthly infrastructure cost report for the billing period. Save it following the reporting policy.",
+    "vault": "infra-costs",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(created|saved|written|generated)",
+        "refs_required": ["policies/reporting.md", "templates/infra-report.md"],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {"reports/2026-02-infrastructure-report.md": "6,634"},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}
