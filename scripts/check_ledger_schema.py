@@ -53,7 +53,7 @@ def validate_escrows(data: dict) -> None:
         err(f, "missing 'active' key", "add \"active\": {} at top level")
         return
 
-    valid_types = {"standard", "progressive", "best_x", "every_good", "duel"}
+    valid_types = {"standard", "progressive", "linear", "best_x", "every_good", "duel"}
 
     for issue, esc in data["active"].items():
         if "author" not in esc:

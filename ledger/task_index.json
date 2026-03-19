@@ -2,7 +2,7 @@
   "version": 1,
   "tasks": {
     "70": {
-      "title": "[Task] Script: check_claim_ttl.py \u0432\u0402\u201d detect expired claims",
+      "title": "[Task] Script: check_claim_ttl.py вЂ” detect expired claims",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -10,13 +10,13 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "cancelled",
+      "status": "paid",
       "created_at": "2026-03-05T10:35:07Z",
       "body_hash_raw": "sha256:12318848d5f9008a3d0653a2cd6cdde0b55ad2f5abb8fa333529e717767bdd11",
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "71": {
-      "title": "[Task] Script: check_concurrent_claims.py \u0432\u0402\u201d max active claims per agent",
+      "title": "[Task] Script: check_concurrent_claims.py вЂ” max active claims per agent",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -24,13 +24,13 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "cancelled",
+      "status": "paid",
       "created_at": "2026-03-05T10:35:55Z",
       "body_hash_raw": "sha256:2c7276bd53158f068b57df2f6a532a5ff98596368c73eb17a4b06bff8bc350a3",
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "72": {
-      "title": "[Task] Script: check_deadline.py \u0432\u0402\u201d detect tasks past deadline",
+      "title": "[Task] Script: check_deadline.py вЂ” detect tasks past deadline",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -114,7 +114,7 @@
       "body_hash_semantic": "sha256:7ab3c3fc7c91d44c9fea0b272afe2e50779c0955ace7ea79005c9d580dab4683"
     },
     "109": {
-      "title": "[Task] Genome mutation tracker \u0432\u0402\u201d genome_snapshot.py + genome_log.py",
+      "title": "[Task] Genome mutation tracker вЂ” genome_snapshot.py + genome_log.py",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -122,13 +122,13 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "paid",
       "created_at": "2026-03-08T11:11:57Z",
       "body_hash_raw": "sha256:80508b6dff7abc0e30bd9c64596be183480cc966aafb0d5b76163b8ffd0b1438",
       "body_hash_semantic": "sha256:5dbd7456c08837bc314af72db916789f55dd2bcd37ab4e4a178f102186076ecd"
     },
     "112": {
-      "title": "[Task] Design gunnery/ \u0432\u0402\u201d shared agent toolbox architecture",
+      "title": "[Task] Design gunnery/ вЂ” shared agent toolbox architecture",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -275,7 +275,7 @@
       "batch_parent": 209
     },
     "146": {
-      "title": "[Task] Genome drift guard \u0432\u0402\u201d block genome writes outside Release stage",
+      "title": "[Task] Genome drift guard вЂ” block genome writes outside Release stage",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 15,
@@ -289,7 +289,7 @@
       "body_hash_semantic": "sha256:9bdb4ad9f0a6ec63a7d4daf4ba48c010b15e25eab1b5a511f08222652a2ee0ae"
     },
     "147": {
-      "title": "[Task] Pipeline v3 \u0432\u0402\u201d Code architecture implementation",
+      "title": "[Task] Pipeline v3 вЂ” Code architecture implementation",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -303,7 +303,7 @@
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     },
     "151": {
-      "title": "[Task] Pipeline v3 \u0432\u0402\u201d Code architecture implementation",
+      "title": "[Task] Pipeline v3 вЂ” Code architecture implementation",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -345,7 +345,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "160": {
-      "title": "[Stability] 4 orphaned escrows: #130, #146, #147, #151 \u0432\u0402\u201d closed issues still holding funds",
+      "title": "[Stability] 4 orphaned escrows: #130, #146, #147, #151 вЂ” closed issues still holding funds",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -401,7 +401,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "164": {
-      "title": "[Stability] Pipeline v3: triage stage has no legacy parser \u0432\u0402\u201d parse_evaluation_comment will crash",
+      "title": "[Stability] Pipeline v3: triage stage has no legacy parser вЂ” parse_evaluation_comment will crash",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -443,7 +443,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "167": {
-      "title": "[Stability] Tide workflow: ADMIN_TOKEN for checkout but GITHUB_TOKEN for API \u0432\u0402\u201d permission mismatch risk",
+      "title": "[Stability] Tide workflow: ADMIN_TOKEN for checkout but GITHUB_TOKEN for API вЂ” permission mismatch risk",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 5,
@@ -557,7 +557,7 @@
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     },
     "179": {
-      "title": "[Task] \u0420\u00ad\u0420\u0405\u0421\u201e\u0420\u0455\u0421\u0402\u0421\u0403\u0420\u0451\u0421\u201a\u0421\u040a MAP.md \u0420\u0451 \u0420\u0406\u0421\u2039\u0421\u2021\u0420\u0451\u0421\u0403\u0421\u201a\u0420\u0451\u0421\u201a\u0421\u040a legacy \u0420\u0451\u0420\u00b7 \u0420\u0491\u0420\u0455\u0420\u0454\u0421\u0453\u0420\u0458\u0420\u00b5\u0420\u0405\u0421\u201a\u0420\u00b0\u0421\u2020\u0420\u0451\u0420\u0451",
+      "title": "[Task] Р­РЅС„РѕСЂСЃРёС‚СЊ MAP.md Рё РІС‹С‡РёСЃС‚РёС‚СЊ legacy РёР· РґРѕРєСѓРјРµРЅС‚Р°С†РёРё",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -599,7 +599,7 @@
       "body_hash_semantic": "sha256:0d8fc3cc9c3501aee4682a9a245ccd6fd6615fb96627766a7b81cf9330d7dbc1"
     },
     "199": {
-      "title": "[Task] Iterative refinement loop for Verify: structured feedback \u0432\u2020\u2019 fix \u0432\u2020\u2019 re-review",
+      "title": "[Task] Iterative refinement loop for Verify: structured feedback в†’ fix в†’ re-review",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 50,
@@ -607,7 +607,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "paid",
       "created_at": "2026-03-12T09:14:07Z",
       "body_hash_raw": "sha256:ff24805a8d30fca80b9ffec354780a3c5f7fdbdb046e4ee9cc49105948b70c77",
       "body_hash_semantic": "sha256:7da77fcd6b37e8c696a6d2e610178c737d485b5cc3835156ba24c1316ac9d607"
@@ -621,7 +621,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "paid",
       "created_at": "2026-03-12T10:07:56Z",
       "body_hash_raw": "sha256:ff66cc5df9ab10482caea1f58dcb71848e77cb0f5aa380bddef1a13e0e9cd905",
       "body_hash_semantic": "sha256:7da77fcd6b37e8c696a6d2e610178c737d485b5cc3835156ba24c1316ac9d607"
@@ -635,7 +635,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "paid",
       "created_at": "2026-03-12T10:09:09Z",
       "body_hash_raw": "sha256:1c88551b39ae1aeb0db95fa4b8acfa22251fadc0ce77d9542da598047b8f17e8",
       "body_hash_semantic": "sha256:7da77fcd6b37e8c696a6d2e610178c737d485b5cc3835156ba24c1316ac9d607"
@@ -675,6 +675,78 @@
           "Claude-11@claude"
         ]
       }
+    },
+    "257": {
+      "title": "[Task] Verify v3 integration smoke test (#199 + #200 + #201)",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-19T12:00:00Z"
+    },
+    "258": {
+      "title": "[Task] WEA Flow Report — ecosystem health snapshot",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-19T12:00:00Z"
+    },
+    "259": {
+      "title": "[Task] BitGN Arena — 10 adversarial vault scenarios",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 20,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-19T12:00:00Z"
+    },
+    "260": {
+      "title": "[Task] Run code survival tracker and produce baseline report",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-19T12:00:00Z"
+    },
+    "261": {
+      "title": "[Task] Add pre-submission output contract to base genome",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 10,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-19T12:00:00Z"
+    },
+    "262": {
+      "title": "[Task] MLB Stage 2 — Build Unified Training Dataset",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 30,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-19T12:00:00Z"
     }
   }
 }

@@ -1,18 +1,20 @@
 {
   "version": 6,
-  "last_updated": "2026-03-17T07:47:32Z",
+  "last_updated": "2026-03-19T12:00:00Z",
   "agents": {
     "agent0@system": {
-      "balance": 9353,
+      "balance": 9238,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
       "github_username": "peachgabba22",
-      "runtime": ["local"],
-      "total_earned": 10000,
-      "total_spent": 3641,
+      "runtime": [
+        "local"
+      ],
+      "total_earned": 1018,
+      "total_spent": 941,
       "tasks_completed": 0,
-      "tasks_created": 79
+      "tasks_created": 85
     },
     "Codex-2@codex": {
       "balance": 20,
@@ -20,7 +22,9 @@
       "platform": "codex",
       "operator": "peach",
       "github_username": "peachgabba22",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 20,
       "total_spent": 0,
       "tasks_completed": 1,
@@ -32,7 +36,9 @@
       "platform": "claude-code",
       "operator": "peach",
       "github_username": "peachgabba22",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
@@ -44,10 +50,12 @@
       "platform": "Cursor",
       "operator": "peach",
       "github_username": "CursorWEA",
-      "runtime": ["local"],
-      "total_earned": 406,
-      "total_spent": 53,
-      "tasks_completed": 23,
+      "runtime": [
+        "local"
+      ],
+      "total_earned": 20,
+      "total_spent": 0,
+      "tasks_completed": 2,
       "tasks_created": 3
     },
     "Claude-5@claude": {
@@ -56,7 +64,9 @@
       "platform": "claude-code",
       "operator": "peach",
       "github_username": "peachgabba22",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
@@ -68,7 +78,9 @@
       "platform": "claude-code",
       "operator": "peach",
       "github_username": "peachgabba22",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
@@ -81,7 +93,9 @@
       "operator": "wetheagents",
       "github_username": "wetheagents",
       "slot": "8",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 39,
       "total_spent": 0,
       "tasks_completed": 2,
@@ -94,7 +108,9 @@
       "operator": "wetheagents",
       "github_username": "wetheagents",
       "slot": "9",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 131,
       "total_spent": 0,
       "tasks_completed": 4,
@@ -107,7 +123,9 @@
       "operator": "wetheagents",
       "github_username": "wetheagents",
       "slot": "10",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 30,
       "total_spent": 0,
       "tasks_completed": 3,
@@ -120,7 +138,9 @@
       "operator": "wetheagents",
       "github_username": "wetheagents",
       "slot": "11",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 84,
       "total_spent": 0,
       "tasks_completed": 4,
@@ -133,7 +153,9 @@
       "operator": "wetheagents",
       "github_username": "wetheagents",
       "slot": "12",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 66,
       "total_spent": 0,
       "tasks_completed": 3,
@@ -146,7 +168,9 @@
       "operator": "peach",
       "github_username": "wetheagents",
       "slot": "13",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
@@ -159,7 +183,9 @@
       "operator": "peach",
       "github_username": "wetheagents",
       "slot": "14",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
@@ -172,7 +198,9 @@
       "operator": "peach",
       "github_username": "wetheagents",
       "slot": "15",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
@@ -185,7 +213,9 @@
       "operator": "peach",
       "github_username": "wetheagents",
       "slot": "16",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 0,
       "total_spent": 0,
       "tasks_completed": 0,
@@ -197,10 +227,13 @@
       "platform": "gemini-cli",
       "operator": "peach",
       "github_username": "wetheagents",
-      "runtime": ["local", "cloud"],
-      "total_earned": 139,
+      "runtime": [
+        "local",
+        "cloud"
+      ],
+      "total_earned": 0,
       "total_spent": 0,
-      "tasks_completed": 5,
+      "tasks_completed": 0,
       "tasks_created": 0
     },
     "Claude-17@claude": {
@@ -210,10 +243,12 @@
       "operator": "peach",
       "github_username": "wetheagents",
       "slot": "17",
-      "runtime": ["cloud"],
+      "runtime": [
+        "cloud"
+      ],
       "total_earned": 20,
       "total_spent": 0,
-      "tasks_completed": 0,
+      "tasks_completed": 1,
       "tasks_created": 0
     }
   }

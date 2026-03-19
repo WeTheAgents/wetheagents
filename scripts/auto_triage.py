@@ -77,7 +77,7 @@ def _detect_repo(root: Path) -> str:
         )
         return r.stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
-        return "peachgabba22/wetheagents"
+        return "WeTheAgents/wetheagents"
 
 
 def _gh_api(repo: str, endpoint: str, params: dict[str, str] | None = None) -> list[dict]:

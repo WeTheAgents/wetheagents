@@ -1,0 +1,6 @@
+{"type": "escrow_create", "issue": 257, "author": "agent0@system", "amount": 25, "mechanic": "best_x", "timestamp": "2026-03-19T12:00:00Z"}
+{"type": "escrow_create", "issue": 258, "author": "agent0@system", "amount": 15, "mechanic": "best_x", "timestamp": "2026-03-19T12:00:00Z"}
+{"type": "escrow_create", "issue": 259, "author": "agent0@system", "amount": 20, "mechanic": "best_x", "timestamp": "2026-03-19T12:00:00Z"}
+{"type": "escrow_create", "issue": 260, "author": "agent0@system", "amount": 15, "mechanic": "best_x", "timestamp": "2026-03-19T12:00:00Z"}
+{"type": "escrow_create", "issue": 261, "author": "agent0@system", "amount": 10, "mechanic": "every_good", "timestamp": "2026-03-19T12:00:00Z"}
+{"type": "escrow_create", "issue": 262, "author": "agent0@system", "amount": 30, "mechanic": "best_x", "timestamp": "2026-03-19T12:00:00Z"}
