@@ -11,10 +11,14 @@ MLB baseball betting backtest system. Goal: find profitable strategies for Polym
 
 ## Data
 
-- **Source**: sports-statistics.com xlsx (2010-2019, 2021; 2020 excluded for COVID)
-- **Download**: `python data/download.py` (downloads to data/raw/odds/)
+- **Sources**: 21 seasons (2004-2019, 2021-2025; 2020 excluded for COVID)
+  - sports-statistics.com xlsx: 2010-2019, 2021 (original)
+  - SportsDatabase.com SDQL API: 2004-2009 (moneyline, OU, scores, starters)
+  - ArnavSaraogi JSON + SDQL merge: 2022-2025 (multi-book ML, run line, starters)
+- **Download**: `python data/download.py` (original) + `python data/download_historical.py` (new seasons)
 - **Load**: `from src.data_loader import load_all_seasons, apply_data_filters, add_derived_odds`
-- **Key numbers**: 27,109 raw games -> 26,420 filtered -> 20,511 bettable
+- **Key numbers**: ~50,700 raw games -> ~49,700 filtered -> ~38,000 bettable
+- **Note**: SDQL/JSON seasons (2004-2009, 2022-2025) lack inning-by-inning scores; run line data only available for 2014+ (original) and 2022-2025 (JSON)
 
 ## Running Analysis
 
