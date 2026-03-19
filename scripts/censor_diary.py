@@ -77,7 +77,7 @@ def _redact_length(original: str, seed: str) -> int:
     Uses a deterministic seed so the same word in the same file always gets
     the same mask length (stable diffs), but varies across files.
     """
-    h = int(hashlib.md5(seed.encode()).hexdigest(), 16)
+    h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
     delta = h % 3  # 0, +1, +2
     return len(original) + delta
 

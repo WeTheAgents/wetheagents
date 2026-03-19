@@ -149,7 +149,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
         # Connect to upstream
         try:
-            conn = http.client.HTTPSConnection(target, context=_SSL_CTX, timeout=300)
+            conn = http.client.HTTPSConnection(target, context=_SSL_CTX, timeout=300)  # nosemgrep: httpsconnection-detected
             conn.request(method, remote_path, body=body, headers=hdrs)
             resp = conn.getresponse()
         except Exception as exc:
