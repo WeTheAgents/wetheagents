@@ -28,7 +28,7 @@ except ModuleNotFoundError:  # pragma: no cover - script execution fallback
     from economy_constants import SPLIT_TABLE
     from tide_ops import fib, idem_key_hash
 
-VALID_MECHANICS = {"standard", "progressive", "every_good", "ranking", "duel"}
+VALID_MECHANICS = {"standard", "progressive", "linear", "every_good", "ranking", "duel"}
 
 
 # ---------------------------------------------------------------------------
