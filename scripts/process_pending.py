@@ -101,7 +101,10 @@ def build_idem_key(mechanic: str, issue: str, agent: str, entry: dict) -> str:
     if mechanic == "duel":
         role = entry.get("role", "unknown")
         return f"payment|{issue}|{agent}|duel|{role}"
-    # standard, progressive, every_good
+    if mechanic in {"progressive", "linear"}:
+        slot = entry.get("_slot", 0)
+        return f"payment|{issue}|{agent}|slot{slot}"
+    # standard, every_good
     return f"payment|{issue}|{agent}"
 
 
@@ -237,12 +240,25 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
                 errors.append(f"Entry {i}: duel requires role 'winner' or 'runner-up'")
                 continue
 
+        # --- Pre-compute slot for progressive/linear idem key ---
+        if mechanic in {"progressive", "linear"}:
+            esc = escrows.get("active", {}).get(issue, {})
+            entry["_slot"] = simulated_paid_counts.get(issue, esc.get("paid_count", 0)) + 1
+
         # --- Check idem key (ledger + current batch) ---
         raw_key = build_idem_key(mechanic, issue, agent, entry)
         key_hash = idem_key_hash(raw_key)
-        if key_hash in idem_keys.get("keys", {}) or key_hash in seen_keys:
+        ledger_keys = idem_keys.get("keys", {})
+        if key_hash in ledger_keys or raw_key in ledger_keys or key_hash in seen_keys:
             errors.append(f"Entry {i}: idem key already exists -- {raw_key}")
             continue
+        # Backward compat: old process_pending stored progressive/linear
+        # without slot suffix — check legacy format too
+        if mechanic in {"progressive", "linear"}:
+            legacy = f"payment|{issue}|{agent}"
+            if legacy in ledger_keys or idem_key_hash(legacy) in ledger_keys:
+                errors.append(f"Entry {i}: idem key already exists (legacy) -- {legacy}")
+                continue
         seen_keys.add(key_hash)
 
         # --- Check escrow exists ---
@@ -451,7 +467,7 @@ def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
         escrow = escrows["active"][issue]
         escrow["amount"] -= amount
 
-        if mechanic == "progressive":
+        if mechanic in {"progressive", "linear"}:
             escrow["paid_count"] += 1
             if escrow["paid_count"] >= escrow["slots"]:
                 del escrows["active"][issue]

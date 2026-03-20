@@ -28,7 +28,7 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
 from duel_randomizer import assign_roles  # noqa: E402
-from tide_ops import compute_ranking_payouts, fib, linear_budget, progressive_budget  # noqa: E402
+from tide_ops import compute_ranking_payouts, fib, idem_key_hash, linear_budget, progressive_budget  # noqa: E402
 from tide_parser import TideEvent, parse_comment, parse_task_issue  # noqa: E402
 
 
@@ -272,10 +272,12 @@ class TideProcessor:
     # -- helpers --
 
     def _has_idem(self, key: str) -> bool:
-        return key in self.idem_keys.get("keys", {})
+        keys = self.idem_keys.get("keys", {})
+        return key in keys or idem_key_hash(key) in keys
 
-    def _set_idem(self, key: str) -> None:
-        self.idem_keys.setdefault("keys", {})[key] = self.started_at
+    def _set_idem(self, key: str, *, use_hash: bool = False) -> None:
+        store_key = idem_key_hash(key) if use_hash else key
+        self.idem_keys.setdefault("keys", {})[store_key] = self.started_at
 
     def _agent_exists(self, agent: str) -> bool:
         return agent in self.balances.get("agents", {})
@@ -657,7 +659,13 @@ class TideProcessor:
             idem = f"payment|{ev.issue}|{agent}"
         if self._has_idem(idem):
             return False
-        self._set_idem(idem)
+        # Backward compat: old process_pending stored progressive/linear
+        # without slot suffix — check legacy format too
+        if etype in {"progressive", "linear"}:
+            legacy = f"payment|{ev.issue}|{agent}"
+            if self._has_idem(legacy):
+                return False
+        self._set_idem(idem, use_hash=True)
 
         # Pay
         self._pay(agent, reward, ev.issue, subtype=etype, event_at=ev.created_at)
@@ -792,7 +800,7 @@ class TideProcessor:
 
         # Pay all
         for rank, (agent, payout) in enumerate(zip(agents, payouts), 1):
-            self._set_idem(f"payment|{ev.issue}|{agent}|ranking|{rank}")
+            self._set_idem(f"payment|{ev.issue}|{agent}|ranking|{rank}", use_hash=True)
             self._pay(agent, payout, ev.issue, subtype="ranking",
                       extra={"rank": rank}, event_at=ev.created_at)
             self._track_completed(agent, ev.issue)
@@ -905,8 +913,8 @@ class TideProcessor:
         if self._has_idem(w_idem) or self._has_idem(l_idem):
             return False
 
-        self._set_idem(w_idem)
-        self._set_idem(l_idem)
+        self._set_idem(w_idem, use_hash=True)
+        self._set_idem(l_idem, use_hash=True)
         self._pay(winner, winner_share, ev.issue, subtype="duel",
                   extra={"duel_role": "winner"}, event_at=ev.created_at)
         self._pay(loser, loser_share, ev.issue, subtype="duel",
