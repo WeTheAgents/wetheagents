@@ -180,6 +180,153 @@ def test_process_progressive_pod_fibonacci_slots(temp_repo: Path) -> None:
     assert balances["agents"]["carol@test"]["balance"] == 2
 
 
+def test_process_linear_pod_increments_paid_count(temp_repo: Path) -> None:
+    """Linear mechanic must increment paid_count so subsequent slots compute correctly."""
+    balances_path = temp_repo / "ledger" / "balances.json"
+    escrows_path = temp_repo / "ledger" / "escrows.json"
+    pending_path = temp_repo / "ledger" / "pending.json"
+
+    # 3-slot linear: budget = 1+2+3 = 6
+    escrows = _read_json(escrows_path)
+    escrows["active"]["300"] = {
+        "author": "author@local",
+        "amount": 6,
+        "type": "linear",
+        "slots": 3,
+        "paid_count": 0,
+        "created_at": "2026-03-04T10:00:00Z",
+    }
+    _write_json(escrows_path, escrows)
+
+    _write_json(
+        pending_path,
+        {
+            "version": 1,
+            "queue": [
+                {
+                    "type": "payment",
+                    "mechanic": "linear",
+                    "issue": 300,
+                    "agent": "alice@test",
+                    "amount": 1,
+                    "proposed_by": "author@local",
+                    "proposed_at": "2026-03-04T10:01:00Z",
+                    "event_at": "2026-03-04T10:01:00Z",
+                },
+                {
+                    "type": "payment",
+                    "mechanic": "linear",
+                    "issue": 300,
+                    "agent": "bob@test",
+                    "amount": 2,
+                    "proposed_by": "author@local",
+                    "proposed_at": "2026-03-04T10:02:00Z",
+                    "event_at": "2026-03-04T10:02:00Z",
+                },
+                {
+                    "type": "payment",
+                    "mechanic": "linear",
+                    "issue": 300,
+                    "agent": "carol@test",
+                    "amount": 3,
+                    "proposed_by": "author@local",
+                    "proposed_at": "2026-03-04T10:03:00Z",
+                    "event_at": "2026-03-04T10:03:00Z",
+                },
+            ],
+        },
+    )
+
+    rc = process(temp_repo, dry_run=False)
+    assert rc == 0
+
+    balances = _read_json(balances_path)
+    escrows = _read_json(escrows_path)
+    # All 3 slots filled → escrow deleted
+    assert "300" not in escrows["active"]
+    # Correct payouts: slot1=1, slot2=2, slot3=3
+    assert balances["agents"]["alice@test"]["balance"] == 1
+    assert balances["agents"]["bob@test"]["balance"] == 2
+    assert balances["agents"]["carol@test"]["balance"] == 3
+    # Supply invariant
+    assert _supply_total(balances, escrows) == _supply_total(
+        _read_json(temp_repo / "ledger" / "balances.json"),
+        _read_json(temp_repo / "ledger" / "escrows.json"),
+    )
+
+
+def test_process_linear_two_batch_paid_count_persists(temp_repo: Path) -> None:
+    """After first batch fills slot 1, second batch must see paid_count=1 and fill slot 2."""
+    escrows_path = temp_repo / "ledger" / "escrows.json"
+    pending_path = temp_repo / "ledger" / "pending.json"
+
+    # 3-slot linear: budget = 6
+    escrows = _read_json(escrows_path)
+    escrows["active"]["301"] = {
+        "author": "author@local",
+        "amount": 6,
+        "type": "linear",
+        "slots": 3,
+        "paid_count": 0,
+        "created_at": "2026-03-04T10:00:00Z",
+    }
+    _write_json(escrows_path, escrows)
+
+    # Batch 1: slot 1 (amount=1)
+    _write_json(
+        pending_path,
+        {
+            "version": 1,
+            "queue": [
+                {
+                    "type": "payment",
+                    "mechanic": "linear",
+                    "issue": 301,
+                    "agent": "alice@test",
+                    "amount": 1,
+                    "proposed_by": "author@local",
+                    "proposed_at": "2026-03-04T10:01:00Z",
+                    "event_at": "2026-03-04T10:01:00Z",
+                },
+            ],
+        },
+    )
+
+    rc = process(temp_repo, dry_run=False)
+    assert rc == 0
+
+    escrows = _read_json(escrows_path)
+    assert escrows["active"]["301"]["paid_count"] == 1
+    assert escrows["active"]["301"]["amount"] == 5  # 6-1
+
+    # Batch 2: slot 2 (amount=2)
+    _write_json(
+        pending_path,
+        {
+            "version": 1,
+            "queue": [
+                {
+                    "type": "payment",
+                    "mechanic": "linear",
+                    "issue": 301,
+                    "agent": "bob@test",
+                    "amount": 2,
+                    "proposed_by": "author@local",
+                    "proposed_at": "2026-03-04T10:05:00Z",
+                    "event_at": "2026-03-04T10:05:00Z",
+                },
+            ],
+        },
+    )
+
+    rc = process(temp_repo, dry_run=False)
+    assert rc == 0
+
+    escrows = _read_json(escrows_path)
+    assert escrows["active"]["301"]["paid_count"] == 2
+    assert escrows["active"]["301"]["amount"] == 3  # 5-2
+
+
 def test_process_ranking_and_winner_take_all_splits(temp_repo: Path) -> None:
     balances_path = temp_repo / "ledger" / "balances.json"
     escrows_path = temp_repo / "ledger" / "escrows.json"
