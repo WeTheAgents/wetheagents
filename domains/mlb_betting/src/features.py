@@ -18,6 +18,9 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+# MLB league-average runs per game, used as Bayesian prior for early-season estimates
+MLB_AVG_RPG_PRIOR = 4.5
+
 
 # ── Team Game Log Builder ────────────────────────────────────────────────
 
@@ -240,14 +243,14 @@ def calc_rolling_runs(log: pd.DataFrame) -> pd.DataFrame:
 
         for i in range(n):
             if i == 0:
-                rpg = 4.5  # MLB average prior
-                rapg = 4.5
+                rpg = MLB_AVG_RPG_PRIOR
+                rapg = MLB_AVG_RPG_PRIOR
             else:
                 rpg = rs[:i].mean()
                 rapg = ra[:i].mean()
 
-            rpg_last10 = rs[max(0, i - 10) : i].mean() if i > 0 else 4.5
-            rapg_last10 = ra[max(0, i - 10) : i].mean() if i > 0 else 4.5
+            rpg_last10 = rs[max(0, i - 10) : i].mean() if i > 0 else MLB_AVG_RPG_PRIOR
+            rapg_last10 = ra[max(0, i - 10) : i].mean() if i > 0 else MLB_AVG_RPG_PRIOR
 
             results.append(
                 {
@@ -309,6 +312,15 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
             opponents_so_far.append(grp.iloc[i]["opponent"])
 
     # Second pass: compute OWP and OOWP
+    # NOTE: wp_lookup is keyed by (team, season, date) where date is the team's
+    # own game date.  When looking up an opponent's WP we use the *current* team's
+    # game date, but the opponent may not have played on that exact date.  This
+    # causes ~50% of opponent WP lookups to miss and silently fall back to 0.5.
+    # Fixing this requires keying by game-number instead of date — tracked as a
+    # known limitation (see status_report_session10 for impact analysis).
+    fallback_count = 0
+    total_lookups = 0
+
     for (team, season), grp in log.groupby(["team", "season"]):
         grp = grp.sort_values("date").reset_index(drop=True)
         n = len(grp)
@@ -326,7 +338,11 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
                 # Each opponent's WP at the time we played them
                 opp_wps = []
                 for opp in opps:
-                    opp_wp = wp_lookup.get((opp, season, date), 0.5)
+                    total_lookups += 1
+                    opp_wp = wp_lookup.get((opp, season, date))
+                    if opp_wp is None:
+                        opp_wp = 0.5
+                        fallback_count += 1
                     opp_wps.append(opp_wp)
                 owp = np.mean(opp_wps) if opp_wps else 0.5
 
@@ -335,7 +351,11 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
                 for opp in opps:
                     opp_opps = opponents_lookup.get((opp, season, date), [])
                     for oo in opp_opps:
-                        oo_wp = wp_lookup.get((oo, season, date), 0.5)
+                        total_lookups += 1
+                        oo_wp = wp_lookup.get((oo, season, date))
+                        if oo_wp is None:
+                            oo_wp = 0.5
+                            fallback_count += 1
                         oo_wps.append(oo_wp)
                 oowp = np.mean(oo_wps) if oo_wps else 0.5
 
@@ -353,7 +373,11 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
                 }
             )
 
-    logger.info(f"Computed RPI for {len(results)} team-game entries")
+    fallback_pct = (fallback_count / total_lookups * 100) if total_lookups > 0 else 0
+    logger.info(
+        f"Computed RPI for {len(results)} team-game entries "
+        f"(WP fallback rate: {fallback_count}/{total_lookups} = {fallback_pct:.1f}%)"
+    )
     return pd.DataFrame(results)
 
 
@@ -376,8 +400,8 @@ def calc_pythagorean_wp(log: pd.DataFrame) -> pd.DataFrame:
 
         for i in range(n):
             if i == 0:
-                rpg = 4.5  # MLB average prior
-                rapg = 4.5
+                rpg = MLB_AVG_RPG_PRIOR
+                rapg = MLB_AVG_RPG_PRIOR
             else:
                 rpg = rs[:i].mean()
                 rapg = ra[:i].mean()
