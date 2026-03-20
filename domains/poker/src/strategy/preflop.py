@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 
-# Load ranges at module level
+# Ranges loaded once at first use; intentionally never reloaded (files don't change at runtime)
 _ranges: dict | None = None
 _push_fold: dict | None = None
 
@@ -36,6 +36,7 @@ def _load_push_fold() -> dict:
 def _position_key(pos: Position | None) -> str:
     """Map Position enum to range table key."""
     if pos is None:
+        logger.warning("Position is None, defaulting to MP — ranges may be wrong")
         return "MP"
     mapping = {
         Position.UTG: "UTG",
@@ -48,7 +49,11 @@ def _position_key(pos: Position | None) -> str:
         Position.SB: "SB",
         Position.BB: "BB",
     }
-    return mapping.get(pos, "MP")
+    key = mapping.get(pos)
+    if key is None:
+        logger.warning(f"Unmapped position {pos!r}, defaulting to MP")
+        return "MP"
+    return key
 
 
 def _stack_tier(eff_bb: float) -> str:
@@ -97,6 +102,7 @@ def _find_position_in_ranges(pos_key: str, ranges: dict) -> dict | None:
     }
     for fb in fallbacks.get(pos_key, []):
         if fb in ranges:
+            logger.debug(f"Position {pos_key} not in ranges, using fallback {fb}")
             return ranges[fb]
     return None
 
@@ -166,7 +172,10 @@ def _get_call_push_action(state: GameState, hand: str) -> Action | None:
     pusher_key = _estimate_pusher_position(state)
 
     if isinstance(tier_data, dict):
-        hands = tier_data.get(pusher_key, tier_data.get("vs_LP", []))
+        hands = tier_data.get(pusher_key)
+        if hands is None:
+            hands = tier_data.get("vs_LP", [])
+            logger.debug(f"Call-push: no data for {pusher_key}, using vs_LP fallback")
     else:
         hands = tier_data  # legacy flat list fallback
 
@@ -239,7 +248,10 @@ def get_preflop_action(state: GameState) -> Action:
         return _handle_3bet(state, hand, ranges)
 
     # 3. Normal open / facing limps
-    tier_ranges = ranges.get(tier, ranges.get("deep", {}))
+    tier_ranges = ranges.get(tier)
+    if tier_ranges is None:
+        logger.warning(f"No ranges for stack tier '{tier}', falling back to deep")
+        tier_ranges = ranges.get("deep", {})
     pos_ranges = _find_position_in_ranges(pos_key, tier_ranges)
 
     if pos_ranges is None:
@@ -257,6 +269,13 @@ def get_preflop_action(state: GameState) -> Action:
         if state.my_position == Position.BB and 0 < state.to_call <= state.big_blind * 3:
             logger.info(f"PREFLOP: {hand} from BB, wide defend -> CALL {state.to_call:.0f}")
             return Action(ActionType.CALL)
+        # SB completes with limpers — pot odds too good to fold
+        # With 3+ limpers, SB pays 0.5BB into pot of 3.5BB+ = ~14% odds → any two cards
+        if state.my_position == Position.SB and state.to_call <= state.big_blind / 2:
+            limpers = _count_limpers(state)
+            if limpers >= 2:
+                logger.info(f"PREFLOP: {hand} from SB, {limpers} limpers -> COMPLETE {state.to_call:.0f}")
+                return Action(ActionType.CALL)
         logger.info(f"PREFLOP: {hand} from {pos_key} not in range -> FOLD")
         return Action(ActionType.FOLD)
 
@@ -275,8 +294,12 @@ def get_preflop_action(state: GameState) -> Action:
         return Action(ActionType.RAISE, raise_amount)
 
     elif action_code == "3B":
-        # 3-bet: position-aware multiplier
-        raise_amount = state.to_call * _3bet_multiplier(state.my_position)
+        # 3-bet: position-aware multiplier (if facing a raise)
+        if state.to_call > state.big_blind:
+            raise_amount = state.to_call * _3bet_multiplier(state.my_position)
+        else:
+            # No raise to 3-bet against — open raise instead
+            raise_amount = state.big_blind * 3.0
         raise_amount = min(raise_amount, state.my_stack)
         raise_amount = max(raise_amount, state.min_raise) if state.min_raise > 0 else raise_amount
         logger.info(f"PREFLOP: {hand} from {pos_key} -> 3-BET {raise_amount:.0f}")

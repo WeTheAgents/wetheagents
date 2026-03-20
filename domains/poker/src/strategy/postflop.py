@@ -15,6 +15,23 @@ logger = logging.getLogger(__name__)
 
 _evaluator = Evaluator()
 
+# --- Equity thresholds (named constants for maintainability) ---
+# Check-or-bet decisions (no bet to call):
+EQUITY_MONSTER = 0.80       # always value bet, even on dry boards
+EQUITY_STRONG = 0.65        # value bet on non-dry boards
+EQUITY_DECENT = 0.55        # value bet on turn; river value bet
+EQUITY_CBET_BASE = 0.45     # c-bet threshold (adjusted by range advantage)
+EQUITY_SEMI_BLUFF_MIN = 0.25  # minimum for semi-bluff raise
+
+# Facing a bet (lower thresholds — pot is bigger):
+EQUITY_MONSTER_VS_BET = 0.75  # raise for value / all-in if committed
+EQUITY_STRONG_VS_BET = 0.60   # raise sometimes, call otherwise
+
+# SPR implied odds multipliers: (spr_threshold, multiplier)
+# Deeper stacks = better implied odds on future streets
+_FLOP_IMPLIED = [(5.0, 2.5), (2.0, 1.8), (float('-inf'), 1.2)]
+_TURN_IMPLIED = [(3.0, 1.8), (1.5, 1.4), (float('-inf'), 1.1)]
+
 
 def calculate_equity(
     hole_cards: list[str],
@@ -70,10 +87,10 @@ def calculate_equity(
 
 
 def get_hand_strength_class(equity: float) -> str:
-    """Classify hand strength for logging."""
-    if equity >= 0.80:
+    """Classify hand strength for logging (aligned with decision thresholds)."""
+    if equity >= EQUITY_MONSTER_VS_BET:
         return "monster"
-    elif equity >= 0.65:
+    elif equity >= EQUITY_STRONG_VS_BET:
         return "strong"
     elif equity >= 0.50:
         return "decent"
@@ -81,11 +98,6 @@ def get_hand_strength_class(equity: float) -> str:
         return "marginal"
     else:
         return "weak"
-
-
-
-
-# board_wetness is now in src.strategy.board (imported above)
 
 
 def stack_leverage(spr: float) -> float:
@@ -125,7 +137,7 @@ def is_wawb(equity: float, wetness: float, players_in_hand: int) -> bool:
     - Heads-up: multiway pots have too many ranges to WA/WB
     """
     return (
-        0.45 <= equity <= 0.62
+        EQUITY_CBET_BASE <= equity <= 0.62
         and wetness < 0.30
         and players_in_hand <= 2
     )
@@ -153,24 +165,18 @@ def implied_pot_odds(state: GameState) -> float:
 
     spr = state.spr
 
-    if state.street == Street.FLOP:
-        if spr > 5:
-            multiplier = 2.5
-        elif spr > 2:
-            multiplier = 1.8
-        else:
-            multiplier = 1.2
-    elif state.street == Street.TURN:
-        if spr > 3:
-            multiplier = 1.8
-        elif spr > 1.5:
-            multiplier = 1.4
-        else:
-            multiplier = 1.1
-    else:
-        multiplier = 1.0
+    thresholds = _FLOP_IMPLIED if state.street == Street.FLOP else (
+        _TURN_IMPLIED if state.street == Street.TURN else []
+    )
+    multiplier = 1.0
+    for spr_min, mult in thresholds:
+        if spr > spr_min:
+            multiplier = mult
+            break
 
     effective_pot = (state.pot + state.to_call) * multiplier
+    if effective_pot <= 0:
+        return direct
     implied = state.to_call / effective_pot
 
     logger.debug(
@@ -292,8 +298,8 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
 
     wetness = board_wetness(state.community_cards)
 
-    # Monster hand (>=0.80) -> always bet for value, even on dry boards
-    if equity >= 0.80:
+    # Monster hand -> always bet for value, even on dry boards
+    if equity >= EQUITY_MONSTER:
         bet = get_bet_size(state, equity, is_value=True)
         if bet > 0:
             logger.info(f"  -> VALUE BET {bet:.0f} (monster equity {equity:.2f})")
@@ -323,8 +329,16 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
 
     # WA/WB: medium-to-strong hand on dry board — pot control
     # "Betting accomplishes nothing: worse folds, better calls"
-    # This MUST come before regular value bet: on dry boards, even 65%
-    # equity shouldn't bet (second pair, small overpair territory).
+    # BUT: on the river there are no future streets — just bet for value!
+    if state.street == Street.RIVER and equity >= EQUITY_DECENT:
+        bet = get_bet_size(state, equity, is_value=True)
+        if bet > 0:
+            logger.info(
+                f"  -> RIVER VALUE {bet:.0f} (equity {equity:.2f}, "
+                f"no more streets for pot control)"
+            )
+            return Action(ActionType.RAISE, bet)
+
     if is_wawb(equity, wetness, state.players_in_hand):
         if state.in_position:
             # In position: check behind, control pot, let villain bluff later
@@ -352,7 +366,7 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
                     return Action(ActionType.RAISE, bet)
 
     # Strong hand on non-dry board -> bet for value + protection
-    if equity >= 0.65:
+    if equity >= EQUITY_STRONG:
         bet = get_bet_size(state, equity, is_value=True)
         if bet > 0:
             logger.info(f"  -> VALUE BET {bet:.0f} (equity {equity:.2f} wet={wetness:.2f})")
@@ -361,7 +375,7 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
     # Medium hand on flop -> continuation bet (range-advantage-aware)
     if state.street == Street.FLOP:
         ra = range_advantage(state.community_cards, state.my_position, state.in_position)
-        cbet_threshold = 0.45 - ra * 0.10  # lower threshold when we have range advantage
+        cbet_threshold = EQUITY_CBET_BASE - ra * 0.10  # lower threshold when we have range advantage
         if equity >= cbet_threshold:
             bet = get_bet_size(state, equity, is_cbet=True)
             if bet > 0:
@@ -371,9 +385,21 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
                 )
                 return Action(ActionType.RAISE, bet)
 
+    # Decent hand on turn -> bet for value (river already handled above)
+    # These hands are too strong to check but below the "strong" threshold.
+    # We bet to build the pot and deny equity to draws.
+    if equity >= EQUITY_DECENT and state.street == Street.TURN:
+        bet = get_bet_size(state, equity, is_value=True)
+        if bet > 0:
+            logger.info(
+                f"  -> DECENT VALUE {bet:.0f} (equity {equity:.2f}, "
+                f"{state.street.value}, too good to check)"
+            )
+            return Action(ActionType.RAISE, bet)
+
     # Semi-bluff with draws (equity 0.25-0.50 on flop/turn)
     # Use fold equity EV instead of random coin flip
-    if 0.25 <= equity < 0.50 and state.street in (Street.FLOP, Street.TURN):
+    if EQUITY_SEMI_BLUFF_MIN <= equity < 0.50 and state.street in (Street.FLOP, Street.TURN):
         bet = get_bet_size(state, equity, is_bluff=True)
         if bet > 0:
             raise_ev = semi_bluff_ev(state, equity, bet)
@@ -385,6 +411,30 @@ def _decide_check_or_bet(state: GameState, equity: float, opponents: int) -> Act
                     f"fold_pct={state.villain_fold_pct:.2f})"
                 )
                 return Action(ActionType.RAISE, bet)
+
+    # Position steal: in position, checked to us, nobody wants this pot — take it
+    # Standard poker: BTN/CO fires ~50-65% c-bet frequency with any two cards
+    # Multiway (4+ players): reduce frequency but still stab sometimes
+    if (state.in_position
+            and state.street in (Street.FLOP, Street.TURN)):
+        steal_freq = 0.55 if state.street == Street.FLOP else 0.40
+        # Dry boards = steal more, wet boards = steal less
+        steal_freq += 0.15 * (0.5 - wetness)
+        # Reduce frequency in multiway pots (3+ opponents = risky bluff)
+        if state.players_in_hand > 3:
+            steal_freq *= 0.4  # 55% → 22% in 4-way, still stab sometimes
+        elif state.players_in_hand == 3:
+            steal_freq *= 0.7  # 55% → 38% in 3-way
+        if random.random() < steal_freq:
+            bet = get_bet_size(state, equity, is_cbet=True)
+            if bet > 0:
+                logger.info(
+                    f"  -> POSITION STEAL {bet:.0f} (IP, checked to us, "
+                    f"freq={steal_freq:.0%} wet={wetness:.2f})"
+                )
+                return Action(ActionType.RAISE, bet)
+        else:
+            logger.debug(f"  position steal skipped (freq={steal_freq:.0%}, rolled higher)")
 
     logger.info(f"  -> CHECK (equity {equity:.2f})")
     return Action(ActionType.CHECK)
@@ -406,7 +456,7 @@ def _should_check_raise(state: GameState, equity: float, wetness: float) -> bool
         return False  # too many players, check-raise less effective
 
     # Value check-raise: strong hands OOP (sets, two pair+)
-    if equity >= 0.75:
+    if equity >= EQUITY_MONSTER_VS_BET:
         return random.random() < 0.70  # 70% of the time
 
     # Bluff check-raise: draws on wet boards with fold equity
@@ -418,7 +468,7 @@ def _should_check_raise(state: GameState, equity: float, wetness: float) -> bool
 
 
 def _strong_hand_raise_frequency(state: GameState, equity: float, wetness: float) -> float:
-    """Dynamic raise frequency for strong (0.60-0.75) hands facing a bet.
+    """Dynamic raise frequency for strong hands facing a bet (0.60 to <0.75 equity).
 
     Replaces the fixed 35% raise rate. Varies by:
     - Board texture: wet -> raise more (protect equity)
@@ -486,7 +536,7 @@ def _decide_call_raise_fold(
         return Action(ActionType.RAISE, raise_amount)
 
     # Monster -> raise
-    if equity >= 0.75:
+    if equity >= EQUITY_MONSTER_VS_BET:
         if committed:
             logger.info(f"  -> ALL-IN (monster, committed)")
             return Action(ActionType.ALL_IN, state.my_stack)
@@ -526,7 +576,7 @@ def _decide_call_raise_fold(
         # Average aggression: standard call/fold by pot odds below
 
     # Strong hand on non-dry board -> raise sometimes, call otherwise
-    if equity >= 0.60:
+    if equity >= EQUITY_STRONG_VS_BET:
         if random.random() < _strong_hand_raise_frequency(state, equity, wetness):
             raise_amount = get_bet_size(state, equity, is_value=True)
             logger.info(f"  -> RAISE {raise_amount:.0f} (strong equity {equity:.2f})")
@@ -538,7 +588,7 @@ def _decide_call_raise_fold(
     # makes it +EV. This is the "raise on a bet with a draw" play.
     # Only on flop/turn (river has no outs to improve), need decent equity.
     if (
-        0.25 <= equity < 0.55
+        EQUITY_SEMI_BLUFF_MIN <= equity < EQUITY_DECENT
         and state.street in (Street.FLOP, Street.TURN)
         and state.spr > 2  # need stack behind for the raise to be credible
     ):
