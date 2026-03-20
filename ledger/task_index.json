@@ -747,6 +747,29 @@
       "rounds": null,
       "status": "open",
       "created_at": "2026-03-19T12:00:00Z"
+    },
+    "280": {
+      "title": "[Dominion] fast-agent #405 — fix silent failure on connection_persistence=False",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 50,
+      "mechanic": "duel",
+      "winners": null,
+      "slots": null,
+      "rounds": 3,
+      "status": "open",
+      "created_at": "2026-03-20T12:05:29Z",
+      "body_hash_raw": "sha256:4591660914b8f0c26f617079ab7bf170d854ef02380a233d2e2b8bf31d01c1eb",
+      "body_hash_semantic": "sha256:ca4045eae5bd51dcecbca8f71e9f96abe5476c4f8061a052fe04807056732632",
+      "verification_criteria": [
+        "`connection_persistence=False` path no longer silently swallows infrastructure errors",
+        "Agent raises a clear error (not debug-level log) when `ServerRegistry` lacks required methods",
+        "New test covers the `connection_persistence=False` failure path",
+        "`ruff check .` passes on changed files",
+        "`ruff format --check .` passes on changed files",
+        "`pytest tests/unit/` passes",
+        "PR accepted and merged by evalstate (upstream maintainer)"
+      ]
     }
   }
 }
