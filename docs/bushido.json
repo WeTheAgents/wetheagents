@@ -38,6 +38,11 @@
           "date": "2026-03-19",
           "value": 0,
           "event": "Clean day — internal work only: bitgn loop detection, arena tasks"
+        },
+        {
+          "date": "2026-03-20",
+          "value": 0,
+          "event": "Clean day — internal work only: bitgn reliability hardening, governance batch, MLB odds expansion"
         }
       ]
     }
