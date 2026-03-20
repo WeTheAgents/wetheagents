@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import random
+import re
 import time
 from typing import Callable
 
@@ -31,6 +32,24 @@ from src.table.state import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Card normalization maps — single source of truth for DOM → internal format
+_RANK_MAP = {
+    "A": "A", "K": "K", "Q": "Q", "J": "J",
+    "10": "T", "T": "T",
+    "9": "9", "8": "8", "7": "7", "6": "6",
+    "5": "5", "4": "4", "3": "3", "2": "2",
+}
+_SUIT_MAP = {"s": "s", "h": "h", "d": "d", "c": "c"}
+
+# Unicode suit symbols (used in game log parsing)
+_SUIT_UNICODE = {"♠": "s", "♥": "h", "♦": "d", "♣": "c"}
+
+# Compiled regex patterns for game log parsing
+_FLOP_RE = re.compile(r'[Ff]lop:\s*\[(.+?)\]')
+_TURN_RE = re.compile(r'[Tt]urn:\s*(.+?)\s*\[(.+?)\]')
+_RIVER_RE = re.compile(r'[Rr]iver:\s*(.+?)\s*\[(.+?)\]')
+_NEW_HAND_RE = re.compile(r'starting hand')
 
 # CSS selectors for PokerNow DOM elements
 # Source: Jackaljkdan/pokernow-bot (verified working)
@@ -238,8 +257,11 @@ class PokerNowConnector:
                 return false;
             """)
             return bool(result)
-        except Exception:
+        except (NoSuchElementException, StaleElementReferenceException, TimeoutException):
             return False
+        except Exception as e:
+            logger.warning(f"is_my_turn() unexpected error: {e}")
+            raise
 
     def read_state(self) -> GameState | None:
         """Read the complete game state from the DOM.
@@ -316,8 +338,10 @@ class PokerNowConnector:
             if clicked:
                 logger.info(f"Dismissed overlays: {clicked}")
                 time.sleep(0.5)
-        except Exception:
-            pass
+        except (NoSuchElementException, StaleElementReferenceException):
+            pass  # No overlays to dismiss — expected
+        except Exception as e:
+            logger.warning(f"Overlay dismissal failed: {e}")
 
     def execute_action(self, action: Action) -> bool:
         """Execute a poker action using keyboard shortcuts.
@@ -358,8 +382,8 @@ class PokerNowConnector:
             # Emergency fold via keyboard
             try:
                 self._send_key("f")
-            except Exception:
-                pass
+            except Exception as fold_err:
+                logger.error(f"Emergency fold also failed: {fold_err}")
             return False
 
     def _send_key(self, key: str) -> bool:
@@ -385,10 +409,12 @@ class PokerNowConnector:
         try:
             amount_str = str(int(amount))
 
-            # Single ActionChains sequence: R -> pause -> digits -> pause -> Enter
+            # Single ActionChains sequence: R -> pause -> select-all -> digits -> pause -> Enter
             actions = ActionChains(self.driver)
             actions.send_keys("r")
             actions.pause(0.3)
+            # Clear pre-filled min raise amount before typing
+            actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL)
             actions.send_keys(amount_str)
             actions.pause(0.2)
             actions.send_keys(Keys.RETURN)
@@ -424,16 +450,9 @@ class PokerNowConnector:
             """)
             if not cards_data:
                 return None
-            rank_map = {
-                "A": "A", "K": "K", "Q": "Q", "J": "J",
-                "10": "T", "T": "T",
-                "9": "9", "8": "8", "7": "7", "6": "6",
-                "5": "5", "4": "4", "3": "3", "2": "2",
-            }
-            suit_map = {"s": "s", "h": "h", "d": "d", "c": "c"}
             for value, suit in cards_data:
-                rank = rank_map.get(value.upper(), value)
-                suit_char = suit_map.get(suit[0].lower(), "") if suit else ""
+                rank = _RANK_MAP.get(value.upper(), value)
+                suit_char = _SUIT_MAP.get(suit[0].lower(), "") if suit else ""
                 if rank and suit_char:
                     state.hole_cards.append(f"{rank}{suit_char}")
         except Exception as e:
@@ -443,21 +462,48 @@ class PokerNowConnector:
         if len(state.hole_cards) < 2:
             return None
 
-        # Community cards — DOM first (.table-cards .card), game-log fallback
+        # Blinds first — needed for community card retry condition
         try:
-            comm_elements = self.driver.find_elements(
-                By.CSS_SELECTOR, SELECTORS["community_cards"]
-            )
-            for el in comm_elements:
-                card_str = self._parse_card_element(el)
-                if card_str:
-                    state.community_cards.append(card_str)
-        except NoSuchElementException:
-            pass
+            blind_els = self.driver.find_elements(By.CSS_SELECTOR, SELECTORS["blind_level"])
+            if len(blind_els) >= 2:
+                state.big_blind = self._parse_chips(blind_els[1].text)
+            elif len(blind_els) == 1:
+                blind_text = blind_els[0].text
+                parts = blind_text.replace(",", "").split("/")
+                if len(parts) >= 2:
+                    state.big_blind = float(parts[1].strip())
+                else:
+                    state.big_blind = self._parse_chips(blind_text)
+        except (NoSuchElementException, ValueError):
+            state.big_blind = 20  # fallback
+        if state.big_blind <= 0:
+            logger.warning(f"big_blind parsed as {state.big_blind}, using fallback 20")
+            state.big_blind = 20
 
-        # Fallback: parse from game log if DOM found nothing
-        if not state.community_cards:
-            state.community_cards = self._parse_community_from_log()
+        # Pot — before community cards so retry condition works
+        try:
+            pot_el = self.driver.find_element(By.CSS_SELECTOR, SELECTORS["pot"])
+            state.pot = self._parse_chips(pot_el.text)
+        except NoSuchElementException:
+            state.pot = 0
+
+        # My stack
+        try:
+            stack_el = self.driver.find_element(By.CSS_SELECTOR, SELECTORS["my_stack"])
+            state.my_stack = self._parse_chips(stack_el.text)
+        except NoSuchElementException:
+            logger.warning("Could not find stack element")
+        if state.my_stack <= 0:
+            logger.warning(f"Stack={state.my_stack}, cannot make decisions")
+            return None
+
+        # Community cards — single JS call (fast and reliable)
+        state.community_cards = self._parse_community_cards_js()
+
+        # Retry if pot suggests postflop but no cards found (animation delay)
+        if not state.community_cards and state.pot > state.big_blind * 2:
+            time.sleep(0.5)
+            state.community_cards = self._parse_community_cards_js()
 
         if state.community_cards:
             logger.info(f"Board: {' '.join(state.community_cards)}")
@@ -470,38 +516,11 @@ class PokerNowConnector:
             state.street = Street.FLOP
         elif num_community == 4:
             state.street = Street.TURN
-        else:
+        elif num_community >= 5:
             state.street = Street.RIVER
-
-        # Pot
-        try:
-            pot_el = self.driver.find_element(By.CSS_SELECTOR, SELECTORS["pot"])
-            state.pot = self._parse_chips(pot_el.text)
-        except NoSuchElementException:
-            state.pot = 0
-
-        # My stack
-        try:
-            stack_el = self.driver.find_element(By.CSS_SELECTOR, SELECTORS["my_stack"])
-            state.my_stack = self._parse_chips(stack_el.text)
-        except NoSuchElementException:
-            pass
-
-        # Blinds — .blind-value .chips-value returns [SB, BB] elements
-        try:
-            blind_els = self.driver.find_elements(By.CSS_SELECTOR, SELECTORS["blind_level"])
-            if len(blind_els) >= 2:
-                state.big_blind = self._parse_chips(blind_els[1].text)
-            elif len(blind_els) == 1:
-                # Single element: try parsing as "10/20" format
-                blind_text = blind_els[0].text
-                parts = blind_text.replace(",", "").split("/")
-                if len(parts) >= 2:
-                    state.big_blind = float(parts[1].strip())
-                else:
-                    state.big_blind = self._parse_chips(blind_text)
-        except (NoSuchElementException, ValueError):
-            state.big_blind = 20  # fallback
+        else:
+            logger.warning(f"Unexpected community card count: {num_community}")
+            return None  # partial board — animation in progress
 
         # Players
         try:
@@ -528,8 +547,11 @@ class PokerNowConnector:
 
             state.num_players = len(state.players)
             state.players_in_hand = sum(1 for p in state.players if p.is_active)
-        except NoSuchElementException:
-            pass
+        except (NoSuchElementException, StaleElementReferenceException) as e:
+            logger.warning(f"Player enumeration failed: {e}")
+        if state.num_players == 0:
+            logger.warning("No players detected — state unreliable")
+            return None
 
         # To call amount (from call button text)
         try:
@@ -539,8 +561,9 @@ class PokerNowConnector:
                 parts = call_text.split()
                 if len(parts) >= 2:
                     state.to_call = self._parse_chips(parts[-1])
-        except (NoSuchElementException, ValueError):
-            pass
+        except (NoSuchElementException, ValueError) as e:
+            if isinstance(e, ValueError):
+                logger.warning(f"Failed to parse to_call amount: {e}")
 
         # Min/max raise (from raise input if visible)
         try:
@@ -549,8 +572,9 @@ class PokerNowConnector:
                 bet_input = self.driver.find_element(By.CSS_SELECTOR, SELECTORS["bet_input"])
                 state.min_raise = float(bet_input.get_attribute("min") or 0)
                 state.max_raise = float(bet_input.get_attribute("max") or state.my_stack)
-        except (NoSuchElementException, ValueError):
-            pass
+        except (NoSuchElementException, ValueError) as e:
+            if isinstance(e, ValueError):
+                logger.warning(f"Failed to parse raise bounds: {e}")
 
         state.my_position = self._detect_position(state)
 
@@ -660,8 +684,37 @@ class PokerNowConnector:
                 return _return(Position.CO)
             return _return(Position.MP)
         except Exception as e:
-            logger.debug(f"Position detection failed: {e}")
+            logger.warning(f"Position detection failed, defaulting to MP: {e}")
             return Position.MP
+
+    def _parse_community_cards_js(self) -> list[str]:
+        """Parse community cards from .table-cards via JS."""
+        try:
+            comm_data = self.driver.execute_script("""
+                var cards = document.querySelectorAll('.table-cards .card');
+                var result = [];
+                cards.forEach(function(c) {
+                    var v = c.querySelector('.value');
+                    var s = c.querySelector('.suit:not(.sub-suit)') ||
+                            c.querySelector('.suit');
+                    if (v && s) {
+                        result.push([v.textContent.trim(), s.textContent.trim()]);
+                    }
+                });
+                return result;
+            """)
+            if not comm_data:
+                return []
+            cards = []
+            for value, suit in comm_data:
+                rank = _RANK_MAP.get(value.upper(), value.upper())
+                suit_char = _SUIT_MAP.get(suit[0].lower(), "") if suit else ""
+                if rank and suit_char:
+                    cards.append(f"{rank}{suit_char}")
+            return cards
+        except Exception as e:
+            logger.debug(f"Community card JS error: {e}")
+            return []
 
     def _parse_community_from_log(self) -> list[str]:
         """Parse community cards from PokerNow game log.
@@ -674,14 +727,6 @@ class PokerNowConnector:
 
         Returns list of card strings like ['5s', '8s', '9c'].
         """
-        # Unicode suit symbols → single-char codes
-        _SUIT_UNICODE = {"♠": "s", "♥": "h", "♦": "d", "♣": "c"}
-        _RANK_MAP = {
-            "A": "A", "K": "K", "Q": "Q", "J": "J", "10": "T",
-            "9": "9", "8": "8", "7": "7", "6": "6",
-            "5": "5", "4": "4", "3": "3", "2": "2",
-        }
-
         def _parse_card_str(raw: str) -> str | None:
             """Convert '5♠' or 'J♣' to '5s' or 'Jc'."""
             raw = raw.strip()
@@ -720,19 +765,12 @@ class PokerNowConnector:
         logger.info(f"BOARD_DEBUG: {len(log_texts)} log entries, first 3: {log_texts[:3]}")
 
         # Walk from newest to oldest, find the latest street line
-        import re
-        # Pattern: captures everything inside brackets and outside
-        flop_re = re.compile(r'[Ff]lop:\s*\[(.+?)\]')
-        turn_re = re.compile(r'[Tt]urn:\s*(.+?)\s*\[(.+?)\]')
-        river_re = re.compile(r'[Rr]iver:\s*(.+?)\s*\[(.+?)\]')
-        new_hand_re = re.compile(r'starting hand')
-
         for text in log_texts:
             # If we hit a new hand marker before any street, it's preflop
-            if new_hand_re.search(text):
+            if _NEW_HAND_RE.search(text):
                 return []
 
-            m = river_re.search(text)
+            m = _RIVER_RE.search(text)
             if m:
                 # All 5 cards: group1 = first 4, group2 = river card
                 all_raw = m.group(1) + ", " + m.group(2)
@@ -742,7 +780,7 @@ class PokerNowConnector:
                     return cards
                 continue
 
-            m = turn_re.search(text)
+            m = _TURN_RE.search(text)
             if m:
                 all_raw = m.group(1) + ", " + m.group(2)
                 cards = [_parse_card_str(c) for c in all_raw.split(",")]
@@ -751,7 +789,7 @@ class PokerNowConnector:
                     return cards
                 continue
 
-            m = flop_re.search(text)
+            m = _FLOP_RE.search(text)
             if m:
                 cards = [_parse_card_str(c) for c in m.group(1).split(",")]
                 cards = [c for c in cards if c]
@@ -777,16 +815,8 @@ class PokerNowConnector:
             return None
 
         # Normalize: PokerNow uses "10" for ten, we use "T"
-        rank_map = {
-            "A": "A", "K": "K", "Q": "Q", "J": "J",
-            "10": "T", "T": "T",
-            "9": "9", "8": "8", "7": "7", "6": "6",
-            "5": "5", "4": "4", "3": "3", "2": "2",
-        }
-        suit_map = {"s": "s", "h": "h", "d": "d", "c": "c"}
-
-        rank = rank_map.get(value.upper(), value)
-        suit_char = suit_map.get(suit[0].lower(), "") if suit else ""
+        rank = _RANK_MAP.get(value.upper(), value)
+        suit_char = _SUIT_MAP.get(suit[0].lower(), "") if suit else ""
 
         if rank and suit_char:
             return f"{rank}{suit_char}"
@@ -843,7 +873,14 @@ class PokerNowConnector:
             return False
 
     def _human_delay(self, action: Action) -> None:
-        """Add human-like delay before acting."""
+        """Add human-like delay before acting.
+
+        When humanize=False, uses minimal delay (just enough for DOM updates).
+        """
+        if not self.humanize:
+            time.sleep(0.3)
+            return
+
         if action.type == ActionType.FOLD:
             delay = random.uniform(1.0, 3.0)
         elif action.type == ActionType.CHECK:
@@ -852,7 +889,6 @@ class PokerNowConnector:
             delay = random.uniform(2.0, 5.0)
         elif action.type in (ActionType.RAISE, ActionType.ALL_IN):
             delay = random.uniform(3.0, 7.0)
-            # Occasional "tank" on big decisions
             if random.random() < 0.15:
                 delay = random.uniform(8.0, 14.0)
                 logger.info(f"  (tanking for {delay:.0f}s...)")
@@ -880,6 +916,7 @@ def run_bot_loop(
     """
     logger.info("Bot loop started. Waiting for hands...")
     last_log_count = 0
+    consecutive_errors = 0
 
     while True:
         try:
@@ -902,6 +939,7 @@ def run_bot_loop(
 
             action = get_action(state)
             connector.execute_action(action)
+            consecutive_errors = 0  # reset on successful cycle
 
         except KeyboardInterrupt:
             logger.info("Bot stopped by user (Ctrl+C)")
@@ -909,12 +947,16 @@ def run_bot_loop(
                 hand_recorder.flush()
             break
         except Exception as e:
-            logger.error(f"Unexpected error in bot loop: {e}")
+            consecutive_errors += 1
+            logger.error(f"Unexpected error in bot loop ({consecutive_errors}/5): {e}")
             # Try to fold as emergency action
             try:
                 connector.execute_action(Action(ActionType.FOLD))
-            except Exception:
-                pass
+            except Exception as fold_err:
+                logger.error(f"Emergency fold also failed: {fold_err}")
+            if consecutive_errors >= 5:
+                logger.critical("5 consecutive errors — aborting bot loop")
+                break
             time.sleep(2)
 
 
@@ -933,7 +975,10 @@ def _observe_game_log(
         log_elements = connector.driver.find_elements(
             By.CSS_SELECTOR, SELECTORS["game_log"],
         )
-    except Exception:
+    except (NoSuchElementException, StaleElementReferenceException):
+        return last_log_count
+    except Exception as e:
+        logger.warning(f"Game log observation failed: {e}")
         return last_log_count
 
     current_count = len(log_elements)

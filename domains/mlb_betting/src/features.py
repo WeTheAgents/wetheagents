@@ -18,6 +18,9 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+# MLB league-average runs per game prior (historical range: 3.9-5.1 across 2004-2025)
+# Used as Bayesian prior for first game of season when no data is available
+MLB_AVG_RPG_PRIOR = 4.5
 
 # ── Team Game Log Builder ────────────────────────────────────────────────
 
@@ -240,14 +243,14 @@ def calc_rolling_runs(log: pd.DataFrame) -> pd.DataFrame:
 
         for i in range(n):
             if i == 0:
-                rpg = 4.5  # MLB average prior
-                rapg = 4.5
+                rpg = MLB_AVG_RPG_PRIOR
+                rapg = MLB_AVG_RPG_PRIOR
             else:
                 rpg = rs[:i].mean()
                 rapg = ra[:i].mean()
 
-            rpg_last10 = rs[max(0, i - 10) : i].mean() if i > 0 else 4.5
-            rapg_last10 = ra[max(0, i - 10) : i].mean() if i > 0 else 4.5
+            rpg_last10 = rs[max(0, i - 10) : i].mean() if i > 0 else MLB_AVG_RPG_PRIOR
+            rapg_last10 = ra[max(0, i - 10) : i].mean() if i > 0 else MLB_AVG_RPG_PRIOR
 
             results.append(
                 {
@@ -309,6 +312,14 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
             opponents_so_far.append(grp.iloc[i]["opponent"])
 
     # Second pass: compute OWP and OOWP
+    # NOTE: wp_lookup is keyed by (team, season, date) where date is the
+    # team's game date. When looking up an opponent's WP, we use the current
+    # team's game date — if the opponent didn't play on that exact date, the
+    # lookup falls back to 0.5. This is a known approximation; a more precise
+    # approach would use each opponent's WP as of their most recent game.
+    fallback_count = 0
+    total_lookups = 0
+
     for (team, season), grp in log.groupby(["team", "season"]):
         grp = grp.sort_values("date").reset_index(drop=True)
         n = len(grp)
@@ -326,7 +337,11 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
                 # Each opponent's WP at the time we played them
                 opp_wps = []
                 for opp in opps:
-                    opp_wp = wp_lookup.get((opp, season, date), 0.5)
+                    total_lookups += 1
+                    opp_wp = wp_lookup.get((opp, season, date))
+                    if opp_wp is None:
+                        opp_wp = 0.5
+                        fallback_count += 1
                     opp_wps.append(opp_wp)
                 owp = np.mean(opp_wps) if opp_wps else 0.5
 
@@ -335,7 +350,11 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
                 for opp in opps:
                     opp_opps = opponents_lookup.get((opp, season, date), [])
                     for oo in opp_opps:
-                        oo_wp = wp_lookup.get((oo, season, date), 0.5)
+                        total_lookups += 1
+                        oo_wp = wp_lookup.get((oo, season, date))
+                        if oo_wp is None:
+                            oo_wp = 0.5
+                            fallback_count += 1
                         oo_wps.append(oo_wp)
                 oowp = np.mean(oo_wps) if oo_wps else 0.5
 
@@ -353,7 +372,11 @@ def calc_rolling_rpi(log: pd.DataFrame) -> pd.DataFrame:
                 }
             )
 
-    logger.info(f"Computed RPI for {len(results)} team-game entries")
+    fallback_pct = (fallback_count / total_lookups * 100) if total_lookups > 0 else 0
+    logger.info(
+        f"Computed RPI for {len(results)} team-game entries "
+        f"(WP fallback rate: {fallback_count}/{total_lookups} = {fallback_pct:.1f}%)"
+    )
     return pd.DataFrame(results)
 
 
@@ -376,8 +399,8 @@ def calc_pythagorean_wp(log: pd.DataFrame) -> pd.DataFrame:
 
         for i in range(n):
             if i == 0:
-                rpg = 4.5  # MLB average prior
-                rapg = 4.5
+                rpg = MLB_AVG_RPG_PRIOR
+                rapg = MLB_AVG_RPG_PRIOR
             else:
                 rpg = rs[:i].mean()
                 rapg = ra[:i].mean()
@@ -786,5 +809,261 @@ def build_spec_features(
     if missing:
         logger.warning(f"Spec features with no data: {missing}")
     logger.info(f"Spec features available: {len(available)}/{len(SPEC_FEATURES)}")
+
+    return df
+
+
+# ── Over/Under Feature Columns ────────────────────────────────────────
+
+OU_FEATURES = [
+    # SUM-based (key O/U signal: combined output of both teams)
+    "combined_rpg",
+    "combined_rapg",
+    "combined_rpg_last10",
+    "combined_rapg_last10",
+    "sp_ra_combined_short",
+    "sp_ra_combined_long",
+    "starter_fip_combined",
+    "starter_whip_combined",
+    "sp_quality_floor",
+    # Bullpen SUM (both bullpens → total run environment)
+    "bullpen_fip_combined",
+    "bullpen_whip_combined",
+    "bullpen_k9_combined",
+    "bullpen_kbb_combined",
+    "bullpen_ip_3d_combined",
+    "bullpen_pitchers_3d_combined",
+    "bullpen_ip_1d_combined",
+    # DIFF-based (mismatch → blowout potential → pushes totals)
+    "rpg_diff",
+    "rapg_diff",
+    "pyth_wp_diff",
+    "sp_ra_short_diff",
+    "elo_diff",
+    # Line movement (available 2010+)
+    "ou_line_move",
+    # Context
+    "home_advantage",
+]
+
+
+def build_ou_features(
+    games: pd.DataFrame | None = None,
+    *,
+    enriched: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build feature matrix for Over/Under totals prediction.
+
+    Same pattern as build_spec_features() but with SUM-based features
+    for totals prediction instead of DIFF-based for moneyline.
+
+    Returns DataFrame with:
+    - OU_FEATURES columns
+    - O/U regime labels: 'T_OVER2', 'T_OVER1', 'T_UNDER'
+    - target: total_runs
+    - metadata: season, date, home_team, away_team, close_ou, etc.
+    """
+    from pathlib import Path
+
+    from src.data_loader import (
+        PROCESSED_DIR,
+        _map_team_code_to_retrosheet,
+        add_derived_odds,
+        american_to_decimal,
+        apply_data_filters,
+        load_all_seasons,
+    )
+    from src.elo import compute_elo
+
+    # Step 0: Load and enrich games if needed
+    if enriched is None:
+        if games is None:
+            logger.info("Loading all seasons...")
+            games = load_all_seasons()
+            games = apply_data_filters(games)
+            games = add_derived_odds(games)
+        logger.info("Building all features (team + pitcher + Retrosheet)...")
+        enriched = build_all_features(games)
+
+    df = enriched.copy()
+
+    # ── Starter pitcher composites (from Retrosheet entering features) ──
+    for col, home_col, away_col, op in [
+        ("starter_fip_combined", "home_sp_fip_short", "away_sp_fip_short", "sum"),
+        ("starter_whip_combined", "home_sp_whip_short", "away_sp_whip_short", "sum"),
+    ]:
+        if home_col in df.columns and away_col in df.columns:
+            df[col] = df[home_col] + df[away_col]
+        else:
+            logger.warning(f"Missing columns for {col}: {home_col} / {away_col}")
+            df[col] = np.nan
+
+    # ── FanGraphs team offense (wRC+, OBP) with Y-1 anti-leakage ────────
+    fg_path = PROCESSED_DIR / "fangraphs" / "team_batting_season.parquet"
+    if fg_path.exists():
+        fg = pd.read_parquet(fg_path)
+        fg = fg.rename(columns={"season": "stat_season"})
+        fg["season"] = fg["stat_season"] + 1
+        for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+            df[f"_fg_{side}_team"] = df.apply(
+                lambda r: _map_team_code_to_retrosheet(r[team_col], r["season"]), axis=1
+            )
+            side_fg = fg.rename(columns={
+                "team": f"_fg_{side}_team",
+                "wrc_plus": f"wrc_plus_{side}",
+                "obp": f"obp_{side}",
+            })[["season", f"_fg_{side}_team", f"wrc_plus_{side}", f"obp_{side}"]]
+            df = df.merge(side_fg, on=["season", f"_fg_{side}_team"], how="left")
+            df = df.drop(columns=[f"_fg_{side}_team"])
+    else:
+        logger.warning(f"FanGraphs data not found at {fg_path}.")
+
+    # ── Bullpen composites (expanded for O/U) ────────────────────────────
+    bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
+    if bp_path.exists():
+        bp = pd.read_parquet(bp_path)
+        bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
+        df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+
+        bp_cols_wanted = [
+            "bp_fip_short", "bp_fip_long",
+            "bp_whip_short", "bp_whip_long",
+            "bp_k9_short", "bp_kbb_short",
+            "bp_ip_1d", "bp_ip_3d", "bp_pitchers_3d",
+        ]
+
+        for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+            df[f"_bp_{side}_team"] = df.apply(
+                lambda r: _map_team_code_to_retrosheet(r[team_col], r["season"]), axis=1
+            )
+            bp_cols_to_merge = ["team", "date"]
+            bp_rename = {"team": f"_bp_{side}_team"}
+            for bc in bp_cols_wanted:
+                if bc in bp.columns:
+                    bp_cols_to_merge.append(bc)
+                    bp_rename[bc] = f"{bc}_{side}"
+            side_bp = bp[bp_cols_to_merge].rename(columns=bp_rename)
+            side_bp = side_bp.drop_duplicates(
+                subset=[f"_bp_{side}_team", "date"], keep="first"
+            )
+            df = df.merge(side_bp, on=[f"_bp_{side}_team", "date"], how="left")
+            df = df.drop(columns=[f"_bp_{side}_team"])
+
+        # SUM composites (both bullpens combined → total run environment)
+        for raw, combined in [
+            ("bp_fip_short", "bullpen_fip_combined"),
+            ("bp_whip_short", "bullpen_whip_combined"),
+            ("bp_k9_short", "bullpen_k9_combined"),
+            ("bp_kbb_short", "bullpen_kbb_combined"),
+            ("bp_ip_3d", "bullpen_ip_3d_combined"),
+            ("bp_pitchers_3d", "bullpen_pitchers_3d_combined"),
+        ]:
+            h, a = f"{raw}_home", f"{raw}_away"
+            if h in df.columns and a in df.columns:
+                df[combined] = df[h] + df[a]
+            else:
+                df[combined] = np.nan
+
+        # Fatigue proxy: yesterday's IP (immediate fatigue)
+        h, a = "bp_ip_1d_home", "bp_ip_1d_away"
+        if h in df.columns and a in df.columns:
+            df["bullpen_ip_1d_combined"] = df[h] + df[a]
+        else:
+            df["bullpen_ip_1d_combined"] = np.nan
+
+    else:
+        logger.warning(f"Bullpen features not found at {bp_path}.")
+        for col in [
+            "bullpen_fip_combined", "bullpen_whip_combined",
+            "bullpen_k9_combined", "bullpen_kbb_combined",
+            "bullpen_ip_3d_combined", "bullpen_pitchers_3d_combined",
+            "bullpen_ip_1d_combined",
+        ]:
+            df[col] = np.nan
+
+    # ── Elo ──────────────────────────────────────────────────────────────
+    logger.info("Computing Elo ratings...")
+    elo_df = compute_elo(df)
+    df = df.merge(
+        elo_df[["season", "date", "home_team", "away_team", "elo_diff"]],
+        on=["season", "date", "home_team", "away_team"],
+        how="left",
+    )
+
+    # ── Home advantage (constant) ────────────────────────────────────────
+    df["home_advantage"] = 1
+
+    # ── SUM-based O/U features ───────────────────────────────────────────
+    df["combined_rpg"] = df["rpg_home"] + df["rpg_away"]
+    df["combined_rapg"] = df["rapg_home"] + df["rapg_away"]
+    df["combined_rpg_last10"] = df["rpg_last10_home"] + df["rpg_last10_away"]
+    df["combined_rapg_last10"] = df["rapg_last10_home"] + df["rapg_last10_away"]
+
+    # Pitcher proxy sums
+    if "home_sp_ra_short" in df.columns and "away_sp_ra_short" in df.columns:
+        df["sp_ra_combined_short"] = df["home_sp_ra_short"] + df["away_sp_ra_short"]
+    else:
+        df["sp_ra_combined_short"] = np.nan
+
+    if "home_sp_ra_long" in df.columns and "away_sp_ra_long" in df.columns:
+        df["sp_ra_combined_long"] = df["home_sp_ra_long"] + df["away_sp_ra_long"]
+    else:
+        df["sp_ra_combined_long"] = np.nan
+
+    # Line movement
+    if "open_ou" in df.columns:
+        df["ou_line_move"] = df["close_ou"] - df["open_ou"]
+    else:
+        df["ou_line_move"] = np.nan
+
+    # ── Integrity check ──────────────────────────────────────────────────
+    dup_count = df.duplicated(subset=["season", "date", "home_team", "away_team"]).sum()
+    if dup_count > 0:
+        logger.error(f"Duplicate games detected: {dup_count}. Deduplicating.")
+        df = df.drop_duplicates(
+            subset=["season", "date", "home_team", "away_team"], keep="first"
+        )
+
+    # ── O/U filters ──────────────────────────────────────────────────────
+    n_before = len(df)
+    mask = pd.Series(True, index=df.index)
+
+    # Colorado
+    if "involves_col" in df.columns:
+        mask &= ~df["involves_col"]
+    # April
+    if "month" in df.columns:
+        mask &= df["month"] != 4
+    # Extra innings
+    if "is_extra_innings" in df.columns:
+        mask &= ~df["is_extra_innings"]
+    # Extreme ML lines
+    if "home_close_ml" in df.columns:
+        home_abs = df["home_close_ml"].abs()
+        away_abs = df["away_close_ml"].abs()
+        fav_ml = pd.concat([home_abs, away_abs], axis=1).max(axis=1)
+        mask &= fav_ml > 105
+        mask &= fav_ml <= 200
+    # O/U sanity
+    mask &= df["close_ou"].notna()
+    mask &= df["close_ou"].between(5.5, 15)
+    mask &= df["total_runs"].notna()
+
+    df = df[mask].copy()
+    logger.info(f"O/U filters: {n_before} -> {len(df)} games")
+
+    # ── O/U Regime labels ────────────────────────────────────────────────
+    df["ou_diff"] = df["total_runs"] - df["close_ou"]
+    df["regime"] = np.where(
+        df["ou_diff"] >= 2, "T_OVER2",
+        np.where(df["ou_diff"] > 0, "T_OVER1", "T_UNDER"),
+    )
+
+    # ── Final feature check ──────────────────────────────────────────────
+    available = [f for f in OU_FEATURES if f in df.columns and df[f].notna().any()]
+    missing = [f for f in OU_FEATURES if f not in available]
+    if missing:
+        logger.warning(f"O/U features with no data: {missing}")
+    logger.info(f"O/U features available: {len(available)}/{len(OU_FEATURES)}")
 
     return df
