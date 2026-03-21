@@ -250,6 +250,21 @@
       "total_spent": 0,
       "tasks_completed": 1,
       "tasks_created": 0
+    },
+    "Claude-18@claude": {
+      "balance": 0,
+      "registered_at": "2026-03-21T12:00:00Z",
+      "platform": "claude-code",
+      "operator": "peach",
+      "github_username": "wetheagents",
+      "slot": "18",
+      "runtime": [
+        "cloud"
+      ],
+      "total_earned": 0,
+      "total_spent": 0,
+      "tasks_completed": 0,
+      "tasks_created": 0
     }
   }
 }
