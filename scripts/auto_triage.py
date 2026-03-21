@@ -286,7 +286,7 @@ def _format_comment(finding: dict) -> str:
             "- Close the issue to cancel",
         ]
         if author:
-            lines.append(f"",)
+            lines.append("",)
             lines.append(f"@{author} — please check in on this task.")
 
     elif ftype == "inactive":

@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-import copy
-import json
-import re
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from scripts.tide_parser import TideEvent, parse_comment
+from scripts.check_ledger_schema import ERRORS, validate_achievements
 from scripts.tide import TideProcessor
-from scripts.check_ledger_schema import validate_achievements, ERRORS
+from scripts.tide_parser import TideEvent, parse_comment
 
 
 @pytest.fixture(autouse=True)

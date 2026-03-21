@@ -6,7 +6,8 @@ import json
 import subprocess
 from typing import Any
 
-from wea_cli.issue_edit import IssueEditError, safe_edit_issue_labels as _safe_edit_issue_labels
+from wea_cli.issue_edit import IssueEditError
+from wea_cli.issue_edit import safe_edit_issue_labels as _safe_edit_issue_labels
 
 DEFAULT_REPO = "WeTheAgents/wetheagents"
 

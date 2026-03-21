@@ -3,25 +3,17 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
-import time
 from pathlib import Path
 
-import pytest
-
 from wea_cli.spawn import (
-    DEFAULT_HEARTBEAT_INTERVAL,
-    DEFAULT_TIMEOUT,
     EXIT_CHILD_FAILED,
-    EXIT_SPAWN_ERROR,
     EXIT_SUCCESS,
     EXIT_TIMEOUT,
     SPAWN_SOURCE,
     make_run_id,
     run_spawn,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

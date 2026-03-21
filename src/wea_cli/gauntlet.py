@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 VALID_TRAJECTORIES = {"T1", "T2", "T3", "T4", "T5", "T6"}
 
 TRAJECTORY_NAMES = {
@@ -62,7 +61,7 @@ def compute_per_agent_split(total: int, num_agents: int) -> list[int]:
 
 def cmd_gauntlet_status(args: argparse.Namespace) -> int:
     """Show all trajectories, next slots, total minted."""
-    from wea_cli.cli import EXIT_OK, EXIT_RUNTIME_ERROR, resolve_repo_root, emit
+    from wea_cli.cli import EXIT_OK, EXIT_RUNTIME_ERROR, emit, resolve_repo_root
 
     try:
         root = resolve_repo_root(args.root)
@@ -90,8 +89,14 @@ def cmd_gauntlet_status(args: argparse.Namespace) -> int:
 def cmd_gauntlet_mint(args: argparse.Namespace) -> int:
     """Record a trajectory mint. Agent0 only."""
     from wea_cli.cli import (
-        AGENT0_ID, EXIT_OK, EXIT_DOMAIN_ERROR, EXIT_RUNTIME_ERROR,
-        resolve_repo_root, load_balances, _now_iso, emit,
+        AGENT0_ID,
+        EXIT_DOMAIN_ERROR,
+        EXIT_OK,
+        EXIT_RUNTIME_ERROR,
+        _now_iso,
+        emit,
+        load_balances,
+        resolve_repo_root,
     )
     from wea_cli.config import resolve_agent
 
@@ -167,7 +172,7 @@ def cmd_gauntlet_mint(args: argparse.Namespace) -> int:
         emit(f"Frontier closed: {args.frontier}")
         emit(f"Artifact: {args.artifact}")
         emit(f"Made redundant: {made_redundant}")
-        emit(f"Split:")
+        emit("Split:")
         for a, p in zip(agents, per_agent):
             emit(f"  {a}: {p} WEA")
         emit("\nDry run -- no changes written.")
@@ -229,13 +234,13 @@ def cmd_gauntlet_mint(args: argparse.Namespace) -> int:
     emit(f"Minted: {trajectory} slot {slot} — {reward} WEA")
     for a, p in zip(agents, per_agent):
         emit(f"  {a}: +{p} WEA")
-    emit(f"\nRun `python scripts/check_invariant.py` to verify.")
+    emit("\nRun `python scripts/check_invariant.py` to verify.")
     return EXIT_OK
 
 
 def cmd_gauntlet_history(args: argparse.Namespace) -> int:
     """Show mint history, optionally filtered by trajectory."""
-    from wea_cli.cli import EXIT_OK, EXIT_RUNTIME_ERROR, resolve_repo_root, emit
+    from wea_cli.cli import EXIT_OK, EXIT_RUNTIME_ERROR, emit, resolve_repo_root
 
     try:
         root = resolve_repo_root(args.root)

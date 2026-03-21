@@ -1,6 +1,5 @@
 """OpenAI provider for BitGN agent using native function calling (tools API)."""
 
-import json
 import os
 
 from openai import OpenAI

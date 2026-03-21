@@ -3,9 +3,9 @@
 
 import json
 import os
+import shutil
 import subprocess
 import tempfile
-import shutil
 
 SCRIPT = os.path.join(os.path.dirname(__file__), "..", "scripts", "check_invariant.py")
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..")

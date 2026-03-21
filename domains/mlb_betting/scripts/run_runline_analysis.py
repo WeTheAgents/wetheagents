@@ -1,7 +1,7 @@
 """Run Line analysis: favorites -1.5 and underdogs +1.5 profitability."""
 
-import sys
 import os
+import sys
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -9,7 +9,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
 
@@ -105,7 +104,7 @@ wr = rl_valid["home_rl_cover"].mean()
 total_pnl = rl_valid["rl_pnl"].sum()
 total_staked = n_rl * 100
 roi = total_pnl / total_staked
-print(f"\nHome favorite -1.5 (flat $100 bets):")
+print("\nHome favorite -1.5 (flat $100 bets):")
 print(f"  Bets: {n_rl}")
 print(f"  Cover rate: {wr:.1%}")
 print(f"  Avg RL odds: {rl_valid['rl_dec_odds'].mean():.3f}")
@@ -175,7 +174,7 @@ n = len(fav_home_valid)
 wr = fav_home_valid["away_rl_cover"].mean()
 pnl = fav_home_valid["away_rl_pnl"].sum()
 roi = pnl / (n * 100)
-print(f"\nAway underdog +1.5 vs home favorite (estimated odds):")
+print("\nAway underdog +1.5 vs home favorite (estimated odds):")
 print(f"  Bets: {n}")
 print(f"  Cover rate: {wr:.1%}")
 print(f"  Avg est. odds: {fav_home_valid['away_rl_dec_est2'].mean():.3f}")
@@ -225,7 +224,7 @@ margins = bettable["home_margin"]
 print(f"\nMean margin: {margins.mean():+.2f}")
 print(f"Median margin: {margins.median():+.1f}")
 print(f"Std dev: {margins.std():.2f}")
-print(f"\nMargin distribution:")
+print("\nMargin distribution:")
 for m in range(-8, 9):
     pct = (margins == m).mean()
     bar = "#" * int(pct * 200)
@@ -245,6 +244,7 @@ print("=" * 70)
 
 # Build features
 from src.features import build_all_features
+
 print("Building features (this takes ~3 min)...")
 enriched = build_all_features(games)
 

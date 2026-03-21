@@ -10,18 +10,19 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 import sys
+
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from wea_cli.pipeline_support import compute_overall_score
 from pipeline_parser import (
-    VERIFY_WEIGHTS,
     VERIFY_LEGACY_WEIGHTS,
+    VERIFY_WEIGHTS,
     EvaluationResult,
-    aggregate_results,
     _parse_verify_legacy,
+    aggregate_results,
 )
 
+from wea_cli.pipeline_support import compute_overall_score
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -112,7 +113,7 @@ def _valid_payload() -> dict:
 
 
 def test_schema_rejects_out_of_range_score():
-    from jsonschema import validate, ValidationError
+    from jsonschema import ValidationError, validate
     schema = _load_schema()
     payload = _valid_payload()
     payload["rubrics"]["gaming"] = {"score": 1.5, "note": "over range"}
@@ -121,7 +122,7 @@ def test_schema_rejects_out_of_range_score():
 
 
 def test_schema_rejects_missing_rubric_key():
-    from jsonschema import validate, ValidationError
+    from jsonschema import ValidationError, validate
     schema = _load_schema()
     payload = _valid_payload()
     del payload["rubrics"]["gaming"]
@@ -130,7 +131,7 @@ def test_schema_rejects_missing_rubric_key():
 
 
 def test_schema_rejects_extra_rubric_key():
-    from jsonschema import validate, ValidationError
+    from jsonschema import ValidationError, validate
     schema = _load_schema()
     payload = _valid_payload()
     payload["rubrics"]["fake"] = {"score": 0.5, "note": "injection"}

@@ -6,6 +6,8 @@ Validates all ledger/*.json files against expected structure.
 Exits 1 on any violation with remediation instructions.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -225,7 +227,7 @@ def main() -> None:
             continue
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             err(filename, f"invalid JSON: {e}", "fix JSON syntax")
@@ -240,7 +242,7 @@ def main() -> None:
             continue
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             err(filename, f"invalid JSON: {e}", "fix JSON syntax")

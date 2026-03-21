@@ -25,7 +25,6 @@ try:
     from scripts.economy_constants import SPLIT_TABLE
     from scripts.tide_ops import fib, idem_key_hash
 except ModuleNotFoundError:  # pragma: no cover - script execution fallback
-    from economy_constants import SPLIT_TABLE
     from tide_ops import fib, idem_key_hash
 
 VALID_MECHANICS = {"standard", "progressive", "linear", "every_good", "ranking", "duel"}
@@ -108,7 +107,7 @@ def build_idem_key(mechanic: str, issue: str, agent: str, entry: dict) -> str:
     return f"payment|{issue}|{agent}"
 
 
-def process(root: Path, dry_run: bool) -> int:  # noqa: C901, PLR0912, PLR0915
+def process(root: Path, dry_run: bool) -> int:
     pending_path = root / "ledger" / "pending.json"
     balances_path = root / "ledger" / "balances.json"
     escrows_path = root / "ledger" / "escrows.json"

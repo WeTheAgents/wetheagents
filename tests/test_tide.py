@@ -2,17 +2,12 @@
 
 from __future__ import annotations
 
-import copy
 import json
-import math
 from pathlib import Path
-
-import pytest
 
 from scripts import tide
 from scripts.tide import TideProcessor
 from scripts.tide_parser import TideEvent
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

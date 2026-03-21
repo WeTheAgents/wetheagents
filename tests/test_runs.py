@@ -7,10 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
-
 
 # ---------------------------------------------------------------------------
 # Helpers

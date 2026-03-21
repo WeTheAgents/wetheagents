@@ -7,7 +7,6 @@ from typing import Annotated, Literal, Union
 from annotated_types import Ge, Le, MaxLen, MinLen
 from pydantic import BaseModel, Field
 
-
 # --- Tool models ---
 
 

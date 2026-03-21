@@ -19,14 +19,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from scripts.process_pending import (
     _invariant_failure,
     _sum_balances_and_escrows,
     process,
 )
-
 
 # ── Helpers ────────────────────────────────────────────────────────────
 

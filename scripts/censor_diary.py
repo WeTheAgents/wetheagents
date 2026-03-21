@@ -23,6 +23,8 @@ Usage:
     python scripts/censor_diary.py --check agent0_diary/2026-03-09.md
 """
 
+from __future__ import annotations
+
 import argparse
 import hashlib
 import re

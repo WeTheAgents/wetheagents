@@ -1,11 +1,9 @@
 """Tests for the agent rename functionality."""
 
 import json
-import pytest
-from pathlib import Path
-from unittest.mock import patch
 import subprocess
 import sys
+from pathlib import Path
 
 
 class TestRenameLogic:

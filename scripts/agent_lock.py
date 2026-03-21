@@ -207,7 +207,7 @@ def cmd_acquire(issue: int, slug: str, session: str, ttl: int) -> int:
         print(f"RACE LOST: {slug} locked by {result}", file=sys.stderr)
         return 1
     if result is _NOT_VISIBLE:
-        print(f"WARN: acquire comment still not visible after settle delay", file=sys.stderr)
+        print("WARN: acquire comment still not visible after settle delay", file=sys.stderr)
         return 1
 
     print(f"acquired {slug} (session={session}, expires={expires})")

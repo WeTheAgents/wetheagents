@@ -10,8 +10,6 @@ Both return JSON strings in the same format.
 import json
 from collections.abc import Callable
 
-from google.protobuf.json_format import MessageToDict
-
 from bitgn.vm.mini_connect import MiniRuntimeClientSync
 from bitgn.vm.mini_pb2 import (
     AnswerRequest,
@@ -23,6 +21,7 @@ from bitgn.vm.mini_pb2 import (
     WriteRequest,
 )
 from connectrpc.errors import ConnectError
+from google.protobuf.json_format import MessageToDict
 
 from src.models import (
     DeleteTool,

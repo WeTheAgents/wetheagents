@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -36,7 +36,7 @@ class BenchmarkTrace:
     total_score: float = 0.0
     passed_tasks: list[str] = field(default_factory=list)
     failed_tasks: list[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def finalize(self) -> None:
         """Compute summary fields from individual traces."""

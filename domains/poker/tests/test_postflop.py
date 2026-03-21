@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.strategy.board import board_wetness
+
 from src.strategy.postflop import (
     calculate_equity,
     call_ev,

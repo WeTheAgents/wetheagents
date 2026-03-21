@@ -23,6 +23,8 @@ Environment:
   PR_FILES  — newline-separated list of changed files (alternative to --files)
 """
 
+from __future__ import annotations
+
 import argparse
 import os
 import re

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import json
-from pathlib import Path
 import re
 import sys
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +14,11 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from wea_cli.pipeline_support import compute_overall_score, load_stage_schema, normalize_stage  # noqa: E402
+from wea_cli.pipeline_support import (  # noqa: E402
+    compute_overall_score,
+    load_stage_schema,
+    normalize_stage,
+)
 
 VERIFY_WEIGHTS: dict[str, float] = {
     "gaming": 0.15,

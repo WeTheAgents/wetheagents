@@ -6,7 +6,13 @@ import sys
 
 import pytest
 
-from scripts.tide_ops import SPLIT_TABLE, compute_ranking_payouts, fib, linear_budget, progressive_budget
+from scripts.tide_ops import (
+    SPLIT_TABLE,
+    compute_ranking_payouts,
+    fib,
+    linear_budget,
+    progressive_budget,
+)
 
 
 def test_protocol_vector2_progressive_pod_3_slots() -> None:

@@ -6,10 +6,10 @@ We have REAL closing odds for both sides — no estimation needed.
 Test both favorite and underdog sides with team + pitcher filters.
 """
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -274,7 +274,7 @@ for label, fn in dog_combos:
 # ══════════════════════════════════════════════════════════════════════════
 print("\n" + "=" * 95)
 print("PART 4: TRAIN/TEST SPLIT")
-print(f"  TRAIN: 2010-2017  |  TEST: 2018-2019, 2021")
+print("  TRAIN: 2010-2017  |  TEST: 2018-2019, 2021")
 print("=" * 95)
 
 fav_configs = [

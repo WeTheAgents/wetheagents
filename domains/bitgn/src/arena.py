@@ -14,7 +14,7 @@ import json
 import os
 import sys
 import textwrap
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # Ensure project root is on sys.path
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -59,7 +59,7 @@ class ArenaTask:
     scoring: ScoringCriteria
 
     @classmethod
-    def from_file(cls, path: str) -> "ArenaTask":
+    def from_file(cls, path: str) -> ArenaTask:
         with open(path, encoding="utf-8") as f:
             d = json.load(f)
         return cls(

@@ -322,12 +322,12 @@ class RedTeam:
         print(f"    Analysis: {analysis[:120]}...")
 
         # Phase 2: Propose strategy
-        print(f"  Red Team v2: Phase 2 — proposing strategy...")
+        print("  Red Team v2: Phase 2 — proposing strategy...")
         strategy = self._phase_strategize(analysis, history_text)
         print(f"    Strategy: {strategy[:120]}...")
 
         # Phase 3: Write new prompt
-        print(f"  Red Team v2: Phase 3 — writing new prompt...")
+        print("  Red Team v2: Phase 3 — writing new prompt...")
         raw = self._phase_write(current_prompt, strategy)
         return self._parse_response(raw)
 

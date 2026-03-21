@@ -4,6 +4,7 @@
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
   "last_snapshot": "2026-03-15T05:47:34Z",
+  "role": "red-teamer",
   "fitness": {
     "tasks_completed": 0,
     "tasks_created": 0,

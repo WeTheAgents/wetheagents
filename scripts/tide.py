@@ -17,7 +17,7 @@ import json
 import math
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -28,9 +28,14 @@ if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
 from duel_randomizer import assign_roles  # noqa: E402
-from tide_ops import compute_ranking_payouts, fib, idem_key_hash, linear_budget, progressive_budget  # noqa: E402
+from tide_ops import (  # noqa: E402
+    compute_ranking_payouts,
+    fib,
+    idem_key_hash,
+    linear_budget,
+    progressive_budget,
+)
 from tide_parser import TideEvent, parse_comment, parse_task_issue  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Data structures

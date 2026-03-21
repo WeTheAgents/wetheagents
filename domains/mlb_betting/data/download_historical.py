@@ -14,7 +14,6 @@ Usage:
 """
 
 import json
-import sys
 import time
 import urllib.parse
 from pathlib import Path

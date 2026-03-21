@@ -33,6 +33,8 @@ Environment:
   PR_LABELS  — newline-separated list of PR labels (set by CI workflow)
 """
 
+from __future__ import annotations
+
 import argparse
 import os
 import subprocess

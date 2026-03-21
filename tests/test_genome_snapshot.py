@@ -6,7 +6,6 @@ Minimum 5 tests as specified in task #109.
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 from uuid import uuid4
 
@@ -75,9 +74,8 @@ _SCRIPTS = _P(__file__).resolve().parents[1] / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
+from genome_log import log_all, render_agent_log
 from genome_snapshot import compute_fitness, update_genome_fitness
-from genome_log import render_agent_log, log_all
-
 
 # ---------------------------------------------------------------------------
 # Test 1: Fitness computed correctly from mock ledger JSONL

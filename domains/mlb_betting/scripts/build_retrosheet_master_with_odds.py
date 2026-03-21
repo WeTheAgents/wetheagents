@@ -21,7 +21,12 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons, _map_team_code_to_retrosheet
+from src.data_loader import (
+    _map_team_code_to_retrosheet,
+    add_derived_odds,
+    apply_data_filters,
+    load_all_seasons,
+)
 from src.retrosheet_games import GamelogSources, drop_doubleheaders, load_retrosheet_gamelogs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

@@ -6,7 +6,7 @@ import logging
 import random
 import re
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from selenium import webdriver
 from selenium.common.exceptions import (
@@ -902,7 +902,7 @@ def run_bot_loop(
     connector: PokerNowConnector,
     get_action: Callable[[GameState], Action],
     poll_interval: float = 0.5,
-    hand_recorder: "HandRecorder | None" = None,
+    hand_recorder: HandRecorder | None = None,
 ) -> None:
     """Main bot loop: poll for turn, get action, execute.
 
@@ -962,7 +962,7 @@ def run_bot_loop(
 
 def _observe_game_log(
     connector: PokerNowConnector,
-    hand_recorder: "HandRecorder",
+    hand_recorder: HandRecorder,
     last_log_count: int,
 ) -> int:
     """Read new game log entries and feed them to the HandRecorder.

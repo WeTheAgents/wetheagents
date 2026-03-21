@@ -1,7 +1,7 @@
 """Run streak analysis without Jupyter — quick validation script."""
 
-import sys
 import os
+import sys
 import warnings
 
 warnings.filterwarnings("ignore")

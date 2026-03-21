@@ -39,9 +39,13 @@ _SCRIPTS = ROOT / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from wea_cli.pipeline_support import compute_normalized_change  # noqa: E402
-from pipeline_parser import AggregateResult, EvaluationResult, aggregate_results, VERIFY_WEIGHTS  # noqa: E402
+from pipeline_parser import (  # noqa: E402
+    VERIFY_WEIGHTS,
+    EvaluationResult,
+    aggregate_results,
+)
 
+from wea_cli.pipeline_support import compute_normalized_change  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Helpers

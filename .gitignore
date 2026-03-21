@@ -12,6 +12,9 @@ agent0_diary_raw/
 # Agent worktree secrets
 /.env
 
+# Claude Code agent worktrees
+.claude/worktrees/
+
 # Claude Code local settings (machine-specific permissions)
 .claude/settings.local.json
 

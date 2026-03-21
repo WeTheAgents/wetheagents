@@ -13,10 +13,10 @@ We test both "bet on home favorite" and "bet on away favorite" perspectives,
 then unify into a single "bet on the F5 favorite" dataset with proper sign flipping.
 """
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -298,7 +298,7 @@ for label, mask_fn in dog_combos:
 # ══════════════════════════════════════════════════════════════════════════
 print("\n" + "=" * 95)
 print("PART 4: TRAIN/TEST SPLIT — best F5 configs")
-print(f"  TRAIN: 2010-2017  |  TEST: 2018-2019, 2021")
+print("  TRAIN: 2010-2017  |  TEST: 2018-2019, 2021")
 print("=" * 95)
 
 # Configs to validate

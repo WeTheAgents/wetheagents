@@ -71,10 +71,9 @@ def _parse_linescore_to_innings(linescore: str, innings: int = 9) -> tuple[list[
 
 
 def _iter_gl_rows_from_zip(zip_path: Path, member: str) -> list[list[str]]:
-    with ZipFile(zip_path) as z:
-        with z.open(member) as f:
-            reader = csv.reader(TextIOWrapper(f, encoding="utf-8", errors="replace"))
-            return list(reader)
+    with ZipFile(zip_path) as z, z.open(member) as f:
+        reader = csv.reader(TextIOWrapper(f, encoding="utf-8", errors="replace"))
+        return list(reader)
 
 
 def load_retrosheet_gamelogs(

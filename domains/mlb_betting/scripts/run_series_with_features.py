@@ -5,10 +5,10 @@ using RPI, form, and streak features to find the ~500-1000 best
 series out of ~6400.
 """
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -21,13 +21,13 @@ import pandas as pd
 from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
 from src.features import build_all_features
 from src.series import (
+    Series,
+    SeriesResult,
     build_backtest_summary,
     identify_series,
     print_backtest_report,
     run_series_dogon,
     select_series_favorite,
-    Series,
-    SeriesResult,
 )
 
 # ── Load and build features ──────────────────────────────────────────────

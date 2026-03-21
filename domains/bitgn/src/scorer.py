@@ -91,7 +91,7 @@ def _check_answer(criteria: ScoringCriteria, answer: str) -> tuple[bool, str]:
         case "exact":
             ok = answer_clean.lower() == expected_clean.lower()
             return ok, (
-                f"[OK] answer: exact match" if ok
+                "[OK] answer: exact match" if ok
                 else f"[FAIL] answer: expected '{expected_clean}', got '{answer_clean[:100]}'"
             )
         case "contains":

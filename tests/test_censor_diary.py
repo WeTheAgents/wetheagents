@@ -2,10 +2,8 @@
 import sys
 from pathlib import Path
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
-from censor_diary import BLOCK, _redact_length, censor_text, check_file
+from censor_diary import BLOCK, censor_text, check_file
 
 # ---------------------------------------------------------------------------
 # Helper

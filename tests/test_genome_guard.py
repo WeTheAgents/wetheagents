@@ -16,7 +16,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-
 # ---------------------------------------------------------------------------
 # Import the module under test
 # ---------------------------------------------------------------------------
@@ -26,7 +25,6 @@ if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
 import genome_guard  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Helpers

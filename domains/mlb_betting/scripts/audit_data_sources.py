@@ -19,7 +19,6 @@ import os
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -154,7 +153,7 @@ def audit_fangraphs() -> dict:
     if "obp" in df.columns:
         obp_range = [df["obp"].min(), df["obp"].max()]
         info["obp_range"] = [round(v, 4) for v in obp_range]
-        info["obp_ok"] = 0.25 <= obp_range[0] and obp_range[1] <= 0.40
+        info["obp_ok"] = obp_range[0] >= 0.25 and obp_range[1] <= 0.40
         if not info["obp_ok"]:
             info["status"] = "RED"
 

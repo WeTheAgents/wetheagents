@@ -138,7 +138,7 @@ def handle_hook(payload: dict, run_dir: Path | None = None) -> int:
 
     try:
         handler(payload, run_dir)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print(
             f"wea-hooks warning: failed to emit event for {hook_event_name}: {exc}",
             file=sys.stderr,

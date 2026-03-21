@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 SPLIT_TABLE: dict[int, list[int]] = {
     1: [100],
     2: [70, 30],
