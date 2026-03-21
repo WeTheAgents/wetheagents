@@ -538,7 +538,7 @@ def _decide_call_raise_fold(
     # Monster -> raise
     if equity >= EQUITY_MONSTER_VS_BET:
         if committed:
-            logger.info(f"  -> ALL-IN (monster, committed)")
+            logger.info("  -> ALL-IN (monster, committed)")
             return Action(ActionType.ALL_IN, state.my_stack)
         raise_amount = get_bet_size(state, equity, is_value=True)
         logger.info(f"  -> RAISE {raise_amount:.0f} (monster equity {equity:.2f})")
@@ -608,7 +608,7 @@ def _decide_call_raise_fold(
     if equity > call_threshold:
         # But avoid calling large bets with marginal hands on river
         if state.street == Street.RIVER and equity < 0.45 and state.to_call > state.pot * 0.5:
-            logger.info(f"  -> FOLD (marginal on river, large bet)")
+            logger.info("  -> FOLD (marginal on river, large bet)")
             return Action(ActionType.FOLD)
         logger.info(f"  -> CALL (equity {equity:.2f} > implied threshold {call_threshold:.2f})")
         return Action(ActionType.CALL)

@@ -1,16 +1,15 @@
 """Deep analysis of series dogon — find profitable subsets and patterns."""
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 logging.basicConfig(level=logging.WARNING)
 
-import numpy as np
 import pandas as pd
 
 from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
@@ -236,11 +235,11 @@ if not g2_rows.empty:
 
     be_wr = total_risk / (total_risk + 100)
 
-    print(f"From our data:")
+    print("From our data:")
     print(f"  Avg G1 odds: {avg_g1_odds:.2f} -> stake ${avg_g1_stake:.0f}")
     print(f"  Avg G2 odds: {avg_g2_odds:.2f} -> stake ${avg_g2_stake:.0f}")
     print(f"  Total risk per lost series: ${total_risk:.0f}")
-    print(f"  Profit per won series: $100")
+    print("  Profit per won series: $100")
     print(f"  Breakeven series win rate: {be_wr:.1%}")
     print(f"  Our actual win rate: {summary['won'].mean():.1%}")
     print(f"  Gap: {(summary['won'].mean() - be_wr)*100:+.1f}pp")
@@ -267,7 +266,7 @@ cum_pnl = summary_sorted["total_pnl"].cumsum()
 running_max = cum_pnl.cummax()
 drawdown = cum_pnl - running_max
 
-print(f"  Starting bankroll: $10,000")
+print("  Starting bankroll: $10,000")
 print(f"  Final P&L: ${cum_pnl.iloc[-1]:+,.0f}")
 print(f"  Max cumulative P&L: ${running_max.max():+,.0f}")
 print(f"  Max drawdown: ${drawdown.min():,.0f}")

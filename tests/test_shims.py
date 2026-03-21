@@ -20,7 +20,6 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path
-from typing import Optional
 
 import pytest
 
@@ -106,8 +105,8 @@ def _run_shim(
     binary: str,
     args: list[str],
     *,
-    run_dir: Optional[Path] = None,
-    extra_env: Optional[dict] = None,
+    run_dir: Path | None = None,
+    extra_env: dict | None = None,
 ) -> subprocess.CompletedProcess:
     """Run a shim script as a subprocess with controlled PATH.
 

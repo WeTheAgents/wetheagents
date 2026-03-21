@@ -15,10 +15,10 @@ Data notes:
 Key insight from user: lower underdog odds = stronger underdog = more likely to cover.
 """
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -303,7 +303,7 @@ for label, params in combos_dog:
 # ══════════════════════════════════════════════════════════════════════════
 print("\n" + "=" * 90)
 print("PART 4: TRAIN/TEST SPLIT for best RL configs")
-print(f"  TRAIN: 2010-2017  |  TEST: 2018-2019, 2021")
+print("  TRAIN: 2010-2017  |  TEST: 2018-2019, 2021")
 print("=" * 90)
 
 TRAIN_SEASONS = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]

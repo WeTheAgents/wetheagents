@@ -6,8 +6,8 @@ in-memory dictionaries loaded from fixture JSON files.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 import math
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 try:

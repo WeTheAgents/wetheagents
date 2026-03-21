@@ -13,7 +13,7 @@ import json
 import os
 import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 
 # Ensure project root is on sys.path
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,11 +26,11 @@ load_dotenv(os.path.join(_PROJECT_ROOT, ".env"), override=True)
 
 from src.config import DEFAULT_CONFIG, AgentConfig
 from src.fitness import compute_fitness, should_accept
-from src.history import TaskHistory, load_history, save_history
+from src.history import load_history, save_history
 from src.main import print_summary, run_benchmark
 from src.prompts import SYSTEM_PROMPT_TEMPLATE, WEAK_BASELINE_PROMPT
 from src.redteam import RedTeam
-from src.trace import BenchmarkTrace, load_trace, save_trace
+from src.trace import load_trace, save_trace
 
 CLI_RED = "\x1B[31m"
 CLI_GREEN = "\x1B[32m"
@@ -285,7 +285,7 @@ def evolve(
 
     # Final report
     print(f"\n{CLI_BLUE}{'='*60}")
-    print(f"EVOLUTION COMPLETE")
+    print("EVOLUTION COMPLETE")
     print(f"{'='*60}{CLI_CLR}")
     print(f"Best generation: gen_{state.best_gen:03d}")
     print(f"Best score: {state.best_score:.2%}")

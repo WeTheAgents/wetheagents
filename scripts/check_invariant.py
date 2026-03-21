@@ -7,10 +7,10 @@ sum(all_balances) + total_escrowed = 10,000 + total_minted
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
-import argparse
 
 
 def _print_failure(title: str, details: str, why_it_matters: str, remediation_steps: list[str]) -> None:
@@ -34,7 +34,7 @@ def main():
 
     # Read balances
     try:
-        with open(balances_path, 'r', encoding='utf-8') as f:
+        with open(balances_path, encoding='utf-8') as f:
             balances_data = json.load(f)
     except FileNotFoundError:
         _print_failure(
@@ -55,7 +55,7 @@ def main():
 
     # Read escrows
     try:
-        with open(escrows_path, 'r', encoding='utf-8') as f:
+        with open(escrows_path, encoding='utf-8') as f:
             escrows_data = json.load(f)
     except FileNotFoundError:
         _print_failure(
@@ -79,7 +79,7 @@ def main():
     total_minted = 0
     if os.path.exists(mints_path):
         try:
-            with open(mints_path, 'r', encoding='utf-8') as f:
+            with open(mints_path, encoding='utf-8') as f:
                 mints_data = json.load(f)
             total_minted = mints_data.get('total_minted', 0)
             if not isinstance(total_minted, (int, float)) or total_minted < 0:

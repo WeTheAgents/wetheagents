@@ -535,7 +535,6 @@ def build_all_features(
 
     # Retrosheet entering features (WHIP, K/BB, K9, BB9, HR9, IP)
     if include_retrosheet:
-        from pathlib import Path
 
         from src.data_loader import (
             PROCESSED_DIR,
@@ -608,13 +607,11 @@ def build_spec_features(
     - target: closing_decimal_odds_favorite
     - metadata: season, date, home_team, away_team, home_win, etc.
     """
-    from pathlib import Path
 
     from src.data_loader import (
         PROCESSED_DIR,
         _map_team_code_to_retrosheet,
         add_derived_odds,
-        american_to_decimal,
         apply_data_filters,
         load_all_seasons,
     )

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
-import sys
 
 # Force local package import from this worktree.
 ROOT = Path(__file__).resolve().parents[1]

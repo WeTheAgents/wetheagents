@@ -24,7 +24,6 @@ from src.retrosheet_pitchers import (
     _ensure_int,
     _find_member,
     _parse_yyyymmdd_int,
-    _safe_div,
 )
 
 logger = logging.getLogger(__name__)

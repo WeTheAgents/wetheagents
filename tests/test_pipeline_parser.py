@@ -17,15 +17,20 @@ if str(SRC) not in sys.path:
 
 from scripts.pipeline_parser import (  # noqa: E402
     EvaluationResult,
+    _extract_json_payloads,
+    _parse_impl_legacy,
+    _parse_triage_legacy,
     aggregate_evaluations,
     aggregate_results,
     parse_evaluation_comment,
-    _extract_json_payloads,
-    _parse_triage_legacy,
-    _parse_impl_legacy,
 )
 from wea_cli import cli  # noqa: E402
-from wea_cli.pipeline_support import normalize_stage, validate_stage_payload  # noqa: E402
+from wea_cli.pipeline_support import (  # noqa: E402
+    normalize_stage,
+    validate_stage_payload,
+)
+
+
 def _prepare_repo(root: Path) -> None:
     for stage in ("triage", "negativa", "spec", "impl", "verify"):
         source_dir = ROOT / "pipeline" / stage

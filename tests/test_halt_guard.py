@@ -21,9 +21,7 @@ from pathlib import Path
 import pytest
 
 from wea_cli.cli import (
-    EXIT_HALT,
     READONLY_COMMANDS,
-    READONLY_SUBCOMMANDS,
     check_halt_guard,
     is_readonly_command,
 )

@@ -8,7 +8,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "check_claim_ttl.py"
 
 

@@ -11,7 +11,6 @@ import tempfile
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 from wea_cli.shims import create_shim_dir
 from wea_cli.trace import emit_event
@@ -49,7 +48,7 @@ def _now_iso() -> str:
     return _now_utc().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def make_run_id(agent: Optional[str] = None) -> str:
+def make_run_id(agent: str | None = None) -> str:
     """Generate a run ID.
 
     Format: [<slug>-]<YYYYMMDDTHHMMSS>-<8hex>
@@ -97,10 +96,10 @@ def _write_manifest(
     command: str,
     args: list[str],
     started_at: str,
-    pid: Optional[int],
-    agent: Optional[str],
-    runtime: Optional[str],
-    worktree: Optional[str],
+    pid: int | None,
+    agent: str | None,
+    runtime: str | None,
+    worktree: str | None,
 ) -> None:
     """Write (or update) manifest.json in the run directory."""
     data: dict = {
@@ -126,9 +125,9 @@ def _write_supervisor(
     run_id: str,
     command: str,
     started_at: str,
-    pid: Optional[int],
-    last_heartbeat_at: Optional[str] = None,
-    last_milestone_at: Optional[str] = None,
+    pid: int | None,
+    last_heartbeat_at: str | None = None,
+    last_milestone_at: str | None = None,
 ) -> None:
     """Atomically write supervisor.json.
 
@@ -147,7 +146,7 @@ def _write_supervisor(
     _atomic_write_json(run_dir / "supervisor.json", data)
 
 
-def _pid_alive(pid: int, process: Optional[subprocess.Popen] = None) -> bool:
+def _pid_alive(pid: int, process: subprocess.Popen | None = None) -> bool:
     """Check if a PID is alive. Cross-platform (Windows + POSIX).
 
     On Windows: prefer process.poll() when process object is available,
@@ -261,7 +260,7 @@ class _HeartbeatThread(threading.Thread):
                     last_heartbeat_at=now_iso,
                     last_milestone_at=self._supervisor_state.get("last_milestone_at"),
                 )
-            except Exception:  # noqa: BLE001 — heartbeat must never crash supervisor
+            except Exception:
                 pass
 
 
@@ -274,12 +273,12 @@ def run_spawn(
     command: str,
     args: list[str],
     *,
-    agent: Optional[str] = None,
+    agent: str | None = None,
     timeout: int = DEFAULT_TIMEOUT,
-    runtime: Optional[str] = None,
-    worktree: Optional[str] = None,
+    runtime: str | None = None,
+    worktree: str | None = None,
     heartbeat_interval: int = DEFAULT_HEARTBEAT_INTERVAL,
-    runs_base: Optional[Path] = None,
+    runs_base: Path | None = None,
 ) -> int:
     """Launch command, monitor it, emit lifecycle events.
 
@@ -334,8 +333,8 @@ def run_spawn(
     stdout_log = run_dir / "stdout.log"
     stderr_log = run_dir / "stderr.log"
 
-    process: Optional[subprocess.Popen] = None
-    heartbeat: Optional[_HeartbeatThread] = None
+    process: subprocess.Popen | None = None
+    heartbeat: _HeartbeatThread | None = None
     fout = None
     ferr = None
 
@@ -351,8 +350,8 @@ def run_spawn(
 
         # Open log files in binary mode BEFORE Popen so they stay open for the
         # duration of the child's life (streamed, not buffered in memory).
-        fout = open(stdout_log, "wb")  # noqa: WPS515
-        ferr = open(stderr_log, "wb")  # noqa: WPS515
+        fout = open(stdout_log, "wb")
+        ferr = open(stderr_log, "wb")
 
         try:
             process = subprocess.Popen(
@@ -361,7 +360,7 @@ def run_spawn(
                 stderr=ferr,
                 env=env,
             )
-        except FileNotFoundError as exc:
+        except FileNotFoundError:
             # Command not found — emit run_failed with specific reason
             try:
                 emit_event(
@@ -370,7 +369,7 @@ def run_spawn(
                     source=SPAWN_SOURCE,
                     payload={"exit_code": -1, "reason": "command_not_found"},
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
             _write_supervisor(
                 run_dir=run_dir,
@@ -381,7 +380,7 @@ def run_spawn(
                 pid=None,
             )
             return EXIT_SPAWN_ERROR
-        except (PermissionError, OSError) as exc:
+        except (PermissionError, OSError):
             # Other OS-level spawn errors
             try:
                 emit_event(
@@ -390,7 +389,7 @@ def run_spawn(
                     source=SPAWN_SOURCE,
                     payload={"exit_code": -1, "reason": "spawn_error"},
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
             _write_supervisor(
                 run_dir=run_dir,
@@ -523,7 +522,7 @@ def run_spawn(
             )
             return EXIT_CHILD_FAILED
 
-    except Exception as exc:  # noqa: BLE001
+    except Exception:
         # Supervisor crash: emit run_failed with supervisor_crash reason, return EXIT_SPAWN_ERROR
         if heartbeat is not None:
             heartbeat.stop_event.set()
@@ -536,7 +535,7 @@ def run_spawn(
                 source=SPAWN_SOURCE,
                 payload={"exit_code": -1, "reason": "supervisor_crash"},
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
         _write_supervisor(

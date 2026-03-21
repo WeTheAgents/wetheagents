@@ -12,10 +12,10 @@ so there's no direct look-ahead. But threshold SELECTION on full data
 could overfit, which is what we're testing here.
 """
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -28,12 +28,11 @@ import pandas as pd
 from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
 from src.features import build_all_features
 from src.series import (
+    Series,
     build_backtest_summary,
     identify_series,
     run_series_dogon,
     select_series_favorite,
-    Series,
-    SeriesResult,
 )
 
 # ── Load data ────────────────────────────────────────────────────────────

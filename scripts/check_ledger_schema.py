@@ -227,7 +227,7 @@ def main() -> None:
             continue
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             err(filename, f"invalid JSON: {e}", "fix JSON syntax")
@@ -242,7 +242,7 @@ def main() -> None:
             continue
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
         except json.JSONDecodeError as e:
             err(filename, f"invalid JSON: {e}", "fix JSON syntax")

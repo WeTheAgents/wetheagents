@@ -9,7 +9,6 @@ import subprocess
 import sys
 from datetime import date, datetime
 
-
 _DEADLINE_PATTERN = re.compile(
     r"###\s+Deadline(?:\s+\(optional\))?\s*\n\s*\n(.+?)(?:\n\s*\n|\n###|\Z)",
     re.DOTALL,

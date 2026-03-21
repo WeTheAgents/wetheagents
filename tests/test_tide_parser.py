@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from scripts.tide_parser import TideEvent, parse_comment, parse_task_issue
 
 # ---------------------------------------------------------------------------

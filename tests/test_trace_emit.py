@@ -11,8 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from wea_cli.trace import EVENT_TYPES, emit_event, validate_event
-
+from wea_cli.trace import emit_event, validate_event
 
 # ---- Fixtures ----
 

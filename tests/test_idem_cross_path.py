@@ -10,11 +10,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from scripts.process_pending import build_idem_key, process
 from scripts.tide import TideProcessor
 from scripts.tide_ops import idem_key_hash
 from scripts.tide_parser import TideEvent
-from scripts.process_pending import build_idem_key, process
-
 
 # ---------------------------------------------------------------------------
 # Helpers (matching test_tide.py patterns)

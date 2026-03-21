@@ -15,7 +15,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import subprocess
@@ -111,7 +110,7 @@ def main() -> None:
             logger.error(f"Unknown strategy: {s}. Available: {available}")
             sys.exit(1)
 
-    logger.info(f"=== WEA POKER TRAINING ARENA ===")
+    logger.info("=== WEA POKER TRAINING ARENA ===")
     logger.info(f"URL: {args.url}")
     logger.info(f"Strategies: {args.strategies}")
     logger.info(f"Bots: {len(args.strategies)}")
@@ -135,7 +134,7 @@ def main() -> None:
 
     logger.info("")
     logger.info(f"All {len(processes)} bots launched. Press Ctrl+C to stop all.")
-    logger.info(f"Logs: data/arena_sessions/bot-*.log")
+    logger.info("Logs: data/arena_sessions/bot-*.log")
 
     try:
         # Wait for all processes
@@ -158,7 +157,7 @@ def main() -> None:
                 p.kill()
 
     logger.info("Arena session complete.")
-    logger.info(f"Run: python scripts/analyze_arena.py to review results")
+    logger.info("Run: python scripts/analyze_arena.py to review results")
 
 
 if __name__ == "__main__":

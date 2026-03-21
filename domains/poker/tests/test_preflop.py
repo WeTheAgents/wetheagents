@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src.strategy.preflop import get_preflop_action
 from src.table.state import (
     ActionType,
     GameState,
@@ -12,7 +13,6 @@ from src.table.state import (
     Street,
     canonicalize_hand,
 )
-from src.strategy.preflop import get_preflop_action
 
 
 def _make_state(

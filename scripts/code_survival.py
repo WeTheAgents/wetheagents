@@ -15,7 +15,6 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 # Sentinel for unmapped authors
 UNKNOWN = "__unknown__"
 

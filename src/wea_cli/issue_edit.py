@@ -97,11 +97,11 @@ def safe_edit_issue_labels(
         rollback_errors: list[str] = []
         try:
             set_labels(issue_number, sorted(labels_before))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             rollback_errors.append(f"label rollback failed: {exc}")
         try:
             set_state(issue_number, state_before)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             rollback_errors.append(f"state rollback failed: {exc}")
 
         details = "; ".join(rollback_errors)

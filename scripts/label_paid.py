@@ -22,7 +22,6 @@ import subprocess
 import sys
 from glob import glob
 
-
 STALE_LABELS = {"open", "claimed"}
 TERMINAL_LABEL = "paid"
 
@@ -36,7 +35,7 @@ def load_history(root: str) -> set[int]:
         return paid_issues
 
     for path in sorted(glob(os.path.join(history_dir, "*.jsonl"))):
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -57,7 +56,7 @@ def load_escrows(root: str) -> set[int]:
     if not os.path.isfile(escrows_path):
         return set()
 
-    with open(escrows_path, "r", encoding="utf-8") as f:
+    with open(escrows_path, encoding="utf-8") as f:
         data = json.load(f)
 
     return {int(k) for k in data.get("active", {}).keys()}
@@ -96,7 +95,7 @@ def load_task_index(root: str) -> dict:
     path = os.path.join(root, "ledger", "task_index.json")
     if not os.path.isfile(path):
         return {"version": 1, "tasks": {}}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -186,7 +185,7 @@ def main() -> None:
         if args.apply:
             try:
                 apply_label_changes(num, to_add, to_remove)
-                print(f"    ✓ applied")
+                print("    ✓ applied")
             except subprocess.CalledProcessError as e:
                 print(f"    ✗ failed: {e}", file=sys.stderr)
 

@@ -1,11 +1,7 @@
 """Tests for multi-agent identity system."""
 
-import json
-import pytest
-from pathlib import Path
-from scripts.tide import _github_to_agents, TideProcessor
+from scripts.tide import TideProcessor, _github_to_agents
 from scripts.tide_parser import TideEvent
-
 
 # ---------------------------------------------------------------------------
 # _github_to_agents

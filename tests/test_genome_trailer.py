@@ -10,7 +10,7 @@ import pytest
 
 # Import the module under test
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-import check_genome_trailer as cgt  # noqa: E402
+import check_genome_trailer as cgt
 
 
 @pytest.fixture

@@ -1,9 +1,9 @@
 """Run series dogon backtest with multiple configurations."""
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -42,9 +42,9 @@ print("=" * 70)
 all_series = identify_series(games)
 sdf = series_summary(all_series)
 print(f"\nTotal series: {len(all_series)}")
-print(f"Series length distribution:")
+print("Series length distribution:")
 print(sdf["length"].value_counts().sort_index().to_string())
-print(f"\nBy season:")
+print("\nBy season:")
 for season, grp in sdf.groupby("season"):
     print(f"  {int(season)}: {len(grp)} series (avg {grp['length'].mean():.1f} games)")
 

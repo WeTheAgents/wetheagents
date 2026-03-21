@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 _WATCHDOG_MODEL_DEFAULT = os.getenv("WATCHDOG_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
 _WATCHDOG_GATE_MODEL_DEFAULT = os.getenv("WATCHDOG_GATE_MODEL", _WATCHDOG_MODEL_DEFAULT)

@@ -6,11 +6,8 @@ the tide.py _pay() fix (tasks_completed dedup).
 
 from __future__ import annotations
 
-import copy
 import json
-import subprocess
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 

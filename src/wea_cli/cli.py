@@ -17,6 +17,11 @@ from jsonschema import ValidationError
 
 from wea_cli.config import resolve_agent
 from wea_cli.formatters import format_kv, format_task_row
+from wea_cli.gauntlet import (
+    cmd_gauntlet_history,
+    cmd_gauntlet_mint,
+    cmd_gauntlet_status,
+)
 from wea_cli.gh import (
     DEFAULT_REPO,
     GhError,
@@ -27,6 +32,7 @@ from wea_cli.gh import (
     view_issue,
     view_issue_comments,
 )
+from wea_cli.hooks_adapter import handle_hook
 from wea_cli.parsers import parse_task_metadata
 from wea_cli.pipeline_support import (
     derive_status,
@@ -35,12 +41,10 @@ from wea_cli.pipeline_support import (
     render_pipeline_context,
     validate_stage_payload,
 )
-from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
-from wea_cli.spawn import run_spawn
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
+from wea_cli.spawn import run_spawn
+from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 from wea_cli.trace import emit_event
-from wea_cli.hooks_adapter import handle_hook
-from wea_cli.gauntlet import cmd_gauntlet_status, cmd_gauntlet_mint, cmd_gauntlet_history
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -1722,7 +1726,8 @@ def cmd_pipeline_request_refinement(args: argparse.Namespace) -> int:
         return EXIT_RUNTIME_ERROR
 
     try:
-        from jsonschema import validate, ValidationError as _VE
+        from jsonschema import ValidationError as _VE
+        from jsonschema import validate
         validate(instance=payload, schema=schema)
     except _VE as exc:
         emit(f"Error: {exc.message}")
@@ -2312,7 +2317,7 @@ def cmd_skills_suggest(args: argparse.Namespace) -> int:
     for s in suggested:
         tags = ", ".join(s.get("tags", []))
         emit(f"  {s['name']:<30s} [{tags}]")
-    emit(f"\nRun: wea skills show <name> to read a skill.")
+    emit("\nRun: wea skills show <name> to read a skill.")
     return EXIT_OK
 
 

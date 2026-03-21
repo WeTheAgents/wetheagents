@@ -1,6 +1,5 @@
 """Anthropic (Claude) provider for BitGN agent using tool_use."""
 
-import json
 import os
 
 from anthropic import Anthropic

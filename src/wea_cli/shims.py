@@ -16,7 +16,6 @@ Milestone is emitted AFTER success; failures produce no milestone.
 
 from __future__ import annotations
 
-import os
 import sys
 import textwrap
 from pathlib import Path

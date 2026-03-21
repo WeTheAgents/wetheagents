@@ -11,10 +11,10 @@ Data structure:
 - We DON'T have away side RL odds separately
 """
 
-import sys
-import os
-import warnings
 import logging
+import os
+import sys
+import warnings
 
 warnings.filterwarnings("ignore")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -64,7 +64,7 @@ n = len(dog_home)
 wr = dog_home["covers"].mean()
 pnl = dog_home["pnl"].sum()
 roi = pnl / (n * 100)
-print(f"\nHome underdog +1.5 (ACTUAL odds):")
+print("\nHome underdog +1.5 (ACTUAL odds):")
 print(f"  Games: {n}")
 print(f"  Cover rate: {wr:.1%}")
 print(f"  Avg odds: {dog_home['rl_dec'].mean():.3f}")
@@ -103,7 +103,7 @@ n = len(fav_home)
 wr = fav_home["covers"].mean()
 pnl = fav_home["pnl"].sum()
 roi = pnl / (n * 100)
-print(f"\nHome favorite -1.5 (ACTUAL odds):")
+print("\nHome favorite -1.5 (ACTUAL odds):")
 print(f"  Games: {n}")
 print(f"  Cover rate: {wr:.1%}")
 print(f"  Avg odds: {fav_home['rl_dec'].mean():.3f}")
@@ -119,7 +119,7 @@ print("=" * 70)
 dog_home["ml_dec"] = dog_home["home_decimal_odds"]
 dog_home["rl_vs_ml"] = dog_home["rl_dec"] - dog_home["ml_dec"]
 
-print(f"\nHome underdog: ML odds vs +1.5 odds")
+print("\nHome underdog: ML odds vs +1.5 odds")
 print(f"  Avg ML decimal odds: {dog_home['ml_dec'].mean():.3f}")
 print(f"  Avg +1.5 decimal odds: {dog_home['rl_dec'].mean():.3f}")
 print(f"  Avg drop (ML - RL): {(dog_home['ml_dec'] - dog_home['rl_dec']).mean():.3f}")
@@ -186,7 +186,7 @@ dog_enriched["pnl"] = np.where(
     dog_enriched["covers"], 100 * (dog_enriched["rl_dec"] - 1), -100
 )
 
-print(f"\nHome underdog +1.5 with RPI filters (ACTUAL odds):")
+print("\nHome underdog +1.5 with RPI filters (ACTUAL odds):")
 print(f"{'Filter':<35} {'Games':>6} {'Cover':>7} {'Odds':>6} {'ROI':>7} {'P&L':>10}")
 print("-" * 75)
 
@@ -238,7 +238,7 @@ fav_enriched["pnl"] = np.where(
     fav_enriched["covers"], 100 * (fav_enriched["rl_dec"] - 1), -100
 )
 
-print(f"\nHome favorite -1.5 with RPI filters (ACTUAL odds):")
+print("\nHome favorite -1.5 with RPI filters (ACTUAL odds):")
 print(f"{'Filter':<35} {'Games':>6} {'Cover':>7} {'Odds':>6} {'ROI':>7} {'P&L':>10}")
 print("-" * 75)
 

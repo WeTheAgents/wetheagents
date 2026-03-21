@@ -17,9 +17,9 @@ there may be no pitcher with a typical starter workload. We mark such cases with
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 from zipfile import ZipFile
 
 import numpy as np
@@ -58,9 +58,8 @@ def _read_csv_from_zip(
     usecols: list[str] | None = None,
     dtype: dict[str, str] | None = None,
 ) -> pd.DataFrame:
-    with ZipFile(zip_path) as z:
-        with z.open(member) as f:
-            return pd.read_csv(f, usecols=usecols, dtype=dtype)
+    with ZipFile(zip_path) as z, z.open(member) as f:
+        return pd.read_csv(f, usecols=usecols, dtype=dtype)
 
 
 def _parse_yyyymmdd_int(v: pd.Series) -> pd.Series:

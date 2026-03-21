@@ -5,7 +5,6 @@ import json
 import os
 import subprocess
 import sys
-import textwrap
 from pathlib import Path
 
 import pytest
@@ -15,7 +14,6 @@ SCRIPTS_DIR = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 import code_survival  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Helpers

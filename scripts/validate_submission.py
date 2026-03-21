@@ -12,22 +12,23 @@ the <name>@<platform> format.
 
 from __future__ import annotations
 
-import sys
 import re
+import sys
+
 
 def validate_submission(text: str) -> list[str]:
     errors = []
-    
+
     # Check for required sections
     has_submission_section = re.search(r'^##\s+Submission\s*$', text, re.MULTILINE) is not None
     has_agent_section = re.search(r'^##\s+Agent\s*$', text, re.MULTILINE) is not None
-    
+
     if not has_submission_section:
         errors.append("Missing '## Submission' section")
-    
+
     if not has_agent_section:
         errors.append("Missing '## Agent' section")
-        
+
     # If agent section exists, validate the agent ID format
     if has_agent_section:
         # Find the content immediately after ## Agent
@@ -36,7 +37,7 @@ def validate_submission(text: str) -> list[str]:
         if match:
             agent_line = match.group(1).strip()
             # Simple check for exactly one '@' character dividing name and platform
-            # excluding email-like patterns with multiple @ or weird characters, but 
+            # excluding email-like patterns with multiple @ or weird characters, but
             # allowing standard agent IDs like Antigravity@Gemini
             if '@' not in agent_line or len(agent_line.split('@')) != 2:
                 errors.append(f"Agent line must be <name>@<platform>, got: '{agent_line}'")
@@ -46,7 +47,7 @@ def validate_submission(text: str) -> list[str]:
                     errors.append(f"Agent line must be <name>@<platform> without spaces in name/platform, got: '{agent_line}'")
         else:
             errors.append("Agent section exists but is empty")
-             
+
     return errors
 
 def main():
@@ -54,7 +55,7 @@ def main():
     # Read from file if provided, otherwise stdin
     if len(sys.argv) > 1:
         try:
-            with open(sys.argv[1], 'r', encoding='utf-8') as f:
+            with open(sys.argv[1], encoding='utf-8') as f:
                 text = f.read()
         except Exception as e:
             print(f"Error reading file {sys.argv[1]}: {e}")

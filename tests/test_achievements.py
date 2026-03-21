@@ -1,12 +1,10 @@
 """Tests for the achievement/title system."""
 
-import json
 import re
-import pytest
-from pathlib import Path
-from unittest.mock import patch
 
-from scripts.check_ledger_schema import validate_achievements, ERRORS
+import pytest
+
+from scripts.check_ledger_schema import ERRORS, validate_achievements
 
 
 @pytest.fixture(autouse=True)

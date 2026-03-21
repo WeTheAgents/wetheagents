@@ -42,8 +42,8 @@ if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
 from pipeline_parser import EvaluationResult, aggregate_results  # noqa: E402
-from wea_cli.pipeline_support import derive_status  # noqa: E402
 
+from wea_cli.pipeline_support import derive_status  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Helpers
