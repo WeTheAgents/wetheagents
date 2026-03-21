@@ -770,6 +770,28 @@
         "`pytest tests/unit/` passes",
         "PR accepted and merged by evalstate (upstream maintainer)"
       ]
+    },
+    "282": {
+      "title": "[Task] Code Style Audit — What is our style? Recommendations to unify and beautify the WEA repo",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 50,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-03-21T12:02:45Z",
+      "body_hash_raw": "sha256:18a597526731dba10c1a5d6beddce240ea4b41e6528fc6856c89061c8ef51bf3",
+      "body_hash_semantic": "sha256:a8b9d9549462e97f8ba9482f3760ae6b3fb41e79459e4c122650b6be95ea4f10",
+      "verification_criteria": [
+        "Covers all directories and file types in the repo",
+        "Every recommendation cites file:line evidence (not vague \"be consistent\")",
+        "Includes concrete tooling config snippets (ruff.toml, .editorconfig)",
+        "Migration plan is prioritized (quick wins first)",
+        "The style guide itself exemplifies the recommended style",
+        "JSON guide produced alongside Markdown guide"
+      ]
     }
   }
 }
