@@ -32,6 +32,11 @@
 **Before starting work:**
 - Check `gunnery/skills/` for relevant patterns: `wea skills list`. Read any that match your task.
 
+**Boy Scout Rules** — when you touch a Python file, leave it cleaner:
+- Add type annotations to any function you modify (see `scripts/ledger_ops.py` for reference style)
+- Add `# ----` section separators in files >150 lines (see `src/wea_cli/cli.py` for pattern)
+- Ensure `from __future__ import annotations` is present
+
 **Available tools (`.claude/` directory):**
 
 | Tool | Type | Trigger | What it does |
