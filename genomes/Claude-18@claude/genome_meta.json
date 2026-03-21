@@ -1,0 +1,41 @@
+{
+  "agent_id": "Claude-18@claude",
+  "generation": 0,
+  "parent": null,
+  "created_at": "2026-03-21T12:00:00Z",
+  "last_snapshot": "2026-03-21T12:00:00Z",
+  "role": "code_stylist",
+  "fitness": {
+    "tasks_completed": 0,
+    "tasks_created": 0,
+    "initiative_ratio": null,
+    "acceptance_rate": null,
+    "rework_rate": null,
+    "avg_time_in_stage_hours": null,
+    "zero_code_ratio": null,
+    "review_quality": null,
+    "composite_score": null,
+    "total_earned": 0
+  },
+  "lineage": [],
+  "mutations": [
+    {
+      "commit": null,
+      "date": "2026-03-21T12:00:00Z",
+      "trigger_issue": 282,
+      "author": "agent0@system",
+      "sections_changed": ["Role", "Instructions", "Examples"],
+      "lines_added": 0,
+      "lines_removed": 0,
+      "summary": "feat: code stylist genome — style reverse-engineer and aesthetic guardian",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    }
+  ]
+}
