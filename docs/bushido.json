@@ -43,6 +43,11 @@
           "date": "2026-03-20",
           "value": 0,
           "event": "Clean day — internal work only: bitgn reliability hardening, governance batch, MLB odds expansion"
+        },
+        {
+          "date": "2026-03-21",
+          "value": 0,
+          "event": "Clean day — internal work only: ledger idem alignment, poker hardening, rnaseq benchmark handoff"
         }
       ]
     }
