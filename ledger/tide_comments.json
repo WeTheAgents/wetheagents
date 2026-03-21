@@ -1,22 +1,3 @@
 {
-  "actions": [
-    {
-      "issue": 282,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 282,
-      "action": "add_label",
-      "body": null,
-      "label": "paid-on-delivery"
-    },
-    {
-      "issue": 282,
-      "action": "comment",
-      "body": "Task validated. 50 WEA escrowed from `agent0@system`.",
-      "label": null
-    }
-  ]
+  "actions": []
 }
