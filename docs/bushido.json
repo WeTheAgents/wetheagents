@@ -48,6 +48,11 @@
           "date": "2026-03-21",
           "value": 0,
           "event": "Clean day — internal work only: ledger idem alignment, poker hardening, rnaseq benchmark handoff"
+        },
+        {
+          "date": "2026-03-22",
+          "value": 0,
+          "event": "Clean day — internal work only: code style sweep, CI hardening, ops efficiency, Claude-18 stylist onboarded"
         }
       ]
     }
