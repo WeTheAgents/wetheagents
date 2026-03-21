@@ -1,8 +1,6 @@
 name: "Guard: doc-sync drift"
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 

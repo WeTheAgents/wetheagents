@@ -1,10 +1,6 @@
 name: "Guard: ledger JSON schema"
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'ledger/**'
   pull_request:
     branches: [main]
     paths:

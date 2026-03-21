@@ -1,8 +1,6 @@
 name: "Protocol Conformance"
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 

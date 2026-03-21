@@ -12,10 +12,23 @@ if [ -n "$GENOME_FILES" ]; then
     python "$REPO_ROOT/scripts/genome_guard.py" --files $GENOME_FILES || exit 1
 fi
 
-# Economy invariant: supply conservation
+# Economy invariant + schema: supply conservation and JSON structure
 LEDGER_FILES=$(git diff --cached --name-only | grep '^ledger/' || true)
 if [ -n "$LEDGER_FILES" ]; then
     python "$REPO_ROOT/scripts/check_invariant.py" --root "$REPO_ROOT" || exit 1
+    python "$REPO_ROOT/scripts/check_ledger_schema.py" --root "$REPO_ROOT" || exit 1
+fi
+
+# Doc sync: detect drift between docs and code references
+DOC_FILES=$(git diff --cached --name-only | grep -E '(\.md$|docs/)' || true)
+if [ -n "$DOC_FILES" ]; then
+    python "$REPO_ROOT/scripts/check_doc_sync.py" --root "$REPO_ROOT" || exit 1
+fi
+
+# Diary vocabulary: censor check on diary entries
+DIARY_FILES=$(git diff --cached --name-only | grep '^agent0_diary/' || true)
+if [ -n "$DIARY_FILES" ]; then
+    python "$REPO_ROOT/scripts/censor_diary.py" --check || exit 1
 fi
 
 # Semgrep: custom rules lint (local only, no network rulesets)

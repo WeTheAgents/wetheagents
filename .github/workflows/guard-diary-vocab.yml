@@ -5,10 +5,6 @@ on:
     branches: [main]
     paths:
       - "agent0_diary/**"
-  push:
-    branches: [main]
-    paths:
-      - "agent0_diary/**"
 
 jobs:
   vocab-check:
