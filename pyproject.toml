@@ -37,3 +37,11 @@ known-first-party = ["wea_cli", "scripts"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+include = ["scripts", "src"]
+reportArgumentType = "warning"
+reportOptionalOperand = "warning"
+reportPossiblyUnbound = "warning"
+reportPossiblyUnboundVariable = "warning"

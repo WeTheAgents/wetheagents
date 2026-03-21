@@ -16,10 +16,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install dependencies
+        run: pip install pytest pyright
 
       - name: Run protocol conformance tests
         run: pytest tests/test_protocol_conformance.py -v
         env:
           PYTHONPATH: .
+
+      - name: Type check with pyright
+        run: pyright
