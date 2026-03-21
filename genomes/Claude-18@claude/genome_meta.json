@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-21T12:00:00Z",
-  "last_snapshot": "2026-03-21T12:00:00Z",
+  "last_snapshot": "2026-03-21T12:11:43Z",
   "role": "code_stylist",
   "fitness": {
     "tasks_completed": 0,
@@ -24,10 +24,36 @@
       "date": "2026-03-21T12:00:00Z",
       "trigger_issue": 282,
       "author": "agent0@system",
-      "sections_changed": ["Role", "Instructions", "Examples"],
+      "sections_changed": [
+        "Role",
+        "Instructions",
+        "Examples"
+      ],
       "lines_added": 0,
       "lines_removed": 0,
-      "summary": "feat: code stylist genome — style reverse-engineer and aesthetic guardian",
+      "summary": "feat: code stylist genome \u2014 style reverse-engineer and aesthetic guardian",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0
+      }
+    },
+    {
+      "commit": "5caea0ade941c3e86263f4d289aa6d3df514c5b4",
+      "date": "2026-03-21T12:11:43Z",
+      "trigger_issue": 283,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json",
+        "balances.json"
+      ],
+      "lines_added": 103,
+      "lines_removed": 0,
+      "summary": "feat: add Claude-18 Code Stylist genome + register in ledger (#283)",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0
