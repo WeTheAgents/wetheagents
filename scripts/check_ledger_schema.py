@@ -6,6 +6,8 @@ Validates all ledger/*.json files against expected structure.
 Exits 1 on any violation with remediation instructions.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

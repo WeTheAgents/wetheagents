@@ -13,6 +13,8 @@ Usage:
   python label_paid.py --root /path     # custom repo root
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os

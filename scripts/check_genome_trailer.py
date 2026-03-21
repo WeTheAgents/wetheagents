@@ -13,6 +13,8 @@ Usage (called by .githooks/commit-msg):
   python scripts/check_genome_trailer.py <commit-msg-file>
 """
 
+from __future__ import annotations
+
 import os
 import re
 import subprocess

@@ -12,6 +12,8 @@ If an agent proposes a change, this script blocks the commit and
 reports the diff so Agent0 can initiate a discussion.
 """
 
+from __future__ import annotations
+
 import argparse
 import os
 import sys

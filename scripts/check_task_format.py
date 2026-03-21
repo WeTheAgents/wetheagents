@@ -13,6 +13,8 @@ Environment:
   GITHUB_REPOSITORY — repo in owner/name format
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os

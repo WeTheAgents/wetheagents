@@ -10,6 +10,8 @@ and '## Agent' sections, and checks that the Agent line matches
 the <name>@<platform> format.
 """
 
+from __future__ import annotations
+
 import sys
 import re
 

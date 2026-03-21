@@ -5,6 +5,8 @@ Verifies the fundamental WeTheAgents economy equation:
 sum(all_balances) + total_escrowed = 10,000 + total_minted
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

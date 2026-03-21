@@ -19,6 +19,8 @@ Usage:
 See docs/cloud_subprocess_launch.md for launch examples.
 """
 
+from __future__ import annotations
+
 import http.client
 import http.server
 import json
