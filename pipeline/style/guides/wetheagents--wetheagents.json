@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "repo": "WeTheAgents/wetheagents",
+  "produced_by": "Claude-18@claude",
+  "produced_at": "2026-03-21",
+  "task": 282,
+  "python": {
+    "target_version": "3.10",
+    "line_length": 88,
+    "indent_size": 4,
+    "indent_style": "space",
+    "future_annotations": true,
+    "naming": {
+      "functions": "snake_case",
+      "classes": "PascalCase",
+      "constants": "UPPER_SNAKE_CASE",
+      "private_helpers": "_leading_underscore",
+      "modules": "snake_case"
+    },
+    "imports": {
+      "order": ["__future__", "stdlib", "third_party", "local"],
+      "known_first_party": ["wea_cli", "scripts"]
+    },
+    "type_annotations": {
+      "required_in": ["src/wea_cli/"],
+      "encouraged_in": ["scripts/"],
+      "prefer_union_syntax": true,
+      "avoid": ["Optional", "List", "Dict", "Tuple"]
+    },
+    "docstrings": {
+      "quote_style": "double",
+      "module_docstring": "required",
+      "public_function_docstring": "required",
+      "class_docstring": "required"
+    },
+    "error_handling": {
+      "chain_exceptions": true,
+      "domain_errors_subclass": "ValueError"
+    },
+    "section_separators": {
+      "pattern": "# ---------------------------------------------------------------------------",
+      "use_when": "module_lines_gt_150"
+    },
+    "script_portability_import": {
+      "pattern": "try/except ModuleNotFoundError",
+      "pragma_comment": "pragma: no cover - script execution fallback"
+    },
+    "ruff": {
+      "select": ["E", "W", "F", "I", "UP", "B", "RUF"],
+      "ignore": ["B008"]
+    }
+  },
+  "json": {
+    "indent_size": 2,
+    "key_style": "snake_case",
+    "timestamp_format": "ISO8601_UTC_Z",
+    "ledger_files_require_version_field": true,
+    "trailing_commas": false
+  },
+  "markdown": {
+    "h1_per_file": 1,
+    "heading_case": "sentence",
+    "code_blocks_require_language": true,
+    "bold_for_domain_terms": true,
+    "no_trailing_whitespace": true
+  },
+  "skill_files": {
+    "path_glob": "gunnery/skills/*.md",
+    "front_matter": {
+      "required_keys": ["name", "tags", "origin", "version"],
+      "name_style": "kebab-case",
+      "tags_style": "lowercase_array"
+    },
+    "required_sections": ["When", "Pattern", "Anti-pattern"]
+  },
+  "command_files": {
+    "path_glob": ".claude/commands/*.md",
+    "front_matter": false,
+    "first_heading_pattern": "# /<command> — <description>"
+  },
+  "genome_files": {
+    "path_glob": "genomes/*/genome_meta.json",
+    "required_fields": [
+      "agent_id", "generation", "parent", "created_at",
+      "last_snapshot", "fitness", "lineage", "mutations"
+    ],
+    "optional_fields": ["role"],
+    "role_required_for_new_agents": true
+  },
+  "editorconfig": {
+    "end_of_line": "lf",
+    "insert_final_newline": true,
+    "trim_trailing_whitespace": true,
+    "charset": "utf-8",
+    "python_indent": 4,
+    "json_indent": 2,
+    "toml_indent": 2,
+    "yaml_indent": 2
+  },
+  "inconsistencies_found": [
+    {
+      "id": 1,
+      "description": "from __future__ import annotations absent in scripts/",
+      "severity": "low",
+      "fix": "quick_win"
+    },
+    {
+      "id": 2,
+      "description": "Type annotations inconsistently applied in scripts/",
+      "severity": "medium",
+      "fix": "medium_term"
+    },
+    {
+      "id": 3,
+      "description": "Section separator style only in cli.py",
+      "severity": "low",
+      "fix": "medium_term"
+    },
+    {
+      "id": 4,
+      "description": "ruff listed as dev dep but no [tool.ruff] config",
+      "severity": "medium",
+      "fix": "quick_win"
+    },
+    {
+      "id": 5,
+      "description": ".claude/commands/ lacks front-matter unlike gunnery/skills/",
+      "severity": "low",
+      "fix": "long_term"
+    },
+    {
+      "id": 6,
+      "description": "Script-mode import fallback pattern undocumented",
+      "severity": "low",
+      "fix": "medium_term"
+    },
+    {
+      "id": 7,
+      "description": "No .editorconfig — indentation not machine-enforced",
+      "severity": "medium",
+      "fix": "quick_win"
+    },
+    {
+      "id": 8,
+      "description": "No [tool.pytest.ini_options] in pyproject.toml",
+      "severity": "low",
+      "fix": "quick_win"
+    },
+    {
+      "id": 9,
+      "description": "genome_meta.json role field present in some agents, absent in others",
+      "severity": "low",
+      "fix": "quick_win"
+    }
+  ],
+  "migration_plan": {
+    "quick_wins": [
+      "Add [tool.ruff] config to pyproject.toml",
+      "Add .editorconfig to repo root",
+      "Add from __future__ import annotations to scripts/",
+      "Add role field to genome files missing it",
+      "Add [tool.pytest.ini_options] to pyproject.toml"
+    ],
+    "medium_term": [
+      "Annotate scripts/ functions as files are touched",
+      "Add missing module docstrings on next edit",
+      "Normalize section separators in scripts/ > 150 lines"
+    ],
+    "long_term": [
+      "Run ruff --fix across all Python files in a dedicated commit",
+      "Add mypy or pyright to CI",
+      "Add scripts/check_skill_format.py CI check for gunnery/skills/",
+      "Consider YAML front-matter for .claude/commands/ if library grows"
+    ]
+  }
+}
