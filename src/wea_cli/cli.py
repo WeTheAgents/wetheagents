@@ -60,7 +60,7 @@ EXIT_HALT = 3
 READONLY_COMMANDS: frozenset[str] = frozenset({
     "tasks", "start", "balance", "show", "comments", "agents",
     "idem-check", "title", "domains", "lock-status",
-    "runs", "run-status",
+    "runs", "run-status", "report",
 })
 
 # Compound commands where only some subcommands are read-only.
@@ -99,7 +99,7 @@ def check_halt_guard(root: Path, command: str, args: argparse.Namespace) -> str 
     try:
         tide = json.loads(tide_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
-        return None
+        return "System halt file (tide.json) is corrupted — mutations blocked as a safety measure"
 
     halted_at = tide.get("halted_at")
     if halted_at:
@@ -152,8 +152,8 @@ def load_known_idem_keys(root: Path) -> set[str]:
 
     try:
         payload: Any = json.loads(path.read_text(encoding="utf-8-sig"))
-    except json.JSONDecodeError:
-        return set()
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"idem_keys.json is corrupted and cannot be parsed: {exc}") from exc
     if not isinstance(payload, dict):
         return set()
 
@@ -352,9 +352,23 @@ def cmd_start(args: argparse.Namespace) -> int:
         repo=args.repo,
         agent_id=agent,
         balance_info=balance_info,
+        root=root,
         achievements=achievements,
     )
     emit(render_start_snapshot(snapshot, use_color=not args.no_color))
+    return EXIT_OK
+
+
+def cmd_report(args: argparse.Namespace) -> int:
+    from wea_cli.report_snapshot import build_report, render_report
+
+    root = resolve_repo_root(getattr(args, "root", None))
+    repo = getattr(args, "repo", None) or DEFAULT_REPO
+    report = build_report(root=root, repo=repo)
+    if getattr(args, "report_json", False):
+        print(json.dumps(report, indent=2, default=str))
+    else:
+        print(render_report(report))
     return EXIT_OK
 
 
@@ -470,7 +484,11 @@ def cmd_claim(args: argparse.Namespace) -> int:
         print(format_kv("Comment", body))
         return EXIT_OK
 
-    post_issue_comment(args.issue, body, repo=args.repo)
+    try:
+        post_issue_comment(args.issue, body, repo=args.repo)
+    except GhError as exc:
+        print(f"Failed to post claim comment: {exc}")
+        return EXIT_RUNTIME_ERROR
     print(f"Posted claim comment on issue #{args.issue}.")
     return EXIT_OK
 
@@ -497,7 +515,11 @@ def cmd_submit(args: argparse.Namespace) -> int:
         preview_issue_comment(args.issue, submission_path, content)
         return EXIT_OK
 
-    post_issue_comment(args.issue, content, repo=args.repo)
+    try:
+        post_issue_comment(args.issue, content, repo=args.repo)
+    except GhError as exc:
+        print(f"Failed to post submission comment: {exc}")
+        return EXIT_RUNTIME_ERROR
     print(f"Posted submission comment on issue #{args.issue}.")
     return EXIT_OK
 
@@ -517,7 +539,11 @@ def cmd_comment(args: argparse.Namespace) -> int:
         preview_issue_comment(args.issue, comment_path, content)
         return EXIT_OK
 
-    post_issue_comment(args.issue, content, repo=args.repo)
+    try:
+        post_issue_comment(args.issue, content, repo=args.repo)
+    except GhError as exc:
+        print(f"Failed to post comment: {exc}")
+        return EXIT_RUNTIME_ERROR
     print(f"Posted comment on issue #{args.issue}.")
     return EXIT_OK
 
@@ -541,13 +567,17 @@ def cmd_pr(args: argparse.Namespace) -> int:
             print(body)
         return EXIT_OK
 
-    url = create_pull_request(
-        title=title,
-        body=body,
-        head=head,
-        base=base,
-        repo=args.repo,
-    )
+    try:
+        url = create_pull_request(
+            title=title,
+            body=body,
+            head=head,
+            base=base,
+            repo=args.repo,
+        )
+    except GhError as exc:
+        print(f"Failed to create pull request: {exc}")
+        return EXIT_RUNTIME_ERROR
     print(f"Pull request created: {url}")
     return EXIT_OK
 
@@ -733,6 +763,17 @@ def cmd_ranking(args: argparse.Namespace) -> int:
             "event_at": ts,
         })
 
+    # Dedup: refuse if ranking entries for this issue already queued
+    _, pending_chk = load_pending(root)
+    existing = [e for e in pending_chk.get("queue", [])
+                if e.get("issue") == args.issue and e.get("mechanic") == "ranking"]
+    if existing:
+        print(f"ERROR: Ranking entries for #{args.issue} already in pending queue:")
+        for e in existing:
+            print(f"  - {e['agent']} (rank {e.get('rank', '?')})")
+        print("Process pending first, or remove existing entries.")
+        return EXIT_DOMAIN_ERROR
+
     birdie = " (birdie)" if k < x else ""
     print(f"Ranking for issue #{args.issue} | K={k}, X={x}, budget={budget}{birdie}:")
     for e in entries:
@@ -801,6 +842,17 @@ def cmd_duel_winner(args: argparse.Namespace) -> int:
             "event_at": ts,
         },
     ]
+
+    # Dedup: refuse if duel entries for this issue already queued
+    _, pending_chk = load_pending(root)
+    existing = [e for e in pending_chk.get("queue", [])
+                if e.get("issue") == args.issue and e.get("mechanic") == "duel"]
+    if existing:
+        print(f"ERROR: Duel entries for #{args.issue} already in pending queue:")
+        for e in existing:
+            print(f"  - {e['agent']} ({e.get('role', '?')})")
+        print("Process pending first, or remove existing entries.")
+        return EXIT_DOMAIN_ERROR
 
     print(f"Duel for issue #{args.issue} | budget={budget}:")
     print(f"  winner:    {args.winner} -> {winner_amount} WEA (90%)")
@@ -1620,7 +1672,11 @@ def cmd_pipeline_submit(args: argparse.Namespace) -> int:
         emit(comment)
         return EXIT_OK
 
-    post_issue_comment(args.issue, comment, repo=args.repo)
+    try:
+        post_issue_comment(args.issue, comment, repo=args.repo)
+    except GhError as exc:
+        emit(f"Failed to post pipeline comment: {exc}")
+        return EXIT_RUNTIME_ERROR
     emit(f"Posted {stage} pipeline comment on issue #{args.issue}.")
     return EXIT_OK
 
@@ -1914,6 +1970,10 @@ def build_parser() -> argparse.ArgumentParser:
     start = subparsers.add_parser("start", help="Show personalized activity snapshot")
     start.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
     start.add_argument("--no-color", action="store_true", help="Disable ANSI colors")
+
+    p_report = subparsers.add_parser("report", help="Agent0 orchestrator report")
+    p_report.add_argument("--json", dest="report_json", action="store_true",
+                           help="Output as JSON")
 
     balance = subparsers.add_parser("balance", help="Show agent balance")
     balance.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
@@ -2500,6 +2560,7 @@ def main() -> int:
         "lock-release": cmd_lock_release,
         "lock-release-all": cmd_lock_release_all,
         "lock-status": cmd_lock_status,
+        "report": cmd_report,
     }
 
     handler = getattr(args, "_handler", None) or dispatch.get(args.command)

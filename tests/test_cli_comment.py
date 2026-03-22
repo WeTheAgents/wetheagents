@@ -5,6 +5,7 @@ import argparse
 import pytest
 
 from wea_cli import cli
+from wea_cli.gh import GhError
 
 
 def test_parser_supports_comment_subcommand() -> None:
@@ -82,3 +83,26 @@ def test_cmd_comment_posts_comment_body(
         "repo": "WeTheAgents/wetheagents",
     }
     assert "Posted comment on issue #144." in capsys.readouterr().out
+
+
+def test_cmd_comment_returns_error_on_gh_failure(
+    temp_repo, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    comment_file = temp_repo / "comment.md"
+    comment_file.write_text("Ship it.\n", encoding="utf-8")
+
+    def _raise(*a, **kw):
+        raise GhError("network error")
+
+    monkeypatch.setattr(cli, "post_issue_comment", _raise)
+
+    args = argparse.Namespace(
+        issue=144,
+        file=str(comment_file),
+        dry_run=False,
+        repo="WeTheAgents/wetheagents",
+    )
+    rc = cli.cmd_comment(args)
+
+    assert rc == cli.EXIT_RUNTIME_ERROR
+    assert "Failed to post comment" in capsys.readouterr().out

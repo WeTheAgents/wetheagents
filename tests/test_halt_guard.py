@@ -7,9 +7,10 @@ ledger/tide.json.  The halt guard in cli.py must:
 2. Allow read-only commands when halted.
 3. Allow everything when NOT halted.
 4. Allow everything when tide.json is missing.
-5. Allow everything when tide.json is malformed.
+5. Block mutations when tide.json is malformed (fail-closed).
 6. Correctly handle compound commands (gauntlet status vs gauntlet mint).
 7. Return the halt reason in the message.
+8. Raise ValueError when idem_keys.json is corrupted (fail-closed).
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from wea_cli.cli import (
     READONLY_COMMANDS,
     check_halt_guard,
     is_readonly_command,
+    load_known_idem_keys,
 )
 
 HALTED_TIDE = {
@@ -108,17 +110,18 @@ def test_mutations_allowed_when_tide_missing(tmp_path: Path) -> None:
         assert result is None, f"{cmd} should be allowed when tide.json missing"
 
 
-# ── Test 5: Everything allowed when tide.json is malformed ─────────────
+# ── Test 5: Mutations BLOCKED when tide.json is malformed (fail-closed) ──
 
 
-def test_mutations_allowed_when_tide_malformed(tmp_path: Path) -> None:
+def test_mutations_blocked_when_tide_malformed(tmp_path: Path) -> None:
     tide_path = tmp_path / "ledger" / "tide.json"
     tide_path.parent.mkdir(parents=True, exist_ok=True)
     tide_path.write_text("NOT VALID JSON {{{", encoding="utf-8")
     for cmd in MUTATION_COMMANDS[:3]:  # spot-check a few
         args = _make_args(command=cmd)
         result = check_halt_guard(tmp_path, cmd, args)
-        assert result is None, f"{cmd} should be allowed when tide.json is malformed"
+        assert result is not None, f"{cmd} should be blocked when tide.json is malformed"
+        assert "corrupted" in result.lower()
 
 
 # ── Test 6: Compound commands — read-only subs pass, mutation subs blocked
@@ -193,3 +196,22 @@ def test_is_readonly_for_compound_subcommand() -> None:
 def test_is_not_readonly_for_compound_mutation() -> None:
     args = _make_args(command="gauntlet", gauntlet_command="mint")
     assert is_readonly_command("gauntlet", args) is False
+
+
+# ── Test 8: idem_keys.json corruption → fail-closed ────────────────────
+
+
+def test_load_known_idem_keys_raises_on_corrupted_file(tmp_path: Path) -> None:
+    """Corrupted idem_keys.json must raise ValueError, not silently return empty set."""
+    ledger = tmp_path / "ledger"
+    ledger.mkdir()
+    (ledger / "idem_keys.json").write_text("NOT VALID JSON {{{", encoding="utf-8")
+    with pytest.raises(ValueError, match="corrupted"):
+        load_known_idem_keys(tmp_path)
+
+
+def test_load_known_idem_keys_returns_empty_when_missing(tmp_path: Path) -> None:
+    """Missing idem_keys.json is fine — returns empty set (no keys yet)."""
+    (tmp_path / "ledger").mkdir()
+    result = load_known_idem_keys(tmp_path)
+    assert result == set()

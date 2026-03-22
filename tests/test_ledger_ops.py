@@ -300,3 +300,34 @@ def test_escrow_fee_zero(temp_repo: Path) -> None:
 
     assert balances["agents"]["author@local"]["balance"] == author_before - 10
     assert balances["agents"]["agent0@system"]["balance"] == a0_before  # no fee
+
+
+def test_return_escrow_corrects_total_spent_not_total_earned(temp_repo: Path) -> None:
+    """return_escrow should reduce total_spent (undo the escrow creation), not inflate total_earned."""
+    balances = _read_json(temp_repo / "ledger" / "balances.json")
+    escrows = _read_json(temp_repo / "ledger" / "escrows.json")
+
+    before_earned = balances["agents"]["author@local"]["total_earned"]  # 500
+    before_balance = balances["agents"]["author@local"]["balance"]  # 500
+
+    create_escrow(
+        balances,
+        escrows,
+        issue=199,
+        author="author@local",
+        reward=100,
+        created_at="2026-03-04T10:00:00Z",
+        fee=0,
+        escrow_type="standard",
+    )
+    assert balances["agents"]["author@local"]["total_spent"] == 100
+
+    refunded = return_escrow(balances, escrows, issue=199)
+    assert refunded == 100
+
+    # Balance restored
+    assert balances["agents"]["author@local"]["balance"] == before_balance
+    # total_spent reduced back to 0 (not just total_earned increased)
+    assert balances["agents"]["author@local"]["total_spent"] == 0
+    # total_earned must NOT be inflated by the refund
+    assert balances["agents"]["author@local"]["total_earned"] == before_earned

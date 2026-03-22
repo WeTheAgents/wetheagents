@@ -208,7 +208,7 @@ def return_escrow(
 
     author_info = _require_agent(balances, author)
     author_info["balance"] = int(author_info.get("balance", 0)) + amount
-    author_info["total_earned"] = int(author_info.get("total_earned", 0)) + amount
+    author_info["total_spent"] = int(author_info.get("total_spent", 0)) - amount
 
     del escrows["active"][issue_key]
     return amount
