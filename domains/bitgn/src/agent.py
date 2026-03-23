@@ -164,10 +164,17 @@ def run_agent_anthropic(
         print(f"{thinking} ({elapsed:.1f}s)")
 
         if not tool_calls:
+            # Check if the model already decided on an outcome but forgot to call the tool
+            full_text = " ".join(text_parts) if text_parts else ""
+            outcome_hint = ""
+            for outcome_code in ["OUTCOME_NONE_UNSUPPORTED", "OUTCOME_NONE_CLARIFICATION", "OUTCOME_DENIED_SECURITY"]:
+                if outcome_code in full_text:
+                    outcome_hint = f" You already determined the outcome is {outcome_code} — call report_completion with that outcome NOW."
+                    break
             print(f"  {CLI_RED}No tool call in response{CLI_CLR}")
             messages.append({
                 "role": "user",
-                "content": "You must call a tool. If you have the answer, use report_completion. If not, continue exploring.",
+                "content": f"You must call a tool. If you have the answer, use report_completion immediately.{outcome_hint}",
             })
             continue
 
@@ -361,10 +368,17 @@ def run_agent_openai(
         messages.append(assistant_msg)
 
         if not msg.tool_calls:
+            # Check if the model already decided on an outcome but forgot to call the tool
+            full_text = msg.content or ""
+            outcome_hint = ""
+            for outcome_code in ["OUTCOME_NONE_UNSUPPORTED", "OUTCOME_NONE_CLARIFICATION", "OUTCOME_DENIED_SECURITY"]:
+                if outcome_code in full_text:
+                    outcome_hint = f" You already determined the outcome is {outcome_code} — call report_completion with that outcome NOW."
+                    break
             print(f"  {CLI_RED}No tool call in response{CLI_CLR}")
             messages.append({
                 "role": "user",
-                "content": "You must call a tool. If you have the answer, use report_completion. If not, continue exploring.",
+                "content": f"You must call a tool. If you have the answer, use report_completion immediately.{outcome_hint}",
             })
             continue
 

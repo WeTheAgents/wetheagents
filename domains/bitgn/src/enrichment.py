@@ -89,6 +89,8 @@ def enriched_dispatcher(
             try:
                 data = json.loads(result)
                 content = data.get("content", "")
+                # Include filename in scan — injection filenames are signals too
+                file_path = getattr(tool, "path", "")
                 if content:
                     # Determine effective mode: trust chain files get soft_hint
                     path = tool.path.lstrip("/").lower()
@@ -97,7 +99,10 @@ def enriched_dispatcher(
                         if path in ctx.trust_chain
                         else mode
                     )
-                    sanitized = sanitize_content(content, tool.path, effective_mode)
+                    sanitized = sanitize_content(
+                        content, tool.path, effective_mode,
+                        extra_scan_text=file_path,
+                    )
                     data["content"] = sanitized
                     result = json.dumps(data, indent=2)
             except (json.JSONDecodeError, TypeError):

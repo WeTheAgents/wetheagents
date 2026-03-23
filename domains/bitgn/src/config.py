@@ -27,12 +27,12 @@ class AgentConfig:
     compress_keep_last: int = 4  # keep last N messages intact
 
     # --- Output enrichment ---
-    enrichment: bool = False
+    enrichment: bool = True
     step_budget_in_results: bool = True  # prepend step counter to tool results
     trust_chain_hints: bool = True  # hint when file is in AGENTS.MD trust chain
 
     # --- Injection defense mode ---
-    defense_mode: str = "soft_hint"  # "hard" | "soft_block" | "soft_hint"
+    defense_mode: str = "hard"  # "hard" | "soft_block" | "soft_hint"
 
     # --- Step validator (loop detection) ---
     step_validator: bool = False
