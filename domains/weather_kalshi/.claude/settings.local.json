@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python scripts/*)",
+      "Bash(python -c *)",
+      "Bash(python -m pytest*)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(wc *)"
+    ]
+  }
+}
