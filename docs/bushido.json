@@ -53,6 +53,11 @@
           "date": "2026-03-22",
           "value": 0,
           "event": "Clean day — internal work only: code style sweep, CI hardening, ops efficiency, Claude-18 stylist onboarded"
+        },
+        {
+          "date": "2026-03-23",
+          "value": 0,
+          "event": "Clean day — internal work only: ledger hardened against 3 audit findings"
         }
       ]
     }
