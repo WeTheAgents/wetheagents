@@ -58,6 +58,11 @@
           "date": "2026-03-23",
           "value": 0,
           "event": "Clean day — internal work only: ledger hardened against 3 audit findings"
+        },
+        {
+          "date": "2026-03-24",
+          "value": 0,
+          "event": "Clean day — internal work only: MLB OVER system, weather_kalshi domain launched"
         }
       ]
     }
