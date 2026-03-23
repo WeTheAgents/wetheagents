@@ -3,13 +3,14 @@ name = "bitgn-agent"
 version = "0.1.0"
 description = "WeTheAgents agent for BitGN Sandbox benchmark"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
-    "bitgn-api-connectrpc-python==0.8.1.1.20260316101438+5e72a3f6bebf",
-    "bitgn-api-protocolbuffers-python==34.0.0.1.20260316101438+5e72a3f6bebf",
+    "bitgn-api-connectrpc-python==0.9.0.1.20260323140311+cbbd8b9c3c20",
+    "bitgn-api-protocolbuffers-python==34.1.0.1.20260323140311+cbbd8b9c3c20",
     "anthropic>=0.52.0",
     "openai>=2.26.0",
     "pydantic>=2.12.5",
+    "protobuf>=7.34.1",
     "python-dotenv",
 ]
 
@@ -27,7 +28,7 @@ package = false
 
 [tool.ruff]
 line-length = 100
-target-version = "py314"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]

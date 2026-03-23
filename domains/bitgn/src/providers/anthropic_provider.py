@@ -70,8 +70,9 @@ TOOL_MODELS: dict[str, type] = {
 
 
 class AnthropicProvider(LLMProvider):
-    def __init__(self):
+    def __init__(self, tools=None):
         self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        self.tools = tools or TOOLS
 
     def provider_name(self) -> str:
         return f"anthropic/{MODEL}"
@@ -81,7 +82,7 @@ class AnthropicProvider(LLMProvider):
             model=MODEL,
             max_tokens=4096,
             system=system_prompt,
-            tools=TOOLS,
+            tools=self.tools,
             messages=messages,
         )
 
@@ -187,7 +188,7 @@ class AnthropicProvider(LLMProvider):
                 model=MODEL,
                 max_tokens=4096,
                 system=system_blocks,
-                tools=TOOLS,
+                tools=self.tools,
                 messages=messages,
             )
 
@@ -195,6 +196,6 @@ class AnthropicProvider(LLMProvider):
             model=MODEL,
             max_tokens=4096,
             system=system_prompt,
-            tools=TOOLS,
+            tools=self.tools,
             messages=messages,
         )

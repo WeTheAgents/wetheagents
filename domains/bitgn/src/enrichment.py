@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 
 from src.config import AgentConfig
 from src.defense import DefenseMode, sanitize_content
-from src.models import ReadTool, ToolAction
 from src.step_validator import StepValidator
 from src.tools import Dispatcher
 
@@ -69,7 +68,7 @@ def enriched_dispatcher(
     mode = _defense_mode_from_str(config.defense_mode)
     validator = StepValidator() if config.step_validator else None
 
-    def _dispatch(tool: ToolAction) -> str:
+    def _dispatch(tool) -> str:
         result = base(tool)
 
         parts: list[str] = []
@@ -84,8 +83,8 @@ def enriched_dispatcher(
         if config.step_budget_in_results:
             parts.append(_step_budget_line(ctx))
 
-        # 2. Defense sanitization on read results
-        if isinstance(tool, ReadTool):
+        # 2. Defense sanitization on read results (works for both mini and PCM ReadTool)
+        if getattr(tool, "tool", None) == "read":
             # Parse the JSON result to extract content for sanitization
             try:
                 data = json.loads(result)
