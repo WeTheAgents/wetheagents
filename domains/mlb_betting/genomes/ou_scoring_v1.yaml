@@ -1,0 +1,51 @@
+name: RunEnvironment
+version: 1
+philosophy: |
+  Markets anchor on pitcher names and ignore the scoring environment. When
+  combined RPG is well below the O/U line AND recent 10-game RPG confirms
+  the cold streak, UNDER has value regardless of who's pitching. Cold offenses
+  stay cold for 7-10 game stretches — this is not randomness, it's lineup
+  health, approach, and confidence cycles. I look for the gap between what
+  the market expects these teams to score and what they've actually been
+  scoring. When reality is consistently below the line, I bet UNDER.
+
+principles:
+  - >
+    RPG vs line is my primary signal. When combined season RPG is 1+ runs
+    below the O/U line, the market is pricing in more scoring than these
+    teams produce. Historical accuracy improves when rpg_vs_line < -0.5.
+  - >
+    Recent RPG (last 10 games) vs line confirms or denies the trend. If
+    season RPG says UNDER but last-10 RPG is surging ABOVE the line, the
+    cold stretch may be ending. Both season AND recent must agree for
+    high confidence.
+  - >
+    Offense vs league average provides structural context. Two teams BOTH
+    below league average (< 95%) create a suppressed scoring environment.
+    Two teams both ABOVE 110% create explosive conditions where any pitcher
+    can get lit up. The combined offense_vs_league is my environmental read.
+  - >
+    First-inning scoring rates predict early-game run potential. Low combined
+    fi_score_rate (< 0.45) means both teams are slow starters — supports
+    UNDER. High combined rate (> 0.60) means runs come fast and the total
+    starts climbing before the 3rd inning.
+  - >
+    Combined RAPG (runs allowed) above the line suggests both pitching staffs
+    are giving up runs at a pace that pushes toward OVER. When both combined
+    RPG and RAPG are below the line, UNDER conviction is strongest.
+  - >
+    Defense vs league average captures the fielding and overall run prevention
+    picture. When both teams are BELOW league average in defense (< 95%),
+    more balls find holes and more runs score — this is an OVER lean even
+    if the line looks high.
+
+anti_patterns: []
+
+examples: []
+
+confidence_modifiers:
+  rpg_vs_line_below_minus_1: 0.10
+  both_offenses_below_league: 0.10
+  recent_and_season_rpg_agree: 0.10
+  both_offenses_above_110pct: -0.15
+  rpg_vs_line_above_zero: -0.10

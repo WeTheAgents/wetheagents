@@ -348,6 +348,10 @@ def add_derived_odds(df: pd.DataFrame) -> pd.DataFrame:
     # Home favorite flag
     df["home_is_favorite"] = df["home_implied_prob"] > 0.5
 
+    # Coinflip detection (odds spread ≤ 4% implied probability)
+    df["odds_spread"] = (df["home_implied_prob"] - df["away_implied_prob"]).abs()
+    df["is_coinflip"] = df["odds_spread"] <= 0.04
+
     return df
 
 

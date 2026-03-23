@@ -28,6 +28,51 @@ def build_team_game_log(games: pd.DataFrame) -> pd.DataFrame:
     Each row = one team's perspective on one game.
     2 rows per game (home team + away team).
     """
+    # 1st-inning scoring (NaN for games without real inning data)
+    has_inn1 = "home_inn_1" in games.columns and "away_inn_1" in games.columns
+    if has_inn1:
+        # Detect fake inning data: all 9 innings sum to 0 (2004-2009 seasons)
+        inn_cols = [f"away_inn_{i}" for i in range(1, 10) if f"away_inn_{i}" in games.columns]
+        inn_cols += [f"home_inn_{i}" for i in range(1, 10) if f"home_inn_{i}" in games.columns]
+        inn_total = games[inn_cols].sum(axis=1)
+        has_real_inn = (inn_total > 0).values
+        home_scored_1st = np.where(has_real_inn, (games["home_inn_1"] > 0).astype(float).values, np.nan)
+        away_scored_1st = np.where(has_real_inn, (games["away_inn_1"] > 0).astype(float).values, np.nan)
+
+        # Score after 5 innings (for late-game metrics — captures starter's job)
+        home_inn_1_5 = [f"home_inn_{i}" for i in range(1, 6) if f"home_inn_{i}" in games.columns]
+        away_inn_1_5 = [f"away_inn_{i}" for i in range(1, 6) if f"away_inn_{i}" in games.columns]
+        if len(home_inn_1_5) == 5 and len(away_inn_1_5) == 5:
+            home_score_5 = games[home_inn_1_5].sum(axis=1).values.astype(float)
+            away_score_5 = games[away_inn_1_5].sum(axis=1).values.astype(float)
+            # NaN for fake inning data
+            home_score_5 = np.where(has_real_inn, home_score_5, np.nan)
+            away_score_5 = np.where(has_real_inn, away_score_5, np.nan)
+        else:
+            home_score_5 = np.full(len(games), np.nan)
+            away_score_5 = np.full(len(games), np.nan)
+
+        # Per-inning run counts for offensive power metric
+        home_inn_cols = [f"home_inn_{i}" for i in range(1, 10) if f"home_inn_{i}" in games.columns]
+        away_inn_cols = [f"away_inn_{i}" for i in range(1, 10) if f"away_inn_{i}" in games.columns]
+        home_scoring_inns = np.where(has_real_inn, (games[home_inn_cols] > 0).sum(axis=1).values, np.nan)
+        home_multi_run_inns = np.where(has_real_inn, (games[home_inn_cols] >= 2).sum(axis=1).values, np.nan)
+        away_scoring_inns = np.where(has_real_inn, (games[away_inn_cols] > 0).sum(axis=1).values, np.nan)
+        away_multi_run_inns = np.where(has_real_inn, (games[away_inn_cols] >= 2).sum(axis=1).values, np.nan)
+    else:
+        home_scored_1st = np.full(len(games), np.nan)
+        away_scored_1st = np.full(len(games), np.nan)
+        home_score_5 = np.full(len(games), np.nan)
+        away_score_5 = np.full(len(games), np.nan)
+        home_scoring_inns = np.full(len(games), np.nan)
+        home_multi_run_inns = np.full(len(games), np.nan)
+        away_scoring_inns = np.full(len(games), np.nan)
+        away_multi_run_inns = np.full(len(games), np.nan)
+
+    # Derived late-game columns (from team perspective)
+    home_margin = (games["home_final"] - games["away_final"]).values.astype(float)
+    away_margin = (games["away_final"] - games["home_final"]).values.astype(float)
+
     home = pd.DataFrame(
         {
             "season": games["season"].values,
@@ -39,6 +84,24 @@ def build_team_game_log(games: pd.DataFrame) -> pd.DataFrame:
             "runs_scored": games["home_final"].values,
             "runs_allowed": games["away_final"].values,
             "close_ml": games["home_close_ml"].values,
+            "scored_in_1st": home_scored_1st,
+            "score_after_5": home_score_5,
+            "opp_score_after_5": away_score_5,
+            "leading_after_5": np.where(
+                np.isnan(home_score_5), np.nan,
+                (home_score_5 > away_score_5).astype(float),
+            ),
+            "trailing_after_5": np.where(
+                np.isnan(home_score_5), np.nan,
+                (home_score_5 < away_score_5).astype(float),
+            ),
+            "close_game": np.where(
+                np.isnan(home_score_5), np.nan,
+                (np.abs(home_margin) <= 2).astype(float),
+            ),
+            "margin": home_margin,
+            "scoring_innings": home_scoring_inns,
+            "multi_run_innings": home_multi_run_inns,
         }
     )
     away = pd.DataFrame(
@@ -52,6 +115,24 @@ def build_team_game_log(games: pd.DataFrame) -> pd.DataFrame:
             "runs_scored": games["away_final"].values,
             "runs_allowed": games["home_final"].values,
             "close_ml": games["away_close_ml"].values,
+            "scored_in_1st": away_scored_1st,
+            "score_after_5": away_score_5,
+            "opp_score_after_5": home_score_5,
+            "leading_after_5": np.where(
+                np.isnan(away_score_5), np.nan,
+                (away_score_5 > home_score_5).astype(float),
+            ),
+            "trailing_after_5": np.where(
+                np.isnan(away_score_5), np.nan,
+                (away_score_5 < home_score_5).astype(float),
+            ),
+            "close_game": np.where(
+                np.isnan(away_score_5), np.nan,
+                (np.abs(away_margin) <= 2).astype(float),
+            ),
+            "margin": away_margin,
+            "scoring_innings": away_scoring_inns,
+            "multi_run_innings": away_multi_run_inns,
         }
     )
     log = pd.concat([home, away], ignore_index=True)
@@ -264,6 +345,52 @@ def calc_rolling_runs(log: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(results)
 
 
+# ── First-Inning Scoring Rate ────────────────────────────────────────────
+
+
+def calc_first_inning_rate(log: pd.DataFrame, window: int = 25) -> pd.DataFrame:
+    """Rolling rate of games where the team scored in the 1st inning.
+
+    Returns DataFrame with:
+    - fi_score_rate: entering-game 1st-inning scoring rate (full season)
+    - fi_score_rate_last: rate over last `window` games
+    """
+    results = []
+
+    for (team, season), grp in log.groupby(["team", "season"]):
+        grp = grp.sort_values("date").reset_index(drop=True)
+        scored = grp["scored_in_1st"].values
+        n = len(grp)
+
+        for i in range(n):
+            past = scored[:i]
+            valid = past[~np.isnan(past)]
+
+            if len(valid) >= 5:
+                fi_rate = valid.mean()
+            else:
+                fi_rate = np.nan
+
+            recent = scored[max(0, i - window) : i]
+            valid_recent = recent[~np.isnan(recent)]
+            if len(valid_recent) >= 5:
+                fi_rate_last = valid_recent.mean()
+            else:
+                fi_rate_last = np.nan
+
+            results.append(
+                {
+                    "team": team,
+                    "season": season,
+                    "date": grp.iloc[i]["date"],
+                    "fi_score_rate": fi_rate,
+                    "fi_score_rate_last": fi_rate_last,
+                }
+            )
+
+    return pd.DataFrame(results)
+
+
 # ── RPI (Rating Percentage Index) ────────────────────────────────────────
 
 
@@ -396,6 +523,216 @@ def calc_pythagorean_wp(log: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(results)
 
 
+# ── League-Relative Offense/Defense ───────────────────────────────────────
+
+
+def calc_league_relative(log: pd.DataFrame) -> pd.DataFrame:
+    """Offense/defense as ratio to league-wide cumulative average.
+
+    For each team-game, computes:
+    - offense_vs_league: team RPG / league RPG (>1.0 = above average)
+    - defense_vs_league: team RAPG / league RAPG (<1.0 = above average defense)
+
+    Uses season-cumulative averages (same window as existing rpg/rapg).
+    """
+    results = []
+
+    for season, season_grp in log.groupby("season"):
+        season_grp = season_grp.sort_values("date").reset_index(drop=True)
+
+        # Build cumulative league averages by date
+        dates = np.sort(season_grp["date"].unique())
+
+        # Pre-compute league cumulative RPG/RAPG at each date
+        league_cum_rpg = {}
+        league_cum_rapg = {}
+        all_rs = season_grp["runs_scored"].values
+        all_ra = season_grp["runs_allowed"].values
+        all_dates = season_grp["date"].values
+
+        for d in dates:
+            prior_mask = all_dates < d
+            if prior_mask.sum() == 0:
+                league_cum_rpg[d] = 4.5  # MLB prior
+                league_cum_rapg[d] = 4.5
+            else:
+                league_cum_rpg[d] = all_rs[prior_mask].mean()
+                league_cum_rapg[d] = all_ra[prior_mask].mean()
+
+        # Compute per-team ratios
+        for (team, _), grp in season_grp.groupby(["team", "season"]):
+            grp = grp.sort_values("date").reset_index(drop=True)
+            rs = grp["runs_scored"].values
+            ra = grp["runs_allowed"].values
+
+            for i in range(len(grp)):
+                d = grp.iloc[i]["date"]
+                league_rpg = league_cum_rpg[d]
+                league_rapg = league_cum_rapg[d]
+
+                if i == 0:
+                    team_rpg = 4.5
+                    team_rapg = 4.5
+                else:
+                    team_rpg = rs[:i].mean()
+                    team_rapg = ra[:i].mean()
+
+                off_ratio = team_rpg / league_rpg if league_rpg > 0 else 1.0
+                def_ratio = team_rapg / league_rapg if league_rapg > 0 else 1.0
+
+                results.append({
+                    "team": team,
+                    "season": season,
+                    "date": d,
+                    "offense_vs_league": off_ratio,
+                    "defense_vs_league": def_ratio,
+                })
+
+    return pd.DataFrame(results)
+
+
+# ── Late-Game Metrics (Hold Rate, Close-Game WP, Deficit Recovery) ──────
+
+
+def calc_late_game_metrics(
+    log: pd.DataFrame,
+    window: int = 30,
+    min_qualifying: int = 5,
+) -> pd.DataFrame:
+    """Compute rolling late-game performance metrics.
+
+    Requires inning-by-inning columns in the log:
+    - score_after_5, opp_score_after_5 (team's and opponent's runs in inn 1-5)
+    - leading_after_5, trailing_after_5 (booleans)
+    - close_game (abs margin <= 2)
+    - won (game outcome)
+
+    Returns DataFrame with:
+    - hold_rate: win% when leading after 5 (last `window` games)
+    - close_game_wp: win% in 1-2 run games (last `window` games)
+    - deficit_recovery_rate: win% when trailing after 5 (last `window` games)
+
+    NaN for seasons without real inning data (2004-2009).
+    NaN if fewer than `min_qualifying` situations in window.
+    """
+    results = []
+
+    for (team, season), grp in log.groupby(["team", "season"]):
+        grp = grp.sort_values("date").reset_index(drop=True)
+        n = len(grp)
+
+        leading = grp["leading_after_5"].values
+        trailing = grp["trailing_after_5"].values
+        close = grp["close_game"].values
+        won = grp["won"].values
+
+        for i in range(n):
+            start = max(0, i - window)
+            # Only look at games BEFORE current game
+            window_slice = slice(start, i)
+
+            # Hold rate
+            lead_mask = leading[window_slice]
+            won_slice = won[window_slice]
+            if len(lead_mask) == 0 or np.isnan(lead_mask).all() or lead_mask.sum() == 0:
+                hold = np.nan
+            else:
+                lead_idx = ~np.isnan(lead_mask) & (lead_mask == 1.0)
+                if lead_idx.sum() < min_qualifying:
+                    hold = np.nan
+                else:
+                    hold = won_slice[lead_idx].mean()
+
+            # Close-game WP
+            close_mask = close[window_slice]
+            if len(close_mask) == 0 or np.isnan(close_mask).all() or close_mask.sum() == 0:
+                close_wp = np.nan
+            else:
+                close_idx = ~np.isnan(close_mask) & (close_mask == 1.0)
+                if close_idx.sum() < min_qualifying:
+                    close_wp = np.nan
+                else:
+                    close_wp = won_slice[close_idx].mean()
+
+            # Deficit recovery rate
+            trail_mask = trailing[window_slice]
+            if len(trail_mask) == 0 or np.isnan(trail_mask).all() or trail_mask.sum() == 0:
+                recovery = np.nan
+            else:
+                trail_idx = ~np.isnan(trail_mask) & (trail_mask == 1.0)
+                if trail_idx.sum() < min_qualifying:
+                    recovery = np.nan
+                else:
+                    recovery = won_slice[trail_idx].mean()
+
+            results.append({
+                "team": team,
+                "season": season,
+                "date": grp.iloc[i]["date"],
+                "hold_rate": hold,
+                "close_game_wp": close_wp,
+                "deficit_recovery_rate": recovery,
+            })
+
+    return pd.DataFrame(results)
+
+
+# ── Offensive Power (Multi-Run Inning Rate) ──────────────────────────────
+
+
+def calc_inning_power(
+    log: pd.DataFrame,
+    window: int = 30,
+    min_qualifying: int = 5,
+) -> pd.DataFrame:
+    """Rolling offensive power: fraction of scoring innings with 2+ runs.
+
+    High power_rate = team capitalizes on baserunners (big innings).
+    Low power_rate = team nibbles with single runs.
+
+    Requires scoring_innings and multi_run_innings columns in the log
+    (computed from per-inning run counts in build_team_game_log).
+
+    Returns NaN if fewer than `min_qualifying` total scoring innings in window.
+    """
+    results = []
+
+    for (team, season), grp in log.groupby(["team", "season"]):
+        grp = grp.sort_values("date").reset_index(drop=True)
+        n = len(grp)
+
+        scoring = grp["scoring_innings"].values
+        multi = grp["multi_run_innings"].values
+
+        for i in range(n):
+            start = max(0, i - window)
+            window_slice = slice(start, i)
+
+            s_window = scoring[window_slice]
+            m_window = multi[window_slice]
+
+            # Skip if no real inning data
+            valid = ~np.isnan(s_window)
+            if valid.sum() == 0:
+                power = np.nan
+            else:
+                total_scoring = s_window[valid].sum()
+                total_multi = m_window[valid].sum()
+                if total_scoring < min_qualifying:
+                    power = np.nan
+                else:
+                    power = total_multi / total_scoring
+
+            results.append({
+                "team": team,
+                "season": season,
+                "date": grp.iloc[i]["date"],
+                "power_rate": power,
+            })
+
+    return pd.DataFrame(results)
+
+
 # ── Master Feature Builder ───────────────────────────────────────────────
 
 
@@ -429,6 +766,18 @@ def build_all_features(
     logger.info("Computing Pythagorean win%...")
     pyth_df = calc_pythagorean_wp(log)
 
+    logger.info("Computing 1st-inning scoring rate...")
+    fi_rate_df = calc_first_inning_rate(log)
+
+    logger.info("Computing league-relative offense/defense...")
+    league_rel_df = calc_league_relative(log)
+
+    logger.info("Computing late-game metrics (hold rate, close-game WP, recovery)...")
+    late_game_df = calc_late_game_metrics(log)
+
+    logger.info("Computing offensive power (multi-run inning rate)...")
+    power_df = calc_inning_power(log)
+
     logger.info("Computing RPI (this may take a while)...")
     rpi_df = calc_rolling_rpi(log)
 
@@ -438,11 +787,19 @@ def build_all_features(
     ).merge(
         runs_df, on=["team", "season", "date"], how="left"
     ).merge(
+        fi_rate_df, on=["team", "season", "date"], how="left"
+    ).merge(
         pyth_df, on=["team", "season", "date"], how="left"
     ).merge(
         rpi_df[["team", "season", "date", "rpi", "owp_component"]],
         on=["team", "season", "date"],
         how="left",
+    ).merge(
+        league_rel_df, on=["team", "season", "date"], how="left",
+    ).merge(
+        late_game_df, on=["team", "season", "date"], how="left",
+    ).merge(
+        power_df, on=["team", "season", "date"], how="left",
     )
 
     # Merge features for HOME team
@@ -461,9 +818,17 @@ def build_all_features(
             "rapg": "rapg_home",
             "rpg_last10": "rpg_last10_home",
             "rapg_last10": "rapg_last10_home",
+            "fi_score_rate": "fi_score_rate_home",
+            "fi_score_rate_last": "fi_score_rate_last_home",
             "pyth_wp": "pyth_wp_home",
             "rpi": "rpi_home",
             "owp_component": "sos_home",
+            "offense_vs_league": "offense_vs_league_home",
+            "defense_vs_league": "defense_vs_league_home",
+            "hold_rate": "hold_rate_home",
+            "close_game_wp": "close_game_wp_home",
+            "deficit_recovery_rate": "deficit_recovery_rate_home",
+            "power_rate": "power_rate_home",
         }
     )
     home_features = home_features.rename(columns={"team": "home_team"})
@@ -485,9 +850,17 @@ def build_all_features(
             "rapg": "rapg_away",
             "rpg_last10": "rpg_last10_away",
             "rapg_last10": "rapg_last10_away",
+            "fi_score_rate": "fi_score_rate_away",
+            "fi_score_rate_last": "fi_score_rate_last_away",
             "pyth_wp": "pyth_wp_away",
             "rpi": "rpi_away",
             "owp_component": "sos_away",
+            "offense_vs_league": "offense_vs_league_away",
+            "defense_vs_league": "defense_vs_league_away",
+            "hold_rate": "hold_rate_away",
+            "close_game_wp": "close_game_wp_away",
+            "deficit_recovery_rate": "deficit_recovery_rate_away",
+            "power_rate": "power_rate_away",
         }
     )
     away_features = away_features.rename(columns={"team": "away_team"})
@@ -510,11 +883,34 @@ def build_all_features(
     enriched["rpg_diff"] = enriched["rpg_home"] - enriched["rpg_away"]
     enriched["rapg_diff"] = enriched["rapg_home"] - enriched["rapg_away"]
     enriched["pyth_wp_diff"] = enriched["pyth_wp_home"] - enriched["pyth_wp_away"]
+    enriched["fi_score_rate_diff"] = (
+        enriched["fi_score_rate_home"] - enriched["fi_score_rate_away"]
+    )
     enriched["rpi_min"] = enriched[["rpi_home", "rpi_away"]].min(axis=1)
     enriched["rpi_max"] = enriched[["rpi_home", "rpi_away"]].max(axis=1)
     enriched["games_played_min"] = enriched[
         ["games_played_home", "games_played_away"]
     ].min(axis=1)
+
+    # League-relative and late-game diffs
+    enriched["offense_vs_league_diff"] = (
+        enriched["offense_vs_league_home"] - enriched["offense_vs_league_away"]
+    )
+    enriched["defense_vs_league_diff"] = (
+        enriched["defense_vs_league_home"] - enriched["defense_vs_league_away"]
+    )
+    enriched["hold_rate_diff"] = (
+        enriched["hold_rate_home"] - enriched["hold_rate_away"]
+    )
+    enriched["close_game_wp_diff"] = (
+        enriched["close_game_wp_home"] - enriched["close_game_wp_away"]
+    )
+    enriched["deficit_recovery_diff"] = (
+        enriched["deficit_recovery_rate_home"] - enriched["deficit_recovery_rate_away"]
+    )
+    enriched["power_rate_diff"] = (
+        enriched["power_rate_home"] - enriched["power_rate_away"]
+    )
 
     # Pitcher proxy features
     if include_pitcher:
@@ -538,6 +934,7 @@ def build_all_features(
 
         from src.data_loader import (
             PROCESSED_DIR,
+            _map_team_code_to_retrosheet,
             merge_retrosheet_pitchers,
             merge_retrosheet_starter_entering_features,
         )
@@ -564,6 +961,114 @@ def build_all_features(
                 "Run scripts/build_retrosheet_pitchers.py first. "
                 "Skipping Retrosheet entering features."
             )
+
+        # ── Pitcher hand from Retrosheet allplayers ──────────────────────
+        if "home_starter_id" in enriched.columns:
+            try:
+                from src.retrosheet_batters import load_season_players
+
+                logger.info("Merging pitcher hand from Retrosheet allplayers...")
+                hand_lookup = {}
+                for year in enriched["season"].unique():
+                    players = load_season_players(int(year))
+                    if players is not None:
+                        hand_df = players.drop_duplicates(subset=["id"])[["id", "throw"]]
+                        for _, r in hand_df.iterrows():
+                            hand_lookup[(r["id"], int(year))] = r["throw"]
+
+                if hand_lookup:
+                    for id_col, hand_col in [
+                        ("home_starter_id", "home_sp_hand"),
+                        ("away_starter_id", "away_sp_hand"),
+                    ]:
+                        enriched[hand_col] = enriched.apply(
+                            lambda r, _id=id_col, _hc=hand_col: hand_lookup.get(
+                                (r.get(_id), int(r["season"])),
+                                r.get(_hc),
+                            ),
+                            axis=1,
+                        )
+                    n_hand = enriched["home_sp_hand"].notna().sum()
+                    logger.info(f"Pitcher hand filled: {n_hand}/{len(enriched)} games")
+            except ImportError:
+                logger.warning("retrosheet_batters not available, skipping pitcher hand")
+
+        # ── Bullpen features (FIP, workload) ─────────────────────────────
+        bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
+        if bp_path.exists():
+            logger.info("Merging bullpen features (FIP, workload)...")
+            bp = pd.read_parquet(bp_path)
+            bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
+            enriched["date"] = pd.to_datetime(enriched["date"]).dt.normalize()
+
+            for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+                enriched[f"_bp_{side}_team"] = enriched.apply(
+                    lambda r, _tc=team_col: _map_team_code_to_retrosheet(r[_tc], r["season"]),
+                    axis=1,
+                )
+                bp_cols_to_merge = ["team", "date"]
+                bp_rename = {"team": f"_bp_{side}_team"}
+                for bc in ["bp_fip_short", "bp_fip_7g", "bp_fip_long", "bp_ip_3d"]:
+                    if bc in bp.columns:
+                        bp_cols_to_merge.append(bc)
+                        bp_rename[bc] = f"{bc}_{side}"
+                side_bp = bp[bp_cols_to_merge].rename(columns=bp_rename)
+                side_bp = side_bp.drop_duplicates(
+                    subset=[f"_bp_{side}_team", "date"], keep="first"
+                )
+                enriched = enriched.merge(side_bp, on=[f"_bp_{side}_team", "date"], how="left")
+                enriched = enriched.drop(columns=[f"_bp_{side}_team"])
+
+            if "bp_fip_short_home" in enriched.columns:
+                enriched["bullpen_fip_diff"] = enriched["bp_fip_short_home"] - enriched["bp_fip_short_away"]
+            if "bp_ip_3d_home" in enriched.columns:
+                enriched["bullpen_workload_3d_diff"] = enriched["bp_ip_3d_home"] - enriched["bp_ip_3d_away"]
+        else:
+            logger.warning(f"Bullpen features not found at {bp_path}")
+
+        # ── Batting lineup vs-hand features ──────────────────────────────
+        lineup_path = PROCESSED_DIR / "retrosheet" / "game_lineup_features.parquet"
+        if lineup_path.exists():
+            logger.info("Merging batting lineup vs-hand features...")
+            lineup = pd.read_parquet(lineup_path)
+            lineup["date"] = pd.to_datetime(lineup["date"]).dt.normalize()
+            enriched["date"] = pd.to_datetime(enriched["date"]).dt.normalize()
+
+            for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+                enriched[f"_lu_{side}_team"] = enriched.apply(
+                    lambda r, _tc=team_col: _map_team_code_to_retrosheet(r[_tc], r["season"]),
+                    axis=1,
+                )
+                lu_cols = [c for c in lineup.columns if c.startswith("top3_") or c == "n_batters"]
+                lu_rename = {"team": f"_lu_{side}_team"}
+                for c in lu_cols:
+                    lu_rename[c] = f"{c}_{side}"
+                side_lu = lineup[["team", "date"] + lu_cols].rename(columns=lu_rename)
+                side_lu = side_lu.drop_duplicates(subset=[f"_lu_{side}_team", "date"], keep="first")
+                enriched = enriched.merge(side_lu, on=[f"_lu_{side}_team", "date"], how="left")
+                enriched = enriched.drop(columns=[f"_lu_{side}_team"])
+
+            # Effective OBP (matchup-aware: lineup OBP vs opposing pitcher's hand)
+            if all(
+                c in enriched.columns
+                for c in [
+                    "away_sp_hand", "home_sp_hand",
+                    "top3_obp_vs_rhp_home", "top3_obp_vs_lhp_home",
+                    "top3_obp_vs_rhp_away", "top3_obp_vs_lhp_away",
+                ]
+            ):
+                enriched["effective_obp_home"] = np.where(
+                    enriched["away_sp_hand"] == "R",
+                    enriched["top3_obp_vs_rhp_home"],
+                    enriched["top3_obp_vs_lhp_home"],
+                )
+                enriched["effective_obp_away"] = np.where(
+                    enriched["home_sp_hand"] == "R",
+                    enriched["top3_obp_vs_rhp_away"],
+                    enriched["top3_obp_vs_lhp_away"],
+                )
+        else:
+            logger.warning(f"Lineup features not found at {lineup_path}")
 
     n_features = len([c for c in enriched.columns if c not in games.columns])
     logger.info(f"Added {n_features} features to {len(enriched)} games")
@@ -670,44 +1175,44 @@ def build_spec_features(
         df["team_wrc_plus_diff"] = np.nan
         df["team_obp_diff"] = np.nan
 
-    # ── Bullpen diffs ────────────────────────────────────────────────────
-    bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
-    if bp_path.exists():
-        bp = pd.read_parquet(bp_path)
-        bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
-        df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+    # ── Bullpen diffs (skip if already merged by build_all_features) ─────
+    if "bp_fip_short_home" not in df.columns:
+        bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
+        if bp_path.exists():
+            bp = pd.read_parquet(bp_path)
+            bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
+            df["date"] = pd.to_datetime(df["date"]).dt.normalize()
 
-        for side, team_col in [("home", "home_team"), ("away", "away_team")]:
-            df[f"_bp_{side}_team"] = df.apply(
-                lambda r: _map_team_code_to_retrosheet(r[team_col], r["season"]), axis=1
-            )
-            bp_cols_to_merge = ["team", "date"]
-            bp_rename = {"team": f"_bp_{side}_team"}
-            for bc in ["bp_fip_short", "bp_ip_3d"]:
-                if bc in bp.columns:
-                    bp_cols_to_merge.append(bc)
-                    bp_rename[bc] = f"{bc}_{side}"
-            side_bp = bp[bp_cols_to_merge].rename(columns=bp_rename)
-            # Safety: ensure unique (team, date) keys to prevent fan-out
-            side_bp = side_bp.drop_duplicates(
-                subset=[f"_bp_{side}_team", "date"], keep="first"
-            )
-            df = df.merge(side_bp, on=[f"_bp_{side}_team", "date"], how="left")
-            df = df.drop(columns=[f"_bp_{side}_team"])
+            for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+                df[f"_bp_{side}_team"] = df.apply(
+                    lambda r, _tc=team_col: _map_team_code_to_retrosheet(r[_tc], r["season"]),
+                    axis=1,
+                )
+                bp_cols_to_merge = ["team", "date"]
+                bp_rename = {"team": f"_bp_{side}_team"}
+                for bc in ["bp_fip_short", "bp_ip_3d"]:
+                    if bc in bp.columns:
+                        bp_cols_to_merge.append(bc)
+                        bp_rename[bc] = f"{bc}_{side}"
+                side_bp = bp[bp_cols_to_merge].rename(columns=bp_rename)
+                side_bp = side_bp.drop_duplicates(
+                    subset=[f"_bp_{side}_team", "date"], keep="first"
+                )
+                df = df.merge(side_bp, on=[f"_bp_{side}_team", "date"], how="left")
+                df = df.drop(columns=[f"_bp_{side}_team"])
+        else:
+            logger.warning(f"Bullpen features not found at {bp_path}. Using NaN.")
 
+    if "bullpen_fip_diff" not in df.columns:
         if "bp_fip_short_home" in df.columns:
             df["bullpen_fip_diff"] = df["bp_fip_short_home"] - df["bp_fip_short_away"]
         else:
             df["bullpen_fip_diff"] = np.nan
-
+    if "bullpen_workload_3d_diff" not in df.columns:
         if "bp_ip_3d_home" in df.columns:
             df["bullpen_workload_3d_diff"] = df["bp_ip_3d_home"] - df["bp_ip_3d_away"]
         else:
             df["bullpen_workload_3d_diff"] = np.nan
-    else:
-        logger.warning(f"Bullpen features not found at {bp_path}. Using NaN.")
-        df["bullpen_fip_diff"] = np.nan
-        df["bullpen_workload_3d_diff"] = np.nan
 
     # ── Elo ──────────────────────────────────────────────────────────────
     logger.info("Computing Elo ratings...")
@@ -785,3 +1290,297 @@ def build_spec_features(
     logger.info(f"Spec features available: {len(available)}/{len(SPEC_FEATURES)}")
 
     return df
+
+
+# ── Over/Under Features ──────────────────────────────────────────────────
+
+OU_FEATURES = [
+    # Combined scoring environment (sums — O/U is about total runs)
+    "combined_rpg",               # rpg_home + rpg_away (season cumulative)
+    "combined_rapg",              # rapg_home + rapg_away
+    "combined_rpg_last10",        # rpg_last10_home + rpg_last10_away
+    "combined_rapg_last10",       # rapg_last10_home + rapg_last10_away
+    # Starting pitching (combined quality)
+    "sp_ra_combined_short",       # home_sp_ra_short + away_sp_ra_short
+    "sp_ra_combined_long",        # home_sp_ra_long + away_sp_ra_long
+    "sp_quality_floor",           # max(home_sp_ra_long, away_sp_ra_long) — worst starter
+    "sp_fip_combined",            # home_sp_fip_short + away_sp_fip_short
+    "sp_whip_combined",           # home_sp_whip_short + away_sp_whip_short
+    "sp_kbb_combined",            # home_sp_kbb_short + away_sp_kbb_short (higher=better)
+    "sp_ip_per_start_combined",   # home_sp_ip_per_start_short + away_sp_ip_per_start_short
+    # Bullpen
+    "bullpen_fip_combined",       # bp_fip_short_home + bp_fip_short_away
+    "bullpen_fip_7g_combined",    # bp_fip_7g_home + bp_fip_7g_away (7-game rolling)
+    "bp_fip_osc_combined",        # (7g - season) home + (7g - season) away; positive = deteriorating
+    "bullpen_ip_3d_combined",     # bp_ip_3d_home + bp_ip_3d_away (workload proxy)
+    # League-relative
+    "offense_vs_league_combined",   # offense_vs_league_home + offense_vs_league_away
+    "defense_vs_league_combined",   # defense_vs_league_home + defense_vs_league_away
+    # Team quality
+    "pyth_wp_combined",           # pyth_wp_home + pyth_wp_away
+    # 1st inning scoring tendency
+    "fi_score_rate_combined",     # fi_score_rate_home + fi_score_rate_away
+    # Market line (for classifier — NOT for regression target)
+    "close_ou",
+    # Relative to line
+    "rpg_vs_line",                # combined_rpg - close_ou
+    "rpg_last10_vs_line",         # combined_rpg_last10 - close_ou
+]
+
+
+def build_ou_features(
+    games: pd.DataFrame | None = None,
+    *,
+    enriched: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build feature set for Over/Under prediction.
+
+    Combined (sum) features rather than diffs — O/U is about total scoring
+    environment, not which team wins.
+
+    Args:
+        games: Raw game-level DataFrame. If None, loads all seasons.
+        enriched: Pre-computed enriched DataFrame from build_all_features().
+            If provided, skips the full pipeline and just computes O/U features.
+
+    Returns:
+        DataFrame with OU_FEATURES columns, targets (total_runs, under_hit),
+        and metadata (season, date, teams, close_ou).
+    """
+    if enriched is None:
+        from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
+
+        if games is None:
+            logger.info("Loading all seasons for O/U features...")
+            games = load_all_seasons()
+        games = apply_data_filters(games)
+        games = add_derived_odds(games)
+        logger.info("Building all features for O/U...")
+        enriched = build_all_features(games)
+
+    df = enriched.copy()
+
+    # ── Targets ───────────────────────────────────────────────────────────
+    df["total_runs"] = df["home_final"] + df["away_final"]
+    df["under_hit"] = (df["total_runs"] < df["close_ou"]).astype(int)
+    df["over_hit"] = (df["total_runs"] > df["close_ou"]).astype(int)
+    df["is_push"] = df["total_runs"] == df["close_ou"]
+
+    # ── Combined scoring features ─────────────────────────────────────────
+    df["combined_rpg"] = df["rpg_home"] + df["rpg_away"]
+    df["combined_rapg"] = df["rapg_home"] + df["rapg_away"]
+
+    if "rpg_last10_home" in df.columns:
+        df["combined_rpg_last10"] = df["rpg_last10_home"] + df["rpg_last10_away"]
+    if "rapg_last10_home" in df.columns:
+        df["combined_rapg_last10"] = df["rapg_last10_home"] + df["rapg_last10_away"]
+
+    # ── Combined pitcher features ─────────────────────────────────────────
+    _safe_sum(df, "sp_ra_combined_short", "home_sp_ra_short", "away_sp_ra_short")
+    _safe_sum(df, "sp_ra_combined_long", "home_sp_ra_long", "away_sp_ra_long")
+    # sp_quality_floor already computed by pitcher_features.py
+    _safe_sum(df, "sp_fip_combined", "home_sp_fip_short", "away_sp_fip_short")
+    _safe_sum(df, "sp_whip_combined", "home_sp_whip_short", "away_sp_whip_short")
+    _safe_sum(df, "sp_kbb_combined", "home_sp_kbb_short", "away_sp_kbb_short")
+    _safe_sum(df, "sp_ip_per_start_combined", "home_sp_ip_per_start_short", "away_sp_ip_per_start_short")
+
+    # ── Combined bullpen features ─────────────────────────────────────────
+    _safe_sum(df, "bullpen_fip_combined", "bp_fip_short_home", "bp_fip_short_away")
+    _safe_sum(df, "bullpen_fip_7g_combined", "bp_fip_7g_home", "bp_fip_7g_away")
+    _safe_sum(df, "bullpen_ip_3d_combined", "bp_ip_3d_home", "bp_ip_3d_away")
+
+    # ── Bullpen FIP oscillator (7g minus season; positive = deteriorating) ──
+    if all(c in df.columns for c in ["bp_fip_7g_home", "bp_fip_long_home",
+                                      "bp_fip_7g_away", "bp_fip_long_away"]):
+        bp_osc_home = df["bp_fip_7g_home"] - df["bp_fip_long_home"]
+        bp_osc_away = df["bp_fip_7g_away"] - df["bp_fip_long_away"]
+        df["bp_fip_osc_combined"] = bp_osc_home + bp_osc_away
+    else:
+        df["bp_fip_osc_combined"] = np.nan
+
+    # ── League-relative combined ──────────────────────────────────────────
+    _safe_sum(df, "offense_vs_league_combined", "offense_vs_league_home", "offense_vs_league_away")
+    _safe_sum(df, "defense_vs_league_combined", "defense_vs_league_home", "defense_vs_league_away")
+
+    # ── Team quality combined ─────────────────────────────────────────────
+    _safe_sum(df, "pyth_wp_combined", "pyth_wp_home", "pyth_wp_away")
+
+    # ── 1st inning scoring tendency ───────────────────────────────────────
+    _safe_sum(df, "fi_score_rate_combined", "fi_score_rate_home", "fi_score_rate_away")
+
+    # ── Relative to line ──────────────────────────────────────────────────
+    if "combined_rpg" in df.columns and "close_ou" in df.columns:
+        df["rpg_vs_line"] = df["combined_rpg"] - df["close_ou"]
+    if "combined_rpg_last10" in df.columns and "close_ou" in df.columns:
+        df["rpg_last10_vs_line"] = df["combined_rpg_last10"] - df["close_ou"]
+
+    # ── O/U regime labels (for regression model) ──────────────────────────
+    margin = df["total_runs"] - df["close_ou"]
+    df["ou_regime"] = np.where(
+        margin >= 2, "T_OVER2",
+        np.where(margin >= 1, "T_OVER1",
+                 np.where(margin < 0, "T_UNDER", "T0")),
+    )
+
+    # ── O/U filters ──────────────────────────────────────────────────────
+    n_before = len(df)
+    mask = pd.Series(True, index=df.index)
+
+    # Exclude Colorado (extreme park factor)
+    if "involves_col" in df.columns:
+        mask &= ~df["involves_col"]
+
+    # Exclude missing O/U line
+    mask &= df["close_ou"].notna()
+
+    df = df[mask].copy()
+    logger.info(
+        f"O/U features: {n_before} -> {len(df)} games "
+        f"(excluded {n_before - len(df)})"
+    )
+
+    # ── Feature availability report ───────────────────────────────────────
+    available = [f for f in OU_FEATURES if f in df.columns and df[f].notna().mean() > 0.3]
+    missing = [f for f in OU_FEATURES if f not in available]
+    if missing:
+        logger.warning(f"O/U features with low coverage: {missing}")
+    logger.info(
+        f"O/U features available: {len(available)}/{len(OU_FEATURES)} | "
+        f"Pushes: {df['is_push'].sum()} | "
+        f"Under rate: {df.loc[~df['is_push'], 'under_hit'].mean() * 100:.1f}%"
+    )
+
+    return df
+
+
+def build_yrfi_features(
+    games: pd.DataFrame | None = None,
+    *,
+    enriched: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build YRFI feature set: lineup + BABIP + pitcher SUM composites.
+
+    Adds 1st-inning BABIP features (from retrosheet parquets) and
+    pitcher/team SUM composites needed for YRFI filter strategies.
+
+    Args:
+        games: Raw game-level DataFrame. If None, loads all seasons.
+        enriched: Pre-computed enriched DataFrame from build_all_features().
+
+    Returns:
+        DataFrame with YRFI composite columns, target (yrfi), and metadata.
+        Only includes games with real inning-by-inning data.
+    """
+    from src.data_loader import (
+        PROCESSED_DIR,
+        _map_team_code_to_retrosheet,
+    )
+
+    if enriched is None:
+        from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
+
+        if games is None:
+            games = load_all_seasons()
+        games = apply_data_filters(games)
+        games = add_derived_odds(games)
+        enriched = build_all_features(games)
+
+    df = enriched.copy()
+
+    # Filter to real inning data (exclude seasons with fake zeros)
+    inn_cols_away = [f"away_inn_{i}" for i in range(1, 10) if f"away_inn_{i}" in df.columns]
+    inn_cols_home = [f"home_inn_{i}" for i in range(1, 10) if f"home_inn_{i}" in df.columns]
+    if inn_cols_away and inn_cols_home:
+        away_inn_sum = df[inn_cols_away].sum(axis=1)
+        home_inn_sum = df[inn_cols_home].sum(axis=1)
+        has_inning_data = (away_inn_sum + home_inn_sum) > 0
+        df = df[has_inning_data].copy()
+
+    # YRFI target
+    if "away_inn_1" in df.columns and "home_inn_1" in df.columns:
+        df["inn1_runs"] = df["away_inn_1"] + df["home_inn_1"]
+        df["yrfi"] = (df["inn1_runs"] > 0).astype(int)
+
+    # ── Merge 1st-inning BABIP ─────────────────────────────────────────
+    babip_path = PROCESSED_DIR / "retrosheet" / "first_inning_babip.parquet"
+    if babip_path.exists():
+        babip = pd.read_parquet(babip_path)
+        babip["date"] = pd.to_datetime(babip["date"]).dt.normalize()
+        df["date"] = pd.to_datetime(df["date"]).dt.normalize()
+
+        for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+            df[f"_bb_{side}_team"] = df.apply(
+                lambda r: _map_team_code_to_retrosheet(r[team_col], r["season"]),
+                axis=1,
+            )
+            bb_rename = {
+                "team": f"_bb_{side}_team",
+                "top3_babip_inn1": f"top3_babip_inn1_{side}",
+                "sp_babip_inn1": f"sp_babip_inn1_{side}",
+            }
+            side_bb = babip[
+                ["team", "date", "top3_babip_inn1", "sp_babip_inn1"]
+            ].rename(columns=bb_rename)
+            side_bb = side_bb.drop_duplicates(
+                subset=[f"_bb_{side}_team", "date"], keep="first"
+            )
+            df = df.merge(side_bb, on=[f"_bb_{side}_team", "date"], how="left")
+            df = df.drop(columns=[f"_bb_{side}_team"])
+
+        _safe_sum(df, "top3_babip_inn1_combined", "top3_babip_inn1_home", "top3_babip_inn1_away")
+        _safe_sum(df, "sp_babip_inn1_combined", "sp_babip_inn1_home", "sp_babip_inn1_away")
+    else:
+        logger.warning(f"BABIP features not found at {babip_path}")
+
+    # ── Pitcher SUM composites ─────────────────────────────────────────
+    _safe_sum(df, "sp_fi_ra_combined", "home_sp_fi_ra_short", "away_sp_fi_ra_short")
+    _safe_sum(df, "sp_fi_ra_combined_long", "home_sp_fi_ra_long", "away_sp_fi_ra_long")
+    _safe_sum(df, "sp_fi_momentum_combined", "home_sp_fi_momentum", "away_sp_fi_momentum")
+    _safe_sum(df, "sp_ra_momentum_combined", "home_sp_ra_momentum", "away_sp_ra_momentum")
+    _safe_sum(df, "starter_fip_combined", "home_sp_fip_short", "away_sp_fip_short")
+    _safe_sum(df, "starter_whip_combined", "home_sp_whip_short", "away_sp_whip_short")
+    _safe_sum(df, "starter_kbb_combined", "home_sp_kbb_short", "away_sp_kbb_short")
+
+    # ── Team SUM composites ────────────────────────────────────────────
+    _safe_sum(df, "combined_rpg", "rpg_home", "rpg_away")
+    _safe_sum(df, "combined_rpg_last10", "rpg_last10_home", "rpg_last10_away")
+    _safe_sum(df, "combined_rapg", "rapg_home", "rapg_away")
+    _safe_sum(df, "fi_score_rate_combined", "fi_score_rate_home", "fi_score_rate_away")
+    _safe_sum(df, "fi_score_rate_last_combined", "fi_score_rate_last_home", "fi_score_rate_last_away")
+
+    # ── Effective OBP (handedness-matched lineup OBP) ──────────────────
+    if all(
+        c in df.columns
+        for c in [
+            "away_sp_hand", "home_sp_hand",
+            "top3_obp_vs_rhp_home", "top3_obp_vs_lhp_home",
+            "top3_obp_vs_rhp_away", "top3_obp_vs_lhp_away",
+        ]
+    ):
+        df["effective_obp_home"] = np.where(
+            df["away_sp_hand"] == "R",
+            df["top3_obp_vs_rhp_home"],
+            df["top3_obp_vs_lhp_home"],
+        )
+        df["effective_obp_away"] = np.where(
+            df["home_sp_hand"] == "R",
+            df["top3_obp_vs_rhp_away"],
+            df["top3_obp_vs_lhp_away"],
+        )
+        _safe_sum(df, "effective_obp_combined", "effective_obp_home", "effective_obp_away")
+
+    n_yrfi = len(df)
+    n_babip = df["top3_babip_inn1_home"].notna().sum() if "top3_babip_inn1_home" in df.columns else 0
+    logger.info(
+        f"YRFI features: {n_yrfi} games with inning data, "
+        f"BABIP coverage: {n_babip}/{n_yrfi}"
+    )
+    return df
+
+
+def _safe_sum(df: pd.DataFrame, target: str, col_a: str, col_b: str) -> None:
+    """Sum two columns into target, producing NaN if either is missing."""
+    if col_a in df.columns and col_b in df.columns:
+        df[target] = df[col_a] + df[col_b]
+    else:
+        df[target] = np.nan

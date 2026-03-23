@@ -29,7 +29,7 @@ from src.retrosheet_pitchers import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent / "data" / "processed" / "retrosheet"
-SEASONS = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021]
+SEASONS = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025]
 
 
 def load_reliever_lines(
@@ -110,13 +110,14 @@ def _compute_rolling_bullpen_quality(
     team_game_bp: pd.DataFrame,
     *,
     short_window: int = 5,
+    mid_window: int = 7,
     long_window: int = 15,
 ) -> pd.DataFrame:
     """Compute rolling bullpen WHIP, K/BB, K9 entering each game."""
-    df = team_game_bp.sort_values(["team", "date"]).reset_index(drop=True)
+    df = team_game_bp.sort_values(["team", "season", "date"]).reset_index(drop=True)
 
     results = []
-    for team, grp in df.groupby("team", sort=False):
+    for (team, season), grp in df.groupby(["team", "season"], sort=False):
         grp = grp.sort_values("date").reset_index(drop=True)
         n = len(grp)
 
@@ -133,7 +134,7 @@ def _compute_rolling_bullpen_quality(
                 "date": grp.iloc[i]["date"],
             }
 
-            for label, window in [("short", short_window), ("long", long_window)]:
+            for label, window in [("short", short_window), ("7g", mid_window), ("long", long_window)]:
                 start = max(0, i - window)
                 if i == 0:
                     row[f"bp_whip_{label}"] = np.nan
@@ -196,7 +197,7 @@ def _compute_close_game_win_pct(
     )
 
     results = []
-    for team, grp in df.groupby("team", sort=False):
+    for (team, season), grp in df.groupby(["team", "season"], sort=False):
         grp = grp.sort_values("date").reset_index(drop=True)
         n = len(grp)
 
@@ -233,21 +234,22 @@ def _compute_workload(
 ) -> pd.DataFrame:
     """Compute bullpen workload: IP in last 1 and 3 days, pitcher count in 3 days."""
     df = team_game_bp[["team", "season", "date"]].copy()
-    df = df.sort_values(["team", "date"]).reset_index(drop=True)
+    df = df.sort_values(["team", "season", "date"]).reset_index(drop=True)
 
-    # Build daily reliever IP by team
+    # Build daily reliever IP by team and season
     rel = relievers.copy()
     rel = _ensure_int(rel, ["p_ipouts"])
-    daily = rel.groupby(["team", "date"]).agg(
+    daily = rel.groupby(["team", "season", "date"]).agg(
         daily_bp_outs=("p_ipouts", "sum"),
         daily_bp_pitchers=("p_seq", "count"),
     ).reset_index()
     daily["daily_bp_ip"] = daily["daily_bp_outs"] / 3.0
 
     results = []
-    for team, grp in df.groupby("team", sort=False):
+    for (team, season), grp in df.groupby(["team", "season"], sort=False):
         grp = grp.sort_values("date").reset_index(drop=True)
-        team_daily = daily[daily["team"] == team].set_index("date").sort_index()
+        season_daily = daily[(daily["team"] == team) & (daily["season"] == season)]
+        team_daily = season_daily.set_index("date").sort_index()
 
         for i in range(len(grp)):
             game_date = grp.iloc[i]["date"]
@@ -284,6 +286,7 @@ def build_bullpen_features(
     *,
     retrosheets_dir: Path = RETROSHEETS_DIR,
     short_window: int = 5,
+    mid_window: int = 7,
     long_window: int = 15,
     close_game_window: int = 20,
 ) -> pd.DataFrame:
@@ -291,8 +294,8 @@ def build_bullpen_features(
 
     Returns DataFrame with columns:
     - team, season, date (keys)
-    - bp_whip_short, bp_whip_long, bp_kbb_short, bp_kbb_long, bp_k9_short, bp_k9_long
-    - bp_fip_short, bp_fip_long
+    - bp_whip_short, bp_whip_7g, bp_whip_long, etc.
+    - bp_fip_short, bp_fip_7g, bp_fip_long
     - bp_close_win_pct
     - bp_ip_1d, bp_ip_3d, bp_pitchers_3d
     """
@@ -343,7 +346,7 @@ def build_bullpen_features(
     # 1. Rolling quality (WHIP, K/BB, K9)
     logger.info("Computing rolling bullpen quality...")
     quality = _compute_rolling_bullpen_quality(
-        team_game_bp, short_window=short_window, long_window=long_window
+        team_game_bp, short_window=short_window, mid_window=mid_window, long_window=long_window
     )
 
     # 2. Close-game win contribution
@@ -382,6 +385,7 @@ def build_with_odds_data(
     *,
     retrosheets_dir: Path = RETROSHEETS_DIR,
     short_window: int = 5,
+    mid_window: int = 7,
     long_window: int = 15,
     close_game_window: int = 20,
 ) -> pd.DataFrame:
@@ -420,7 +424,7 @@ def build_with_odds_data(
     # 1. Quality
     logger.info("Computing rolling bullpen quality...")
     quality = _compute_rolling_bullpen_quality(
-        team_game_bp, short_window=short_window, long_window=long_window
+        team_game_bp, short_window=short_window, mid_window=mid_window, long_window=long_window
     )
 
     # 2. Close-game win contribution (using Retrosheet master with gid-based join)

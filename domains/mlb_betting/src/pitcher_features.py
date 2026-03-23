@@ -132,10 +132,10 @@ def calc_pitcher_rolling_features(
     """
     results = []
 
-    # Group by (pitcher, team) to avoid mixing stats of different pitchers
-    # with the same code (e.g., ASANCHEZ-R = Aaron Sanchez TOR + Anibal Sanchez DET).
-    # Trade mid-season resets rolling — acceptable tradeoff for data integrity.
-    for (pitcher, team), grp in start_log.groupby(["pitcher", "team"]):
+    # Group by (pitcher, team, season) — season isolation ensures no cross-year
+    # leakage. Each season starts fresh with NaN until min_sample starts.
+    # Also separates same-code pitchers on different teams (trade mid-season).
+    for (pitcher, team, season), grp in start_log.groupby(["pitcher", "team", "season"]):
         grp = grp.sort_values("date").reset_index(drop=True)
         n = len(grp)
 
