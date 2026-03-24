@@ -1,4 +1,4 @@
-"""Core agent loop for BitGN sandbox — provider-agnostic, backend-agnostic."""
+"""Core agent loop for BitGN — provider-agnostic, backend-agnostic, runtime-agnostic."""
 
 import json
 import sys
@@ -16,6 +16,7 @@ from src.enrichment import AgentContext, enriched_dispatcher
 from src.models import ReportCompletion
 from src.prompts import build_system_prompt
 from src.providers.anthropic_provider import AnthropicProvider
+from src.tool_defs import mini_tool_models
 from src.tools import Dispatcher
 from src.trace import StepRecord, TaskTrace, truncate_output
 from src.warmup import warmup_vault
@@ -30,11 +31,28 @@ MAX_STEPS = 35
 FORCE_ANSWER_AT = 25
 
 
+def _print_completion(completion) -> None:
+    """Print completion summary — handles both mini and PCM models."""
+    # Extract fields based on model type
+    code = getattr(completion, "code", None) or getattr(completion, "outcome", "?")
+    answer = getattr(completion, "answer", None) or getattr(completion, "message", "")
+    refs = getattr(completion, "refs", None) or getattr(completion, "grounding_refs", [])
+
+    print(f"\n{CLI_GREEN}Agent {code}{CLI_CLR}. Summary:")
+    for s in completion.completed_steps_laconic:
+        print(f"  - {s}")
+    print(f"\n{CLI_BLUE}ANSWER: {answer}{CLI_CLR}")
+    if refs:
+        for ref in refs:
+            print(f"  - {CLI_BLUE}{ref}{CLI_CLR}")
+
+
 def _prepare_agent(
     dispatcher: Dispatcher,
     task_text: str,
     system_prompt_override: str | None,
     config: AgentConfig,
+    use_tree: bool = False,
 ) -> tuple[str, Dispatcher, AgentContext]:
     """Common setup for both Anthropic and OpenAI agent loops.
 
@@ -46,7 +64,8 @@ def _prepare_agent(
     # Warmup: pre-load vault outline + AGENTS.MD
     if config.warmup:
         warmup_text, trust_chain = warmup_vault(
-            dispatcher, read_agents_md=config.warmup_read_agents_md
+            dispatcher, read_agents_md=config.warmup_read_agents_md,
+            use_tree=use_tree,
         )
         warmup_context = warmup_text
         ctx.trust_chain = trust_chain
@@ -76,9 +95,13 @@ def run_agent_anthropic(
     task_text: str,
     system_prompt_override: str | None = None,
     config: AgentConfig | None = None,
+    tool_models: dict[str, type] | None = None,
+    completion_cls: type | None = None,
 ) -> TaskTrace:
     """Run agent loop using Anthropic's native tool_use protocol."""
     config = config or DEFAULT_CONFIG
+    completion_cls = completion_cls or ReportCompletion
+    use_tree = tool_models is not None and "tree" in tool_models
 
     watchdog = (
         Watchdog(
@@ -92,29 +115,19 @@ def run_agent_anthropic(
     )
 
     system_prompt, dispatcher, ctx = _prepare_agent(
-        dispatcher, task_text, system_prompt_override, config
+        dispatcher, task_text, system_prompt_override, config,
+        use_tree=use_tree,
     )
     trace = TaskTrace(task_id="", instruction=task_text)
 
     messages = [{"role": "user", "content": task_text}]
 
-    from src.models import (
-        DeleteTool,
-        ListTool,
-        OutlineTool,
-        ReadTool,
-        SearchTool,
-        WriteTool,
-    )
-
-    TOOL_MODELS = {
-        "outline": OutlineTool,
-        "read": ReadTool,
-        "list": ListTool,
-        "search": SearchTool,
-        "write": WriteTool,
-        "delete": DeleteTool,
-    }
+    # Build TOOL_MODELS from parameter or default to mini models
+    if tool_models is not None:
+        TOOL_MODELS = {k: v for k, v in tool_models.items() if k != "report_completion"}
+    else:
+        TOOL_MODELS = mini_tool_models()
+        del TOOL_MODELS["report_completion"]
 
     gate_retries = 0  # pre-final gate retry counter
 
@@ -151,10 +164,17 @@ def run_agent_anthropic(
         print(f"{thinking} ({elapsed:.1f}s)")
 
         if not tool_calls:
+            # Check if the model already decided on an outcome but forgot to call the tool
+            full_text = " ".join(text_parts) if text_parts else ""
+            outcome_hint = ""
+            for outcome_code in ["OUTCOME_NONE_UNSUPPORTED", "OUTCOME_NONE_CLARIFICATION", "OUTCOME_DENIED_SECURITY"]:
+                if outcome_code in full_text:
+                    outcome_hint = f" You already determined the outcome is {outcome_code} — call report_completion with that outcome NOW."
+                    break
             print(f"  {CLI_RED}No tool call in response{CLI_CLR}")
             messages.append({
                 "role": "user",
-                "content": "You must call a tool. If you have the answer, use report_completion. If not, continue exploring.",
+                "content": f"You must call a tool. If you have the answer, use report_completion immediately.{outcome_hint}",
             })
             continue
 
@@ -191,7 +211,7 @@ def run_agent_anthropic(
                         break  # don't accept completion; re-enter outer loop
 
                 # Gate passed (or disabled/exhausted) — process normally
-                completion = ReportCompletion.model_validate(tool_input)
+                completion = completion_cls.model_validate(tool_input)
                 result_text = dispatcher(completion)
                 tool_results.append({
                     "type": "tool_result",
@@ -204,13 +224,7 @@ def run_agent_anthropic(
                     output=truncate_output(result_text),
                     elapsed=time.time() - step_started,
                 ))
-                print(f"\n{CLI_GREEN}Agent {completion.code}{CLI_CLR}. Summary:")
-                for s in completion.completed_steps_laconic:
-                    print(f"  - {s}")
-                print(f"\n{CLI_BLUE}ANSWER: {completion.answer}{CLI_CLR}")
-                if completion.refs:
-                    for ref in completion.refs:
-                        print(f"  - {CLI_BLUE}{ref}{CLI_CLR}")
+                _print_completion(completion)
                 completed = True
                 break  # stop executing further tool calls after completion
 
@@ -276,9 +290,13 @@ def run_agent_openai(
     task_text: str,
     system_prompt_override: str | None = None,
     config: AgentConfig | None = None,
+    tool_models: dict[str, type] | None = None,
+    completion_cls: type | None = None,
 ) -> TaskTrace:
     """Run agent loop using OpenAI native function calling (tools API)."""
     config = config or DEFAULT_CONFIG
+    completion_cls = completion_cls or ReportCompletion
+    use_tree = tool_models is not None and "tree" in tool_models
 
     watchdog = (
         Watchdog(
@@ -292,27 +310,17 @@ def run_agent_openai(
     )
 
     system_prompt, dispatcher, ctx = _prepare_agent(
-        dispatcher, task_text, system_prompt_override, config
+        dispatcher, task_text, system_prompt_override, config,
+        use_tree=use_tree,
     )
     trace = TaskTrace(task_id="", instruction=task_text)
 
-    from src.models import (
-        DeleteTool,
-        ListTool,
-        OutlineTool,
-        ReadTool,
-        SearchTool,
-        WriteTool,
-    )
-
-    TOOL_MODELS = {
-        "outline": OutlineTool,
-        "read": ReadTool,
-        "list": ListTool,
-        "search": SearchTool,
-        "write": WriteTool,
-        "delete": DeleteTool,
-    }
+    # Build TOOL_MODELS from parameter or default to mini models
+    if tool_models is not None:
+        TOOL_MODELS = {k: v for k, v in tool_models.items() if k != "report_completion"}
+    else:
+        TOOL_MODELS = mini_tool_models()
+        del TOOL_MODELS["report_completion"]
 
     # Messages list (without system — raw_call prepends it)
     messages = [{"role": "user", "content": task_text}]
@@ -360,10 +368,17 @@ def run_agent_openai(
         messages.append(assistant_msg)
 
         if not msg.tool_calls:
+            # Check if the model already decided on an outcome but forgot to call the tool
+            full_text = msg.content or ""
+            outcome_hint = ""
+            for outcome_code in ["OUTCOME_NONE_UNSUPPORTED", "OUTCOME_NONE_CLARIFICATION", "OUTCOME_DENIED_SECURITY"]:
+                if outcome_code in full_text:
+                    outcome_hint = f" You already determined the outcome is {outcome_code} — call report_completion with that outcome NOW."
+                    break
             print(f"  {CLI_RED}No tool call in response{CLI_CLR}")
             messages.append({
                 "role": "user",
-                "content": "You must call a tool. If you have the answer, use report_completion. If not, continue exploring.",
+                "content": f"You must call a tool. If you have the answer, use report_completion immediately.{outcome_hint}",
             })
             continue
 
@@ -399,7 +414,7 @@ def run_agent_openai(
                         break  # don't accept completion; re-enter outer loop
 
                 # Gate passed (or disabled/exhausted) — process normally
-                completion = ReportCompletion.model_validate(tool_input)
+                completion = completion_cls.model_validate(tool_input)
                 result_text = dispatcher(completion)
                 messages.append({"role": "tool", "content": result_text, "tool_call_id": tc.id})
                 trace.steps.append(StepRecord(
@@ -408,13 +423,7 @@ def run_agent_openai(
                     output=truncate_output(result_text),
                     elapsed=time.time() - step_started,
                 ))
-                print(f"\n{CLI_GREEN}Agent {completion.code}{CLI_CLR}. Summary:")
-                for s in completion.completed_steps_laconic:
-                    print(f"  - {s}")
-                print(f"\n{CLI_BLUE}ANSWER: {completion.answer}{CLI_CLR}")
-                if completion.refs:
-                    for ref in completion.refs:
-                        print(f"  - {CLI_BLUE}{ref}{CLI_CLR}")
+                _print_completion(completion)
                 completed = True
                 break  # stop executing further tool calls after completion
 

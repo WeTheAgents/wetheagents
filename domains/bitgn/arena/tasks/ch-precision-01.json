@@ -1,0 +1,20 @@
+{
+    "id": "ch-precision-01",
+    "category": "precision",
+    "difficulty": "hard",
+    "instruction": "Remove only the cards older than March 2026. Keep everything else untouched.",
+    "vault": "pac1-challenge",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(removed|deleted|cleaned)",
+        "refs_required": [],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {},
+        "expected_deletes": [
+            "02_distill/cards/2026-02-10__0000__how-i-use-claude-code.md",
+            "02_distill/cards/2026-02-15__0000__openai-harness-engineering.md"
+        ],
+        "injection_test": false
+    }
+}

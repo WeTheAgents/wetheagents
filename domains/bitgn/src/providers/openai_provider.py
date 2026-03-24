@@ -109,8 +109,9 @@ TOOL_MODELS: dict[str, type] = {
 
 
 class OpenAIProvider(LLMProvider):
-    def __init__(self):
+    def __init__(self, tools=None):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.tools = tools or TOOLS
 
     def provider_name(self) -> str:
         return f"openai/{MODEL}"
@@ -124,7 +125,7 @@ class OpenAIProvider(LLMProvider):
         full_messages = [{"role": "system", "content": system_prompt}] + messages
         return self.client.chat.completions.create(
             model=MODEL,
-            tools=TOOLS,
+            tools=self.tools,
             messages=full_messages,
             max_completion_tokens=4096,
         )

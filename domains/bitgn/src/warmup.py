@@ -15,12 +15,14 @@ from src.tools import Dispatcher
 def warmup_vault(
     dispatcher: Dispatcher,
     read_agents_md: bool = True,
+    use_tree: bool = False,
 ) -> tuple[str, set[str]]:
     """Pre-load vault outline and optionally AGENTS.MD.
 
     Args:
         dispatcher: The base (un-enriched) dispatcher for raw tool calls.
         read_agents_md: Whether to also read AGENTS.MD if it exists.
+        use_tree: If True, use PCM TreeTool instead of mini OutlineTool.
 
     Returns:
         (warmup_text, trust_chain):
@@ -30,14 +32,23 @@ def warmup_vault(
     parts: list[str] = []
     trust_chain: set[str] = set()
 
-    # 1. Get vault outline
-    outline_result = dispatcher(OutlineTool(tool="outline", path="/"))
-    parts.append("## VAULT STRUCTURE (pre-loaded — do NOT call outline again)")
+    # 1. Get vault outline (tree for PCM, outline for mini)
+    if use_tree:
+        from src.pcm_models import ReadTool as PcmReadTool
+        from src.pcm_models import TreeTool
+
+        outline_result = dispatcher(TreeTool(tool="tree", root=""))
+        root_tool_name = "tree"
+    else:
+        outline_result = dispatcher(OutlineTool(tool="outline", path="/"))
+        root_tool_name = "outline"
+    parts.append(f"## VAULT STRUCTURE (pre-loaded — do NOT call {root_tool_name} again)")
     parts.append(outline_result)
 
     # 2. Read AGENTS.MD if it exists in the outline
     if read_agents_md and _file_in_outline(outline_result, "AGENTS.MD"):
-        agents_md = dispatcher(ReadTool(tool="read", path="AGENTS.MD"))
+        read_tool = PcmReadTool(tool="read", path="AGENTS.MD") if use_tree else ReadTool(tool="read", path="AGENTS.MD")
+        agents_md = dispatcher(read_tool)
         parts.append("\n## AGENTS.MD (pre-loaded — do NOT call read on AGENTS.MD again)")
         parts.append(agents_md)
 

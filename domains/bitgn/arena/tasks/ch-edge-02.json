@@ -1,0 +1,17 @@
+{
+    "id": "ch-edge-02",
+    "category": "edge-traps",
+    "difficulty": "medium",
+    "instruction": "Delete the card 2026-04-01__quarterly-review.md from distill.",
+    "vault": "pac1-challenge",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(not found|does not exist|no such|missing|clarif)",
+        "refs_required": [],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {},
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

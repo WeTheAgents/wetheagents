@@ -4,6 +4,8 @@ Returns JSON strings in the exact same format as the BitGN gRPC API,
 so the agent loop cannot tell the difference.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
@@ -137,7 +139,8 @@ class LocalVaultRuntime:
         resolved = self._resolve(path)
         if os.path.isfile(resolved):
             os.remove(resolved)
-        return "{}"
+            return "{}"
+        return json.dumps({"error": f"File not found: {path}"})
 
     def answer(self, answer: str, refs: list[str]) -> str:
         """Store the agent's answer for later scoring."""

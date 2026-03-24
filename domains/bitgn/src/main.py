@@ -1,4 +1,4 @@
-"""Entry point for BitGN Sandbox benchmark runner."""
+"""Entry point for BitGN benchmark runner (sandbox + PAC1)."""
 
 import os
 import sys
@@ -35,14 +35,27 @@ CLI_GREEN = "\x1B[32m"
 CLI_CLR = "\x1B[0m"
 
 
-def create_provider(name: str):
-    """Factory for LLM providers."""
+def _is_pcm(benchmark_id: str) -> bool:
+    """Check if benchmark uses the PCM runtime."""
+    return "pac1" in benchmark_id
+
+
+def create_provider(name: str, benchmark_id: str = "bitgn/sandbox"):
+    """Factory for LLM providers with runtime-appropriate tool definitions."""
+    if _is_pcm(benchmark_id):
+        from src.tool_defs import pcm_anthropic_tools, pcm_openai_tools
+        anthropic_tools = pcm_anthropic_tools()
+        openai_tools = pcm_openai_tools()
+    else:
+        anthropic_tools = None  # use provider defaults
+        openai_tools = None
+
     if name == "anthropic":
         from src.providers.anthropic_provider import AnthropicProvider
-        return AnthropicProvider()
+        return AnthropicProvider(tools=anthropic_tools)
     elif name == "openai":
         from src.providers.openai_provider import OpenAIProvider
-        return OpenAIProvider()
+        return OpenAIProvider(tools=openai_tools)
     else:
         raise ValueError(f"Unknown provider: {name}. Use 'anthropic' or 'openai'.")
 
@@ -53,6 +66,7 @@ def run_benchmark(
     task_filter: list[str] | None = None,
     prompt_version: str = "default",
     config: AgentConfig | None = None,
+    benchmark_id: str = "bitgn/sandbox",
 ) -> BenchmarkTrace:
     """Run the full benchmark and return a structured trace.
 
@@ -63,13 +77,25 @@ def run_benchmark(
         task_filter: Optional list of task_ids to run (e.g. ['t01', 't02']).
         prompt_version: Label for this prompt version (e.g. 'gen_003').
         config: Optional AgentConfig for feature flags.
+        benchmark_id: Benchmark to run ('bitgn/sandbox' or 'bitgn/pac1-dev').
 
     Returns:
         BenchmarkTrace with all task traces, scores, and metadata.
     """
     config = config or DEFAULT_CONFIG
-    provider = create_provider(provider_name)
+    provider = create_provider(provider_name, benchmark_id)
     prompt_text = prompt_template or ""
+    pcm = _is_pcm(benchmark_id)
+
+    # Get runtime-specific tool_models and completion class
+    if pcm:
+        from src.pcm_models import PcmReportCompletion
+        from src.tool_defs import pcm_tool_models
+        tool_models = pcm_tool_models()
+        completion_cls = PcmReportCompletion
+    else:
+        tool_models = None
+        completion_cls = None
 
     trace = BenchmarkTrace(
         provider=provider.provider_name(),
@@ -82,7 +108,7 @@ def run_benchmark(
         status = client.status(StatusRequest())
         print(f"Connected to BitGN: {status}")
 
-        res = client.get_benchmark(GetBenchmarkRequest(benchmark_id="bitgn/sandbox"))
+        res = client.get_benchmark(GetBenchmarkRequest(benchmark_id=benchmark_id))
         print(
             f"{EvalPolicy.Name(res.policy)} benchmark: {res.benchmark_id} "
             f"with {len(res.tasks)} tasks."
@@ -97,7 +123,7 @@ def run_benchmark(
 
             trial = client.start_playground(
                 StartPlaygroundRequest(
-                    benchmark_id="bitgn/sandbox",
+                    benchmark_id=benchmark_id,
                     task_id=t.task_id,
                 )
             )
@@ -108,10 +134,20 @@ def run_benchmark(
             system_prompt = build_system_prompt(trial.instruction, prompt_template)
 
             try:
-                # Create gRPC dispatcher for this trial's VM
-                from bitgn.vm.mini_connect import MiniRuntimeClientSync
-                vm = MiniRuntimeClientSync(trial.harness_url)
-                dispatcher = bitgn_dispatcher(vm)
+                # Create gRPC dispatcher based on runtime
+                if pcm:
+                    from bitgn.vm.pcm_connect import (
+                        PcmRuntimeClientSync,
+                    )
+
+                    from src.pcm_tools import pcm_dispatcher
+
+                    vm = PcmRuntimeClientSync(trial.harness_url)
+                    dispatcher = pcm_dispatcher(vm)
+                else:
+                    from bitgn.vm.mini_connect import MiniRuntimeClientSync
+                    vm = MiniRuntimeClientSync(trial.harness_url)
+                    dispatcher = bitgn_dispatcher(vm)
 
                 if provider_name == "anthropic":
                     from src.agent import run_agent_anthropic
@@ -119,6 +155,8 @@ def run_benchmark(
                         provider, dispatcher, trial.instruction,
                         system_prompt_override=system_prompt,
                         config=config,
+                        tool_models=tool_models,
+                        completion_cls=completion_cls,
                     )
                 else:
                     from src.agent import run_agent_openai
@@ -126,6 +164,8 @@ def run_benchmark(
                         provider, dispatcher, trial.instruction,
                         system_prompt_override=system_prompt,
                         config=config,
+                        tool_models=tool_models,
+                        completion_cls=completion_cls,
                     )
             except Exception as e:
                 print(f"{CLI_RED}Agent error: {e}{CLI_CLR}")
@@ -222,9 +262,10 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
 
 
 def main() -> None:
-    # Parse args: task filter, provider, and feature flags
+    # Parse args: task filter, provider, benchmark, and feature flags
     task_filter = []
     provider_name = os.getenv("LLM_PROVIDER", "anthropic")
+    benchmark_id = os.getenv("BENCHMARK_ID", "bitgn/sandbox")
 
     args = sys.argv[1:]
     args, config = _parse_config_from_args(args)
@@ -237,11 +278,18 @@ def main() -> None:
         elif args[i].startswith("--provider="):
             provider_name = args[i].split("=", 1)[1]
             i += 1
+        elif args[i] == "--benchmark" and i + 1 < len(args):
+            benchmark_id = args[i + 1]
+            i += 2
+        elif args[i].startswith("--benchmark="):
+            benchmark_id = args[i].split("=", 1)[1]
+            i += 1
         else:
             task_filter.append(args[i])
             i += 1
 
     print(f"Provider: {provider_name}")
+    print(f"Benchmark: {benchmark_id}")
     if config.warmup:
         print("Features: warmup=ON")
     if config.compress_history:
@@ -262,6 +310,7 @@ def main() -> None:
         provider_name=provider_name,
         task_filter=task_filter if task_filter else None,
         config=config,
+        benchmark_id=benchmark_id,
     )
 
     print_summary(trace)

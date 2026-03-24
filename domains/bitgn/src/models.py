@@ -1,7 +1,5 @@
 """Pydantic models for BitGN sandbox agent tools and structured output."""
 
-from __future__ import annotations
-
 from typing import Annotated, Literal, Union
 
 from annotated_types import Ge, Le, MaxLen, MinLen

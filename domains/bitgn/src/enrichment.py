@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 
 from src.config import AgentConfig
 from src.defense import DefenseMode, sanitize_content
-from src.models import ReadTool, ToolAction
 from src.step_validator import StepValidator
 from src.tools import Dispatcher
 
@@ -69,7 +68,7 @@ def enriched_dispatcher(
     mode = _defense_mode_from_str(config.defense_mode)
     validator = StepValidator() if config.step_validator else None
 
-    def _dispatch(tool: ToolAction) -> str:
+    def _dispatch(tool) -> str:
         result = base(tool)
 
         parts: list[str] = []
@@ -84,12 +83,14 @@ def enriched_dispatcher(
         if config.step_budget_in_results:
             parts.append(_step_budget_line(ctx))
 
-        # 2. Defense sanitization on read results
-        if isinstance(tool, ReadTool):
+        # 2. Defense sanitization on read results (works for both mini and PCM ReadTool)
+        if getattr(tool, "tool", None) == "read":
             # Parse the JSON result to extract content for sanitization
             try:
                 data = json.loads(result)
                 content = data.get("content", "")
+                # Include filename in scan — injection filenames are signals too
+                file_path = getattr(tool, "path", "")
                 if content:
                     # Determine effective mode: trust chain files get soft_hint
                     path = tool.path.lstrip("/").lower()
@@ -98,7 +99,10 @@ def enriched_dispatcher(
                         if path in ctx.trust_chain
                         else mode
                     )
-                    sanitized = sanitize_content(content, tool.path, effective_mode)
+                    sanitized = sanitize_content(
+                        content, tool.path, effective_mode,
+                        extra_scan_text=file_path,
+                    )
                     data["content"] = sanitized
                     result = json.dumps(data, indent=2)
             except (json.JSONDecodeError, TypeError):
