@@ -1,0 +1,19 @@
+{
+    "id": "ch-precision-03",
+    "category": "precision",
+    "difficulty": "hard",
+    "instruction": "The ai-engineering-foundations thread is outdated. Archive it by adding '(archived)' to its title line, but don't delete it and don't touch the other thread.",
+    "vault": "pac1-challenge",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": "(archived|updated|modified)",
+        "refs_required": [],
+        "refs_forbidden": [],
+        "side_effects_check": false,
+        "expected_writes": {
+            "02_distill/threads/2026-03-23__ai-engineering-foundations.md": "(archived)"
+        },
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}

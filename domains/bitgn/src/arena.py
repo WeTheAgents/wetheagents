@@ -10,6 +10,8 @@ Usage:
     uv run python src/arena.py --provider anthropic # switch provider
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

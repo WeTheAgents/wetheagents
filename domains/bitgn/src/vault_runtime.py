@@ -4,6 +4,8 @@ Returns JSON strings in the exact same format as the BitGN gRPC API,
 so the agent loop cannot tell the difference.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
