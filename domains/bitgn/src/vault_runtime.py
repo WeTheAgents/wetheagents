@@ -139,7 +139,8 @@ class LocalVaultRuntime:
         resolved = self._resolve(path)
         if os.path.isfile(resolved):
             os.remove(resolved)
-        return "{}"
+            return "{}"
+        return json.dumps({"error": f"File not found: {path}"})
 
     def answer(self, answer: str, refs: list[str]) -> str:
         """Store the agent's answer for later scoring."""

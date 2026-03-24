@@ -9,6 +9,9 @@ Three defense modes (from ERC3 2nd-place architecture):
 import re
 from enum import Enum
 
+# Zero-width / invisible Unicode characters used in steganographic injection
+_INVISIBLE_RE = re.compile(r'[\u200b\u200c\u200d\ufeff\u2060\u00ad\u200e\u200f]')
+
 # Patterns that indicate prompt injection attempts (case-insensitive)
 INJECTION_PATTERNS = [
     r"ignore\s+(all\s+)?previous\s+instructions",
@@ -47,6 +50,8 @@ INJECTION_PATTERNS = [
     r"remove\s+/AGENTS",
     r"delete\s+/AGENTS",
     r"please\s+(delete|remove)\s+AGENTS",
+    # Social engineering: destructive bulk actions on vault content
+    r"(?:replace|overwrite|clear)\s+(?:all\s+)?(?:cards|threads|files|content)\s+(?:in|from|with)",
 ]
 
 _COMPILED_PATTERNS = [re.compile(p, re.IGNORECASE | re.DOTALL) for p in INJECTION_PATTERNS]
@@ -61,6 +66,9 @@ class DefenseMode(Enum):
 def detect_injection(content: str) -> list[str]:
     """Check content for injection patterns. Returns list of matched pattern descriptions."""
     matches = []
+    # Check for invisible Unicode characters (steganographic injection)
+    if _INVISIBLE_RE.search(content):
+        matches.append("zero-width/invisible characters detected")
     for pattern in _COMPILED_PATTERNS:
         if pattern.search(content):
             matches.append(pattern.pattern)
@@ -83,8 +91,13 @@ def sanitize_content(
               (boundary markers only).
         extra_scan_text: Additional text to scan for injection (e.g., filename).
     """
-    scan_text = f"{extra_scan_text}\n{content}" if extra_scan_text else content
+    # Strip invisible characters so agent never sees hidden instructions
+    cleaned = _INVISIBLE_RE.sub('', content)
+    scan_text = f"{extra_scan_text}\n{cleaned}" if extra_scan_text else cleaned
     matches = detect_injection(scan_text)
+    if cleaned != content and not any("zero-width" in m for m in matches):
+        matches.append("zero-width/invisible characters detected")
+    content = cleaned  # display only the cleaned version
 
     if not matches:
         # No injection detected — light boundary markers only
