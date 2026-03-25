@@ -36,9 +36,9 @@ games = add_derived_odds(games)    # decimal odds, implied probs
 
 bettable = games[
     ~games["involves_col"]          # never bet Colorado games
-    & ~games["is_september"]        # skip September tanking
     & ~games["is_extreme_line"]     # skip favorites > 300
 ]
+# September now INCLUDED (validated profitable across 5 seasons)
 ```
 
 ## Scripts

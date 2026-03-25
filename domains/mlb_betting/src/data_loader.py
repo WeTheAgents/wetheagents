@@ -306,10 +306,9 @@ def apply_betting_filters(df: pd.DataFrame) -> pd.DataFrame:
 
     Removes:
     - Games involving Colorado Rockies (Coors Field altitude effect)
-    - September games (tanking, roster expansion)
     - Extreme favorites (ML > ±300)
     """
-    mask = ~df["involves_col"] & ~df["is_september"] & ~df["is_extreme_line"]
+    mask = ~df["involves_col"] & ~df["is_extreme_line"]
     result = df[mask].copy()
     logger.info(f"Betting filters: {len(df)} -> {len(result)} bettable games")
     return result.reset_index(drop=True)
@@ -538,6 +537,111 @@ def merge_retrosheet_pitchers(
 
     merged = merged.drop(columns=["_home_team_rs", "_away_team_rs"])
     return merged
+
+
+def enrich_innings_from_retrosheet(games: pd.DataFrame) -> pd.DataFrame:
+    """Backfill zero-inning seasons with real inning scores from Retrosheet teamstats.
+
+    Seasons fetched via SDQL/JSON (2022-2025) have all-zero inning columns.
+    Retrosheet ``{year}csvs.zip`` contain ``teamstats.csv`` with real per-inning runs.
+
+    This function detects seasons where inning data is fake (all zeros) and merges
+    real inning scores from Retrosheet, overwriting the zero columns.
+
+    Must be called AFTER ``load_all_seasons()`` and BEFORE ``apply_data_filters()``.
+    """
+    from src.retrosheet_games import load_inning_scores_from_teamstats
+
+    inn_cols = [f"away_inn_{i}" for i in range(1, 10)] + [
+        f"home_inn_{i}" for i in range(1, 10)
+    ]
+    # Check which columns actually exist
+    present_inn_cols = [c for c in inn_cols if c in games.columns]
+    if not present_inn_cols:
+        logger.warning("No inning columns found in games DataFrame, skipping enrichment.")
+        return games
+
+    # Detect seasons with fake inning data (all zeros)
+    seasons_to_enrich = []
+    for season, grp in games.groupby("season"):
+        inn_sum = grp[present_inn_cols].sum().sum()
+        if inn_sum == 0:
+            seasons_to_enrich.append(int(season))
+
+    if not seasons_to_enrich:
+        logger.info("All seasons have real inning data, no enrichment needed.")
+        return games
+
+    logger.info(f"Enriching inning data for seasons: {seasons_to_enrich}")
+
+    ts = load_inning_scores_from_teamstats(seasons_to_enrich)
+    if ts.empty:
+        logger.warning("No teamstats data loaded, skipping enrichment.")
+        return games
+
+    out = games.copy()
+
+    # Map our team codes to Retrosheet codes for join
+    out["_home_rs"] = out.apply(
+        lambda r: _map_team_code_to_retrosheet(r["home_team"], r["season"]), axis=1
+    )
+    out["_away_rs"] = out.apply(
+        lambda r: _map_team_code_to_retrosheet(r["away_team"], r["season"]), axis=1
+    )
+
+    ts_join = ts[
+        ["date", "home_team", "away_team"]
+        + [f"away_inn_{i}" for i in range(1, 10)]
+        + [f"home_inn_{i}" for i in range(1, 10)]
+        + ["away_innings_sum", "home_innings_sum"]
+    ].rename(columns={"home_team": "_home_rs", "away_team": "_away_rs"})
+
+    # Handle doubleheaders: keep first occurrence per (date, home, away) to avoid
+    # row duplication (our dataset removes DH later in apply_data_filters).
+    ts_join = ts_join.drop_duplicates(
+        subset=["date", "_home_rs", "_away_rs"], keep="first"
+    )
+
+    # Rename inning cols to avoid collision during merge
+    inn_rename = {}
+    for i in range(1, 10):
+        inn_rename[f"away_inn_{i}"] = f"_rs_away_inn_{i}"
+        inn_rename[f"home_inn_{i}"] = f"_rs_home_inn_{i}"
+    inn_rename["away_innings_sum"] = "_rs_away_innings_sum"
+    inn_rename["home_innings_sum"] = "_rs_home_innings_sum"
+    ts_join = ts_join.rename(columns=inn_rename)
+
+    n_before = len(out)
+    out = out.merge(
+        ts_join,
+        on=["date", "_home_rs", "_away_rs"],
+        how="left",
+    )
+    assert len(out) == n_before, (
+        f"Row count changed after merge: {n_before} -> {len(out)}. "
+        "Likely a doubleheader causing duplication."
+    )
+
+    # Overwrite zero inning columns only for enriched seasons
+    enrich_mask = out["season"].isin(seasons_to_enrich) & out["_rs_away_inn_1"].notna()
+    n_enriched = enrich_mask.sum()
+
+    for i in range(1, 10):
+        out.loc[enrich_mask, f"away_inn_{i}"] = out.loc[enrich_mask, f"_rs_away_inn_{i}"].astype(int)
+        out.loc[enrich_mask, f"home_inn_{i}"] = out.loc[enrich_mask, f"_rs_home_inn_{i}"].astype(int)
+    out.loc[enrich_mask, "away_innings_sum"] = out.loc[enrich_mask, "_rs_away_innings_sum"].astype(int)
+    out.loc[enrich_mask, "home_innings_sum"] = out.loc[enrich_mask, "_rs_home_innings_sum"].astype(int)
+
+    # Cleanup temp columns
+    drop_cols = ["_home_rs", "_away_rs"] + list(inn_rename.values())
+    out = out.drop(columns=[c for c in drop_cols if c in out.columns])
+
+    n_target = out["season"].isin(seasons_to_enrich).sum()
+    logger.info(
+        f"Inning enrichment: {n_enriched}/{n_target} games enriched "
+        f"({n_enriched / n_target * 100:.1f}%) for seasons {seasons_to_enrich}"
+    )
+    return out
 
 
 def merge_retrosheet_starter_entering_features(

@@ -1070,6 +1070,12 @@ def build_all_features(
         else:
             logger.warning(f"Lineup features not found at {lineup_path}")
 
+    # effective_obp_diff (must be after lineup + pitcher hand merge)
+    if "effective_obp_home" in enriched.columns and "effective_obp_away" in enriched.columns:
+        enriched["effective_obp_diff"] = (
+            enriched["effective_obp_home"] - enriched["effective_obp_away"]
+        )
+
     n_features = len([c for c in enriched.columns if c not in games.columns])
     logger.info(f"Added {n_features} features to {len(enriched)} games")
 
@@ -1093,6 +1099,10 @@ SPEC_FEATURES = [
     "wp_last10_diff",
     "elo_diff",
     "home_advantage",
+    # Session 18: late-game + matchup features
+    "close_game_wp_diff",   # win% in 1-2 run games (tight game capability)
+    "hold_rate_diff",       # win% when leading after 5 innings (closing strength)
+    "effective_obp_diff",   # OBP top-3 batters vs opposing pitcher's hand
 ]
 
 
@@ -1325,6 +1335,47 @@ OU_FEATURES = [
     # Relative to line
     "rpg_vs_line",                # combined_rpg - close_ou
     "rpg_last10_vs_line",         # combined_rpg_last10 - close_ou
+    # Session 18: tested hold_rate/power_rate/effective_obp_combined — all degraded
+    # AUC and ROI. Reverted. See A/B analysis in session 18.
+]
+
+# --- V2: Interaction features (session 19 experiment) ---
+# V1 (OU_FEATURES) remains production default. V2 is experimental.
+# Insight: combined sums destroy matchup info. Interactions capture
+# "weak bullpen × strong opponent offense" signals that sums miss.
+OU_FEATURES_V2 = [
+    # Tier 1: Core matchup interactions
+    "matchup_rpg_x_sp_ra",          # (rpg_home*away_sp_ra + rpg_away*home_sp_ra) / 2
+    "matchup_rpg10_x_sp_ra",        # recent form RPG × opposing starter RA
+    "matchup_rpg_x_bp_fip",         # offense × opposing bullpen FIP (7g rolling)
+    "matchup_offense_x_defense",    # league-relative offense × league-relative defense
+    "home_offense_x_away_sp",       # rpg_home × away_sp_fip (asymmetric)
+    "away_offense_x_home_sp",       # rpg_away × home_sp_fip (asymmetric)
+    "home_rpg_x_away_bp_workload",  # offense × tired opposing bullpen
+    "away_rpg_x_home_bp_workload",  # mirror
+    # Tier 2: Pitching quality interactions
+    "sp_quality_gap",               # abs(home_sp_ra_long - away_sp_ra_long)
+    "max_offense_x_worst_sp",       # max(rpg_home, rpg_away) × sp_quality_floor
+    "effective_obp_x_sp_fip",       # handedness-matched OBP × opposing FIP
+    "bp_fip_osc_x_rpg",            # deteriorating bullpen × opponent offense
+    # Tier 3: Environment context (retained from V1)
+    "combined_rpg",
+    "combined_rpg_last10",
+    "sp_quality_floor",
+    "sp_ip_per_start_combined",
+    "pyth_wp_combined",
+    "fi_score_rate_combined",
+    "close_ou",
+    "rpg_vs_line",
+]
+
+# --- V3: Hybrid = V1 combined + top 4 V2 interactions ---
+# Keep all V1 combined features, add only the highest-importance interactions.
+OU_FEATURES_V3 = OU_FEATURES + [
+    "bp_fip_osc_x_rpg",        # deteriorating bullpen × opponent offense (12.2% imp)
+    "matchup_rpg_x_bp_fip",    # offense × opposing bullpen FIP (10.6% imp)
+    "sp_quality_gap",           # abs starter mismatch (5.6% imp)
+    "effective_obp_x_sp_fip",  # handedness-matched OBP × opposing FIP (4.2% imp)
 ]
 
 
@@ -1414,6 +1465,11 @@ def build_ou_features(
     if "combined_rpg_last10" in df.columns and "close_ou" in df.columns:
         df["rpg_last10_vs_line"] = df["combined_rpg_last10"] - df["close_ou"]
 
+    # ── Session 18: late-game + matchup combined features ────────────────
+    _safe_sum(df, "hold_rate_combined", "hold_rate_home", "hold_rate_away")
+    _safe_sum(df, "power_rate_combined", "power_rate_home", "power_rate_away")
+    _safe_sum(df, "effective_obp_combined", "effective_obp_home", "effective_obp_away")
+
     # ── O/U regime labels (for regression model) ──────────────────────────
     margin = df["total_runs"] - df["close_ou"]
     df["ou_regime"] = np.where(
@@ -1446,6 +1502,207 @@ def build_ou_features(
         logger.warning(f"O/U features with low coverage: {missing}")
     logger.info(
         f"O/U features available: {len(available)}/{len(OU_FEATURES)} | "
+        f"Pushes: {df['is_push'].sum()} | "
+        f"Under rate: {df.loc[~df['is_push'], 'under_hit'].mean() * 100:.1f}%"
+    )
+
+    return df
+
+
+def build_ou_features_v3(
+    games: pd.DataFrame | None = None,
+    *,
+    enriched: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build V3 hybrid feature set: V1 combined + top 4 V2 interactions.
+
+    Starts from build_ou_features() output, adds only:
+    - bp_fip_osc_x_rpg, matchup_rpg_x_bp_fip, sp_quality_gap, effective_obp_x_sp_fip
+    """
+    df = build_ou_features(games, enriched=enriched)
+
+    # ── bp_fip_osc_x_rpg: deteriorating bullpen × opponent offense ──
+    if all(c in df.columns for c in ["bp_fip_7g_home", "bp_fip_long_home",
+                                      "bp_fip_7g_away", "bp_fip_long_away"]):
+        bp_osc_home = df["bp_fip_7g_home"] - df["bp_fip_long_home"]
+        bp_osc_away = df["bp_fip_7g_away"] - df["bp_fip_long_away"]
+        df["bp_fip_osc_x_rpg"] = (bp_osc_home * df["rpg_away"] + bp_osc_away * df["rpg_home"]) / 2
+    else:
+        df["bp_fip_osc_x_rpg"] = np.nan
+
+    # ── matchup_rpg_x_bp_fip: offense × opposing bullpen FIP ──
+    _safe_cross_sum(df, "matchup_rpg_x_bp_fip",
+                    "rpg_home", "bp_fip_7g_away",
+                    "rpg_away", "bp_fip_7g_home")
+
+    # ── sp_quality_gap: absolute starter mismatch ──
+    if "home_sp_ra_long" in df.columns and "away_sp_ra_long" in df.columns:
+        df["sp_quality_gap"] = (df["home_sp_ra_long"] - df["away_sp_ra_long"]).abs()
+    else:
+        df["sp_quality_gap"] = np.nan
+
+    # ── effective_obp_x_sp_fip: handedness-matched OBP × opposing FIP ──
+    _safe_cross_sum(df, "effective_obp_x_sp_fip",
+                    "effective_obp_home", "away_sp_fip_short",
+                    "effective_obp_away", "home_sp_fip_short")
+
+    # ── Report ──
+    available = [f for f in OU_FEATURES_V3 if f in df.columns and df[f].notna().mean() > 0.3]
+    missing = [f for f in OU_FEATURES_V3 if f not in available]
+    if missing:
+        logger.warning(f"O/U V3 features with low coverage: {missing}")
+    logger.info(f"O/U V3 features available: {len(available)}/{len(OU_FEATURES_V3)}")
+
+    return df
+
+
+def build_ou_features_v2(
+    games: pd.DataFrame | None = None,
+    *,
+    enriched: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build V2 feature set for Over/Under prediction with INTERACTION features.
+
+    V2 replaces most combined sums with matchup interactions:
+    offense × opposing pitching, bullpen vulnerability × opponent strength, etc.
+    Retains 8 environmental context features from V1.
+
+    V1 (build_ou_features) remains production default. This is experimental.
+
+    Args:
+        games: Raw game-level DataFrame. If None, loads all seasons.
+        enriched: Pre-computed enriched DataFrame from build_all_features().
+
+    Returns:
+        DataFrame with OU_FEATURES_V2 columns, targets (total_runs, under_hit),
+        and metadata (season, date, teams, close_ou).
+    """
+    if enriched is None:
+        from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
+
+        if games is None:
+            logger.info("Loading all seasons for O/U V2 features...")
+            games = load_all_seasons()
+        games = apply_data_filters(games)
+        games = add_derived_odds(games)
+        logger.info("Building all features for O/U V2...")
+        enriched = build_all_features(games)
+
+    df = enriched.copy()
+
+    # ── Targets (same as V1) ───────────────────────────────────────────────
+    df["total_runs"] = df["home_final"] + df["away_final"]
+    df["under_hit"] = (df["total_runs"] < df["close_ou"]).astype(int)
+    df["over_hit"] = (df["total_runs"] > df["close_ou"]).astype(int)
+    df["is_push"] = df["total_runs"] == df["close_ou"]
+
+    # ── Tier 1: Core matchup interactions ──────────────────────────────────
+
+    # Offense vs opposing starter (symmetric, averaged)
+    _safe_cross_sum(df, "matchup_rpg_x_sp_ra",
+                    "rpg_home", "away_sp_ra_short",
+                    "rpg_away", "home_sp_ra_short")
+
+    # Recent form offense vs opposing starter
+    if "rpg_last10_home" in df.columns:
+        _safe_cross_sum(df, "matchup_rpg10_x_sp_ra",
+                        "rpg_last10_home", "away_sp_ra_short",
+                        "rpg_last10_away", "home_sp_ra_short")
+    else:
+        df["matchup_rpg10_x_sp_ra"] = np.nan
+
+    # Offense vs opposing bullpen (7-game rolling FIP)
+    _safe_cross_sum(df, "matchup_rpg_x_bp_fip",
+                    "rpg_home", "bp_fip_7g_away",
+                    "rpg_away", "bp_fip_7g_home")
+
+    # League-relative matchup: offense_vs_league × defense_vs_league
+    _safe_cross_sum(df, "matchup_offense_x_defense",
+                    "offense_vs_league_home", "defense_vs_league_away",
+                    "offense_vs_league_away", "defense_vs_league_home")
+
+    # Asymmetric: home bats vs away starter FIP
+    _safe_product(df, "home_offense_x_away_sp", "rpg_home", "away_sp_fip_short")
+
+    # Asymmetric: away bats vs home starter FIP
+    _safe_product(df, "away_offense_x_home_sp", "rpg_away", "home_sp_fip_short")
+
+    # Offense vs tired opposing bullpen (3-day workload)
+    _safe_product(df, "home_rpg_x_away_bp_workload", "rpg_home", "bp_ip_3d_away")
+    _safe_product(df, "away_rpg_x_home_bp_workload", "rpg_away", "bp_ip_3d_home")
+
+    # ── Tier 2: Pitching quality interactions ──────────────────────────────
+
+    # Starter mismatch: absolute gap in long-term RA
+    if "home_sp_ra_long" in df.columns and "away_sp_ra_long" in df.columns:
+        df["sp_quality_gap"] = (df["home_sp_ra_long"] - df["away_sp_ra_long"]).abs()
+    else:
+        df["sp_quality_gap"] = np.nan
+
+    # Best offense × worst starter
+    if "sp_quality_floor" in df.columns:
+        max_rpg = df[["rpg_home", "rpg_away"]].max(axis=1)
+        df["max_offense_x_worst_sp"] = max_rpg * df["sp_quality_floor"]
+    else:
+        df["max_offense_x_worst_sp"] = np.nan
+
+    # Handedness-matched OBP × opposing FIP
+    _safe_cross_sum(df, "effective_obp_x_sp_fip",
+                    "effective_obp_home", "away_sp_fip_short",
+                    "effective_obp_away", "home_sp_fip_short")
+
+    # Deteriorating bullpen × opponent offense
+    if all(c in df.columns for c in ["bp_fip_7g_home", "bp_fip_long_home",
+                                      "bp_fip_7g_away", "bp_fip_long_away"]):
+        bp_osc_home = df["bp_fip_7g_home"] - df["bp_fip_long_home"]
+        bp_osc_away = df["bp_fip_7g_away"] - df["bp_fip_long_away"]
+        df["bp_fip_osc_x_rpg"] = (bp_osc_home * df["rpg_away"] + bp_osc_away * df["rpg_home"]) / 2
+    else:
+        df["bp_fip_osc_x_rpg"] = np.nan
+
+    # ── Tier 3: Retained environment context from V1 ──────────────────────
+
+    df["combined_rpg"] = df["rpg_home"] + df["rpg_away"]
+    if "rpg_last10_home" in df.columns:
+        df["combined_rpg_last10"] = df["rpg_last10_home"] + df["rpg_last10_away"]
+
+    # sp_quality_floor already computed by pitcher_features.py
+    _safe_sum(df, "sp_ip_per_start_combined", "home_sp_ip_per_start_short", "away_sp_ip_per_start_short")
+    _safe_sum(df, "pyth_wp_combined", "pyth_wp_home", "pyth_wp_away")
+    _safe_sum(df, "fi_score_rate_combined", "fi_score_rate_home", "fi_score_rate_away")
+
+    # Relative to line
+    if "combined_rpg" in df.columns and "close_ou" in df.columns:
+        df["rpg_vs_line"] = df["combined_rpg"] - df["close_ou"]
+
+    # ── O/U regime labels (same as V1) ─────────────────────────────────────
+    margin = df["total_runs"] - df["close_ou"]
+    df["ou_regime"] = np.where(
+        margin >= 2, "T_OVER2",
+        np.where(margin >= 1, "T_OVER1",
+                 np.where(margin < 0, "T_UNDER", "T0")),
+    )
+
+    # ── O/U filters (same as V1) ──────────────────────────────────────────
+    n_before = len(df)
+    mask = pd.Series(True, index=df.index)
+    if "involves_col" in df.columns:
+        mask &= ~df["involves_col"]
+    mask &= df["close_ou"].notna()
+
+    df = df[mask].copy()
+    logger.info(
+        f"O/U V2 features: {n_before} -> {len(df)} games "
+        f"(excluded {n_before - len(df)})"
+    )
+
+    # ── Feature availability report ────────────────────────────────────────
+    available = [f for f in OU_FEATURES_V2 if f in df.columns and df[f].notna().mean() > 0.3]
+    missing = [f for f in OU_FEATURES_V2 if f not in available]
+    if missing:
+        logger.warning(f"O/U V2 features with low coverage: {missing}")
+    logger.info(
+        f"O/U V2 features available: {len(available)}/{len(OU_FEATURES_V2)} | "
         f"Pushes: {df['is_push'].sum()} | "
         f"Under rate: {df.loc[~df['is_push'], 'under_hit'].mean() * 100:.1f}%"
     )
@@ -1582,5 +1839,33 @@ def _safe_sum(df: pd.DataFrame, target: str, col_a: str, col_b: str) -> None:
     """Sum two columns into target, producing NaN if either is missing."""
     if col_a in df.columns and col_b in df.columns:
         df[target] = df[col_a] + df[col_b]
+    else:
+        df[target] = np.nan
+
+
+def _safe_product(df: pd.DataFrame, target: str, col_a: str, col_b: str) -> None:
+    """Multiply two columns into target, producing NaN if either is missing."""
+    if col_a in df.columns and col_b in df.columns:
+        df[target] = df[col_a] * df[col_b]
+    else:
+        df[target] = np.nan
+
+
+def _safe_cross_sum(
+    df: pd.DataFrame,
+    target: str,
+    off_home: str,
+    def_away: str,
+    off_away: str,
+    def_home: str,
+) -> None:
+    """Compute (off_home * def_away + off_away * def_home) / 2.
+
+    Symmetric interaction: captures both sides of the matchup and averages.
+    Produces NaN if any required column is missing.
+    """
+    cols = [off_home, def_away, off_away, def_home]
+    if all(c in df.columns for c in cols):
+        df[target] = (df[off_home] * df[def_away] + df[off_away] * df[def_home]) / 2
     else:
         df[target] = np.nan

@@ -49,10 +49,23 @@ games = add_derived_odds(games)    # Add decimal odds, implied probs
 # Betting filters (apply before selecting bets):
 bettable = games[
     ~games["involves_col"]       # Never bet on Colorado games
-    & ~games["is_september"]     # Skip September tanking
     & ~games["is_extreme_line"]  # Skip extreme favorites (>300)
 ]
+# Note: September is now INCLUDED (validated profitable across 5 seasons)
 ```
+
+## Season Ramp-Up Protocol
+
+Feature coverage depends on games played in the current season:
+
+| Period | Team features | Pitcher features | Action |
+|--------|--------------|-----------------|--------|
+| **W1 (Apr 1-7)** | 100% (Elo carries over) | 0% | **No bets.** Collect data, shadow-run LLM experts |
+| **W2 (Apr 8-14)** | 100% | ~8% | **Start betting:** LLM-MULTI on team features only, ¼ Kelly |
+| **W3 (Apr 15-21)** | 100% | ~60% | **Full portfolio, ¼ Kelly.** First genome review (Sunday) |
+| **W4+ (Apr 22+)** | 100% | ~70%+ | **Full portfolio, ½ Kelly.** Weekly genome updates (Sundays) |
+
+Genome evolution: experts review weekly results after Sunday series end, update anti-patterns and weights.
 
 ## Architecture Notes
 

@@ -204,3 +204,95 @@ def drop_doubleheaders(df: pd.DataFrame) -> pd.DataFrame:
     out = m[m["_merge"] == "left_only"].drop(columns=["_merge"])
     return out.reset_index(drop=True)
 
+
+def load_inning_scores_from_teamstats(
+    seasons: list[int],
+    *,
+    retrosheets_dir: Path | None = None,
+) -> pd.DataFrame:
+    """Load per-game inning scores from Retrosheet teamstats.csv files.
+
+    The ``{year}csvs.zip`` archives contain ``{year}teamstats.csv`` with
+    columns: gid, team, inn1..inn9, vishome (v/h), date, number, opp, ...
+
+    Each game has 2 rows (visitor + home).  We pair them by ``gid`` and
+    return a single-row-per-game DataFrame with away_inn_1..9 and
+    home_inn_1..9 columns, keyed on (date, home_team, away_team, game_num).
+
+    Team codes are in Retrosheet format (NYA, CHA, LAN, etc.).
+    """
+    retrosheets_dir = retrosheets_dir or RETROSHEETS_DIR
+    parts: list[pd.DataFrame] = []
+
+    for season in seasons:
+        zip_path = retrosheets_dir / f"{season}csvs.zip"
+        if not zip_path.exists():
+            logger.warning(f"Missing teamstats zip: {zip_path}, skipping {season}")
+            continue
+
+        member = f"{season}teamstats.csv"
+        try:
+            with ZipFile(zip_path) as z:
+                with z.open(member) as f:
+                    df = pd.read_csv(
+                        TextIOWrapper(f, encoding="utf-8", errors="replace"),
+                        dtype=str,
+                    )
+        except KeyError:
+            logger.warning(f"{member} not found in {zip_path}, skipping {season}")
+            continue
+
+        # Parse inning columns to int (empty string → 0 for unused extra innings)
+        inn_cols = [f"inn{i}" for i in range(1, 10)]
+        for c in inn_cols:
+            if c in df.columns:
+                df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
+
+        # Split visitor / home
+        visitors = df[df["vishome"] == "v"].copy()
+        homes = df[df["vishome"] == "h"].copy()
+
+        # Pair by gid
+        paired = visitors.merge(
+            homes,
+            on="gid",
+            suffixes=("_v", "_h"),
+            how="inner",
+        )
+
+        rows: list[dict] = []
+        for _, r in paired.iterrows():
+            row: dict = {
+                "season": season,
+                "date_str": r["date_v"],
+                "game_num": int(r.get("number_v", 0) or 0),
+                "away_team": r["team_v"],
+                "home_team": r["team_h"],
+            }
+            for i in range(1, 10):
+                col = f"inn{i}"
+                row[f"away_inn_{i}"] = int(r.get(f"{col}_v", 0) or 0)
+                row[f"home_inn_{i}"] = int(r.get(f"{col}_h", 0) or 0)
+            rows.append(row)
+
+        part = pd.DataFrame(rows)
+        if part.empty:
+            continue
+
+        part["date"] = pd.to_datetime(part["date_str"], format="%Y%m%d", errors="coerce")
+        part["away_innings_sum"] = sum(part[f"away_inn_{i}"] for i in range(1, 10))
+        part["home_innings_sum"] = sum(part[f"home_inn_{i}"] for i in range(1, 10))
+        parts.append(part)
+
+    if not parts:
+        logger.warning("No teamstats data loaded for any requested season.")
+        return pd.DataFrame()
+
+    result = pd.concat(parts, ignore_index=True)
+    result = result.sort_values(["season", "date", "home_team"]).reset_index(drop=True)
+    logger.info(
+        f"Loaded teamstats inning scores: {len(result)} games "
+        f"({result['season'].astype(int).nunique()} seasons)"
+    )
+    return result
+

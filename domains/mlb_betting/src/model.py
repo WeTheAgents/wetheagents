@@ -657,26 +657,11 @@ def train_under_model(
     except Exception as e:
         logger.warning(f"LogisticRegression failed: {e}")
 
-    # Platt calibration on validation fold (sigmoid, 2 params — preserves
-    # continuous discrimination unlike isotonic step-function)
+    # No calibration — raw ensemble probabilities are better calibrated
+    # in the profitable tail (P>=0.55) than Platt sigmoid.
+    # Session 19 analysis: Platt inflates 65% of 0.55+ bets from <0.55 zone,
+    # diluting hit rate from 68.9% (genuine) to 54.8% (inflated).
     calibrator = None
-    if len(X_val) >= 50:
-        cb_proba_val = cb.predict_proba(X_val)[:, 1]
-        if lr_model is not None:
-            lr_proba_val = lr_model.predict_proba(X_val)[:, 1]
-            ensemble_val = (
-                cfg.ensemble_weight_catboost * cb_proba_val
-                + (1 - cfg.ensemble_weight_catboost) * lr_proba_val
-            )
-        else:
-            ensemble_val = cb_proba_val
-        try:
-            platt = LogisticRegressionCV(Cs=[1e10], cv=3, solver="lbfgs",
-                                         max_iter=1000, random_state=42)
-            platt.fit(ensemble_val.reshape(-1, 1), y_val)
-            calibrator = platt
-        except Exception:
-            calibrator = None
 
     # Metrics
     metrics = {
