@@ -55,6 +55,12 @@ agent0_diary/
 .llm_cache/
 catboost_info/
 
+# Poker arena session logs (runtime artifacts, 2M+ lines)
+domains/poker/data/arena_sessions/
+
+# Debug/temp knowledge artifacts
+domains/**/knowledge/debug_*.txt
+
 # Domain-level env files and local Claude settings
 domains/**/.env
 domains/**/.claude/
