@@ -1,0 +1,2654 @@
+============================================================
+nf-core/rnaseq Benchmark — Human Genome (GRCh37)
+============================================================
+Started: 2026-03-20T04:54:59+00:00
+Host: ubuntu-32gb-rna
+CPUs: 8
+RAM: 30Gi
+Docker: Docker version 29.3.0, build 5927d80
+Nextflow:       version 25.10.4 build 11173
+NXF_WORK: /mnt/data/work
+NXF_TEMP: /mnt/data/tmp
+
+Disk:
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1       226G  2.3G  214G   2% /
+/dev/sdb        492G  252K  467G   1% /mnt/data
+
+=== Phase 1: nf-core/rnaseq test_full — HISAT2 + Picard ===
+Start: 2026-03-20T04:55:01+00:00
+
+ N E X T F L O W   ~  version 25.10.4
+
+Pulling nf-core/rnaseq ...
+ downloaded from https://github.com/nf-core/rnaseq.git
+Downloading plugin nf-validation@1.1.3
+Launching `https://github.com/nf-core/rnaseq` [elegant_albattani] DSL2 - revision: b89fac3265 [3.14.0]
+
+
+
+------------------------------------------------------
+                                        ,--./,-.
+        ___     __   __   __   ___     /,-._.--~'
+  |\ | |__  __ /  ` /  \ |__) |__         }  {
+  | \| |       \__, \__/ |  \ |___     \`-._,-`-,
+                                        `._,._,'
+  nf-core/rnaseq v3.14.0-gb89fac3
+------------------------------------------------------
+Core Nextflow options
+  revision                  : 3.14.0
+  runName                   : elegant_albattani
+  containerEngine           : docker
+  launchDir                 : /root/rnaseq-bench
+  workDir                   : /mnt/data/work
+  projectDir                : /root/rnaseq-bench/.nextflow/assets/nf-core/rnaseq
+  userName                  : root
+  profile                   : test_full,docker
+  configFiles               : 
+
+Input/output options
+  input                     : https://raw.githubusercontent.com/nf-core/test-datasets/rnaseq/samplesheet/v3.10/samplesheet_full.csv
+  outdir                    : /root/rnaseq-bench/results_hisat2_picard
+
+Reference genome options
+  genome                    : GRCh37
+  fasta                     : s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/WholeGenomeFasta/genome.fa
+  gtf                       : s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf
+  gene_bed                  : s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.bed
+  star_index                : s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/STARIndex/
+
+Alignment options
+  aligner                   : hisat2
+  pseudo_aligner            : salmon
+  min_mapped_reads          : 5
+
+Institutional config options
+  config_profile_name       : Full test profile
+  config_profile_description: Full test dataset to check pipeline function
+
+Max job request options
+  max_cpus                  : 8
+  max_memory                : 30.GB
+
+!! Only displaying parameters that differ from the pipeline defaults !!
+------------------------------------------------------
+If you use nf-core/rnaseq for your analysis please cite:
+
+* The pipeline
+  https://doi.org/10.5281/zenodo.1400710
+
+* The nf-core framework
+  https://doi.org/10.1038/s41587-020-0439-x
+
+* Software dependencies
+  https://github.com/nf-core/rnaseq/blob/master/CITATIONS.md
+
+Downloading plugin nf-amazon@3.4.4
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 12 more processes waiting for tasks…
+
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 28 more processes waiting for tasks…
+
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+Staging foreign file: s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/WholeGenomeFasta/genome.fa
+
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+Staging foreign file: s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/WholeGenomeFasta/genome.fa
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603392_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370491_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603629_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370468_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603630_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370490_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603393_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370469_T1_1.fastq.gz
+
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[-        ] NFC…ENOME:CUSTOM_GETCHROMSIZES -
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+Staging foreign file: s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Sequence/WholeGenomeFasta/genome.fa
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603392_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370491_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603629_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370468_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603630_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370490_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603393_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370469_T1_1.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603392_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370491_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603629_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370468_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603630_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370490_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX1603393_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/test-data/rnaseq/SRX2370469_T1_2.fastq.gz
+Staging foreign file: s3://ngi-igenomes/igenomes/Homo_sapiens/Ensembl/GRCh37/Annotation/Genes/genes.gtf
+
+executor >  local (1)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 0 of 1
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  local (1)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 0 of 1
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+executor >  local (1)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 0 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (1)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[-        ] NFC…UMITOOLS_TRIMGALORE:FASTQC -
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE -
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (2)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 0 of 1
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE | 0 of 1
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (2)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 0 of 2
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE | 0 of 2
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (2)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 0 of 3
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE | 0 of 3
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (2)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 0 of 4
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE | 0 of 4
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (2)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 0 of 5
+[-        ] NFC…OOLS_TRIMGALORE:TRIMGALORE | 0 of 5
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (3)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 1 of 5
+[67/40fa81] NFC…ORE:TRIMGALORE (K562_REP1) | 0 of 5
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (3)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 1 of 6
+[67/40fa81] NFC…ORE:TRIMGALORE (K562_REP1) | 0 of 5
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (3)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER -
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 1 of 6
+[67/40fa81] NFC…ORE:TRIMGALORE (K562_REP1) | 0 of 6
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (3)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 1 of 6
+[67/40fa81] NFC…ORE:TRIMGALORE (K562_REP1) | 0 of 6
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (3)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 1 of 7
+[67/40fa81] NFC…ORE:TRIMGALORE (K562_REP1) | 0 of 7
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (3)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[63/a5a95b] NFC…MGALORE:FASTQC (K562_REP1) | 1 of 8
+[67/40fa81] NFC…ORE:TRIMGALORE (K562_REP1) | 0 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (4)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[d8/9aa978] NFC…RIMGALORE:FASTQC (H1_REP1) | 1 of 8
+[67/40fa81] NFC…ORE:TRIMGALORE (K562_REP1) | 1 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (5)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[d8/9aa978] NFC…RIMGALORE:FASTQC (H1_REP1) | 2 of 8
+[3a/7517c7] NFC…ALORE:TRIMGALORE (H1_REP1) | 1 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (5)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[d8/9aa978] NFC…RIMGALORE:FASTQC (H1_REP1) | 2 of 8
+[3a/7517c7] NFC…ALORE:TRIMGALORE (H1_REP1) | 1 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (6)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[c8/e785e7] NFC…LORE:FASTQC (GM12878_REP1) | 2 of 8
+[3a/7517c7] NFC…ALORE:TRIMGALORE (H1_REP1) | 2 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (7)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[c8/e785e7] NFC…LORE:FASTQC (GM12878_REP1) | 3 of 8
+[4e/2fb1b7] NFC…:TRIMGALORE (GM12878_REP1) | 2 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (7)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[c8/e785e7] NFC…LORE:FASTQC (GM12878_REP1) | 3 of 8
+[4e/2fb1b7] NFC…:TRIMGALORE (GM12878_REP1) | 2 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (8)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[c8/e785e7] NFC…LORE:FASTQC (GM12878_REP1) | 3 of 8
+[4e/2fb1b7] NFC…:TRIMGALORE (GM12878_REP1) | 3 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (8)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[c8/e785e7] NFC…LORE:FASTQC (GM12878_REP1) | 3 of 8
+[4e/2fb1b7] NFC…:TRIMGALORE (GM12878_REP1) | 3 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (9)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[a7/bd9abb] NFC…MGALORE:FASTQC (MCF7_REP2) | 3 of 8
+[b7/dec6ce] NFC…ORE:TRIMGALORE (MCF7_REP2) | 4 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (10)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[a7/bd9abb] NFC…MGALORE:FASTQC (MCF7_REP2) | 4 of 8
+[dd/61022e] NFC…:TRIMGALORE (GM12878_REP2) | 4 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (11)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[26/1d817f] NFC…LORE:FASTQC (GM12878_REP2) | 4 of 8
+[dd/61022e] NFC…:TRIMGALORE (GM12878_REP2) | 5 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (12)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[fc/a2e793] NFC…MGALORE:FASTQC (MCF7_REP1) | 5 of 8
+[dd/61022e] NFC…:TRIMGALORE (GM12878_REP2) | 5 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (12)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[fc/a2e793] NFC…MGALORE:FASTQC (MCF7_REP1) | 5 of 8
+[dd/61022e] NFC…:TRIMGALORE (GM12878_REP2) | 5 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (13)
+[-        ] NFC…:PREPARE_GENOME:GTF_FILTER | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[fc/a2e793] NFC…MGALORE:FASTQC (MCF7_REP1) | 6 of 8
+[80/80a350] NFC…ORE:TRIMGALORE (MCF7_REP1) | 5 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (14)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 0 of 1
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[fc/a2e793] NFC…MGALORE:FASTQC (MCF7_REP1) | 6 of 8
+[80/80a350] NFC…ORE:TRIMGALORE (MCF7_REP1) | 6 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (14)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES -
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[fc/a2e793] NFC…MGALORE:FASTQC (MCF7_REP1) | 6 of 8
+[80/80a350] NFC…ORE:TRIMGALORE (MCF7_REP1) | 6 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (15)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA -
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[fc/a2e793] NFC…MGALORE:FASTQC (MCF7_REP1) | 6 of 8
+[1c/82797c] NFC…ORE:TRIMGALORE (K562_REP2) | 6 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (15)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[fc/a2e793] NFC…MGALORE:FASTQC (MCF7_REP1) | 6 of 8
+[1c/82797c] NFC…ORE:TRIMGALORE (K562_REP2) | 6 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (16)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[d3/96cecd] NFC…MGALORE:FASTQC (K562_REP2) | 6 of 8
+[1c/82797c] NFC…ORE:TRIMGALORE (K562_REP2) | 7 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (17)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[d3/96cecd] NFC…MGALORE:FASTQC (K562_REP2) | 7 of 8
+[1c/82797c] NFC…ORE:TRIMGALORE (K562_REP2) | 7 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (17)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[d3/96cecd] NFC…MGALORE:FASTQC (K562_REP2) | 7 of 8
+[1c/82797c] NFC…ORE:TRIMGALORE (K562_REP2) | 7 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (18)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 7 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (18)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[-        ] NFC…:HISAT2_EXTRACTSPLICESITES | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 7 of 8
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (19)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (19)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[-        ] NFC…OME:MAKE_TRANSCRIPTS_FASTA | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 0 of 1
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (20)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (20)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD -
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+[HISAT2 index build] Available memory: 30 GB
+[HISAT2 index build] Less than 200 GB available, so NOT using splice sites and exons to build HISAT2 index.
+[HISAT2 index build] Use --hisat2_build_memory [small number] to skip this check.
+
+executor >  local (20)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 0 of 1
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[-        ] NFC…REPARE_GENOME:HISAT2_BUILD | 0 of 1
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+[HISAT2 index build] Available memory: 30 GB
+[HISAT2 index build] Less than 200 GB available, so NOT using splice sites and exons to build HISAT2 index.
+[HISAT2 index build] Use --hisat2_build_memory [small number] to skip this check.
+
+executor >  local (21)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 0 of 1
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX -
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+
+
+
+executor >  local (21)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 0 of 1
+[-        ] NFC…REPARE_GENOME:SALMON_INDEX | 0 of 1
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN -
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+
+
+
+executor >  local (22)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 0 of 1
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[-        ] NFC…_ALIGN_HISAT2:HISAT2_ALIGN | 0 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+Plus 29 more processes waiting for tasks…
+
+executor >  local (23)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[3f/81b7be] NFC…ISAT2_ALIGN (GM12878_REP1) | 0 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (24)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[3f/81b7be] NFC…ISAT2_ALIGN (GM12878_REP1) | 1 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 1
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (24)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[3f/81b7be] NFC…ISAT2_ALIGN (GM12878_REP1) | 1 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 1
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (25)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[dc/29dfac] NFC…ISAT2_ALIGN (GM12878_REP2) | 2 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 2
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (26)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[dc/29dfac] NFC…ISAT2_ALIGN (GM12878_REP2) | 3 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 3
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (27)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[56/566e09] NFC…AT2:HISAT2_ALIGN (H1_REP1) | 4 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 4
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (27)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[56/566e09] NFC…AT2:HISAT2_ALIGN (H1_REP1) | 4 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 4
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (28)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[8b/a093a6] NFC…2:HISAT2_ALIGN (K562_REP1) | 5 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 5
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (29)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[3e/e424d5] NFC…2:HISAT2_ALIGN (MCF7_REP1) | 6 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (30)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[45/bb78be] NFC…AT2:HISAT2_ALIGN (H1_REP2) | 7 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 7
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (30)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[45/bb78be] NFC…AT2:HISAT2_ALIGN (H1_REP2) | 7 of 8
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 7
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…UDO_ALIGNMENT:SALMON_QUANT | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (31)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[8e/f89c1f] NFC…ALMON_QUANT (GM12878_REP1) | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (31)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[8e/f89c1f] NFC…ALMON_QUANT (GM12878_REP1) | 0 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (32)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[86/88b17d] NFC…T:SALMON_QUANT (K562_REP2) | 1 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (32)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[86/88b17d] NFC…T:SALMON_QUANT (K562_REP2) | 1 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (33)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[13/34c87e] NFC…T:SALMON_QUANT (MCF7_REP2) | 2 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (33)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[13/34c87e] NFC…T:SALMON_QUANT (MCF7_REP2) | 2 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (34)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[08/2d1161] NFC…T:SALMON_QUANT (MCF7_REP1) | 3 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (34)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[08/2d1161] NFC…T:SALMON_QUANT (MCF7_REP1) | 3 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (35)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[bd/2b71fb] NFC…ALMON_QUANT (GM12878_REP2) | 4 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (36)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[27/93b22b] NFC…T:SALMON_QUANT (K562_REP1) | 5 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (36)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[27/93b22b] NFC…T:SALMON_QUANT (K562_REP1) | 5 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (37)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[66/4feba1] NFC…ENT:SALMON_QUANT (H1_REP1) | 6 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (38)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 7 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (38)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[-        ] NFC…ATS_SAMTOOLS:SAMTOOLS_SORT | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 7 of 8
+Plus 28 more processes waiting for tasks…
+
+executor >  local (39)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[75/f038af] NFC…MTOOLS_SORT (GM12878_REP1) | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+Plus 28 more processes waiting for tasks…
+
+executor >  local (39)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[75/f038af] NFC…MTOOLS_SORT (GM12878_REP1) | 0 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (40)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[75/f038af] NFC…MTOOLS_SORT (GM12878_REP1) | 1 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 1
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES -
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (40)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[75/f038af] NFC…MTOOLS_SORT (GM12878_REP1) | 1 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 1
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 1
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (41)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[80/8d2f91] NFC…MTOOLS_SORT (GM12878_REP2) | 2 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 2
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 1
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (41)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[80/8d2f91] NFC…MTOOLS_SORT (GM12878_REP2) | 2 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 2
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 2
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (42)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[80/8d2f91] NFC…MTOOLS_SORT (GM12878_REP2) | 3 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 3
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 2
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (42)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[80/8d2f91] NFC…MTOOLS_SORT (GM12878_REP2) | 3 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 3
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 2
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (42)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[80/8d2f91] NFC…MTOOLS_SORT (GM12878_REP2) | 3 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 3
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 3
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (43)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[1e/327f3b] NFC…LS:SAMTOOLS_SORT (H1_REP1) | 4 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 4
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 3
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (43)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[1e/327f3b] NFC…LS:SAMTOOLS_SORT (H1_REP1) | 4 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 4
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 4
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (44)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c0/b7911a] NFC…:SAMTOOLS_SORT (MCF7_REP1) | 5 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 5
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 4
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (44)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c0/b7911a] NFC…:SAMTOOLS_SORT (MCF7_REP1) | 5 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 5
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 5
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (45)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c0/b7911a] NFC…:SAMTOOLS_SORT (MCF7_REP1) | 6 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 5
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (45)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c0/b7911a] NFC…:SAMTOOLS_SORT (MCF7_REP1) | 6 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 5
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (45)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c0/b7911a] NFC…:SAMTOOLS_SORT (MCF7_REP1) | 6 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 6
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (46)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c5/4edf88] NFC…:SAMTOOLS_SORT (K562_REP2) | 6 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 6
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+
+executor >  local (46)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c5/4edf88] NFC…:SAMTOOLS_SORT (K562_REP2) | 6 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 6
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+ERROR ~ Error executing process > 'NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)'
+
+Caused by:
+  Process `NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)` terminated with an error exit status (1)
+
+
+Command executed:
+
+  samtools sort \
+       \
+      -@ 6 \
+      -o H1_REP2.sorted.bam \
+      -T H1_REP2.sorted \
+      H1_REP2.bam
+  
+  cat <<-END_VERSIONS > versions.yml
+  "NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT":
+      samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+  END_VERSIONS
+
+Command exit status:
+  1
+
+Command output:
+  (empty)
+
+Command error:
+  [bam_sort_core] merging from 10 files and 6 in-memory blocks...
+  samtools sort: failed writing to "H1_REP2.sorted.bam": No such file or directory
+
+Work dir:
+  /mnt/data/work/23/ee0cc6cb3f11b4cba352a1e7beeda7
+
+Container:
+  quay.io/biocontainers/samtools:1.17--h00cdaf9_0
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+
+ -- Check '.nextflow.log' file for details
+
+executor >  local (46)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[23/ee0cc6] NFC…LS:SAMTOOLS_SORT (H1_REP2) | 6 of 8
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 6
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+Execution cancelled -- Finishing pending tasks before exit
+ERROR ~ Error executing process > 'NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)'
+
+Caused by:
+  Process `NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)` terminated with an error exit status (1)
+
+
+Command executed:
+
+  samtools sort \
+       \
+      -@ 6 \
+      -o H1_REP2.sorted.bam \
+      -T H1_REP2.sorted \
+      H1_REP2.bam
+  
+  cat <<-END_VERSIONS > versions.yml
+  "NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT":
+      samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+  END_VERSIONS
+
+Command exit status:
+  1
+
+Command output:
+  (empty)
+
+Command error:
+  [bam_sort_core] merging from 10 files and 6 in-memory blocks...
+  samtools sort: failed writing to "H1_REP2.sorted.bam": No such file or directory
+
+Work dir:
+  /mnt/data/work/23/ee0cc6cb3f11b4cba352a1e7beeda7
+
+Container:
+  quay.io/biocontainers/samtools:1.17--h00cdaf9_0
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+
+ -- Check '.nextflow.log' file for details
+
+executor >  local (46)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c5/4edf88] NFC…:SAMTOOLS_SORT (K562_REP2) | 6 of 8 ✘
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 6
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+-[nf-core/rnaseq] Pipeline completed with errors-
+
+ERROR ~ Error executing process > 'NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)'
+
+Caused by:
+  Process `NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)` terminated with an error exit status (1)
+
+
+Command executed:
+
+  samtools sort \
+       \
+      -@ 6 \
+      -o H1_REP2.sorted.bam \
+      -T H1_REP2.sorted \
+      H1_REP2.bam
+  
+  cat <<-END_VERSIONS > versions.yml
+  "NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT":
+      samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+  END_VERSIONS
+
+Command exit status:
+  1
+
+Command output:
+  (empty)
+
+Command error:
+  [bam_sort_core] merging from 10 files and 6 in-memory blocks...
+  samtools sort: failed writing to "H1_REP2.sorted.bam": No such file or directory
+
+Work dir:
+  /mnt/data/work/23/ee0cc6cb3f11b4cba352a1e7beeda7
+
+Container:
+  quay.io/biocontainers/samtools:1.17--h00cdaf9_0
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+
+ -- Check '.nextflow.log' file for details
+
+executor >  local (46)
+[ad/d74d39] NFC…OME:GTF_FILTER (genome.fa) | 1 of 1 ✔
+[95/811dda] NFC…PTS_FASTA (rsem/genome.fa) | 1 of 1 ✔
+[22/17bdb0] NFC…_GETCHROMSIZES (genome.fa) | 1 of 1 ✔
+[1a/14d54c] NFC…ITES (genome.filtered.gtf) | 1 of 1 ✔
+[e1/c7e60f] NFC…E:HISAT2_BUILD (genome.fa) | 1 of 1 ✔
+[05/d9a9bb] NFC…EX (genome.transcripts.fa) | 1 of 1 ✔
+[-        ] NFCORE_RNASEQ:RNASEQ:CAT_FASTQ -
+[dd/d21621] NFC…RIMGALORE:FASTQC (H1_REP2) | 8 of 8 ✔
+[06/ec5c82] NFC…ALORE:TRIMGALORE (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…PLE_FQ_SALMON:FQ_SUBSAMPLE -
+[-        ] NFC…PLE_FQ_SALMON:SALMON_QUANT -
+[a3/f7fd81] NFC…2:HISAT2_ALIGN (K562_REP2) | 8 of 8 ✔
+[c5/4edf88] NFC…:SAMTOOLS_SORT (K562_REP2) | 6 of 8 ✘
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_INDEX | 0 of 6
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_FLAGSTAT -
+[-        ] NFC…SAMTOOLS:SAMTOOLS_IDXSTATS -
+[-        ] NFC…CARD:PICARD_MARKDUPLICATES | 0 of 6
+[-        ] NFC…ATES_PICARD:SAMTOOLS_INDEX -
+[-        ] NFC…TS_SAMTOOLS:SAMTOOLS_STATS -
+[93/843e57] NFC…ENT:SALMON_QUANT (H1_REP2) | 8 of 8 ✔
+[-        ] NFC…Y_PSEUDO_ALIGNMENT:TX2GENE | 0 of 1
+Plus 27 more processes waiting for tasks…
+-[nf-core/rnaseq] Pipeline completed with errors-
+ERROR ~ Error executing process > 'NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)'
+
+Caused by:
+  Process `NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT (H1_REP2)` terminated with an error exit status (1)
+
+
+Command executed:
+
+  samtools sort \
+       \
+      -@ 6 \
+      -o H1_REP2.sorted.bam \
+      -T H1_REP2.sorted \
+      H1_REP2.bam
+  
+  cat <<-END_VERSIONS > versions.yml
+  "NFCORE_RNASEQ:RNASEQ:FASTQ_ALIGN_HISAT2:BAM_SORT_STATS_SAMTOOLS:SAMTOOLS_SORT":
+      samtools: $(echo $(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*$//')
+  END_VERSIONS
+
+Command exit status:
+  1
+
+Command output:
+  (empty)
+
+Command error:
+  [bam_sort_core] merging from 10 files and 6 in-memory blocks...
+  samtools sort: failed writing to "H1_REP2.sorted.bam": No such file or directory
+
+Work dir:
+  /mnt/data/work/23/ee0cc6cb3f11b4cba352a1e7beeda7
+
+Container:
+  quay.io/biocontainers/samtools:1.17--h00cdaf9_0
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+
+ -- Check '.nextflow.log' file for details
+
+
