@@ -1,20 +1,10 @@
-"""Convert continuous temperature forecasts to Kalshi bracket probabilities.
+"""Convert continuous temperature forecasts to bracket probabilities.
 
-Kalshi temperature markets use 6 mutually exclusive brackets per city:
-  - 4 inner brackets of 2F width centered on the forecast
-  - 2 open-ended tail brackets
+Supports both Kalshi (6 brackets) and Polymarket (11 brackets) structures.
+The Gaussian CDF math is the same for any bracket count/width.
 
-Example for forecast_high=80F:
-  Bracket 0: T <= 75  (tail low)
-  Bracket 1: 76-77
-  Bracket 2: 78-79
-  Bracket 3: 80-81
-  Bracket 4: 82-83
-  Bracket 5: T >= 84  (tail high)
-
-The edge comes from bias correction: if GFS systematically forecasts too warm
-in July for KNYC, the Gaussian CDF shifts probability mass from upper brackets
-to lower brackets, creating NO opportunities on the upper brackets.
+Kalshi: 4 inner brackets (2F) + 2 tails = 6 total
+Polymarket: 9 inner brackets (2F) + 2 tails = 11 total
 
 Key formula:
   F_corrected = F_raw - mean_bias
@@ -29,15 +19,16 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy import stats
+from scipy.interpolate import PchipInterpolator
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class Bracket:
-    """A single Kalshi temperature bracket."""
+    """A single temperature bracket (works for both Kalshi and Polymarket)."""
 
-    index: int  # 0-5
+    index: int  # 0-N
     lower: float | None  # None for tail low
     upper: float | None  # None for tail high
     label: str  # Human-readable label
@@ -104,29 +95,74 @@ def build_brackets(
     return brackets
 
 
+def _build_empirical_cdf(
+    percentiles: dict[int, float],
+    mu: float,
+) -> object:
+    """Build a CDF function from percentile dict using monotone interpolation.
+
+    Returns an object with a .cdf() method matching scipy distribution API.
+    Extends tails using Gaussian extrapolation from the data spread.
+    """
+    pct_keys = sorted(percentiles.keys())
+    pct_values = [percentiles[k] for k in pct_keys]
+    cdf_values = [k / 100.0 for k in pct_keys]
+
+    # Add boundaries if not present: 0% and 100% at +-20F from mean
+    if pct_keys[0] > 0:
+        spread = pct_values[-1] - pct_values[0]
+        pct_values.insert(0, pct_values[0] - spread)
+        cdf_values.insert(0, 0.001)
+    if pct_keys[-1] < 100:
+        spread = pct_values[-1] - pct_values[0]
+        pct_values.append(pct_values[-1] + spread)
+        cdf_values.append(0.999)
+
+    interp = PchipInterpolator(pct_values, cdf_values, extrapolate=True)
+
+    class _EmpiricalDist:
+        def cdf(self, x):
+            return float(np.clip(interp(x), 0.0, 1.0))
+
+    return _EmpiricalDist()
+
+
 def forecast_to_bracket_probs(
     forecast_temp: float,
     mean_bias: float,
     std_error: float,
     brackets: list[Bracket],
+    distribution: str = "gaussian",
+    df_param: float | None = None,
+    percentiles: dict[int, float] | None = None,
 ) -> dict[int, float]:
     """Convert a point forecast + error stats into bracket probabilities.
 
-    Uses Gaussian predictive distribution:
-      F_corrected = forecast_temp - mean_bias
-      P(bracket) = CDF(upper) - CDF(lower)
+    Supports three distribution types:
+      - "gaussian" (default): Normal(mu, sigma^2)
+      - "student_t": Student-t(df, mu, sigma) — heavier tails
+      - "empirical": CDF interpolated from percentile dict
 
     Args:
         forecast_temp: Raw MOS forecast temperature (F).
         mean_bias: Historical mean(forecast - observed) for this station-month.
         std_error: Historical std of forecast error for this station-month.
         brackets: List of Bracket objects defining the bracket structure.
+        distribution: Distribution type ("gaussian", "student_t", "empirical").
+        df_param: Degrees of freedom for Student-t.
+        percentiles: Dict {percentile: value} for empirical CDF.
 
     Returns:
         Dict mapping bracket index to probability.
     """
     corrected = forecast_temp - mean_bias
-    dist = stats.norm(loc=corrected, scale=max(std_error, 0.1))
+
+    if distribution == "student_t" and df_param is not None:
+        dist = stats.t(df=df_param, loc=corrected, scale=max(std_error, 0.1))
+    elif distribution == "empirical" and percentiles is not None:
+        dist = _build_empirical_cdf(percentiles, corrected)
+    else:
+        dist = stats.norm(loc=corrected, scale=max(std_error, 0.1))
 
     probs = {}
     for b in brackets:
@@ -276,3 +312,64 @@ def evaluate_bracket_accuracy(
         "max_no_edge_bracket": max(edges, key=edges.get),
         "actual_bracket_no_edge": edges.get(actual_bracket, 0.0),
     }
+
+
+# --- Polymarket Integration ---
+
+
+def brackets_from_polymarket(event) -> list[Bracket]:
+    """Convert a PolymarketWeatherEvent's brackets to Bracket dataclass list.
+
+    Polymarket events have variable bracket counts (typically 11).
+    This maps them to our standard Bracket format so the CDF probability
+    computation works unchanged.
+
+    Args:
+        event: A PolymarketWeatherEvent with populated brackets list.
+
+    Returns:
+        List of Bracket objects matching the market's structure.
+    """
+    brackets = []
+    for i, pb in enumerate(event.brackets):
+        label = pb.label if hasattr(pb, "label") else ""
+        if not label:
+            if pb.lower is None:
+                label = f"<= {pb.upper:.0f}"
+            elif pb.upper is None:
+                label = f">= {pb.lower:.0f}"
+            else:
+                label = f"{pb.lower:.0f}-{pb.upper:.0f}"
+
+        brackets.append(Bracket(
+            index=i,
+            lower=pb.lower,
+            upper=pb.upper,
+            label=label,
+        ))
+    return brackets
+
+
+def align_model_to_market_brackets(
+    forecast_temp: float,
+    sigma: float,
+    market_brackets: list[Bracket],
+) -> dict[int, float]:
+    """Compute model probabilities aligned to market's exact bracket structure.
+
+    Uses CRPSigma approach: mu = raw forecast, sigma = CRPS-optimized.
+    No bias correction (mean_bias = 0).
+
+    This is the key function for edge analysis: it computes what OUR model
+    thinks the probability of each bracket is, using the EXACT brackets
+    the market defines (not our own generated brackets).
+
+    Args:
+        forecast_temp: Raw GFS MOS forecast temperature (F).
+        sigma: CRPS-optimized sigma for this station-month.
+        market_brackets: Bracket list from the actual market (e.g., Polymarket).
+
+    Returns:
+        Dict mapping bracket index to model probability.
+    """
+    return forecast_to_bracket_probs(forecast_temp, 0.0, sigma, market_brackets)

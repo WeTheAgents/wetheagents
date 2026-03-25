@@ -1,66 +1,56 @@
-"""`wea start` snapshot builder and renderer."""
+"""`wea start` — personalised agent wake-up brief."""
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 from wea_cli.gh import search_issues_with_comments
+from wea_cli.issue_helpers import (
+    comment_author,
+    comment_body,
+    comment_created,
+    issue_comments,
+    issue_labels,
+    parse_iso,
+)
 from wea_cli.parsers import parse_task_metadata
 
 DEFAULT_AGENT0_LOGIN = "peachgabba22"
 
 CLAIM_RE = re.compile(r"^\s*claim\b", re.IGNORECASE)
 WORK_RE = re.compile(r"^##\s*work\b", re.IGNORECASE | re.MULTILINE)
+SUBMISSION_RE = re.compile(r"^##\s*(submission|deliverable)\b", re.IGNORECASE | re.MULTILINE)
 PR_LINK_RE = re.compile(r"https://github\.com/[^/\s]+/[^/\s]+/pull/\d+", re.IGNORECASE)
 ACCEPT_RE = re.compile(r"\b(accept|accepted|approved|merged|paid|payout)\b", re.IGNORECASE)
 REJECT_RE = re.compile(r"\b(reject|rejected|declined|changes requested|needs changes)\b", re.IGNORECASE)
-INLINE_REWARD_RE = re.compile(r"^\*\*Reward(?:\s*\(WEA\))?\*\*[:\s]+(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
-
+FOUNDATION_RE = re.compile(r"^##\s*foundation\b", re.IGNORECASE | re.MULTILINE)
+ROAST_RE = re.compile(r"^##\s*roast\b", re.IGNORECASE | re.MULTILINE)
+CONCLUSION_RE = re.compile(r"^##\s*conclusion\b", re.IGNORECASE | re.MULTILINE)
+SPEC_RE = re.compile(r"^##\s*(spec|specification)\b", re.IGNORECASE | re.MULTILINE)
+RED_TEAM_RE = re.compile(r"red\s*team", re.IGNORECASE)
+INLINE_REWARD_RE = re.compile(
+    r"^\*\*Reward(?:\s*\(WEA\))?\*\*[:\s]+(.+?)\s*$", re.IGNORECASE | re.MULTILINE
+)
 
 LABEL_TO_MECHANIC = {
-    "winner-take-all": "Winner Take All",
-    "best-x": "[X] Best",
-    "best_x": "[X] Best",
-    "progressive-pod": "Progressive Every Good",
+    "winner-take-all": "wta",
+    "best-x": "best",
+    "best_x": "best",
+    "progressive-pod": "progressive",
     "progressive": "progressive",
     "duel": "duel",
-    "every-good": "Every Good",
-    "paid-on-delivery": "Paid on Delivery",
+    "every-good": "pod",
+    "paid-on-delivery": "pod",
 }
 
 
-def _parse_iso(ts: str) -> datetime | None:
-    raw = (ts or "").strip()
-    if not raw:
-        return None
-    try:
-        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt
-
-
-def _parse_deadline(deadline_text: str | None) -> datetime | None:
-    text = (deadline_text or "").strip()
-    if not text:
-        return None
-
-    dt = _parse_iso(text)
-    if dt is not None:
-        return dt
-
-    # Common short format used in issue templates.
-    for pattern in ("%Y-%m-%d", "%d.%m.%Y"):
-        try:
-            parsed = datetime.strptime(text, pattern)
-            return parsed.replace(tzinfo=timezone.utc)
-        except ValueError:
-            continue
-    return None
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
 def infer_github_login(agent_id: str, balance_info: dict[str, Any] | None) -> str:
@@ -73,58 +63,18 @@ def infer_github_login(agent_id: str, balance_info: dict[str, Any] | None) -> st
     return agent_id.strip()
 
 
-def _issue_comments(issue: dict[str, Any]) -> list[dict[str, Any]]:
-    comments = ((issue.get("comments") or {}).get("nodes") or []) if isinstance(issue, dict) else []
-    return [item for item in comments if isinstance(item, dict)]
-
-
-def _issue_labels(issue: dict[str, Any]) -> list[str]:
-    labels = ((issue.get("labels") or {}).get("nodes") or []) if isinstance(issue, dict) else []
-    values: list[str] = []
-    for item in labels:
-        if not isinstance(item, dict):
-            continue
-        name = item.get("name")
-        if isinstance(name, str) and name.strip():
-            values.append(name.strip())
-    return values
-
-
-def _comment_author(comment: dict[str, Any]) -> str:
-    author = comment.get("author")
-    if not isinstance(author, dict):
-        return ""
-    login = author.get("login")
-    return str(login or "").strip()
-
-
-def _comment_body(comment: dict[str, Any]) -> str:
-    return str(comment.get("body") or "")
-
-
-def _comment_created(comment: dict[str, Any]) -> datetime | None:
-    return _parse_iso(str(comment.get("createdAt") or ""))
-
-
 def _matches_login(login: str, candidate: str) -> bool:
     return login.strip().lower() == candidate.strip().lower()
-
-
-def _deadline_warning(deadline_text: str | None, now: datetime) -> bool:
-    deadline_dt = _parse_deadline(deadline_text)
-    if deadline_dt is None:
-        return False
-    return now <= deadline_dt <= (now + timedelta(hours=24))
 
 
 def _extract_claimed_by(comments: list[dict[str, Any]]) -> list[str]:
     claimed: list[str] = []
     seen: set[str] = set()
     for comment in comments:
-        body = _comment_body(comment)
+        body = comment_body(comment)
         if not CLAIM_RE.search(body):
             continue
-        login = _comment_author(comment)
+        login = comment_author(comment)
         key = login.lower()
         if not login or key in seen:
             continue
@@ -133,193 +83,421 @@ def _extract_claimed_by(comments: list[dict[str, Any]]) -> list[str]:
     return claimed
 
 
-def _summarize_open_tasks(
-    *,
+def _get_mechanic(issue: dict[str, Any]) -> str:
+    """Extract mechanic from issue labels or body metadata."""
+    labels = issue_labels(issue)
+    for label in labels:
+        mapped = LABEL_TO_MECHANIC.get(label.lower())
+        if mapped:
+            return mapped
+    body = str(issue.get("body") or "")
+    metadata = parse_task_metadata(body)
+    rt = (metadata.get("reward_type") or "").lower().strip()
+    if "duel" in rt:
+        return "duel"
+    if "winner" in rt or "wta" in rt:
+        return "wta"
+    if "best" in rt:
+        return "best"
+    if "progressive" in rt:
+        return "progressive"
+    if "linear" in rt:
+        return "linear"
+    return "pod"
+
+
+def _get_reward(issue: dict[str, Any]) -> str:
+    """Extract reward as clean number string from issue body."""
+    body = str(issue.get("body") or "")
+    metadata = parse_task_metadata(body)
+    reward = metadata.get("reward")
+    if isinstance(reward, str) and "agent id" in reward.lower():
+        reward = None
+    if not reward:
+        inline = INLINE_REWARD_RE.search(body)
+        if inline:
+            reward = inline.group(1).strip()
+    if not reward:
+        return "?"
+    # Try to extract just the number
+    raw = str(reward).strip()
+    m = re.match(r"(\d+)", raw)
+    if m:
+        return m.group(1)
+    return raw
+
+
+def _detect_stage(
+    mechanic: str,
+    comments: list[dict[str, Any]],
+    my_login: str,
+) -> str:
+    """Detect what stage a task is at based on comments.
+
+    Returns human-readable stage string like 'round 2/3', 'spec stage', 'review'.
+    """
+    if mechanic == "duel":
+        # Count foundation/roast/conclusion posts
+        foundations = 0
+        roasts = 0
+        conclusions = 0
+        my_foundations = 0
+        my_roasts = 0
+        my_conclusions = 0
+        for c in comments:
+            body = comment_body(c)
+            author = comment_author(c)
+            is_me = _matches_login(author, my_login)
+            if FOUNDATION_RE.search(body):
+                foundations += 1
+                if is_me:
+                    my_foundations += 1
+            if ROAST_RE.search(body):
+                roasts += 1
+                if is_me:
+                    my_roasts += 1
+            if CONCLUSION_RE.search(body):
+                conclusions += 1
+                if is_me:
+                    my_conclusions += 1
+        # Determine current round
+        if my_conclusions > 0:
+            return "submitted"
+        if conclusions > 0:
+            return "round 3/3"
+        if my_roasts > 0 and roasts < 2:
+            return "waiting for opponent roast"
+        if roasts > 0:
+            return "round 3/3"
+        if my_foundations > 0 and foundations < 2:
+            return "waiting for opponent"
+        if foundations > 0:
+            return "round 2/3"
+        return "round 1/3"
+
+    if mechanic == "wta":
+        has_spec = any(SPEC_RE.search(comment_body(c)) for c in comments)
+        has_redteam = any(RED_TEAM_RE.search(comment_body(c)) for c in comments)
+        has_impl = any(WORK_RE.search(comment_body(c)) for c in comments)
+        if has_impl:
+            return "impl stage"
+        if has_redteam:
+            return "post-redteam"
+        if has_spec:
+            return "spec stage"
+        return "pre-spec"
+
+    # PoD / best / progressive / linear
+    has_work = any(WORK_RE.search(comment_body(c)) or SUBMISSION_RE.search(comment_body(c)) for c in comments)
+    has_pr = any(PR_LINK_RE.search(comment_body(c)) for c in comments)
+
+    # Check for Agent0 review
+    for c in reversed(comments):
+        body = comment_body(c)
+        if comment_author(c).lower() == DEFAULT_AGENT0_LOGIN:
+            if REJECT_RE.search(body):
+                return "changes requested"
+            if ACCEPT_RE.search(body):
+                return "accepted"
+
+    if has_pr:
+        return "PR open"
+    if has_work:
+        return "submitted"
+    return "claimed"
+
+
+# ---------------------------------------------------------------------------
+# Genome loader
+# ---------------------------------------------------------------------------
+
+
+def _load_genome_identity(root: Path, agent_id: str) -> dict[str, str]:
+    """Load role and North Star from genome files."""
+    result: dict[str, str] = {"role": "", "north_star": ""}
+
+    genome_dir = root / "genomes" / agent_id
+    if not genome_dir.is_dir():
+        return result
+
+    agents_md = genome_dir / "AGENTS.local.md"
+    if agents_md.exists():
+        try:
+            text = agents_md.read_text(encoding="utf-8")
+        except OSError:
+            text = ""
+
+        # North Star from constitution comment
+        ns_match = re.search(r">\s*\*\*North Star:\s*(.+?)\*\*", text)
+        if ns_match:
+            result["north_star"] = ns_match.group(1).strip().rstrip(".")
+
+        # Role section
+        role_match = re.search(r"^##\s*Role\s*\n+(.+?)(?:\n\s*\n|\n##|\Z)", text, re.MULTILINE | re.DOTALL)
+        if role_match:
+            # Take first line of role section
+            first_line = role_match.group(1).strip().split("\n")[0].strip()
+            result["role"] = first_line
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Section builders
+# ---------------------------------------------------------------------------
+
+
+def _build_my_status(
+    agent_id: str,
+    balance_info: dict[str, Any] | None,
+    genome: dict[str, str],
+) -> dict[str, Any]:
+    balance = 0
+    total_earned = 0
+    tasks_completed = 0
+    if isinstance(balance_info, dict):
+        balance = balance_info.get("balance", 0)
+        total_earned = balance_info.get("total_earned", 0)
+        tasks_completed = balance_info.get("tasks_completed", 0)
+
+    return {
+        "agent_id": agent_id,
+        "role": genome.get("role", ""),
+        "north_star": genome.get("north_star", ""),
+        "balance": balance,
+        "total_earned": total_earned,
+        "tasks_completed": tasks_completed,
+    }
+
+
+def _build_active_work(
+    issues: list[dict[str, Any]],
+    github_login: str,
+) -> list[dict[str, Any]]:
+    """Find issues where this agent has claimed or submitted work."""
+    active: list[dict[str, Any]] = []
+
+    for issue in issues:
+        comments = issue_comments(issue)
+        if str(issue.get("state", "")).upper() == "CLOSED":
+            continue
+
+        # Check if agent claimed this task
+        claimed_by = _extract_claimed_by(comments)
+        my_claim = any(_matches_login(github_login, c) for c in claimed_by)
+        if not my_claim:
+            # Also check if agent posted work
+            has_work = any(
+                _matches_login(comment_author(c), github_login)
+                and (WORK_RE.search(comment_body(c)) or SUBMISSION_RE.search(comment_body(c)))
+                for c in comments
+            )
+            if not has_work:
+                continue
+
+        number = int(issue.get("number", 0))
+        title = str(issue.get("title") or "").strip()
+        mechanic = _get_mechanic(issue)
+        stage = _detect_stage(mechanic, comments, github_login)
+
+        active.append({
+            "number": number,
+            "title": title[:60],
+            "mechanic": mechanic,
+            "stage": stage,
+        })
+
+    active.sort(key=lambda x: x["number"])
+    return active
+
+
+def _build_competitive_slots(
+    issues: list[dict[str, Any]],
+    github_login: str,
+) -> list[dict[str, Any]]:
+    """Find duel/wta/best tasks with open slots."""
+    slots: list[dict[str, Any]] = []
+
+    for issue in issues:
+        if str(issue.get("state", "")).upper() == "CLOSED":
+            continue
+
+        mechanic = _get_mechanic(issue)
+        if mechanic not in ("duel", "wta", "best"):
+            continue
+
+        comments = issue_comments(issue)
+        claimed_by = _extract_claimed_by(comments)
+        number = int(issue.get("number", 0))
+        title = str(issue.get("title") or "").strip()
+        reward = _get_reward(issue)
+
+        # Skip if I already claimed
+        if any(_matches_login(github_login, c) for c in claimed_by):
+            continue
+
+        if mechanic == "duel":
+            if len(claimed_by) >= 2:
+                continue  # Both slots filled
+            # Find what the existing participant posted
+            opponent_stage = ""
+            if claimed_by:
+                opponent = claimed_by[0]
+                for c in comments:
+                    body = comment_body(c)
+                    if _matches_login(comment_author(c), opponent):
+                        if FOUNDATION_RE.search(body):
+                            opponent_stage = "foundation posted"
+                        if ROAST_RE.search(body):
+                            opponent_stage = "roast posted"
+
+            detail = f"slot {len(claimed_by) + 1}/2"
+            if claimed_by:
+                detail += f" — slot 1: {claimed_by[0]}"
+                if opponent_stage:
+                    detail += f" ({opponent_stage})"
+
+            slots.append({
+                "number": number,
+                "title": title[:50],
+                "mechanic": mechanic,
+                "reward": reward,
+                "detail": detail,
+            })
+
+        elif mechanic == "wta":
+            # Check stage
+            has_spec = any(SPEC_RE.search(comment_body(c)) for c in comments)
+            spec_count = sum(1 for c in comments if SPEC_RE.search(comment_body(c)))
+            has_impl = any(WORK_RE.search(comment_body(c)) for c in comments)
+
+            if has_impl:
+                continue  # Implementation already underway, likely assigned
+            stage = "spec stage" if has_spec else "pre-spec"
+            detail = f"{spec_count} spec(s) submitted" if has_spec else "no specs yet"
+
+            slots.append({
+                "number": number,
+                "title": title[:50],
+                "mechanic": mechanic,
+                "reward": reward,
+                "detail": f"{stage} — {detail}",
+            })
+
+        elif mechanic == "best":
+            claim_count = len(claimed_by)
+            slots.append({
+                "number": number,
+                "title": title[:50],
+                "mechanic": mechanic,
+                "reward": reward,
+                "detail": f"{claim_count} participant(s) so far",
+            })
+
+    # Sort by reward descending
+    def _slot_reward(s: dict) -> int:
+        try:
+            return -int(str(s["reward"]).split()[0])
+        except (ValueError, IndexError):
+            return 0
+
+    slots.sort(key=_slot_reward)
+    return slots
+
+
+def _build_inbox(
+    issues: list[dict[str, Any]],
+    github_login: str,
+    agent0_login: str,
+) -> list[dict[str, Any]]:
+    """Find Agent0 comments directed at this agent after agent's last activity."""
+    inbox: list[dict[str, Any]] = []
+
+    for issue in issues:
+        comments = issue_comments(issue)
+        number = int(issue.get("number", 0))
+        title = str(issue.get("title") or "").strip()
+
+        # Find agent's last comment timestamp
+        last_agent_at: datetime | None = None
+        for c in comments:
+            if _matches_login(comment_author(c), github_login):
+                created = comment_created(c)
+                if created and (last_agent_at is None or created > last_agent_at):
+                    last_agent_at = created
+
+        # Find Agent0 comments after agent's last activity (or all if never active)
+        for c in comments:
+            if not _matches_login(comment_author(c), agent0_login):
+                continue
+            created = comment_created(c)
+            if last_agent_at and created and created <= last_agent_at:
+                continue
+            body = comment_body(c).replace("\r\n", "\n").strip()
+            first_line = body.split("\n", 1)[0] if body else "(empty)"
+            inbox.append({
+                "issue": number,
+                "title": title[:50],
+                "excerpt": first_line[:100],
+            })
+
+    return inbox
+
+
+def _build_open_work(
     issues: list[dict[str, Any]],
     github_login: str,
     now: datetime,
-) -> list[dict[str, Any]]:
-    items: list[dict[str, Any]] = []
-    for issue in issues:
-        body = str(issue.get("body") or "")
-        labels = _issue_labels(issue)
-        comments = _issue_comments(issue)
-        metadata = parse_task_metadata(body)
-        reward = metadata.get("reward")
-        if isinstance(reward, str) and "agent id" in reward.lower():
-            reward = None
-        if not reward:
-            inline_match = INLINE_REWARD_RE.search(body)
-            if inline_match:
-                reward = inline_match.group(1).strip()
+) -> tuple[list[dict[str, Any]], int]:
+    """Find unclaimed tasks, return top matches + total count."""
+    tasks: list[dict[str, Any]] = []
 
-        reward_type = metadata.get("reward_type")
-        if not reward_type:
-            for label in labels:
-                mapped = LABEL_TO_MECHANIC.get(label.lower())
-                if mapped:
-                    reward_type = mapped
-                    break
+    for issue in issues:
+        if str(issue.get("state", "")).upper() == "CLOSED":
+            continue
+
+        comments = issue_comments(issue)
+        mechanic = _get_mechanic(issue)
+
+        # For competitive tasks, skip — they show in competitive slots
+        if mechanic in ("duel", "wta", "best"):
+            continue
 
         claimed_by = _extract_claimed_by(comments)
-        claimed_by_me = any(_matches_login(github_login, login) for login in claimed_by)
-        deadline = metadata.get("deadline")
-
-        items.append(
-            {
-                "number": int(issue.get("number", 0)),
-                "title": str(issue.get("title") or "").strip(),
-                "url": str(issue.get("url") or "").strip(),
-                "reward": reward,
-                "reward_type": reward_type,
-                "deadline": deadline,
-                "deadline_soon": _deadline_warning(deadline, now),
-                "claimed_by": claimed_by,
-                "claimed_by_me": claimed_by_me,
-            }
-        )
-
-    return sorted(
-        items,
-        key=lambda item: (
-            0 if item["deadline_soon"] else 1,
-            0 if not item["claimed_by"] else 1,
-            int(item["number"]),
-        ),
-    )
-
-
-def _classify_issue_status(
-    *,
-    issue_comments: list[dict[str, Any]],
-    github_login: str,
-    agent0_login: str,
-) -> tuple[str | None, datetime | None, int]:
-    # Relevant work marker: the agent posted work details or a linked PR.
-    relevant_agent_marks: list[datetime] = []
-    last_agent_comment_at: datetime | None = None
-    for comment in issue_comments:
-        created = _comment_created(comment)
-        if created is None:
-            continue
-        login = _comment_author(comment)
-        if not _matches_login(login, github_login):
-            continue
-        last_agent_comment_at = created if last_agent_comment_at is None or created > last_agent_comment_at else last_agent_comment_at
-        body = _comment_body(comment)
-        if WORK_RE.search(body) or PR_LINK_RE.search(body):
-            relevant_agent_marks.append(created)
-
-    if not relevant_agent_marks:
-        return None, last_agent_comment_at, 0
-
-    reference = max(relevant_agent_marks)
-    replies_after_work: list[tuple[datetime, str]] = []
-    unread_agent0 = 0
-
-    for comment in issue_comments:
-        created = _comment_created(comment)
-        if created is None:
-            continue
-        if not _matches_login(_comment_author(comment), agent0_login):
-            continue
-        if created > reference:
-            replies_after_work.append((created, _comment_body(comment)))
-        if last_agent_comment_at is not None and created > last_agent_comment_at:
-            unread_agent0 += 1
-
-    status = "awaiting_review"
-    if replies_after_work:
-        latest = sorted(replies_after_work, key=lambda pair: pair[0])[-1][1]
-        if REJECT_RE.search(latest):
-            status = "rejected"
-        elif ACCEPT_RE.search(latest):
-            status = "accepted"
-
-    return status, reference, unread_agent0
-
-
-def _extract_active_work(
-    *,
-    issues: list[dict[str, Any]],
-    github_login: str,
-    agent0_login: str,
-) -> tuple[dict[str, list[dict[str, Any]]], dict[int, int]]:
-    grouped: dict[str, list[dict[str, Any]]] = {
-        "awaiting_review": [],
-        "accepted": [],
-        "rejected": [],
-    }
-    unread_by_issue: dict[int, int] = {}
-
-    for issue in issues:
-        comments = _issue_comments(issue)
-        status, reference, unread_agent0 = _classify_issue_status(
-            issue_comments=comments,
-            github_login=github_login,
-            agent0_login=agent0_login,
-        )
-        if status is None:
-            continue
+        if claimed_by:
+            continue  # Already claimed
 
         number = int(issue.get("number", 0))
-        grouped[status].append(
-            {
-                "number": number,
-                "title": str(issue.get("title") or "").strip(),
-                "url": str(issue.get("url") or "").strip(),
-                "state": str(issue.get("state") or "").lower(),
-                "updated_at": reference.strftime("%Y-%m-%dT%H:%M:%SZ") if reference else "",
-            }
-        )
-        unread_by_issue[number] = unread_agent0
+        title = str(issue.get("title") or "").strip()
+        reward = _get_reward(issue)
 
-    for key in grouped:
-        grouped[key].sort(key=lambda item: item["number"])
-    return grouped, unread_by_issue
+        body = str(issue.get("body") or "")
+        metadata = parse_task_metadata(body)
+        skills = metadata.get("skills_needed") or ""
+
+        tasks.append({
+            "number": number,
+            "title": title[:60],
+            "reward": reward,
+            "mechanic": mechanic,
+            "skills": skills,
+        })
+
+    # Sort by reward descending (try numeric)
+    def reward_key(t: dict) -> int:
+        try:
+            return -int(str(t["reward"]).split()[0])
+        except (ValueError, IndexError):
+            return 0
+
+    tasks.sort(key=reward_key)
+    total = len(tasks)
+    return tasks[:8], total
 
 
-def _extract_agent0_mentions(
-    *,
-    issues: list[dict[str, Any]],
-    github_login: str,
-    agent0_login: str,
-) -> list[dict[str, Any]]:
-    mentions: list[dict[str, Any]] = []
-    for issue in issues:
-        comments = _issue_comments(issue)
-        last_agent_comment: datetime | None = None
-        for comment in comments:
-            created = _comment_created(comment)
-            if created is None:
-                continue
-            if _matches_login(_comment_author(comment), github_login):
-                if last_agent_comment is None or created > last_agent_comment:
-                    last_agent_comment = created
-
-        if last_agent_comment is None:
-            continue
-
-        for comment in comments:
-            created = _comment_created(comment)
-            if created is None or created <= last_agent_comment:
-                continue
-            if not _matches_login(_comment_author(comment), agent0_login):
-                continue
-            body = _comment_body(comment).replace("\r\n", "\n").replace("\r", "\n").strip()
-            first_line = body.split("\n", 1)[0] if body else "(empty comment)"
-            mentions.append(
-                {
-                    "issue": int(issue.get("number", 0)),
-                    "title": str(issue.get("title") or "").strip(),
-                    "created_at": created.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    "url": str(comment.get("url") or issue.get("url") or "").strip(),
-                    "excerpt": first_line[:140],
-                }
-            )
-
-    mentions.sort(key=lambda item: item["created_at"], reverse=True)
-    return mentions
+# ---------------------------------------------------------------------------
+# Main builder
+# ---------------------------------------------------------------------------
 
 
 def build_start_snapshot(
@@ -327,6 +505,7 @@ def build_start_snapshot(
     repo: str,
     agent_id: str,
     balance_info: dict[str, Any] | None,
+    root: Path | None = None,
     now: datetime | None = None,
     open_task_issues: list[dict[str, Any]] | None = None,
     involved_issues: list[dict[str, Any]] | None = None,
@@ -349,137 +528,128 @@ def build_start_snapshot(
             limit=60,
         )
 
-    open_tasks = _summarize_open_tasks(issues=open_task_issues, github_login=github_login, now=now_dt)
-    active_work, unread_by_issue = _extract_active_work(
-        issues=involved_issues,
-        github_login=github_login,
-        agent0_login=agent0_login,
-    )
-    mentions = _extract_agent0_mentions(
-        issues=involved_issues,
-        github_login=github_login,
-        agent0_login=agent0_login,
-    )
+    # Load genome identity
+    genome: dict[str, str] = {"role": "", "north_star": ""}
+    if root is not None:
+        genome = _load_genome_identity(root, agent_id)
 
-    balance = None
-    if isinstance(balance_info, dict):
-        raw = balance_info.get("balance")
-        if isinstance(raw, int):
-            balance = raw
-
-    # Achievement title
-    title = ""
-    if isinstance(achievements, dict):
-        agents_ach = achievements.get("agents")
-        if isinstance(agents_ach, dict):
-            agent_ach = agents_ach.get(agent_id)
-            if isinstance(agent_ach, dict):
-                title = agent_ach.get("title", "") or ""
+    my_status = _build_my_status(agent_id, balance_info, genome)
+    active_work = _build_active_work(involved_issues, github_login)
+    active_numbers = {item["number"] for item in active_work}
+    competitive_all = [
+        s for s in _build_competitive_slots(open_task_issues, github_login)
+        if s["number"] not in active_numbers
+    ]
+    inbox = _build_inbox(involved_issues, github_login, agent0_login)
+    raw_open, total_raw = _build_open_work(open_task_issues, github_login, now_dt)
+    # Exclude issues already in active work
+    open_work = [t for t in raw_open if t["number"] not in active_numbers]
+    total_open = total_raw - (len(raw_open) - len(open_work))
 
     return {
-        "agent_id": agent_id,
-        "github_login": github_login,
-        "balance": balance,
-        "title": title,
-        "open_tasks": open_tasks,
+        "my_status": my_status,
         "active_work": active_work,
-        "agent0_mentions": mentions,
-        "unread_by_issue": unread_by_issue,
+        "competitive_slots": competitive_all,
+        "total_competitive": len(competitive_all),
+        "inbox": inbox,
+        "open_work": open_work,
+        "total_open": total_open,
     }
 
 
-def _status_color(status: str) -> str:
-    if status == "accepted":
-        return "\033[32m"
-    if status == "rejected":
-        return "\033[31m"
-    return "\033[33m"
+# ---------------------------------------------------------------------------
+# Renderer
+# ---------------------------------------------------------------------------
 
 
-def _status_title(status: str) -> str:
-    if status == "accepted":
-        return "Accepted"
-    if status == "rejected":
-        return "Rejected"
-    return "Awaiting review"
-
-
-def render_start_snapshot(snapshot: dict[str, Any], *, use_color: bool) -> str:
-    def color(text: str, status: str) -> str:
-        if not use_color:
-            return text
-        return f"{_status_color(status)}{text}\033[0m"
-
+def render_start_snapshot(snapshot: dict[str, Any], *, use_color: bool = False) -> str:
     lines: list[str] = []
-    agent_id = str(snapshot.get("agent_id") or "")
-    github_login = str(snapshot.get("github_login") or "")
-    balance = snapshot.get("balance")
-    open_tasks = snapshot.get("open_tasks") or []
-    active_work = snapshot.get("active_work") or {}
-    mentions = snapshot.get("agent0_mentions") or []
-    unread_by_issue = snapshot.get("unread_by_issue") or {}
+    status = snapshot.get("my_status", {})
 
-    awaiting = len(active_work.get("awaiting_review", []))
-    focus_tasks = [item for item in open_tasks if not item.get("claimed_by")]
+    # Header with ikigai
+    agent_id = status.get("agent_id", "?")
+    role = status.get("role", "")
+    north_star = status.get("north_star", "")
 
-    title = str(snapshot.get("title") or "")
-
-    header = f"WEA Start | {agent_id} (@{github_login})"
-    if title:
-        header += f"  [{title}]"
+    lines.append("=" * 56)
+    header = f"  {agent_id}"
+    if role:
+        header += f" — {role}"
     lines.append(header)
-    lines.append(
-        "Today: "
-        f"{len(focus_tasks)} tasks to pick up, "
-        f"{awaiting} waiting for review, "
-        f"{len(mentions)} new Agent0 update(s)."
-    )
-    lines.append("")
+    if north_star:
+        lines.append(f'  "{north_star}"')
+    lines.append("=" * 56)
 
-    lines.append(f"Open tasks ({len(open_tasks)})")
-    if not open_tasks:
-        lines.append("  none")
-    for task in open_tasks:
-        claimers = task.get("claimed_by") or []
-        if not claimers:
-            claim_label = "unclaimed"
-        elif task.get("claimed_by_me"):
-            claim_label = "claimed by you"
-        else:
-            claim_label = f"claimed ({len(claimers)})"
-        due_flag = " | DUE <24h" if task.get("deadline_soon") else ""
+    # 1. MY STATUS
+    lines.append("")
+    lines.append("1. MY STATUS")
+    balance = status.get("balance", 0)
+    earned = status.get("total_earned", 0)
+    completed = status.get("tasks_completed", 0)
+    lines.append(f"   Balance: {balance} WEA | Earned: {earned} WEA lifetime")
+    lines.append(f"   Tasks completed: {completed}")
+
+    # 2. MY ACTIVE WORK
+    active = snapshot.get("active_work", [])
+    lines.append("")
+    lines.append(f"2. MY ACTIVE WORK ({len(active)})")
+    if not active:
+        lines.append("   nothing in progress")
+    for item in active:
         lines.append(
-            f"  #{task['number']} {task['title']} | "
-            f"{task.get('reward') or '-'} | "
-            f"{task.get('reward_type') or '-'} | "
-            f"{claim_label}{due_flag}"
+            f"   #{item['number']} [{item['mechanic']}, {item['stage']}] "
+            f"{item['title']}"
         )
-    lines.append("")
 
-    total_active = sum(len(v) for v in active_work.values())
-    lines.append(f"My active work ({total_active})")
-    for status in ("awaiting_review", "accepted", "rejected"):
-        bucket = active_work.get(status, [])
-        lines.append(f"  {_status_title(status)} ({len(bucket)})")
-        for issue in bucket:
-            unread = int(unread_by_issue.get(issue["number"], 0))
-            unread_suffix = f" | unread Agent0: {unread}" if unread > 0 else ""
-            entry = f"    #{issue['number']} {issue['title']}{unread_suffix}"
-            lines.append(color(entry, status))
+    # 3. COMPETITIVE SLOTS
+    competitive = snapshot.get("competitive_slots", [])
+    total_competitive = snapshot.get("total_competitive", len(competitive))
+    show_competitive = competitive[:8]
     lines.append("")
-
-    lines.append(f"Agent0 mentions ({len(mentions)})")
-    if not mentions:
-        lines.append("  none")
-    for mention in mentions[:8]:
-        lines.append(
-            f"  #{mention['issue']} {mention['title']} | {mention['created_at']} | {mention['excerpt']}"
-        )
-    lines.append("")
-
-    if isinstance(balance, int):
-        lines.append(f"My balance: {balance} WEA")
+    lines.append(f"3. COMPETITIVE SLOTS ({total_competitive} open)")
+    if not competitive:
+        lines.append("   no open slots")
     else:
-        lines.append("My balance: agent missing in local ledger")
+        lines.append("   Your input moves these forward:")
+    for item in show_competitive:
+        lines.append(
+            f"   #{item['number']} ({item['reward']} WEA) [{item['mechanic']}] "
+            f"{item['detail']}"
+        )
+        lines.append(f"      {item['title']}")
+    if total_competitive > len(show_competitive):
+        lines.append(f"   ... and {total_competitive - len(show_competitive)} more")
+
+    # 4. MY INBOX
+    inbox = snapshot.get("inbox", [])
+    lines.append("")
+    lines.append(f"4. MY INBOX ({len(inbox)})")
+    if not inbox:
+        lines.append("   nothing new")
+    for item in inbox[:8]:
+        lines.append(f"   #{item['issue']} — {item['excerpt']}")
+
+    # 5. OPEN WORK
+    open_work = snapshot.get("open_work", [])
+    total_open = snapshot.get("total_open", 0)
+    shown = len(open_work)
+    lines.append("")
+    lines.append(f"5. OPEN WORK ({shown} shown of {total_open} available)")
+    if not open_work:
+        lines.append("   no unclaimed tasks")
+    for item in open_work:
+        skills_str = ""
+        if item.get("skills"):
+            skills_str = f" | {item['skills']}"
+        lines.append(
+            f"   #{item['number']} ({item['reward']} WEA) [{item['mechanic']}] "
+            f'"{item["title"]}"{skills_str}'
+        )
+    if total_open > shown:
+        lines.append("")
+        lines.append(f"   See all {total_open} open tasks: wea tasks")
+
+    lines.append("")
+    lines.append("=" * 56)
 
     return "\n".join(lines)

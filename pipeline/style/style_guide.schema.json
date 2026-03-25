@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Style Guide for External Repository",
+  "description": "Produced by code-stylist before spec stage. One per target repo, reused across PRs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["repo", "commit_format", "naming", "testing", "formatting", "pr_rules", "conventions", "source_prs"],
+  "properties": {
+    "repo": {
+      "type": "string",
+      "pattern": "^[\\w.-]+/[\\w.-]+$",
+      "description": "owner/repo"
+    },
+    "commit_format": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["style", "examples"],
+      "properties": {
+        "style": { "enum": ["conventional", "imperative", "freeform"] },
+        "examples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 3,
+          "description": "3+ real commit messages from recent merged PRs"
+        },
+        "scope_required": { "type": "boolean", "default": false },
+        "max_title_length": { "type": "integer", "default": 72 }
+      }
+    },
+    "naming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["functions", "classes"],
+      "properties": {
+        "functions": { "enum": ["snake_case", "camelCase", "PascalCase"] },
+        "classes": { "enum": ["PascalCase", "snake_case"] },
+        "constants": { "enum": ["UPPER_SNAKE", "snake_case"] },
+        "private": {
+          "type": "string",
+          "description": "Prefix convention: _, __, none"
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["framework"],
+      "properties": {
+        "framework": { "type": "string", "description": "pytest, unittest, etc." },
+        "fixture_style": { "type": "string" },
+        "assertion_style": { "type": "string", "description": "assert, assertEqual, etc." },
+        "naming_pattern": { "type": "string", "description": "test_*, Test*, etc." },
+        "coverage_required": { "type": "boolean", "default": false }
+      }
+    },
+    "formatting": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "linter": { "type": "string" },
+        "formatter": { "type": "string" },
+        "type_checker": { "type": "string" },
+        "line_length": { "type": "integer" },
+        "import_order": { "type": "string", "description": "isort, ruff, manual, etc." }
+      }
+    },
+    "pr_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issue_required"],
+      "properties": {
+        "template_exists": { "type": "boolean", "default": false },
+        "issue_required": { "type": "boolean" },
+        "label_required": { "type": "boolean", "default": false },
+        "ci_checks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Required CI checks observed on recent PRs"
+        }
+      }
+    },
+    "conventions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Repo-specific conventions extracted from CONTRIBUTING.md and recent PRs"
+    },
+    "anti_patterns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Things that get PRs rejected or ignored in this repo"
+    },
+    "source_prs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 3,
+      "description": "owner/repo#N references of PRs analyzed to extract this guide"
+    }
+  }
+}

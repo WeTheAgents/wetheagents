@@ -12,17 +12,17 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from io_helpers import load_json  # noqa: E402
+
 
 def _repo_root_from(root: str | None) -> Path:
     if root:
         return Path(root).resolve()
     return Path(__file__).resolve().parent.parent
-
-
-def _load_json(path: Path, default: Any) -> Any:
-    if not path.exists():
-        return default
-    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def _iter_history(root: Path) -> list[dict[str, Any]]:
@@ -242,9 +242,9 @@ def check_non_negative_balances(balances: dict[str, Any]) -> list[str]:
 
 
 def run_checks(root: Path, *, repo: str | None = None, issue_fetcher=None) -> list[tuple[str, list[str]]]:
-    balances = _load_json(root / "ledger" / "balances.json", {"agents": {}})
-    escrows = _load_json(root / "ledger" / "escrows.json", {"active": {}})
-    idem_keys = _load_json(root / "ledger" / "idem_keys.json", {"keys": {}})
+    balances = load_json(root / "ledger" / "balances.json", default={"agents": {}}, encoding="utf-8-sig")
+    escrows = load_json(root / "ledger" / "escrows.json", default={"active": {}}, encoding="utf-8-sig")
+    idem_keys = load_json(root / "ledger" / "idem_keys.json", default={"keys": {}}, encoding="utf-8-sig")
     history_records = _iter_history(root)
 
     repo_name = repo or _detect_repo()

@@ -85,28 +85,37 @@ def enriched_dispatcher(
 
         # 2. Defense sanitization on read results (works for both mini and PCM ReadTool)
         if getattr(tool, "tool", None) == "read":
-            # Parse the JSON result to extract content for sanitization
+            # Parse result — JSON (mini runtime) or shell-formatted (PCM runtime)
+            is_json = False
             try:
                 data = json.loads(result)
                 content = data.get("content", "")
-                # Include filename in scan — injection filenames are signals too
-                file_path = getattr(tool, "path", "")
-                if content:
-                    # Determine effective mode: trust chain files get soft_hint
-                    path = tool.path.lstrip("/").lower()
-                    effective_mode = (
-                        DefenseMode.SOFT_HINT
-                        if path in ctx.trust_chain
-                        else mode
-                    )
-                    sanitized = sanitize_content(
-                        content, tool.path, effective_mode,
-                        extra_scan_text=file_path,
-                    )
+                is_json = True
+            except (json.JSONDecodeError, TypeError):
+                # Shell-formatted: "cat {path}\n{content}"
+                first_nl = result.find("\n")
+                content = result[first_nl + 1:] if first_nl >= 0 else result
+
+            file_path = getattr(tool, "path", "")
+            if content:
+                path = tool.path.lstrip("/").lower()
+                effective_mode = (
+                    DefenseMode.SOFT_HINT
+                    if path in ctx.trust_chain
+                    else mode
+                )
+                sanitized = sanitize_content(
+                    content, tool.path, effective_mode,
+                    extra_scan_text=file_path,
+                )
+                if is_json:
                     data["content"] = sanitized
                     result = json.dumps(data, indent=2)
-            except (json.JSONDecodeError, TypeError):
-                pass  # non-JSON result, skip sanitization
+                else:
+                    command_line = result[:first_nl] if first_nl >= 0 else ""
+                    result = (
+                        f"{command_line}\n{sanitized}" if command_line else sanitized
+                    )
 
             # Trust chain hint
             if config.trust_chain_hints:

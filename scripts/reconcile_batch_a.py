@@ -19,8 +19,14 @@ import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
+
+# Ensure scripts/ is importable
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from io_helpers import load_json, now_iso, save_json  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -49,22 +55,6 @@ EXPECTED_TOTAL = 10000
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-def _load_json(path: Path) -> dict:
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _save_json(path: Path, data: dict) -> None:
-    path.write_text(
-        json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
 
 def _gh_issue_state(issue_num: int) -> str:
     """Query GitHub for the state of an issue. Returns 'OPEN' or 'CLOSED'."""
@@ -108,7 +98,7 @@ def phase1_orphan_escrow_return(
     """Return escrows for closed GitHub issues."""
     if issue_state_fn is None:
         issue_state_fn = _gh_issue_state
-    ts = timestamp or _now_iso()
+    ts = timestamp or now_iso()
 
     to_remove: list[str] = []
     for issue_key, escrow in list(escrows.get("active", {}).items()):
@@ -276,7 +266,7 @@ def phase3_counter_reconciliation(
 
 def phase5_write_alias_map(ledger_dir: Path, alias_map: dict) -> None:
     """Create ledger/agent_aliases.json."""
-    _save_json(ledger_dir / "agent_aliases.json", alias_map)
+    save_json(ledger_dir / "agent_aliases.json", alias_map)
 
 
 # ---------------------------------------------------------------------------
@@ -290,7 +280,7 @@ def phase6_reconciliation_idem_key(
     timestamp: str | None = None,
 ) -> None:
     """Add reconciliation marker idem key and history entry."""
-    ts = timestamp or _now_iso()
+    ts = timestamp or now_iso()
 
     idem = f"reconcile|batch_a|{ts}"
     idem_keys.setdefault("keys", {})[idem] = ts
@@ -347,12 +337,12 @@ def run_reconciliation(root: Path, *, dry_run: bool = False) -> int:
     ledger_dir = root / "ledger"
 
     # Load all files into memory
-    balances = _load_json(ledger_dir / "balances.json")
-    escrows = _load_json(ledger_dir / "escrows.json")
-    idem_keys = _load_json(ledger_dir / "idem_keys.json")
+    balances = load_json(ledger_dir / "balances.json", default={})
+    escrows = load_json(ledger_dir / "escrows.json", default={})
+    idem_keys = load_json(ledger_dir / "idem_keys.json", default={})
     history: list[dict] = []
 
-    ts = _now_iso()
+    ts = now_iso()
 
     # Preconditions
     check_preconditions(idem_keys)
@@ -399,9 +389,9 @@ def run_reconciliation(root: Path, *, dry_run: bool = False) -> int:
 
     # Atomic write: all files at once
     balances["last_updated"] = ts
-    _save_json(ledger_dir / "balances.json", balances)
-    _save_json(ledger_dir / "escrows.json", escrows)
-    _save_json(ledger_dir / "idem_keys.json", idem_keys)
+    save_json(ledger_dir / "balances.json", balances)
+    save_json(ledger_dir / "escrows.json", escrows)
+    save_json(ledger_dir / "idem_keys.json", idem_keys)
     phase5_write_alias_map(ledger_dir, ALIAS_MAP)
 
     # Append history

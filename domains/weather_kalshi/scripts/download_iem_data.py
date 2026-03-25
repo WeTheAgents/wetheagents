@@ -5,11 +5,13 @@ Usage:
     python scripts/download_iem_data.py --station KNYC           # single station
     python scripts/download_iem_data.py --station KNYC --obs-only  # obs only
     python scripts/download_iem_data.py --station KNYC --mos-only  # MOS only
+    python scripts/download_iem_data.py --fast                     # async obs download (~5x faster)
 """
 
 from __future__ import annotations
 
 import argparse
+import asyncio
 import logging
 import sys
 from pathlib import Path
@@ -18,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.data_loader import build_forecast_obs_pairs, save_pairs
-from src.iem_client import download_mos_bulk, download_obs_bulk
+from src.iem_client import download_mos_bulk, download_obs_bulk, download_obs_bulk_async
 from src.stations import PHASE1_STATIONS, get_station
 
 logging.basicConfig(
@@ -58,6 +60,11 @@ def main() -> None:
         action="store_true",
         help="Skip building forecast-obs pairs after download",
     )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Use async concurrent downloads for observations (~5x faster)",
+    )
     args = parser.parse_args()
 
     stations = [args.station] if args.station else PHASE1_STATIONS
@@ -72,7 +79,10 @@ def main() -> None:
 
         if not args.mos_only:
             logger.info("Downloading observations...")
-            download_obs_bulk(station)
+            if args.fast:
+                asyncio.run(download_obs_bulk_async(station))
+            else:
+                download_obs_bulk(station)
 
         if not args.no_pairs:
             logger.info("Building forecast-obs pairs...")

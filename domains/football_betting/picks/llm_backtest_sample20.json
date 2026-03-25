@@ -1,0 +1,1054 @@
+[
+  {
+    "match_id": "2023-10-02_KYS_IBB",
+    "date": "2023-10-02",
+    "home_team": "KYS",
+    "away_team": "IBB",
+    "home_goals": 0,
+    "away_goals": 0,
+    "result": "D",
+    "lambda_home": 1.6372419129210734,
+    "lambda_away": 1.0700500461933287,
+    "home_odds": 2.6,
+    "draw_odds": 3.39,
+    "away_odds": 2.83,
+    "home_implied": 0.372343852486057,
+    "draw_implied": 0.28557345618399654,
+    "away_implied": 0.3420826913299464,
+    "model_home_win": 0.5031311105079657,
+    "model_draw": 0.27140950625159865,
+    "model_away_win": 0.22540344022311679,
+    "model_over_25": 0.49634686144779183,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-0",
+      "tightness": "comfortable",
+      "total_goals": "normal",
+      "key_narrative": "KYS come in with a much more settled XI, better recent form, and a clear rest advantage, which should let them control the rhythm at home. IBB's recent attacking output is weak and their defense has been leaking chances, so the most likely script is KYS taking the lead and managing the game rather than a wide-open shootout. With KYS defending solidly over the last five, an away goal looks less likely than a controlled home win.",
+      "decisive_factors": [
+        "KYS have a major squad stability edge (0.95 vs 0.71), suggesting better coordination and match control",
+        "Recent form strongly favors KYS: 1.60 PPG vs 0.60 PPG, with IBB scoring only 0.60 goals per game in the last five",
+        "Rest and fatigue lean home side: KYS have 8 days rest versus 4 for IBB, reducing second-half drop-off"
+      ]
+    },
+    "verdict": {
+      "action": "BET",
+      "market": "1X2_H",
+      "confidence": 0.78,
+      "edge_estimate": 0.131,
+      "key_factors": [
+        "Model shows a large home-win edge: 50.3% vs market 37.2% (+13.1pp)",
+        "Strong squad stability gap (+0.24) favors KYS and triggers the squad disruption regime",
+        "Form, attack/defense trend, and rest all lean KYS: 1.60 vs 0.60 PPG last five with IBB weak offensively"
+      ],
+      "risk_flags": [
+        "Early-season sample at 18% reduces confidence",
+        "Line movement is essentially stable, so there is no sharp confirmation"
+      ],
+      "reasoning": "This clears the bar comfortably: a non-Big-3 match with a very large 1X2 home edge, meaningful squad stability advantage, and analyst context aligned with the model. KYS look materially stronger on form, coordination, and rest, while IBB's attack has been poor; the only reason not to push confidence higher is the early-season uncertainty and lack of confirming line move."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.24404432175446678,
+    "min_days_rest": 4.0
+  },
+  {
+    "match_id": "2024-05-12_FB_KYS",
+    "date": "2024-05-12",
+    "home_team": "FB",
+    "away_team": "KYS",
+    "home_goals": 3,
+    "away_goals": 0,
+    "result": "H",
+    "lambda_home": 2.0484025730342816,
+    "lambda_away": 0.9189033293261284,
+    "home_odds": 1.18,
+    "draw_odds": 8.43,
+    "away_odds": 13.47,
+    "home_implied": 0.8146119527297068,
+    "draw_implied": 0.1140263468826873,
+    "away_implied": 0.07136170038760607,
+    "model_home_win": 0.6435619158051518,
+    "model_draw": 0.21957007270152698,
+    "model_away_win": 0.13658528081896676,
+    "model_over_25": 0.5548005630305485,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "Fenerbahce should control most of the game through superior attacking quality and home-field pressure, but this does not project as a runaway. Their recent defensive record leaves room for Kayserispor to score once, yet the overall form gap and Big-3 home dynamics point to Fenerbahce finding the decisive second goal.",
+      "decisive_factors": [
+        "Fenerbahce hold a clear overall quality and form edge: 2.57 season PPG and 2.20 over the last 5 versus Kayserispor's 1.26 and 1.00",
+        "Home Big-3 advantage matters here, especially late in the season when title-chasing intensity and territorial control are typically strong",
+        "Fenerbahce's attack is producing 2.00 GF/game over the last 5 against a Kayserispor side conceding 1.40 GA/game, creating a likely 2-goal home output"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.91,
+      "edge_estimate": 0.106,
+      "key_factors": [
+        "Big-3 match triggers automatic pass per model discipline",
+        "Model shows large draw edge (+10.6pp), but Big-3 pricing is a known blind spot for us",
+        "No congestion or meaningful squad disruption to create our preferred mispricing regime"
+      ],
+      "risk_flags": [
+        "Sharp line movement confirms the home side, not the contrarian draw/away model signal",
+        "Analyst scenario supports home control, conflicting with the model's draw/away value"
+      ],
+      "reasoning": "This is an automatic PASS because Fenerbahce are involved, and our framework explicitly avoids Big-3 matches where the market is highly efficient and our historical edge is negative. While the raw model flags value on the draw, the absence of congestion/disruption and the line moving toward Fenerbahce both weaken confidence that this is a real exploitable mispricing rather than model noise."
+    },
+    "is_big3": true,
+    "sss_diff_abs": 0.07621627498479455,
+    "min_days_rest": 6.0
+  },
+  {
+    "match_id": "2023-04-22_UMR_BJK",
+    "date": "2023-04-22",
+    "home_team": "UMR",
+    "away_team": "BJK",
+    "home_goals": 0,
+    "away_goals": 2,
+    "result": "A",
+    "lambda_home": 1.336662369276309,
+    "lambda_away": 2.0361372068414445,
+    "home_odds": 4.69,
+    "draw_odds": 4.23,
+    "away_odds": 1.72,
+    "home_implied": 0.20680422158488504,
+    "draw_implied": 0.22929356955865504,
+    "away_implied": 0.5639022088564598,
+    "model_home_win": 0.2325586271802071,
+    "model_draw": 0.2300196553475496,
+    "model_away_win": 0.5371401868982872,
+    "model_over_25": 0.6384826138214398,
+    "scenario": {
+      "predicted_winner": "away",
+      "predicted_score": "1-2",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "Besiktas come in with far stronger recent form, better rest, and a much cleaner defensive profile, which should give them control over long stretches despite being away. Umraniyespor's higher squad stability at home keeps them competitive and likely to create at least one scoring moment, but their recent defensive record points to Besiktas finding the decisive second goal. This looks more like a hard-fought away win than a runaway result.",
+      "decisive_factors": [
+        "Besiktas have a major recent-form edge: 2.60 PPG in the last 5 versus Umraniyespor's 1.00",
+        "Besiktas are much stronger on current attack-defense balance: 2.40 GF/game and 0.80 GA/game in the last 5",
+        "Rest and schedule favor Besiktas, with 6 days rest versus 4 and no congestion disadvantage"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.18,
+      "edge_estimate": 0.001,
+      "key_factors": [
+        "Big-3 involved: Besiktas matches are automatic pass per model discipline",
+        "No qualifying edge: largest 1X2 discrepancy is only 2.7pp in the wrong direction for backing away, below threshold",
+        "No congestion or meaningful squad disruption regime to create exploitable mispricing"
+      ],
+      "risk_flags": [
+        "Sharp line movement shortened Besiktas, moving against any contrarian home/draw angle",
+        "Analyst and form strongly support away side, but market already prices that in"
+      ],
+      "reasoning": "This is a clear PASS. Besiktas are a Big-3 side, which is an automatic skip, and there is no 3pp+ model edge on any market anyway. The away narrative is strong, but the market has already moved toward Besiktas, so there is no information asymmetry to exploit."
+    },
+    "is_big3": true,
+    "sss_diff_abs": 0.1127069138623028,
+    "min_days_rest": 4.0
+  },
+  {
+    "match_id": "2023-08-27_KYS_SAM",
+    "date": "2023-08-27",
+    "home_team": "KYS",
+    "away_team": "SAM",
+    "home_goals": 2,
+    "away_goals": 1,
+    "result": "H",
+    "lambda_home": 1.5996642070903357,
+    "lambda_away": 1.1528856542028278,
+    "home_odds": 2.53,
+    "draw_odds": 3.53,
+    "away_odds": 2.87,
+    "home_implied": 0.3848748817578477,
+    "draw_implied": 0.2758451702117152,
+    "away_implied": 0.3392799480304371,
+    "model_home_win": 0.47216126670189185,
+    "model_draw": 0.27380284158996004,
+    "model_away_win": 0.253987064535151,
+    "model_over_25": 0.5068070514240756,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "1-0",
+      "tightness": "tight",
+      "total_goals": "low",
+      "key_narrative": "This looks like a low-tempo early-season match between two settled sides, with neither team likely to open up much. Kayserispor have the clearer edge through home advantage, slightly better recent results, and a more reliable defensive profile, so they are more likely to control the game and nick it by a single goal. Samsunspor's weaker recent defending gives the home side the best chance of the decisive moment.",
+      "decisive_factors": [
+        "Kayserispor have the home edge in a league where home advantage is meaningful",
+        "Both teams are highly stable, but Kayserispor's recent defensive numbers are much stronger (0.50 GA vs 1.50 GA)",
+        "Kayserispor are better rested and face a Samsunspor side with weaker recent form and lower PPG"
+      ]
+    },
+    "verdict": {
+      "action": "BET",
+      "market": "1X2_H",
+      "confidence": 0.66,
+      "edge_estimate": 0.087,
+      "key_factors": [
+        "Home win model probability is 47.2% versus market 38.5%, a strong +8.7pp edge above our threshold",
+        "Non-Big-3 match with analyst and model aligned on a tight home win scenario",
+        "Kayserispor have better recent defensive form, home advantage, and slightly better rest profile"
+      ],
+      "risk_flags": [
+        "Early season at 6% progress reduces confidence in underlying ratings",
+        "No congestion or squad disruption regime, so this is not our strongest edge setup",
+        "Line moved slightly away from the home side, which weakens confirmation"
+      ],
+      "reasoning": "This is a playable home-win edge because the model shows a clear +8.7 percentage point gap versus market pricing, and the analyst scenario supports a controlled Kayserispor win. It is not a premium setup since there is no congestion or squad disruption and the line drift on the home side is a mild negative, but the edge is large enough to justify a bet at reduced confidence."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.02462960526814839,
+    "min_days_rest": 6.0
+  },
+  {
+    "match_id": "2023-08-13_FB_GFK",
+    "date": "2023-08-13",
+    "home_team": "FB",
+    "away_team": "GFK",
+    "home_goals": 2,
+    "away_goals": 1,
+    "result": "H",
+    "lambda_home": 1.793055825776871,
+    "lambda_away": 1.0040521308216013,
+    "home_odds": 1.33,
+    "draw_odds": 6.04,
+    "away_odds": 8.69,
+    "home_implied": 0.7282005036175836,
+    "draw_implied": 0.16034878639261363,
+    "away_implied": 0.11145070998980279,
+    "model_home_win": 0.5610264210362899,
+    "model_draw": 0.25283102900939863,
+    "model_away_win": 0.1860347504410464,
+    "model_over_25": 0.5169471385690331,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "This is early-season and the squad-stability data is missing, so uncertainty is higher than usual. Even so, Fenerbahce at home carry a clear structural edge as a Big-3 side and should control more of the ball, but Gaziantep can keep it competitive if FB are still ironing out rhythm and chemistry. The most likely pattern is FB leading the game territorially, conceding one dangerous moment, and edging it by a single goal.",
+      "decisive_factors": [
+        "Strong home advantage amplified by Fenerbahce's Big-3 home profile",
+        "Very early season creates variance, reducing confidence and making a one-goal game more likely",
+        "No congestion for either side means the result should be driven more by baseline team quality than fatigue"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.092,
+      "key_factors": [
+        "Big-3 match is an automatic pass under strategy rules",
+        "Very early season with missing squad-stability data increases uncertainty",
+        "No congestion or squad-disruption regime support despite model draw/away edges"
+      ],
+      "risk_flags": [
+        "Line movement strongly confirms the market's home view, not the model's draw/away signal",
+        "Analyst scenario conflicts with the model and favors a home win"
+      ],
+      "reasoning": "The raw model shows value on the draw and away side, but this is a Fenerbahce match, and Big-3 games are a strict no-bet zone because the market is typically too efficient there. With season progress at 1%, no SSS data, no congestion edge, and line movement moving toward the home side, the apparent discrepancy is more likely noise than exploitable mispricing."
+    },
+    "is_big3": true,
+    "sss_diff_abs": NaN,
+    "min_days_rest": NaN
+  },
+  {
+    "match_id": "2023-03-05_KON_GIR",
+    "date": "2023-03-05",
+    "home_team": "KON",
+    "away_team": "GIR",
+    "home_goals": 0,
+    "away_goals": 0,
+    "result": "D",
+    "lambda_home": 1.5347195111558467,
+    "lambda_away": 1.0527124083170625,
+    "home_odds": 1.87,
+    "draw_odds": 3.74,
+    "away_odds": 4.25,
+    "home_implied": 0.5154639175257731,
+    "draw_implied": 0.25773195876288657,
+    "away_implied": 0.2268041237113402,
+    "model_home_win": 0.47909407145981603,
+    "model_draw": 0.2841902984097423,
+    "model_away_win": 0.23668088502116288,
+    "model_over_25": 0.46827009425894284,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "Both teams come in with stable lineups and full rest, so this should be more about current execution than rotation or fatigue. Konyaspor's recent form is awful, but Giresunspor are also struggling badly and conceding even more heavily, which gives the home side a narrow edge. Expect a tense match between two low-confidence teams, with Konyaspor doing just enough at home to edge it by one goal.",
+      "decisive_factors": [
+        "Home advantage in an otherwise fairly even matchup",
+        "Both teams have stable core XIs, so recent defensive weakness matters more than rotation",
+        "Giresunspor's last-5 defensive record is worse (2.80 GA/game), making them slightly more vulnerable"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.026,
+      "key_factors": [
+        "No congestion edge with both teams on 8 days rest",
+        "No squad disruption signal with identical stability profiles",
+        "Model only shows a small draw edge (+2.6pp), below the 3pp minimum threshold"
+      ],
+      "risk_flags": [
+        "Analyst leans home while model prices home as overrated by 3.6pp",
+        "Line movement is essentially stable, offering no confirmation",
+        "Both teams are in poor form, increasing variance and reducing conviction"
+      ],
+      "reasoning": "This is exactly the type of match to skip: no congestion, no rotation mismatch, and no Big-3 inefficiency to exploit. The only potential angle is the draw, but at +2.6 percentage points it falls short of the minimum edge threshold, while the analyst narrative conflicts with the model on the home side and the market has not moved to confirm any position."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.002380290745741087,
+    "min_days_rest": 8.0
+  },
+  {
+    "match_id": "2023-09-24_ALN_FB",
+    "date": "2023-09-24",
+    "home_team": "ALN",
+    "away_team": "FB",
+    "home_goals": 0,
+    "away_goals": 1,
+    "result": "A",
+    "lambda_home": 1.402742459511106,
+    "lambda_away": 1.6621945315045037,
+    "home_odds": 5.11,
+    "draw_odds": 4.35,
+    "away_odds": 1.65,
+    "home_implied": 0.1896927651139742,
+    "draw_implied": 0.2228344895936571,
+    "away_implied": 0.5874727452923687,
+    "model_home_win": 0.30970384391238615,
+    "model_draw": 0.2598393277383321,
+    "model_away_win": 0.43037979005164867,
+    "model_over_25": 0.576092564120228,
+    "scenario": {
+      "predicted_winner": "away",
+      "predicted_score": "0-1",
+      "tightness": "tight",
+      "total_goals": "low",
+      "key_narrative": "Alanyaspor's strong squad stability and solid recent defending should keep this controlled and competitive, especially at home. But Fenerbahce arrive in much better form, with a clear attacking edge and the quality to turn a tight game through one decisive moment. Expect a disciplined away performance rather than a runaway win.",
+      "decisive_factors": [
+        "Fenerbahce's elite recent form: 3.00 PPG and a W4 streak",
+        "Away side has the stronger attack profile: 2.00 GF/game vs Alanyaspor's 1.20",
+        "Alanyaspor's high squad stability and home advantage reduce the margin and keep the match close"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.12,
+      "key_factors": [
+        "Big-3 involvement triggers an automatic pass under our framework",
+        "Model shows large home-side value (+12pp) and some draw value (+3.7pp)",
+        "Squad stability gap (+0.18) favors Alanyaspor, but there is no congestion support"
+      ],
+      "risk_flags": [
+        "Fenerbahce are a Big-3 side and these markets are highly efficient",
+        "Line movement shortened on the away side, moving against the model's anti-FB stance",
+        "Early-season sample (15%) reduces trust in form and model calibration",
+        "Analyst scenario leans toward an away win, conflicting with the model edge"
+      ],
+      "reasoning": "Despite the model showing meaningful value on Alanyaspor and a smaller edge on the draw, this is a Big-3 match involving Fenerbahce, which is an automatic PASS in our process. The lack of congestion, early-season uncertainty, and market movement toward Fenerbahce all reduce confidence that the apparent edge is real rather than noise."
+    },
+    "is_big3": true,
+    "sss_diff_abs": 0.17539918530259113,
+    "min_days_rest": 7.0
+  },
+  {
+    "match_id": "2023-01-22_GFK_SVS",
+    "date": "2023-01-22",
+    "home_team": "GFK",
+    "away_team": "SVS",
+    "home_goals": 1,
+    "away_goals": 2,
+    "result": "A",
+    "lambda_home": 1.6121488708495675,
+    "lambda_away": 1.0569811333015082,
+    "home_odds": 2.77,
+    "draw_odds": 3.36,
+    "away_odds": 2.72,
+    "home_implied": 0.3517674590466806,
+    "draw_implied": 0.2899987683212218,
+    "away_implied": 0.3582337726320975,
+    "model_home_win": 0.49962345889447185,
+    "model_draw": 0.27464331987007395,
+    "model_away_win": 0.22568341378169304,
+    "model_over_25": 0.4874694285178585,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "GFK come in with the clearer structural edge because their core XI is intact, and that usually matters in balanced mid-table type games. SVS have shown a bit more attacking life recently, but their defensive numbers are poor enough to give the home side the better path to control key phases. Expect a fairly even match overall, with GFK edging it through better cohesion and home advantage.",
+      "decisive_factors": [
+        "GFK hold a strong squad stability edge (0.87 vs 0.67), suggesting better coordination and match control",
+        "SVS are conceding 2.20 goals per game over the last five, a major defensive weakness away from home",
+        "Home advantage slightly outweighs SVS's fresher schedule in an otherwise close matchup"
+      ]
+    },
+    "verdict": {
+      "action": "BET",
+      "market": "1X2_H",
+      "confidence": 0.82,
+      "edge_estimate": 0.148,
+      "key_factors": [
+        "Model makes home 50.0% vs market 35.2%, a very large +14.8pp edge",
+        "Squad disruption regime is active with a +0.20 stability gap favoring GFK",
+        "Line movement confirms the position as home shortened and away drifted"
+      ],
+      "risk_flags": [
+        "No congestion edge present",
+        "GFK recent form is weak at 0.60 PPG over the last five"
+      ],
+      "reasoning": "This clears the threshold comfortably: the home win is the standout pricing error with a massive model-market gap, and it sits in a favorable non-Big-3 squad disruption setup where our process has edge. The analyst view aligns with the numbers, and the market move toward GFK adds confirmation, so this is a bet despite GFK's poor short-term form."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.20285736920389186,
+    "min_days_rest": 7.0
+  },
+  {
+    "match_id": "2023-08-26_TS_RIZ",
+    "date": "2023-08-26",
+    "home_team": "TS",
+    "away_team": "RIZ",
+    "home_goals": 2,
+    "away_goals": 3,
+    "result": "A",
+    "lambda_home": 1.5153941217294955,
+    "lambda_away": 1.1675083688338561,
+    "home_odds": 1.51,
+    "draw_odds": 4.72,
+    "away_odds": 6.34,
+    "home_implied": 0.6418132605832872,
+    "draw_implied": 0.2053258524323652,
+    "away_implied": 0.15286088698434758,
+    "model_home_win": 0.44518360083273056,
+    "model_draw": 0.282308579790872,
+    "model_away_win": 0.27247392789414465,
+    "model_over_25": 0.4906984688480136,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "1-0",
+      "tightness": "tight",
+      "total_goals": "low",
+      "key_narrative": "This looks like a low-event match between two very settled sides that are still finding rhythm early in the season. With both teams producing just 0.50 goals per game recently and conceding 1.00, chances should be limited, but Trabzonspor's home edge and slightly stronger baseline form make them more likely to nick it by a single goal.",
+      "decisive_factors": [
+        "Trabzonspor hold the main edge through home advantage in an otherwise closely matched game",
+        "Both teams have elite squad stability, so this should be tactically controlled rather than chaotic",
+        "Recent attacking output is weak on both sides, pointing toward a narrow low-scoring result"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.56,
+      "edge_estimate": 0.077,
+      "key_factors": [
+        "Early-season sample is noisy at 5% season progress",
+        "No congestion or squad disruption regime to support a bet",
+        "Model shows draw value (+7.7pp) and away value (+12.0pp), while market movement has shortened both draw and away"
+      ],
+      "risk_flags": [
+        "Analyst scenario conflicts with the model and favors home",
+        "Both teams have highly stable squads, reducing hidden-regime edge",
+        "1X2 signal is split between draw and away rather than concentrated on one outcome"
+      ],
+      "reasoning": "This is exactly the type of match where the market may be too high on the home side, but our strongest regimes are absent: no congestion, no squad disruption, and it is still very early in the season. While the model flags draw and away as undervalued and line movement supports that direction, the signal is diffuse rather than cleanly concentrated on one market, so this is a disciplined PASS."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.04451285186155496,
+    "min_days_rest": 7.0
+  },
+  {
+    "match_id": "2023-04-20_SVS_TS",
+    "date": "2023-04-20",
+    "home_team": "SVS",
+    "away_team": "TS",
+    "home_goals": 4,
+    "away_goals": 1,
+    "result": "H",
+    "lambda_home": 1.5385395588089232,
+    "lambda_away": 1.293169928446625,
+    "home_odds": 2.82,
+    "draw_odds": 3.36,
+    "away_odds": 2.67,
+    "home_implied": 0.3453676113921419,
+    "draw_implied": 0.28986210241840477,
+    "away_implied": 0.36477028618945323,
+    "model_home_win": 0.4221241582485645,
+    "model_draw": 0.2745710790243436,
+    "model_away_win": 0.3032623311510484,
+    "model_over_25": 0.5248661370332566,
+    "scenario": {
+      "predicted_winner": "draw",
+      "predicted_score": "1-1",
+      "tightness": "coinflip",
+      "total_goals": "normal",
+      "key_narrative": "This sets up as a very balanced match: both sides come in with identical recent PPG, similar rotation levels, and shaky defenses over the last five games. Trabzonspor have the slightly stronger attacking profile, but away from home that edge is likely offset by Sivasspor's home advantage, leading to a tight game with chances at both ends.",
+      "decisive_factors": [
+        "Both teams are level on recent form at 0.80 PPG over the last five matches",
+        "Squad stability is low for both sides (SSS 0.60), limiting control and consistency",
+        "Both defenses are conceding 1.80 goals per game recently, which supports a score draw rather than a clean-sheet win"
+      ]
+    },
+    "verdict": {
+      "action": "BET",
+      "market": "1X2_H",
+      "confidence": 0.72,
+      "edge_estimate": 0.077,
+      "key_factors": [
+        "Model shows a strong home win edge: 42.2% vs market 34.5% (+7.7pp)",
+        "Line movement confirms the position with home odds shortening and away drifting",
+        "No Big-3 involvement, so this is a playable non-marquee pricing spot"
+      ],
+      "risk_flags": [
+        "No congestion regime and no squad disruption gap, so key edge regimes are absent",
+        "Analyst scenario leans toward a draw in a balanced matchup, which tempers conviction"
+      ],
+      "reasoning": "This is not a classic regime-alignment spot, but the raw pricing discrepancy is large enough to justify a play on Sivasspor. The market has moved toward the home side, which supports the model's +7.7pp edge, and with no Big-3 distortion this looks like a genuine mispricing rather than noise."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.0034854218845590257,
+    "min_days_rest": 4.0
+  },
+  {
+    "match_id": "2023-08-12_KSM_ANK",
+    "date": "2023-08-12",
+    "home_team": "KSM",
+    "away_team": "ANK",
+    "home_goals": 3,
+    "away_goals": 2,
+    "result": "H",
+    "lambda_home": 1.5242094408140603,
+    "lambda_away": 1.1209407135101634,
+    "home_odds": 2.36,
+    "draw_odds": 3.73,
+    "away_odds": 2.98,
+    "home_implied": 0.4124299654929316,
+    "draw_implied": 0.26094764572743123,
+    "away_implied": 0.3266223887796371,
+    "model_home_win": 0.45902636958270415,
+    "model_draw": 0.2831596164959877,
+    "model_away_win": 0.2577798433784963,
+    "model_over_25": 0.4818720776130326,
+    "scenario": {
+      "predicted_winner": "draw",
+      "predicted_score": "1-1",
+      "tightness": "coinflip",
+      "total_goals": "normal",
+      "key_narrative": "This is an early-season matchup with very limited signal, so variance is high and neither side has a clear edge. With both teams coming off draws, no congestion, and no squad stability data to separate them, the most likely pattern is a balanced game where each side has moments but neither fully controls the match. A 1-1 draw fits the profile best.",
+      "decisive_factors": [
+        "Season progress at 0% increases uncertainty and reduces confidence in pre-match edges",
+        "Both teams show identical recent momentum with a draw streak and no form separation",
+        "No congestion or fatigue disadvantage for either side, leaving the matchup statistically balanced"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.52,
+      "edge_estimate": 0.047,
+      "key_factors": [
+        "Home win shows a +4.7pp model edge versus market, but it is below our stronger 5-7pp sweet spot",
+        "Season progress is 0%, which materially reduces trust in model edges",
+        "No congestion or squad disruption regime is present, so our strongest sources of edge are absent"
+      ],
+      "risk_flags": [
+        "Early-season uncertainty with limited signal",
+        "No SSS data available for either team",
+        "Line moved against the home side and toward draw/away"
+      ],
+      "reasoning": "This is exactly the type of match where selectivity matters. While the home side has a modest pricing edge, the game lacks our preferred congestion or squad-disruption setup, the analyst frames it as balanced, and the line drift against KSM weakens confidence further. Early-season noise makes this a clear PASS."
+    },
+    "is_big3": false,
+    "sss_diff_abs": NaN,
+    "min_days_rest": NaN
+  },
+  {
+    "match_id": "2023-01-14_ADS_ANK",
+    "date": "2023-01-14",
+    "home_team": "ADS",
+    "away_team": "ANK",
+    "home_goals": 3,
+    "away_goals": 1,
+    "result": "H",
+    "lambda_home": 1.691349603671311,
+    "lambda_away": 0.9972956371713804,
+    "home_odds": 1.85,
+    "draw_odds": 3.87,
+    "away_odds": 4.36,
+    "home_implied": 0.5256661484733026,
+    "draw_implied": 0.25128743531669506,
+    "away_implied": 0.2230464162100023,
+    "model_home_win": 0.5364835568055883,
+    "model_draw": 0.2654737223890421,
+    "model_away_win": 0.19797264362248373,
+    "model_over_25": 0.49199972730305475,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "ADS should have the edge through the more settled side and stronger overall season level, especially at home. ANK arrive in similar short-term form and with adequate rest, so this is unlikely to be one-sided, but ADS's better defensive recent profile gives them the best chance of controlling the key moments. Expect a competitive match that stays close into the second half before the home side edges it.",
+      "decisive_factors": [
+        "ADS hold the squad stability edge (0.74 vs 0.62), which should help their structure and control",
+        "ADS have the stronger season baseline (1.76 PPG vs 1.12 PPG) and home advantage",
+        "Recent defensive form favors ADS significantly (0.80 GA/game vs ANK's 1.20 GA/game)"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.014,
+      "key_factors": [
+        "No qualifying edge: model-home (+1.1pp) and draw (+1.4pp) are both below the 3pp minimum threshold",
+        "No core regime support: neither congestion nor meaningful squad disruption is present",
+        "Line movement does not confirm a home position, with the home price drifting while draw and away shortened"
+      ],
+      "risk_flags": [
+        "Analyst leans home, but quantitative edge is too small to overcome margin",
+        "Match projects as tight, increasing variance and reducing confidence in a side bet"
+      ],
+      "reasoning": "This is a classic pass spot: ADS may be the likelier winner, but the market is already pricing that closely and the model only shows a marginal difference. With no congestion, no significant SSS disruption, and line movement drifting against the home side, there is no information asymmetry worth betting."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.12166209592762023,
+    "min_days_rest": 5.0
+  },
+  {
+    "match_id": "2023-12-25_KSM_RIZ",
+    "date": "2023-12-25",
+    "home_team": "KSM",
+    "away_team": "RIZ",
+    "home_goals": 2,
+    "away_goals": 2,
+    "result": "D",
+    "lambda_home": 1.4985599636496003,
+    "lambda_away": 1.2599835348930772,
+    "home_odds": 2.06,
+    "draw_odds": 3.63,
+    "away_odds": 3.66,
+    "home_implied": 0.4694098193843806,
+    "draw_implied": 0.2663868396506402,
+    "away_implied": 0.2642033409649792,
+    "model_home_win": 0.41866382304095834,
+    "model_draw": 0.27977198024814676,
+    "model_away_win": 0.3015295305698218,
+    "model_over_25": 0.5081985673478097,
+    "scenario": {
+      "predicted_winner": "away",
+      "predicted_score": "1-2",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "Kasimpasa's stronger squad continuity should keep them competitive at home, but their recent defensive level is the biggest problem here. Rizespor arrive in much better form, with a sharper attack and far more reliable defending over the last five matches, so the most likely pattern is a close away win decided by better balance in key moments.",
+      "decisive_factors": [
+        "Rizespor's last-5 form edge is significant: 2.20 PPG vs 0.80 PPG",
+        "Recent defensive contrast strongly favors Rizespor: 0.80 GA/game vs Kasimpasa's 2.40 GA/game",
+        "Kasimpasa's squad stability and home advantage narrow the gap, but not enough to outweigh current momentum"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.037,
+      "key_factors": [
+        "Away win is the only market clearing the 3pp threshold at +3.7pp",
+        "Rizespor have a strong recent form and defensive edge over the last five matches",
+        "Line movement goes against the away value case because the away price has already shortened"
+      ],
+      "risk_flags": [
+        "No congestion regime, which is our strongest source of edge",
+        "Home side has the squad stability advantage with SSS gap +0.16",
+        "Edge is only marginal and sits below the preferred 5pp level"
+      ],
+      "reasoning": "Rizespor 1X2_A is the only candidate on raw numbers, with model probability 30.2% versus market 26.4%, and the analyst scenario also leans away. But this is not a congestion spot, the edge is only modest, and the away line has already shortened, reducing confidence that meaningful value remains. With mixed regime signals and only a thin edge, this is a disciplined PASS."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.16374442467030248,
+    "min_days_rest": 4.0
+  },
+  {
+    "match_id": "2022-10-09_HTS_ALN",
+    "date": "2022-10-09",
+    "home_team": "HTS",
+    "away_team": "ALN",
+    "home_goals": 1,
+    "away_goals": 0,
+    "result": "H",
+    "lambda_home": 1.501922969998887,
+    "lambda_away": 1.1252477579320872,
+    "home_odds": 2.56,
+    "draw_odds": 3.68,
+    "away_odds": 2.74,
+    "home_implied": 0.38023410160492344,
+    "draw_implied": 0.264510679377338,
+    "away_implied": 0.35525521901773865,
+    "model_home_win": 0.4516340992052838,
+    "model_draw": 0.2855040873368592,
+    "model_away_win": 0.2628308997137409,
+    "model_over_25": 0.47765193332937944,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "1-0",
+      "tightness": "tight",
+      "total_goals": "low",
+      "key_narrative": "This looks like a low-quality, low-scoring match where neither side is creating much, but HTS have the clearer structural edge through a more settled XI and home advantage. ALN's recent defensive record is poor enough to give HTS one good opening, while HTS should be organized enough to protect a narrow lead in a cagey game.",
+      "decisive_factors": [
+        "HTS have a clear squad stability edge (0.80 vs 0.62), which matters in an otherwise evenly weak matchup",
+        "Both teams are struggling badly in attack recently (0.60 GF/game each in the last 5), pointing toward a low-scoring game",
+        "ALN's recent defense has been worse than HTS's (2.00 GA/game vs 1.60), and with equal rest the home side gets the marginal edge"
+      ]
+    },
+    "verdict": {
+      "action": "BET",
+      "market": "1X2_H",
+      "confidence": 0.74,
+      "edge_estimate": 0.071,
+      "key_factors": [
+        "Home win model probability 45.2% vs market 38.0% gives a +7.1pp edge, comfortably above threshold",
+        "Squad disruption regime is active with a meaningful stability gap of +0.18 favoring HTS",
+        "Analyst scenario aligns with the model: settled home side, weak away defense, and a tight 1-0 type match"
+      ],
+      "risk_flags": [
+        "Line moved against the position with home drifting and away shortening",
+        "Early-season sample at 21% progress reduces confidence in form and team-strength estimates",
+        "Low-quality match profile increases variance from a single random goal"
+      ],
+      "reasoning": "This is one of the clearer non-Big-3 home edges: the model has HTS materially higher than market on the 1X2 home side, and the squad stability gap supports that mispricing. There is no congestion boost, and the line move against HTS is a real caution, but the +7.1pp edge plus analyst alignment is still enough to justify a small-to-medium stake BET on the home win."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.17782889484129638,
+    "min_days_rest": 7.0
+  },
+  {
+    "match_id": "2023-09-30_TS_PEN",
+    "date": "2023-09-30",
+    "home_team": "TS",
+    "away_team": "PEN",
+    "home_goals": 2,
+    "away_goals": 1,
+    "result": "H",
+    "lambda_home": 1.730426625774759,
+    "lambda_away": 1.0447643331981131,
+    "home_odds": 1.55,
+    "draw_odds": 4.62,
+    "away_odds": 5.91,
+    "home_implied": 0.625874198007138,
+    "draw_implied": 0.2099794387253385,
+    "away_implied": 0.1641463632675235,
+    "model_home_win": 0.5343828766837105,
+    "model_draw": 0.2605461576849875,
+    "model_away_win": 0.2049875220133923,
+    "model_over_25": 0.5119666141355319,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "TS should have the stronger attacking phases at home, even if their rotation has made them less controlled than ideal. PEN arrive with the more settled XI, but their recent chance creation has been weak, so they may struggle to fully capitalize unless TS make defensive errors. The most likely pattern is TS doing enough to edge a fairly open match by one goal.",
+      "decisive_factors": [
+        "TS have a clear recent attacking edge: 2.40 GF/game in the last 5 versus PEN's 0.80 GF/game",
+        "Home advantage favors TS in an otherwise non-elite matchup",
+        "PEN's stronger squad stability is offset by poor recent form and limited offensive output"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.051,
+      "key_factors": [
+        "Draw shows the clearest model edge at +5.1pp versus market",
+        "No congestion and no meaningful squad disruption regime support",
+        "Line movement supports the draw slightly as draw price shortened while home drifted"
+      ],
+      "risk_flags": [
+        "Early season sample at 17% reduces model confidence",
+        "Analyst scenario leans home win, conflicting with the draw signal",
+        "Model draw probability is 26.1%, below the >27% preferred structural draw threshold"
+      ],
+      "reasoning": "The only actionable discrepancy is the draw, but this is not one of our strongest regimes: no congestion, no squad disruption, and the season is still early. While the market movement mildly supports the anti-home view, the draw signal falls short of our preferred structural threshold and conflicts with the analyst's home-win scenario, so this is a disciplined PASS."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.12474968396977759,
+    "min_days_rest": 5.0
+  },
+  {
+    "match_id": "2023-10-30_BJK_GFK",
+    "date": "2023-10-30",
+    "home_team": "BJK",
+    "away_team": "GFK",
+    "home_goals": 2,
+    "away_goals": 0,
+    "result": "H",
+    "lambda_home": 1.8615279130487958,
+    "lambda_away": 0.9165051252318239,
+    "home_odds": 1.38,
+    "draw_odds": 5.21,
+    "away_odds": 8.18,
+    "home_implied": 0.6975546680633757,
+    "draw_implied": 0.1847649600628519,
+    "away_implied": 0.11768037187377242,
+    "model_home_win": 0.6011719635493853,
+    "model_draw": 0.24271761243053727,
+    "model_away_win": 0.15596921951624654,
+    "model_over_25": 0.5125591591602525,
+    "scenario": {
+      "predicted_winner": "draw",
+      "predicted_score": "1-1",
+      "tightness": "coinflip",
+      "total_goals": "normal",
+      "key_narrative": "Besiktas should have more of the ball at home, but their low squad stability suggests a disjointed performance rather than sustained control. Gaziantep arrive with a much more settled XI and improved recent form, which gives them a good chance to stay organized and punish defensive gaps. The most likely script is Besiktas pushing, Gaziantep staying compact, and the game finishing level.",
+      "decisive_factors": [
+        "Besiktas have a major squad stability disadvantage (0.51 vs 0.78), which weakens home control despite their higher baseline quality",
+        "Recent form is effectively even on points over the last five matches (both 1.80 PPG), reducing the gap between the sides",
+        "Both teams are well rested, so fatigue is not likely to create a late edge for either side"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.74,
+      "edge_estimate": 0.058,
+      "key_factors": [
+        "Big-3 match triggers automatic pass under model rules",
+        "Draw shows a numerical edge (+5.8pp) with model draw probability at 24.3% and analyst also leaning 1-1",
+        "Besiktas have a meaningful squad stability disadvantage and the market has drifted against the home side"
+      ],
+      "risk_flags": [
+        "Big-3 involvement historically destroys our edge",
+        "Draw probability is below the >27% structural threshold for strongest draw bets",
+        "No congestion regime support and line movement is not strong enough alone to override pass rule"
+      ],
+      "reasoning": "The numbers do point toward the draw being overpriced by the market, and the analyst scenario supports a level game driven by Besiktas rotation and Gaziantep stability. But this is a Big-3 match, which is an automatic PASS in our framework, and without congestion or a stronger draw signal, we do not force action."
+    },
+    "is_big3": true,
+    "sss_diff_abs": 0.2643932701031976,
+    "min_days_rest": 9.0
+  },
+  {
+    "match_id": "2023-12-01_FKK_IST",
+    "date": "2023-12-01",
+    "home_team": "FKK",
+    "away_team": "IST",
+    "home_goals": 3,
+    "away_goals": 0,
+    "result": "H",
+    "lambda_home": 1.634575099862072,
+    "lambda_away": 1.0193065377800268,
+    "home_odds": 1.7,
+    "draw_odds": 3.89,
+    "away_odds": 5.36,
+    "home_implied": 0.5700662193714902,
+    "draw_implied": 0.24912919612635814,
+    "away_implied": 0.1808045845021517,
+    "model_home_win": 0.51547225606334,
+    "model_draw": 0.27246908296333644,
+    "model_away_win": 0.2120040077270707,
+    "model_over_25": 0.48389805810747,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "This sets up as a home edge game rather than a dominant one. FKK come in with clearly better recent form and a much stronger defensive profile over the last five, while IST's 2.20 GA/game suggests they are struggling to hold structure for full matches. With both sides reasonably rested and neither enjoying a major stability advantage, FKK are more likely to control the key phases and edge it by one goal.",
+      "decisive_factors": [
+        "FKK's recent form is significantly stronger: 1.60 PPG in the last five vs IST's 0.60",
+        "FKK's last-5 defensive record is far better: 0.60 GA/game vs IST's 2.20 GA/game",
+        "Home advantage matters here because squad stability and rest are fairly similar, so recent performance becomes the separator"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.031,
+      "key_factors": [
+        "No congestion regime and no meaningful squad disruption, so our strongest edge conditions are absent",
+        "Away win is the only market above the 3pp threshold at +3.1%, but it is marginal and conflicts with the analyst scenario",
+        "Draw is structurally interesting at 27.2% model probability, but market underpricing is only +2.3%, below our minimum threshold"
+      ],
+      "risk_flags": [
+        "Home line drifted slightly against the analyst-favored side, offering no confirmation for a contrarian away position",
+        "Model still makes FKK the most likely winner, so backing IST would rely on a thin edge in a low-conviction spot"
+      ],
+      "reasoning": "This is exactly the type of match where selectivity matters. The market appears to overrate the home side, but the only bettable discrepancy is a very thin +3.1pp on away win, with no congestion, no squad disruption, and no analyst support. Without regime alignment or line confirmation, this is a PASS."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.03455453646188389,
+    "min_days_rest": 5.0
+  },
+  {
+    "match_id": "2024-05-26_ADS_IBB",
+    "date": "2024-05-26",
+    "home_team": "ADS",
+    "away_team": "IBB",
+    "home_goals": 2,
+    "away_goals": 6,
+    "result": "A",
+    "lambda_home": 1.4886961804703878,
+    "lambda_away": 1.5860202977537778,
+    "home_odds": 3.74,
+    "draw_odds": 4.04,
+    "away_odds": 1.78,
+    "home_implied": 0.24833206713170794,
+    "draw_implied": 0.22989156709717523,
+    "away_implied": 0.5217763657711169,
+    "model_home_win": 0.3465564715195843,
+    "model_draw": 0.2615138373207767,
+    "model_away_win": 0.39186110028264654,
+    "model_over_25": 0.578181967260905,
+    "scenario": {
+      "predicted_winner": "away",
+      "predicted_score": "0-2",
+      "tightness": "comfortable",
+      "total_goals": "low",
+      "key_narrative": "IBB come in with the clearer structure and much stronger recent form, while ADS look disjointed from rotation and are struggling badly at both ends over the last five matches. With both sides well rested, fatigue should not distort the game, so the main edge is IBB's better balance and defensive control. ADS may have some home resistance, but the away side are more likely to manage the match and win without needing a high-scoring shootout.",
+      "decisive_factors": [
+        "IBB have a clear recent-form edge: 2.40 PPG vs 0.80 PPG over the last five matches",
+        "ADS are in poor defensive shape lately, conceding 2.40 goals per game, while IBB are allowing just 0.60",
+        "Squad stability favors IBB, with ADS still heavily rotated and less coordinated"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.098,
+      "key_factors": [
+        "Model shows large positive edge on ADS home win (+9.8pp) and smaller edge on draw (+3.2pp), while market strongly overrates IBB",
+        "Squad disruption regime is present, but it favors the away side's stability rather than creating a clean bet signal on the model-favored outcome",
+        "Line movement goes against the model position: home and draw shortened while away drifted, indicating uncertainty rather than confirmation of a specific playable edge"
+      ],
+      "risk_flags": [
+        "Analyst scenario directly conflicts with the model, strongly preferring IBB",
+        "No congestion regime, which is our strongest source of edge",
+        "Home side recent form is very poor despite model support"
+      ],
+      "reasoning": "This is exactly the kind of match where the numbers and narrative split sharply. The model says the market is too high on IBB and gives value to ADS or the draw, but there is no congestion edge, the home side's recent performance is ugly, and the analyst strongly supports the away side. With regime alignment incomplete and no clean confirmation, this is a PASS."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.1786917487090261,
+    "min_days_rest": 8.0
+  },
+  {
+    "match_id": "2024-04-28_ALN_IST",
+    "date": "2024-04-28",
+    "home_team": "ALN",
+    "away_team": "IST",
+    "home_goals": 6,
+    "away_goals": 0,
+    "result": "H",
+    "lambda_home": 1.8289177102058207,
+    "lambda_away": 0.9753298946566793,
+    "home_odds": 1.38,
+    "draw_odds": 5.31,
+    "away_odds": 8.09,
+    "home_implied": 0.6990719268867811,
+    "draw_implied": 0.18167970981238377,
+    "away_implied": 0.11924836330083531,
+    "model_home_win": 0.5775404006716757,
+    "model_draw": 0.24805414913924004,
+    "model_away_win": 0.17428106170901825,
+    "model_over_25": 0.5185559082652524,
+    "scenario": {
+      "predicted_winner": "home",
+      "predicted_score": "2-1",
+      "tightness": "tight",
+      "total_goals": "normal",
+      "key_narrative": "ALN come in with the clearer structure and much stronger recent form, while IST's lower squad stability and poor last-5 defensive numbers suggest they will struggle to control phases of the match. With both sides well rested, fatigue should not distort the game, so the main edge is ALN's sharper balance at both ends. IST can still score once, but ALN are more likely to manage the key moments and edge a one-goal home win.",
+      "decisive_factors": [
+        "ALN have the stronger recent form edge: 2.40 PPG in the last 5 versus 0.60 for IST",
+        "Squad stability favors ALN, with IST still showing significant rotation and weaker cohesion",
+        "Recent attack-defense balance points to ALN: 1.60 GF and 1.00 GA versus IST's 1.00 GF and 1.80 GA"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.72,
+      "edge_estimate": 0.066,
+      "key_factors": [
+        "Model strongly disagrees with the market on the home side; ALN are overpriced at 69.9% implied versus 57.8% model",
+        "Draw shows the largest actionable positive edge among realistic outcomes at +6.6pp, with model draw probability 24.8%",
+        "No congestion and no meaningful squad disruption regime, so our strongest edge conditions are absent"
+      ],
+      "risk_flags": [
+        "Analyst scenario conflicts with the model by backing a home win despite negative home edge",
+        "Line movement shortened further toward ALN, moving against any contrarian draw/away position",
+        "Model draw probability is below the >27% threshold for our preferred structural draw spots"
+      ],
+      "reasoning": "This is a classic pass spot: the market appears too bullish on ALN, but our preferred regimes are not present and the analyst narrative leans the opposite way. While the draw is modestly undervalued, it does not clear our stronger draw filter and the line move toward the home side reduces conviction, so there is not enough aligned signal to bet."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.11308627438321606,
+    "min_days_rest": 8.0
+  },
+  {
+    "match_id": "2024-01-28_KON_IBB",
+    "date": "2024-01-28",
+    "home_team": "KON",
+    "away_team": "IBB",
+    "home_goals": 2,
+    "away_goals": 3,
+    "result": "A",
+    "lambda_home": 1.436826618226542,
+    "lambda_away": 1.259658216287444,
+    "home_odds": 2.51,
+    "draw_odds": 3.27,
+    "away_odds": 3.09,
+    "home_implied": 0.387614652503654,
+    "draw_implied": 0.2975268433590738,
+    "away_implied": 0.31485850413727234,
+    "model_home_win": 0.40129830262171384,
+    "model_draw": 0.2854730720370007,
+    "model_away_win": 0.31320158872866133,
+    "model_over_25": 0.4938662963296148,
+    "scenario": {
+      "predicted_winner": "away",
+      "predicted_score": "0-1",
+      "tightness": "tight",
+      "total_goals": "low",
+      "key_narrative": "Konyaspor's slightly better squad stability and home edge keep this competitive, but their recent attacking output is too weak to trust against an Istanbul Basaksehir side defending well over the last five matches. The most likely pattern is a cagey game where Basaksehir control key moments, limit chances, and find the decisive goal in a low-event match.",
+      "decisive_factors": [
+        "Basaksehir have the stronger recent form profile: 1.60 PPG in the last five versus Konyaspor's 0.60",
+        "Konyaspor's recent attack-defense balance is poor: 0.60 GF/game and 2.40 GA/game over the last five",
+        "Basaksehir come in less congested and with a solid recent defensive record of 0.80 GA/game"
+      ]
+    },
+    "verdict": {
+      "action": "PASS",
+      "market": "",
+      "confidence": 0.58,
+      "edge_estimate": 0.014,
+      "key_factors": [
+        "Largest model edge is only +1.4pp on home win, below the 3pp minimum threshold",
+        "No congestion regime and no meaningful squad disruption signal",
+        "Line movement does not support a home position, with home drifting and draw/away shortening"
+      ],
+      "risk_flags": [
+        "Analyst scenario leans away in a low-event match, conflicting with the only small model edge",
+        "Recent form strongly favors IBB while Konyaspor's last-5 attack/defense profile is poor"
+      ],
+      "reasoning": "This is a clear pass because the model-market discrepancy is too small to overcome margin, with the best edge only +1.4pp on Konyaspor. The strongest regimes we trust most\u2014congestion and squad disruption\u2014are absent, and the market move has gone against the only possible angle. With analyst context also pointing toward Basaksehir in a tight match, there is no actionable mispricing here."
+    },
+    "is_big3": false,
+    "sss_diff_abs": 0.10645702270133095,
+    "min_days_rest": 4.0
+  }
+]

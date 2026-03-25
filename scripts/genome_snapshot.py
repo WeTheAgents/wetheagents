@@ -25,6 +25,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from io_helpers import load_json  # noqa: E402
+
 
 def _repo_root(override: str | None = None) -> Path:
     """Resolve the wetheagents repo root."""
@@ -32,10 +38,6 @@ def _repo_root(override: str | None = None) -> Path:
         return Path(override)
     # scripts/ lives one level below repo root
     return Path(__file__).resolve().parent.parent
-
-
-def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _save_json(path: Path, data: Any) -> None:
@@ -197,7 +199,7 @@ def update_genome_fitness(
     history_dir = root / "ledger" / "history"
     new_fitness = compute_fitness(agent_id, history_dir)
 
-    meta = _load_json(genome_path)
+    meta = load_json(genome_path)
 
     # Snapshot fitness BEFORE update (for mutation record)
     fitness_before = _extract_fitness_snapshot(meta)

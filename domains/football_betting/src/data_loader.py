@@ -198,7 +198,8 @@ def load_odds(seasons: list[int] | None = None) -> pd.DataFrame:
         "result": all_odds["FTR"],  # H/D/A
     })
 
-    # Odds: PSH/PSD/PSA = Pinnacle, AvgH/AvgD/AvgA = market average
+    # Odds: PSH/PSD/PSA = Pinnacle opening, AvgH/AvgD/AvgA = market average
+    # PSCH/PSCD/PSCA = Pinnacle closing (when available)
     for outcome, ps_col, avg_col in [
         ("home", "PSH", "AvgH"),
         ("draw", "PSD", "AvgD"),
@@ -207,6 +208,15 @@ def load_odds(seasons: list[int] | None = None) -> pd.DataFrame:
         ps = pd.to_numeric(all_odds.get(ps_col, pd.Series(dtype=float)), errors="coerce")
         avg = pd.to_numeric(all_odds.get(avg_col, pd.Series(dtype=float)), errors="coerce")
         result[f"{outcome}_odds"] = ps.fillna(avg)
+
+    # Pinnacle closing odds (for line movement computation)
+    for outcome, psc_col in [
+        ("home", "PSCH"),
+        ("draw", "PSCD"),
+        ("away", "PSCA"),
+    ]:
+        psc = pd.to_numeric(all_odds.get(psc_col, pd.Series(dtype=float)), errors="coerce")
+        result[f"{outcome}_odds_close"] = psc
 
     # Drop rows with NaN team names (empty rows in some CSVs)
     result = result.dropna(subset=["home_team_raw", "away_team_raw"])
@@ -440,5 +450,29 @@ def add_derived_odds(games: pd.DataFrame) -> pd.DataFrame:
     games["away_implied_ppg"] = 3 * games["away_implied"] + games["draw_implied"]
 
     logger.info(f"Derived odds: mean overround = {overround.mean():.3f}")
+
+    return games
+
+
+def add_line_movement(games: pd.DataFrame) -> pd.DataFrame:
+    """Compute line movement from opening (PSH) vs closing (PSCH) Pinnacle odds.
+
+    Adds columns: line_move_home, line_move_draw, line_move_away.
+    line_move = 1/close - 1/open (change in implied probability).
+    Positive = odds shortened (more money on that outcome).
+    NaN when closing odds are missing.
+    """
+    for outcome in ["home", "draw", "away"]:
+        open_col = f"{outcome}_odds"
+        close_col = f"{outcome}_odds_close"
+        if close_col in games.columns:
+            open_imp = 1.0 / games[open_col]
+            close_imp = 1.0 / games[close_col]
+            games[f"line_move_{outcome}"] = close_imp - open_imp
+        else:
+            games[f"line_move_{outcome}"] = np.nan
+
+    n_with = games["line_move_home"].notna().sum()
+    logger.info(f"Line movement: {n_with}/{len(games)} matches with data")
 
     return games

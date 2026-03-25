@@ -1,0 +1,94 @@
+{
+  "repo": "evalstate/fast-agent",
+  "commit_format": {
+    "style": "freeform",
+    "examples": [
+      "fix: remove global agentSkills from static context to fix per-agent skill filtering (#729)",
+      "mcp: report lower-layer startup errors accurately (#717)",
+      "fix(mcp): reject non-finite or non-positive connect timeouts (#679)",
+      "chore(gitignore): replace examples/**/*.jsonl with *.jsonl (#680)",
+      "Remove SSE server support / migrate to FastMCP3 (#724)",
+      "Add history timing summaries and streaming telemetry (#716)",
+      "Harden interrupted session tool-loop recovery (#713)"
+    ],
+    "scope_required": false,
+    "max_title_length": 100
+  },
+  "naming": {
+    "functions": "snake_case",
+    "classes": "PascalCase",
+    "constants": "UPPER_SNAKE",
+    "private": "_"
+  },
+  "testing": {
+    "framework": "pytest",
+    "fixture_style": "conftest.py autouse fixtures, monkeypatch, tmp_path; inline helper classes (DummySession, _RecordingAggregator) over complex fixtures",
+    "assertion_style": "assert",
+    "naming_pattern": "test_*",
+    "coverage_required": false
+  },
+  "formatting": {
+    "linter": "ruff",
+    "formatter": "ruff format",
+    "type_checker": "ty 0.0.23",
+    "line_length": 100,
+    "import_order": "ruff (isort-compatible, rule I)"
+  },
+  "pr_rules": {
+    "template_exists": false,
+    "issue_required": false,
+    "label_required": false,
+    "ci_checks": [
+      "format (ruff format via scripts/format.py)",
+      "lint (ruff check + ty typecheck + check_internal_resources)",
+      "unit-test (pytest tests/unit -v)",
+      "integration-test (4 suites: acp, api, prompt-server, other)",
+      "package-test (scripts/test_package_install.sh)"
+    ]
+  },
+  "conventions": [
+    "Python 3.13+ required (requires-python = '>=3.13.5,<3.14')",
+    "Ruff rules: E (pycodestyle errors), F (pyflakes), I (isort), TCH (type-checking imports). E501 (line-too-long) is IGNORED.",
+    "asyncio_mode = 'strict' in pytest; every async test must use @pytest.mark.asyncio explicitly",
+    "Module-level logger: logger = get_logger(__name__) using fast_agent.core.logging.logger.get_logger, not stdlib logging",
+    "Logging uses f-strings (dominant pattern), not %-format. Structured data passed via data= kwarg",
+    "Type annotations use Python 3.10+ union syntax: str | None, not Optional[str]",
+    "Private methods use single underscore prefix: _foo, never __foo (dunder only for magic methods)",
+    "Error handling: specific exception types preferred; broad except Exception uses '# noqa: BLE001' comment with reason",
+    "Imports: stdlib first, then third-party, then local (fast_agent.*). TYPE_CHECKING block at end of imports for circular-import avoidance",
+    "Context manager pattern: @asynccontextmanager from contextlib for generator-based; explicit __aenter__/__aexit__ for class-based",
+    "Docstrings: Google-style (Args:, Returns:, Raises:) on public methods; often omitted on private/internal methods",
+    "Test helper classes prefixed with underscore: _DummyRegistry, _RecordingAggregator, _SessionStub",
+    "Pydantic BaseModel used for data classes with validation; @dataclass for simple containers. frozen=True, slots=True for immutable dataclasses",
+    "Constants defined at module level with UPPER_SNAKE: SESSION_NOT_FOUND_ERROR_CODE = -32043",
+    "PR body uses ## Summary, ## Problem, ## Change, ## Verification sections",
+    "Small focused PRs from external contributors get merged quickly; large unfocused PRs get batch-closed",
+    "evalstate squash-merges external PRs (PR number appended to title like '#729')",
+    "Custom exceptions inherit from FastAgentError(message, details) -- two-part error messages",
+    "Assertions in runtime code: assert used for invariants (assert self._tg is not None), not for validation"
+  ],
+  "anti_patterns": [
+    "Large unfocused PRs that touch many unrelated areas -- evalstate has batch-closed these",
+    "Using stdlib logging instead of fast_agent.core.logging.logger.get_logger",
+    "Using Optional[X] instead of X | None",
+    "Using %-format strings in logger calls (the codebase uses f-strings)",
+    "Missing @pytest.mark.asyncio on async test functions (strict mode will fail)",
+    "Bare 'except:' without exception type",
+    "Double-underscore private methods (__foo) -- the codebase uses single underscore exclusively",
+    "Adding # type: ignore comments -- evalstate fixes type issues properly or uses ty's type system",
+    "Creating documentation files in the PR without being asked",
+    "Tests that require external resources without proper markers (@pytest.mark.e2e or @pytest.mark.integration)"
+  ],
+  "source_prs": [
+    "evalstate/fast-agent#729",
+    "evalstate/fast-agent#717",
+    "evalstate/fast-agent#709",
+    "evalstate/fast-agent#679",
+    "evalstate/fast-agent#680",
+    "evalstate/fast-agent#677",
+    "evalstate/fast-agent#674",
+    "evalstate/fast-agent#672",
+    "evalstate/fast-agent#669",
+    "evalstate/fast-agent#668"
+  ]
+}

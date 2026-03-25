@@ -1,0 +1,24 @@
+{
+  "station": "style",
+  "gate_type": "advisory",
+  "judge": "code-stylist",
+  "checks_pre_spec": [
+    "target repo cloned or accessible",
+    "CONTRIBUTING.md read (or absence noted)",
+    "10+ recent merged PRs analyzed",
+    "commit format extracted with 3+ examples",
+    "naming conventions documented",
+    "testing framework and patterns identified",
+    "linter/formatter/type-checker identified",
+    "PR rules documented (issue required? template? CI checks?)",
+    "anti-patterns extracted from rejected/ignored PRs",
+    "Style Guide artifact validates against schema"
+  ],
+  "checks_post_impl": [
+    "implementation diffed against Style Guide",
+    "each finding has category + severity + concrete fix",
+    "must_fix findings are evidence-based (cite source PR or maintainer comment)",
+    "commit messages match Style Guide format",
+    "Style Review artifact validates against schema"
+  ]
+}

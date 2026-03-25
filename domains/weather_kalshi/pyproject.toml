@@ -18,6 +18,8 @@ dependencies = [
     # Visualization
     "matplotlib",
     "seaborn",
+    # Weather model data (NBM via GRIB2)
+    "herbie-data",
     # Utils
     "tqdm",
     "python-dotenv",

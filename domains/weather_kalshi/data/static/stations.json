@@ -3,33 +3,75 @@
     "name": "New York Central Park",
     "city": "New York",
     "state": "NY",
+    "lat": 40.7789,
+    "lon": -73.9692,
     "nws_office": "OKX",
     "cli_time_utc": "06:25",
     "iem_network": "NY_ASOS",
     "iem_station_id": "NYC",
     "timezone": "America/New_York",
-    "kalshi_ticker_prefix": "KXHIGHNY"
+    "kalshi_ticker_prefix": "KXHIGHNY",
+    "polymarket_city_slug": "",
+    "wunderground_id": ""
+  },
+  "KLGA": {
+    "name": "New York LaGuardia",
+    "city": "New York",
+    "state": "NY",
+    "lat": 40.7772,
+    "lon": -73.8726,
+    "nws_office": "OKX",
+    "cli_time_utc": "06:25",
+    "iem_network": "NY_ASOS",
+    "iem_station_id": "LGA",
+    "timezone": "America/New_York",
+    "kalshi_ticker_prefix": "",
+    "polymarket_city_slug": "nyc",
+    "wunderground_id": "KLGA"
   },
   "KMDW": {
     "name": "Chicago Midway",
     "city": "Chicago",
     "state": "IL",
+    "lat": 41.7868,
+    "lon": -87.7522,
     "nws_office": "LOT",
     "cli_time_utc": "06:41",
     "iem_network": "IL_ASOS",
     "iem_station_id": "MDW",
     "timezone": "America/Chicago",
-    "kalshi_ticker_prefix": "KXHIGHCG"
+    "kalshi_ticker_prefix": "KXHIGHCG",
+    "polymarket_city_slug": "",
+    "wunderground_id": ""
+  },
+  "KORD": {
+    "name": "Chicago O'Hare",
+    "city": "Chicago",
+    "state": "IL",
+    "lat": 41.9742,
+    "lon": -87.9073,
+    "nws_office": "LOT",
+    "cli_time_utc": "06:41",
+    "iem_network": "IL_ASOS",
+    "iem_station_id": "ORD",
+    "timezone": "America/Chicago",
+    "kalshi_ticker_prefix": "",
+    "polymarket_city_slug": "chicago",
+    "wunderground_id": "KORD"
   },
   "KMIA": {
     "name": "Miami International",
     "city": "Miami",
     "state": "FL",
+    "lat": 25.7959,
+    "lon": -80.2870,
     "nws_office": "MFL",
     "cli_time_utc": "08:26",
     "iem_network": "FL_ASOS",
     "iem_station_id": "MIA",
     "timezone": "America/New_York",
-    "kalshi_ticker_prefix": "KXHIGHMI"
+    "kalshi_ticker_prefix": "KXHIGHMI",
+    "polymarket_city_slug": "miami",
+    "wunderground_id": "KMIA"
   }
 }

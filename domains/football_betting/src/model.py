@@ -143,10 +143,16 @@ def evaluate_match_probabilities(
     lambdas_home: np.ndarray,
     lambdas_away: np.ndarray,
     label: str,
+    rho: float = 0.0,
 ) -> dict:
     """Evaluate derived match probabilities vs actual outcomes and Pinnacle baseline.
 
-    games_df must have: result, home_implied, draw_implied, away_implied.
+    Args:
+        games_df: must have: result, home_implied, draw_implied, away_implied.
+        lambdas_home: predicted expected goals for home teams.
+        lambdas_away: predicted expected goals for away teams.
+        label: identifier for logging.
+        rho: bivariate Poisson correlation parameter (0 = independent).
     """
     n = len(games_df)
     model_rps = 0.0
@@ -154,7 +160,7 @@ def evaluate_match_probabilities(
 
     for i in range(n):
         row = games_df.iloc[i]
-        probs = match_probabilities(lambdas_home[i], lambdas_away[i])
+        probs = match_probabilities(lambdas_home[i], lambdas_away[i], rho)
 
         # Actual outcome as [H, D, A] vector
         actual = [

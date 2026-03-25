@@ -27,6 +27,7 @@ _SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
+from io_helpers import load_json, now_iso, save_json  # noqa: E402
 from duel_randomizer import assign_roles  # noqa: E402
 from tide_ops import (  # noqa: E402
     compute_ranking_payouts,
@@ -54,22 +55,6 @@ class TideAction:
 # ---------------------------------------------------------------------------
 # Utilities
 # ---------------------------------------------------------------------------
-
-def _load_json(path: Path) -> dict:
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _save_json(path: Path, data: dict) -> None:
-    path.write_text(
-        json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
 
 def _sum_balances_and_escrows(balances: dict, escrows: dict) -> int:
     balances_total = sum(
@@ -270,7 +255,7 @@ class TideProcessor:
         self.actions: list[TideAction] = []
         self.history: list[dict] = []
         self.count = 0
-        self.started_at = _now_iso()
+        self.started_at = now_iso()
         self._gh_map = _github_to_agents(balances)
         self._completed_set: set[tuple[str, int]] = set()  # (agent, issue) dedup
 
@@ -1083,17 +1068,17 @@ class TideProcessor:
 def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
     """Execute one Tide cycle: fetch → process → write."""
     tide_path = root / "ledger" / "tide.json"
-    tide = _load_json(tide_path) or {
+    tide = load_json(tide_path, default={}) or {
         "last_tide": "2026-03-05T06:00:00Z", "last_run": None,
     }
     last_tide = tide.get("last_tide", "2026-03-05T06:00:00Z")
 
-    balances = _load_json(root / "ledger" / "balances.json")
-    escrows = _load_json(root / "ledger" / "escrows.json")
-    idem_keys = _load_json(root / "ledger" / "idem_keys.json")
-    task_index = _load_json(root / "ledger" / "task_index.json") or {"version": 1, "tasks": {}}
+    balances = load_json(root / "ledger" / "balances.json", default={})
+    escrows = load_json(root / "ledger" / "escrows.json", default={})
+    idem_keys = load_json(root / "ledger" / "idem_keys.json", default={})
+    task_index = load_json(root / "ledger" / "task_index.json", default={}) or {"version": 1, "tasks": {}}
     ach_path = root / "ledger" / "achievements.json"
-    achievements = _load_json(ach_path) or None
+    achievements = load_json(ach_path, default={}) or None
 
     repo = _detect_repo(root)
     print(f"Tide: fetching events since {last_tide} from {repo}...")
@@ -1161,11 +1146,11 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
         return 0
 
     if halted_reason:
-        halt_ts = _now_iso()
+        halt_ts = now_iso()
         tide["halted_at"] = halt_ts
         tide["halt_reason"] = halted_reason
         tide["halt_event"] = halted_event
-        _save_json(tide_path, tide)
+        save_json(tide_path, tide)
         print(f"Tide halted: {halted_reason}", file=sys.stderr)
         return 1
 
@@ -1177,7 +1162,7 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
         {"issue": a.issue, "action": a.action, "body": a.body, "label": a.label}
         for a in processor.actions
     ]
-    _save_json(root / "ledger" / "tide_comments.json", {"actions": actions_data})
+    save_json(root / "ledger" / "tide_comments.json", {"actions": actions_data})
 
     if not has_work and not events:
         print("Nothing to process.")
@@ -1188,14 +1173,14 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
         return 0
 
     # Save ledger
-    ts = _now_iso()
+    ts = now_iso()
     balances["last_updated"] = ts
-    _save_json(root / "ledger" / "balances.json", balances)
-    _save_json(root / "ledger" / "escrows.json", escrows)
-    _save_json(root / "ledger" / "idem_keys.json", idem_keys)
-    _save_json(root / "ledger" / "task_index.json", task_index)
+    save_json(root / "ledger" / "balances.json", balances)
+    save_json(root / "ledger" / "escrows.json", escrows)
+    save_json(root / "ledger" / "idem_keys.json", idem_keys)
+    save_json(root / "ledger" / "task_index.json", task_index)
     if processor.achievements_dirty:
-        _save_json(ach_path, processor.achievements)
+        save_json(ach_path, processor.achievements)
 
     # Append history
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -1211,7 +1196,7 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
     tide["halted_at"] = None
     tide["halt_reason"] = None
     tide["halt_event"] = None
-    _save_json(tide_path, tide)
+    save_json(tide_path, tide)
 
     # Write count for commit message
     try:
@@ -1238,7 +1223,7 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
 def post_comments(root: Path) -> int:
     """Post pending comments and label changes to GitHub."""
     path = root / "ledger" / "tide_comments.json"
-    data = _load_json(path)
+    data = load_json(path, default={})
     actions = data.get("actions", [])
 
     if not actions:
@@ -1277,7 +1262,7 @@ def post_comments(root: Path) -> int:
         except subprocess.CalledProcessError as e:
             print(f"  #{issue}: {act} FAILED: {e.stderr}", file=sys.stderr)
 
-    _save_json(path, {"actions": []})
+    save_json(path, {"actions": []})
     print(f"Posted {len(actions)} actions.")
     return 0
 

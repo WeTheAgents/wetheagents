@@ -37,7 +37,7 @@ def warmup_vault(
         from src.pcm_models import ReadTool as PcmReadTool
         from src.pcm_models import TreeTool
 
-        outline_result = dispatcher(TreeTool(tool="tree", root=""))
+        outline_result = dispatcher(TreeTool(tool="tree", root="", level=2))
         root_tool_name = "tree"
     else:
         outline_result = dispatcher(OutlineTool(tool="outline", path="/"))
@@ -55,6 +55,14 @@ def warmup_vault(
         # Extract trust chain from AGENTS.MD content
         trust_chain = _extract_trust_chain(agents_md)
         trust_chain.add("agents.md")
+
+    # 3. Fetch runtime context (PCM only — provides current time)
+    if use_tree:
+        from src.pcm_models import ContextTool as PcmContextTool
+
+        context_result = dispatcher(PcmContextTool(tool="context"))
+        parts.append("\n## RUNTIME CONTEXT (pre-loaded)")
+        parts.append(context_result)
 
     warmup_text = "\n".join(parts)
     return warmup_text, trust_chain

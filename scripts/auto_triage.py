@@ -25,6 +25,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from io_helpers import load_json  # noqa: E402
+
 # ---------------------------------------------------------------------------
 # Thresholds (days)
 # ---------------------------------------------------------------------------
@@ -38,10 +44,6 @@ TRIAGE_LABEL = "needs-triage"
 # ---------------------------------------------------------------------------
 
 
-def _load_json(path: Path) -> dict:
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _now() -> datetime:
@@ -143,8 +145,8 @@ def _last_activity(repo: str, issue_number: int) -> datetime | None:
 
 def triage(root: Path, *, dry_run: bool = False) -> int:
     """Run the daily triage scan."""
-    task_index = _load_json(root / "ledger" / "task_index.json")
-    escrows = _load_json(root / "ledger" / "escrows.json")
+    task_index = load_json(root / "ledger" / "task_index.json", default={})
+    escrows = load_json(root / "ledger" / "escrows.json", default={})
     repo = _detect_repo(root)
     now = _now()
 

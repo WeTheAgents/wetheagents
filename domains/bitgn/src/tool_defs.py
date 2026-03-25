@@ -65,12 +65,13 @@ def mini_tool_models() -> dict[str, type]:
 # --- PCM runtime (bitgn/pac1-dev) ---
 
 _PCM_TOOLS = [
-    ("tree", "Get a tree view of the repository structure.", pcm.TreeTool),
+    ("tree", "Get a tree view of the repository structure. Use level to limit depth.", pcm.TreeTool),
     ("find", "Find files or directories by name.", pcm.FindTool),
     ("search", "Search for a text pattern across files.", pcm.SearchTool),
     ("list", "List files in a directory.", pcm.ListTool),
-    ("read", "Read the contents of a file.", pcm.ReadTool),
-    ("write", "Write content to a file (create or overwrite).", pcm.WriteTool),
+    ("read", "Read file contents. Supports line numbers and range (start_line/end_line).", pcm.ReadTool),
+    ("context", "Get runtime context metadata.", pcm.ContextTool),
+    ("write", "Write content to a file. Supports ranged edits via start_line/end_line.", pcm.WriteTool),
     ("delete", "Delete a file.", pcm.DeleteTool),
     ("mkdir", "Create a directory.", pcm.MkDirTool),
     ("move", "Move or rename a file or directory.", pcm.MoveTool),

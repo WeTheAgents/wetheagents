@@ -10,22 +10,21 @@ Validates that task_index.json and escrows.json are consistent:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Any
+
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from io_helpers import load_json  # noqa: E402
 
 
 def _repo_root_from(root: str | None) -> Path:
     if root:
         return Path(root).resolve()
     return Path(__file__).resolve().parent.parent
-
-
-def _load_json(path: Path, default: Any) -> Any:
-    if not path.exists():
-        return default
-    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def check_open_tasks_have_escrow(
@@ -75,8 +74,8 @@ def check_escrow_not_exceeds_reward(
 
 
 def run_checks(root: Path) -> list[tuple[str, list[str]]]:
-    tasks = _load_json(root / "ledger" / "task_index.json", {"tasks": {}})
-    escrows = _load_json(root / "ledger" / "escrows.json", {"active": {}})
+    tasks = load_json(root / "ledger" / "task_index.json", default={"tasks": {}}, encoding="utf-8-sig")
+    escrows = load_json(root / "ledger" / "escrows.json", default={"active": {}}, encoding="utf-8-sig")
 
     return [
         ("Every open task has an active escrow", check_open_tasks_have_escrow(tasks, escrows)),

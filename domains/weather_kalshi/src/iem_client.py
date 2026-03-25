@@ -15,6 +15,7 @@ Idempotent: skips download if output file already exists.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -288,6 +289,141 @@ def download_obs_bulk(
     # Download year by year (each year is idempotent)
     for year in range(start_year, end_year + 1):
         download_obs_year(station, year, output_dir)
+
+    # Merge all years into one file
+    year_files = sorted(output_dir.glob(f"{station.iem_station_id}_*.parquet"))
+    year_files = [f for f in year_files if "obs_all" not in f.name]
+
+    if not year_files:
+        logger.warning(f"No obs data downloaded for {station.iem_station_id}")
+        pd.DataFrame().to_parquet(merged_path)
+        return merged_path
+
+    dfs = []
+    for f in year_files:
+        try:
+            part = pd.read_parquet(f)
+            if not part.empty:
+                dfs.append(part)
+        except Exception as e:
+            logger.warning(f"Failed to load {f.name}: {e}")
+
+    if dfs:
+        merged = pd.concat(dfs, ignore_index=True)
+        merged.to_parquet(merged_path, index=False)
+        logger.info(f"Merged {len(merged)} obs days to {merged_path.name}")
+    else:
+        pd.DataFrame().to_parquet(merged_path)
+
+    return merged_path
+
+
+# --- Async obs download (5x faster) ---
+
+ASYNC_CONCURRENCY = 5  # Max concurrent requests to IEM
+ASYNC_DELAY = 0.25  # Seconds between dispatching requests
+
+
+async def _fetch_obs_day(
+    client: httpx.AsyncClient,
+    semaphore: asyncio.Semaphore,
+    station: Station,
+    day: date,
+) -> list[dict]:
+    """Fetch a single day's observations asynchronously."""
+    async with semaphore:
+        await asyncio.sleep(ASYNC_DELAY)
+        try:
+            resp = await client.get(
+                DAILY_ENDPOINT,
+                params={
+                    "station": station.iem_station_id,
+                    "network": station.iem_network,
+                    "date": day.isoformat(),
+                },
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if "data" in data and data["data"]:
+                return data["data"]
+        except (httpx.HTTPError, json.JSONDecodeError) as e:
+            logger.warning(f"Failed obs {station.iem_station_id} {day}: {e}")
+    return []
+
+
+async def download_obs_year_async(
+    station: Station,
+    year: int,
+    client: httpx.AsyncClient,
+    semaphore: asyncio.Semaphore,
+    output_dir: Path | None = None,
+) -> Path:
+    """Download daily obs for one station-year using async concurrency."""
+    if output_dir is None:
+        output_dir = Path(__file__).resolve().parent.parent / "data" / "raw" / "obs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    out_path = output_dir / f"{station.iem_station_id}_{year}.parquet"
+    if out_path.exists():
+        logger.info(f"Skipping {out_path.name} (already exists)")
+        return out_path
+
+    logger.info(f"Downloading obs {station.iem_station_id} {year} (async)...")
+
+    start = date(year, 1, 1)
+    end = date(year, 12, 31)
+    days = []
+    current = start
+    while current <= end:
+        days.append(current)
+        current += timedelta(days=1)
+
+    tasks = [_fetch_obs_day(client, semaphore, station, d) for d in days]
+    results = await asyncio.gather(*tasks)
+
+    all_records = []
+    for records in results:
+        all_records.extend(records)
+
+    if not all_records:
+        logger.warning(f"No obs data for {station.iem_station_id} {year}")
+        pd.DataFrame().to_parquet(out_path)
+        return out_path
+
+    df = pd.DataFrame(all_records)
+    df.to_parquet(out_path, index=False)
+    logger.info(f"Saved {len(df)} rows to {out_path.name}")
+    return out_path
+
+
+async def download_obs_bulk_async(
+    station: Station,
+    start_year: int = 2004,
+    end_year: int | None = None,
+    output_dir: Path | None = None,
+) -> Path:
+    """Download observations using async concurrent requests (~5x faster).
+
+    Uses httpx.AsyncClient with a semaphore to limit concurrency.
+    Same output format as download_obs_bulk (per-year parquet + merged file).
+    """
+    if output_dir is None:
+        output_dir = Path(__file__).resolve().parent.parent / "data" / "raw" / "obs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if end_year is None:
+        end_year = date.today().year
+
+    merged_path = output_dir / f"{station.iem_station_id}_obs_all.parquet"
+    if merged_path.exists():
+        logger.info(f"Skipping {merged_path.name} (already exists)")
+        return merged_path
+
+    semaphore = asyncio.Semaphore(ASYNC_CONCURRENCY)
+    async with httpx.AsyncClient() as client:
+        for year in range(start_year, end_year + 1):
+            await download_obs_year_async(station, year, client, semaphore, output_dir)
 
     # Merge all years into one file
     year_files = sorted(output_dir.glob(f"{station.iem_station_id}_*.parquet"))

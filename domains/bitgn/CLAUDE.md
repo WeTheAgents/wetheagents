@@ -37,4 +37,4 @@ uv run python src/main.py --benchmark bitgn/pac1-dev t01
 | Runtime | Benchmark | Tools |
 |---------|-----------|-------|
 | Mini | `bitgn/sandbox` | outline, read, list, search, write, delete |
-| PCM | `bitgn/pac1-dev` | tree, find, search, list, read, write, delete, mkdir, move |
+| PCM | `bitgn/pac1-dev` | tree, find, search, list, read, context, write, delete, mkdir, move |

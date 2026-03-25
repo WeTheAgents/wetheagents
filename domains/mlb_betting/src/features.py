@@ -1378,6 +1378,25 @@ OU_FEATURES_V3 = OU_FEATURES + [
     "effective_obp_x_sp_fip",  # handedness-matched OBP × opposing FIP (4.2% imp)
 ]
 
+# --- NRFI: 1st-inning specific features (Set A) ---
+# SUM composites — NRFI = "both pitchers suppress", symmetric signal.
+# All columns produced by build_yrfi_features().
+NRFI_FEATURES_A = [
+    "sp_fi_ra_combined",           # pitcher 1st-inn RA (5-start window)
+    "sp_fi_ra_combined_long",      # pitcher 1st-inn RA (15-start window)
+    "sp_fi_momentum_combined",     # 1st-inn form oscillator (short - long)
+    "fi_score_rate_combined",      # team 1st-inn scoring tendency (season)
+    "fi_score_rate_last_combined", # team 1st-inn rate (last 25 games)
+    "top3_babip_inn1_combined",    # batter contact quality in 1st inning
+    "sp_babip_inn1_combined",      # pitcher hit-allowing quality in 1st
+    "effective_obp_combined",      # handedness-matched lineup OBP
+    "starter_fip_combined",        # combined starter FIP
+    "starter_kbb_combined",        # combined K/BB ratio (higher = better pitching)
+    "starter_whip_combined",       # combined WHIP
+    "close_ou",                    # market context (drives NRFI pricing)
+    "combined_rpg",                # total scoring environment
+]
+
 
 def build_ou_features(
     games: pd.DataFrame | None = None,
@@ -1552,6 +1571,150 @@ def build_ou_features_v3(
     if missing:
         logger.warning(f"O/U V3 features with low coverage: {missing}")
     logger.info(f"O/U V3 features available: {len(available)}/{len(OU_FEATURES_V3)}")
+
+    return df
+
+
+# --- OVER-dedicated: asymmetric offensive + directional interactions ---
+# Designed for predicting over_hit (target: when does scoring explode?).
+# Key difference from V3: individual team metrics instead of combined sums,
+# directional interactions instead of averaged cross-sums, pitching-quality
+# sums dropped (those are UNDER signal generators).
+OU_FEATURES_OVER = [
+    # Tier 1: Offensive firepower (individual, NOT sums)
+    "power_rate_home",              # fraction of scoring innings with 2+ runs
+    "power_rate_away",
+    "effective_obp_home",           # handedness-matched OBP vs opposing starter
+    "effective_obp_away",
+    "rpg_home",                     # runs per game (season rolling)
+    "rpg_away",
+    # Tier 2: Pitching vulnerability (individual oscillators)
+    "sp_quality_floor",             # max(home_sp_ra_long, away_sp_ra_long) — worst starter
+    "bp_fip_osc_home",              # bp_fip_7g - bp_fip_long (positive = deteriorating)
+    "bp_fip_osc_away",
+    "bp_ip_3d_home",                # recent bullpen workload (raw, individual)
+    "bp_ip_3d_away",
+    # Tier 3: Directional interactions (one strong matchup → OVER)
+    "home_offense_x_away_bp_fatigue",   # rpg_home * bp_fip_osc_away
+    "away_offense_x_home_bp_fatigue",   # rpg_away * bp_fip_osc_home
+    "effective_obp_x_sp_ra_home",       # effective_obp_home * away_sp_ra_long
+    "effective_obp_x_sp_ra_away",       # effective_obp_away * home_sp_ra_long
+    "power_rate_max_x_sp_floor",        # max(power_rate_h, power_rate_a) * sp_quality_floor
+    # Tier 4: Environment context (combined, proven features)
+    "combined_rpg",                 # total scoring environment
+    "rpg_vs_line",                  # combined_rpg - close_ou (market inefficiency)
+    "fi_score_rate_combined",       # early scoring tendency
+    "offense_vs_league_combined",   # league-relative offense
+    "sp_quality_gap",               # abs(home_sp_ra_long - away_sp_ra_long)
+    "wrc_plus_combined",            # wrc_plus_home + wrc_plus_away (FanGraphs Y-1)
+]
+
+# Minimal OVER: Tiers 1 + 3 only (pure asymmetric, no context features)
+OU_FEATURES_OVER_MINIMAL = [f for f in OU_FEATURES_OVER
+                            if f not in {"combined_rpg", "rpg_vs_line",
+                                         "fi_score_rate_combined",
+                                         "offense_vs_league_combined",
+                                         "sp_quality_gap", "wrc_plus_combined",
+                                         "sp_quality_floor", "bp_fip_osc_home",
+                                         "bp_fip_osc_away", "bp_ip_3d_home",
+                                         "bp_ip_3d_away"}]
+
+
+def build_ou_features_over(
+    games: pd.DataFrame | None = None,
+    *,
+    enriched: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build OVER-dedicated feature set: asymmetric offense + directional interactions.
+
+    Starts from build_ou_features() base (data, targets, filters), then adds:
+    - Individual bullpen oscillators (not combined)
+    - Directional offense x pitching vulnerability interactions
+    - FanGraphs wRC+ (Y-1 anti-leakage)
+    """
+    df = build_ou_features(games, enriched=enriched)
+
+    # ── Individual bullpen FIP oscillators ──────────────────────────────────
+    if all(c in df.columns for c in ["bp_fip_7g_home", "bp_fip_long_home"]):
+        df["bp_fip_osc_home"] = df["bp_fip_7g_home"] - df["bp_fip_long_home"]
+    else:
+        df["bp_fip_osc_home"] = np.nan
+
+    if all(c in df.columns for c in ["bp_fip_7g_away", "bp_fip_long_away"]):
+        df["bp_fip_osc_away"] = df["bp_fip_7g_away"] - df["bp_fip_long_away"]
+    else:
+        df["bp_fip_osc_away"] = np.nan
+
+    # ── Directional interactions ────────────────────────────────────────────
+    # home offense × away bullpen fatigue
+    if "rpg_home" in df.columns and "bp_fip_osc_away" in df.columns:
+        df["home_offense_x_away_bp_fatigue"] = df["rpg_home"] * df["bp_fip_osc_away"]
+    else:
+        df["home_offense_x_away_bp_fatigue"] = np.nan
+
+    # away offense × home bullpen fatigue
+    if "rpg_away" in df.columns and "bp_fip_osc_home" in df.columns:
+        df["away_offense_x_home_bp_fatigue"] = df["rpg_away"] * df["bp_fip_osc_home"]
+    else:
+        df["away_offense_x_home_bp_fatigue"] = np.nan
+
+    # effective OBP × opposing starter RA (lineup gets on base vs vulnerable pitcher)
+    if "effective_obp_home" in df.columns and "away_sp_ra_long" in df.columns:
+        df["effective_obp_x_sp_ra_home"] = df["effective_obp_home"] * df["away_sp_ra_long"]
+    else:
+        df["effective_obp_x_sp_ra_home"] = np.nan
+
+    if "effective_obp_away" in df.columns and "home_sp_ra_long" in df.columns:
+        df["effective_obp_x_sp_ra_away"] = df["effective_obp_away"] * df["home_sp_ra_long"]
+    else:
+        df["effective_obp_x_sp_ra_away"] = np.nan
+
+    # max(power_rate) × worst starter RA (explosive offense vs weakest pitcher)
+    if all(c in df.columns for c in ["power_rate_home", "power_rate_away", "sp_quality_floor"]):
+        power_max = df[["power_rate_home", "power_rate_away"]].max(axis=1)
+        df["power_rate_max_x_sp_floor"] = power_max * df["sp_quality_floor"]
+    else:
+        df["power_rate_max_x_sp_floor"] = np.nan
+
+    # ── sp_quality_gap (already computed by V3 builder, but ensure exists) ──
+    if "sp_quality_gap" not in df.columns:
+        if "home_sp_ra_long" in df.columns and "away_sp_ra_long" in df.columns:
+            df["sp_quality_gap"] = (df["home_sp_ra_long"] - df["away_sp_ra_long"]).abs()
+        else:
+            df["sp_quality_gap"] = np.nan
+
+    # ── FanGraphs wRC+ (Y-1 anti-leakage) ──────────────────────────────────
+    if "wrc_plus_home" not in df.columns:
+        from src.data_loader import PROCESSED_DIR, _map_team_code_to_retrosheet
+        fg_path = PROCESSED_DIR / "fangraphs" / "team_batting_season.parquet"
+        if fg_path.exists():
+            fg = pd.read_parquet(fg_path)
+            fg = fg.rename(columns={"season": "stat_season"})
+            fg["season"] = fg["stat_season"] + 1  # Y-1 anti-leakage
+            for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+                df[f"_fg_{side}_team"] = df.apply(
+                    lambda r, _tc=team_col: _map_team_code_to_retrosheet(r[_tc], r["season"]),
+                    axis=1,
+                )
+                side_fg = fg.rename(columns={
+                    "team": f"_fg_{side}_team",
+                    "wrc_plus": f"wrc_plus_{side}",
+                })[["season", f"_fg_{side}_team", f"wrc_plus_{side}"]]
+                df = df.merge(side_fg, on=["season", f"_fg_{side}_team"], how="left")
+                df = df.drop(columns=[f"_fg_{side}_team"])
+        else:
+            logger.warning(f"FanGraphs data not found at {fg_path}. wrc_plus will be NaN.")
+            df["wrc_plus_home"] = np.nan
+            df["wrc_plus_away"] = np.nan
+
+    _safe_sum(df, "wrc_plus_combined", "wrc_plus_home", "wrc_plus_away")
+
+    # ── Report ──────────────────────────────────────────────────────────────
+    available = [f for f in OU_FEATURES_OVER if f in df.columns and df[f].notna().mean() > 0.3]
+    missing = [f for f in OU_FEATURES_OVER if f not in available]
+    if missing:
+        logger.warning(f"OVER features with low coverage: {missing}")
+    logger.info(f"OVER features available: {len(available)}/{len(OU_FEATURES_OVER)}")
 
     return df
 

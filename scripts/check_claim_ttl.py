@@ -30,6 +30,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from io_helpers import load_json  # noqa: E402
+
 
 def parse_iso_utc(value: str) -> datetime:
     """Parse ISO timestamp and normalize to UTC-aware datetime.
@@ -51,13 +57,9 @@ def _repo_root(script_path: Path) -> Path:
     return script_path.resolve().parent.parent
 
 
-def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8-sig"))
-
-
 def get_claims_from_json(path: Path) -> list[tuple[int, str, str]]:
     """Load claims from JSON. Returns [(issue, agent, claimed_at_iso), ...]."""
-    data = _load_json(path)
+    data = load_json(path, encoding="utf-8-sig")
     if not isinstance(data, list):
         raise ValueError("JSON must be a list of {issue, agent, claimed_at} objects")
     result: list[tuple[int, str, str]] = []
@@ -94,7 +96,7 @@ def get_claim_from_idem_keys(issue: int, idem_keys_path: Path) -> tuple[str, str
     """Get (agent, claimed_at_iso) for the latest claim on an issue from idem_keys."""
     if not idem_keys_path.exists():
         return None
-    data = _load_json(idem_keys_path)
+    data = load_json(idem_keys_path, encoding="utf-8-sig")
     keys = data.get("keys") or {}
     if not isinstance(keys, dict):
         return None

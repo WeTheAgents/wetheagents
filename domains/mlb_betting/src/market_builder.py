@@ -10,6 +10,21 @@ import pandas as pd
 # Fixed odds for exotic markets (for backtest, since we don't have historical lines)
 YRFI_FIXED_ODDS = 1.80  # Standard YRFI line
 
+# ── NRFI odds calibration ────────────────────────────────────────────────
+# Derived from YRFI calibration: NRFI rate = 1 - YRFI rate per OU bucket
+# Low OU → high NRFI rate → cheap odds (market knows pitchers dominate)
+# High OU → low NRFI rate → expensive odds (value if dominant pitching)
+_NRFI_CALIB_OU = np.array([6.5, 7.25, 7.75, 8.25, 8.75, 9.50, 10.25, 11.0])
+_NRFI_CALIB_ODDS = np.array([1.61, 1.79, 1.86, 1.91, 1.96, 2.01, 2.14, 2.36])
+
+
+def estimate_nrfi_odds(close_ou: pd.Series) -> pd.Series:
+    """Piecewise-linear interpolation: close_ou -> estimated NRFI decimal odds."""
+    return pd.Series(
+        np.interp(close_ou.values, _NRFI_CALIB_OU, _NRFI_CALIB_ODDS),
+        index=close_ou.index,
+    )
+
 
 def add_yrfi_market(df: pd.DataFrame) -> pd.DataFrame:
     """Add Yes Run First Inning (YRFI) columns.

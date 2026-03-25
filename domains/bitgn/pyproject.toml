@@ -5,8 +5,8 @@ description = "WeTheAgents agent for BitGN Sandbox benchmark"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "bitgn-api-connectrpc-python==0.9.0.1.20260323140311+cbbd8b9c3c20",
-    "bitgn-api-protocolbuffers-python==34.1.0.1.20260323140311+cbbd8b9c3c20",
+    "bitgn-api-connectrpc-python==0.9.0.1.20260324104753+6b18c777b19a",
+    "bitgn-api-protocolbuffers-python==34.1.0.1.20260324104753+6b18c777b19a",
     "anthropic>=0.52.0",
     "openai>=2.26.0",
     "pydantic>=2.12.5",

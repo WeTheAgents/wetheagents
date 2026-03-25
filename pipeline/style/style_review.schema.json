@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Style Review (post-impl)",
+  "description": "Produced by code-stylist after impl stage. Checks implementation against the Style Guide.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "agent_id", "repo", "verdict", "findings", "summary"],
+  "properties": {
+    "station": { "const": "style" },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "repo": {
+      "type": "string",
+      "pattern": "^[\\w.-]+/[\\w.-]+$"
+    },
+    "verdict": { "enum": ["COMPLIANT", "NEEDS_FIXES", "REJECTED"] },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "severity", "description"],
+        "properties": {
+          "file": { "type": "string" },
+          "line": { "type": "integer", "minimum": 1 },
+          "category": {
+            "enum": ["naming", "formatting", "testing", "commit", "convention", "anti_pattern"]
+          },
+          "severity": {
+            "enum": ["must_fix", "should_fix", "suggestion"],
+            "description": "must_fix = will cause PR rejection; should_fix = likely maintainer comment; suggestion = quality improvement"
+          },
+          "description": { "type": "string", "minLength": 1 },
+          "fix": { "type": "string", "description": "Concrete fix suggestion" }
+        }
+      }
+    },
+    "summary": { "type": "string", "minLength": 1 }
+  }
+}

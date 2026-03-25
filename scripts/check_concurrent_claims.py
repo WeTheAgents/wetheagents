@@ -25,19 +25,21 @@ import sys
 from pathlib import Path
 from typing import Any
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from io_helpers import load_json  # noqa: E402
+
 
 def _repo_root(script_path: Path) -> Path:
     """scripts/ -> repo root."""
     return script_path.resolve().parent.parent
 
 
-def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8-sig"))
-
-
 def get_claims_from_json(path: Path) -> list[tuple[int, str]]:
     """Load claims from JSON file. Returns [(issue, agent), ...]."""
-    data = _load_json(path)
+    data = load_json(path, encoding="utf-8-sig")
     if not isinstance(data, list):
         raise ValueError("JSON must be a list of {issue, agent} objects")
     result: list[tuple[int, str]] = []
@@ -73,7 +75,7 @@ def get_claim_agent_from_idem_keys(issue: int, idem_keys_path: Path) -> str | No
     """Get the current claimant for an issue from idem_keys (latest timestamp)."""
     if not idem_keys_path.exists():
         return None
-    data = _load_json(idem_keys_path)
+    data = load_json(idem_keys_path, encoding="utf-8-sig")
     keys = data.get("keys") or {}
     if not isinstance(keys, dict):
         return None

@@ -808,3 +808,204 @@ def run_walk_forward_under(
 
     logger.info(f"Under walk-forward complete: {len(results)} folds")
     return results
+
+
+# ── NRFI Binary Classifier ──────────────────────────────────────────────
+# Cloned from UNDER pipeline with:
+#   - target = nrfi_hit (no push exclusion — binary outcome)
+#   - variable odds from estimate_nrfi_odds(close_ou)
+#   - seasons 2010+ only (fake inning zeros in 2004-2009)
+
+
+@dataclass
+class NRFIModelConfig:
+    catboost_params: dict = field(default_factory=lambda: {
+        "loss_function": "Logloss",
+        "depth": 5,
+        "learning_rate": 0.03,
+        "iterations": 500,
+        "l2_leaf_reg": 8,
+        "min_data_in_leaf": 30,
+        "verbose": 0,
+        "random_seed": 42,
+        "auto_class_weights": "Balanced",
+        "early_stopping_rounds": 50,
+    })
+    ensemble_weight_catboost: float = 0.7
+    max_train_seasons: int | None = 8
+
+
+def train_nrfi_model(
+    df: pd.DataFrame,
+    features: list[str],
+    train_seasons: list[int],
+    val_seasons: list[int],
+    *,
+    cfg: NRFIModelConfig = NRFIModelConfig(),
+) -> tuple[CatBoostClassifier, LogisticRegressionCV | None, object | None, dict]:
+    """Train NRFI binary classifier (CatBoost + LogisticRegression ensemble).
+
+    Target: nrfi_hit (1 = no runs in 1st inning, 0 = YRFI).
+    No push exclusion — NRFI is strictly binary.
+
+    Returns (catboost_model, logistic_model, calibrator, metrics_dict).
+    """
+    train_mask = df["season"].isin(train_seasons)
+    val_mask = df["season"].isin(val_seasons)
+
+    X_train = df.loc[train_mask, features].values.astype(float)
+    y_train = df.loc[train_mask, "nrfi_hit"].values.astype(int)
+    X_val = df.loc[val_mask, features].values.astype(float)
+    y_val = df.loc[val_mask, "nrfi_hit"].values.astype(int)
+
+    logger.info(f"NRFI train: {len(X_train)} games, nrfi_rate={y_train.mean()*100:.1f}%")
+    logger.info(f"NRFI val:   {len(X_val)} games, nrfi_rate={y_val.mean()*100:.1f}%")
+
+    # NaN imputation from training medians
+    train_medians = np.nanmedian(X_train, axis=0)
+    train_medians = np.where(np.isnan(train_medians), 0.0, train_medians)
+    X_train = _impute_nan(X_train, train_medians)
+    X_val = _impute_nan(X_val, train_medians)
+
+    # CatBoost classifier
+    cb = CatBoostClassifier(**cfg.catboost_params)
+    cb.fit(X_train, y_train, eval_set=(X_val, y_val) if len(X_val) > 0 else None)
+
+    # Logistic regression (secondary model)
+    lr_model = None
+    try:
+        lr_model = LogisticRegressionCV(
+            Cs=[0.01, 0.1, 1.0, 10.0],
+            cv=5,
+            max_iter=1000,
+            random_state=42,
+        )
+        lr_model.fit(X_train, y_train)
+    except Exception as e:
+        logger.warning(f"LogisticRegression failed: {e}")
+
+    # None calibration — raw ensemble probs, same rationale as UNDER model
+    calibrator = None
+
+    metrics = {
+        "n_train": len(X_train),
+        "n_val": len(X_val),
+        "train_medians": train_medians,
+        "train_nrfi_rate": float(y_train.mean()),
+    }
+
+    if len(X_val) > 0:
+        proba_val = predict_under_proba(X_val, cb, lr_model, calibrator, train_medians, cfg=cfg)
+        metrics["val_auc"] = float(roc_auc_score(y_val, proba_val))
+        metrics["val_brier"] = float(brier_score_loss(y_val, proba_val))
+        metrics["val_logloss"] = float(log_loss(y_val, np.clip(proba_val, 1e-7, 1 - 1e-7)))
+        logger.info(
+            f"NRFI VAL: AUC={metrics['val_auc']:.4f}, "
+            f"Brier={metrics['val_brier']:.4f}, "
+            f"LogLoss={metrics['val_logloss']:.4f}"
+        )
+
+    return cb, lr_model, calibrator, metrics
+
+
+# predict_nrfi_proba is identical to predict_under_proba — same ensemble logic
+predict_nrfi_proba = predict_under_proba
+
+
+@dataclass
+class NRFIFoldResult:
+    """Result of a single walk-forward fold for the NRFI classifier."""
+
+    fold_name: str
+    train_seasons: list[int]
+    val_seasons: list[int]
+    test_seasons: list[int]
+    n_train: int
+    n_val: int
+    n_test: int
+    val_auc: float
+    val_brier: float
+    test_auc: float
+    test_brier: float
+    test_predictions: pd.DataFrame | None = None
+    p_nrfi_threshold: float = 0.0
+
+
+def run_walk_forward_nrfi(
+    df: pd.DataFrame,
+    features: list[str],
+    *,
+    cfg: NRFIModelConfig = NRFIModelConfig(),
+    min_train: int = 5,
+) -> list[NRFIFoldResult]:
+    """Walk-forward binary classification for P(nrfi).
+
+    No push exclusion — NRFI is strictly binary.
+    Returns list of NRFIFoldResult with test predictions containing p_nrfi.
+    """
+    seasons = sorted(df["season"].unique().tolist())
+    folds = walk_forward_splits(seasons, min_train=min_train,
+                                max_train=cfg.max_train_seasons)
+
+    if not folds:
+        logger.warning("No walk-forward folds generated for NRFI classifier")
+        return []
+
+    logger.info(f"NRFI walk-forward: {len(folds)} folds, {len(features)} features")
+    results = []
+
+    for i, (train_s, val_s, test_s) in enumerate(folds):
+        fold_name = f"fold_{i}_{val_s[0]}_{test_s[0]}-{test_s[-1]}"
+        logger.info(f"  {fold_name}: train={train_s[0]}-{train_s[-1]}, "
+                     f"val={val_s}, test={test_s}")
+
+        # Train
+        cb, lr_model, calibrator, metrics = train_nrfi_model(
+            df, features, train_s, val_s, cfg=cfg,
+        )
+        train_medians = metrics["train_medians"]
+
+        # Predict on test fold (no push exclusion)
+        test_mask = df["season"].isin(test_s)
+        n_test = int(test_mask.sum())
+
+        if n_test < 10:
+            logger.warning(f"  {fold_name}: only {n_test} test games, skipping")
+            continue
+
+        X_test = df.loc[test_mask, features].values.astype(float)
+        y_test = df.loc[test_mask, "nrfi_hit"].values.astype(int)
+        p_nrfi = predict_nrfi_proba(X_test, cb, lr_model, calibrator, train_medians, cfg=cfg)
+
+        # Test metrics
+        test_auc = float(roc_auc_score(y_test, p_nrfi))
+        test_brier = float(brier_score_loss(y_test, p_nrfi))
+        logger.info(f"  {fold_name}: test AUC={test_auc:.4f}, Brier={test_brier:.4f}")
+
+        # Build predictions DataFrame
+        meta_cols = ["season", "date", "home_team", "away_team", "close_ou",
+                     "inn1_runs", "nrfi_hit"]
+        preds_df = df.loc[test_mask, meta_cols].copy()
+        preds_df["p_nrfi"] = p_nrfi
+
+        # Adaptive threshold: top 25% of predictions in this fold
+        threshold_75 = float(np.percentile(p_nrfi, 75))
+
+        results.append(NRFIFoldResult(
+            fold_name=fold_name,
+            train_seasons=train_s,
+            val_seasons=val_s,
+            test_seasons=test_s,
+            n_train=metrics["n_train"],
+            n_val=metrics["n_val"],
+            n_test=n_test,
+            val_auc=metrics.get("val_auc", 0.0),
+            val_brier=metrics.get("val_brier", 0.0),
+            test_auc=test_auc,
+            test_brier=test_brier,
+            test_predictions=preds_df,
+            p_nrfi_threshold=threshold_75,
+        ))
+
+    logger.info(f"NRFI walk-forward complete: {len(results)} folds")
+    return results

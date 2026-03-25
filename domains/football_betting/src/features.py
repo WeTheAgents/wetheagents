@@ -627,6 +627,12 @@ def build_team_level_dataset(games: pd.DataFrame) -> pd.DataFrame:
         home_row["matchday"] = g.get("matchday")
         home_row["is_big3"] = g.get("is_big3_home", 0)
         home_row["opp_is_big3"] = g.get("is_big3_away", 0)
+        # Result points for weighting (3=win, 1=draw, 0=loss)
+        r = g.get("result")
+        home_row["result_points"] = 3 if r == "H" else (1 if r == "D" else 0)
+        # Line movement (from team perspective)
+        home_row["line_move_own"] = g.get("line_move_home")
+        home_row["line_move_opp"] = g.get("line_move_away")
         rows.append(home_row)
 
         # Away team row (mirrored)
@@ -643,6 +649,11 @@ def build_team_level_dataset(games: pd.DataFrame) -> pd.DataFrame:
         away_row["matchday"] = g.get("matchday")
         away_row["is_big3"] = g.get("is_big3_away", 0)
         away_row["opp_is_big3"] = g.get("is_big3_home", 0)
+        # Result points for weighting
+        away_row["result_points"] = 3 if r == "A" else (1 if r == "D" else 0)
+        # Line movement (mirrored perspective)
+        away_row["line_move_own"] = g.get("line_move_away")
+        away_row["line_move_opp"] = g.get("line_move_home")
         rows.append(away_row)
 
     return pd.DataFrame(rows)

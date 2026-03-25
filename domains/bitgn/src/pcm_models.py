@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 class TreeTool(BaseModel):
     tool: Literal["tree"]
+    level: int = Field(2, description="max tree depth, 0 means unlimited")
     root: str = Field(default="", description="tree root, empty means repository root")
 
 
@@ -36,12 +37,31 @@ class ListTool(BaseModel):
 class ReadTool(BaseModel):
     tool: Literal["read"]
     path: str
+    number: bool = Field(False, description="return 1-based line numbers")
+    start_line: Annotated[int, Ge(0)] = Field(
+        0, description="1-based inclusive linum; 0 == from the first line",
+    )
+    end_line: Annotated[int, Ge(0)] = Field(
+        0, description="1-based inclusive linum; 0 == through the last line",
+    )
+
+
+class ContextTool(BaseModel):
+    tool: Literal["context"]
 
 
 class WriteTool(BaseModel):
     tool: Literal["write"]
     path: str
     content: str
+    start_line: Annotated[int, Ge(0)] = Field(
+        0,
+        description="1-based inclusive line number; 0 keeps whole-file overwrite behavior",
+    )
+    end_line: Annotated[int, Ge(0)] = Field(
+        0,
+        description="1-based inclusive line number; 0 means through the last line for ranged writes",
+    )
 
 
 class DeleteTool(BaseModel):
@@ -80,6 +100,7 @@ PcmToolAction = Union[
     SearchTool,
     ListTool,
     ReadTool,
+    ContextTool,
     WriteTool,
     DeleteTool,
     MkDirTool,

@@ -6,7 +6,8 @@
       "Bash(python -m pytest*)",
       "Bash(grep *)",
       "Bash(ls *)",
-      "Bash(wc *)"
+      "Bash(wc *)",
+      "Bash(C:/Users/peach/.config/herbie/config.toml:*)"
     ]
   }
 }
