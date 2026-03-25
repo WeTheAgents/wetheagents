@@ -32,3 +32,32 @@ __pycache__/
 .venv/
 dist/
 build/
+
+# Claude Code local extensions (machine-specific)
+.claude/agents/
+.claude/skills/
+
+# MCP local config (machine-specific server connections)
+.mcp.json
+
+# Codex temp artifacts
+.codex_tmp/
+
+# fast-agent runtime environments (sessions, caches, forks)
+domains/fast-agent/
+domains/fast-agent-agent0/
+domains/fast-agent-pr733/
+
+# Agent0 session diaries (curated versions go to agent0_diary_raw/)
+agent0_diary/
+
+# Domain-level caches and temp data
+.llm_cache/
+catboost_info/
+
+# Domain-level env files and local Claude settings
+domains/**/.env
+domains/**/.claude/
+
+# Parquet temp files
+*.parquet
