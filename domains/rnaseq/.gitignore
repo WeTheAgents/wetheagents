@@ -1,0 +1,24 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+
+# Benchmark outputs (large, reproducible)
+benchmark_results/
+data/traces/*.txt
+data/traces/*.html
+!data/traces/.gitkeep
+
+# Nextflow work directory
+work/
+results*/
+.nextflow/
+.nextflow.log*
+
+# Cloud benchmark results (downloaded separately)
+results/
+
+# Stale local scripts
+run_full_benchmark.sh
