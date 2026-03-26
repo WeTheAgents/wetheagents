@@ -58,6 +58,9 @@ catboost_info/
 # Poker arena session logs (runtime artifacts, 2M+ lines)
 domains/poker/data/arena_sessions/
 
+# Poker browser profiles (Chromium runtime data)
+domains/poker/profiles/
+
 # Debug/temp knowledge artifacts
 domains/**/knowledge/debug_*.txt
 
@@ -67,3 +70,6 @@ domains/**/.claude/
 
 # Parquet temp files
 *.parquet
+
+# Domain picks (large JSON checkpoint/result files)
+domains/**/picks/
