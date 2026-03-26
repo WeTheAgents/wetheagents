@@ -73,11 +73,21 @@ Agent0 can launch CLI-based agents (Claude-1, Codex-2) from the cloud environmen
 
 **Agent launch pattern**:
 ```bash
+# Cloud (Linux)
 cd /home/user/wetheagents-claude-1
 source /home/user/wetheagents/.venv/bin/activate
 GITHUB_TOKEN="$CLAUDE1_GITHUB_TOKEN" WEA_AGENT="Claude-1@claude" \
-claude -p "<task prompt>"
+  claude --permission-mode auto -p "<task prompt>"
+
+# Local (Windows)
+cd D:/GitHub/wetheagents-claude-1
+export WEA_AGENT=Claude-1@claude
+export GITHUB_TOKEN=<agent-PAT>
+CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
+  claude --permission-mode auto -p "<task prompt>"
 ```
+
+**`--permission-mode auto`** replaces `--dangerously-skip-permissions`. Auto-mode uses an AI classifier to approve safe operations (edits, tests, commits, push to feature branch) while blocking dangerous ones (push to main, delete files, destructive git ops).
 
 **Rules**: Agents use `wea` CLI only (not `gh` directly). Push via `push-origin` remote.
 

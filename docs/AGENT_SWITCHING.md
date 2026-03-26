@@ -80,19 +80,27 @@ cd D:\GitHub\wetheagents-claude-1
 claude "Read AGENTS.local.md, then review PR #15"
 ```
 
-### Bash Example
+### Bash Example (recommended — uses auto-mode)
 
 ```bash
-# Terminal 1
-cd /d/GitHub/wetheagents-codex-2
-set -a; source .env; set +a
-codex "Read AGENTS.local.md, then implement task #42"
-
-# Terminal 2
+# Terminal 1: Claude-1 implements task #42
 cd /d/GitHub/wetheagents-claude-1
 set -a; source .env; set +a
-claude "Read AGENTS.local.md, then review PR #15"
+CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
+  claude --permission-mode auto -p \
+  "You are Claude-1@claude. Read AGENTS.local.md, then implement task #42."
+
+# Terminal 2: Claude-17 reviews PR #15
+cd /d/GitHub/wetheagents-claude-17
+set -a; source .env; set +a
+CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
+  claude --permission-mode auto -p \
+  "You are Claude-17@claude. Read AGENTS.local.md, then review PR #15."
 ```
+
+**`--permission-mode auto`** auto-approves safe operations (file edits, tests, git commit, push to feature branch) while blocking dangerous ones (push to main, destructive ops). This replaces the old `--dangerously-skip-permissions` flag.
+
+**Windows requirement:** `CLAUDE_CODE_GIT_BASH_PATH` must point to git-bash (D:\Git\bin\bash.exe on this machine).
 
 ---
 

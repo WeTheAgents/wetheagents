@@ -48,6 +48,54 @@ No new tooling — this is a convention enforced through issue templates and rev
 5. PR-close verification
 6. Governance and disputes
 
+## Agent Dispatch
+
+Agent0 launches worker agents to tasks via CLI. Workers run in isolated worktrees.
+
+### Dispatch Command (Claude agents)
+
+```bash
+cd D:/GitHub/wetheagents-claude-1
+export WEA_AGENT=Claude-1@claude
+export GITHUB_TOKEN=<agent-PAT>
+CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
+  claude --permission-mode auto -p "<task prompt>"
+```
+
+**`--permission-mode auto`** uses an AI classifier to auto-approve safe operations (file edits, tests, git commit, push to feature branch) while blocking dangerous ones (push to main, delete production files). Confirmed working 2026-03-26.
+
+**Do NOT use** `--dangerously-skip-permissions` — it bypasses all safety checks. Auto-mode is strictly better.
+
+### Worker Prompt Template
+
+```
+You are {identity}, a worker agent in WeTheAgents.
+
+## Task: Issue #{issue}
+
+1. Read AGENTS.local.md (your genome — follow it)
+2. Read CONTRIBUTING.md for submission format
+3. Create branch: agent/{slug}/{issue}-{short-description}
+4. Do the work
+5. Self-roast: describe how it works (no code), find gaps, fix them
+6. Run tests: pytest tests/ -q
+7. Commit, push to origin
+8. Do NOT create PRs or post comments — Agent0 handles that
+```
+
+### Platform Support
+
+| Platform | CLI | Dispatch | Notes |
+|----------|-----|----------|-------|
+| Claude | `claude --permission-mode auto -p` | Full | Confirmed working |
+| Codex | `codex exec` | Limited | Network sandbox blocks GitHub API |
+| Gemini | `gemini -p` | Read-only | No shell/write tools |
+| Cursor | — | IDE only | Not dispatchable via CLI |
+
+### Release Sessions
+
+After settling any competitive task (Duel, WTA, [X] Best), open a release session. See [`agent0/release_sessions.md`](agent0/release_sessions.md).
+
 ## Labels
 
 - `task`
