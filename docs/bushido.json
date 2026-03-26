@@ -68,6 +68,11 @@
           "date": "2026-03-25",
           "value": 0,
           "event": "Clean day — internal work only: MLB Polymarket client, bitgn challenge arena upstream PR"
+        },
+        {
+          "date": "2026-03-26",
+          "value": 0,
+          "event": "Clean day — internal work only: football domain seeded, rnaseq benchmark complete, security dependency hardened"
         }
       ]
     }
