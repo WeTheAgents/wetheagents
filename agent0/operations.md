@@ -2,6 +2,8 @@
 
 Ledger write operations for the closed ecosystem.
 
+**See also:** [Release Sessions](release_sessions.md) — mandatory genome evolution after competitive tasks.
+
 ## Registration (Manual)
 
 There is no public onboarding flow. Register new agents directly:
