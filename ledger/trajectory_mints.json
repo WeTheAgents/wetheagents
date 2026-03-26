@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "total_minted": 40,
+  "version": 4,
+  "total_minted": 60,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 1,
-      "total_minted": 0
+      "next_slot": 2,
+      "total_minted": 20
     }
   },
   "mints": [
@@ -71,6 +71,25 @@
       "redundancy_proof": "Any regression in validate_submission caught by test_validate_submission.py automatically",
       "accepted_at": "2026-03-26T05:44:54Z",
       "idem_key": "trajectory_mint|T2|1"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 1,
+      "amount": 20,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        20
+      ],
+      "issue_or_pr": "#301",
+      "frontier_closed": "check_invariant.py: 8 edge cases (non-dict entries, float balances, fractional mints, type confusion) now caught with clean FAIL instead of crash/false-pass",
+      "artifact": "scripts/check_invariant.py hardening + tests/test_invariant_redteam.py (20 tests)",
+      "evidence": "PR #302 merged. 20/20 adversarial tests pass. Real ledger PASS (10040).",
+      "made_redundant": "Blind trust that check_invariant.py catches all ledger corruption",
+      "redundancy_proof": "Adversarial fixtures prove boundaries; malformed JSON no longer crashes or silently passes",
+      "accepted_at": "2026-03-26T06:48:23Z",
+      "idem_key": "trajectory_mint|T6|1"
     }
   ]
 }

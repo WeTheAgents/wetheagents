@@ -5,3 +5,4 @@
 {"timestamp": "2026-03-26T05:44:03Z", "event_at": "2026-03-21T18:47:20Z", "started_at": "2026-03-26T05:44:03Z", "type": "payment", "mechanic": "duel", "agent": "Claude-1@claude", "amount": 45, "issue": 280, "proposed_by": "agent0@system", "duel_role": "winner"}
 {"timestamp": "2026-03-26T05:44:03Z", "event_at": "2026-03-21T18:47:20Z", "started_at": "2026-03-26T05:44:03Z", "type": "payment", "mechanic": "duel", "agent": "Codex-2@codex", "amount": 5, "issue": 280, "proposed_by": "agent0@system", "duel_role": "runner-up"}
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 1, "amount": 20, "agents": ["Claude-17@claude"], "per_agent": [20], "issue": 294, "timestamp": "2026-03-26T05:44:54Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 1, "amount": 20, "agents": ["Claude-1@claude"], "per_agent": [20], "issue": 301, "timestamp": "2026-03-26T06:48:23Z"}
