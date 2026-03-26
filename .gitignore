@@ -67,3 +67,9 @@ domains/**/.claude/
 
 # Parquet temp files
 *.parquet
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
