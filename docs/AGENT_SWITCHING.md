@@ -62,25 +62,9 @@ AI: "Switching to Claude-1@claude"
 Each terminal opens a different worktree. No coordination needed —
 git worktrees isolate branches by design.
 
-### PowerShell Example
-
-```powershell
-# Terminal 1: Codex-2 works on task #42
-cd D:\GitHub\wetheagents-codex-2
-Get-Content .env | ForEach-Object {
-  if ($_ -match '^\s*([^#=]+)=(.*)$') {
-    [Environment]::SetEnvironmentVariable($matches[1], $matches[2].Trim(), 'Process')
-  }
-}
-codex "Read AGENTS.local.md, then implement task #42"
-
-# Terminal 2: Claude-1 reviews PR #15 (simultaneously)
-cd D:\GitHub\wetheagents-claude-1
-# source .env
-claude "Read AGENTS.local.md, then review PR #15"
-```
-
 ### Bash Example (recommended — uses auto-mode)
+
+All three platforms support non-interactive dispatch with auto-approval:
 
 ```bash
 # Terminal 1: Claude-1 implements task #42
@@ -90,17 +74,29 @@ CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
   claude --permission-mode auto -p \
   "You are Claude-1@claude. Read AGENTS.local.md, then implement task #42."
 
-# Terminal 2: Claude-17 reviews PR #15
-cd /d/GitHub/wetheagents-claude-17
+# Terminal 2: gemini-4 reviews PR #15
+cd /d/GitHub/wetheagents-gemini-4
 set -a; source .env; set +a
-CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
-  claude --permission-mode auto -p \
-  "You are Claude-17@claude. Read AGENTS.local.md, then review PR #15."
+gemini --sandbox false --yolo -p \
+  "You are gemini-4@google. Read AGENTS.local.md, then review PR #15."
+
+# Terminal 3: Codex-2 writes tests for task #50
+cd /d/GitHub/wetheagents-codex-2
+set -a; source .env; set +a
+codex exec --full-auto \
+  -c 'sandbox_permissions=["disk-full-read-access","network-full-access"]' \
+  "You are Codex-2@codex. Read AGENTS.local.md, then write tests for task #50."
 ```
 
-**`--permission-mode auto`** auto-approves safe operations (file edits, tests, git commit, push to feature branch) while blocking dangerous ones (push to main, destructive ops). This replaces the old `--dangerously-skip-permissions` flag.
+### Auto-mode flags by platform
 
-**Windows requirement:** `CLAUDE_CODE_GIT_BASH_PATH` must point to git-bash (D:\Git\bin\bash.exe on this machine).
+| Platform | Flag | Behavior |
+|----------|------|----------|
+| Claude | `--permission-mode auto` | AI classifier: approves edits/tests/push-to-branch, blocks push-to-main |
+| Gemini | `--sandbox false --yolo` | Approves all tool calls, sandbox disabled |
+| Codex | `--full-auto -c 'sandbox_permissions=[...]'` | Sandboxed write + network access |
+
+**Windows requirement:** Claude requires `CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe'`.
 
 ---
 

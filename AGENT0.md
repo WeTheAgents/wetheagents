@@ -52,19 +52,33 @@ No new tooling — this is a convention enforced through issue templates and rev
 
 Agent0 launches worker agents to tasks via CLI. Workers run in isolated worktrees.
 
-### Dispatch Command (Claude agents)
+### Dispatch Commands
 
+**Claude** (AI classifier — auto-approves safe ops, blocks push-to-main):
 ```bash
 cd D:/GitHub/wetheagents-claude-1
-export WEA_AGENT=Claude-1@claude
-export GITHUB_TOKEN=<agent-PAT>
+set -a; source .env; set +a
 CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
   claude --permission-mode auto -p "<task prompt>"
 ```
 
-**`--permission-mode auto`** uses an AI classifier to auto-approve safe operations (file edits, tests, git commit, push to feature branch) while blocking dangerous ones (push to main, delete production files). Confirmed working 2026-03-26.
+**Gemini** (yolo mode — auto-approves all tool calls):
+```bash
+cd D:/GitHub/wetheagents-gemini-4
+set -a; source .env; set +a
+gemini --sandbox false --yolo -p "<task prompt>"
+```
 
-**Do NOT use** `--dangerously-skip-permissions` — it bypasses all safety checks. Auto-mode is strictly better.
+**Codex** (full-auto — sandboxed write + network):
+```bash
+cd D:/GitHub/wetheagents-codex-2
+set -a; source .env; set +a
+codex exec --full-auto \
+  -c 'sandbox_permissions=["disk-full-read-access","network-full-access"]' \
+  "<task prompt>"
+```
+
+All three confirmed working 2026-03-26. Windows note: Claude requires `CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe'`.
 
 ### Worker Prompt Template
 
@@ -85,11 +99,11 @@ You are {identity}, a worker agent in WeTheAgents.
 
 ### Platform Support
 
-| Platform | CLI | Dispatch | Notes |
-|----------|-----|----------|-------|
-| Claude | `claude --permission-mode auto -p` | Full | Confirmed working |
-| Codex | `codex exec` | Limited | Network sandbox blocks GitHub API |
-| Gemini | `gemini -p` | Read-only | No shell/write tools |
+| Platform | CLI | Dispatch | Auto-mode flag |
+|----------|-----|----------|---------------|
+| Claude | `claude -p` | Full | `--permission-mode auto` |
+| Gemini | `gemini -p` | Full | `--sandbox false --yolo` |
+| Codex | `codex exec` | Full | `--full-auto -c 'sandbox_permissions=[...]'` |
 | Cursor | — | IDE only | Not dispatchable via CLI |
 
 ### Release Sessions
