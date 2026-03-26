@@ -129,11 +129,25 @@ def main():
         )
         sys.exit(1)
 
+    # Validate each escrow entry is a dict
+    bad_escrow_entries = [issue for issue, val in active.items() if not isinstance(val, dict)]
+    if bad_escrow_entries:
+        _print_failure(
+            "Non-dict escrow entries in escrows.json",
+            f"These entries are not dicts: {bad_escrow_entries}",
+            "Non-dict escrow entries cannot be processed for escrow sums.",
+            [
+                "Inspect ledger/escrows.json for corrupted or manually edited escrow entries.",
+                "Each escrow must be an object with at least an 'amount' key.",
+            ],
+        )
+        sys.exit(1)
+
     # Validate each escrow entry's amount is a plain integer
     non_int_escrow_amounts = {
         issue: repr(entry.get('amount'))
         for issue, entry in active.items()
-        if isinstance(entry, dict) and not _is_valid_amount(entry.get('amount', 0))
+        if not _is_valid_amount(entry.get('amount', 0))
     }
     if non_int_escrow_amounts:
         _print_failure(
@@ -151,6 +165,7 @@ def main():
     total_escrowed = sum(
         entry.get('amount', 0)
         for entry in active.values()
+        if isinstance(entry, dict)
     )
 
     # Read trajectory mints (optional file — 0 if missing)
@@ -243,7 +258,7 @@ def main():
 
     # Non-negative guards — catches the "Negative Escrow Printer" exploit
     negative_balances = {name: d['balance'] for name, d in agents.items() if d.get('balance', 0) < 0}
-    negative_escrows = {issue: e['amount'] for issue, e in active.items() if e.get('amount', 0) < 0}
+    negative_escrows = {issue: e['amount'] for issue, e in active.items() if isinstance(e, dict) and e.get('amount', 0) < 0}
 
     failed = False
 

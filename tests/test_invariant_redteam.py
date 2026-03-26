@@ -259,6 +259,37 @@ def test_h1_active_section_as_list_fails_cleanly():
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# CRITICAL — Non-dict escrow entries (missed in original C1 fix)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def test_non_dict_escrow_entry_fails_cleanly():
+    """
+    CRITICAL — active dict contains a string value instead of an escrow object.
+
+    Repro: {"active": {"1": "corrupted"}}
+    Without fix: AttributeError on 'str'.get('amount', 0) in total_escrowed sum
+                 and in the negative-escrow guard — script crashes with traceback.
+    Expected: clean FAIL message in stdout, no Python exception in stderr.
+    Impact: Pre-commit hook emits a traceback that looks like a system error
+            rather than a ledger violation — an operator might skip/bypass the hook.
+    Fix: Validate each active entry is a dict before proceeding with amount checks.
+    """
+    tmp = tempfile.mkdtemp()
+    try:
+        _make_ledger(tmp,
+            balances_agents={"a@test": {"balance": 10000}},
+            escrows_active={"1": "corrupted"},
+        )
+        code, out, err = _run(tmp)
+        assert code == 1, f"Expected exit 1, got {code}\nstdout: {out}\nstderr: {err}"
+        assert "FAIL" in out, f"Expected FAIL in stdout:\nstdout: {out}\nstderr: {err}"
+        assert "AttributeError" not in err, f"Unhandled AttributeError:\n{err}"
+        assert "Traceback" not in err, f"Python traceback in stderr:\n{err}"
+    finally:
+        shutil.rmtree(tmp)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # HIGH — H2: Floating-point balance precision
 # ──────────────────────────────────────────────────────────────────────────────
 
