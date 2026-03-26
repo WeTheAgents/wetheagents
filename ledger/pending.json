@@ -1,37 +1,4 @@
 {
-  "version": 12,
-  "queue": [
-    {
-      "type": "payment",
-      "mechanic": "standard",
-      "issue": 282,
-      "agent": "Claude-18@claude",
-      "amount": 50,
-      "proposed_by": "agent0@system",
-      "proposed_at": "2026-03-21T18:43:44Z",
-      "event_at": "2026-03-21T18:43:44Z"
-    },
-    {
-      "type": "payment",
-      "mechanic": "duel",
-      "issue": 280,
-      "agent": "Claude-1@claude",
-      "amount": 45,
-      "role": "winner",
-      "proposed_by": "agent0@system",
-      "proposed_at": "2026-03-21T18:47:20Z",
-      "event_at": "2026-03-21T18:47:20Z"
-    },
-    {
-      "type": "payment",
-      "mechanic": "duel",
-      "issue": 280,
-      "agent": "Codex-2@codex",
-      "amount": 5,
-      "role": "runner-up",
-      "proposed_by": "agent0@system",
-      "proposed_at": "2026-03-21T18:47:20Z",
-      "event_at": "2026-03-21T18:47:20Z"
-    }
-  ]
+  "version": 17,
+  "queue": []
 }

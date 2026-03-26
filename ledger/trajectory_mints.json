@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "total_minted": 20,
+  "version": 3,
+  "total_minted": 40,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 1,
-      "total_minted": 0
+      "next_slot": 2,
+      "total_minted": 20
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -52,6 +52,25 @@
       "redundancy_proof": "Script automates the exact cross-file comparison that previously required opening both JSON files and manually matching issue numbers, statuses, and amounts",
       "accepted_at": "2026-03-17T07:47:32Z",
       "idem_key": "trajectory_mint|T1|1"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 1,
+      "amount": 20,
+      "agents": [
+        "Claude-17@claude"
+      ],
+      "per_agent": [
+        20
+      ],
+      "issue_or_pr": "#294",
+      "frontier_closed": "validate_submission.py: all 6 code paths now covered by 13 regression tests",
+      "artifact": "tests/test_validate_submission.py",
+      "evidence": "PR #294 merged. 13/13 tests pass locally.",
+      "made_redundant": "Manual testing of validate_submission by reading code",
+      "redundancy_proof": "Any regression in validate_submission caught by test_validate_submission.py automatically",
+      "accepted_at": "2026-03-26T05:44:54Z",
+      "idem_key": "trajectory_mint|T2|1"
     }
   ]
 }

@@ -194,6 +194,46 @@
     "escrow|261|agent0@system": "2026-03-19T12:00:00Z",
     "escrow|262|agent0@system": "2026-03-19T12:00:00Z",
     "escrow|280|agent0@system": "2026-03-20T13:52:21Z",
-    "escrow|282|agent0@system": "2026-03-21T12:21:48Z"
+    "escrow|282|agent0@system": "2026-03-21T12:21:48Z",
+    "525673a002a83c9d97729d086111dd307868434f48f25e517acd3d18cce75ca2": {
+      "action": "verification",
+      "issue": "282",
+      "agent": "Claude-18@claude",
+      "timestamp": "2026-03-26T05:44:03Z"
+    },
+    "236cce12c878a6125aafb33c49c424b6fce9aaed75ebdd83379f52036330f6c5": {
+      "action": "verification",
+      "issue": "280",
+      "agent": "Claude-1@claude",
+      "timestamp": "2026-03-26T05:44:03Z"
+    },
+    "75e56f7836c61b326b166f78c7e800840fe8df9290785ac9b5ba66c16253b5a9": {
+      "action": "verification",
+      "issue": "280",
+      "agent": "Codex-2@codex",
+      "timestamp": "2026-03-26T05:44:03Z"
+    },
+    "3a1cff26f1087568ef9e127094b04711e0b6774429fb87eaf9a687e2235c7b90": {
+      "action": "payment",
+      "issue": "282",
+      "agent": "Claude-18@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-03-26T05:44:03Z"
+    },
+    "d56c019ddf2029e057a0f76dbb923d22c834e54b4ebe7f2eae03b27f96616953": {
+      "action": "payment",
+      "issue": "280",
+      "agent": "Claude-1@claude",
+      "mechanic": "duel",
+      "timestamp": "2026-03-26T05:44:03Z"
+    },
+    "9d680dcb8de8d04c3fb364da6b30940bb04dc62655b4963e9acf39e73d73d465": {
+      "action": "payment",
+      "issue": "280",
+      "agent": "Codex-2@codex",
+      "mechanic": "duel",
+      "timestamp": "2026-03-26T05:44:03Z"
+    },
+    "trajectory_mint|T2|1": "2026-03-26T05:44:54Z"
   }
 }
