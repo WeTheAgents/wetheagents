@@ -47,6 +47,20 @@ from wea_cli.pipeline_support import (
     render_pipeline_context,
     validate_stage_payload,
 )
+from wea_cli.health import (
+    SPAWN_WARN_THRESHOLD,
+    STATUS_COOLDOWN,
+    STATUS_OFFLINE,
+    VALID_EVENTS,
+    apply_event,
+    check_spawn_warning,
+    default_agent_record,
+    get_health_indicator,
+    get_live_status,
+    load_health,
+    now_iso,
+    save_health,
+)
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.spawn import run_spawn
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
@@ -73,6 +87,7 @@ READONLY_COMMANDS: frozenset[str] = frozenset({
 # Key = top-level command, value = frozenset of safe subcommand names.
 READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "gauntlet": frozenset({"status", "history"}),
+    "health": frozenset({"report"}),
     "release": frozenset({"status"}),
     "skills": frozenset({"list", "show", "suggest"}),
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
@@ -1146,18 +1161,29 @@ def cmd_agents(args: argparse.Namespace) -> int:
     payload = load_balances(root)
     agents = payload.get("agents", {})
 
+    # Load health data once — used for indicator column
+    health_data = load_health(root)
+    health_agents = health_data.get("agents", {})
+
+    def _health_col(agent_id: str) -> str:
+        record = health_agents.get(agent_id)
+        if record is None:
+            return "⚪"
+        status, live_score = get_live_status(record)
+        return get_health_indicator(status, live_score)
+
     if args.all:
         # Show all agents
         if not agents:
             print("No agents registered.")
             return EXIT_OK
-        print(f"{'Agent':<30} {'Balance':>8}  {'Platform':<12} {'Operator':<15} {'GitHub':<18}")
-        print("-" * 95)
+        print(f"{'H':<2} {'Agent':<30} {'Balance':>8}  {'Platform':<12} {'Operator':<15} {'GitHub':<18}")
+        print("-" * 99)
         for agent_id, info in sorted(agents.items()):
             if agent_id == AGENT0_ID:
                 continue
             print(
-                f"{agent_id:<30} {info.get('balance', 0):>8}  "
+                f"{_health_col(agent_id):<2} {agent_id:<30} {info.get('balance', 0):>8}  "
                 f"{info.get('platform', '?'):<12} "
                 f"{info.get('operator', '?'):<15} "
                 f"{info.get('github_username', '?'):<18}"
@@ -1974,6 +2000,87 @@ def cmd_run_status(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+# ---------------------------------------------------------------------------
+# Health commands
+# ---------------------------------------------------------------------------
+
+_HEALTH_REPORT_HEADER = (
+    f"{'Agent':<30} {'Status':<12} {'Cooldown':>8}  {'Last Activity':<22} {'Last Error':<30}"
+)
+_HEALTH_REPORT_SEP = "-" * 108
+
+
+def _fmt_ts(ts: str | None) -> str:
+    return ts if ts else "—"
+
+
+def _fmt_error(ts: str | None, reason: str | None) -> str:
+    if not ts:
+        return "—"
+    r = reason or "error"
+    return f"{r} ({ts})"
+
+
+def cmd_health_report(args: argparse.Namespace) -> int:
+    """Handle `wea health report [agent]` — show live health for one or all agents."""
+    root = resolve_repo_root(args.root)
+    data = load_health(root)
+    health_agents = data.get("agents", {})
+
+    target = getattr(args, "health_agent", None) or None
+
+    if target:
+        if target not in health_agents:
+            print(f"Agent '{target}' not in health file (defaulting to unknown, cooldown=0).")
+            return EXIT_OK
+        items = {target: health_agents[target]}
+    else:
+        items = health_agents
+
+    if not items:
+        print("No health data recorded yet. Use `wea health mark <agent> <event>` to record events.")
+        return EXIT_OK
+
+    print(_HEALTH_REPORT_HEADER)
+    print(_HEALTH_REPORT_SEP)
+    for agent_id, record in sorted(items.items()):
+        status, live_score = get_live_status(record)
+        indicator = get_health_indicator(status, live_score)
+        status_label = f"{indicator} {status}"
+        print(
+            f"{agent_id:<30} {status_label:<12} {live_score:>8}  "
+            f"{_fmt_ts(record.get('last_activity_at')):<22} "
+            f"{_fmt_error(record.get('last_error_at'), record.get('last_error_reason')):<30}"
+        )
+    return EXIT_OK
+
+
+def cmd_health_mark(args: argparse.Namespace) -> int:
+    """Handle `wea health mark <agent> <event>` — record a health event."""
+    root = resolve_repo_root(args.root)
+    agent_id = args.mark_agent
+    event = args.event
+
+    if event not in VALID_EVENTS:
+        print(f"Invalid event '{event}'. Valid events: {', '.join(sorted(VALID_EVENTS))}")
+        return EXIT_DOMAIN_ERROR
+
+    data = load_health(root)
+    agents = data.setdefault("agents", {})
+
+    # Get or create agent record
+    record = agents.get(agent_id) or default_agent_record()
+    ts = now_iso()
+    updated = apply_event(record, event, ts)
+    agents[agent_id] = updated
+    save_health(root, data)
+
+    status = updated["status"]
+    score = updated["cooldown_score"]
+    print(f"Recorded '{event}' for {agent_id}: status={status}, cooldown_score={score}")
+    return EXIT_OK
+
+
 def cmd_spawn(args: argparse.Namespace) -> int:
     """Handle `wea spawn` subcommand — launch a supervised child process."""
     from pathlib import Path as _Path
@@ -1984,6 +2091,17 @@ def cmd_spawn(args: argparse.Namespace) -> int:
     runs_base: _Path | None = None
     if getattr(args, "runs_base", None):
         runs_base = _Path(args.runs_base)
+
+    # Health warning: check agent status before spawning (warning only — never blocks)
+    spawn_agent = getattr(args, "agent", None) or None
+    if spawn_agent:
+        try:
+            repo_root = resolve_repo_root(getattr(args, "root", None))
+            warning = check_spawn_warning(repo_root, spawn_agent)
+            if warning:
+                print(f"⚠ {warning}", file=sys.stderr)
+        except Exception:
+            pass  # Health check failure must never block spawn
 
     rc = run_spawn(
         command=command,
@@ -2340,6 +2458,27 @@ def build_parser() -> argparse.ArgumentParser:
         "spawn_args", metavar="ARG", nargs="*", help="Arguments for the command",
     )
     spawn.set_defaults(_handler=cmd_spawn)
+
+    # --- Health commands ---
+
+    health = subparsers.add_parser("health", help="Agent health scoring and spawn fail-safe")
+    health_sub = health.add_subparsers(dest="health_command")
+    health_sub.required = True
+
+    h_report = health_sub.add_parser("report", help="Show live health for one or all agents")
+    h_report.add_argument(
+        "health_agent", metavar="AGENT", nargs="?", default=None,
+        help="Agent ID to show (omit for all)",
+    )
+    h_report.set_defaults(_handler=cmd_health_report)
+
+    h_mark = health_sub.add_parser("mark", help="Record a health event for an agent")
+    h_mark.add_argument("mark_agent", metavar="AGENT", help="Agent ID")
+    h_mark.add_argument(
+        "event", choices=sorted(VALID_EVENTS),
+        help="Health event: error | offline | rate-limit | recovered",
+    )
+    h_mark.set_defaults(_handler=cmd_health_mark)
 
     # --- Gauntlet commands ---
 
