@@ -27,6 +27,12 @@ jobs:
           CURR=$(git rev-parse HEAD)
           COMMIT_MSG=$(git log -1 --format=%s)
 
+          # Skip if wea release review already wrote provenance
+          if echo "$COMMIT_MSG" | grep -q '\[skip genome-tracker\]'; then
+            echo "Commit contains [skip genome-tracker] — provenance already written by wea release review."
+            exit 0
+          fi
+
           # Extract issue number from commit message: "[Task #109]" or "task #109"
           ISSUE=$(echo "$COMMIT_MSG" | grep -oP '(?<=#)\d+' | head -1 || true)
           ISSUE=${ISSUE:-0}

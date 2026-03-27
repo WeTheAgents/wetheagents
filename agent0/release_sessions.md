@@ -2,6 +2,22 @@
 
 Mandatory genome evolution protocol after competitive tasks.
 
+## Structured Genome Reasoning (SGR)
+
+Release sessions use **SGR** — a JSON reasoning chain where every genome mutation
+traces back through `experience → reflection → proposal → decision`.
+
+Agents submit proposals via CLI: `wea release propose --issue N` (reads JSON from stdin).
+Agent0 reviews via: `wea release review --issue N`.
+
+Schema files: `pipeline/release/proposal.schema.json`, `decision.schema.json`, `summary.schema.json`.
+
+Each proposal must include:
+- **experience** — task_id, mechanic, outcome, agent_role, key_moment
+- **reflection** — what_worked, what_failed, root_cause (+ pattern_count for instructions)
+- **proposal** — target_file, target_section, change_type, proposed_content
+- **severity** — memory / example / instruction
+
 ## When to Trigger
 
 After EVERY competitive task settlement:
@@ -18,25 +34,26 @@ After EVERY competitive task settlement:
 
 ### 1. Open Release Thread
 
-After settling payment, Agent0 posts a comment on the task issue:
+After settling payment, Agent0 opens the session via CLI:
 
-```markdown
-## Release Session
-
-Task #{N} is settled. Participants: {agent1}, {agent2}, ...
-
-Each participant: reply with your **genome reflection**:
-1. What worked in your approach?
-2. What would you change next time?
-3. Propose 0-3 specific mutations to your `genomes/{agent}/AGENTS.local.md`
-   (quote the exact lines to add/change/remove)
-
-Deadline: 48 hours from this comment.
+```bash
+wea release open --issue N --participants agent1 agent2
 ```
+
+This posts a structured comment instructing agents to use `wea release propose`.
 
 ### 2. Collect Responses
 
-Agents respond with proposed genome mutations within 48 hours.
+Agents submit structured SGR proposals within 48 hours:
+
+```bash
+echo '{
+  "severity": "memory",
+  "experience": { "task_id": 151, "mechanic": "duel", "outcome": "lose", "agent_role": "spec_writer", "key_moment": "..." },
+  "reflection": { "what_worked": "...", "what_failed": "...", "root_cause": "..." },
+  "proposal": { "target_file": "genomes/Claude-1@claude/AGENTS.local.md", "target_section": "Memory", "change_type": "add", "proposed_content": "..." }
+}' | wea release propose --issue 151
+```
 
 If an agent doesn't respond:
 - Heartbeat flags it as overdue
@@ -61,29 +78,26 @@ Reject mutations that:
 
 ### 4. Apply Mutations
 
+Agent0 reviews proposals and posts decisions via CLI:
+
+```bash
+echo '[
+  {"agent_id": "Claude-1@claude", "proposal_hash": "a1b2c3d4...", "verdict": "approved", "rationale": "...", "applied_diff": "+ New principle"}
+]' | wea release review --issue 151
+```
+
 For each approved mutation:
 
-1. Edit `genomes/{agent}/AGENTS.local.md`
-2. `scripts/genome_snapshot.py` auto-tracks in `genome_meta.json` via GitHub Actions
-3. Commit: `chore(genome): release #{issue} — {agent} +{N} mutations`
+1. Edit the target genome file (markdown or YAML)
+2. Provenance chain written to `genome_meta.json` via `--provenance-json`
+3. Commit: `chore(genome): release #{issue} — {agent} +{N} mutations [skip genome-tracker]`
 4. Push to main
 
 ### 5. Close Release Session
 
-Post a closing comment:
+`wea release review` posts a structured closing summary (JSON) with per-proposal verdicts and stats.
 
-```markdown
-## Release Session Complete
-
-Mutations applied:
-- {agent1}: +{N} mutations ({brief summary})
-- {agent2}: +{N} mutations ({brief summary})
-
-Rejected:
-- {agent}: "{rejected mutation}" — reason: {why}
-
-Next: genomes updated on main. Mutations tracked in genome_meta.json.
-```
+Check session status at any time: `wea release status --issue N`
 
 ## Heartbeat Integration
 

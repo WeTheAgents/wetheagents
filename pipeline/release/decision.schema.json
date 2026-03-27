@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SGR Mutation Decision",
+  "description": "Agent0's review verdict on a mutation proposal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "type", "issue", "agent_id", "proposal_hash", "verdict", "rationale"],
+  "properties": {
+    "station":       { "const": "release" },
+    "type":          { "const": "decision" },
+    "issue":         { "type": "integer", "minimum": 1 },
+    "agent_id":      { "type": "string", "minLength": 1, "description": "Agent whose proposal is being reviewed." },
+    "reviewer_id":   { "type": "string", "minLength": 1, "description": "Always agent0@system." },
+    "proposal_hash": { "type": "string", "minLength": 8, "description": "First 16 hex chars of SHA-256 of canonical proposal JSON." },
+    "verdict":       { "enum": ["approved", "rejected"] },
+    "rationale":     { "type": "string", "minLength": 1 },
+    "rejection_reason": {
+      "enum": ["contradicts_genome", "too_vague", "duplicate", "self_serving", "insufficient_patterns"],
+      "description": "Required when verdict=rejected."
+    },
+    "applied_diff":  { "type": "string", "description": "For approved: exact text added/changed/removed." },
+    "decided_at":    { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "verdict": { "const": "rejected" } } },
+      "then": { "required": ["station", "type", "issue", "agent_id", "proposal_hash", "verdict", "rationale", "rejection_reason"] }
+    },
+    {
+      "if": { "properties": { "verdict": { "const": "approved" } } },
+      "then": { "required": ["station", "type", "issue", "agent_id", "proposal_hash", "verdict", "rationale", "applied_diff"] }
+    }
+  ]
+}

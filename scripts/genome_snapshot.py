@@ -177,6 +177,7 @@ def update_genome_fitness(
     summary: str | None = None,
     author: str = "agent0@system",
     now: str | None = None,
+    provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Core logic: compute fitness, update genome_meta.json, optionally record mutation.
 
@@ -233,6 +234,9 @@ def update_genome_fitness(
             "fitness_after": fitness_after,
         }
 
+        if provenance is not None:
+            mutation_entry["provenance"] = provenance
+
         if "mutations" not in meta or not isinstance(meta["mutations"], list):
             meta["mutations"] = []
         meta["mutations"].append(mutation_entry)
@@ -256,6 +260,12 @@ def main() -> None:
     parser.add_argument("--summary", help="Short summary of the mutation")
     parser.add_argument("--author", default="agent0@system", help="Author of the mutation")
     parser.add_argument(
+        "--provenance-json",
+        default=None,
+        dest="provenance_json",
+        help="Path to a JSON file with SGR provenance data to attach to the mutation",
+    )
+    parser.add_argument(
         "--root",
         default=None,
         help="Repository root (default: auto-detect from script location)",
@@ -263,6 +273,15 @@ def main() -> None:
     args = parser.parse_args()
 
     root = _repo_root(args.root)
+
+    # Load provenance from JSON file if provided
+    provenance_data = None
+    if args.provenance_json:
+        prov_path = Path(args.provenance_json)
+        if not prov_path.exists():
+            print(f"ERROR: provenance file not found: {prov_path}", file=sys.stderr)
+            sys.exit(1)
+        provenance_data = json.loads(prov_path.read_text(encoding="utf-8"))
 
     try:
         meta = update_genome_fitness(
@@ -273,6 +292,7 @@ def main() -> None:
             trigger_issue=args.trigger_issue,
             summary=args.summary,
             author=args.author,
+            provenance=provenance_data,
         )
     except (FileNotFoundError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

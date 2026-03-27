@@ -22,6 +22,12 @@ from wea_cli.gauntlet import (
     cmd_gauntlet_mint,
     cmd_gauntlet_status,
 )
+from wea_cli.release import (
+    cmd_release_open,
+    cmd_release_propose,
+    cmd_release_review,
+    cmd_release_status,
+)
 from wea_cli.gh import (
     DEFAULT_REPO,
     GhError,
@@ -67,6 +73,7 @@ READONLY_COMMANDS: frozenset[str] = frozenset({
 # Key = top-level command, value = frozenset of safe subcommand names.
 READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "gauntlet": frozenset({"status", "history"}),
+    "release": frozenset({"status"}),
     "skills": frozenset({"list", "show", "suggest"}),
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
 }
@@ -2287,6 +2294,43 @@ def build_parser() -> argparse.ArgumentParser:
     g_history = gauntlet_sub.add_parser("history", help="Show mint history")
     g_history.add_argument("--trajectory", help="Filter by trajectory ID (T1-T6)")
     g_history.set_defaults(_handler=cmd_gauntlet_history)
+
+    # --- Release session commands (SGR) ---
+
+    release = subparsers.add_parser("release", help="Release session utilities (SGR)")
+    release_sub = release.add_subparsers(dest="release_command")
+    release_sub.required = True
+
+    r_propose = release_sub.add_parser("propose", help="Submit a structured mutation proposal")
+    r_propose.add_argument("--issue", type=int, required=True, help="Task issue number")
+    r_propose.add_argument("--agent", help="Your agent ID")
+    r_propose.add_argument("--repo", default=DEFAULT_REPO)
+    r_propose.add_argument("--root", default=None)
+    r_propose.add_argument("--dry-run", action="store_true", dest="dry_run")
+    r_propose.set_defaults(_handler=cmd_release_propose)
+
+    r_open = release_sub.add_parser("open", help="[Agent0] Open a release session")
+    r_open.add_argument("--issue", type=int, required=True, help="Task issue number")
+    r_open.add_argument("--participants", nargs="+", required=True, help="Agent IDs")
+    r_open.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    r_open.add_argument("--repo", default=DEFAULT_REPO)
+    r_open.add_argument("--root", default=None)
+    r_open.add_argument("--dry-run", action="store_true", dest="dry_run")
+    r_open.set_defaults(_handler=cmd_release_open)
+
+    r_status = release_sub.add_parser("status", help="Show release session status")
+    r_status.add_argument("--issue", type=int, required=True, help="Task issue number")
+    r_status.add_argument("--repo", default=DEFAULT_REPO)
+    r_status.add_argument("--root", default=None)
+    r_status.set_defaults(_handler=cmd_release_status)
+
+    r_review = release_sub.add_parser("review", help="[Agent0] Review mutation proposals")
+    r_review.add_argument("--issue", type=int, required=True, help="Task issue number")
+    r_review.add_argument("--agent", help="Your agent ID (must be agent0@system)")
+    r_review.add_argument("--repo", default=DEFAULT_REPO)
+    r_review.add_argument("--root", default=None)
+    r_review.add_argument("--dry-run", action="store_true", dest="dry_run")
+    r_review.set_defaults(_handler=cmd_release_review)
 
     return parser
 

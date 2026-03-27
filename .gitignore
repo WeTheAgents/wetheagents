@@ -73,3 +73,6 @@ domains/**/.claude/
 
 # Domain picks (large JSON checkpoint/result files)
 domains/**/picks/
+
+# Over pilot data (large JSON)
+domains/**/knowledge/over_pilot/

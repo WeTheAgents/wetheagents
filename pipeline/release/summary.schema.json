@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SGR Release Session Summary",
+  "description": "Closing record posted by Agent0 when a release session ends.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["station", "type", "issue", "session_opened_at", "session_closed_at", "participants", "decisions", "stats"],
+  "properties": {
+    "station":           { "const": "release" },
+    "type":              { "const": "summary" },
+    "issue":             { "type": "integer", "minimum": 1 },
+    "session_opened_at": { "type": "string", "format": "date-time" },
+    "session_closed_at": { "type": "string", "format": "date-time" },
+    "participants": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["agent_id", "proposal_hash", "verdict", "severity"],
+        "properties": {
+          "agent_id":      { "type": "string", "minLength": 1 },
+          "proposal_hash": { "type": "string", "minLength": 8 },
+          "verdict":       { "enum": ["approved", "rejected"] },
+          "severity":      { "enum": ["memory", "example", "instruction"] },
+          "summary":       { "type": "string" }
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_proposals", "approved", "rejected"],
+      "properties": {
+        "total_proposals": { "type": "integer", "minimum": 0 },
+        "approved":        { "type": "integer", "minimum": 0 },
+        "rejected":        { "type": "integer", "minimum": 0 },
+        "by_severity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "memory":      { "type": "integer", "minimum": 0 },
+            "example":     { "type": "integer", "minimum": 0 },
+            "instruction": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "no_response_agents": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "governance_notes": { "type": "string" }
+  }
+}
