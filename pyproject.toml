@@ -34,6 +34,7 @@ ignore = ["B008"]
 known-first-party = ["wea_cli", "scripts"]
 
 [tool.pytest.ini_options]
+pythonpath = [".", "src"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
