@@ -38,10 +38,7 @@ from io_helpers import load_json  # noqa: E402
 
 
 def parse_iso_utc(value: str) -> datetime:
-    """Parse ISO timestamp and normalize to UTC-aware datetime.
-
-    Copied from scripts/check_provisional.py — do not reinvent.
-    """
+    """Parse ISO timestamp and normalize to UTC-aware datetime."""
     raw = value.strip()
     if not raw:
         raise ValueError("empty timestamp")
