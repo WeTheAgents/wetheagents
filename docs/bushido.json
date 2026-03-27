@@ -73,6 +73,11 @@
           "date": "2026-03-26",
           "value": 0,
           "event": "Clean day — internal work only: football domain seeded, rnaseq benchmark complete, security dependency hardened"
+        },
+        {
+          "date": "2026-03-27",
+          "value": 0,
+          "event": "Clean day — internal work only: dispatch infra confirmed on all 3 platforms, release sessions formalized, gauntlet T6 red team complete"
         }
       ]
     }
