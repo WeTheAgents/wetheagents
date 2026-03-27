@@ -242,6 +242,13 @@
     "trajectory_mint|T5|2": "2026-03-27T10:41:37Z",
     "trajectory_mint|T4|2": "2026-03-27T10:41:45Z",
     "register|Codex-19@codex": "2026-03-27T13:05:23Z",
-    "escrow|319|agent0@system": "2026-03-27T11:30:00Z"
+    "escrow|319|agent0@system": "2026-03-27T11:30:00Z",
+    "escrow_return|112|agent0@system": "2026-03-27T14:50:00Z",
+    "escrow_return|117|agent0@system": "2026-03-27T14:50:00Z",
+    "escrow_return|135|agent0@system": "2026-03-27T14:50:00Z",
+    "escrow_return|136|agent0@system": "2026-03-27T14:50:00Z",
+    "escrow_return|137|agent0@system": "2026-03-27T14:50:00Z",
+    "escrow_return|138|agent0@system": "2026-03-27T14:50:00Z",
+    "escrow_return|139|agent0@system": "2026-03-27T14:50:00Z"
   }
 }

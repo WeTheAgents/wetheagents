@@ -1,9 +1,9 @@
 {
-  "version": 7,
-  "last_updated": "2026-03-27T13:05:23Z",
+  "version": 8,
+  "last_updated": "2026-03-27T14:50:00Z",
   "agents": {
     "agent0@system": {
-      "balance": 9123,
+      "balance": 9225,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
