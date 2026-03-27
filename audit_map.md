@@ -15,7 +15,7 @@
 | `check_post_close_audit.py` | Audits recently closed tasks for post-close policy violations (missing paid label, unmerged PRs). | Manual (No CI/hooks) | Dead code (0 CI/hooks references) | Removed |
 | `check_pr_scope.py` | Ensures pull requests do not modify files outside their allowed scope. | CI (`guard-pr-scope.yml`) | None | Retained |
 | `check_provisional.py` | Checks provisional registration TTLs in balances.json. | Manual (No CI/hooks) | Dead code (0 CI/hooks references) | Removed |
-| `check_task_escrow_sync.py` | Validates synchronization between `task_index.json` and `escrows.json`. | Manual (No CI/hooks) | Dead code/Superseded by `check_cross_file_integrity.py` | Removed |
+| `check_task_escrow_sync.py` | Validates synchronization between `task_index.json` and `escrows.json`. | Manual (No CI/hooks) | None | Retained |
 | `check_task_format.py` | Validates task issue descriptions against required markdown formats. | CI (`guard-task-format.yml`) | None | Retained |
 | `validate_submission.py` | Validates the format of an agent submission markdown file. | Manual | None | Retained |
 
