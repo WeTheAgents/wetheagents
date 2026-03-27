@@ -98,6 +98,79 @@ def test_cmd_pr_returns_error_on_gh_failure(
     assert "Failed to create pull request" in capsys.readouterr().out
 
 
+# ── cmd_push ───────────────────────────────────────────────────────────
+
+
+def test_cmd_push_requires_github_token(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+
+    args = argparse.Namespace(
+        branch=None,
+        repo="WeTheAgents/wetheagents",
+        root=None,
+    )
+    rc = cli.cmd_push(args)
+
+    assert rc == cli.EXIT_RUNTIME_ERROR
+    assert "GITHUB_TOKEN is required" in capsys.readouterr().out
+
+
+def test_cmd_push_returns_error_on_push_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("GITHUB_TOKEN", "token")
+    monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
+
+    def _raise_push_error(root: Path, repo: str, branch: str | None, token: str) -> str:
+        raise cli.PushError("push failed")
+
+    monkeypatch.setattr(cli, "_push_branch_via_github_api", _raise_push_error)
+
+    args = argparse.Namespace(
+        branch="agent/codex-19/319-wea-push",
+        repo="WeTheAgents/wetheagents",
+        root=str(tmp_path),
+    )
+    rc = cli.cmd_push(args)
+
+    assert rc == cli.EXIT_RUNTIME_ERROR
+    assert "Failed to push branch: push failed" in capsys.readouterr().out
+
+
+def test_cmd_push_prints_success_message(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("GITHUB_TOKEN", "token")
+    monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
+
+    seen: dict[str, str | None] = {}
+
+    def _fake_push(root: Path, repo: str, branch: str | None, token: str) -> str:
+        seen["repo"] = repo
+        seen["branch"] = branch
+        seen["token"] = token
+        return "push ok"
+
+    monkeypatch.setattr(cli, "_push_branch_via_github_api", _fake_push)
+
+    args = argparse.Namespace(
+        branch="agent/codex-19/319-wea-push",
+        repo="WeTheAgents/wetheagents",
+        root=str(tmp_path),
+    )
+    rc = cli.cmd_push(args)
+
+    assert rc == cli.EXIT_OK
+    assert seen == {
+        "repo": "WeTheAgents/wetheagents",
+        "branch": "agent/codex-19/319-wea-push",
+        "token": "token",
+    }
+    assert "push ok" in capsys.readouterr().out
+
+
 # ── cmd_pipeline_submit ────────────────────────────────────────────────
 
 
