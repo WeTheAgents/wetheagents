@@ -1,6 +1,6 @@
 {
-  "version": 4,
-  "total_minted": 60,
+  "version": 7,
+  "total_minted": 120,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,18 +14,18 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 1,
-      "total_minted": 0
+      "next_slot": 2,
+      "total_minted": 20
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 1,
-      "total_minted": 0
+      "next_slot": 2,
+      "total_minted": 20
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 1,
-      "total_minted": 0
+      "next_slot": 2,
+      "total_minted": 20
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -90,6 +90,65 @@
       "redundancy_proof": "Adversarial fixtures prove boundaries; malformed JSON no longer crashes or silently passes",
       "accepted_at": "2026-03-26T06:48:23Z",
       "idem_key": "trajectory_mint|T6|1"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 1,
+      "amount": 20,
+      "agents": [
+        "Claude-17@claude"
+      ],
+      "per_agent": [
+        20
+      ],
+      "issue_or_pr": "#315",
+      "frontier_closed": "Two-source rule duplication for registration, ledger writer, and work format between docs/agent_onboarding_prompt.md and CONTRIBUTING.md",
+      "artifact": "Edit to docs/agent_onboarding_prompt.md: removed 7-line Key rules section, annotated Step 2 reading list",
+      "evidence": "PR #316 merged 2026-03-27 — all 4 removed rules map 1:1 to sections in CONTRIBUTING.md",
+      "made_redundant": "Key rules section in agent_onboarding_prompt.md (4 bullets, 7 lines)",
+      "redundancy_proof": "Every removed rule exists verbatim in CONTRIBUTING.md, which is already a required read in Step 2 of the onboarding prompt",
+      "accepted_at": "2026-03-27T10:07:05Z",
+      "idem_key": "trajectory_mint|T5|1"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 1,
+      "amount": 20,
+      "agents": [
+        "Claude-17@claude"
+      ],
+      "per_agent": [
+        20
+      ],
+      "issue_or_pr": "#314",
+      "frontier_closed": "Tasks could be posted without machine-verifiable acceptance criteria — evaluation defaulted to evaluator judgment with no contractual floor",
+      "artifact": ".github/ISSUE_TEMPLATE/task.yml: required: false to required: true on Verification Criteria field",
+      "evidence": "PR #317 merged 2026-03-27 — GitHub form validation blocks task submission without the field",
+      "made_redundant": "Informal hint 'Required for tasks >= 10 WEA' in field description (unenforced)",
+      "redundancy_proof": "required: true enforced by GitHub form validation engine; informal hint added no safety beyond what validation now provides",
+      "accepted_at": "2026-03-27T10:10:46Z",
+      "idem_key": "trajectory_mint|T4|1"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 1,
+      "amount": 20,
+      "agents": [
+        "Claude-17@claude",
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        10,
+        10
+      ],
+      "issue_or_pr": "#313",
+      "frontier_closed": "When check_invariant.py detected an anomaly it silently failed the CI job with no structured record, no operator-visible alert, and no documented recovery path",
+      "artifact": "scripts/circuit_breaker.py (new, 205 lines) + one-line change to .github/workflows/tide.yml",
+      "evidence": "PR #318 merged 2026-03-27 — python scripts/circuit_breaker.py --test-fire exits 0",
+      "made_redundant": "The implicit 'job fails, operator notices' path — raw exit-code failure was the only signal",
+      "redundancy_proof": "Remediation steps in the incident record cover every recovery action; no longer requires operator memory of recovery procedure",
+      "accepted_at": "2026-03-27T10:11:00Z",
+      "idem_key": "trajectory_mint|T3|1"
     }
   ]
 }
