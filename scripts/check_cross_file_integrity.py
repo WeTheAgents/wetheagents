@@ -241,6 +241,40 @@ def check_non_negative_balances(balances: dict[str, Any]) -> list[str]:
     return failures
 
 
+def check_genome_dir_agent_ids(root: Path, balances: dict[str, Any]) -> list[str]:
+    genomes_dir = root / "genomes"
+    if not genomes_dir.exists():
+        return []
+
+    failures: list[str] = []
+    known_agents = balances.get("agents", {})
+
+    for genome_dir in sorted(path for path in genomes_dir.iterdir() if path.is_dir()):
+        meta_path = genome_dir / "genome_meta.json"
+        if not meta_path.exists():
+            continue
+        try:
+            meta = load_json(meta_path, encoding="utf-8-sig")
+        except (json.JSONDecodeError, OSError):
+            failures.append(f"genome `{genome_dir.name}` has unreadable genome_meta.json")
+            continue
+
+        if not isinstance(meta, dict):
+            failures.append(f"genome `{genome_dir.name}` has non-object genome_meta.json")
+            continue
+
+        agent_id = str(meta.get("agent_id", "")).strip()
+        if not agent_id:
+            failures.append(f"genome `{genome_dir.name}` missing agent_id in genome_meta.json")
+            continue
+        if genome_dir.name != agent_id:
+            failures.append(f"genome `{genome_dir.name}` declares agent_id `{agent_id}`")
+        if agent_id not in known_agents:
+            failures.append(f"genome `{genome_dir.name}` agent_id `{agent_id}` missing from balances.json")
+
+    return failures
+
+
 def run_checks(root: Path, *, repo: str | None = None, issue_fetcher=None) -> list[tuple[str, list[str]]]:
     balances = load_json(root / "ledger" / "balances.json", default={"agents": {}}, encoding="utf-8-sig")
     escrows = load_json(root / "ledger" / "escrows.json", default={"active": {}}, encoding="utf-8-sig")
@@ -257,6 +291,10 @@ def run_checks(root: Path, *, repo: str | None = None, issue_fetcher=None) -> li
         (
             "Every payment idem key has a corresponding history entry",
             check_payment_idem_keys_have_history(idem_keys, history_records),
+        ),
+        (
+            "Genome directories match genome_meta.json agent IDs and balances.json",
+            check_genome_dir_agent_ids(root, balances),
         ),
         ("No duplicate agent entries in balances.json", check_duplicate_agent_entries(balances)),
         ("All agent balances are non-negative", check_non_negative_balances(balances)),
