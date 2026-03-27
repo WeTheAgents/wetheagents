@@ -39,7 +39,7 @@ from wea_cli.gh import (
     view_issue_comments,
 )
 from wea_cli.hooks_adapter import handle_hook
-from wea_cli.parsers import parse_task_metadata
+from wea_cli.parsers import inspect_acceptance_criteria, parse_task_metadata
 from wea_cli.pipeline_support import (
     derive_status,
     normalize_stage,
@@ -76,6 +76,7 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "release": frozenset({"status"}),
     "skills": frozenset({"list", "show", "suggest"}),
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
+    "task": frozenset({"check-criteria"}),
 }
 
 
@@ -475,6 +476,60 @@ def preview_issue_comment(issue: int, comment_path: Path, content: str) -> None:
     emit(content)
 
 
+def _criteria_source_label(source: str) -> str:
+    if source == "legacy":
+        return "legacy-compatible"
+    return source
+
+
+def _load_acceptance_criteria_check(
+    issue: int, repo: str
+) -> tuple[dict[str, Any] | None, Any | None, int | None]:
+    try:
+        issue_data = view_issue(issue, repo=repo)
+    except GhError as exc:
+        emit(f"Failed to load issue #{issue}: {exc}")
+        return None, None, EXIT_RUNTIME_ERROR
+
+    if not issue_data:
+        emit(f"Issue not found or unavailable: #{issue}")
+        return None, None, EXIT_DOMAIN_ERROR
+
+    check = inspect_acceptance_criteria(str(issue_data.get("body", "")))
+    return issue_data, check, None
+
+
+def _emit_acceptance_criteria_report(issue: int, check: Any, *, remind_humans: bool = False) -> None:
+    verdict = "PASS" if check.is_valid else "FAIL"
+    emit(f"Task #{issue} acceptance criteria check: {verdict} ({_criteria_source_label(check.source)})")
+
+    if check.machine_criteria:
+        emit("Machine-checkable criteria:")
+        for criterion in check.machine_criteria:
+            emit(f"- {criterion.text}")
+
+    if check.human_criteria:
+        title = "Human-verification reminders:" if remind_humans else "Human-judgment criteria:"
+        emit(title)
+        for criterion in check.human_criteria:
+            emit(f"- {criterion.text}")
+
+    if check.errors:
+        emit("Problems:")
+        for error in check.errors:
+            emit(f"- {error}")
+
+
+def cmd_task_check_criteria(args: argparse.Namespace) -> int:
+    issue_data, check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
+    if error_code is not None:
+        return error_code
+
+    issue_number = int(issue_data.get("number", args.issue))
+    _emit_acceptance_criteria_report(issue_number, check)
+    return EXIT_OK if check.is_valid else EXIT_DOMAIN_ERROR
+
+
 def cmd_claim(args: argparse.Namespace) -> int:
     if args.plain:
         body = "claim"
@@ -516,6 +571,16 @@ def cmd_submit(args: argparse.Namespace) -> int:
         print("Submission validation failed:")
         for err in errors:
             print(f"- {err}")
+        return EXIT_DOMAIN_ERROR
+
+    issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
+    if error_code is not None:
+        return error_code
+
+    issue_number = int(issue_data.get("number", args.issue))
+    _emit_acceptance_criteria_report(issue_number, criteria_check, remind_humans=True)
+    if not criteria_check.is_valid:
+        emit("Submission blocked until the task has valid machine-checkable acceptance criteria.")
         return EXIT_DOMAIN_ERROR
 
     if args.dry_run:
@@ -1990,6 +2055,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     comments = subparsers.add_parser("comments", help="Show all comments on an issue")
     comments.add_argument("issue", type=int, help="Issue number")
+
+    task = subparsers.add_parser("task", help="Task inspection utilities")
+    task_subparsers = task.add_subparsers(dest="task_command")
+    task_subparsers.required = True
+
+    task_check = task_subparsers.add_parser("check-criteria", help="Inspect task acceptance criteria")
+    task_check.add_argument("issue", type=int, help="Issue number")
+    task_check.set_defaults(_handler=cmd_task_check_criteria)
 
     claim_parser = subparsers.add_parser("claim", help="Claim a task")
     claim_parser.add_argument("issue", type=int, help="Issue number")

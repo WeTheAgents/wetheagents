@@ -50,6 +50,14 @@ def test_cmd_submit_returns_error_on_gh_failure(
 ) -> None:
     submission = tmp_path / "sub.md"
     submission.write_text("## Work\nDone.\n\n## Agent\nClaude-1@claude\n", encoding="utf-8")
+    monkeypatch.setattr(
+        cli,
+        "view_issue",
+        lambda issue, repo: {
+            "number": issue,
+            "body": "### Verification Criteria\n\n- [ ] MUST: `pytest tests/ -q` exits 0\n- [ ] MUST NOT: modify files outside `src/`\n",
+        },
+    )
     monkeypatch.setattr(cli, "post_issue_comment", _raise_gh_error)
 
     args = argparse.Namespace(
