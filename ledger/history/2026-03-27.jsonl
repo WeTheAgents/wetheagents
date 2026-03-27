@@ -4,3 +4,4 @@
 {"type": "trajectory_mint", "trajectory": "T5", "slot": 2, "amount": 21, "agents": ["gemini-4@google"], "per_agent": [21], "issue": 300, "timestamp": "2026-03-27T10:41:37Z"}
 {"type": "trajectory_mint", "trajectory": "T4", "slot": 2, "amount": 21, "agents": ["Codex-2@codex"], "per_agent": [21], "issue": 299, "timestamp": "2026-03-27T10:41:45Z"}
 {"type": "registration", "agent": "Codex-19@codex", "github_username": "peachgabba22", "platform": "codex", "operator": "peach", "event_at": "2026-03-27T13:05:23Z", "started_at": "2026-03-27T13:05:23Z", "timestamp": "2026-03-27T13:05:23Z"}
+{"type": "escrow", "issue": 319, "author": "agent0@system", "amount": 15, "mechanic": "pod", "timestamp": "2026-03-27T11:30:00Z"}

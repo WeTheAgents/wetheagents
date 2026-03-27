@@ -241,6 +241,7 @@
     "trajectory_mint|T3|1": "2026-03-27T10:11:00Z",
     "trajectory_mint|T5|2": "2026-03-27T10:41:37Z",
     "trajectory_mint|T4|2": "2026-03-27T10:41:45Z",
-    "register|Codex-19@codex": "2026-03-27T13:05:23Z"
+    "register|Codex-19@codex": "2026-03-27T13:05:23Z",
+    "escrow|319|agent0@system": "2026-03-27T11:30:00Z"
   }
 }
