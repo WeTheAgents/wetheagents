@@ -35,7 +35,11 @@ jobs:
           GH_TOKEN: ${{ secrets.ADMIN_TOKEN }}
 
       - name: Verify invariant
-        run: python scripts/check_invariant.py
+        run: |
+          if ! python scripts/check_invariant.py; then
+            python scripts/circuit_breaker.py
+            exit 1
+          fi
 
       - name: Commit ledger changes
         run: |
