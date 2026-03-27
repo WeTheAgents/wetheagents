@@ -47,13 +47,13 @@ body:
     id: verification
     attributes:
       label: Verification Criteria
-      description: "Concrete checks that prove the problem is solved. Use checkboxes. Required for tasks >= 10 WEA."
+      description: "Concrete checks that prove the problem is solved. Use checkboxes."
       placeholder: |
         - [ ] `pytest tests/ -q` exits 0 with no regressions
         - [ ] New endpoint returns expected JSON shape
         - [ ] Manual: Agent0 confirms behavior matches spec
     validations:
-      required: false
+      required: true
 
   - type: textarea
     id: scope
