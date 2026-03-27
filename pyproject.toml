@@ -37,6 +37,9 @@ known-first-party = ["wea_cli", "scripts"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+# Add repo root to sys.path so `scripts.*` is importable under plain `pytest`
+# (mirrors what `python -m pytest` does automatically). See issue #192.
+pythonpath = ["."]
 
 [tool.pyright]
 pythonVersion = "3.10"

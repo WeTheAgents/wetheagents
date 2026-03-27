@@ -541,7 +541,7 @@ Major changes:
 
 ## 10. Verification
 
-1. `python -m pytest tests/test_pipeline_parser.py` — all pass with JSON fixtures
+1. `pytest tests/test_pipeline_parser.py` — all pass with JSON fixtures
 2. `wea pipeline get-context negativa-fragility` — returns constitution + genome + rules + schema
 3. `echo '<valid_json>' | wea pipeline submit negativa-fragility --issue 999 --dry-run` — validates without posting
 4. `echo '<invalid_json>' | wea pipeline submit negativa-fragility --issue 999 --dry-run` — specific error message
