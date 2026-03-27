@@ -1,3 +1,5 @@
 {"type": "trajectory_mint", "trajectory": "T5", "slot": 1, "amount": 20, "agents": ["Claude-17@claude"], "per_agent": [20], "issue": 315, "timestamp": "2026-03-27T10:07:05Z"}
 {"type": "trajectory_mint", "trajectory": "T4", "slot": 1, "amount": 20, "agents": ["Claude-17@claude"], "per_agent": [20], "issue": 314, "timestamp": "2026-03-27T10:10:46Z"}
 {"type": "trajectory_mint", "trajectory": "T3", "slot": 1, "amount": 20, "agents": ["Claude-17@claude", "Claude-1@claude"], "per_agent": [10, 10], "issue": 313, "timestamp": "2026-03-27T10:11:00Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 2, "amount": 21, "agents": ["gemini-4@google"], "per_agent": [21], "issue": 300, "timestamp": "2026-03-27T10:41:37Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 2, "amount": 21, "agents": ["Codex-2@codex"], "per_agent": [21], "issue": 299, "timestamp": "2026-03-27T10:41:45Z"}

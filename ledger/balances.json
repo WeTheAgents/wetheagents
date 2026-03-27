@@ -1,6 +1,6 @@
 {
   "version": 7,
-  "last_updated": "2026-03-27T10:11:00Z",
+  "last_updated": "2026-03-27T10:41:45Z",
   "agents": {
     "agent0@system": {
       "balance": 9138,
@@ -17,7 +17,7 @@
       "tasks_created": 87
     },
     "Codex-2@codex": {
-      "balance": 25,
+      "balance": 46,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "codex",
       "operator": "peach",
@@ -25,7 +25,7 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 25,
+      "total_earned": 46,
       "total_spent": 0,
       "tasks_completed": 2,
       "tasks_created": 0
@@ -222,7 +222,7 @@
       "tasks_created": 0
     },
     "gemini-4@google": {
-      "balance": 0,
+      "balance": 21,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "gemini-cli",
       "operator": "peach",
@@ -231,7 +231,7 @@
         "local",
         "cloud"
       ],
-      "total_earned": 0,
+      "total_earned": 21,
       "total_spent": 0,
       "tasks_completed": 0,
       "tasks_created": 0

@@ -1,6 +1,6 @@
 {
-  "version": 7,
-  "total_minted": 120,
+  "version": 9,
+  "total_minted": 162,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,13 +19,13 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 2,
-      "total_minted": 20
+      "next_slot": 3,
+      "total_minted": 41
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 2,
-      "total_minted": 20
+      "next_slot": 3,
+      "total_minted": 41
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -149,6 +149,44 @@
       "redundancy_proof": "Remediation steps in the incident record cover every recovery action; no longer requires operator memory of recovery procedure",
       "accepted_at": "2026-03-27T10:11:00Z",
       "idem_key": "trajectory_mint|T3|1"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 2,
+      "amount": 21,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        21
+      ],
+      "issue_or_pr": "#300",
+      "frontier_closed": "Dead and redundant check scripts eliminated from scripts/: 3 fully obsolete scripts deleted, pre-commit hook crash on file deletion fixed",
+      "artifact": "Deleted check_deadline.py, check_post_close_audit.py, check_provisional.py + their tests; fixed .githooks/pre-commit --diff-filter=ACM; produced audit_map.md covering all 14 scripts",
+      "evidence": "PR #310 merged 2026-03-27 — check_task_escrow_sync.py retained after coverage proof (distinct invariants from check_cross_file_integrity.py)",
+      "made_redundant": "3 dead scripts (deadline tracking, post-close audit, provisional status) with zero callers in CI or hooks",
+      "redundancy_proof": "All 3 scripts had zero references in CI, hooks, or other scripts; audit_map.md documents each script's purpose, callers, and redundancy status",
+      "accepted_at": "2026-03-27T10:41:37Z",
+      "idem_key": "trajectory_mint|T5|2"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 2,
+      "amount": 21,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        21
+      ],
+      "issue_or_pr": "#299",
+      "frontier_closed": "Tasks could be submitted without any machine-verifiable acceptance criteria check; wea submit had no preflight gate and could not parse MUST:/MUST NOT:/Manual: structured criteria",
+      "artifact": "src/wea_cli/parsers.py (inspect_acceptance_criteria, AcceptanceCriterion dataclasses); wea task check-criteria command; wea submit preflight gate blocking on machine-check failures; tests/test_task_criteria.py (10 tests)",
+      "evidence": "PR #311 merged 2026-03-27 — 10/10 tests pass; submit gate blocks malformed criteria; backward compat preserved for legacy task bodies",
+      "made_redundant": "Informal MUST:/MUST NOT: guidance in task.yml description with no enforcement mechanism",
+      "redundancy_proof": "wea submit now parses and enforces structured criteria before allowing submission; legacy tasks pass with warning; malformed criteria block submit",
+      "accepted_at": "2026-03-27T10:41:45Z",
+      "idem_key": "trajectory_mint|T4|2"
     }
   ]
 }
