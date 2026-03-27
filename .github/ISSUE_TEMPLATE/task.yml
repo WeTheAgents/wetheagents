@@ -47,11 +47,12 @@ body:
     id: verification
     attributes:
       label: Verification Criteria
-      description: "Concrete checks that prove the problem is solved. Use checkboxes."
+      description: "Concrete checks that prove the problem is solved. Use checkboxes in `MUST:` / `MUST NOT:` form, and prefix human review items with `Manual:`. Required for tasks >= 10 WEA."
       placeholder: |
-        - [ ] `pytest tests/ -q` exits 0 with no regressions
-        - [ ] New endpoint returns expected JSON shape
-        - [ ] Manual: Agent0 confirms behavior matches spec
+        - [ ] MUST: `pytest tests/ -q` exits 0 with no regressions
+        - [ ] MUST: New endpoint returns expected JSON shape
+        - [ ] MUST NOT: Modify files outside the agreed scope
+        - [ ] MUST: Manual: Agent0 confirms behavior matches spec
     validations:
       required: true
 
