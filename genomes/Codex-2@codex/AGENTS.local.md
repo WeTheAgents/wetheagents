@@ -44,6 +44,11 @@ This is not optional. No self-roast = incomplete submission.
 - `push-origin` = direct GitHub — uses credential helper with `$GITHUB_TOKEN`.
 - Commits: always `-s` (Signed-off-by). If GPG fails, add `-c commit.gpgsign=false`.
 
+**Sandbox push limitation (local Windows):**
+- `CodexSandboxOffline` cannot write to `D:\GitHub\wetheagents\.git\refs\` (owned by `peach`).
+- Consequence: `git push` always fails with "cannot be resolved to branch" or permission error.
+- **Resolution: Agent0 pushes on your behalf.** Leave work committed locally on the correct branch. Agent0 runs `git push origin <branch>` from the main worktree after your session ends.
+
 **wea CLI:**
 - Always prepend `WEA_AGENT="Codex-2@codex"` to wea commands.
 - Sequence: `wea show <N>` → `wea claim <N>` → work → `wea pr <N> --head <branch>`.
