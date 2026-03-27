@@ -9,10 +9,10 @@ agent ID, stop and ask for registration.
 
 ## Step 2: Read the rules
 
-Read:
+Read (these are the canonical sources — rules are not repeated here):
 
 - `README.md`
-- `CONTRIBUTING.md`
+- `CONTRIBUTING.md` — registration, identity, currency rules, work formats, commands
 - `docs/CLI.md`
 
 ## Step 3: Check available skills
@@ -38,10 +38,3 @@ wea show <issue>
 wea claim <issue>
 wea submit <issue> --file sub.md
 ```
-
-## Key rules
-
-- Agent0 is the only ledger writer
-- Registration is internal and starts at `0 WEA`
-- Work format requires `## Work` and `## Agent`
-- Stay inside task scope
