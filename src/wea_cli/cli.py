@@ -588,6 +588,82 @@ def cmd_submit(args: argparse.Namespace) -> int:
         emit("Submission blocked until the task has valid machine-checkable acceptance criteria.")
         return EXIT_DOMAIN_ERROR
 
+    # --- PR Authorship & Repository Validation ---
+    pr_matches = re.findall(r"https://github\.com/([^/]+)/([^/]+)/pull/(\d+)", content)
+    if pr_matches:
+        root = resolve_repo_root(getattr(args, "root", None))
+        balances = load_balances(root)
+        agents = balances.get("agents", {})
+
+        agent_id = resolve_agent(getattr(args, "agent", None))
+        if not agent_id:
+            match = re.search(r"^##\s+Agent\s*\n+([^\n]+)", content, re.MULTILINE)
+            if match:
+                agent_id = match.group(1).strip()
+
+        if not agent_id:
+            print("Submission validation failed:")
+            print("- Agent is required to validate PR authorship.")
+            return EXIT_DOMAIN_ERROR
+
+        if agent_id not in agents:
+            print("Submission validation failed:")
+            print(f"- Agent {agent_id} not found in ledger.")
+            return EXIT_DOMAIN_ERROR
+
+        gh_user = agents[agent_id].get("github_username")
+        if not gh_user:
+            print("Submission validation failed:")
+            print(f"- Agent {agent_id} has no github_username in ledger.")
+            return EXIT_DOMAIN_ERROR
+
+        target_repo = getattr(args, "repo", DEFAULT_REPO)
+        from wea_cli.gh import view_pr
+        
+        valid_prs_found = 0
+
+        for owner, repo_name, pr_str in pr_matches:
+            pr_repo = f"{owner}/{repo_name}"
+            if pr_repo.lower() != target_repo.lower():
+                continue  # ignore foreign repo references (harmless citations)
+
+            valid_prs_found += 1
+
+            pr_number = int(pr_str)
+            try:
+                pr_info = view_pr(pr_number, repo=target_repo)
+            except GhError as exc:
+                print("Submission validation failed:")
+                print(f"- Failed to fetch PR #{pr_number}: {exc}")
+                return EXIT_DOMAIN_ERROR
+
+            pr_author = pr_info.get("author", {}).get("login", "")
+            if pr_author.lower() != gh_user.lower():
+                print("Submission validation failed:")
+                print(f"- PR #{pr_number} was authored by @{pr_author}, but submitting agent is mapped to @{gh_user}.")
+                return EXIT_DOMAIN_ERROR
+
+            pr_state = pr_info.get("state", "").upper()
+            is_draft = pr_info.get("isDraft", False)
+            if pr_state not in ("OPEN", "MERGED") or is_draft:
+                print("Submission validation failed:")
+                print(f"- PR #{pr_number} must be OPEN or MERGED (and not a draft). Current state: {pr_state}, Draft: {is_draft}.")
+                return EXIT_DOMAIN_ERROR
+                
+            # Verify PR actually links to this issue
+            pr_body = pr_info.get("body") or ""
+            issue_target = f"#{args.issue}"
+            if issue_target not in pr_body and str(args.issue) not in pr_body:
+                print("Submission validation failed:")
+                print(f"- PR #{pr_number} body does not seem to link to issue #{args.issue}.")
+                return EXIT_DOMAIN_ERROR
+                
+        if len(pr_matches) > 0 and valid_prs_found == 0:
+             print("Submission validation failed:")
+             print(f"- Provided PR links but none target the expected repository {target_repo}.")
+             return EXIT_DOMAIN_ERROR
+    # ---------------------------------------------
+
     if args.dry_run:
         preview_issue_comment(args.issue, submission_path, content)
         return EXIT_OK
@@ -2499,6 +2575,7 @@ def build_parser() -> argparse.ArgumentParser:
     submit = subparsers.add_parser("submit", help="Submit markdown text as issue comment")
     submit.add_argument("issue", type=int, help="Issue number")
     submit.add_argument("--file", required=True, help="Path to markdown submission")
+    submit.add_argument("--agent", help="Explicit agent ID (overrides env/config)")
     submit.add_argument("--dry-run", action="store_true", help="Print comment body without posting")
 
     pr = subparsers.add_parser("pr", help="Create a pull request for a task")
