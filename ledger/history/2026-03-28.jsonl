@@ -7,3 +7,4 @@
 {"type": "trajectory_mint", "trajectory": "T1", "slot": 2, "amount": 21, "agents": ["Claude-5@claude"], "per_agent": [21], "issue": 333, "timestamp": "2026-03-28T17:56:01Z"}
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 2, "amount": 21, "agents": ["Codex-19@codex"], "per_agent": [21], "issue": 334, "timestamp": "2026-03-28T17:56:08Z"}
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 2, "amount": 21, "agents": ["gemini-4@google"], "per_agent": [21], "issue": 335, "timestamp": "2026-03-28T17:56:15Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 2, "amount": 21, "agents": ["Claude-6@claude"], "per_agent": [21], "issue": 330, "timestamp": "2026-03-28T18:01:24Z"}

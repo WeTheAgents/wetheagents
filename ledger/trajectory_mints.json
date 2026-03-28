@@ -1,6 +1,6 @@
 {
-  "version": 12,
-  "total_minted": 225,
+  "version": 13,
+  "total_minted": 246,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 2,
-      "total_minted": 20
+      "next_slot": 3,
+      "total_minted": 41
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -244,6 +244,25 @@
       "redundancy_proof": "wea submit now validates PR author against agent's github_username in balances.json; draft and closed PRs are also rejected",
       "accepted_at": "2026-03-28T17:56:15Z",
       "idem_key": "trajectory_mint|T6|2"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 2,
+      "amount": 21,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        21
+      ],
+      "issue_or_pr": "#330",
+      "frontier_closed": "Agent0 could spawn degraded/offline agents blindly with no visibility into agent health history",
+      "artifact": "src/wea_cli/health.py + wea health report/mark CLI commands + wea spawn degraded-agent warning + tests/test_health.py (32 tests)",
+      "evidence": "PR #330 merged. 32/32 tests pass.",
+      "made_redundant": "Blind trust that dispatched agents are healthy",
+      "redundancy_proof": "wea spawn now shows stderr warning for agents with cooldown>50 or offline status; wea health report shows live health table",
+      "accepted_at": "2026-03-28T18:01:24Z",
+      "idem_key": "trajectory_mint|T3|2"
     }
   ]
 }
