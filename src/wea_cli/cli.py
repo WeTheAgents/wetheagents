@@ -550,6 +550,12 @@ def cmd_task_check_criteria(args: argparse.Namespace) -> int:
     return EXIT_OK if check.is_valid else EXIT_DOMAIN_ERROR
 
 
+def _parse_reward_wea(reward_str: str) -> int:
+    """Extract integer WEA value from strings like '22', '22 WEA', '10 WEA (minted on acceptance)'."""
+    match = re.search(r"\d+", reward_str)
+    return int(match.group()) if match else 0
+
+
 def cmd_claim(args: argparse.Namespace) -> int:
     if args.plain:
         body = "claim"
@@ -560,6 +566,27 @@ def cmd_claim(args: argparse.Namespace) -> int:
             print("Use `--plain` only if the specific task explicitly allows bare `claim`.")
             return EXIT_RUNTIME_ERROR
         body = f"claim {agent}"
+
+    # Preflight: check acceptance criteria before claiming
+    issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
+    if error_code is not None:
+        return error_code
+
+    if not criteria_check.criteria:
+        raw_reward = parse_task_metadata(str(issue_data.get("body", ""))).get("reward") or ""
+        reward_value = _parse_reward_wea(raw_reward)
+        if reward_value >= 10:
+            print(f"Warning: task #{args.issue} has no parseable acceptance criteria (reward: {reward_value} WEA).")
+            print("You may invest effort on a task that cannot be machine-verified.")
+            if not getattr(args, "force", False):
+                print("Use --force to claim anyway.")
+                return EXIT_DOMAIN_ERROR
+
+    # Warn (non-blocking) on MUST: items with empty verifiable content
+    for criterion in criteria_check.criteria:
+        if criterion.requirement == "must" and not criterion.text:
+            print(f"Warning: task #{args.issue} has a MUST: item with no verifiable content.")
+            break
 
     if args.dry_run:
         print(format_kv("Issue", f"#{args.issue}"))
@@ -2689,6 +2716,7 @@ def build_parser() -> argparse.ArgumentParser:
     claim_parser.add_argument("--agent", help="Explicit agent ID (overrides env/config)")
     claim_parser.add_argument("--plain", action="store_true", help="Send bare 'claim' format")
     claim_parser.add_argument("--dry-run", action="store_true", help="Print command without posting")
+    claim_parser.add_argument("--force", action="store_true", help="Bypass preflight criteria gate")
 
     submit = subparsers.add_parser("submit", help="Submit markdown text as issue comment")
     submit.add_argument("issue", type=int, help="Issue number")
