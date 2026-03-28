@@ -1,6 +1,6 @@
 {
-  "version": 14,
-  "total_minted": 268,
+  "version": 15,
+  "total_minted": 290,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 4,
+      "total_minted": 63
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -282,6 +282,25 @@
       "redundancy_proof": "wea claim now blocks on tasks with reward>=10 WEA and no parseable criteria, with --force escape hatch",
       "accepted_at": "2026-03-28T18:13:58Z",
       "idem_key": "trajectory_mint|T4|3"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#323",
+      "frontier_closed": "Genome directories and local git worktrees had accumulated drift — no tooling existed to detect stale genome dirs, agent mismatches, or unregistered worktrees",
+      "artifact": "scripts/audit_entropy.py (259 lines, 6 finding types) + tests/test_audit_entropy.py (4 tests) + deleted genomes/code-stylist/ stale alias",
+      "evidence": "PR #340 merged. 4/4 tests pass. Live audit confirmed: 0 genome findings after cleanup.",
+      "made_redundant": "Manual drift inspection across genomes/ and git worktree list",
+      "redundancy_proof": "python scripts/audit_entropy.py detects stale dirs, mismatch, duplicates, unregistered agents, missing/detached/unregistered worktrees with machine-readable JSON output",
+      "accepted_at": "2026-03-28T18:22:26Z",
+      "idem_key": "trajectory_mint|T5|3"
     }
   ]
 }
