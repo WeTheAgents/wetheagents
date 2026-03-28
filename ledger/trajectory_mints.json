@@ -1,6 +1,6 @@
 {
-  "version": 13,
-  "total_minted": 246,
+  "version": 14,
+  "total_minted": 268,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 4,
+      "total_minted": 63
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -263,6 +263,25 @@
       "redundancy_proof": "wea spawn now shows stderr warning for agents with cooldown>50 or offline status; wea health report shows live health table",
       "accepted_at": "2026-03-28T18:01:24Z",
       "idem_key": "trajectory_mint|T3|2"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#322",
+      "frontier_closed": "Agents could claim tasks with no acceptance criteria, discovering the gap only at submit time after hours of wasted work",
+      "artifact": "src/wea_cli/cli.py: cmd_claim preflight check + _parse_reward_wea() + --force flag; tests/test_claim_preflight.py (7 tests)",
+      "evidence": "PR #339 merged. 7/7 new tests pass, 0 regressions.",
+      "made_redundant": "Silent claim of underdefined tasks",
+      "redundancy_proof": "wea claim now blocks on tasks with reward>=10 WEA and no parseable criteria, with --force escape hatch",
+      "accepted_at": "2026-03-28T18:13:58Z",
+      "idem_key": "trajectory_mint|T4|3"
     }
   ]
 }

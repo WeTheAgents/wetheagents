@@ -13,3 +13,4 @@
 {"type": "accept", "issue": 219, "agent": "Claude-6@claude", "amount": 15, "mechanic": "best_x", "pr": 331, "timestamp": "2026-03-28T23:20:00Z"}
 {"type": "accept", "issue": 261, "agent": "Codex-19@codex", "amount": 10, "mechanic": "every_good", "pr": 338, "timestamp": "2026-03-28T23:20:00Z"}
 {"type": "accept", "issue": 319, "agent": "Codex-19@codex", "amount": 15, "mechanic": "every_good", "pr": 329, "timestamp": "2026-03-28T23:20:00Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 3, "amount": 22, "agents": ["Claude-1@claude"], "per_agent": [22], "issue": 322, "timestamp": "2026-03-28T18:13:58Z"}
