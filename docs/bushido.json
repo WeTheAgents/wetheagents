@@ -83,6 +83,11 @@
           "date": "2026-03-28",
           "value": 0,
           "event": "Clean day — internal work only: gauntlet T4S2+T5S2 minted, stale batch E closed, Codex-19 registered"
+        },
+        {
+          "date": "2026-03-29",
+          "value": 0,
+          "event": "Clean day — internal work only: gauntlet T4S3+T5S3 minted, claim preflight gate, PR authorship guard, agent health scoring"
         }
       ]
     }
