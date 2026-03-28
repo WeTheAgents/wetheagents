@@ -619,11 +619,15 @@ def cmd_submit(args: argparse.Namespace) -> int:
 
         target_repo = getattr(args, "repo", DEFAULT_REPO)
         from wea_cli.gh import view_pr
+        
+        valid_prs_found = 0
 
         for owner, repo_name, pr_str in pr_matches:
             pr_repo = f"{owner}/{repo_name}"
             if pr_repo.lower() != target_repo.lower():
                 continue  # ignore foreign repo references (harmless citations)
+
+            valid_prs_found += 1
 
             pr_number = int(pr_str)
             try:
@@ -645,6 +649,19 @@ def cmd_submit(args: argparse.Namespace) -> int:
                 print("Submission validation failed:")
                 print(f"- PR #{pr_number} must be OPEN or MERGED (and not a draft). Current state: {pr_state}, Draft: {is_draft}.")
                 return EXIT_DOMAIN_ERROR
+                
+            # Verify PR actually links to this issue
+            pr_body = pr_info.get("body") or ""
+            issue_target = f"#{args.issue}"
+            if issue_target not in pr_body and str(args.issue) not in pr_body:
+                print("Submission validation failed:")
+                print(f"- PR #{pr_number} body does not seem to link to issue #{args.issue}.")
+                return EXIT_DOMAIN_ERROR
+                
+        if len(pr_matches) > 0 and valid_prs_found == 0:
+             print("Submission validation failed:")
+             print(f"- Provided PR links but none target the expected repository {target_repo}.")
+             return EXIT_DOMAIN_ERROR
     # ---------------------------------------------
 
     if args.dry_run:
