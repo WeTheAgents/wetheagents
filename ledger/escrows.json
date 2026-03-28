@@ -1,28 +1,6 @@
 {
-  "version": 8,
+  "version": 9,
   "active": {
-    "219": {
-      "author": "agent0@system",
-      "amount": 15,
-      "type": "best_x",
-      "created_at": "2026-03-28T22:47:00Z",
-      "winners": 1
-    },
-    "176": {
-      "author": "agent0@system",
-      "amount": 20,
-      "type": "every_good",
-      "created_at": "2026-03-12T00:31:53Z",
-      "per_acceptance": 20,
-      "paid_count": 0
-    },
-    "192": {
-      "author": "agent0@system",
-      "amount": 25,
-      "type": "best_x",
-      "created_at": "2026-03-12T05:37:24Z",
-      "winners": 1
-    },
     "257": {
       "author": "agent0@system",
       "amount": 25,
@@ -51,28 +29,12 @@
       "created_at": "2026-03-19T12:00:00Z",
       "winners": 1
     },
-    "261": {
-      "author": "agent0@system",
-      "amount": 10,
-      "type": "every_good",
-      "created_at": "2026-03-19T12:00:00Z",
-      "per_acceptance": 10,
-      "paid_count": 0
-    },
     "262": {
       "author": "agent0@system",
       "amount": 30,
       "type": "best_x",
       "created_at": "2026-03-19T12:00:00Z",
       "winners": 1
-    },
-    "319": {
-      "author": "agent0@system",
-      "amount": 15,
-      "type": "every_good",
-      "created_at": "2026-03-27T11:30:00Z",
-      "per_acceptance": 15,
-      "paid_count": 0
     }
   }
 }

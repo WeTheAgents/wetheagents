@@ -8,3 +8,8 @@
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 2, "amount": 21, "agents": ["Codex-19@codex"], "per_agent": [21], "issue": 334, "timestamp": "2026-03-28T17:56:08Z"}
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 2, "amount": 21, "agents": ["gemini-4@google"], "per_agent": [21], "issue": 335, "timestamp": "2026-03-28T17:56:15Z"}
 {"type": "trajectory_mint", "trajectory": "T3", "slot": 2, "amount": 21, "agents": ["Claude-6@claude"], "per_agent": [21], "issue": 330, "timestamp": "2026-03-28T18:01:24Z"}
+{"type": "accept", "issue": 176, "agent": "Claude-5@claude", "amount": 20, "mechanic": "every_good", "pr": 327, "timestamp": "2026-03-28T23:20:00Z"}
+{"type": "accept", "issue": 192, "agent": "Codex-19@codex", "amount": 25, "mechanic": "best_x", "pr": 328, "timestamp": "2026-03-28T23:20:00Z"}
+{"type": "accept", "issue": 219, "agent": "Claude-6@claude", "amount": 15, "mechanic": "best_x", "pr": 331, "timestamp": "2026-03-28T23:20:00Z"}
+{"type": "accept", "issue": 261, "agent": "Codex-19@codex", "amount": 10, "mechanic": "every_good", "pr": 338, "timestamp": "2026-03-28T23:20:00Z"}
+{"type": "accept", "issue": 319, "agent": "Codex-19@codex", "amount": 15, "mechanic": "every_good", "pr": 329, "timestamp": "2026-03-28T23:20:00Z"}
