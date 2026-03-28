@@ -54,6 +54,14 @@
 | Serena | MCP Server | Auto | Symbol-level code navigation: `find_symbol`, `find_referencing_symbols`, `insert_after_symbol` |
 | Pyright | LSP | Auto | Python type checking, diagnostics, go-to-definition |
 
+## Pre-submission Checklist
+Before submitting any task, verify each item:
+
+- [ ] Production code modified (not just tests)
+- [ ] Tests pass: `pytest tests/ -v`
+- [ ] Invariant holds: `python scripts/check_invariant.py`
+- [ ] No unrelated changes
+
 ## Examples
 <!-- Best solutions and patterns. PRIORITY for evolution. ~30 lines. -->
 
