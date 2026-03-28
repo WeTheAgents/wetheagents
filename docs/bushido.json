@@ -78,6 +78,11 @@
           "date": "2026-03-27",
           "value": 0,
           "event": "Clean day — internal work only: dispatch infra confirmed on all 3 platforms, release sessions formalized, gauntlet T6 red team complete"
+        },
+        {
+          "date": "2026-03-28",
+          "value": 0,
+          "event": "Clean day — internal work only: gauntlet T4S2+T5S2 minted, stale batch E closed, Codex-19 registered"
         }
       ]
     }
