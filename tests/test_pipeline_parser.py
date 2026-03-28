@@ -11,11 +11,7 @@ import pytest
 from jsonschema import ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-from scripts.pipeline_parser import (  # noqa: E402
+from scripts.pipeline_parser import (
     EvaluationResult,
     _extract_json_payloads,
     _parse_impl_legacy,
@@ -24,8 +20,8 @@ from scripts.pipeline_parser import (  # noqa: E402
     aggregate_results,
     parse_evaluation_comment,
 )
-from wea_cli import cli  # noqa: E402
-from wea_cli.pipeline_support import (  # noqa: E402
+from wea_cli import cli
+from wea_cli.pipeline_support import (
     normalize_stage,
     validate_stage_payload,
 )

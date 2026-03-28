@@ -1,13 +1,6 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from scripts.check_task_format import validate  # noqa: E402
+from scripts.check_task_format import validate
 
 
 def test_validate_accepts_linear_pod_with_slots() -> None:
