@@ -106,7 +106,7 @@ def test_cmd_submit_accepts_valid_pr(tmp_path, mock_gh_post, mock_view_pr, mock_
         repo = "WeTheAgents/wetheagents"
         root = str(tmp_path)
     
-    mock_view_pr.return_value = {"author": {"login": "malicioususer"}, "state": "OPEN", "isDraft": False}
+    mock_view_pr.return_value = {"author": {"login": "malicioususer"}, "state": "OPEN", "isDraft": False, "body": "Closes #123"}
     
     assert cmd_submit(Args()) == 0
     mock_gh_post.assert_called_once()
