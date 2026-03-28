@@ -1,16 +1,16 @@
 {
-  "version": 9,
-  "total_minted": 162,
+  "version": 12,
+  "total_minted": 225,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 2,
-      "total_minted": 20
+      "next_slot": 3,
+      "total_minted": 41
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 2,
-      "total_minted": 20
+      "next_slot": 3,
+      "total_minted": 41
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 2,
-      "total_minted": 20
+      "next_slot": 3,
+      "total_minted": 41
     }
   },
   "mints": [
@@ -187,6 +187,63 @@
       "redundancy_proof": "wea submit now parses and enforces structured criteria before allowing submission; legacy tasks pass with warning; malformed criteria block submit",
       "accepted_at": "2026-03-27T10:41:45Z",
       "idem_key": "trajectory_mint|T4|2"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 2,
+      "amount": 21,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        21
+      ],
+      "issue_or_pr": "#333",
+      "frontier_closed": "total_earned/total_spent in balances.json could drift from actual payment records in ledger/history/ without detection",
+      "artifact": "scripts/check_history_reconciliation.py (229 lines) + tests/test_check_history_reconciliation.py (29 tests)",
+      "evidence": "PR #333 merged. 29/29 tests pass. test_real_ledger_reconciles() confirms current ledger is clean.",
+      "made_redundant": "Manual operator reconciliation: opening both balances.json and history/*.jsonl and manually summing payment events",
+      "redundancy_proof": "Script automates the exact cross-file comparison; any drift triggers FAIL with exact delta report and contributing date files",
+      "accepted_at": "2026-03-28T17:56:01Z",
+      "idem_key": "trajectory_mint|T1|2"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 2,
+      "amount": 21,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        21
+      ],
+      "issue_or_pr": "#334",
+      "frontier_closed": "TideProcessor.process() dispatch layer in tide.py was a blind spot with no targeted test coverage",
+      "artifact": "tests/test_tide_event_processor.py (10 tests covering dispatch routing, claim, accept, reject, escrow_return paths)",
+      "evidence": "PR #334 merged. 10/10 new tests pass. 72/72 tide surface tests pass.",
+      "made_redundant": "Manual reading of tide.py to verify dispatch behavior; trust that process() routes correctly",
+      "redundancy_proof": "Any regression in TideProcessor dispatch routing is now caught by test_tide_event_processor.py automatically",
+      "accepted_at": "2026-03-28T17:56:08Z",
+      "idem_key": "trajectory_mint|T2|2"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 2,
+      "amount": 21,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        21
+      ],
+      "issue_or_pr": "#335",
+      "frontier_closed": "wea submit accepted any valid PR URL with no authorship check — an agent could fabricate evidence by submitting a PR authored by someone else",
+      "artifact": "src/wea_cli/gh.py view_pr() + src/wea_cli/cli.py PR authorship/repo/state gate + tests/test_submit_redteam.py (adversarial suite)",
+      "evidence": "PR #335 merged. test_submit_redteam.py passes with explicit PoC proving pre-fix gap was open, then proving fabricated submissions are rejected.",
+      "made_redundant": "Implicit trust that a submitted PR URL was authored by the submitting agent",
+      "redundancy_proof": "wea submit now validates PR author against agent's github_username in balances.json; draft and closed PRs are also rejected",
+      "accepted_at": "2026-03-28T17:56:15Z",
+      "idem_key": "trajectory_mint|T6|2"
     }
   ]
 }
