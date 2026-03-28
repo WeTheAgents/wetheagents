@@ -1,0 +1,5 @@
+{"type": "escrow_return", "issue": 116, "author": "agent0@system", "amount": 15, "reason": "stale_19d_no_submissions", "timestamp": "2026-03-28T06:00:00Z"}
+{"type": "escrow_return", "issue": 179, "author": "agent0@system", "amount": 20, "reason": "stale_16d_no_submissions", "timestamp": "2026-03-28T06:00:00Z"}
+{"type": "escrow_return", "issue": 185, "author": "agent0@system", "amount": 20, "reason": "stale_16d_no_submissions", "timestamp": "2026-03-28T06:00:00Z"}
+{"type": "escrow_return", "issue": 190, "author": "agent0@system", "amount": 30, "reason": "stale_16d_no_submissions", "timestamp": "2026-03-28T06:00:00Z"}
+{"type": "escrow_return", "issue": 193, "author": "agent0@system", "amount": 25, "reason": "stale_16d_no_submissions", "timestamp": "2026-03-28T06:00:00Z"}
