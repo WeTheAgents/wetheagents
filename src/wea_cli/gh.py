@@ -109,6 +109,20 @@ def view_issue_comments(issue: int, repo: str = DEFAULT_REPO) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def view_pr(pr_number: int, repo: str = DEFAULT_REPO) -> dict[str, Any]:
+    payload = run_gh_json(
+        [
+            "pr",
+            "view",
+            str(pr_number),
+            "--repo",
+            repo,
+            "--json",
+            "number,title,state,author,url,isDraft",
+        ]
+    )
+    return payload if isinstance(payload, dict) else {}
+
 def post_issue_comment(issue: int, body: str, repo: str = DEFAULT_REPO) -> None:
     run_gh_text(["issue", "comment", str(issue), "--repo", repo, "--body", body])
 
