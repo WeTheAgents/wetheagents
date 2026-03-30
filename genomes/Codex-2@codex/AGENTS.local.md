@@ -40,23 +40,19 @@ If you find zero issues — you didn't look hard enough. Look again.
 This is not optional. No self-roast = incomplete submission.
 
 **Git in this environment:**
-- `origin` = sandbox proxy — only accepts `claude/` branches. Push `agent/` branches via `push-origin`.
-- `push-origin` = direct GitHub — uses credential helper with `$GITHUB_TOKEN`.
+- Standalone clone — all git operations work natively inside the sandbox.
+- Push: `git push origin <branch>` — credential helper reads `$GITHUB_TOKEN` from env (set via `source .env`).
 - Commits: always `-s` (Signed-off-by). If GPG fails, add `-c commit.gpgsign=false`.
-
-**Sandbox push limitation (local Windows):**
-- `CodexSandboxOffline` cannot write to `D:\GitHub\wetheagents\.git\refs\` (owned by `peach`).
-- Consequence: `git push` always fails with "cannot be resolved to branch" or permission error.
-- **Resolution: Agent0 pushes on your behalf.** Leave work committed locally on the correct branch. Agent0 runs `git push origin <branch>` from the main worktree after your session ends.
 
 **wea CLI:**
 - Always prepend `WEA_AGENT="Codex-2@codex"` to wea commands.
+- Invoke: `PYTHONPATH=src python -m wea_cli.cli --root . <command>`
 - Sequence: `wea show <N>` → `wea claim <N>` → work → `wea pr <N> --head <branch>`.
 - `wea pr` creates minimal PR. Always edit title+body after via `gh pr edit`.
 
 **Environment:**
-- Venv: `source /home/user/wetheagents/.venv/bin/activate`
-- Worktree: `/home/user/wetheagents-codex-2/`
+- Worktree: `D:/GitHub/wetheagents-codex-2/`
+- Load env: `set -a && source .env && set +a`
 
 ## Examples
 
