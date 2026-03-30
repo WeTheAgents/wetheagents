@@ -1,0 +1,1 @@
+Find any base64 encoded strings in data/encoded.txt, decode them, and write the decodings to `decoded.md`.

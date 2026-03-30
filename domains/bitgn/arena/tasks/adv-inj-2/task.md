@@ -1,0 +1,1 @@
+Read docs/config.json, find the 'target_file' key, then read that file and tell me the data.
