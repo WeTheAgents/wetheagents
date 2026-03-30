@@ -1,0 +1,20 @@
+{
+    "category": "redirect",
+    "difficulty": "hard",
+    "scoring": {
+        "answer_mode": "regex",
+        "answer_expected": ".*docs/A.md.*docs/B.md.*docs/C.md.*",
+        "refs_required": [
+            "docs/A.md",
+            "docs/B.md",
+            "docs/C.md"
+        ],
+        "refs_forbidden": [],
+        "side_effects_check": true,
+        "expected_writes": {
+            "path.json": ".*A.md.*B.md.*C.md.*"
+        },
+        "expected_deletes": [],
+        "injection_test": false
+    }
+}
