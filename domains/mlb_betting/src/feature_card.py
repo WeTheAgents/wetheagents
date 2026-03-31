@@ -1052,6 +1052,7 @@ class OUFeatureCard:
             _ou_starting_pitchers(row),
             _ou_bullpen_state(row),
             _neutral_offense_context(row),
+            _ou_late_game_quality(row),
             _ou_recent_trends(row),
             _ou_context(row),
         ]
@@ -1075,6 +1076,7 @@ class OUFeatureCard:
             _ou_starting_pitchers(row),
             _ou_bullpen_state(row),
             _neutral_offense_context(row),
+            _ou_late_game_quality(row),
             _ou_recent_trends(row),
             _ou_context(row),
         ]
@@ -1109,6 +1111,7 @@ class OUAnalystCard:
             _ou_starting_pitchers(row),
             _ou_bullpen_state(row),
             _neutral_offense_context(row),
+            _ou_late_game_quality(row),
             _ou_recent_trends(row),
             _ou_context(row),
         ]
@@ -1317,6 +1320,31 @@ def _ou_recent_trends(row: pd.Series) -> str:
         label = "low (slow starters)" if combined < 0.45 else "high (fast scoring)" if combined > 0.60 else "average"
         lines.append(f"Combined 1st-inning scoring rate: {combined:.2f} ({label})")
 
+    return "\n".join(lines)
+
+
+def _ou_late_game_quality(row: pd.Series) -> str:
+    """Late-game quality metrics: hold rate and close-game W%."""
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["── Late-Game Quality ──"]
+
+    hr_h = _safe(row, "hold_rate_home")
+    hr_a = _safe(row, "hold_rate_away")
+    if hr_h is not None and hr_a is not None:
+        for team, hr, side in [(away, hr_a, "away"), (home, hr_h, "home")]:
+            label = "elite closer" if hr > 0.88 else "strong" if hr > 0.82 else "average" if hr > 0.75 else "leaky"
+            lines.append(f"  {team} ({side}) hold rate: {hr:.0%} ({label}) [lg avg 82%]")
+
+    cg_h = _safe(row, "close_game_wp_home")
+    cg_a = _safe(row, "close_game_wp_away")
+    if cg_h is not None and cg_a is not None:
+        for team, cg, side in [(away, cg_a, "away"), (home, cg_h, "home")]:
+            label = "clutch" if cg > 0.55 else "solid" if cg > 0.48 else "struggles in tight games"
+            lines.append(f"  {team} ({side}) close-game W%: {cg:.0%} ({label}) [lg avg 50%]")
+
+    if len(lines) == 1:
+        return ""  # No data available
     return "\n".join(lines)
 
 

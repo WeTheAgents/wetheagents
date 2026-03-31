@@ -1359,8 +1359,9 @@ OU_FEATURES = [
     # Relative to line
     "rpg_vs_line",                # combined_rpg - close_ou
     "rpg_last10_vs_line",         # combined_rpg_last10 - close_ou
-    # Session 18: tested hold_rate/power_rate/effective_obp_combined — all degraded
-    # AUC and ROI. Reverted. See A/B analysis in session 18.
+    # Late-game quality (session 25 A/B test — H1 PASS: +2.7pp ROI @ P>=0.55,
+    # +11.5pp @ P>=0.60. Session 18 bundle failure was power_rate/effective_obp.)
+    "hold_rate_combined",         # hold_rate_home + hold_rate_away (win% when leading after 5)
 ]
 
 # --- V2: Interaction features (session 19 experiment) ---
@@ -1400,6 +1401,17 @@ OU_FEATURES_V3 = OU_FEATURES + [
     "matchup_rpg_x_bp_fip",    # offense × opposing bullpen FIP (10.6% imp)
     "sp_quality_gap",           # abs starter mismatch (5.6% imp)
     "effective_obp_x_sp_fip",  # handedness-matched OBP × opposing FIP (4.2% imp)
+]
+
+# --- A/B experiment: team quality features for UNDER (session 25) ---
+# Testing RPI, hold_rate, close_game_wp individually and combined.
+# Session 18 tested hold_rate+power_rate+effective_obp as bundle → degraded.
+# This experiment isolates each feature to resolve the ambiguity.
+OU_FEATURES_R1 = OU_FEATURES + ["rpi_combined"]
+OU_FEATURES_H1 = OU_FEATURES + ["hold_rate_combined"]
+OU_FEATURES_C1 = OU_FEATURES + ["close_game_wp_combined"]
+OU_FEATURES_RHC = OU_FEATURES + [
+    "rpi_combined", "hold_rate_combined", "close_game_wp_combined",
 ]
 
 # --- NRFI: 1st-inning specific features (Set A) ---
@@ -1512,6 +1524,10 @@ def build_ou_features(
     _safe_sum(df, "hold_rate_combined", "hold_rate_home", "hold_rate_away")
     _safe_sum(df, "power_rate_combined", "power_rate_home", "power_rate_away")
     _safe_sum(df, "effective_obp_combined", "effective_obp_home", "effective_obp_away")
+
+    # ── Session 25: team quality combined features for A/B test ───────────
+    _safe_sum(df, "rpi_combined", "rpi_home", "rpi_away")
+    _safe_sum(df, "close_game_wp_combined", "close_game_wp_home", "close_game_wp_away")
 
     # ── O/U regime labels (for regression model) ──────────────────────────
     margin = df["total_runs"] - df["close_ou"]

@@ -1,0 +1,494 @@
+{
+  "Freddy Peralta": {
+    "hand": "R",
+    "mlb_id": 642547
+  },
+  "Paul Skenes": {
+    "hand": "R",
+    "mlb_id": 694973
+  },
+  "Jacob Misiorowski": {
+    "hand": "R",
+    "mlb_id": 694819
+  },
+  "Shane Smith": {
+    "hand": "R",
+    "mlb_id": 681343
+  },
+  "Matthew Boyd": {
+    "hand": "L",
+    "mlb_id": 571510
+  },
+  "Cade Cavalli": {
+    "hand": "R",
+    "mlb_id": 676917
+  },
+  "Trevor Rogers": {
+    "hand": "L",
+    "mlb_id": 669432
+  },
+  "Joe Ryan": {
+    "hand": "R",
+    "mlb_id": 657746
+  },
+  "Andrew Abbott": {
+    "hand": "L",
+    "mlb_id": 671096
+  },
+  "Garrett Crochet": {
+    "hand": "L",
+    "mlb_id": 676979
+  },
+  "Hunter Brown": {
+    "hand": "R",
+    "mlb_id": 686613
+  },
+  "Jose Soriano": {
+    "hand": "R",
+    "mlb_id": 667755
+  },
+  "Nick Pivetta": {
+    "hand": "R",
+    "mlb_id": 601713
+  },
+  "Tarik Skubal": {
+    "hand": "L",
+    "mlb_id": 669373
+  },
+  "Cristopher Sanchez": {
+    "hand": "L",
+    "mlb_id": 650911
+  },
+  "Nathan Eovaldi": {
+    "hand": "R",
+    "mlb_id": 543135
+  },
+  "Matthew Liberatore": {
+    "hand": "L",
+    "mlb_id": 669461
+  },
+  "Drew Rasmussen": {
+    "hand": "R",
+    "mlb_id": 656876
+  },
+  "Yoshinobu Yamamoto": {
+    "hand": "R",
+    "mlb_id": 808967
+  },
+  "Zac Gallen": {
+    "hand": "R",
+    "mlb_id": 668678
+  },
+  "Logan Gilbert": {
+    "hand": "R",
+    "mlb_id": 669302
+  },
+  "Tanner Bibee": {
+    "hand": "R",
+    "mlb_id": 676440
+  },
+  "Robbie Ray": {
+    "hand": "L",
+    "mlb_id": 592662
+  },
+  "Cam Schlittler": {
+    "hand": "R",
+    "mlb_id": 693645
+  },
+  "Kevin Gausman": {
+    "hand": "R",
+    "mlb_id": 592332
+  },
+  "Luis Severino": {
+    "hand": "R",
+    "mlb_id": 622663
+  },
+  "Sandy Alcantara": {
+    "hand": "R",
+    "mlb_id": 645261
+  },
+  "Kyle Freeland": {
+    "hand": "L",
+    "mlb_id": 607536
+  },
+  "Chris Sale": {
+    "hand": "L",
+    "mlb_id": 519242
+  },
+  "Cole Ragans": {
+    "hand": "L",
+    "mlb_id": 666142
+  },
+  "Mike Burrows": {
+    "hand": "R",
+    "mlb_id": 681347
+  },
+  "Yusei Kikuchi": {
+    "hand": "L",
+    "mlb_id": 579328
+  },
+  "George Kirby": {
+    "hand": "R",
+    "mlb_id": 669923
+  },
+  "Gavin Williams": {
+    "hand": "R",
+    "mlb_id": 668909
+  },
+  "Michael King": {
+    "hand": "R",
+    "mlb_id": 650633
+  },
+  "Framber Valdez": {
+    "hand": "L",
+    "mlb_id": 664285
+  },
+  "Emmet Sheehan": {
+    "hand": "R",
+    "mlb_id": 686218
+  },
+  "Ryne Nelson": {
+    "hand": "R",
+    "mlb_id": 669194
+  },
+  "Michael McGreevy": {
+    "hand": "R",
+    "mlb_id": 700241
+  },
+  "Joe Boyle": {
+    "hand": "R",
+    "mlb_id": 671212
+  },
+  "Cade Horton": {
+    "hand": "R",
+    "mlb_id": 690990
+  },
+  "Miles Mikolas": {
+    "hand": "R",
+    "mlb_id": 571945
+  },
+  "Dylan Cease": {
+    "hand": "R",
+    "mlb_id": 656302
+  },
+  "Jeffrey Springs": {
+    "hand": "L",
+    "mlb_id": 605488
+  },
+  "Kyle Bradish": {
+    "hand": "R",
+    "mlb_id": 680694
+  },
+  "Taj Bradley": {
+    "hand": "R",
+    "mlb_id": 671737
+  },
+  "Aaron Nola": {
+    "hand": "R",
+    "mlb_id": 605400
+  },
+  "Jacob deGrom": {
+    "hand": "R",
+    "mlb_id": 594798
+  },
+  "Brady Singer": {
+    "hand": "R",
+    "mlb_id": 663903
+  },
+  "Sonny Gray": {
+    "hand": "R",
+    "mlb_id": 543243
+  },
+  "Eury Perez": {
+    "hand": "R",
+    "mlb_id": 691587
+  },
+  "Michael Lorenzen": {
+    "hand": "R",
+    "mlb_id": 547179
+  },
+  "David Peterson": {
+    "hand": "L",
+    "mlb_id": 656849
+  },
+  "Mitch Keller": {
+    "hand": "R",
+    "mlb_id": 656605
+  },
+  "Cristian Javier": {
+    "hand": "R",
+    "mlb_id": 664299
+  },
+  "Reid Detmers": {
+    "hand": "L",
+    "mlb_id": 672282
+  },
+  "Chad Patrick": {
+    "hand": "R",
+    "mlb_id": 694477
+  },
+  "Sean Burke": {
+    "hand": "R",
+    "mlb_id": 680732
+  },
+  "Reynaldo Lopez": {
+    "hand": "R",
+    "mlb_id": 625643
+  },
+  "Michael Wacha": {
+    "hand": "R",
+    "mlb_id": 608379
+  },
+  "Tyler Mahle": {
+    "hand": "R",
+    "mlb_id": 641816
+  },
+  "Will Warren": {
+    "hand": "R",
+    "mlb_id": 701542
+  },
+  "Randy Vasquez": {
+    "hand": "R",
+    "mlb_id": 681190
+  },
+  "Jack Flaherty": {
+    "hand": "R",
+    "mlb_id": 656427
+  },
+  "Tyler Glasnow": {
+    "hand": "R",
+    "mlb_id": 607192
+  },
+  "Eduardo Rodriguez": {
+    "hand": "L",
+    "mlb_id": 593958
+  },
+  "Bryan Woo": {
+    "hand": "R",
+    "mlb_id": 693433
+  },
+  "Joey Cantillo": {
+    "hand": "L",
+    "mlb_id": 676282
+  },
+  "Jacob Latz": {
+    "hand": "L",
+    "mlb_id": 656641
+  },
+  "Grant Holmes": {
+    "hand": "R",
+    "mlb_id": 656550
+  },
+  "Seth Lugo": {
+    "hand": "R",
+    "mlb_id": 607625
+  },
+  "Shane Baz": {
+    "hand": "R",
+    "mlb_id": 669358
+  },
+  "Bailey Ober": {
+    "hand": "R",
+    "mlb_id": 641927
+  },
+  "Jesus Luzardo": {
+    "hand": "L",
+    "mlb_id": 666200
+  },
+  "MacKenzie Gore": {
+    "hand": "L",
+    "mlb_id": 669022
+  },
+  "Eric Lauer": {
+    "hand": "L",
+    "mlb_id": 641778
+  },
+  "Luis Morales": {
+    "hand": "R",
+    "mlb_id": 806960
+  },
+  "Rhett Lowder": {
+    "hand": "R",
+    "mlb_id": 695076
+  },
+  "Connelly Early": {
+    "hand": "L",
+    "mlb_id": 813349
+  },
+  "Max Meyer": {
+    "hand": "R",
+    "mlb_id": 676974
+  },
+  "Jose Quintana": {
+    "hand": "L",
+    "mlb_id": 500779
+  },
+  "Nolan McLean": {
+    "hand": "R",
+    "mlb_id": 690997
+  },
+  "Carmen Mlodzinski": {
+    "hand": "R",
+    "mlb_id": 669387
+  },
+  "Tatsuya Imai": {
+    "hand": "R",
+    "mlb_id": 837227
+  },
+  "Jack Kochanowicz": {
+    "hand": "R",
+    "mlb_id": 686799
+  },
+  "Brandon Sproat": {
+    "hand": "R",
+    "mlb_id": 687075
+  },
+  "Anthony Kay": {
+    "hand": "L",
+    "mlb_id": 641743
+  },
+  "Dustin May": {
+    "hand": "R",
+    "mlb_id": 669160
+  },
+  "Steven Matz": {
+    "hand": "L",
+    "mlb_id": 571927
+  },
+  "Shota Imanaga": {
+    "hand": "L",
+    "mlb_id": 684007
+  },
+  "Jake Irvin": {
+    "hand": "R",
+    "mlb_id": 663623
+  },
+  "Emerson Hancock": {
+    "hand": "R",
+    "mlb_id": 676106
+  },
+  "Slade Cecconi": {
+    "hand": "R",
+    "mlb_id": 677944
+  },
+  "Kris Bubic": {
+    "hand": "L",
+    "mlb_id": 663460
+  },
+  "Simeon Woods Richardson": {
+    "hand": "R",
+    "mlb_id": 680573
+  },
+  "Chris Bassitt": {
+    "hand": "R",
+    "mlb_id": 605135
+  },
+  "Jack Leiter": {
+    "hand": "R",
+    "mlb_id": 683004
+  },
+  "Chris Paddack": {
+    "hand": "R",
+    "mlb_id": 663978
+  },
+  "Davis Martin": {
+    "hand": "R",
+    "mlb_id": 663436
+  },
+  "Chase Burns": {
+    "hand": "R",
+    "mlb_id": 695505
+  },
+  "Braxton Ashcraft": {
+    "hand": "R",
+    "mlb_id": 677952
+  },
+  "Taijuan Walker": {
+    "hand": "R",
+    "mlb_id": 592836
+  },
+  "Foster Griffin": {
+    "hand": "L",
+    "mlb_id": 656492
+  },
+  "Cody Ponce": {
+    "hand": "R",
+    "mlb_id": 664074
+  },
+  "Tomoyuki Sugano": {
+    "hand": "R",
+    "mlb_id": 608372
+  },
+  "Bryce Elder": {
+    "hand": "R",
+    "mlb_id": 693821
+  },
+  "Jacob Lopez": {
+    "hand": "L",
+    "mlb_id": 682052
+  },
+  "Edward Cabrera": {
+    "hand": "R",
+    "mlb_id": 665795
+  },
+  "Ryan Johnson": {
+    "hand": "R",
+    "mlb_id": 696270
+  },
+  "Kyle Harrison": {
+    "hand": "L",
+    "mlb_id": 690986
+  },
+  "Nick Martinez": {
+    "hand": "R",
+    "mlb_id": 607259
+  },
+  "Kyle Leahy": {
+    "hand": "R",
+    "mlb_id": 681517
+  },
+  "Clay Holmes": {
+    "hand": "R",
+    "mlb_id": 605280
+  },
+  "Lance McCullers Jr.": {
+    "hand": "R",
+    "mlb_id": 621121
+  },
+  "Ranger Suarez": {
+    "hand": "L",
+    "mlb_id": 624133
+  },
+  "Luis Castillo": {
+    "hand": "R",
+    "mlb_id": 622491
+  },
+  "Ryan Weathers": {
+    "hand": "L",
+    "mlb_id": 677960
+  },
+  "Walker Buehler": {
+    "hand": "R",
+    "mlb_id": 621111
+  },
+  "Landen Roupp": {
+    "hand": "R",
+    "mlb_id": 694738
+  },
+  "Roki Sasaki": {
+    "hand": "R",
+    "mlb_id": 808963
+  },
+  "Parker Messick": {
+    "hand": "L",
+    "mlb_id": 800048
+  },
+  "Michael Soroka": {
+    "hand": "R",
+    "mlb_id": 647336
+  },
+  "Justin Verlander": {
+    "hand": "R",
+    "mlb_id": 434378
+  }
+}
