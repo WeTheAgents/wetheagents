@@ -42,7 +42,7 @@ DATE_RE = re.compile(
 
 
 def _run(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
+    return subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, encoding="utf-8", errors="replace")
 
 
 def resolve_git_root(cwd: Path | None = None) -> Path:
@@ -376,6 +376,12 @@ def main(argv: list[str] | None = None) -> None:
         metavar="GLOB",
         help="Exclude files matching glob (repeatable). Stacks with defaults.",
     )
+    parser.add_argument(
+        "--format",
+        choices=["json", "markdown"],
+        default="json",
+        help="Output format.",
+    )
     args = parser.parse_args(argv)
 
     repo = resolve_git_root()
@@ -399,11 +405,33 @@ def main(argv: list[str] | None = None) -> None:
         agent_filter=args.agent,
     )
 
-    json_str = json.dumps(output, indent=2)
-    if args.output:
-        Path(args.output).write_text(json_str, encoding="utf-8")
+    if args.format == "markdown":
+        lines = [
+            "# Code Survival Baseline Report",
+            f"**Generated at:** {output['generated_at']}",
+            f"**Since Commit:** `{output['since_commit']}`\n",
+            "| Agent | Authored | Surviving | Survival Rate |",
+            "|-------|----------|-----------|---------------|",
+        ]
+        for a in output["agents"]:
+            lines.append(f"| {a['agent_id']} | {a['lines_authored']} | {a['lines_surviving']} | {a['survival_rate']:.2%} |")
+        lines.append("")
+        for a in output["agents"]:
+            if not a["tasks"]: continue
+            lines.append(f"### {a['agent_id']} Tasks\n")
+            lines.append("| Task | Authored | Surviving | Rate |")
+            lines.append("|------|----------|-----------|------|")
+            for t in a["tasks"]:
+                lines.append(f"| {t['task_id']} | {t['lines_authored']} | {t['lines_surviving']} | {t['survival_rate']:.2%} |")
+            lines.append("")
+        out_str = "\n".join(lines)
     else:
-        sys.stdout.write(json_str + "\n")
+        out_str = json.dumps(output, indent=2)
+
+    if args.output:
+        Path(args.output).write_text(out_str, encoding="utf-8")
+    else:
+        sys.stdout.write(out_str + "\n")
 
 
 if __name__ == "__main__":

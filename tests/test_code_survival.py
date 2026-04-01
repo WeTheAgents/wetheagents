@@ -23,11 +23,13 @@ import code_survival  # noqa: E402
 def git(args: list[str], cwd: Path, env: dict | None = None) -> subprocess.CompletedProcess:
     base_env = {**os.environ, **(env or {})}
     result = subprocess.run(
-        ["git"] + args,
+        ["git", "-c", "commit.gpgsign=false"] + args,
         capture_output=True,
         text=True,
         cwd=cwd,
         env=base_env,
+        encoding="utf-8",
+        errors="replace",
     )
     assert result.returncode == 0, f"git {args} failed:\n{result.stderr}"
     return result
@@ -66,7 +68,7 @@ def commit(
     git(["commit", "-m", message, "--allow-empty"], cwd=repo, env=env or None)
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
-        capture_output=True, text=True, cwd=repo,
+        capture_output=True, text=True, cwd=repo, encoding="utf-8", errors="replace"
     )
     return result.stdout.strip()
 
@@ -108,6 +110,8 @@ def run_script(
         capture_output=True,
         text=True,
         cwd=repo,
+        encoding="utf-8",
+        errors="replace",
     )
     data = None
     if result.returncode == 0 and result.stdout.strip():
