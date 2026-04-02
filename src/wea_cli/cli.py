@@ -86,6 +86,7 @@ READONLY_COMMANDS: frozenset[str] = frozenset({
 # Compound commands where only some subcommands are read-only.
 # Key = top-level command, value = frozenset of safe subcommand names.
 READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
+    "escrow": frozenset({"check"}),
     "gauntlet": frozenset({"status", "history"}),
     "health": frozenset({"report"}),
     "release": frozenset({"status"}),
@@ -2081,6 +2082,24 @@ def cmd_health_mark(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_escrow_check(args: argparse.Namespace) -> int:
+    """Handle `wea escrow check` — detect stale escrows via check_stale_escrows.py."""
+    root = resolve_repo_root(getattr(args, "root", None))
+    script = root / "scripts" / "check_stale_escrows.py"
+    if not script.exists():
+        print(f"Error: script not found: {script}", file=sys.stderr)
+        return EXIT_RUNTIME_ERROR
+
+    import subprocess as _subprocess
+
+    cmd: list[str] = [sys.executable, str(script), "--root", str(root)]
+    now_val = getattr(args, "now", None)
+    if now_val:
+        cmd.extend(["--now", now_val])
+    result = _subprocess.run(cmd)
+    return result.returncode
+
+
 def cmd_spawn(args: argparse.Namespace) -> int:
     """Handle `wea spawn` subcommand — launch a supervised child process."""
     from pathlib import Path as _Path
@@ -2479,6 +2498,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Health event: error | offline | rate-limit | recovered",
     )
     h_mark.set_defaults(_handler=cmd_health_mark)
+
+    # --- Escrow commands ---
+
+    escrow = subparsers.add_parser("escrow", help="Escrow inspection utilities")
+    escrow_sub = escrow.add_subparsers(dest="escrow_command")
+    escrow_sub.required = True
+
+    e_check = escrow_sub.add_parser("check", help="Detect stale escrows before economy freezes")
+    e_check.add_argument(
+        "--now",
+        type=str,
+        default=None,
+        help="Override current UTC time (ISO format, for tests)",
+    )
+    e_check.set_defaults(_handler=cmd_escrow_check)
 
     # --- Gauntlet commands ---
 
