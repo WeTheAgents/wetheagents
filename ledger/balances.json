@@ -31,7 +31,7 @@
       "tasks_created": 0
     },
     "Claude-1@claude": {
-      "balance": 119,
+      "balance": 134,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -39,9 +39,9 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 119,
+      "total_earned": 134,
       "total_spent": 0,
-      "tasks_completed": 2,
+      "tasks_completed": 3,
       "tasks_created": 0
     },
     "cursor-3@cursor": {
