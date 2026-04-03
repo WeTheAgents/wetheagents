@@ -133,17 +133,33 @@ def test_idem_key_collision_different_event_type():
     assert p.balances["agents"]["bob@y"]["balance"] == 30 # 10 + 20
 
 def test_malformed_issue_numbers():
-    # Attack Vector: An attacker posts a comment with a non-numeric or malformed issue URL
-    # attempting to break the integer conversion (int(issue_url...)) and crash the parser.
-    comments = [{
-        "issue_url": "https://api.github.com/repos/x/y/issues/bad123",
-        "body": "claim attacker@z",
-        "created_at": "2026-03-01T00:00:00Z",
-        "user": {"login": "attacker-gh"},
-        "id": 100
-    }]
+    # Attack Vector: An attacker posts a comment with a non-numeric, 0, or negative issue URL
+    # attempting to break the integer conversion (int(issue_url...)) or bypass positive int logic.
+    comments = [
+        {
+            "issue_url": "https://api.github.com/repos/x/y/issues/bad123",
+            "body": "claim attacker@z",
+            "created_at": "2026-03-01T00:00:00Z",
+            "user": {"login": "attacker-gh"},
+            "id": 100
+        },
+        {
+            "issue_url": "https://api.github.com/repos/x/y/issues/0",
+            "body": "claim attacker@z",
+            "created_at": "2026-03-01T00:00:01Z",
+            "user": {"login": "attacker-gh"},
+            "id": 101
+        },
+        {
+            "issue_url": "https://api.github.com/repos/x/y/issues/-5",
+            "body": "claim attacker@z",
+            "created_at": "2026-03-01T00:00:02Z",
+            "user": {"login": "attacker-gh"},
+            "id": 102
+        }
+    ]
     events = build_events([], comments, _idem(), {1})
-    # Should safely catch the ValueError/IndexError and yield 0 events
+    # Should safely catch the ValueError/IndexError and skip 0/-5 due to not being in task_issue_numbers (which is {1})
     assert len(events) == 0
 
 def test_double_claim():
