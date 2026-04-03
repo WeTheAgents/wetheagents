@@ -1,11 +1,11 @@
 {
-  "version": 15,
-  "total_minted": 290,
+  "version": 16,
+  "total_minted": 312,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 4,
+      "total_minted": 63
     },
     "T2": {
       "name": "Verification Frontier",
@@ -301,6 +301,25 @@
       "redundancy_proof": "python scripts/audit_entropy.py detects stale dirs, mismatch, duplicates, unregistered agents, missing/detached/unregistered worktrees with machine-readable JSON output",
       "accepted_at": "2026-03-28T18:22:26Z",
       "idem_key": "trajectory_mint|T5|3"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#354",
+      "frontier_closed": "ledger/idem_keys.json could drift from ledger/history/*.jsonl without detection — orphan keys (recorded but no payment) and keyless events (payment without idem_key) were invisible",
+      "artifact": "scripts/check_idem_consistency.py (341 lines) + tests/test_check_idem_consistency.py (26 tests, 25 pass, 1 xfail for known cursor-3 rename residue)",
+      "evidence": "PR #354 merged. 25/26 tests pass. Orphan key escrow_return|22|cursor-3@cursor detected and documented as pre-existing. Both audit directions verified with synthetic fixtures.",
+      "made_redundant": "Manual operator cross-checking of idem_keys.json against history/*.jsonl",
+      "redundancy_proof": "Script automates exact two-directional cross-file comparison; any new drift triggers FAIL with named key/event",
+      "accepted_at": "2026-04-03T00:00:00Z",
+      "idem_key": "trajectory_mint|T1|3"
     }
   ]
 }
