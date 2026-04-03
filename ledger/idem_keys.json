@@ -271,6 +271,7 @@
     "trajectory_mint|T6|3": "2026-04-03T00:00:00Z",
     "escrow_return|257|agent0@system": "2026-04-03T00:00:00Z",
     "payment|258|Claude-1@claude": "2026-04-03T00:00:00Z",
-    "payment|259|gemini-4@google": "2026-04-03T00:00:00Z"
+    "payment|259|gemini-4@google": "2026-04-03T00:00:00Z",
+    "payment|260|gemini-4@google": "2026-04-03T00:00:00Z"
   }
 }
