@@ -112,9 +112,11 @@ class OpenAIProvider(LLMProvider):
     def __init__(self, tools=None):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.tools = tools or TOOLS
+        self.model_override: str | None = None  # set per-task by agent loop
 
     def provider_name(self) -> str:
-        return f"openai/{MODEL}"
+        model = self.model_override or MODEL
+        return f"openai/{model}"
 
     def get_next_step(self, messages: list[dict], system_prompt: str):
         """Not used for OpenAI native tool calling — kept for interface compat."""
@@ -122,9 +124,10 @@ class OpenAIProvider(LLMProvider):
 
     def raw_call(self, messages: list[dict], system_prompt: str, *, cache_aware: bool = False):
         """Make a raw API call with tools and return the response."""
+        model = self.model_override or MODEL
         full_messages = [{"role": "system", "content": system_prompt}] + messages
         return self.client.chat.completions.create(
-            model=MODEL,
+            model=model,
             tools=self.tools,
             messages=full_messages,
             max_completion_tokens=4096,

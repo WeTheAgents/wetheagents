@@ -43,6 +43,12 @@ class AgentConfig:
     # --- Red team version ---
     redteam_version: str = "v1"  # "v1" (single-phase) | "v2" (three-phase)
 
+    # --- Task Router ---
+    router: bool = False
+    router_model: str = os.getenv("ROUTER_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    complex_extra_steps: int = 5  # extra MAX_STEPS for complex tasks
+    complex_model: str = os.getenv("COMPLEX_MODEL", "")  # upgrade model for complex tasks (empty = no upgrade)
+
     # --- Watchdog (real-time corrector + pre-final gate) ---
     watchdog: bool = False
     watchdog_model: str = _WATCHDOG_MODEL_DEFAULT       # mid-stream check model
