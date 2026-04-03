@@ -222,7 +222,7 @@
       "tasks_created": 0
     },
     "gemini-4@google": {
-      "balance": 64,
+      "balance": 84,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "gemini-cli",
       "operator": "peach",
@@ -231,7 +231,7 @@
         "local",
         "cloud"
       ],
-      "total_earned": 64,
+      "total_earned": 84,
       "total_spent": 0,
       "tasks_completed": 0,
       "tasks_created": 0
