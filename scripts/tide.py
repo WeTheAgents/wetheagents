@@ -218,6 +218,8 @@ def build_events(
         issue_url = c.get("issue_url", "")
         try:
             num = int(issue_url.rstrip("/").split("/")[-1])
+            if num <= 0:
+                continue
         except (ValueError, IndexError):
             continue
         if num not in task_issue_numbers:
