@@ -1,6 +1,6 @@
 {
-  "version": 16,
-  "total_minted": 312,
+  "version": 17,
+  "total_minted": 334,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 4,
+      "total_minted": 63
     }
   },
   "mints": [
@@ -320,6 +320,25 @@
       "redundancy_proof": "Script automates exact two-directional cross-file comparison; any new drift triggers FAIL with named key/event",
       "accepted_at": "2026-04-03T00:00:00Z",
       "idem_key": "trajectory_mint|T1|3"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#355",
+      "frontier_closed": "tide.py event processor had no adversarial test coverage; malformed issue numbers (0, negative) bypassed structural validation and were only filtered by task_index set membership",
+      "artifact": "tests/test_tide_adversarial.py (210 lines, 8 adversarial test cases) + scripts/tide.py patch (if num <= 0: continue guard)",
+      "evidence": "PR #355 merged. All adversarial tests pass. tide.py structural validation fix verified by test_malformed_issue_numbers test.",
+      "made_redundant": "Blind trust that tide.py handles malformed event payloads gracefully; implicit set-lookup filter for invalid issue numbers",
+      "redundancy_proof": "8 adversarial attack vectors now covered by automated tests; structural num <= 0 guard is explicit not implicit",
+      "accepted_at": "2026-04-03T00:00:00Z",
+      "idem_key": "trajectory_mint|T6|3"
     }
   ]
 }
