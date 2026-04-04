@@ -272,6 +272,7 @@
     "escrow_return|257|agent0@system": "2026-04-03T00:00:00Z",
     "accept|258|Claude-1@claude": "2026-04-03T00:00:00Z",
     "accept|259|gemini-4@google": "2026-04-03T00:00:00Z",
-    "accept|260|gemini-4@google": "2026-04-03T00:00:00Z"
+    "accept|260|gemini-4@google": "2026-04-03T00:00:00Z",
+    "escrow|357|agent0@system": "2026-04-04T12:00:00Z"
   }
 }
