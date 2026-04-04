@@ -87,3 +87,45 @@ def should_accept(
         return False, "same score but more steps"
 
     return False, f"score decreased: {c_fitness['score']:.2%} < {b_fitness['score']:.2%}"
+
+
+def should_accept_gene(
+    candidate: BenchmarkTrace,
+    baseline: BenchmarkTrace,
+    target_failures: list[str],
+) -> tuple[bool, str]:
+    """Decide whether to accept a gene-level mutation.
+
+    Stricter than should_accept: requires both zero-regression AND
+    at least one target failure to improve.
+
+    Args:
+        candidate: Benchmark trace with mutated gene.
+        baseline: Benchmark trace with original gene.
+        target_failures: Task IDs the mutation targets.
+
+    Returns:
+        (accepted, reason)
+    """
+    # 1. Zero-regression check
+    passed, regressed = check_zero_regression(candidate, baseline)
+    if not passed:
+        return False, f"regression on tasks: {', '.join(regressed)}"
+
+    # 2. Check that at least one target improved
+    target_improved = []
+    for tid in target_failures:
+        old = next((t for t in baseline.traces if t.task_id == tid), None)
+        new = next((t for t in candidate.traces if t.task_id == tid), None)
+        if old and new and new.score > old.score:
+            target_improved.append(tid)
+
+    if not target_improved:
+        c_fitness = compute_fitness(candidate)
+        b_fitness = compute_fitness(baseline)
+        # Allow if overall score improved even without target improvement
+        if c_fitness["score"] > b_fitness["score"]:
+            return True, f"score improved by {c_fitness['score'] - b_fitness['score']:+.2%} (no target fixed)"
+        return False, "no target failure improved"
+
+    return True, f"fixed {len(target_improved)} target(s): {', '.join(target_improved)}"

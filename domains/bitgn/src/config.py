@@ -49,6 +49,15 @@ class AgentConfig:
     complex_extra_steps: int = 5  # extra MAX_STEPS for complex tasks
     complex_model: str = os.getenv("COMPLEX_MODEL", "")  # upgrade model for complex tasks (empty = no upgrade)
 
+    # --- Genome system ---
+    use_genome: bool = False  # use gene-based prompt assembly instead of monolithic prompts
+    genomes_dir: str = "genomes"  # directory containing genome YAML files
+    planner_model: str = os.getenv("PLANNER_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    action_model: str = os.getenv("ACTION_MODEL", "gpt-4.1")  # fast model for straightforward execution
+    deliberation_model: str = os.getenv("DELIBERATION_MODEL", "gpt-5.4-mini")  # reasoning model for hidden constraints
+    deliberation_complex_model: str = os.getenv("DELIBERATION_COMPLEX_MODEL", "gpt-5.4")  # strongest model for deliberation+complex
+    max_escalations: int = 1  # max Watchdog → Planner escalations per task
+
     # --- Watchdog (real-time corrector + pre-final gate) ---
     watchdog: bool = False
     watchdog_model: str = _WATCHDOG_MODEL_DEFAULT       # mid-stream check model

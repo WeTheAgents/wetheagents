@@ -25,6 +25,10 @@ class TaskTrace:
     steps: list[StepRecord] = field(default_factory=list)
     total_steps: int = 0
     error: str | None = None
+    # Genome system fields (populated when use_genome=True)
+    genes_used: list[str] = field(default_factory=list)
+    planner_trace: list[dict] = field(default_factory=list)
+    watchdog_interventions: list[dict] = field(default_factory=list)
 
 
 @dataclass

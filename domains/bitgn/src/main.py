@@ -56,8 +56,11 @@ def create_provider(name: str, benchmark_id: str = "bitgn/sandbox"):
     elif name == "openai":
         from src.providers.openai_provider import OpenAIProvider
         return OpenAIProvider(tools=openai_tools)
+    elif name == "responses":
+        from src.providers.responses_provider import ResponsesProvider
+        return ResponsesProvider()
     else:
-        raise ValueError(f"Unknown provider: {name}. Use 'anthropic' or 'openai'.")
+        raise ValueError(f"Unknown provider: {name}. Use 'anthropic', 'openai', or 'responses'.")
 
 
 def run_benchmark(
@@ -307,6 +310,13 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
             config.router = True  # model routing requires router
             config.enrichment = True
             i += 2
+        elif args[i] == "--genome":
+            config.use_genome = True
+            config.warmup = True  # genome mode requires warmup (planner needs vault context)
+            config.enrichment = True
+            config.defense_mode = "soft_block"  # hard blocks data entirely; soft_block shows with warning
+            config.step_validator = True
+            i += 1
         elif args[i] == "--all-features":
             config.warmup = True
             config.compress_history = True

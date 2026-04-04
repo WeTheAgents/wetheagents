@@ -157,8 +157,11 @@ def run_arena(
         vault = LocalVaultRuntime(vault_dir)
         dispatcher = local_dispatcher(vault)
 
-        # Build system prompt
-        system_prompt = build_system_prompt(task.instruction, prompt_template)
+        # Build system prompt — genome mode lets _prepare_agent() assemble from genes
+        if config.use_genome:
+            system_prompt = None
+        else:
+            system_prompt = build_system_prompt(task.instruction, prompt_template)
 
         try:
             if provider_name == "anthropic":
