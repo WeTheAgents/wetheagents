@@ -97,6 +97,7 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "skills": frozenset({"list", "show", "suggest"}),
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
     "task": frozenset({"check-criteria"}),
+    "escrow": frozenset({"check"}),
 }
 
 
@@ -3078,7 +3079,35 @@ def build_parser() -> argparse.ArgumentParser:
     r_review.add_argument("--dry-run", action="store_true", dest="dry_run")
     r_review.set_defaults(_handler=cmd_release_review)
 
+    # --- Escrow commands ---
+
+    escrow = subparsers.add_parser("escrow", help="Escrow utilities")
+    escrow_sub = escrow.add_subparsers(dest="escrow_command")
+    escrow_sub.required = True
+
+    e_check = escrow_sub.add_parser("check", help="Detect stale/frozen escrows")
+    e_check.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output machine-readable JSON",
+    )
+    e_check.set_defaults(_handler=cmd_escrow_check)
+
     return parser
+
+
+# --- Escrow command handlers ---
+
+
+def cmd_escrow_check(args: argparse.Namespace) -> int:
+    """Handle `wea escrow check` — report stale/frozen escrows."""
+    root = resolve_repo_root(args.root)
+    cmd = [sys.executable, str(root / "scripts" / "check_stale_escrows.py"), "--root", str(root)]
+    if getattr(args, "json_output", False):
+        cmd.append("--json")
+    result = subprocess.run(cmd, check=False)
+    return result.returncode
 
 
 # --- Skills command handlers ---
