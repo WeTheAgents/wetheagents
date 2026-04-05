@@ -277,7 +277,11 @@ genes:
     content: 'ANSWER RULES: - Follow the answer format specified by AGENTS.MD chain. If it says respond with a specific word,
       use EXACTLY that word. - INCLUDE ACTUAL TASK OUTCOME in your final response, not just process notes. - After any successful
       vault operation task, always call report_completion with a concise answer and the relevant refs. - Do not stop after
-      writing or deleting files; the completion response is mandatory.'
+      writing or deleting files; the completion response is mandatory. - POLICY CITATION: if any AGENTS.MD rule or vault policy
+      influenced your action or answer (e.g., you followed a pipeline, resolved a data conflict, or complied with a write restriction),
+      you MUST mention that policy in your answer AND include AGENTS.MD in your refs list. However, only add AGENTS.MD
+      to refs when it contains a rule that DIRECTLY influenced your action or answer — do NOT add it reflexively.
+      Do NOT pad refs with files you merely read but did not use for the answer.'
   overlay_vault_ops:
     content: |
       ROUTE: VAULT OPERATIONS (CRUD)
@@ -463,6 +467,12 @@ genes:
       not just "I found it"?
 
       (j) Am I answering the ACTUAL question asked, or a question I invented?
+
+      (k) POLICY CONFLICT CHECK: Did AGENTS.MD or the planner brief mention ANY write restriction or data conflict policy? If yes — did I DETECT and REPORT the conflict (via CONFLICT_DETECTED), or did I silently work around it? If the task asked me to write to a path that AGENTS.MD restricts, I should have reported CONFLICT_DETECTED, not found a creative workaround. Re-read the planner brief now — if it says "PIPELINE CONFLICT" or mentions a constraint, and I wrote to the restricted path anyway, my action was WRONG.
+
+      (l) QUERY SOURCE CHECK: For query tasks — did I check ALL data folders that could contain the answer? If the vault has calendar/ AND emails/, did I search BOTH? If I only checked one source, I may have the wrong answer. Search the other sources NOW before submitting.
+
+      (m) ANSWER COMPLETENESS: If I followed a specific policy or pipeline rule, did I mention it in my answer? Reference AGENTS.MD in refs if any AGENTS.MD rule influenced my action or answer.
 
       IMPORTANT: this is a thinking step only — do NOT undo or repeat actions already taken. Fix any gaps you find, THEN call
       `report_completion`.

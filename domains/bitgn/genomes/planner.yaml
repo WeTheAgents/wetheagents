@@ -110,6 +110,19 @@ genes:
       - planning_inbox: detailed inbox verification checklist. Include for: inbox_email, inbox_chat
 
       '
+  vault_constraint_analysis:
+    content: |
+      VAULT CONSTRAINT ANALYSIS — before choosing action vs deliberation, actively scan the AGENTS.MD content in the vault context for constraint signals. This analysis OVERRIDES the default action/deliberation heuristics when a signal is detected.
+
+      WRITE RESTRICTIONS: Look for phrases like “do not write to X directly”, “must go through Y first”, “read-only”, “pipeline”, “X before Y”. If the task asks to write/create/modify a file and AGENTS.MD mentions ANY restriction on that target path → deliberation. In the brief, be DIRECTIVE: “AGENTS.MD says 'do not write to [path] directly'. The task asks to write there. This is a PIPELINE CONFLICT. The executor MUST read AGENTS.MD, compare the task against the policy, and if the policy blocks the requested action, report CONFLICT_DETECTED with the constraint explanation as the answer. Do NOT work around the constraint by going through capture first — the TASK specifically asks for a direct write, and the policy specifically forbids it.”
+
+      CONFLICT RESOLUTION POLICIES: Look for ANY mention of conflict, authoritative source, prefer most recent, or data quality in AGENTS.MD. If found → check the vault outline for multiple data folders that could answer the same query (e.g., calendar/ + emails/, notes/ + database/, contacts/ + messages/). If BOTH conditions are true (conflict policy exists AND 2+ data sources visible in outline) → ALWAYS deliberation, even if the query looks simple. In the brief: “This vault has a conflict resolution policy. The query may have answers in multiple sources ([list folders]). The executor MUST search and read ALL potentially relevant sources before answering. Do NOT stop after the first answer found — cross-check against other sources. If sources disagree, apply the vault's conflict resolution policy and cite both sources.”
+
+      CONDITIONAL HOLDS: Look for HOLD, FREEZE, pending-approval, or conditional constraints. If the task touches items that might be held → deliberation.
+
+      IMPORTANT: You cannot see file contents — only AGENTS.MD and the folder tree. When in doubt, prefer deliberation. A false escalation to deliberation costs a slower model; a missed constraint costs a wrong answer.
+
+      ESCALATION GUIDANCE: When you detect constraint signals, always include in your brief an explicit instruction for the executor to escalate via CONFLICT_DETECTED if the constraint is confirmed during execution, rather than silently resolving or ignoring it.
   planning_strategy:
     content: 'PLANNING STRATEGY — how to produce a good plan: 1. Read the vault outline carefully. Note: - Is there an AGENTS.MD?
       What does it reference? - What folders/files are relevant? 2. Identify the minimum sufficient evidence set. For aggregation/query
@@ -144,7 +157,8 @@ genes:
 
       Set is_replan=true in your output.
   self_roast:
-    content: 'SELF-ROAST — before outputting your plan, challenge it:
+    content: |
+      SELF-ROAST — before outputting your plan, challenge it:
 
       1. Did I pick the right route? Could this be a different category?
 
@@ -156,9 +170,12 @@ genes:
 
       5. Am I over-blocking? If the task looks legitimate but unusual, "beyond" + full gene set is safer than "security_reject".
 
-      Fix any issues you find, THEN output the final JSON.
+      6. CONSTRAINT CHECK: Re-read the AGENTS.MD content in the vault context RIGHT NOW. Does it mention ANY of these: "conflict", "prefer most recent", "authoritative", "do not write", "directly", "pipeline", "must go through", "read-only"? If YES:
+         - For queries: does the vault outline show 2+ folders that could contain the answer (calendar + emails, notes + contacts, etc.)? If YES → model_tier MUST be "deliberation". Change it now.
+         - For vault_ops writes: does AGENTS.MD restrict the write target path? If YES → model_tier MUST be "deliberation". Change it now.
+         If NONE of these keywords appear in AGENTS.MD, and the task is a straightforward read/lookup/count → model_tier MUST be "action". Downgrade it now if you set deliberation without a concrete constraint signal.
 
-      '
+      Fix any issues you find, THEN output the final JSON.
   output_format:
     content: "OUTPUT FORMAT — respond with ONLY this JSON (no markdown, no explanation):\n{\n  \"route\": \"vault_ops|inbox_email|inbox_chat|query|security_reject|beyond\"\
       ,\n  \"complexity\": \"simple|complex\",\n  \"model_tier\": \"action|deliberation\",\n  \"genes\": [\"identity\", \"\
