@@ -20,6 +20,21 @@ from typing import Any
 
 from jsonschema import ValidationError
 
+try:
+    from scripts.check_task_format import TASK_BODY_TEMPLATE, validate_detailed
+except ModuleNotFoundError:
+    import importlib.util
+
+    check_task_format_path = Path(__file__).resolve().parents[2] / "scripts" / "check_task_format.py"
+    spec = importlib.util.spec_from_file_location("check_task_format", check_task_format_path)
+    if spec is None or spec.loader is None:
+        raise
+    check_task_format = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = check_task_format
+    spec.loader.exec_module(check_task_format)
+    TASK_BODY_TEMPLATE = check_task_format.TASK_BODY_TEMPLATE
+    validate_detailed = check_task_format.validate_detailed
+
 from wea_cli.config import resolve_agent
 from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gauntlet import (
@@ -96,7 +111,7 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "release": frozenset({"status"}),
     "skills": frozenset({"list", "show", "suggest"}),
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
-    "task": frozenset({"check-criteria"}),
+    "task": frozenset({"check-criteria", "lint", "template"}),
     "escrow": frozenset({"check"}),
 }
 
@@ -549,6 +564,47 @@ def cmd_task_check_criteria(args: argparse.Namespace) -> int:
     issue_number = int(issue_data.get("number", args.issue))
     _emit_acceptance_criteria_report(issue_number, check)
     return EXIT_OK if check.is_valid else EXIT_DOMAIN_ERROR
+
+
+def _read_task_lint_input(file_arg: str) -> tuple[str, str]:
+    if file_arg in {"-", "/dev/stdin"}:
+        return sys.stdin.read(), file_arg
+
+    path = Path(file_arg).expanduser()
+    try:
+        return path.read_text(encoding="utf-8"), str(path)
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"Task body file not found: {path}") from exc
+
+
+def cmd_task_lint(args: argparse.Namespace) -> int:
+    try:
+        body, source = _read_task_lint_input(args.file)
+    except (FileNotFoundError, OSError) as exc:
+        emit(f"Error: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    issues = validate_detailed(body)
+    if getattr(args, "json", False):
+        payload = {
+            "ok": not issues,
+            "path": source,
+            "errors": [{"line": issue.line, "message": issue.message} for issue in issues],
+        }
+        print(json.dumps(payload, indent=2))
+    elif issues:
+        emit(f"Task body format: FAIL ({len(issues)} issue(s))")
+        for issue in issues:
+            emit(f"{source}:{issue.line}: {issue.message}")
+    else:
+        emit(f"{source}: OK")
+
+    return EXIT_OK if not issues else EXIT_DOMAIN_ERROR
+
+
+def cmd_task_template(args: argparse.Namespace) -> int:
+    sys.stdout.write(TASK_BODY_TEMPLATE)
+    return EXIT_OK
 
 
 def _parse_reward_wea(reward_str: str) -> int:
@@ -2711,6 +2767,14 @@ def build_parser() -> argparse.ArgumentParser:
     task_check = task_subparsers.add_parser("check-criteria", help="Inspect task acceptance criteria")
     task_check.add_argument("issue", type=int, help="Issue number")
     task_check.set_defaults(_handler=cmd_task_check_criteria)
+
+    task_lint = task_subparsers.add_parser("lint", help="Validate a draft task body file")
+    task_lint.add_argument("file", help="Path to a task body draft, `-`, or `/dev/stdin`")
+    task_lint.add_argument("--json", action="store_true", help="Output validation results as JSON")
+    task_lint.set_defaults(_handler=cmd_task_lint)
+
+    task_template = task_subparsers.add_parser("template", help="Print a valid task body skeleton")
+    task_template.set_defaults(_handler=cmd_task_template)
 
     claim_parser = subparsers.add_parser("claim", help="Claim a task")
     claim_parser.add_argument("issue", type=int, help="Issue number")
