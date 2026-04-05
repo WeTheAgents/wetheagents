@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Stale escrow detection.
 
-Loads ledger/escrows.json and ledger/task_index.json, computes age per escrow,
-and reports three tiers:
+Loads ledger/escrows.json, ledger/task_index.json, and ledger/idem_keys.json,
+computes age per escrow, and reports three tiers:
 
-  WARNING  7+ days, no accepted submissions
-  STALE    14+ days, no accepted submissions
+  WARNING  7+ days, no accepted submissions (checks task_index accepted_agents)
+  STALE    14+ days, no claims (checks idem_keys for claim| entries)
   FROZEN   21+ days, should be returned
 
 Outputs JSON + human-readable text.
@@ -58,11 +58,26 @@ def _age_days(created_at: datetime, now: datetime) -> float:
     return (now - created_at).total_seconds() / 86400.0
 
 
+def _load_claimed_issues(idem_keys: dict[str, Any]) -> set[int]:
+    """Return the set of issue numbers that have at least one claim entry."""
+    claimed: set[int] = set()
+    for key in idem_keys.get("keys", {}):
+        if isinstance(key, str) and key.startswith("claim|"):
+            parts = key.split("|")
+            if len(parts) >= 2:
+                try:
+                    claimed.add(int(parts[1]))
+                except ValueError:
+                    pass
+    return claimed
+
+
 def classify_escrows(
     escrows: dict[str, Any],
     tasks: dict[str, Any],
     *,
     now: datetime | None = None,
+    claimed_issues: set[int] | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Classify active escrows into WARNING / STALE / FROZEN tiers.
 
@@ -75,9 +90,14 @@ def classify_escrows(
 
     An escrow with a missing or unparseable created_at is included in a
     separate 'UNKNOWN' tier so it is visible without crashing.
+
+    claimed_issues: set of issue numbers with a claim in idem_keys.json.
+      When None, treated as empty (no claims known).
     """
     if now is None:
         now = datetime.now(timezone.utc)
+    if claimed_issues is None:
+        claimed_issues = set()
 
     result: dict[str, list[dict[str, Any]]] = {
         "WARNING": [],
@@ -106,6 +126,8 @@ def classify_escrows(
         age = _age_days(created_at, now)
         task = all_tasks.get(issue, {})
         has_submissions = bool(task.get("accepted_agents"))
+        issue_num = int(issue)
+        has_claims = issue_num in claimed_issues
 
         entry = {
             "issue": issue,
@@ -117,7 +139,7 @@ def classify_escrows(
         if age >= FROZEN_DAYS:
             entry["tier"] = "FROZEN"
             result["FROZEN"].append(entry)
-        elif age >= STALE_DAYS and not has_submissions:
+        elif age >= STALE_DAYS and not has_claims:
             entry["tier"] = "STALE"
             result["STALE"].append(entry)
         elif age >= WARN_DAYS and not has_submissions:
@@ -134,7 +156,7 @@ def format_report(classified: dict[str, list[dict[str, Any]]]) -> str:
     tier_order = ["FROZEN", "STALE", "WARNING", "UNKNOWN"]
     tier_labels = {
         "FROZEN": "FROZEN (21+ days — return recommended)",
-        "STALE":  "STALE  (14+ days, no submissions)",
+        "STALE":  "STALE  (14+ days, no claims)",
         "WARNING": "WARNING (7+ days, no submissions)",
         "UNKNOWN": "UNKNOWN (missing created_at)",
     }
@@ -163,7 +185,9 @@ def run_check(
     """Load ledger files, classify escrows, and return (classified, has_frozen)."""
     escrows = load_json(root / "ledger" / "escrows.json", default={"active": {}}, encoding="utf-8-sig")
     tasks = load_json(root / "ledger" / "task_index.json", default={"tasks": {}}, encoding="utf-8-sig")
-    classified = classify_escrows(escrows, tasks, now=now)
+    idem_keys = load_json(root / "ledger" / "idem_keys.json", default={"keys": {}}, encoding="utf-8-sig")
+    claimed_issues = _load_claimed_issues(idem_keys)
+    classified = classify_escrows(escrows, tasks, now=now, claimed_issues=claimed_issues)
     has_frozen = bool(classified["FROZEN"])
     return classified, has_frozen
 

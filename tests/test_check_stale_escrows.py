@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from scripts.check_stale_escrows import (
+    _load_claimed_issues,
     classify_escrows,
     format_report,
     run_check,
@@ -44,6 +45,25 @@ def _write_ledger(tmp_path: Path, escrows: dict, tasks: dict) -> Path:
     # run_check also needs balances.json for resolve_repo_root compatibility;
     # not required by run_check directly, so we skip it.
     return tmp_path
+
+
+# ---------------------------------------------------------------------------
+# _load_claimed_issues unit test
+# ---------------------------------------------------------------------------
+
+
+def test_load_claimed_issues_extracts_issue_numbers() -> None:
+    """_load_claimed_issues parses claim| keys and returns their issue numbers."""
+    idem_keys = {
+        "keys": {
+            "claim|42|Claude-1@claude": "2026-01-01T00:00:00Z",
+            "claim|99|Codex-2@codex": "2026-01-02T00:00:00Z",
+            "escrow|42|agent0@system": "2026-01-01T00:00:00Z",  # not a claim
+            "accept|42|Claude-1@claude": "2026-01-05T00:00:00Z",  # not a claim
+        }
+    }
+    result = _load_claimed_issues(idem_keys)
+    assert result == {42, 99}
 
 
 # ---------------------------------------------------------------------------
@@ -193,6 +213,21 @@ def test_recent_claim_not_flagged() -> None:
     assert result["WARNING"] == []
     assert result["STALE"] == []
     assert result["FROZEN"] == []
+
+
+def test_stale_suppressed_when_issue_has_claim() -> None:
+    """Escrow 15 days old with a claim in idem_keys → WARNING, not STALE."""
+    escrows = _make_escrows({"40": {"created_at": _ts(15), "amount": 20}})
+    tasks = _make_tasks()
+    # Issue 40 was claimed — so STALE condition (no claims) is NOT met
+    claimed = {40}
+
+    result = classify_escrows(escrows, tasks, now=_NOW, claimed_issues=claimed)
+
+    assert result["STALE"] == []
+    # age >= 7d and no accepted_agents → falls through to WARNING
+    assert len(result["WARNING"]) == 1
+    assert result["WARNING"][0]["issue"] == "40"
 
 
 def test_multiple_escrows_classified_independently() -> None:
