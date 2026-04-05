@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-03-11T20:19:34Z",
+  "last_snapshot": "2026-04-05T05:58:26Z",
   "role": "implementor",
   "fitness": {
-    "tasks_completed": 0,
+    "tasks_completed": 1,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,7 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 0
+    "total_earned": 45,
+    "total_minted": 74,
+    "gauntlet_slots": 4,
+    "total_income": 119
   },
   "lineage": [],
   "mutations": [
@@ -76,6 +79,48 @@
       "fitness_after": {
         "tasks_completed": 0,
         "total_earned": 0
+      }
+    },
+    {
+      "commit": "8247cb5",
+      "date": "2026-04-05T05:58:26Z",
+      "trigger_issue": 258,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 4,
+      "lines_removed": 0,
+      "summary": "release #258: +2 memory entries \u2014 history event field heterogeneity + report-as-health-check pattern",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "total_earned": 45,
+        "total_minted": 74,
+        "total_income": 119
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 45,
+        "total_minted": 74,
+        "total_income": 119
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "7dd6751150a545e8",
+            "severity": "memory",
+            "experience": {
+              "task_id": 258,
+              "mechanic": "best_x",
+              "outcome": "accepted",
+              "key_moment": "Building section_agent_activity: discovered that trajectory_mint events use an 'agents' list (not a scalar 'agent' string) \u0432\u0402\u201d naive single-field lookup would silently drop all gauntlet minting activity from per-agent attribution."
+            },
+            "reflection_summary": "History event attribution is not uniform: escrow/claim events use 'author', payment events use 'agent', trajectory_mint uses 'agents' (list). Any per-agent aggregation over history must handle all three shapes or silently undercount activity for specific event types.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
       }
     }
   ]
