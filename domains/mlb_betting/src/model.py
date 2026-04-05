@@ -1009,3 +1009,205 @@ def run_walk_forward_nrfi(
 
     logger.info(f"NRFI walk-forward complete: {len(results)} folds")
     return results
+
+
+# ── Fav Run Line -1.5 Binary Classifier ─────────────────────────────────
+# Predicts P(fav_margin >= 2) — primary filter for fav RL -1.5 strategy.
+# Cloned from UNDER pipeline with:
+#   - target = fav_covers_rl (no push exclusion — binary outcome)
+#   - fav-oriented features (flipped diffs from build_fav_rl_features)
+#   - no calibration (raw ensemble, per session 19 analysis)
+
+
+@dataclass
+class FavRLConfig:
+    catboost_params: dict = field(default_factory=lambda: {
+        "loss_function": "Logloss",
+        "depth": 5,
+        "learning_rate": 0.03,
+        "iterations": 500,
+        "l2_leaf_reg": 8,
+        "min_data_in_leaf": 30,
+        "verbose": 0,
+        "random_seed": 42,
+        "auto_class_weights": "Balanced",
+        "early_stopping_rounds": 50,
+    })
+    ensemble_weight_catboost: float = 0.7
+    max_train_seasons: int | None = 8
+
+
+def train_fav_rl_model(
+    df: pd.DataFrame,
+    features: list[str],
+    train_seasons: list[int],
+    val_seasons: list[int],
+    *,
+    cfg: FavRLConfig = FavRLConfig(),
+) -> tuple[CatBoostClassifier, LogisticRegressionCV | None, object | None, dict]:
+    """Train fav RL -1.5 binary classifier (CatBoost + LogisticRegression).
+
+    Target: fav_covers_rl (1 = fav_margin >= 2, 0 = otherwise).
+    No push exclusion — strictly binary outcome.
+
+    Returns (catboost_model, logistic_model, calibrator, metrics_dict).
+    """
+    train_mask = df["season"].isin(train_seasons)
+    val_mask = df["season"].isin(val_seasons)
+
+    X_train = df.loc[train_mask, features].values.astype(float)
+    y_train = df.loc[train_mask, "fav_covers_rl"].values.astype(int)
+    X_val = df.loc[val_mask, features].values.astype(float)
+    y_val = df.loc[val_mask, "fav_covers_rl"].values.astype(int)
+
+    logger.info(f"FavRL train: {len(X_train)} games, cover_rate={y_train.mean()*100:.1f}%")
+    logger.info(f"FavRL val:   {len(X_val)} games, cover_rate={y_val.mean()*100:.1f}%")
+
+    # NaN imputation from training medians
+    train_medians = np.nanmedian(X_train, axis=0)
+    train_medians = np.where(np.isnan(train_medians), 0.0, train_medians)
+    X_train = _impute_nan(X_train, train_medians)
+    X_val = _impute_nan(X_val, train_medians)
+
+    # CatBoost classifier
+    cb = CatBoostClassifier(**cfg.catboost_params)
+    cb.fit(X_train, y_train, eval_set=(X_val, y_val) if len(X_val) > 0 else None)
+
+    # Logistic regression (secondary model)
+    lr_model = None
+    try:
+        lr_model = LogisticRegressionCV(
+            Cs=[0.01, 0.1, 1.0, 10.0],
+            cv=5,
+            max_iter=1000,
+            random_state=42,
+        )
+        lr_model.fit(X_train, y_train)
+    except Exception as e:
+        logger.warning(f"LogisticRegression failed: {e}")
+
+    calibrator = None  # Raw ensemble — proven better in profitable tail
+
+    metrics = {
+        "n_train": len(X_train),
+        "n_val": len(X_val),
+        "train_medians": train_medians,
+        "train_cover_rate": float(y_train.mean()),
+    }
+
+    if len(X_val) > 0:
+        proba_val = predict_fav_rl_proba(X_val, cb, lr_model, calibrator, train_medians, cfg=cfg)
+        metrics["val_auc"] = float(roc_auc_score(y_val, proba_val))
+        metrics["val_brier"] = float(brier_score_loss(y_val, proba_val))
+        metrics["val_logloss"] = float(log_loss(y_val, np.clip(proba_val, 1e-7, 1 - 1e-7)))
+        logger.info(
+            f"FavRL VAL: AUC={metrics['val_auc']:.4f}, "
+            f"Brier={metrics['val_brier']:.4f}, "
+            f"LogLoss={metrics['val_logloss']:.4f}"
+        )
+
+    return cb, lr_model, calibrator, metrics
+
+
+# predict_fav_rl_proba is identical to predict_under_proba — same ensemble logic
+predict_fav_rl_proba = predict_under_proba
+
+
+@dataclass
+class FavRLFoldResult:
+    """Result of a single walk-forward fold for the fav RL -1.5 classifier."""
+
+    fold_name: str
+    train_seasons: list[int]
+    val_seasons: list[int]
+    test_seasons: list[int]
+    n_train: int
+    n_val: int
+    n_test: int
+    val_auc: float
+    val_brier: float
+    test_auc: float
+    test_brier: float
+    test_predictions: pd.DataFrame | None = None
+    p_cover_threshold: float = 0.0
+    feature_importances: np.ndarray | None = None
+
+
+def run_walk_forward_fav_rl(
+    df: pd.DataFrame,
+    features: list[str],
+    *,
+    cfg: FavRLConfig = FavRLConfig(),
+    min_train: int = 5,
+) -> list[FavRLFoldResult]:
+    """Walk-forward binary classification for P(fav_margin >= 2).
+
+    No push exclusion — strictly binary outcome.
+    Returns list of FavRLFoldResult with test predictions containing p_cover.
+    """
+    seasons = sorted(df["season"].unique().tolist())
+    folds = walk_forward_splits(seasons, min_train=min_train,
+                                max_train=cfg.max_train_seasons)
+
+    if not folds:
+        logger.warning("No walk-forward folds generated for FavRL classifier")
+        return []
+
+    logger.info(f"FavRL walk-forward: {len(folds)} folds, {len(features)} features")
+    results = []
+
+    for i, (train_s, val_s, test_s) in enumerate(folds):
+        fold_name = f"fold_{i}_{val_s[0]}_{test_s[0]}-{test_s[-1]}"
+        logger.info(f"  {fold_name}: train={train_s[0]}-{train_s[-1]}, "
+                     f"val={val_s}, test={test_s}")
+
+        cb, lr_model, calibrator, metrics = train_fav_rl_model(
+            df, features, train_s, val_s, cfg=cfg,
+        )
+        train_medians = metrics["train_medians"]
+
+        # Predict on test fold
+        test_mask = df["season"].isin(test_s)
+        n_test = int(test_mask.sum())
+
+        if n_test < 10:
+            logger.warning(f"  {fold_name}: only {n_test} test games, skipping")
+            continue
+
+        X_test = df.loc[test_mask, features].values.astype(float)
+        y_test = df.loc[test_mask, "fav_covers_rl"].values.astype(int)
+        p_cover = predict_fav_rl_proba(X_test, cb, lr_model, calibrator, train_medians, cfg=cfg)
+
+        test_auc = float(roc_auc_score(y_test, p_cover))
+        test_brier = float(brier_score_loss(y_test, p_cover))
+        logger.info(f"  {fold_name}: test AUC={test_auc:.4f}, Brier={test_brier:.4f}")
+
+        # Feature importances from CatBoost
+        fi = cb.get_feature_importance()
+
+        meta_cols = ["season", "date", "home_team", "away_team",
+                     "fav_is_home", "fav_margin", "fav_covers_rl"]
+        preds_df = df.loc[test_mask, meta_cols].copy()
+        preds_df["p_cover"] = p_cover
+
+        threshold_75 = float(np.percentile(p_cover, 75))
+
+        results.append(FavRLFoldResult(
+            fold_name=fold_name,
+            train_seasons=train_s,
+            val_seasons=val_s,
+            test_seasons=test_s,
+            n_train=metrics["n_train"],
+            n_val=metrics["n_val"],
+            n_test=n_test,
+            val_auc=metrics.get("val_auc", 0.0),
+            val_brier=metrics.get("val_brier", 0.0),
+            test_auc=test_auc,
+            test_brier=test_brier,
+            test_predictions=preds_df,
+            p_cover_threshold=threshold_75,
+            feature_importances=fi,
+        ))
+
+    logger.info(f"FavRL walk-forward complete: {len(results)} folds")
+    return results

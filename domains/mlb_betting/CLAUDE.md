@@ -87,10 +87,37 @@ Genome evolution: experts review weekly results after Sunday series end, update 
 
 ## Status
 
-See `knowledge/status_report_session3.md` for detailed status with results.
+### Production-Ready Strategies
 
-Current findings: pitcher proxy features + team RPI = profitable series dogon.
-- Best config: RPI>=0.03 + WP>=0.05 + SP_RA<=0 + SP_WR>=0.10
-- Out-of-sample validated: +5.21% ROI on TEST (2018-2021), +1.75% on TRAIN (2010-2017)
-- 67 features total (35 team + 32 pitcher)
-Next steps: Run Line, YRFI, flat ML betting with pitcher features.
+**1. Fav -1.5 Run Line** (Session 25: `knowledge/session_report_25.md`)
+- Filter: impl 62-75% + starter_fip_diff <= -0.2 + power_rate_diff >= 0
+- ~137 games/season, 49.8% cover, +19.6% ROI (TRAIN), +15.0% ROI (TEST 2025)
+- Optional LLM layer (Analyst + Momentum, gpt-5.4) for refinement
+
+**2. Away +1.5 Bullpen Day** (Session 26: `knowledge/session_report_26.md`)
+- Filter: edge>0.05 + home_is_bullpen_day + away_has_starter
+- ~24 games/season, Dog ML 74.2% win rate at 2.20 odds = **+63.9% ROI**
+- RL +1.5: 83.7% cover = +31.2% ROI
+- **11/11 seasons profitable** (2014-2025), validated on 2024-2025
+- Tier 2 (bullpen fatigue gap): +35 games/season at ~69% cover
+
+**3. Away +1.5 Pitcher Advantage** (Session 27: `knowledge/session_report_27.md`)
+- Filter: away_sp_fip_short<=3.5 + starter_depth_diff<=-1.0 + bp_ip_3d_home>=8
+- ~8 games/season, 79.0% cover, **+24.7% ROI** (TRAIN +29.2%, TEST +21.0%)
+- Starter-only variant (no BP filter): 135 games, 71.9% cover, +12.3% ROI
+- Complements Tier 1 (bullpen day) and Tier 2 (fatigue gap)
+
+### Research — Dead Ends
+
+**Statcast Bullpen xwOBA Mismatch** (Session 28: `knowledge/session_report_28.md`)
+- 10 seasons Savant pitch-by-pitch data (2015-2025), aggregated to team bullpen per game
+- Tested: xwOBA mismatch, barrel rate mismatch, 3-day fatigue delta, combinations
+- **Result: break-even** — 53% WR, -0.2% ROI on 960 games (10 seasons, threshold >=0.05)
+- CatBoost feature importance: 1.74% combined (negligible)
+- **Why**: market already prices Statcast (public since 2015); managers compensate fatigue
+- **Infrastructure retained**: `data/fetch_savant_gamelogs.py`, `src/savant_bullpen.py`, 30 Savant columns in pipeline
+
+### Earlier Work
+- Series dogon with pitcher proxy features: +5.21% ROI (TEST)
+- 67 features total (35 team + 32 pitcher) + 30 Savant bullpen columns (2015+)
+- Walk-forward CatBoost + Ridge ensemble (4 biased regime models)

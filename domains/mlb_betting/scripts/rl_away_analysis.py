@@ -279,6 +279,44 @@ def section2_singles(df):
         med = base["home_sp_ra_short"].median()
         candidates[f"home_sp_ra >= med ({med:.2f})"] = base["home_sp_ra_short"] >= med
 
+    # Close-game win% (tight games = RL +1.5 territory)
+    if "close_game_wp_diff" in base.columns:
+        for t in [0, 0.05, 0.10]:
+            # Negative diff = away better in close games (home - away, so < t)
+            candidates[f"close_game_wp_diff <= {t} (away better close)"] = base["close_game_wp_diff"] <= t
+        for t in [0, -0.05]:
+            candidates[f"close_game_wp_diff >= {t} (home better close)"] = base["close_game_wp_diff"] >= t
+    if "close_game_wp_away" in base.columns:
+        for t in [0.50, 0.55, 0.60]:
+            candidates[f"close_game_wp_away >= {t}"] = base["close_game_wp_away"] >= t
+
+    # Pitcher momentum (sp_ra_momentum: positive = getting worse recently)
+    if "sp_ra_momentum_diff" in base.columns:
+        # Positive diff = home pitcher getting worse faster than away
+        for t in [0, 0.2, 0.5]:
+            candidates[f"sp_ra_momentum_diff > {t} (home P worsening)"] = base["sp_ra_momentum_diff"] > t
+        candidates["sp_ra_momentum_diff < 0 (away P worsening)"] = base["sp_ra_momentum_diff"] < 0
+    if "home_sp_ra_momentum" in base.columns:
+        candidates["home_sp_ra_momentum > 0 (home P trending worse)"] = base["home_sp_ra_momentum"] > 0
+    if "away_sp_ra_momentum" in base.columns:
+        candidates["away_sp_ra_momentum < 0 (away P trending better)"] = base["away_sp_ra_momentum"] < 0
+
+    # Starter WHIP diff (home - away; positive = home pitcher leakier)
+    if "starter_whip_diff" in base.columns:
+        for t in [0, 0.1, 0.2]:
+            candidates[f"starter_whip_diff > {t} (home P leakier)"] = base["starter_whip_diff"] > t
+
+    # Ultra-short form: wp_last3 (3-game window)
+    if "wp_last3_diff" in base.columns:
+        for t in [0, -0.10, -0.20]:
+            # Negative diff = away hotter in last 3 (home - away)
+            candidates[f"wp_last3_diff <= {t} (away hotter)"] = base["wp_last3_diff"] <= t
+        for t in [0, 0.10]:
+            candidates[f"wp_last3_diff >= {t} (home hotter)"] = base["wp_last3_diff"] >= t
+    if "wp_last3_away" in base.columns:
+        candidates["wp_last3_away >= 0.67 (away 2/3+)"] = base["wp_last3_away"] >= 0.67
+        candidates["wp_last3_away >= 1.00 (away 3/3)"] = base["wp_last3_away"] >= 1.00
+
     # Bullpen (KEY from session 7)
     if "bp_ip_3d_home" in base.columns:
         med = base["bp_ip_3d_home"].median()
@@ -387,6 +425,15 @@ def section4_dual_regime(df):
         strict_configs[f"1H: bp_3d>med"] = base["bp_ip_3d_home"] > med
     if "starter_fip_diff" in base.columns:
         strict_configs["1H: fip>0"] = base["starter_fip_diff"] > 0
+    # New: close-game, momentum, WHIP, wp_last3
+    if "close_game_wp_diff" in base.columns:
+        strict_configs["1H: close_wp_diff<=0"] = base["close_game_wp_diff"] <= 0
+    if "sp_ra_momentum_diff" in base.columns:
+        strict_configs["1H: sp_momentum>0"] = base["sp_ra_momentum_diff"] > 0
+    if "starter_whip_diff" in base.columns:
+        strict_configs["1H: whip_diff>0"] = base["starter_whip_diff"] > 0
+    if "wp_last3_diff" in base.columns:
+        strict_configs["1H: wp3_diff<=0"] = base["wp_last3_diff"] <= 0
 
     # Dual-regime combos
     results = []
