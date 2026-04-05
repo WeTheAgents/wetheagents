@@ -64,7 +64,21 @@ IEM_TO_ICAO = {s.iem_station_id: s.icao for s in STATIONS.values()}
 PHASE1_STATIONS = ["KNYC", "KMDW", "KMIA"]
 
 # Polymarket resolution stations
-POLYMARKET_STATIONS = ["KLGA", "KORD", "KMIA"]
+POLYMARKET_STATIONS = [
+    "KLGA",  # NYC
+    "KORD",  # Chicago
+    "KMIA",  # Miami
+    "KLAX",  # Los Angeles
+    "KIAH",  # Houston
+    "KDFW",  # Dallas
+    "KDEN",  # Denver
+    "KSEA",  # Seattle
+    "KATL",  # Atlanta
+    "KSFO",  # San Francisco
+    "KAUS",  # Austin
+    "KDCA",  # Washington DC
+    "KPHX",  # Phoenix
+]
 
 # Polymarket slug → ICAO lookup
 POLYMARKET_SLUG_TO_ICAO = {
