@@ -79,3 +79,7 @@ via terminal, supports sequential and parallel execution.
 - **Test edge positions, not just edge content.** Missed delimiter-at-start (`---\n` as line 1). Always test: empty input, boundary at start, boundary at end, boundary repeated.
 - **Assert output strings, not just exit codes.** Checking `result.exit_code == 0` proves it ran; checking `"1 agent(s)"` in output proves it computed correctly. Always assert the most specific observable.
 - **Verify phase: read adversarially.** Don't read to understand — read to break. For each function param, ask: is it used? For each branch, ask: is it tested? Passive reading finds zero issues.
+
+**2026-04-05 — Task #258 (wea_report.py):**
+- History event attribution is not uniform: escrow/claim events use `author`, payment events use `agent`, trajectory_mint uses `agents` (list). Any per-agent aggregation over history must scan all three shapes. Single-field lookup silently drops entire event types. Pattern: iterate scalar fields (`agent`, `author`) first; then handle list field (`agents=[]`) separately.
+- Embedding a one-line invariant check inside a display section adds diagnostic signal for free when data is already loaded — compute expected vs actual, emit PASS/FAIL in the same table. Reports can double as lightweight health checks.
