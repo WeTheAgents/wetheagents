@@ -572,21 +572,17 @@ def cmd_claim(args: argparse.Namespace) -> int:
     if error_code is not None:
         return error_code
 
-    if not criteria_check.criteria:
+    if not criteria_check.criteria or not criteria_check.is_valid:
         raw_reward = parse_task_metadata(str(issue_data.get("body", ""))).get("reward") or ""
         reward_value = _parse_reward_wea(raw_reward)
         if reward_value >= 10:
-            print(f"Warning: task #{args.issue} has no parseable acceptance criteria (reward: {reward_value} WEA).")
+            print(f"Warning: task #{args.issue} has invalid or missing acceptance criteria (reward: {reward_value} WEA).")
+            for error in criteria_check.errors:
+                print(f"- {error}")
             print("You may invest effort on a task that cannot be machine-verified.")
             if not getattr(args, "force", False):
                 print("Use --force to claim anyway.")
                 return EXIT_DOMAIN_ERROR
-
-    # Warn (non-blocking) on MUST: items with empty verifiable content
-    for criterion in criteria_check.criteria:
-        if criterion.requirement == "must" and not criterion.text:
-            print(f"Warning: task #{args.issue} has a MUST: item with no verifiable content.")
-            break
 
     if args.dry_run:
         print(format_kv("Issue", f"#{args.issue}"))
@@ -631,7 +627,7 @@ def cmd_submit(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     # --- PR Authorship & Repository Validation ---
-    pr_matches = re.findall(r"https://github\.com/([^/]+)/([^/]+)/pull/(\d+)", content)
+    pr_matches = re.findall(r"(?:https?://)?(?:www\.)?github\.com/([^/]+)/([^/]+)/pull/(\d+)", content)
     if pr_matches:
         root = resolve_repo_root(getattr(args, "root", None))
         balances = load_balances(root)
@@ -2707,7 +2703,7 @@ def build_parser() -> argparse.ArgumentParser:
     task_subparsers = task.add_subparsers(dest="task_command")
     task_subparsers.required = True
 
-    task_check = task_subparsers.add_parser("check-criteria", help="Inspect task acceptance criteria")
+    task_check = task_subparsers.add_parser("lint", aliases=["check-criteria"], help="Lint task acceptance criteria")
     task_check.add_argument("issue", type=int, help="Issue number")
     task_check.set_defaults(_handler=cmd_task_check_criteria)
 

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import re
 
 _CHECKBOX_RE = re.compile(r"^\s*-\s*\[[ xX]?\]\s*(.+?)\s*$", re.MULTILINE)
-_STRUCTURED_CRITERION_RE = re.compile(r"^(MUST NOT|MUST)\s*:\s*(.+)$", re.IGNORECASE)
+_STRUCTURED_CRITERION_RE = re.compile(r"^(MUST NOT|MUST)\s*:\s*(.*)$", re.IGNORECASE)
 _MANUAL_PREFIX_RE = re.compile(r"^manual\s*:\s*(.+)$", re.IGNORECASE)
 _SECTION_RE = re.compile(r"(?ms)^##+\s*(.+?)\s*$\n+(.*?)(?=^##+\s|\Z)")
 
@@ -151,10 +151,15 @@ def inspect_acceptance_criteria(body: str) -> AcceptanceCriteriaCheck:
     else:
         criteria = tuple(parsed_items)
 
-    if criteria and not any(not criterion.is_manual for criterion in criteria):
+    if not criteria:
+        errors.append("No acceptance criteria found.")
+    elif not any(not criterion.is_manual for criterion in criteria):
         errors.append(
             "Acceptance criteria must include at least one non-manual machine-checkable criterion."
         )
+
+    if any(not criterion.text for criterion in criteria):
+        errors.append("Acceptance criteria must not have empty descriptions.")
 
     source = "malformed" if errors else ("structured" if any(structured_flags) else "legacy")
     return AcceptanceCriteriaCheck(source=source, criteria=criteria, errors=tuple(errors))
