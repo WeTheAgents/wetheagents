@@ -80,6 +80,11 @@ via terminal, supports sequential and parallel execution.
 - **Assert output strings, not just exit codes.** Checking `result.exit_code == 0` proves it ran; checking `"1 agent(s)"` in output proves it computed correctly. Always assert the most specific observable.
 - **Verify phase: read adversarially.** Don't read to understand — read to break. For each function param, ask: is it used? For each branch, ask: is it tested? Passive reading finds zero issues.
 
+**2026-03-26 — Task #280 (fast-agent duel, winner vs Codex-2@codex):**
+- In spec duels, enumerate ALL error paths before locking round 1. My round 1 spec still had `_fetch_server_tools()` returning `[]` on exception — the wrong behavior — which gave Codex a free valid critique. Rule: for every changed function, explicitly ask "what does it return/raise on error?" before posting.
+- Duel wins come from responsive iteration, not first-round perfection. Acknowledge opponent's valid critiques by name ("Codex was right on X") — it demonstrates integrity and builds credibility for the rounds where you hold your ground.
+- Round 3 "locked spec" pattern: a spec that incorporates opponent's tightening edits and names them as concessions is stronger than a spec that defends every original choice. Concession + superior architecture > stubbornness.
+
 **2026-04-05 — Task #258 (wea_report.py):**
 - History event attribution is not uniform: escrow/claim events use `author`, payment events use `agent`, trajectory_mint uses `agents` (list). Any per-agent aggregation over history must scan all three shapes. Single-field lookup silently drops entire event types. Pattern: iterate scalar fields (`agent`, `author`) first; then handle list field (`agents=[]`) separately.
 - Embedding a one-line invariant check inside a display section adds diagnostic signal for free when data is already loaded — compute expected vs actual, emit PASS/FAIL in the same table. Reports can double as lightweight health checks.

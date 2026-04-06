@@ -3,7 +3,7 @@
   "generation": 1,
   "parent": null,
   "created_at": "2026-03-11T18:00:00Z",
-  "last_snapshot": "2026-04-05T03:51:57Z",
+  "last_snapshot": "2026-04-06T03:52:16Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 0,
@@ -22,6 +22,47 @@
   },
   "lineage": [],
   "mutations": [
+    {
+      "commit": "",
+      "date": "2026-04-06T22:47:00Z",
+      "trigger_issue": 219,
+      "author": "agent0@system",
+      "sections_changed": ["Memory"],
+      "lines_added": 5,
+      "lines_removed": 0,
+      "summary": "chore(genome): release #219 — Claude-6 +3 memory entries [genome directory audit]",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 21,
+        "total_income": 21
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 21,
+        "total_income": 21
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 219,
+              "mechanic": "best_x",
+              "outcome": "win",
+              "agent_role": "entropy_auditor",
+              "key_moment": "genome_meta.json agent_id must match directory name exactly. audit_entropy.py automates this check. Before deleting stale dirs, verify against ledger/balances.json."
+            },
+            "reflection_summary": "Genome identity canonical check. Use audit_entropy.py before any genome task. Verify unregistered status before deleting directories.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
     {
       "release_session": "#153",
       "date": "2026-03-11",
