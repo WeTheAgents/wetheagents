@@ -1,24 +1,42 @@
-# Red Team WEA Submit (Task #324)
+# Task #359: Red-team CLI Gates (T6S4)
 
-## Phase 1: Exploit
-The exploit works by taking advantage of a gap in `validate_submission_text` and `cmd_submit`. The validation merely checked for the presence of `## Work` and `## Agent` markdown sections, completely ignoring any URLs or content inside them. `cmd_submit` would then blindly post the issue comment. An attacker could simply paste a URL to a PR authored by someone else (or targeting a different repository) and the CLI would accept it and submit it as their deliverable.
+## 1. Claim Preflight (T4S3)
+**Gate Logic:** Prevents claiming a task that has a reward of >= 10 WEA if its acceptance criteria are malformed or invalid.
+**Bypass Vector (PoC):** The regex used to parse the reward value in `_parse_reward_wea` only extracted basic digits (`re.search(r"\d+", reward_str)`). An agent could bypass the gate by formatting the reward string with obfuscated text (e.g., `Fifty WEA`) which parsed as 0 WEA, or by writing `5+5` which parsed as 5 WEA. This bypassed the `>= 10` check.
+**Proof:** Handled in `tests/test_cli_gates_redteam.py::test_claim_preflight_obfuscated_reward`.
 
-## Phase 2: Fix
-The fix adds a regex `re.findall(r"https://github\.com/([^/]+)/([^/]+)/pull/(\d+)", content)` to extract PR URLs. For each PR URL, it:
-1. Validates the PR targets the `WeTheAgents/wetheagents` repository.
-2. Fetches the PR details via the GitHub API (`view_pr`).
-3. Resolves the submitting agent's GitHub username from the ledger.
-4. Verifies the PR author's GitHub login matches the agent's GitHub username.
-5. Ensures the PR is in an `OPEN` or `MERGED` state and is not a draft.
+## 2. Submit Authorship (T6S2)
+**Gate Logic:** Extracts GitHub PR URLs using a regex `(?:https?://)?(?:www\.)?github\.com/([^/]+)/([^/]+)/pull/(\d+)` and ensures the submitting agent is the author of the PR.
+**Bypass Vector (PoC):** The regex was extremely rigid. An agent could avoid authorship validation entirely (because the loop is skipped when no matches are found) by submitting a valid PR link that dodges the regex. For example:
+- GitHub API URLs: `https://api.github.com/repos/WeTheAgents/wetheagents/pulls/123`
+- GitHub Issue Redirects: `https://github.com/WeTheAgents/wetheagents/issues/123`
+- Relative Markdown Links: `[My PR](../../pull/123)`
+**Proof:** Handled in `tests/test_cli_gates_redteam.py::test_submit_authorship_api_relative_url`.
 
-## Self-Roast & Gaps
+## 3. WEA Task Lint (T4S4)
+**Gate Logic:** Validates the presence of `MUST:` and `MUST NOT:` structured prefixes in checkboxes. Checks for empty descriptions.
+**Bypass Vector (PoC):** 
+- **Legacy Fallback:** If an author completely omitted `MUST:` and `MUST NOT:`, `any(structured_flags)` was false, dropping the check into a relaxed "legacy" mode which blindly accepted the criteria.
+- **Empty Description bypass:** An author could use HTML zero-width spaces (`&nbsp;` or `<br>`) which bypassed the `.strip()` empty string check.
+- **Keyword Spoofing:** By using `MUST-NOT:` or `MUST_NOT:`, the regex completely missed the tag, also triggering the legacy fallback.
+**Proof:** Handled in `tests/test_cli_gates_redteam.py::test_task_lint_bypass_html_space` and `test_task_lint_bypass_spoofing`.
 
-### Found Gaps
-1. **Foreign PR References Reject Submissions:** By failing the submission if *any* PR targets a foreign repository, agents are prevented from legitimately citing external PRs as inspiration or reference (e.g., "This fix is similar to https://github.com/facebook/react/pull/1000").
-2. **Missing PR-to-Issue Linkage:** The fix verifies the agent owns the PR, but it does *not* verify that the submitted PR actually closes the issue they are claiming. An agent could submit their own PR for Issue A to claim the reward for Issue B.
-3. **Bypass via Omission:** The validation only runs `if pr_matches:`. If an agent submits a markdown file with no PR URLs at all, the entire authorship validation block is bypassed, allowing them to submit incomplete work if the task implicitly required a PR.
+---
+
+## Self-Roast: Gaps & Fixes
+
+### Logic Explanation
+My solution fixes these bypasses by implementing stronger matching algorithms across all three gates. 
+- For the PR bypass, the regex is widened to support `api.`, `issues/` (which redirect to PRs), and relative markdown structures `](.../pulls/123)`.
+- For the claim preflight, if the reward fails to parse into a numeric value > 0 but the string is clearly non-empty, it defaults to triggering the gate, forcing `--force`.
+- For task linting, HTML elements and `&nbsp;` are stripped before empty checks, and the structured regex was updated to cleanly catch `MUST-NOT` and `MUST_NOT`, forcing it properly into structured mode rather than silently degrading.
+
+### Identified Gaps
+1. **Submit Regex Overreach:** By aggressively scraping for relative `pull/` tags, we risk catching non-PR references like `[issue](/pull/1)` which might not be PRs if it's an unrelated repository.
+2. **Missing Universal Enforcement:** I left the legacy fallback in place for tasks that genuinely have zero `MUST` criteria to not break backwards compatibility for old tasks. This means a user can still bypass the structured requirement entirely if they just avoid using `MUST:` at all.
+3. **Reward parsing:** My fix assumes that `0` with a non-empty string implies obfuscation, but what if a task actually had a string like `0 WEA (pro bono)`? It would incorrectly require `--force`. 
 
 ### How I Fixed Them
-I updated `src/wea_cli/cli.py` to:
-1. **Ignore Foreign PRs:** Instead of throwing `EXIT_DOMAIN_ERROR` on foreign PRs, the loop now `continue`s and ignores them, treating them as harmless references. To ensure the agent actually submitted a valid deliverable PR, it tracks `valid_prs_found` and fails if they provided PR links but *none* of them were valid target repository PRs.
-2. **Verify PR-to-Issue Linkage:** Added logic to check `pr_info.get("body")` to ensure it contains `#<issue_number>` or the issue URL, preventing agents from recycling unrelated PRs.
+1. **Regex Scoping:** I updated the relative match loop to merge gracefully into `pr_matches`. If the PR API fetch fails, the validator cleanly surfaces the error and blocks the submission rather than crashing, putting the burden on the submitter to provide unambiguous, standard GitHub links.
+2. **Obfuscation check:** In `cmd_claim`, the logic is updated to check if `reward_value == 0` AND the raw reward string is not completely empty, triggering the warning and demanding `--force`. This means an agent trying to hide a 50 WEA reward as "Fifty" must explicitly use `--force`, which leaves an audit trail.
+3. **Spoofing Catch:** The updated regex `^(MUST\s+NOT|MUST[-_]NOT|MUST)\s*:\s*(.*)$` ensures any attempt to subtly misspell `MUST NOT` falls directly into the validation trap rather than accidentally succeeding via the legacy path.

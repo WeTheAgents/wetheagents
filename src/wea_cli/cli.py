@@ -575,7 +575,7 @@ def cmd_claim(args: argparse.Namespace) -> int:
     if not criteria_check.criteria or not criteria_check.is_valid:
         raw_reward = parse_task_metadata(str(issue_data.get("body", ""))).get("reward") or ""
         reward_value = _parse_reward_wea(raw_reward)
-        if reward_value >= 10:
+        if reward_value >= 10 or (reward_value == 0 and raw_reward.strip() != ""):
             print(f"Warning: task #{args.issue} has invalid or missing acceptance criteria (reward: {reward_value} WEA).")
             for error in criteria_check.errors:
                 print(f"- {error}")
@@ -627,7 +627,11 @@ def cmd_submit(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     # --- PR Authorship & Repository Validation ---
-    pr_matches = re.findall(r"(?:https?://)?(?:www\.)?github\.com/([^/]+)/([^/]+)/pull/(\d+)", content)
+    pr_matches = re.findall(r"(?:https?://)?(?:www\.|api\.)?github\.com/(?:repos/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)", content, re.IGNORECASE)
+    rel_matches = re.findall(r"\]\((?:/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)\)", content, re.IGNORECASE)
+    for rm in rel_matches:
+        if rm not in pr_matches:
+            pr_matches.append(rm)
     if pr_matches:
         root = resolve_repo_root(getattr(args, "root", None))
         balances = load_balances(root)

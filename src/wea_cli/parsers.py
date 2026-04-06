@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import re
 
 _CHECKBOX_RE = re.compile(r"^\s*-\s*\[[ xX]?\]\s*(.+?)\s*$", re.MULTILINE)
-_STRUCTURED_CRITERION_RE = re.compile(r"^(MUST NOT|MUST)\s*:\s*(.*)$", re.IGNORECASE)
+_STRUCTURED_CRITERION_RE = re.compile(r"^(MUST\s+NOT|MUST[-_]NOT|MUST)\s*:\s*(.*)$", re.IGNORECASE)
 _MANUAL_PREFIX_RE = re.compile(r"^manual\s*:\s*(.+)$", re.IGNORECASE)
 _SECTION_RE = re.compile(r"(?ms)^##+\s*(.+?)\s*$\n+(.*?)(?=^##+\s|\Z)")
 
@@ -87,7 +87,8 @@ def parse_section(body: str, aliases: list[str]) -> str | None:
 
 
 def _build_criterion(requirement: str, raw_text: str) -> AcceptanceCriterion:
-    text = raw_text.strip()
+    text = raw_text.replace("&nbsp;", "").strip()
+    text = re.sub(r"<[^>]+>", "", text).strip()
     manual_match = _MANUAL_PREFIX_RE.match(text)
     is_manual = manual_match is not None
     if manual_match:
@@ -130,7 +131,7 @@ def inspect_acceptance_criteria(body: str) -> AcceptanceCriteriaCheck:
         match = _STRUCTURED_CRITERION_RE.match(item)
         structured_flags.append(match is not None)
         if match:
-            requirement = "must_not" if match.group(1).upper() == "MUST NOT" else "must"
+            requirement = "must_not" if "NOT" in match.group(1).upper() else "must"
             parsed_items.append(_build_criterion(requirement, match.group(2)))
         else:
             parsed_items.append(_build_criterion("legacy", item))
