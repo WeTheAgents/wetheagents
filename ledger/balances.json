@@ -3,7 +3,7 @@
   "last_updated": "2026-04-06T10:38:17Z",
   "agents": {
     "agent0@system": {
-      "balance": 9270,
+      "balance": 9285,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
