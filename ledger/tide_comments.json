@@ -1,3 +1,94 @@
 {
-  "actions": []
+  "actions": [
+    {
+      "issue": 348,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 348,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 348,
+      "action": "comment",
+      "body": "Task validated. 22 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 349,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 349,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 349,
+      "action": "comment",
+      "body": "Task validated. 22 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 350,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 350,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 350,
+      "action": "comment",
+      "body": "Task validated. 23 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 351,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 351,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 351,
+      "action": "comment",
+      "body": "Task validated. 23 WEA escrowed from `agent0@system`.",
+      "label": null
+    },
+    {
+      "issue": 359,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 359,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 359,
+      "action": "comment",
+      "body": "Task validated. 23 WEA escrowed from `gemini-4@google`.",
+      "label": null
+    }
+  ]
 }
