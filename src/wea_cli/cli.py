@@ -81,6 +81,18 @@ from wea_cli.health import (
     now_iso,
     save_health,
 )
+from wea_cli.knowledge import (
+    DEFAULT_CAP,
+    DEFAULT_HALF_LIFE_DAYS,
+    DEFAULT_TOP_N,
+    agent_slug,
+    bm25_search,
+    decay_factor,
+    load_entries,
+    make_entry,
+    save_entries,
+    trim_entries,
+)
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.spawn import run_spawn
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
@@ -113,6 +125,7 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
     "task": frozenset({"check-criteria", "lint", "template"}),
     "escrow": frozenset({"check"}),
+    "knowledge": frozenset({"search", "list"}),
 }
 
 
@@ -3001,6 +3014,45 @@ def build_parser() -> argparse.ArgumentParser:
     skills_suggest.add_argument("issue", type=int, help="Issue number")
     skills_suggest.set_defaults(_handler=cmd_skills_suggest)
 
+    # --- Knowledge commands ---
+
+    knowledge = subparsers.add_parser("knowledge", help="Agent knowledge base (BM25 + temporal decay)")
+    knowledge_sub = knowledge.add_subparsers(dest="knowledge_command")
+    knowledge_sub.required = True
+
+    _agent_help = "Explicit agent ID (overrides WEA_AGENT env / config)"
+
+    kn_add = knowledge_sub.add_parser("add", help="Add a knowledge entry")
+    kn_add.add_argument("text", help="Insight text to store")
+    kn_add.add_argument("--tags", default=None, help="Comma-separated tags (e.g. ledger,idempotency)")
+    kn_add.add_argument("--task", type=int, default=None, dest="task", help="Related task issue number")
+    kn_add.add_argument("--cap", type=int, default=DEFAULT_CAP, help=f"Max entries to keep [default: {DEFAULT_CAP}]")
+    kn_add.add_argument("--agent", default=None, help=_agent_help)
+    kn_add.set_defaults(_handler=cmd_knowledge_add)
+
+    kn_search = knowledge_sub.add_parser("search", help="Search knowledge base by relevance")
+    kn_search.add_argument("query", help="Search query")
+    kn_search.add_argument("--top", type=int, default=DEFAULT_TOP_N, help=f"Number of results [default: {DEFAULT_TOP_N}]")
+    kn_search.add_argument(
+        "--half-life", type=float, default=DEFAULT_HALF_LIFE_DAYS, dest="half_life",
+        help=f"Decay half-life in days [default: {DEFAULT_HALF_LIFE_DAYS}]",
+    )
+    kn_search.add_argument("--agent", default=None, help=_agent_help)
+    kn_search.set_defaults(_handler=cmd_knowledge_search)
+
+    kn_list = knowledge_sub.add_parser("list", help="List all knowledge entries with decay scores")
+    kn_list.add_argument(
+        "--half-life", type=float, default=DEFAULT_HALF_LIFE_DAYS, dest="half_life",
+        help=f"Decay half-life in days [default: {DEFAULT_HALF_LIFE_DAYS}]",
+    )
+    kn_list.add_argument("--agent", default=None, help=_agent_help)
+    kn_list.set_defaults(_handler=cmd_knowledge_list)
+
+    kn_trim = knowledge_sub.add_parser("trim", help="Trim knowledge base to cap (FIFO)")
+    kn_trim.add_argument("--cap", type=int, default=DEFAULT_CAP, help=f"Max entries to keep [default: {DEFAULT_CAP}]")
+    kn_trim.add_argument("--agent", default=None, help=_agent_help)
+    kn_trim.set_defaults(_handler=cmd_knowledge_trim)
+
     # --- Trace commands ---
 
     trace = subparsers.add_parser("trace", help="Trace event utilities")
@@ -3281,6 +3333,114 @@ def cmd_skills_suggest(args: argparse.Namespace) -> int:
         tags = ", ".join(s.get("tags", []))
         emit(f"  {s['name']:<30s} [{tags}]")
     emit("\nRun: wea skills show <name> to read a skill.")
+    return EXIT_OK
+
+
+# ---------------------------------------------------------------------------
+# Knowledge commands
+# ---------------------------------------------------------------------------
+
+def cmd_knowledge_add(args: argparse.Namespace) -> int:
+    """Add a knowledge entry for the current agent."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    tags: list[str] = []
+    if getattr(args, "tags", None):
+        tags = [t.strip() for t in args.tags.split(",") if t.strip()]
+
+    task_ref: int | None = getattr(args, "task", None)
+
+    entries = load_entries(root, agent)
+    entry = make_entry(args.text, tags=tags, task_ref=task_ref)
+    entries.append(entry)
+
+    cap = getattr(args, "cap", DEFAULT_CAP)
+    entries = trim_entries(entries, cap=cap)
+    save_entries(root, agent, entries)
+
+    emit(f"Added entry {entry['id'][:8]}… for {agent_slug(agent)}")
+    emit(f"Knowledge base: {len(entries)} / {cap} entries")
+    return EXIT_OK
+
+
+def cmd_knowledge_search(args: argparse.Namespace) -> int:
+    """Search the knowledge base using BM25 + temporal decay."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    entries = load_entries(root, agent)
+    if not entries:
+        emit(f"No knowledge entries for {agent_slug(agent)}.")
+        return EXIT_OK
+
+    top_n = getattr(args, "top", DEFAULT_TOP_N)
+    half_life = getattr(args, "half_life", DEFAULT_HALF_LIFE_DAYS)
+    results = bm25_search(entries, args.query, top_n=top_n, half_life_days=half_life)
+
+    if not results:
+        emit("No matching entries.")
+        return EXIT_OK
+
+    emit(f"Top {len(results)} results for: {args.query!r}\n")
+    for i, (entry, score) in enumerate(results, 1):
+        task_note = f"  [task #{entry['task_ref']}]" if entry.get("task_ref") else ""
+        tags_note = f"  [{', '.join(entry['tags'])}]" if entry.get("tags") else ""
+        emit(f"{i}. [{score:.4f}] {entry['text']}{task_note}{tags_note}")
+        emit(f"   id={entry['id'][:8]}  created={entry['created_at']}")
+    return EXIT_OK
+
+
+def cmd_knowledge_list(args: argparse.Namespace) -> int:
+    """List all knowledge entries with age and decay score."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    entries = load_entries(root, agent)
+    if not entries:
+        emit(f"No knowledge entries for {agent_slug(agent)}.")
+        return EXIT_OK
+
+    half_life = getattr(args, "half_life", DEFAULT_HALF_LIFE_DAYS)
+    now = datetime.now(timezone.utc)
+    emit(f"Knowledge base: {agent_slug(agent)} ({len(entries)} entries)\n")
+    for i, entry in enumerate(entries, 1):
+        d = decay_factor(entry["created_at"], now, half_life)
+        task_note = f"  task=#{entry['task_ref']}" if entry.get("task_ref") else ""
+        tags_note = f"  [{', '.join(entry['tags'])}]" if entry.get("tags") else ""
+        emit(f"{i:3d}. decay={d:.3f}  {entry['created_at']}  {entry['text'][:60]}{task_note}{tags_note}")
+    return EXIT_OK
+
+
+def cmd_knowledge_trim(args: argparse.Namespace) -> int:
+    """Trim knowledge base to cap, removing oldest entries (FIFO)."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    cap = getattr(args, "cap", DEFAULT_CAP)
+    entries = load_entries(root, agent)
+    before = len(entries)
+    entries = trim_entries(entries, cap=cap)
+    removed = before - len(entries)
+
+    if removed == 0:
+        emit(f"Nothing to trim ({before} entries, cap={cap}).")
+        return EXIT_OK
+
+    save_entries(root, agent, entries)
+    emit(f"Trimmed {removed} oldest entries. Now: {len(entries)} / {cap}")
     return EXIT_OK
 
 

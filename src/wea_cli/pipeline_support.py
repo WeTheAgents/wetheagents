@@ -73,7 +73,13 @@ def load_stage_workflow(root: Path, stage: str) -> str:
     return _read_text(stage_dir(root, stage) / "WORKFLOW.md").strip()
 
 
-def render_pipeline_context(root: Path, stage: str, agent_id: str | None) -> str:
+def render_pipeline_context(
+    root: Path,
+    stage: str,
+    agent_id: str | None,
+    knowledge_query: str | None = None,
+    knowledge_top_n: int = 5,
+) -> str:
     normalized = normalize_stage(stage)
     genome_text = _read_text(_genome_path(root, agent_id))
     constitution, genome = _split_constitution_and_genome(genome_text)
@@ -91,6 +97,17 @@ def render_pipeline_context(root: Path, stage: str, agent_id: str | None) -> str
         f"## Stage Schema: {normalized}",
         f"```json\n{schema}\n```",
     ]
+    # Knowledge injection hook: surface relevant past insights when a query is provided.
+    if knowledge_query and agent_id:
+        try:
+            from wea_cli.knowledge import get_knowledge_context
+            kn_section = get_knowledge_context(
+                root, agent_id, knowledge_query, top_n=knowledge_top_n
+            )
+            if kn_section:
+                sections.append(kn_section.strip())
+        except Exception:
+            pass  # knowledge base is optional — never block pipeline context generation
     return "\n\n".join(sections).strip() + "\n"
 
 
