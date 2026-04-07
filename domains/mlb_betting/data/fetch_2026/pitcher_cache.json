@@ -490,5 +490,125 @@
   "Justin Verlander": {
     "hand": "R",
     "mlb_id": 434378
+  },
+  "Zach Eflin": {
+    "hand": "R",
+    "mlb_id": 621107
+  },
+  "Janson Junk": {
+    "hand": "R",
+    "mlb_id": 676083
+  },
+  "Erick Fedde": {
+    "hand": "R",
+    "mlb_id": 607200
+  },
+  "Brandon Williamson": {
+    "hand": "L",
+    "mlb_id": 682227
+  },
+  "Bubba Chandler": {
+    "hand": "R",
+    "mlb_id": 696149
+  },
+  "Andrew Painter": {
+    "hand": "R",
+    "mlb_id": 691725
+  },
+  "PJ Poulin": {
+    "hand": "L",
+    "mlb_id": 676571
+  },
+  "Max Scherzer": {
+    "hand": "R",
+    "mlb_id": 453286
+  },
+  "Ryan Feltner": {
+    "hand": "R",
+    "mlb_id": 663372
+  },
+  "Jose Suarez": {
+    "hand": "L",
+    "mlb_id": 660761
+  },
+  "Aaron Civale": {
+    "hand": "R",
+    "mlb_id": 650644
+  },
+  "Jameson Taillon": {
+    "hand": "R",
+    "mlb_id": 592791
+  },
+  "Brandon Woodruff": {
+    "hand": "R",
+    "mlb_id": 605540
+  },
+  "Shane McClanahan": {
+    "hand": "L",
+    "mlb_id": 663556
+  },
+  "Andre Pallante": {
+    "hand": "R",
+    "mlb_id": 669467
+  },
+  "Kodai Senga": {
+    "hand": "R",
+    "mlb_id": 673540
+  },
+  "Brayan Bello": {
+    "hand": "R",
+    "mlb_id": 678394
+  },
+  "Brandon Pfaadt": {
+    "hand": "R",
+    "mlb_id": 694297
+  },
+  "Casey Mize": {
+    "hand": "R",
+    "mlb_id": 663554
+  },
+  "Max Fried": {
+    "hand": "L",
+    "mlb_id": 608331
+  },
+  "German Marquez": {
+    "hand": "R",
+    "mlb_id": 608566
+  },
+  "Logan Webb": {
+    "hand": "R",
+    "mlb_id": 657277
+  },
+  "Shohei Ohtani": {
+    "hand": "R",
+    "mlb_id": 660271
+  },
+  "Adrian Houser": {
+    "hand": "R",
+    "mlb_id": 605288
+  },
+  "Noah Cameron": {
+    "hand": "L",
+    "mlb_id": 702070
+  },
+  "Grant Taylor": {
+    "hand": "R",
+    "mlb_id": 691799
+  },
+  "Luinder Avila": {
+    "hand": "R",
+    "mlb_id": 679883
+  },
+  "Mason Fluharty": {
+    "hand": "L",
+    "mlb_id": 689254
+  },
+  "Kumar Rocker": {
+    "hand": "R",
+    "mlb_id": 677958
+  },
+  "Mick Abel": {
+    "hand": "R",
+    "mlb_id": 690953
   }
 }

@@ -82,3 +82,15 @@ domains/**/knowledge/over_pilot/
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Strix runtime event logs
+strix_runs/
+
+# Serena IDE config
+.serena/
+
+# BitGN traces (runtime evolution data, regenerable)
+domains/bitgn/traces/
+
+# Pipeline temp provenance
+pipeline/release/.provenance_tmp.json

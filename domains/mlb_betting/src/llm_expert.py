@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -22,6 +23,25 @@ import yaml
 from src.feature_card import FeatureCard, OUFeatureCard
 
 logger = logging.getLogger(__name__)
+
+
+def _retry_llm_call(fn, *args, max_retries: int = 5, base_delay: float = 2.0, **kwargs) -> str:
+    """Retry an LLM API call with exponential backoff on connection errors."""
+    for attempt in range(max_retries):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as e:
+            err_str = str(e).lower()
+            is_transient = any(s in err_str for s in [
+                "connection", "timeout", "getaddrinfo", "reset by peer",
+                "server_error", "rate_limit", "503", "502", "429",
+            ])
+            if not is_transient or attempt == max_retries - 1:
+                raise
+            delay = base_delay * (2 ** attempt)
+            logger.warning(f"LLM call failed (attempt {attempt+1}/{max_retries}): {e}. "
+                           f"Retrying in {delay:.0f}s...")
+            time.sleep(delay)
 
 
 # ── Genome ────────────────────────────────────────────────────────────────
@@ -178,6 +198,46 @@ Rules:
 - predicted_total: your best estimate of total runs (e.g., 7.5)
 - confidence: 0.5 = coin flip, 0.7 = decent edge, 0.85+ = strong conviction
 - You MUST give a verdict. Do not hedge. Either you see edge or you don't.
+"""
+
+
+_OUTPUT_SCHEMA_RL_FAV = """\
+Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
+{
+  "action": "BET_RL" | "PASS",
+  "confidence": 0.0 to 1.0,
+  "predicted_margin": "3-1",
+  "key_factors": ["reason 1", "reason 2", "reason 3"],
+  "risk_flags": ["concern 1", "concern 2"],
+  "reasoning": "2-3 sentence rationale"
+}
+
+Rules:
+- BET_RL = favorite will win by 2+ runs (covers -1.5 run line)
+- PASS = favorite may win but not by enough margin, or too much uncertainty
+- predicted_margin: your best estimate of the final score (e.g., "5-2", "4-1")
+- confidence: 0.5 = coin flip, 0.7 = decent edge, 0.85+ = strong conviction
+- Breakeven cover rate is ~42%. The market average is ~43%. Your edge comes
+  from identifying COMFORTABLE wins, not just any favorite win.
+- You MUST give a verdict. Do not hedge. Either you see a 2+ run margin or you don't.
+"""
+
+
+_OUTPUT_SCHEMA_RL_AWAY_V2 = """\
+Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
+{
+  "action": "BET_RL" | "PASS",
+  "confidence": 0.0 to 1.0,
+  "key_factors": ["reason 1", "reason 2", "reason 3"],
+  "risk_flags": ["concern 1", "concern 2"],
+  "reasoning": "2-3 sentence rationale"
+}
+
+Rules:
+- BET_RL = away underdog covers +1.5 (loses by 1 or wins outright)
+- PASS = too much risk of a 2+ run blowout, or not enough signal
+- confidence: 0.5 = coin flip, 0.7 = decent edge, 0.85+ = strong conviction
+- You MUST give a verdict. Do not hedge. Either you see a tight game or you don't.
 """
 
 
@@ -535,12 +595,274 @@ class LLMExpert:
             reasoning=data.get("reasoning", ""),
         )
 
+    def analyze_rl(self, card: FeatureCard) -> Verdict:
+        """Evaluate an Away +1.5 RL game card. Returns Verdict (BET_RL, BET_ML, or PASS).
+
+        BET_RL = away team covers +1.5 (loses by ≤1 or wins outright)
+        BET_ML = dog wins outright (also covers RL)
+        PASS   = fav likely wins by 2+, skip
+        """
+        system_prompt = self._build_system_prompt_rl()
+        user_prompt = card.to_prompt()
+
+        for attempt in range(3):
+            raw = self._call_llm(system_prompt, user_prompt)
+            verdict = self._parse_response(raw)
+            if "parse_error" not in verdict.key_factors:
+                return verdict
+            logger.warning(
+                f"RL away parse retry {attempt + 1}/3 for {card.game_id}"
+            )
+
+        return verdict
+
+    def _build_system_prompt_rl(self) -> str:
+        """Compose genome into a system prompt for Away +1.5 RL analysis."""
+        g = self.genome
+        parts = [
+            f"You are {g.name}, an expert MLB handicapper specializing in "
+            "UNDERDOG RUN LINE +1.5 betting.",
+            "",
+            "You are analyzing whether the AWAY UNDERDOG will COVER +1.5.",
+            "The away team covers if they LOSE BY 1 RUN OR LESS, or WIN OUTRIGHT.",
+            "This is NOT about picking winners. You are betting AGAINST a dominant win.",
+            "A 3-1 loss still COVERS +1.5. A 4-1 loss does NOT.",
+            "",
+            "## Your Philosophy (core identity — never deviate)",
+            g.philosophy,
+        ]
+
+        if g.principles:
+            parts.append("\n## Your Principles")
+            for i, p in enumerate(g.principles, 1):
+                parts.append(f"{i}. {p}")
+
+        if g.anti_patterns:
+            parts.append("\n## Lessons Learned (mistakes to NEVER repeat)")
+            for i, ap in enumerate(g.anti_patterns, 1):
+                parts.append(f"{i}. {ap}")
+
+        if g.examples:
+            parts.append("\n## Reference Picks (calibrate your confidence)")
+            for ex in g.examples[-5:]:
+                parts.append(f"- Game: {ex.get('summary', '?')}")
+                parts.append(f"  Verdict: {ex.get('verdict', '?')}")
+                parts.append(f"  Outcome: {ex.get('outcome', '?')}")
+                if ex.get("lesson"):
+                    parts.append(f"  Lesson: {ex['lesson']}")
+
+        if g.confidence_modifiers:
+            parts.append("\n## Confidence Adjustments")
+            parts.append("Apply these modifiers to your raw confidence:")
+            for key, mod in g.confidence_modifiers.items():
+                parts.append(f"- {key}: {mod:+.2f}")
+
+        parts.append("\n## Context")
+        parts.append(
+            "These games passed a coarse pre-filter (edge_consensus > 0.05), meaning "
+            "the model sees the home favorite as OVERPRICED. Your job is the SECOND "
+            "filter — confirm that matchup specifics support a COMPETITIVE game "
+            "(within 1 run). The market embeds the blowout narrative. Your edge is "
+            "reading structural reality against that narrative.\n"
+            "PASS generously — target 20-30% bet rate. Only BET_RL when 2+ signals "
+            "converge to indicate the game will NOT be a 2+ run blowout. "
+            "Use BET_ML only if you believe the dog has a genuine shot to win outright."
+        )
+
+        parts.append(f"\n## Output Format\n{_OUTPUT_SCHEMA}")
+
+        return "\n".join(parts)
+
+    def analyze_rl_away_v2(self, card: FeatureCard) -> Verdict:
+        """Away +1.5 RL v2: solo expert, no edge_consensus, reads analyst score.
+
+        BET_RL = away covers +1.5 (loses by <=1 or wins)
+        PASS   = blowout risk too high
+        """
+        system_prompt = self._build_system_prompt_rl_away_v2()
+        user_prompt = card.to_prompt()
+
+        for attempt in range(3):
+            raw = self._call_llm(system_prompt, user_prompt)
+            verdict = self._parse_response_rl_fav(raw)  # reuse BET_RL/PASS parser
+            if "parse_error" not in verdict.key_factors:
+                return verdict
+            logger.warning(
+                f"RL away v2 parse retry {attempt + 1}/3 for {card.game_id}"
+            )
+
+        return verdict
+
+    def _build_system_prompt_rl_away_v2(self) -> str:
+        """System prompt for Away +1.5 v2/v3 — find strong underdogs."""
+        g = self.genome
+        parts = [
+            f"You are {g.name}, an expert MLB analyst specializing in "
+            "identifying UNDERVALUED AWAY UNDERDOGS.",
+            "",
+            "The away team has +1.5 run line insurance -- they cover if they "
+            "LOSE BY 1 OR LESS, or WIN OUTRIGHT. Your primary thesis: can this "
+            "underdog COMPETE AND WIN? The +1.5 is the safety net.",
+            "",
+            "72% of historical +1.5 covers come from the underdog WINNING THE "
+            "GAME. Only 28% from losing by exactly 1 run. Find strong dogs.",
+            "",
+            "## Your Philosophy (core identity -- never deviate)",
+            g.philosophy,
+        ]
+
+        if g.principles:
+            parts.append("\n## Your Principles")
+            for i, p in enumerate(g.principles, 1):
+                parts.append(f"{i}. {p}")
+
+        if g.anti_patterns:
+            parts.append("\n## Lessons Learned (mistakes to NEVER repeat)")
+            for i, ap in enumerate(g.anti_patterns, 1):
+                parts.append(f"{i}. {ap}")
+
+        if g.examples:
+            parts.append("\n## Reference Picks (calibrate your confidence)")
+            for ex in g.examples[-5:]:
+                parts.append(f"- Game: {ex.get('summary', '?')}")
+                parts.append(f"  Verdict: {ex.get('verdict', '?')}")
+                parts.append(f"  Outcome: {ex.get('outcome', '?')}")
+                if ex.get("lesson"):
+                    parts.append(f"  Lesson: {ex['lesson']}")
+
+        if g.confidence_modifiers:
+            parts.append("\n## Confidence Adjustments")
+            parts.append("Apply these modifiers to your raw confidence:")
+            for key, mod in g.confidence_modifiers.items():
+                parts.append(f"- {key}: {mod:+.2f}")
+
+        parts.append("\n## Context")
+        parts.append(
+            "You will see an Independent Analyst Scenario with a predicted final "
+            "score. Use it to inform your judgment:\n"
+            "- Analyst predicts AWAY wins: strong signal that the underdog is "
+            "live to win outright -- lean BET unless fundamentals are terrible.\n"
+            "- Analyst predicts HOME wins by 1-2: borderline. Check if the "
+            "underdog has structural advantages the analyst may underweight "
+            "(road WP, pitcher matchup, momentum).\n"
+            "- Analyst predicts HOME wins by 3+: blowout. Lean PASS.\n\n"
+            "PASS generously -- target 30-40% bet rate. Only BET_RL when "
+            "multiple indicators converge showing the underdog can compete."
+        )
+
+        parts.append(f"\n## Output Format\n{_OUTPUT_SCHEMA_RL_AWAY_V2}")
+
+        return "\n".join(parts)
+
+    def analyze_rl_fav(self, card: FeatureCard) -> Verdict:
+        """Evaluate a fav -1.5 RL game card. Returns Verdict (BET_RL or PASS)."""
+        system_prompt = self._build_system_prompt_rl_fav()
+        user_prompt = card.to_prompt()
+
+        for attempt in range(3):
+            raw = self._call_llm(system_prompt, user_prompt)
+            verdict = self._parse_response_rl_fav(raw)
+            if verdict.action != "PASS" or verdict.confidence > 0:
+                return verdict
+            logger.warning(f"RL fav parse retry {attempt + 1}/3 for {card.game_id}")
+
+        return verdict
+
+    def _build_system_prompt_rl_fav(self) -> str:
+        """Compose genome into a system prompt for fav -1.5 RL analysis."""
+        g = self.genome
+        parts = [
+            f"You are {g.name}, an expert MLB handicapper specializing in "
+            "FAVORITE RUN LINE -1.5 betting.",
+            "",
+            "You are analyzing whether the FAVORITE will win by 2+ runs.",
+            "This is NOT about whether the favorite wins — it's about the MARGIN.",
+            "A 3-2 win is a LOSS on this bet. A 4-2 win is a WIN.",
+            "",
+            "## Your Philosophy (core identity — never deviate)",
+            g.philosophy,
+        ]
+
+        if g.principles:
+            parts.append("\n## Your Principles")
+            for i, p in enumerate(g.principles, 1):
+                parts.append(f"{i}. {p}")
+
+        if g.anti_patterns:
+            parts.append("\n## Lessons Learned (mistakes to NEVER repeat)")
+            for i, ap in enumerate(g.anti_patterns, 1):
+                parts.append(f"{i}. {ap}")
+
+        if g.examples:
+            parts.append("\n## Reference Picks (calibrate your confidence)")
+            for ex in g.examples[-5:]:
+                parts.append(f"- Game: {ex.get('summary', '?')}")
+                parts.append(f"  Verdict: {ex.get('verdict', '?')}")
+                parts.append(f"  Outcome: {ex.get('outcome', '?')}")
+                if ex.get("lesson"):
+                    parts.append(f"  Lesson: {ex['lesson']}")
+
+        if g.confidence_modifiers:
+            parts.append("\n## Confidence Adjustments")
+            parts.append("Apply these modifiers to your raw confidence:")
+            for key, mod in g.confidence_modifiers.items():
+                parts.append(f"- {key}: {mod:+.2f}")
+
+        parts.append("\n## Context")
+        parts.append(
+            "These games have already passed a rule-based pre-filter selecting "
+            "favorites with structural dominance profiles (low close-game WP + "
+            "positive momentum). Your job is the SECOND filter — confirm that the "
+            "matchup specifics support a 2+ run margin. Most pre-filtered games "
+            "still won't cover. Only bet when you see clear margin-expanding signals. "
+            "Remember: even a 60% ML favorite only covers -1.5 about 43% of the time."
+        )
+
+        parts.append(f"\n## Output Format\n{_OUTPUT_SCHEMA_RL_FAV}")
+
+        return "\n".join(parts)
+
+    def _parse_response_rl_fav(self, raw: str) -> Verdict:
+        """Parse LLM response for RL fav verdict."""
+        text = raw.strip()
+        if text.startswith("```"):
+            lines = text.split("\n")
+            lines = [l for l in lines if not l.strip().startswith("```")]
+            text = "\n".join(lines)
+
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            logger.warning(f"Failed to parse RL fav response as JSON: {text[:200]}")
+            return Verdict(
+                action="PASS",
+                confidence=0.0,
+                key_factors=["parse_error"],
+                risk_flags=["LLM response was not valid JSON"],
+                reasoning=f"Parse error. Raw: {text[:100]}",
+            )
+
+        action = data.get("action", "PASS").upper()
+        if action not in ("BET_RL", "PASS"):
+            action = "PASS"
+
+        confidence = float(data.get("confidence", 0.0))
+        confidence = max(0.0, min(1.0, confidence))
+
+        return Verdict(
+            action=action,
+            confidence=confidence,
+            key_factors=data.get("key_factors", []),
+            risk_flags=data.get("risk_flags", []),
+            reasoning=data.get("reasoning", ""),
+        )
+
     def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
-        """Call the LLM API and return raw response text."""
+        """Call the LLM API with retry on transient errors."""
         if self.provider == "openai":
-            return self._call_openai(system_prompt, user_prompt)
+            return _retry_llm_call(self._call_openai, system_prompt, user_prompt)
         elif self.provider == "anthropic":
-            return self._call_anthropic(system_prompt, user_prompt)
+            return _retry_llm_call(self._call_anthropic, system_prompt, user_prompt)
         else:
             raise ValueError(f"Unknown provider: {self.provider}")
 
@@ -702,6 +1024,26 @@ Rules:
 """
 
 
+_ANALYST_SCHEMA_SIMPLE = """\
+Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
+{
+  "predicted_winner": "home" or "away",
+  "predicted_score": "5-3",
+  "key_narrative": "3-4 sentences: how does this game play out?",
+  "decisive_factors": ["factor 1", "factor 2", "factor 3"]
+}
+
+Rules:
+- predicted_winner: "home" or "away" — who wins this game
+- predicted_score: winner's runs first, loser's runs second (e.g. "5-3", "4-1", "7-2")
+- key_narrative: describe HOW the game plays out, not just who wins.
+  Cover: starting pitching matchup, when runs score, how bullpens perform.
+- decisive_factors: 3 most important factors driving this outcome
+- Commit to a specific score. Don't hedge. Your best estimate.
+- Be calibrated — most MLB games are decided by 1-3 runs, blowouts are rare but real.
+"""
+
+
 _ANALYST_SCHEMA_OU = """\
 Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
 {
@@ -761,6 +1103,111 @@ class LLMAnalyst:
                 f"Analyst parse retry {attempt + 1}/3 for {self.genome.name}"
             )
         return scenario
+
+    def predict_simple(self, card) -> GameScenario:
+        """Predict game scenario with simplified output — just winner + score.
+
+        No tightness labels, no winner_confidence. Pure sports prediction.
+        Returns GameScenario with tightness derived from predicted score margin.
+        """
+        system_prompt = self._build_system_prompt_simple()
+        user_prompt = card.to_prompt()
+
+        for attempt in range(3):
+            raw = self._call_llm(system_prompt, user_prompt)
+            scenario = self._parse_response_simple(raw)
+            if scenario.key_narrative != "parse_error":
+                return scenario
+            logger.warning(
+                f"Analyst simple parse retry {attempt + 1}/3 for {self.genome.name}"
+            )
+        return scenario
+
+    def _build_system_prompt_simple(self) -> str:
+        """System prompt for simplified analyst — pure sports prediction."""
+        g = self.genome
+        parts = [
+            f"You are {g.name}, an expert MLB game analyst.",
+            "",
+            "## Your Approach",
+            g.philosophy,
+        ]
+
+        if g.principles:
+            parts.append("\n## Analytical Principles")
+            for i, p in enumerate(g.principles, 1):
+                parts.append(f"{i}. {p}")
+
+        if g.anti_patterns:
+            parts.append("\n## Learned Corrections")
+            for i, ap in enumerate(g.anti_patterns, 1):
+                parts.append(f"{i}. {ap}")
+
+        parts.append("\n## Context")
+        parts.append(
+            "You are a pure game analyst. You have no knowledge of betting lines, "
+            "odds, or market prices. Your only job is to predict the most likely "
+            "game outcome and final score based on the statistical profiles of both "
+            "teams and their starting pitchers. Commit to a specific score — your "
+            "best estimate of how this game ends. Be calibrated — most MLB games "
+            "are decided by 1-3 runs, and even the best teams lose 40% of their games."
+        )
+
+        parts.append(f"\n## Output Format\n{_ANALYST_SCHEMA_SIMPLE}")
+
+        return "\n".join(parts)
+
+    def _parse_response_simple(self, raw: str) -> GameScenario:
+        """Parse simplified analyst response into GameScenario."""
+        text = raw.strip()
+        if text.startswith("```"):
+            lines = text.split("\n")
+            lines = [l for l in lines if not l.strip().startswith("```")]
+            text = "\n".join(lines)
+
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            logger.warning(f"Analyst simple parse error: {text[:200]}")
+            return GameScenario(
+                predicted_winner="home",
+                winner_confidence=0.0,
+                predicted_score="0-0",
+                tightness="N/A",
+                key_narrative="parse_error",
+                decisive_factors=["parse_error"],
+            )
+
+        predicted_winner = data.get("predicted_winner", "home").lower()
+        if predicted_winner not in ("home", "away"):
+            predicted_winner = "home"
+
+        predicted_score = data.get("predicted_score", "4-3")
+
+        # Derive tightness from score margin
+        try:
+            parts = predicted_score.replace("-", " ").split()
+            margin = abs(int(parts[0]) - int(parts[1]))
+        except (ValueError, IndexError):
+            margin = 1
+
+        if margin >= 4:
+            tightness = "blowout"
+        elif margin >= 2:
+            tightness = "comfortable"
+        elif margin == 1:
+            tightness = "tight"
+        else:
+            tightness = "coinflip"
+
+        return GameScenario(
+            predicted_winner=predicted_winner,
+            winner_confidence=0.0,  # not asked
+            predicted_score=predicted_score,
+            tightness=tightness,  # derived from score, not LLM
+            key_narrative=data.get("key_narrative", ""),
+            decisive_factors=data.get("decisive_factors", []),
+        )
 
     def predict_ou(self, card) -> OUGameScenario:
         """Analyze a neutral O/U card and produce a scoring scenario."""
@@ -878,6 +1325,10 @@ class LLMAnalyst:
         return "\n".join(parts)
 
     def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
+        """Call the LLM API with retry on transient errors."""
+        return _retry_llm_call(self._call_llm_raw, system_prompt, user_prompt)
+
+    def _call_llm_raw(self, system_prompt: str, user_prompt: str) -> str:
         if self.provider == "openai":
             if self._client is None:
                 from openai import OpenAI

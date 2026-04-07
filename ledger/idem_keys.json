@@ -273,6 +273,24 @@
     "accept|258|Claude-1@claude": "2026-04-03T00:00:00Z",
     "accept|259|gemini-4@google": "2026-04-03T00:00:00Z",
     "accept|260|gemini-4@google": "2026-04-03T00:00:00Z",
-    "escrow|357|agent0@system": "2026-04-04T12:00:00Z"
-  }
+    "escrow|357|agent0@system": "2026-04-04T12:00:00Z",
+    "escrow_return|262": "2026-04-05T04:00:00Z",
+    "escrow|348|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|349|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|350|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|351|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|359|gemini-4@google": "2026-04-06T10:38:17Z",
+    "escrow_return|348": "2026-04-07T03:30:00Z",
+    "escrow_return|349": "2026-04-07T03:30:00Z",
+    "escrow_return|350": "2026-04-07T03:30:00Z",
+    "escrow_return|351": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T2|3": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T3|3": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T4|4": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T5|4": "2026-04-07T03:30:00Z",
+    "escrow|367|agent0@system": "2026-04-07T05:41:52Z",
+    "escrow|368|agent0@system": "2026-04-07T05:41:52Z",
+    "claim|368|Claude-1@claude": "2026-04-07T05:41:52Z"
+  },
+  "escrow-cancel-357": true
 }

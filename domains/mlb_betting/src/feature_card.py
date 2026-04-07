@@ -35,7 +35,19 @@ class FeatureCard:
         home = row.get("home_team", "?")
         game_id = f"{date}_{away}_{home}"
 
-        if zone.startswith("CF"):
+        if zone == "RL_fav":
+            sections = [
+                _header_rl_fav(row),
+                _odds_section_rl_fav(row),
+                _margin_context(row),
+                _team_strength(row),
+                _offense_context(row),
+                _recent_form(row),
+                _starting_pitchers(row),
+                _bullpen_management(row),
+                _context(row),
+            ]
+        elif zone.startswith("CF"):
             sections = [
                 _header_cf(row),
                 _odds_section_cf(row),
@@ -45,6 +57,31 @@ class FeatureCard:
                 _recent_form(row),
                 _starting_pitchers_cf(row),
                 _neutral_bullpen_management(row),
+                _context(row),
+            ]
+        elif zone == "RL_away_v2":
+            # Away +1.5 v2/v3: no edge_consensus, individual team features
+            sections = [
+                _header_rl_away_v2(row),
+                _odds_section_rl_away(row),
+                _rl_matchup_context(row),
+                _team_strength_individual(row),
+                _recent_form(row),
+                _starting_pitchers_rl(row),
+                _bullpen_management(row),
+                _context(row),
+            ]
+        elif zone.startswith("RL"):
+            # RL_expansion: Away +1.5 v1 (legacy)
+            sections = [
+                _header(row, zone),
+                _odds_section_rl_away(row),
+                _model_signal(row, zone),
+                _team_strength(row),
+                _rl_cover_context(row),
+                _recent_form(row),
+                _starting_pitchers_rl(row),
+                _bullpen_management(row),
                 _context(row),
             ]
         else:
@@ -1584,5 +1621,480 @@ def _starting_pitchers_cf(row: pd.Series) -> str:
         lines.append("")
         lines.append("── Matchup vs Hand ──")
         lines.extend(vs_hand)
+
+    return "\n".join(lines)  # end of _starting_pitchers_cf
+
+
+# ── RL Expansion (Away +1.5) Section Builders ────────────────────────────
+
+
+def _header_rl_away_v2(row: pd.Series) -> str:
+    """Neutral header for Away +1.5 v2 — no edge_consensus."""
+    date = row.get("date", "?")
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    return (
+        f"GAME: {away} @ {home} -- {date} | Zone: Away +1.5 Run Line\n"
+        f"QUESTION: Can {away} (underdog) compete and potentially win against {home}?"
+    )
+
+
+def _team_strength_individual(row: pd.Series) -> str:
+    """Per-team stats for both home/away — individual numbers, not just diffs.
+
+    Unlike _team_strength() which focuses on diff labels, this gives the LLM
+    raw numbers for independent reasoning about each team's profile.
+    """
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = [f"-- Team Profiles --"]
+
+    # Away team profile
+    lines.append(f"\n{away} (AWAY / underdog):")
+    rpi_a = _safe(row, "rpi_away")
+    if rpi_a is not None:
+        lines.append(f"  RPI: {rpi_a:.3f}")
+    pyth_a = _safe(row, "pyth_wp_away")
+    if pyth_a is not None:
+        lines.append(f"  Pythagorean WP: {pyth_a:.3f}")
+    wp_a = _safe(row, "wp_away")
+    if wp_a is not None and pyth_a is not None:
+        gap = pyth_a - wp_a
+        label = "UNDERVALUED" if gap > 0.02 else "OVERVALUED" if gap < -0.02 else "tracking record"
+        lines.append(f"  Actual WP: {wp_a:.3f} ({label})")
+    road_wp = _safe(row, "wp_away_on_road")
+    if road_wp is not None:
+        label = "STRONG road team" if road_wp >= 0.480 else "average" if road_wp >= 0.400 else "struggles on road"
+        lines.append(f"  Road WP: {road_wp:.3f} ({label})")
+    rpg_a = _safe(row, "rpg_away")
+    if rpg_a is not None:
+        lines.append(f"  RPG: {rpg_a:.2f}")
+    rapg_a = _safe(row, "rapg_away")
+    if rapg_a is not None:
+        lines.append(f"  RAPG: {rapg_a:.2f}")
+    off_a = _safe(row, "offense_vs_league_away")
+    if off_a is not None:
+        lines.append(f"  Offense vs league: {off_a:.1%}")
+    def_a = _safe(row, "defense_vs_league_away")
+    if def_a is not None:
+        lines.append(f"  Defense vs league: {def_a:.1%}")
+
+    # Home team profile
+    lines.append(f"\n{home} (HOME / favorite):")
+    rpi_h = _safe(row, "rpi_home")
+    if rpi_h is not None:
+        lines.append(f"  RPI: {rpi_h:.3f}")
+    pyth_h = _safe(row, "pyth_wp_home")
+    if pyth_h is not None:
+        lines.append(f"  Pythagorean WP: {pyth_h:.3f}")
+    home_wp = _safe(row, "wp_home_at_home")
+    if home_wp is not None:
+        label = "ELITE at home" if home_wp >= 0.600 else "average" if home_wp >= 0.500 else "weak at home"
+        lines.append(f"  Home WP: {home_wp:.3f} ({label})")
+    rpg_h = _safe(row, "rpg_home")
+    if rpg_h is not None:
+        lines.append(f"  RPG: {rpg_h:.2f}")
+    rapg_h = _safe(row, "rapg_home")
+    if rapg_h is not None:
+        lines.append(f"  RAPG: {rapg_h:.2f}")
+    off_h = _safe(row, "offense_vs_league_home")
+    if off_h is not None:
+        lines.append(f"  Offense vs league: {off_h:.1%}")
+    def_h = _safe(row, "defense_vs_league_home")
+    if def_h is not None:
+        lines.append(f"  Defense vs league: {def_h:.1%}")
+
+    # Key gaps (secondary, for quick scanning)
+    lines.append("\nKey gaps (home - away):")
+    elo_diff = _safe(row, "elo_diff")
+    if elo_diff is not None:
+        lines.append(f"  Elo: {elo_diff:+.0f}")
+    rpi_diff = _safe(row, "rpi_diff")
+    if rpi_diff is not None:
+        lines.append(f"  RPI: {rpi_diff:+.3f}")
+    pyth_diff = _safe(row, "pyth_wp_diff")
+    if pyth_diff is not None:
+        lines.append(f"  Pythagorean WP: {pyth_diff:+.3f}")
+
+    return "\n".join(lines)
+
+
+def _odds_section_rl_away(row: pd.Series) -> str:
+    """Odds section for Away +1.5 RL betting.
+
+    Shows ML odds, the away +1.5 RL line, and computes the breakeven
+    cover rate so LLM experts can calibrate their conviction threshold.
+    """
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    away_dec = _safe(row, "away_decimal_odds")
+    home_dec = _safe(row, "home_decimal_odds")
+    away_imp = _safe(row, "away_implied_prob")
+    home_imp = _safe(row, "home_implied_prob")
+
+    lines = ["── Odds & Run Line ──"]
+    if away_dec is not None and away_imp is not None:
+        away_ml = _decimal_to_american(away_dec)
+        lines.append(
+            f"DOG: {away} (away) — ML {away_dec:.2f} ({away_ml}), "
+            f"implied {away_imp * 100:.1f}%"
+        )
+    if home_dec is not None and home_imp is not None:
+        home_ml = _decimal_to_american(home_dec)
+        lines.append(
+            f"FAV: {home} (home) — ML {home_dec:.2f} ({home_ml}), "
+            f"implied {home_imp * 100:.1f}%"
+        )
+
+    # Away +1.5 RL odds (real or fallback)
+    rl_odds = _safe(row, "rl_odds")
+    if rl_odds is None:
+        rl_odds = 1.60  # market median fallback (real away +1.5 odds)
+        be = 1 / rl_odds * 100
+        lines.append(
+            f"Away +1.5 RL odds: ~{rl_odds:.2f} (estimated) "
+            f"→ breakeven {be:.1f}% cover rate needed"
+        )
+    else:
+        be = 1 / rl_odds * 100
+        lines.append(
+            f"Away +1.5 RL odds: {rl_odds:.2f} "
+            f"→ breakeven {be:.1f}% cover rate needed"
+        )
+
+    # Market context band
+    if home_imp is not None:
+        if home_imp >= 0.72:
+            note = "LARGE FAVORITE — RL odds compress, high cover rate needed"
+        elif home_imp >= 0.62:
+            note = "MODERATE FAVORITE — typical RL zone, ~63-65% cover needed"
+        elif home_imp >= 0.55:
+            note = "SLIGHT FAVORITE — RL near -110, more margin variability"
+        else:
+            note = "NEAR PICK'EM — fav barely priced in, consider BET_ML if dog is stronger"
+        lines.append(f"  Fav implied probability band: {note}")
+
+    return "\n".join(lines)
+
+
+def _rl_matchup_context(row: pd.Series) -> str:
+    """Tight-game structural signals for Away +1.5 cover analysis.
+
+    The core question: will the home favorite FAIL to win by 2+ runs?
+    High fav close-game WP, strong fav hold rate, and large offense
+    gaps all suggest the fav wins comfortably → bad for away +1.5.
+    """
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["── Matchup Context (Away +1.5) ──"]
+
+    # --- DOG STRENGTH ---
+    lines.append("\nDOG STRENGTH:")
+
+    # Dog momentum: recent form vs longer window
+    wp3_a = _safe(row, "wp_last3_away")
+    wp10_a = _safe(row, "wp_last10_away")
+    if wp3_a is not None and wp10_a is not None:
+        if wp3_a > wp10_a + 0.05:
+            trend = "TRENDING UP"
+        elif wp3_a < wp10_a - 0.05:
+            trend = "TRENDING DOWN"
+        else:
+            trend = "stable"
+        lines.append(f"  Momentum: last3={wp3_a:.3f} vs last10={wp10_a:.3f} ({trend})")
+
+    # Dog deficit recovery
+    dog_recovery = _safe(row, "deficit_recovery_rate_away")
+    if dog_recovery is not None:
+        if dog_recovery >= 0.35:
+            note = "RESILIENT — comes back from deficits"
+        elif dog_recovery >= 0.25:
+            note = "average comeback ability"
+        else:
+            note = "folds when trailing"
+        lines.append(f"  Deficit recovery ({away}): {dog_recovery:.2f} ({note})")
+
+    # Dog close-game WP
+    dog_cg = _safe(row, "close_game_wp_away")
+    if dog_cg is not None:
+        if dog_cg > 0.55:
+            note = "STRONG in close games"
+        elif dog_cg > 0.45:
+            note = "average"
+        else:
+            note = "struggles in close games"
+        lines.append(f"  Close-game WP ({away}): {dog_cg:.2f} ({note})")
+
+    # --- FAV VULNERABILITIES ---
+    lines.append("\nFAV VULNERABILITIES:")
+
+    fav_hold = _safe(row, "hold_rate_home")
+    if fav_hold is not None:
+        if fav_hold >= 0.82:
+            note = "ELITE — locks in leads [lg avg 0.82]"
+        elif fav_hold >= 0.75:
+            note = "average [lg avg 0.82]"
+        else:
+            note = "LEAKY — blows leads late"
+        lines.append(f"  Hold rate ({home}): {fav_hold:.2f} ({note})")
+
+    fav_cg = _safe(row, "close_game_wp_home")
+    if fav_cg is not None:
+        if fav_cg < 0.45:
+            note = "LOW — wins big or loses, rarely close"
+        elif fav_cg < 0.55:
+            note = "average"
+        else:
+            note = "HIGH — plays close games, rarely blows out"
+        lines.append(f"  Close-game WP ({home}): {fav_cg:.2f} ({note})")
+
+    sp_mom = _safe(row, "sp_ra_momentum_diff")
+    if sp_mom is not None:
+        if sp_mom > 0.3:
+            note = "HOME PITCHER DECLINING"
+        elif sp_mom > 0.1:
+            note = "slight home pitcher decay"
+        elif sp_mom > -0.1:
+            note = "both pitchers stable"
+        else:
+            note = "AWAY PITCHER DECLINING"
+        lines.append(f"  Pitcher RA momentum diff (home-away): {sp_mom:+.2f} ({note})")
+
+    # --- STRUCTURAL GAPS ---
+    lines.append("\nSTRUCTURAL GAPS:")
+
+    off_diff = _safe(row, "offense_vs_league_diff")
+    if off_diff is not None:
+        if off_diff > 0.10:
+            note = "FAV OFFENSE DOMINANT"
+        elif off_diff > 0.05:
+            note = "fav has moderate offense edge"
+        elif off_diff > -0.05:
+            note = "offenses near equal"
+        else:
+            note = "DOG OFFENSE STRONGER"
+        lines.append(f"  Offense gap vs league (home-away): {off_diff:+.2f} ({note})")
+
+    rpi_diff = _safe(row, "rpi_diff")
+    if rpi_diff is not None:
+        if rpi_diff > 0.04:
+            note = "LARGE FAV ADVANTAGE — genuine quality gap"
+        elif rpi_diff > 0.02:
+            note = "moderate fav advantage"
+        elif rpi_diff > -0.02:
+            note = "EVENLY MATCHED"
+        else:
+            note = "DOG STRONGER by schedule"
+        lines.append(f"  RPI gap (home-away): {rpi_diff:+.3f} ({note})")
+
+    return "\n".join(lines)
+
+
+def _starting_pitchers_rl(row: pd.Series) -> str:
+    """Starting pitcher analysis for Away +1.5: stamina and trajectory focused.
+
+    IP/start is the most predictive metric for tight games —
+    short outings create bullpen exposure and scoring variance.
+    """
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["── Starting Pitchers (RL Context) ──"]
+    lines.append(
+        "Short IP/start → more bullpen exposure → higher variance"
+    )
+
+    for side, team, prefix in [
+        ("away", away, "away_sp"),
+        ("home", home, "home_sp"),
+    ]:
+        pitcher = row.get(f"{side}_pitcher", "?")
+        hand = _pitcher_hand_label(row, prefix)
+        starts = _safe(row, f"{prefix}_starts")
+        starts_str = f", {int(starts)} starts" if starts is not None else ""
+        hand_str = f" {hand}" if hand else ""
+        lines.append(f"{team}: {pitcher}{hand_str}{starts_str}")
+
+        # IP/start — primary RL signal
+        ip_s = _safe(row, f"{prefix}_ip_per_start_short")
+        ip_l = _safe(row, f"{prefix}_ip_per_start_long")
+        if ip_s is not None:
+            ip_label = _label_ip_start(ip_s)
+            mom_str = ""
+            if ip_l is not None:
+                ip_trend = ip_s - ip_l
+                trend_label = (
+                    "improving stamina" if ip_trend > 0.3
+                    else "declining stamina" if ip_trend < -0.3
+                    else "stable"
+                )
+                mom_str = f" → trend {ip_trend:+.1f} ({trend_label})"
+            lines.append(f"  IP/start: {ip_s:.1f} ({ip_label}){mom_str}")
+
+        # RA with momentum (worsening trend = shorter outing ahead)
+        ra_s = _safe(row, f"{prefix}_ra_short")
+        ra_l = _safe(row, f"{prefix}_ra_long")
+        if ra_s is not None:
+            if ra_l is not None:
+                mom = ra_s - ra_l
+                mom_label = (
+                    "DECLINING" if mom > 0.3
+                    else "IMPROVING" if mom < -0.3
+                    else "stable"
+                )
+                lines.append(
+                    f"  RA/game: {ra_s:.2f} (recent) "
+                    f"→ momentum {mom:+.2f} ({mom_label})"
+                )
+            else:
+                lines.append(f"  RA/game: {ra_s:.2f}")
+
+        # FIP for skill quality
+        fip_s = _safe(row, f"{prefix}_fip_short")
+        if fip_s is not None:
+            lines.append(f"  FIP: {fip_s:.2f} ({_label_fip(fip_s)})")
+
+        # 1st inning RA (early deficit = immediate pressure)
+        fi_ra = _safe(row, f"{prefix}_fi_ra_short")
+        if fi_ra is not None:
+            note = " (high early RA — games open fast)" if fi_ra > 0.8 else ""
+            lines.append(f"  1st inn RA: {fi_ra:.2f}{note}")
+
+    # Starter quality gaps (summary)
+    fip_diff = _diff_or_compute(
+        row, "starter_fip_diff", "home_sp_fip_short", "away_sp_fip_short"
+    )
+    if fip_diff is not None:
+        if abs(fip_diff) > 0.5:
+            lines.append(
+                f"FIP gap (home−away): {fip_diff:+.2f} "
+                f"— {'home pitcher has clear edge' if fip_diff < 0 else 'away pitcher has clear edge'}"
+            )
+        else:
+            lines.append(f"FIP gap (home−away): {fip_diff:+.2f} (pitchers similar)")
+
+    # IP/start gap: if home goes deeper, fav holds margin better → bad for +1.5
+    ip_diff = _diff_or_compute(
+        row, "starter_recent_ip_diff",
+        "home_sp_ip_per_start_short", "away_sp_ip_per_start_short"
+    )
+    if ip_diff is not None:
+        if ip_diff > 0.5:
+            lines.append(
+                f"IP/start gap (home−away): {ip_diff:+.1f} "
+                f"→ home starter goes deeper (bad for +1.5 — fav controls margin)"
+            )
+        elif ip_diff < -0.5:
+            lines.append(
+                f"IP/start gap (home−away): {ip_diff:+.1f} "
+                f"→ away starter goes deeper (+1.5 neutral-positive)"
+            )
+        else:
+            lines.append(
+                f"IP/start gap (home−away): {ip_diff:+.1f} (similar stamina)"
+            )
+
+    return "\n".join(lines)
+
+
+# ── RL Fav -1.5 Section Builders ────────────────────────────────────────
+
+
+def _header_rl_fav(row: pd.Series) -> str:
+    """Header for fav -1.5 RL candidate card."""
+    date = row.get("date", "?")
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    fav_is_home = row.get("fav_is_home", True)
+    fav_team = home if fav_is_home else away
+    fav_side = "home" if fav_is_home else "away"
+    return (
+        f"GAME: {away} @ {home} — {date} | Zone: FAV -1.5 Run Line\n"
+        f"FAVORITE: {fav_team} ({fav_side}) must win by 2+ runs"
+    )
+
+
+def _odds_section_rl_fav(row: pd.Series) -> str:
+    """Odds section with fav-oriented framing and RL line info."""
+    home = row.get("home_team", "?")
+    away = row.get("away_team", "?")
+    fav_is_home = row.get("fav_is_home", True)
+    fav_team = home if fav_is_home else away
+    dog_team = away if fav_is_home else home
+
+    lines = ["── Odds & Run Line ──"]
+
+    fav_dec = _safe(row, "home_decimal_odds" if fav_is_home else "away_decimal_odds")
+    fav_imp = _safe(row, "home_implied_prob" if fav_is_home else "away_implied_prob")
+    dog_dec = _safe(row, "away_decimal_odds" if fav_is_home else "home_decimal_odds")
+    dog_imp = _safe(row, "away_implied_prob" if fav_is_home else "home_implied_prob")
+
+    if fav_dec is not None and fav_imp is not None:
+        fav_ml = _decimal_to_american(fav_dec)
+        lines.append(
+            f"FAV: {fav_team} — ML odds {fav_dec:.2f} ({fav_ml}), "
+            f"implied {fav_imp * 100:.1f}%"
+        )
+    if dog_dec is not None and dog_imp is not None:
+        dog_ml = _decimal_to_american(dog_dec)
+        lines.append(
+            f"DOG: {dog_team} — ML odds {dog_dec:.2f} ({dog_ml}), "
+            f"implied {dog_imp * 100:.1f}%"
+        )
+
+    rl_odds = _safe(row, "rl_odds")
+    if rl_odds is not None:
+        be = 1 / rl_odds * 100
+        lines.append(f"RL -1.5 odds: {rl_odds:.3f} (breakeven {be:.1f}%)")
+
+    if fav_imp is not None:
+        if fav_imp >= 0.75:
+            band = "EXTREME favorite (value compressed)"
+        elif fav_imp >= 0.65:
+            band = "SWEET SPOT (65-75%)"
+        elif fav_imp >= 0.55:
+            band = "Moderate favorite"
+        else:
+            band = "Slight favorite"
+        lines.append(f"Implied probability band: {band}")
+
+    return "\n".join(lines)
+
+
+def _margin_context(row: pd.Series) -> str:
+    """Margin-specific context for -1.5 RL analysis."""
+    lines = ["── Margin Context (key for -1.5 coverage) ──"]
+
+    fav_is_home = row.get("fav_is_home", True)
+
+    fav_cg = _safe(row, "close_game_wp_home" if fav_is_home else "close_game_wp_away")
+    if fav_cg is not None:
+        if fav_cg < 0.45:
+            label = "LOW — this team wins BIG or loses (strong -1.5 signal)"
+        elif fav_cg < 0.55:
+            label = "Average — mixed margin profile"
+        else:
+            label = "HIGH — this team plays close games (weak -1.5 signal)"
+        lines.append(f"Favorite close-game WP: {fav_cg:.2f} ({label})")
+
+    rpg_h = _safe(row, "rpg_home")
+    rpg_a = _safe(row, "rpg_away")
+    if rpg_h is not None and rpg_a is not None:
+        combined = rpg_h + rpg_a
+        label = "HIGH (bigger margins likely)" if combined >= 9.0 else "Normal"
+        lines.append(f"Combined RPG: {combined:.1f} ({label})")
+
+    fav_hold = _safe(row, "hold_rate_home" if fav_is_home else "hold_rate_away")
+    if fav_hold is not None:
+        label = "STRONG closer" if fav_hold >= 0.75 else "Average" if fav_hold >= 0.65 else "Weak"
+        lines.append(f"Favorite hold rate: {fav_hold:.2f} ({label})")
+
+    dog_bp = _safe(row, "bp_ip_3d_away" if fav_is_home else "bp_ip_3d_home")
+    if dog_bp is not None:
+        label = "TIRED (blowout risk)" if dog_bp >= 11.0 else "Fresh" if dog_bp <= 7.0 else "Normal"
+        lines.append(f"Underdog bullpen 3-day IP: {dog_bp:.1f} ({label})")
+
+    lines.append("")
+    lines.append("Pre-filter: this game passed rule-based filters "
+                 "(close-game WP + streak) indicating structural dominance potential.")
 
     return "\n".join(lines)

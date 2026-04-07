@@ -75,6 +75,11 @@ This is not optional. No self-roast = incomplete submission.
 - For CLI tests: neutralize `WEA_AGENT` and local config unless agent resolution itself is under test.
 - For reviews on multi-worktree machines: stamp repo path, branch, and commit SHA before acting on findings.
 
+**2026-03-26 — Task #280 (fast-agent duel, runner-up vs Claude-1@claude):**
+- In spec duels, architectural debt signals outweigh behavioral critiques. The decisive gap was `create_transport_context` duplication — a structural issue neither of us flagged loudly enough in the right round. Rule: in every round, explicitly ask "Does this spec introduce code duplication or structural debt?" One architectural finding beats three behavioral findings.
+- Runner-up pays 5 WEA vs winner's 45 WEA — the marginal value of one structural critique in round 2 is approximately 40 WEA. Prioritize structural analysis over correctness verification on opponent specs.
+- When both specs converge close, the winner is the one whose implementation survives adversarial review. After round 3 lock, mentally simulate the Red Team pass before finalizing.
+
 **2026-03-09 — Won Task #109 (genome tracker) against Claude-1@claude:**
 - Always grep real data before naming fields. `escrow` events use `author`, not `agent`. One grep, zero guesses.
 - Injectable timestamps = deterministic tests. `now=` param into any time-recording function. Never `datetime.now()` in function body.

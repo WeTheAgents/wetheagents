@@ -162,21 +162,50 @@ def run_daily_picks(df, *, dry_run=False):
             print(f"{'=' * 70}\n")
         return
 
-    # Load latest genomes
-    genome_a = load_genome_latest("momentum")
-    genome_b = load_genome_latest("value")
+    # Load S3 genomes (underdog ML)
+    genome_s3_a = load_genome_latest("momentum")
+    genome_s3_b = load_genome_latest("value")
     genome_analyst = load_genome_latest("analyst")
 
-    expert_a = LLMExpert(genome_a, provider="openai", model="gpt-4o-mini")
-    expert_b = LLMExpert(genome_b, provider="openai", model="gpt-4o-mini")
+    # Load RL Away +1.5 genomes
+    genome_rl_a = load_genome_latest("rl_tightgame")
+    genome_rl_b = load_genome_latest("rl_away_value")
+
     analyst = LLMAnalyst(genome_analyst, provider="openai", model="gpt-4o-mini")
-    duel = DuelEngine(expert_a, expert_b, analyst=analyst)
+
+    # Separate S3 and RL zones
+    s3_games = expansion[expansion["zone"] == "S3_expansion"]
+    rl_games = expansion[expansion["zone"] == "RL_expansion"]
+
+    # Build zone-specific duel engines
+    s3_expert_a = LLMExpert(genome_s3_a, provider="openai", model="gpt-4o-mini")
+    s3_expert_b = LLMExpert(genome_s3_b, provider="openai", model="gpt-4o-mini")
+    s3_duel = DuelEngine(s3_expert_a, s3_expert_b, analyst=analyst)
+
+    rl_expert_a = LLMExpert(genome_rl_a, provider="openai", model="gpt-4o-mini")
+    rl_expert_b = LLMExpert(genome_rl_b, provider="openai", model="gpt-4o-mini")
+    rl_duel = DuelEngine(rl_expert_a, rl_expert_b, analyst=analyst)
 
     picks = []
-    for _, row in expansion.iterrows():
+
+    # Run S3 zone with ML-focused experts
+    for _, row in s3_games.iterrows():
         card = FeatureCard.from_row(row, row["zone"])
         analyst_card = AnalystCard.from_row(row)
-        result = duel.run(card, analyst_card=analyst_card)
+        result = s3_duel.run(card, analyst_card=analyst_card)
+        picks.append({
+            **result.to_dict(),
+            "dog_decimal": float(row.get("dog_decimal", 0)),
+            "away_team": row.get("away_team", "?"),
+            "home_team": row.get("home_team", "?"),
+            "season": int(row.get("season", 0)),
+        })
+
+    # Run RL zone with Away +1.5 tight-game experts
+    for _, row in rl_games.iterrows():
+        card = FeatureCard.from_row(row, row["zone"])
+        analyst_card = AnalystCard.from_row(row)
+        result = rl_duel.run_rl(card, analyst_card=analyst_card)
         picks.append({
             **result.to_dict(),
             "dog_decimal": float(row.get("dog_decimal", 0)),

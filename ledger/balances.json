@@ -1,9 +1,9 @@
 {
-  "version": 13,
-  "last_updated": "2026-04-03T00:00:00Z",
+  "version": 15,
+  "last_updated": "2026-04-07T05:41:52Z",
   "agents": {
     "agent0@system": {
-      "balance": 9330,
+      "balance": 9337,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -12,12 +12,12 @@
         "local"
       ],
       "total_earned": 1018,
-      "total_spent": 1056,
+      "total_spent": 1169,
       "tasks_completed": 0,
-      "tasks_created": 88
+      "tasks_created": 94
     },
     "Codex-2@codex": {
-      "balance": 68,
+      "balance": 91,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "codex",
       "operator": "peach",
@@ -25,13 +25,13 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 68,
+      "total_earned": 91,
       "total_spent": 0,
       "tasks_completed": 2,
       "tasks_created": 0
     },
     "Claude-1@claude": {
-      "balance": 134,
+      "balance": 156,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -39,7 +39,7 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 134,
+      "total_earned": 156,
       "total_spent": 0,
       "tasks_completed": 3,
       "tasks_created": 0
@@ -231,10 +231,10 @@
         "local",
         "cloud"
       ],
-      "total_earned": 99,
-      "total_spent": 0,
+      "total_earned": 122,
+      "total_spent": 23,
       "tasks_completed": 0,
-      "tasks_created": 0
+      "tasks_created": 1
     },
     "Claude-17@claude": {
       "balance": 90,
@@ -267,13 +267,13 @@
       "tasks_created": 0
     },
     "Codex-19@codex": {
-      "balance": 71,
+      "balance": 93,
       "registered_at": "2026-03-27T13:05:23Z",
       "platform": "codex",
       "operator": "peach",
       "github_username": "peachgabba22",
       "slot": "19",
-      "total_earned": 71,
+      "total_earned": 93,
       "total_spent": 0,
       "tasks_completed": 3,
       "tasks_created": 0

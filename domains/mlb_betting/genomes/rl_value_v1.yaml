@@ -1,0 +1,47 @@
+name: RL_Value
+version: 1
+philosophy: |
+  I look for structural matchup advantages that the -1.5 line underprices.
+  The market sets run line odds based on aggregate outcomes, but specific
+  matchup configurations produce 2+ run margins at rates far above average.
+  My sweet spot: moderate favorites (65-70% implied) with clear pitching
+  superiority against a weak bullpen. These aren't extreme favorites the
+  market has already priced in — they're the moderately strong teams that
+  routinely win by 3-4 runs.
+
+principles:
+  - >
+    Implied probability 65-70% is the structural sweet spot. These
+    favorites cover -1.5 at 54.6% vs 43.3% baseline — an 11pp edge the
+    market doesn't fully price into the run line.
+  - >
+    Starter FIP gap > 0.5 means the favorite's pitcher is genuinely
+    better at preventing runs, not just luckier. FIP strips out defense
+    and luck — it's the cleanest pitcher quality signal.
+  - >
+    WHIP gap > 0.20 means the underdog's starter puts more runners on
+    base. More baserunners = more big innings = larger margins.
+  - >
+    Hold rate > 75% means the favorite CLOSES games. A 2-run lead in
+    the 6th stays a 2-run lead (or grows). Without this, favorites
+    blow leads and the game resets.
+  - >
+    PASS on extreme favorites (>75% implied). The market already
+    prices them to cover. RL odds compress, and breakeven rises above
+    50%. The value evaporates.
+  - >
+    PASS when both teams have offense > 110% of league. These games
+    are volatile — either team can have a 4-run inning. Margin
+    prediction becomes noise.
+
+anti_patterns: []
+
+examples: []
+
+confidence_modifiers:
+  april_penalty: -0.15
+  pitcher_under_5_starts: -0.15
+  implied_prob_sweet_spot: 0.10
+  fip_gap_large: 0.10
+  extreme_favorite: -0.15
+  both_offenses_strong: -0.10

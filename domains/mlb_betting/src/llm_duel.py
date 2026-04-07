@@ -275,6 +275,302 @@ class DuelEngine:
         )
         return result
 
+    def run_rl_away_v2(
+        self,
+        card: FeatureCard,
+        analyst_card: AnalystCard | None = None,
+    ) -> DuelResult:
+        """Away +1.5 RL v2: analyst predict_simple -> solo expert -> margin gate.
+
+        Mirrors run_rl_fav() architecture but with inverted margin gate:
+        - Margin <= 1: tight game -> BET (covers +1.5)
+        - Margin == 2: expert decides
+        - Margin >= 3: blowout -> PASS (doesn't cover +1.5)
+        """
+        logger.info(f"RL Away v2: {card.game_id}")
+
+        # Step 1: Analyst produces simplified scenario (score + narrative)
+        scenario = None
+        expert_card = card
+
+        if self.analyst and analyst_card:
+            logger.info(f"  Analyst ({self.analyst.genome.name}) predicting...")
+            scenario = self.analyst.predict_simple(analyst_card)
+            logger.info(
+                f"  Analyst: {scenario.predicted_winner} wins "
+                f"{scenario.predicted_score}"
+            )
+            expert_card = card.with_scenario(scenario.to_text())
+
+        # Step 2: Solo expert (expert_a only)
+        verdict = self.expert_a.analyze_rl_away_v2(expert_card)
+
+        logger.info(
+            f"  {self.expert_a.genome.name}: {verdict.action} "
+            f"(conf={verdict.confidence:.2f})"
+        )
+
+        # Step 3: Analyst margin gate (signed: negative = dog wins)
+        analyst_margin = _extract_signed_margin(scenario)
+        if verdict.action == "BET_RL":
+            if analyst_margin < 0:
+                # Analyst predicts dog wins → guaranteed cover
+                action, stake = "BET", 1.0
+                confidence = verdict.confidence
+                logger.info(
+                    f"  RL Away v2: analyst predicts dog wins (margin={analyst_margin}) "
+                    "-> BET confirmed"
+                )
+            elif analyst_margin <= 1:
+                # Fav wins by 1 → covers +1.5
+                action, stake = "BET", 1.0
+                confidence = verdict.confidence
+                logger.info(
+                    f"  RL Away v2: analyst margin={analyst_margin} (tight) "
+                    "-> BET confirmed"
+                )
+            elif analyst_margin >= 3:
+                # Fav blowout → override to PASS
+                action, stake = "PASS", 0.0
+                confidence = 0.0
+                logger.info(
+                    f"  RL Away v2: analyst margin={analyst_margin} (fav blowout) "
+                    "-> override to PASS"
+                )
+            else:
+                # margin == 2: expert decides
+                action, stake = "BET", 1.0
+                confidence = verdict.confidence
+        else:
+            action, stake = "PASS", 0.0
+            confidence = 0.0
+
+        pass_verdict = Verdict(
+            action="PASS", confidence=0.0,
+            key_factors=[], risk_flags=[], reasoning="(not used)",
+        )
+
+        result = DuelResult(
+            game_id=card.game_id,
+            zone="RL_away_v2",
+            scenario=scenario,
+            verdict_a=verdict,
+            verdict_b=pass_verdict,
+            final_action=action,
+            final_bet_type="RL" if action == "BET" else "",
+            target_side="away",
+            combined_confidence=confidence,
+            stake_multiplier=stake,
+        )
+
+        logger.info(
+            f"  -> {result.final_action} "
+            f"(conf={result.combined_confidence:.2f})"
+        )
+        return result
+
+    def run_rl_fav(
+        self,
+        card: FeatureCard,
+        analyst_card: AnalystCard | None = None,
+    ) -> DuelResult:
+        """Full fav -1.5 RL duel: analyst -> two experts -> arbitrate.
+
+        Args:
+            card: RL fav betting card (zone="RL_fav") for experts.
+            analyst_card: Neutral card for analyst scenario prediction.
+        """
+        logger.info(f"RL Fav: {card.game_id}")
+
+        # Step 1: Analyst produces simplified scenario (score + narrative)
+        scenario = None
+        expert_card = card
+
+        if self.analyst and analyst_card:
+            logger.info(f"  Analyst ({self.analyst.genome.name}) predicting...")
+            scenario = self.analyst.predict_simple(analyst_card)
+            logger.info(
+                f"  Analyst: {scenario.predicted_winner} wins "
+                f"{scenario.predicted_score}"
+            )
+            expert_card = card.with_scenario(scenario.to_text())
+
+        # Step 2: Solo Momentum expert
+        verdict = self.expert_a.analyze_rl_fav(expert_card)
+
+        logger.info(
+            f"  {self.expert_a.genome.name}: {verdict.action} "
+            f"(conf={verdict.confidence:.2f})"
+        )
+
+        # Step 3: Direct mapping — no arbitration
+        if verdict.action == "BET_RL":
+            action, stake = "BET", 1.0
+        else:
+            action, stake = "PASS", 0.0
+
+        pass_verdict = Verdict(
+            action="PASS", confidence=0.0,
+            key_factors=[], risk_flags=[], reasoning="(not used)",
+        )
+
+        result = DuelResult(
+            game_id=card.game_id,
+            zone="RL_fav",
+            scenario=scenario,
+            verdict_a=verdict,
+            verdict_b=pass_verdict,
+            final_action=action,
+            final_bet_type="RL" if action == "BET" else "",
+            target_side="fav",
+            combined_confidence=verdict.confidence,
+            stake_multiplier=stake,
+        )
+
+        logger.info(
+            f"  -> {result.final_action} "
+            f"(conf={result.combined_confidence:.2f})"
+        )
+        return result
+
+    def run_rl(
+        self,
+        card: FeatureCard,
+        analyst_card: AnalystCard | None = None,
+    ) -> DuelResult:
+        """Full Away +1.5 RL duel: analyst → two experts → arbitrate.
+
+        Experts use RL-specific system prompt focused on tight-game analysis
+        (NOT outright winner prediction).
+
+        Args:
+            card: RL expansion betting card (zone="RL_expansion") for experts.
+            analyst_card: Neutral card for analyst scenario prediction.
+        """
+        logger.info(f"RL Away Duel: {card.game_id}")
+
+        # Step 1: Analyst produces scenario
+        scenario = None
+        expert_card = card
+
+        if self.analyst and analyst_card:
+            logger.info(f"  Analyst ({self.analyst.genome.name}) predicting...")
+            scenario = self.analyst.predict(analyst_card)
+            logger.info(
+                f"  Analyst: {scenario.predicted_winner} wins "
+                f"{scenario.predicted_score} ({scenario.tightness}, "
+                f"conf={scenario.winner_confidence:.0%})"
+            )
+            expert_card = card.with_scenario(scenario.to_text())
+
+        # Step 2: Both experts analyze with Away +1.5 RL system prompt
+        verdict_a = self.expert_a.analyze_rl(expert_card)
+        verdict_b = self.expert_b.analyze_rl(expert_card)
+
+        logger.info(
+            f"  {self.expert_a.genome.name}: {verdict_a.action} "
+            f"(conf={verdict_a.confidence:.2f})"
+        )
+        logger.info(
+            f"  {self.expert_b.genome.name}: {verdict_b.action} "
+            f"(conf={verdict_b.confidence:.2f})"
+        )
+
+        # Step 3: Arbitrate
+        result = self._arbitrate_rl(verdict_a, verdict_b, card, scenario)
+
+        logger.info(
+            f"  -> {result.final_action} "
+            f"(conf={result.combined_confidence:.2f}, "
+            f"stake={result.stake_multiplier}x)"
+        )
+        return result
+
+    def _arbitrate_rl(
+        self,
+        a: Verdict,
+        b: Verdict,
+        card: FeatureCard,
+        scenario: GameScenario | None,
+    ) -> DuelResult:
+        """Away +1.5 RL consensus logic.
+
+        Both BET_RL              → STRONG_BET (1.5x): both see a tight game
+        BET_RL + BET_ML          → BET (1.0x): ML win also covers RL
+        BET_RL + PASS            → LEAN (0.5x): one signal
+        BET_ML + PASS            → LEAN (0.5x): conservative cover lean
+        Both PASS / Both BET_ML  → PASS: no RL signal (both BET_ML = S3 zone)
+        """
+        a_rl = a.action == "BET_RL"
+        b_rl = b.action == "BET_RL"
+        a_ml = a.action == "BET_ML"
+        b_ml = b.action == "BET_ML"
+
+        if a_rl and b_rl:
+            action, stake = "STRONG_BET", 1.5
+            confidence = (a.confidence + b.confidence) / 2 * 1.1
+        elif (a_rl and b_ml) or (a_ml and b_rl):
+            # One says RL, other says ML — both outcomes cover +1.5
+            action, stake = "BET", 1.0
+            confidence = (a.confidence + b.confidence) / 2
+        elif a_rl or b_rl:
+            # One BET_RL + PASS → LEAN
+            bettor = a if a_rl else b
+            action, stake = "LEAN", 0.5
+            confidence = bettor.confidence * 0.8
+        elif (a_ml and not b_ml) or (b_ml and not a_ml):
+            # One BET_ML + PASS → conservative RL lean (dog might win = covers)
+            bettor = a if a_ml else b
+            action, stake = "LEAN", 0.5
+            confidence = bettor.confidence * 0.7
+        else:
+            # Both PASS OR both BET_ML (both see outright upset = S3 signal, not RL)
+            action, stake = "PASS", 0.0
+            confidence = 0.0
+
+        # Analyst scenario adjustments
+        if scenario and action != "PASS":
+            if scenario.tightness in ("tight", "coinflip"):
+                # Tight game = high +1.5 cover probability
+                confidence *= 1.15
+                confidence = min(confidence, 1.0)
+                logger.info(
+                    f"  RL Away: analyst says {scenario.tightness} → conf +15%"
+                )
+            elif (
+                scenario.tightness == "blowout"
+                and scenario.predicted_winner == "home"
+            ):
+                # Fav dominates → away +1.5 very unlikely to cover
+                confidence *= 0.70
+                if action in ("LEAN", "BET"):
+                    action = "PASS"
+                    stake = 0.0
+                    confidence = 0.0
+                    logger.info(
+                        "  RL Away: analyst says fav blowout → downgrade to PASS"
+                    )
+            elif scenario.predicted_winner == "away":
+                # Dog wins outright — strong RL cover signal
+                confidence *= 1.10
+                confidence = min(confidence, 1.0)
+                logger.info("  RL Away: analyst says dog wins → conf +10%")
+
+        confidence = min(confidence, 1.0)
+
+        return DuelResult(
+            game_id=card.game_id,
+            zone=card.strategy_zone,
+            scenario=scenario,
+            verdict_a=a,
+            verdict_b=b,
+            final_action=action,
+            final_bet_type="RL" if action != "PASS" else "",
+            target_side="away",
+            combined_confidence=confidence,
+            stake_multiplier=stake,
+        )
+
     def _arbitrate_ou(
         self,
         a: OUVerdict,
@@ -639,3 +935,37 @@ def _zone_default_type(zone: str) -> str:
         return "ML"
     else:
         return "RL"
+
+
+def _extract_margin(scenario) -> int:
+    """Extract predicted run margin from analyst scenario.
+
+    Parses "5-3" -> 2, "4-3" -> 1, "7-2" -> 5.
+    Returns 2 (neutral) if parsing fails or scenario is None.
+    """
+    if scenario is None:
+        return 2
+    try:
+        score = scenario.predicted_score.replace("-", " ").split()
+        return abs(int(score[0]) - int(score[1]))
+    except (ValueError, IndexError, AttributeError):
+        return 2
+
+
+def _extract_signed_margin(scenario) -> int:
+    """Extract signed margin: positive = home (fav) wins, negative = away (dog) wins.
+
+    Used by RL Away v3 to distinguish dog wins from fav blowouts.
+    Score format is always "winner_runs-loser_runs" (winner first).
+    Returns +2 (neutral) if parsing fails or scenario is None.
+    """
+    if scenario is None:
+        return 2
+    try:
+        score = scenario.predicted_score.replace("-", " ").split()
+        margin = abs(int(score[0]) - int(score[1]))
+        if scenario.predicted_winner == "away":
+            return -margin  # dog wins → negative
+        return margin  # home wins → positive
+    except (ValueError, IndexError, AttributeError):
+        return 2

@@ -180,5 +180,117 @@
     "lon": 20.9671,
     "unit": "C",
     "nbm": false
+  },
+  "new-york-city": {
+    "name": "New York City",
+    "lat": 40.7772,
+    "lon": -73.8726,
+    "unit": "F",
+    "nbm": true
+  },
+  "dc": {
+    "name": "Washington DC",
+    "lat": 38.8521,
+    "lon": -77.0377,
+    "unit": "F",
+    "nbm": true
+  },
+  "phoenix": {
+    "name": "Phoenix",
+    "lat": 33.4373,
+    "lon": -112.008,
+    "unit": "F",
+    "nbm": true
+  },
+  "mexico-city": {
+    "name": "Mexico City",
+    "lat": 19.4363,
+    "lon": -99.0721,
+    "unit": "C",
+    "nbm": false
+  },
+  "istanbul": {
+    "name": "Istanbul",
+    "lat": 41.2752,
+    "lon": 28.7519,
+    "unit": "C",
+    "nbm": false
+  },
+  "dubai": {
+    "name": "Dubai",
+    "lat": 25.2532,
+    "lon": 55.3657,
+    "unit": "C",
+    "nbm": false
+  },
+  "moscow": {
+    "name": "Moscow",
+    "lat": 55.9728,
+    "lon": 37.4146,
+    "unit": "C",
+    "nbm": false
+  },
+  "milan": {
+    "name": "Milan",
+    "lat": 45.6306,
+    "lon": 8.7281,
+    "unit": "C",
+    "nbm": false
+  },
+  "munich": {
+    "name": "Munich",
+    "lat": 48.3537,
+    "lon": 11.786,
+    "unit": "C",
+    "nbm": false
+  },
+  "ankara": {
+    "name": "Ankara",
+    "lat": 40.1281,
+    "lon": 32.9951,
+    "unit": "C",
+    "nbm": false
+  },
+  "wellington": {
+    "name": "Wellington",
+    "lat": -41.3272,
+    "lon": 174.805,
+    "unit": "C",
+    "nbm": false
+  },
+  "shenzhen": {
+    "name": "Shenzhen",
+    "lat": 22.6393,
+    "lon": 113.81,
+    "unit": "C",
+    "nbm": false
+  },
+  "chengdu": {
+    "name": "Chengdu",
+    "lat": 30.5785,
+    "lon": 103.947,
+    "unit": "C",
+    "nbm": false
+  },
+  "chongqing": {
+    "name": "Chongqing",
+    "lat": 29.7219,
+    "lon": 106.642,
+    "unit": "C",
+    "nbm": false
+  },
+  "wuhan": {
+    "name": "Wuhan",
+    "lat": 30.7838,
+    "lon": 114.208,
+    "unit": "C",
+    "nbm": false
+  },
+  "lucknow": {
+    "name": "Lucknow",
+    "lat": 26.7606,
+    "lon": 80.8893,
+    "unit": "C",
+    "nbm": false
   }
 }

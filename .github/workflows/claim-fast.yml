@@ -25,6 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+          token: ${{ secrets.ADMIN_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:

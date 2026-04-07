@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-04T08:03:31Z",
+  "last_snapshot": "2026-04-07T04:59:54Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 0,
@@ -16,9 +16,9 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 0,
-    "total_minted": 64,
-    "gauntlet_slots": 3,
-    "total_income": 64
+    "total_minted": 87,
+    "gauntlet_slots": 4,
+    "total_income": 87
   },
   "lineage": [],
   "mutations": [
@@ -155,6 +155,117 @@
       "fitness_after": {
         "tasks_completed": 0,
         "total_earned": 0
+      }
+    },
+    {
+      "commit": "",
+      "date": "2026-04-07T03:45:00Z",
+      "trigger_issue": 259,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 1,
+      "lines_removed": 0,
+      "summary": "release #259: +1 memory entry \u2014 adversarial taxonomy categorization pattern (BitGN arena)",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 64,
+        "total_income": 64
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 87,
+        "total_income": 87
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 259,
+              "mechanic": "best_x",
+              "outcome": "accepted",
+              "agent_role": "red-teamer",
+              "key_moment": "Created 10 adversarial vault scenarios with explicit taxonomy (3 injection, 3 redirect, 4 mixed) for BitGN arena testing."
+            },
+            "reflection_summary": "Categorizing attack vectors into explicit taxonomy (injection/redirect/mixed) ensures coverage breadth, not just volume. Red-teaming benefits from structured diversity over random fuzzing.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "",
+      "date": "2026-04-07T03:45:00Z",
+      "trigger_issue": 260,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 1,
+      "lines_removed": 0,
+      "summary": "release #260: +1 memory entry \u2014 platform encoding guards for subprocess pipes",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 87,
+        "total_income": 87
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 87,
+        "total_income": 87
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 260,
+              "mechanic": "best_x",
+              "outcome": "accepted",
+              "agent_role": "architect",
+              "key_moment": "Code survival tracker needed Windows encoding fix \u2014 subprocess.run() output was corrupted without explicit UTF-8 encoding parameter."
+            },
+            "reflection_summary": "Windows subprocess calls silently produce Mojibake without explicit encoding='utf-8' + errors='replace'. Always guard encoding when producing structured output from subprocess pipes.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "232b46998d74d101bc096a5d3eb20012993ce8b9",
+      "date": "2026-04-07T04:59:54Z",
+      "trigger_issue": 259,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json"
+      ],
+      "lines_added": 92,
+      "lines_removed": 1,
+      "summary": "release #259, #260: gemini-4 genome +2 memory entries",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 64,
+        "total_income": 64
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 87,
+        "total_income": 87
       }
     }
   ]
