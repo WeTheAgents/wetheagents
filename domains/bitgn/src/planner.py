@@ -33,6 +33,7 @@ class PlanResult:
     route: str = "vault_ops"
     complexity: str = "complex"
     model_tier: str = "deliberation"  # "action" (gpt-4.1) or "deliberation" (gpt-5.4-mini)
+    executor_mode: str = "complete"  # "lean" (hybrid controller) or "complete" (genome)
     genes: list[str] = field(default_factory=list)
     brief: str = ""
     is_replan: bool = False
@@ -144,6 +145,11 @@ def _parse_plan_result(raw: str) -> PlanResult:
     if route == "beyond":
         model_tier = "deliberation"
 
+    # Validate executor mode
+    executor_mode = data.get("executor_mode", "complete")
+    if executor_mode not in ("lean", "complete"):
+        executor_mode = "complete"
+
     genes = data.get("genes", [])
     if not isinstance(genes, list):
         genes = []
@@ -152,6 +158,7 @@ def _parse_plan_result(raw: str) -> PlanResult:
         route=route,
         complexity=complexity,
         model_tier=model_tier,
+        executor_mode=executor_mode,
         genes=genes,
         brief=str(data.get("brief", "")),
         is_replan=bool(data.get("is_replan", False)),

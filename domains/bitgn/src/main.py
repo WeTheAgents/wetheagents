@@ -317,6 +317,30 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
             config.defense_mode = "soft_block"  # hard blocks data entirely; soft_block shows with warning
             config.step_validator = True
             i += 1
+        elif args[i] == "--hybrid":
+            config.hybrid = True
+            config.warmup = True
+            config.enrichment = True
+            config.defense_mode = "soft_block"
+            config.step_validator = True
+            i += 1
+        elif args[i] == "--phase-length" and i + 1 < len(args):
+            config.hybrid_phase_length = int(args[i + 1])
+            i += 2
+        elif args[i] == "--executor-model" and i + 1 < len(args):
+            config.hybrid_executor_model = args[i + 1]
+            i += 2
+        elif args[i] == "--controller-model" and i + 1 < len(args):
+            config.hybrid_controller_model = args[i + 1]
+            i += 2
+        elif args[i] == "--dual":
+            config.use_genome = True
+            config.dual_executor = True
+            config.warmup = True
+            config.enrichment = True
+            config.defense_mode = "soft_block"
+            config.step_validator = True
+            i += 1
         elif args[i] == "--all-features":
             config.warmup = True
             config.compress_history = True

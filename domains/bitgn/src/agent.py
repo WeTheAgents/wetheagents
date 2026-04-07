@@ -89,6 +89,9 @@ def _prepare_agent(
     system_prompt_override: str | None,
     config: AgentConfig,
     use_tree: bool = False,
+    plan_result: "PlanResult | None" = None,
+    pre_warmup_context: str | None = None,
+    pre_trust_chain: set[str] | None = None,
 ) -> tuple[str, Dispatcher, AgentContext, "RouteResult | None"]:
     """Common setup for both Anthropic and OpenAI agent loops.
 
@@ -100,8 +103,12 @@ def _prepare_agent(
     warmup_context = None
     route_result: RouteResult | None = None
 
-    # Warmup: pre-load vault outline + AGENTS.MD
-    if config.warmup:
+    # Warmup: use pre-computed or run fresh
+    if pre_warmup_context is not None:
+        warmup_context = pre_warmup_context
+        ctx.trust_chain = pre_trust_chain or set()
+        print(f"  {CLI_BLUE}Warmup: using pre-computed context{CLI_CLR}")
+    elif config.warmup:
         warmup_text, trust_chain = warmup_vault(
             dispatcher, read_agents_md=config.warmup_read_agents_md,
             use_tree=use_tree,
@@ -111,9 +118,7 @@ def _prepare_agent(
         print(f"  {CLI_BLUE}Warmup: outline + {len(trust_chain)} trust chain files{CLI_CLR}")
 
     # --- Genome mode: full Planner agent ---
-    plan_result = None
-    if config.use_genome:
-        from src.genome import assemble_prompt as genome_assemble, load_genome
+    if plan_result is None and config.use_genome:
         from src.planner import run_planner
 
         plan_result = run_planner(
@@ -121,6 +126,8 @@ def _prepare_agent(
             warmup_context=warmup_context,
             model=config.planner_model,
         )
+    if config.use_genome and plan_result is not None:
+        from src.genome import assemble_prompt as genome_assemble, load_genome
         # Select execution model based on planner's model_tier
         if plan_result.model_tier == "action":
             exec_model = config.action_model
@@ -196,6 +203,109 @@ def _prepare_agent(
         dispatcher = enriched_dispatcher(dispatcher, ctx, config)
 
     return system_prompt, dispatcher, ctx, route_result, plan_result
+
+
+def run_agent(
+    provider,
+    provider_name: str,
+    dispatcher: Dispatcher,
+    task_text: str,
+    config: AgentConfig | None = None,
+    system_prompt_override: str | None = None,
+    tool_models: dict[str, type] | None = None,
+    completion_cls: type | None = None,
+) -> TaskTrace:
+    """Unified entry point — planner decides lean vs complete executor.
+
+    Only active when config.dual_executor=True and config.use_genome=True.
+    Otherwise falls through to the standard executor path.
+    """
+    config = config or DEFAULT_CONFIG
+
+    if not (config.use_genome and config.dual_executor):
+        # Non-dual path: direct to standard executor
+        if provider_name == "anthropic":
+            return run_agent_anthropic(
+                provider, dispatcher, task_text,
+                system_prompt_override=system_prompt_override,
+                config=config,
+                tool_models=tool_models,
+                completion_cls=completion_cls,
+            )
+        else:
+            return run_agent_openai(
+                provider, dispatcher, task_text,
+                system_prompt_override=system_prompt_override,
+                config=config,
+                tool_models=tool_models,
+                completion_cls=completion_cls,
+            )
+
+    # --- Dual executor: planner decides lean vs complete ---
+    from src.planner import run_planner
+
+    use_tree = tool_models is not None and "tree" in tool_models
+
+    # Single warmup for both planner and executor
+    warmup_context = None
+    trust_chain: set[str] = set()
+    if config.warmup:
+        warmup_text, trust_chain = warmup_vault(
+            dispatcher, read_agents_md=config.warmup_read_agents_md,
+            use_tree=use_tree,
+        )
+        warmup_context = warmup_text
+        print(f"  {CLI_BLUE}Warmup: outline + {len(trust_chain)} trust chain files{CLI_CLR}")
+
+    # Single planner call
+    plan_result = run_planner(
+        task_text,
+        warmup_context=warmup_context,
+        model=config.planner_model,
+    )
+
+    executor_mode = plan_result.executor_mode
+    print(
+        f"  {CLI_BLUE}Planner: {plan_result.route} "
+        f"({plan_result.complexity}, {plan_result.model_tier}, "
+        f"mode={executor_mode}) — {plan_result.brief[:60]}{CLI_CLR}"
+    )
+
+    if executor_mode == "lean":
+        from src.agent_hybrid import run_agent_hybrid_openai
+        print(f"  {CLI_BLUE}→ LEAN executor (hybrid controller-executor){CLI_CLR}")
+        trace = run_agent_hybrid_openai(
+            provider, dispatcher, task_text,
+            config=config,
+            warmup_context=warmup_context,
+            trust_chain=trust_chain,
+        )
+        trace.executor_mode = "lean"
+        trace.planner_trace = plan_result.planner_trace
+        return trace
+    else:
+        print(f"  {CLI_BLUE}→ COMPLETE executor (genome mode){CLI_CLR}")
+        if provider_name == "anthropic":
+            trace = run_agent_anthropic(
+                provider, dispatcher, task_text,
+                system_prompt_override=system_prompt_override,
+                config=config,
+                tool_models=tool_models,
+                completion_cls=completion_cls,
+            )
+        else:
+            trace = run_agent_openai(
+                provider, dispatcher, task_text,
+                system_prompt_override=system_prompt_override,
+                config=config,
+                tool_models=tool_models,
+                completion_cls=completion_cls,
+                plan_result=plan_result,
+                pre_warmup_context=warmup_context,
+                pre_trust_chain=trust_chain,
+            )
+        trace.executor_mode = "complete"
+        return trace
 
 
 def run_agent_anthropic(
@@ -446,6 +556,9 @@ def run_agent_openai(
     config: AgentConfig | None = None,
     tool_models: dict[str, type] | None = None,
     completion_cls: type | None = None,
+    plan_result=None,
+    pre_warmup_context: str | None = None,
+    pre_trust_chain: set[str] | None = None,
 ) -> TaskTrace:
     """Run agent loop using OpenAI native function calling (tools API)."""
     config = config or DEFAULT_CONFIG
@@ -470,6 +583,9 @@ def run_agent_openai(
     system_prompt, dispatcher, ctx, route_result, plan_result = _prepare_agent(
         dispatcher, task_text, system_prompt_override, config,
         use_tree=use_tree,
+        plan_result=plan_result,
+        pre_warmup_context=pre_warmup_context,
+        pre_trust_chain=pre_trust_chain,
     )
     trace = TaskTrace(task_id="", instruction=task_text)
 

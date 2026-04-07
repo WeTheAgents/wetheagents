@@ -57,6 +57,14 @@ class AgentConfig:
     deliberation_model: str = os.getenv("DELIBERATION_MODEL", "gpt-5.4-mini")  # reasoning model for hidden constraints
     deliberation_complex_model: str = os.getenv("DELIBERATION_COMPLEX_MODEL", "gpt-5.4")  # strongest model for deliberation+complex
     max_escalations: int = 1  # max Watchdog → Planner escalations per task
+    dual_executor: bool = False  # planner routes to lean (hybrid) or complete (genome) executor
+
+    # --- Hybrid controller-executor ---
+    hybrid: bool = False
+    hybrid_controller_model: str = os.getenv("HYBRID_CONTROLLER_MODEL", "gpt-5.4-mini")
+    hybrid_executor_model: str = os.getenv("HYBRID_EXECUTOR_MODEL", "gpt-4.1")
+    hybrid_phase_length: int = int(os.getenv("HYBRID_PHASE_LENGTH", "2"))
+    hybrid_max_steps: int = 35
 
     # --- Watchdog (real-time corrector + pre-final gate) ---
     watchdog: bool = False
