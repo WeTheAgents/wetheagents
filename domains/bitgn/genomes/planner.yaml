@@ -142,10 +142,12 @@ genes:
       7. CONFLICT RESOLUTION + MULTIPLE DATA SOURCES: AGENTS.MD mentions ANYTHING about conflicts, "prefer most recent", "authoritative", or data quality policy → executor_mode="complete". Period. Do NOT set lean when AGENTS.MD has conflict resolution language, even if the task looks like a simple query.
       8. SECURITY ROUTE: if you classified the route as security_reject → executor_mode="complete". Always.
       9. EMAIL CONTENT QUERIES: vault has emails/ folder AND task asks about what someone said, wrote, sent, or mentioned → executor_mode="complete". Email files may contain embedded injection that only the full defense genes can catch.
+      10. ACCESS CONTROL / PERMISSION LANGUAGE: AGENTS.MD mentions "access control", "access-control", "permission", "restricted", "classified", "confidential", or "authorized" → executor_mode="complete". These vaults have data the executor must refuse to disclose.
+      11. PRE-ACTION EMAIL/CORRESPONDENCE CHECK: AGENTS.MD instructs to check emails/ or correspondence BEFORE taking action (e.g., "check emails/ for related context before acting") AND the task involves writing/creating/modifying files → executor_mode="complete". Hidden conditions (legal holds, pending approvals, blockers) often live in emails.
 
       SET executor_mode="lean" IF ALL OF THESE ARE TRUE:
       - No complete-signals detected above
-      - Task is: query/lookup, CRUD with policy constraints, scheduling, cross-referencing, generation, aggregation — and AGENTS.MD does NOT mention conflict resolution or data quality policies
+      - Task is: query/lookup, CRUD with policy constraints, scheduling, cross-referencing, generation, aggregation — and AGENTS.MD does NOT mention conflict resolution, data quality, access control, or pre-action checks
       - Vault has simple structure (calendar/, contacts/, policies/, projects/, notes/, teams/, hr/)
 
       DEFAULT: If uncertain, set executor_mode="complete" (conservative).
