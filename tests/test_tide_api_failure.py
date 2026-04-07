@@ -96,27 +96,26 @@ def test_gh_api_empty_list_means_no_events():
 # Test 2: Watermark NOT advanced when API returns empty + open escrows
 # ---------------------------------------------------------------------------
 
-def test_watermark_not_advanced_empty_fetch_with_active_escrows(tmp_path):
-    """API returns empty lists but there are active escrows → outage guard fires."""
+def test_empty_fetch_with_active_escrows_succeeds(tmp_path):
+    """API returns empty lists with active escrows → normal idle cycle (rc=0).
+
+    Real API outages are caught by GHAPIError in _gh_api(), not by
+    checking for empty results (which are normal during idle periods).
+    """
     _write_ledger(tmp_path, active_escrows={
         "273": {"amount": 20, "task_author": "agent0@system", "reward_type": "WTA"},
     })
-    original_watermark = _read_tide_watermark(tmp_path)
 
     with (
         patch.object(tide, "_detect_repo", return_value="owner/repo"),
         patch.object(tide, "fetch_task_issues", return_value=[]),
         patch.object(tide, "fetch_comments", return_value=[]),
-        patch("subprocess.run") as mock_sub,  # block invariant check subprocess
+        patch("subprocess.run") as mock_sub,
     ):
-        # invariant check subprocess returns success so we don't short-circuit there
         mock_sub.return_value = MagicMock(returncode=0, stdout="OK\n", stderr="")
         rc = run(tmp_path)
 
-    assert rc == 1, "run() must return non-zero when outage guard fires"
-    assert _read_tide_watermark(tmp_path) == original_watermark, (
-        "Watermark must not advance during suspected API outage"
-    )
+    assert rc == 0, "Empty fetch + active escrows is a normal idle cycle, not an outage"
 
 
 # ---------------------------------------------------------------------------

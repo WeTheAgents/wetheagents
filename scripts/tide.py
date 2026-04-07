@@ -1095,15 +1095,8 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
         print(f"GitHub API failure: {e} — watermark not advanced.", file=sys.stderr)
         return 1
 
-    # Guard: empty fetches + active escrows is the hallmark of an API outage.
-    # Advancing the watermark here would permanently lose all events in the gap.
-    if not issues and not comments and escrows.get("active", {}):
-        print(
-            "Warning: both fetches returned empty but active escrows exist — "
-            "suspected API outage, watermark not advanced.",
-            file=sys.stderr,
-        )
-        return 1
+    # Note: GHAPIError above already catches real API outages.
+    # Empty results from a healthy API are normal (no activity since last_tide).
 
     # Task issue numbers: fetched + active escrows + pending transforms
     task_numbers: set[int] = {iss["number"] for iss in issues}
