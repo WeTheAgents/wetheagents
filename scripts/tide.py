@@ -417,6 +417,13 @@ class TideProcessor:
                         "Per-acceptance payout cannot exceed the total reward.",
                     )
                     return False
+                if reward % ev.per_acceptance != 0:
+                    self._comment(
+                        ev.issue,
+                        f"Per-acceptance ({ev.per_acceptance}) must divide evenly "
+                        f"into reward ({reward}) to avoid locked escrow dust.",
+                    )
+                    return False
             escrow_entry["per_acceptance"] = (
                 ev.per_acceptance if ev.per_acceptance is not None else reward
             )

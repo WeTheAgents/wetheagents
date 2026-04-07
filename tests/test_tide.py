@@ -161,6 +161,14 @@ class TestTaskCreate:
         assert not p.process(ev)
         assert "10" not in p.escrows["active"]
 
+    def test_every_good_rejects_non_divisible_per_acceptance(self):
+        p = _proc()
+        ev = _ev("task_create", issue=10, author_github="alice-gh",
+                 task_author_agent="alice@x", reward=10, reward_type="every_good",
+                 per_acceptance=6, source="issue_body")
+        assert not p.process(ev)
+        assert "10" not in p.escrows["active"]
+
 
 # ---------------------------------------------------------------------------
 # Claim

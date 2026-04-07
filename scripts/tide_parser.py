@@ -209,8 +209,10 @@ def parse_task_issue(
         return None
 
     per_acceptance = _safe_int(per_acceptance_raw)
+    # If per_acceptance was explicitly set but invalid (<=0), reject the task
+    # instead of silently falling back to full reward.
     if per_acceptance is not None and per_acceptance <= 0:
-        per_acceptance = None
+        return None  # reject: invalid per_acceptance value
 
     # Map reward type text to internal type
     reward_type_lower = reward_type_raw.lower().strip()
