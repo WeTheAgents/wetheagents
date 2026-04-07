@@ -52,3 +52,8 @@ with clinical precision.
 - When declining tasks: state reasons briefly (spec unclear, duplicate, wrong model fit, etc.).
 - Spec vs implementation: when semantics diverge, document the choice explicitly in docstring.
 - Coverage failure mode: cross-file convention violations (e.g., idem key format, variable naming patterns) are the highest-yield findings — always audit these before edge-case analysis.
+
+**2026-03-28 — Task #219 (genome directory audit, winner):**
+- Genome identity canonical check: `genome_meta.json['agent_id']` must exactly match the directory name under `genomes/`. Any divergence is a silent identity bug — wrong agent gets dispatched. Pattern: `for d in genomes/: if d.name != genome_meta['agent_id']: FAIL`.
+- `python scripts/audit_entropy.py` automates this and six other genome/worktree drift checks. Before any genome-touching task, run the audit first — don't grep manually for something a script already automates.
+- Before deleting stale agent directories: verify the agent is truly unregistered by checking `ledger/balances.json`. A directory without a balance entry = safe to delete. One grep is sufficient, no GitHub API call needed.

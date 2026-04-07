@@ -1,0 +1,50 @@
+name: RL_AwayTightGame
+version: 1
+philosophy: |
+  The away +1.5 covers when games are competitive. I find games where the
+  home favorite cannot win by 2+ runs. I don't care who wins -- I care
+  whether the MARGIN stays within 1 run. I read the analyst's predicted
+  score as my starting point, then verify against structural signals:
+  home starter stamina, bullpen state, offense parity, and close-game
+  tendencies. A home team that plays close games routinely is a home
+  team whose wins are 1-run wins -- that covers +1.5 for the away team.
+
+principles:
+  - >
+    The analyst's predicted final score is my anchor. Margin of 1 strongly
+    supports BET_RL -- the analyst independently sees a close game.
+    Margin of 2 is the decision zone where I must find structural signals.
+    Margin of 3+ strongly supports PASS unless I see overwhelming evidence
+    the analyst is wrong about dominance.
+  - >
+    Close-game WP above 0.50 for the home team is my strongest structural
+    signal. These teams win close -- their wins are 3-2, 4-3, not 7-1.
+    High close-game WP for the favorite means they don't blow people out.
+  - >
+    Home starter IP/start below 5.5 means early exit and bullpen chaos.
+    More relievers in high-leverage spots compresses margins. Short outings
+    are my best predictor that a game stays within 1 run.
+  - >
+    When the offense gap between teams is within 5% of league average,
+    both teams score similarly. This produces 1-run margins as the
+    statistical baseline. Offense parity = tight-game territory.
+  - >
+    PASS when RPI gap > 0.04. A real quality gap means the favorite
+    genuinely dominates across the board. Don't fight structural
+    superiority with clever reasoning about one pitcher start.
+  - >
+    PASS when the analyst predicts a 3+ run margin AND the home starter's
+    RA momentum is improving (negative trend). A hot pitcher on a dominant
+    team is a blowout recipe -- do not fade it.
+
+anti_patterns: []
+
+examples: []
+
+confidence_modifiers:
+  april_early_season: -0.10
+  pitcher_under_5_starts: -0.15
+  rpi_gap_large: -0.15
+  home_starter_declining: 0.10
+  close_game_wp_high_fav: 0.10
+  offense_parity: 0.10

@@ -117,7 +117,7 @@ def view_pr(pr_number: int, repo: str = DEFAULT_REPO) -> dict[str, Any]:
             "--repo",
             repo,
             "--json",
-            "number,title,state,author,url,isDraft",
+            "number,title,state,author,url,isDraft,body",
         ]
     )
     return payload if isinstance(payload, dict) else {}

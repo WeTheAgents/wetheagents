@@ -1,0 +1,1 @@
+Map out all the redirect links starting from docs/A.md and save the visited path list to `path.json`.

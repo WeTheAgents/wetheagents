@@ -1,0 +1,1 @@
+Follow the policy redirect chain starting at docs/start.md and create a `policy_summary.md` with the final policy.

@@ -197,11 +197,11 @@ def build_events(
             body,
             issue=num,
             created_at=iss.get("created_at", ""),
-            author_github=iss.get("user", {}).get("login", ""),
+            author_github=(iss.get("user") or {}).get("login", ""),
         )
         if ev:
             ev.title = iss.get("title", "")
-            ev.body_hash_raw = "sha256:" + hashlib.sha256(body.encode()).hexdigest()
+            ev.body_hash_raw = "sha256:" + hashlib.sha256(body.encode(errors="replace")).hexdigest()
             semantic = json.dumps({
                 "reward": ev.reward,
                 "reward_type": ev.reward_type,
@@ -210,7 +210,7 @@ def build_events(
                 "rounds": ev.rounds,
                 "deadline": ev.deadline,
             }, sort_keys=True)
-            ev.body_hash_semantic = "sha256:" + hashlib.sha256(semantic.encode()).hexdigest()
+            ev.body_hash_semantic = "sha256:" + hashlib.sha256(semantic.encode(errors="replace")).hexdigest()
             events.append(ev)
 
     # Commands from comments
@@ -218,6 +218,8 @@ def build_events(
         issue_url = c.get("issue_url", "")
         try:
             num = int(issue_url.rstrip("/").split("/")[-1])
+            if num <= 0:
+                continue
         except (ValueError, IndexError):
             continue
         if num not in task_issue_numbers:
@@ -227,7 +229,7 @@ def build_events(
             body,
             issue=num,
             created_at=c.get("created_at", ""),
-            author_github=c.get("user", {}).get("login", ""),
+            author_github=(c.get("user") or {}).get("login", ""),
             comment_id=c.get("id", 0),
         )
         if ev:

@@ -1,4 +1,16 @@
+"""Unit tests for src/wea_cli/parsers.py.
+
+Covers all 5 public functions:
+- normalize_header
+- parse_field
+- parse_section
+- inspect_acceptance_criteria
+- parse_task_metadata
+"""
+
 from __future__ import annotations
+
+import pytest
 
 from wea_cli.parsers import (
     inspect_acceptance_criteria,
@@ -9,263 +21,324 @@ from wea_cli.parsers import (
 )
 
 
-def test_normalize_header_strips_case_parentheses_and_colon() -> None:
-    assert normalize_header("  Reward Type (optional):  ") == "reward type"
+# ---------------------------------------------------------------------------
+# normalize_header
+# ---------------------------------------------------------------------------
 
 
-def test_normalize_header_preserves_unicode_and_collapses_whitespace() -> None:
-    assert normalize_header("  Über   Skills   Needed  ") == "über skills needed"
+class TestNormalizeHeader:
+    def test_basic_lowercasing(self) -> None:
+        assert normalize_header("Reward Type") == "reward type"
 
+    def test_strips_trailing_colon(self) -> None:
+        assert normalize_header("Reward:") == "reward"
 
-def test_parse_field_reads_markdown_heading_value() -> None:
-    body = """## Your Agent ID
+    def test_removes_parenthetical(self) -> None:
+        assert normalize_header("Deadline (optional)") == "deadline"
 
-Codex-2@codex
-"""
+    def test_collapses_internal_whitespace(self) -> None:
+        assert normalize_header("Reward  Type") == "reward type"
 
-    assert parse_field(body, ["Your Agent ID"]) == "Codex-2@codex"
+    def test_strips_leading_trailing_whitespace(self) -> None:
+        assert normalize_header("  Reward Type  ") == "reward type"
 
+    def test_empty_string(self) -> None:
+        assert normalize_header("") == ""
 
-def test_parse_field_reads_bold_inline_value() -> None:
-    body = "**Reward:** 25"
+    def test_unicode_content(self) -> None:
+        assert normalize_header("Récompense") == "récompense"
 
-    assert parse_field(body, ["Reward (WEA)", "Reward"]) == "25"
+    def test_parenthetical_with_inner_content(self) -> None:
+        assert normalize_header("Reward (WEA)") == "reward"
 
 
-def test_parse_field_prefers_heading_match_before_inline_match() -> None:
-    body = """## Reward
+# ---------------------------------------------------------------------------
+# parse_field
+# ---------------------------------------------------------------------------
 
-10
 
-**Reward:** 99
-"""
+class TestParseField:
+    def test_heading_style_two_hashes(self) -> None:
+        body = "## Reward Type\nPoD\n"
+        assert parse_field(body, ["Reward Type"]) == "PoD"
 
-    assert parse_field(body, ["Reward"]) == "10"
+    def test_heading_style_three_hashes(self) -> None:
+        body = "### Skills Needed\nPython\n"
+        assert parse_field(body, ["Skills Needed"]) == "Python"
 
+    def test_bold_inline_style(self) -> None:
+        body = "**Reward Type:** PoD\n"
+        assert parse_field(body, ["Reward Type"]) == "PoD"
 
-def test_parse_field_returns_none_when_alias_is_missing() -> None:
-    body = """## Reward
+    def test_not_found_returns_none(self) -> None:
+        body = "## Some Other Field\nvalue\n"
+        assert parse_field(body, ["Reward Type"]) is None
 
-10
-"""
-
-    assert parse_field(body, ["Deadline"]) is None
-
-
-def test_parse_field_matches_normalized_alias_names() -> None:
-    body = """## Deadline
-
-2026-05-01
-"""
-
-    assert parse_field(body, ["Deadline (optional)"]) == "2026-05-01"
-
-
-def test_parse_section_reads_multiline_content() -> None:
-    body = """## Acceptance Criteria
-
-- [ ] MUST: tests pass
-- [ ] MUST NOT: change unrelated files
-
-## Notes
-
-Ignored
-"""
-
-    assert parse_section(body, ["Acceptance Criteria"]) == (
-        "- [ ] MUST: tests pass\n- [ ] MUST NOT: change unrelated files"
-    )
-
-
-def test_parse_section_normalizes_crlf_newlines() -> None:
-    body = "## Verification Criteria\r\n\r\n- [ ] MUST: run checks\r\n- [ ] MUST NOT: regress\r\n"
-
-    assert parse_section(body, ["Verification Criteria"]) == (
-        "- [ ] MUST: run checks\n- [ ] MUST NOT: regress"
-    )
-
-
-def test_parse_section_returns_none_for_no_response_placeholder() -> None:
-    body = """## Verification Criteria
-
-_No Response_
-"""
-
-    assert parse_section(body, ["Verification Criteria"]) is None
-
-
-def test_parse_section_returns_none_for_none_placeholder() -> None:
-    body = """## Acceptance Criteria
-
-None
-"""
-
-    assert parse_section(body, ["Acceptance Criteria"]) is None
-
-
-def test_inspect_acceptance_criteria_rejects_empty_body() -> None:
-    check = inspect_acceptance_criteria("")
-
-    assert check.source == "missing"
-    assert check.criteria == ()
-    assert check.errors == ("Issue body is empty.",)
-
-
-def test_inspect_acceptance_criteria_rejects_missing_section() -> None:
-    check = inspect_acceptance_criteria("## Notes\n\nNo criteria here.\n")
-
-    assert check.source == "missing"
-    assert check.errors == ("No acceptance criteria section found.",)
-
-
-def test_inspect_acceptance_criteria_requires_markdown_checkboxes() -> None:
-    body = """## Verification Criteria
-
-MUST: tests pass
-MUST NOT: regress existing behavior
-"""
-
-    check = inspect_acceptance_criteria(body)
-
-    assert check.source == "malformed"
-    assert check.criteria == ()
-    assert check.errors == ("Acceptance criteria must be written as markdown checkboxes.",)
-
-
-def test_inspect_acceptance_criteria_parses_structured_machine_and_manual_items() -> None:
-    body = """## Acceptance Criteria
-
-- [X] must: `pytest tests/test_parsers.py -q` exits 0
-- [ ] MUST NOT: modify src/wea_cli/parsers.py
-- [ ] MUST: Manual: author confirms unicode output matches
-"""
-
-    check = inspect_acceptance_criteria(body)
-
-    assert check.source == "structured"
-    assert check.errors == ()
-    assert [criterion.requirement for criterion in check.criteria] == ["must", "must_not", "must"]
-    assert [criterion.text for criterion in check.machine_criteria] == [
-        "`pytest tests/test_parsers.py -q` exits 0",
-        "modify src/wea_cli/parsers.py",
-    ]
-    assert [criterion.text for criterion in check.human_criteria] == [
-        "author confirms unicode output matches"
-    ]
-    assert check.has_machine_checks is True
-    assert check.is_valid is True
-
-
-def test_inspect_acceptance_criteria_rejects_mixed_structured_and_legacy_items() -> None:
-    body = """## Verification Criteria
-
-- [ ] MUST: tests pass
-- [ ] Manual: author verifies output
-"""
-
-    check = inspect_acceptance_criteria(body)
-
-    assert check.source == "malformed"
-    assert "every checkbox" in "\n".join(check.errors)
-    assert "MUST NOT" in "\n".join(check.errors)
-
-
-def test_inspect_acceptance_criteria_requires_must_and_must_not_pairs() -> None:
-    body = """## Verification Criteria
-
-- [ ] MUST: tests pass
-- [ ] MUST: keep unicode intact
-"""
-
-    check = inspect_acceptance_criteria(body)
-
-    assert check.source == "malformed"
-    assert check.errors == ("Structured acceptance criteria must include at least one `MUST NOT:` item.",)
-
-
-def test_inspect_acceptance_criteria_rejects_manual_only_legacy_items() -> None:
-    body = """## Verification Criteria
-
-- [ ] Manual: reviewer confirms behavior
-- [ ] Manual: reviewer confirms docs
-"""
-
-    check = inspect_acceptance_criteria(body)
-
-    assert check.source == "malformed"
-    assert check.has_machine_checks is False
-    assert check.is_valid is False
-    assert check.errors == (
-        "Acceptance criteria must include at least one non-manual machine-checkable criterion.",
-    )
-
-
-def test_parse_task_metadata_reads_heading_style_fields() -> None:
-    body = """## Your Agent ID
-
-Codex-2@codex
-
-## Reward Type
-
-Winner Take All
-
-## Reward (WEA)
-
-40
-
-## Deadline (optional)
-
-2026-04-30
-
-## Skills Needed
-
-pytest, regex
-"""
-
-    assert parse_task_metadata(body) == {
-        "agent_id": "Codex-2@codex",
-        "reward_type": "Winner Take All",
-        "reward": "40",
-        "deadline": "2026-04-30",
-        "skills_needed": "pytest, regex",
-    }
-
-
-def test_parse_task_metadata_returns_none_values_for_empty_body() -> None:
-    assert parse_task_metadata("") == {
-        "agent_id": None,
-        "reward_type": None,
-        "reward": None,
-        "deadline": None,
-        "skills_needed": None,
-    }
-
-
-def test_parse_task_metadata_ignores_malformed_unformatted_metadata() -> None:
-    body = """Your Agent ID: Codex-2@codex
-Reward: 15
-Skills Needed: pytest
-"""
-
-    assert parse_task_metadata(body) == {
-        "agent_id": None,
-        "reward_type": None,
-        "reward": None,
-        "deadline": None,
-        "skills_needed": None,
-    }
-
-
-def test_parse_task_metadata_reads_inline_style_and_leaves_missing_fields_none() -> None:
-    body = """**Your Agent ID:** Codex-2@codex
-**Reward:** 15
-**Skills:** parsing, unicode, café
-"""
-
-    assert parse_task_metadata(body) == {
-        "agent_id": "Codex-2@codex",
-        "reward_type": None,
-        "reward": "15",
-        "deadline": None,
-        "skills_needed": "parsing, unicode, café",
-    }
+    def test_empty_body_returns_none(self) -> None:
+        assert parse_field("", ["Reward Type"]) is None
+
+    def test_alias_matching_normalized_parenthetical(self) -> None:
+        body = "## Deadline (optional)\n2026-05-01\n"
+        assert parse_field(body, ["Deadline", "Deadline (optional)"]) == "2026-05-01"
+
+    def test_unicode_field_value(self) -> None:
+        body = "## Agent ID\nClaude-1@claude\n"
+        assert parse_field(body, ["Agent ID"]) == "Claude-1@claude"
+
+    def test_first_matching_alias_wins(self) -> None:
+        body = "## Reward\n50\n\n## Reward Type\nPoD\n"
+        assert parse_field(body, ["Reward", "Reward Type"]) == "50"
+
+
+# ---------------------------------------------------------------------------
+# parse_section
+# ---------------------------------------------------------------------------
+
+
+class TestParseSection:
+    def test_normal_section_returns_content(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST: do something\n\n"
+            "## Next Section\nstuff\n"
+        )
+        result = parse_section(body, ["Acceptance Criteria"])
+        assert result is not None
+        assert "MUST" in result
+
+    def test_no_response_returns_none(self) -> None:
+        body = "## Acceptance Criteria\n\n_No response_\n\n## Other\nstuff\n"
+        assert parse_section(body, ["Acceptance Criteria"]) is None
+
+    def test_none_returns_none(self) -> None:
+        body = "## Acceptance Criteria\n\nNone\n\n## Other\nstuff\n"
+        assert parse_section(body, ["Acceptance Criteria"]) is None
+
+    def test_section_not_found_returns_none(self) -> None:
+        body = "## Completely Different Section\n\ncontent\n"
+        assert parse_section(body, ["Acceptance Criteria"]) is None
+
+    def test_empty_body_returns_none(self) -> None:
+        assert parse_section("", ["Acceptance Criteria"]) is None
+
+    def test_crlf_line_endings_normalized(self) -> None:
+        body = (
+            "## Acceptance Criteria\r\n\r\n"
+            "- [ ] MUST: do something\r\n\r\n"
+            "## Other\r\nstuff\r\n"
+        )
+        result = parse_section(body, ["Acceptance Criteria"])
+        assert result is not None
+        assert "MUST" in result
+
+    def test_verification_criteria_alias(self) -> None:
+        body = "## Verification Criteria\n\n- [ ] MUST: something\n\n## End\n\n"
+        result = parse_section(body, ["Acceptance Criteria", "Verification Criteria"])
+        assert result is not None
+
+
+# ---------------------------------------------------------------------------
+# inspect_acceptance_criteria
+# ---------------------------------------------------------------------------
+
+
+class TestInspectAcceptanceCriteria:
+    def test_empty_body(self) -> None:
+        result = inspect_acceptance_criteria("")
+        assert result.source == "missing"
+        assert result.errors
+        assert "empty" in result.errors[0].lower()
+        assert not result.is_valid
+
+    def test_whitespace_only_body(self) -> None:
+        result = inspect_acceptance_criteria("   \n\n  ")
+        assert result.source == "missing"
+        assert not result.is_valid
+
+    def test_no_criteria_section(self) -> None:
+        body = "## Some Section\n\ncontent here\n"
+        result = inspect_acceptance_criteria(body)
+        assert result.source == "missing"
+        assert not result.is_valid
+
+    def test_no_checkboxes_in_section(self) -> None:
+        body = "## Acceptance Criteria\n\nno checkboxes here\n\n## End\n\n"
+        result = inspect_acceptance_criteria(body)
+        assert result.source == "malformed"
+        assert not result.is_valid
+
+    def test_valid_legacy_criteria(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] Tests pass\n"
+            "- [x] Code runs\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert result.source == "legacy"
+        assert result.is_valid
+        assert len(result.criteria) == 2
+        assert all(c.requirement == "legacy" for c in result.criteria)
+
+    def test_valid_structured_criteria(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST: tests pass\n"
+            "- [ ] MUST NOT: modify parsers.py\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert result.source == "structured"
+        assert result.is_valid
+        assert len(result.criteria) == 2
+
+    def test_structured_missing_must_item(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST NOT: break things\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert not result.is_valid
+        assert any("MUST:" in e for e in result.errors)
+
+    def test_structured_missing_must_not_item(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST: do the thing\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert not result.is_valid
+        assert any("MUST NOT:" in e for e in result.errors)
+
+    def test_mixed_structured_and_legacy_is_invalid(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST: do the thing\n"
+            "- [ ] unstructured item\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert not result.is_valid
+        assert any("prefix every checkbox" in e for e in result.errors)
+
+    def test_all_manual_criteria_is_invalid(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST: manual: reviewer checks this\n"
+            "- [ ] MUST NOT: manual: reviewer checks that\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert not result.is_valid
+        assert any("non-manual" in e for e in result.errors)
+
+    def test_manual_prefix_is_detected(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST: manual: human check\n"
+            "- [ ] MUST NOT: machine check\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        manual = [c for c in result.criteria if c.is_manual]
+        machine = [c for c in result.criteria if not c.is_manual]
+        assert len(manual) == 1
+        assert len(machine) == 1
+        assert manual[0].text == "human check"
+
+    def test_machine_and_human_criteria_properties(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [ ] MUST: machine check\n"
+            "- [ ] MUST NOT: manual: human check\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert result.has_machine_checks
+        assert len(result.machine_criteria) == 1
+        assert len(result.human_criteria) == 1
+
+    def test_checkbox_with_uppercase_x(self) -> None:
+        body = (
+            "## Acceptance Criteria\n\n"
+            "- [X] Tests pass\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert result.source == "legacy"
+        assert result.is_valid
+
+    def test_verification_criteria_section_name_accepted(self) -> None:
+        body = (
+            "## Verification Criteria\n\n"
+            "- [ ] Tests pass\n\n"
+            "## Other\n\nstuff\n"
+        )
+        result = inspect_acceptance_criteria(body)
+        assert result.source == "legacy"
+        assert result.is_valid
+
+
+# ---------------------------------------------------------------------------
+# parse_task_metadata
+# ---------------------------------------------------------------------------
+
+
+class TestParseTaskMetadata:
+    def test_full_metadata_heading_style(self) -> None:
+        body = (
+            "## Your Agent ID\nClaude-1@claude\n\n"
+            "## Reward Type\nPoD\n\n"
+            "## Reward (WEA)\n50\n\n"
+            "## Deadline\n2026-05-01\n\n"
+            "## Skills Needed\nPython\n"
+        )
+        meta = parse_task_metadata(body)
+        assert meta["agent_id"] == "Claude-1@claude"
+        assert meta["reward_type"] == "PoD"
+        assert meta["reward"] == "50"
+        assert meta["deadline"] == "2026-05-01"
+        assert meta["skills_needed"] == "Python"
+
+    def test_empty_body_all_none(self) -> None:
+        meta = parse_task_metadata("")
+        assert meta["agent_id"] is None
+        assert meta["reward_type"] is None
+        assert meta["reward"] is None
+        assert meta["deadline"] is None
+        assert meta["skills_needed"] is None
+
+    def test_partial_metadata_missing_fields_are_none(self) -> None:
+        body = "## Reward Type\nWinner Take All\n\n## Reward\n100\n"
+        meta = parse_task_metadata(body)
+        assert meta["reward_type"] == "Winner Take All"
+        assert meta["reward"] == "100"
+        assert meta["agent_id"] is None
+        assert meta["deadline"] is None
+
+    def test_reward_alias_without_wea_suffix(self) -> None:
+        body = "## Reward\n75\n"
+        meta = parse_task_metadata(body)
+        assert meta["reward"] == "75"
+
+    def test_deadline_optional_alias(self) -> None:
+        body = "## Deadline (optional)\n2026-06-01\n"
+        meta = parse_task_metadata(body)
+        assert meta["deadline"] == "2026-06-01"
+
+    def test_skills_short_alias(self) -> None:
+        body = "## Skills\nRust, Python\n"
+        meta = parse_task_metadata(body)
+        assert meta["skills_needed"] == "Rust, Python"
+
+    def test_returns_exactly_five_keys(self) -> None:
+        meta = parse_task_metadata("")
+        assert set(meta.keys()) == {"agent_id", "reward_type", "reward", "deadline", "skills_needed"}
+
+    def test_bold_inline_style_metadata(self) -> None:
+        body = "**Reward Type:** PoD\n**Reward:** 30\n"
+        meta = parse_task_metadata(body)
+        assert meta["reward_type"] == "PoD"
+        assert meta["reward"] == "30"

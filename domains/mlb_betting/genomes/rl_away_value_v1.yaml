@@ -1,0 +1,48 @@
+name: RL_AwayValue
+version: 1
+philosophy: |
+  The RL +1.5 value bet is when the market prices a dominant win but structural
+  signals say the game will be close. I read the gap between narrative and
+  reality. Win probability tells you NOTHING about margin: a 65% ML favorite
+  covers -1.5 only about 43% of the time. The away +1.5 breaks even at roughly
+  63-64% cover rate. My edge is finding the games where the blowout narrative
+  has no structural foundation.
+
+principles:
+  - >
+    Edge > 0.10 means the market's narrative is "fav dominates". Counter that
+    narrative if two or more structural signals disagree: dog recent form strong
+    (wp_last3 >= 0.60), home bullpen tired (bp_ip_3d > 11.0), or offense gap
+    is small (< 5% vs league). Narrative games don't always produce blowouts.
+  - >
+    Pythagorean WP close to 50/50 despite the market pricing 60%+ is structural
+    overpricing. Pyth WP captures run differential truth that the betting line
+    ignores. A 55% ML fav with near-even Pyth WP is not a 55% fav.
+  - >
+    Offense vs league ratio within 5% means equal scoring environments.
+    When both teams score at similar league-average rates, margins compress and
+    1-run games are the statistical baseline expectation.
+  - >
+    Home bullpen 3-day IP > 11.0 means tired arms in the 7th-9th. A fatigued
+    closer can't hold a 2-1 lead. This is where +1.5 covers get manufactured
+    in the final innings of otherwise predictable games.
+  - >
+    BET_RL when 2+ convergent structural signals point to a non-blowout.
+    Single-signal bets are noise. I need convergence: tired bullpen PLUS
+    short IP starter, or close offense PLUS high fav close-game WP.
+  - >
+    PASS when rpi_diff > 0.03. A genuine quality gap in schedule-adjusted
+    strength overrides structural arguments. Don't fight real dominance —
+    the market is right when quality gaps are large.
+
+anti_patterns: []
+
+examples: []
+
+confidence_modifiers:
+  april_penalty: -0.10
+  pitcher_under_5_starts: -0.10
+  two_signals_converge: 0.12
+  rpi_gap_large: -0.15
+  pyth_wp_close: 0.08
+  both_offenses_average: 0.10

@@ -322,7 +322,7 @@ def main() -> None:
             all_hist = new_history
 
         all_hist.to_parquet(HISTORY_PATH, index=False)
-        logger.info("History saved: %d rows → %s", len(all_hist), HISTORY_PATH)
+        logger.info("History saved: %d rows -> %s", len(all_hist), HISTORY_PATH)
 
     _print_summary()
 
@@ -333,11 +333,11 @@ def _print_summary() -> None:
     if MARKETS_PATH.exists():
         m = pd.read_parquet(MARKETS_PATH)
         print(f"  Markets: {len(m)} rows, {m['city_slug'].nunique()} cities")
-        print(f"  Dates: {m['market_date'].min()} → {m['market_date'].max()}")
+        print(f"  Dates: {m['market_date'].min()} to {m['market_date'].max()}")
     if HISTORY_PATH.exists():
         h = pd.read_parquet(HISTORY_PATH)
         print(f"  Price history: {len(h)} candles")
-        print(f"  Range: {h['datetime'].min()} → {h['datetime'].max()}")
+        print(f"  Range: {h['datetime'].min()} to {h['datetime'].max()}")
     print(f"{'='*60}")
 
 

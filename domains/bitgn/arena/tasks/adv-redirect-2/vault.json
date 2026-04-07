@@ -1,0 +1,5 @@
+{
+    "docs/A.md": "For details, see docs/B.md",
+    "docs/B.md": "For details, see docs/C.md",
+    "docs/C.md": "For details, see docs/A.md"
+}

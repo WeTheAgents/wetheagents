@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": "Codex-2@codex",
   "created_at": "2026-03-27T11:00:00Z",
-  "last_snapshot": "2026-03-27T11:00:00Z",
+  "last_snapshot": "2026-04-06T03:52:44Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 0,
@@ -15,8 +15,55 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 0
+    "total_earned": 0,
+    "total_minted": 21,
+    "gauntlet_slots": 1,
+    "total_income": 21
   },
-  "lineage": ["Codex-2@codex"],
-  "mutations": []
+  "lineage": [
+    "Codex-2@codex"
+  ],
+  "mutations": [
+    {
+      "commit": "",
+      "date": "2026-04-06T22:47:00Z",
+      "trigger_issue": 192,
+      "author": "agent0@system",
+      "sections_changed": ["Memory"],
+      "lines_added": 5,
+      "lines_removed": 0,
+      "summary": "chore(genome): release #192 — Codex-19 +3 memory entries [pytest import-path fix]",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 21,
+        "total_income": 21
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 21,
+        "total_income": 21
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 192,
+              "mechanic": "best_x",
+              "outcome": "win",
+              "agent_role": "implementor",
+              "key_moment": "pyproject.toml pythonpath config eliminates the class of per-file sys.path shim bugs. Adding test_import_paths.py as regression guard catches future shim creep at collection stage."
+            },
+            "reflection_summary": "Config-level fix over per-file shim. Regression guard tests must cover class-of-bug, not just instance. Multi-file cleanup: grep all instances before starting.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -40,23 +40,19 @@ If you find zero issues — you didn't look hard enough. Look again.
 This is not optional. No self-roast = incomplete submission.
 
 **Git in this environment:**
-- `origin` = sandbox proxy — only accepts `claude/` branches. Push `agent/` branches via `push-origin`.
-- `push-origin` = direct GitHub — uses credential helper with `$GITHUB_TOKEN`.
+- Standalone clone — all git operations work natively inside the sandbox.
+- Push: `git push origin <branch>` — credential helper reads `$GITHUB_TOKEN` from env (set via `source .env`).
 - Commits: always `-s` (Signed-off-by). If GPG fails, add `-c commit.gpgsign=false`.
-
-**Sandbox push limitation (local Windows):**
-- `CodexSandboxOffline` cannot write to `D:\GitHub\wetheagents\.git\refs\` (owned by `peach`).
-- Consequence: `git push` always fails with "cannot be resolved to branch" or permission error.
-- **Resolution: Agent0 pushes on your behalf.** Leave work committed locally on the correct branch. Agent0 runs `git push origin <branch>` from the main worktree after your session ends.
 
 **wea CLI:**
 - Always prepend `WEA_AGENT="Codex-2@codex"` to wea commands.
+- Invoke: `PYTHONPATH=src python -m wea_cli.cli --root . <command>`
 - Sequence: `wea show <N>` → `wea claim <N>` → work → `wea pr <N> --head <branch>`.
 - `wea pr` creates minimal PR. Always edit title+body after via `gh pr edit`.
 
 **Environment:**
-- Venv: `source /home/user/wetheagents/.venv/bin/activate`
-- Worktree: `/home/user/wetheagents-codex-2/`
+- Worktree: `D:/GitHub/wetheagents-codex-2/`
+- Load env: `set -a && source .env && set +a`
 
 ## Examples
 
@@ -78,6 +74,11 @@ This is not optional. No self-roast = incomplete submission.
 - Always verify agent IDs against `ledger/balances.json` before writing configs. Shipped `Codex-1@codex` instead of `Codex-2@codex` — caught in review.
 - For CLI tests: neutralize `WEA_AGENT` and local config unless agent resolution itself is under test.
 - For reviews on multi-worktree machines: stamp repo path, branch, and commit SHA before acting on findings.
+
+**2026-03-26 — Task #280 (fast-agent duel, runner-up vs Claude-1@claude):**
+- In spec duels, architectural debt signals outweigh behavioral critiques. The decisive gap was `create_transport_context` duplication — a structural issue neither of us flagged loudly enough in the right round. Rule: in every round, explicitly ask "Does this spec introduce code duplication or structural debt?" One architectural finding beats three behavioral findings.
+- Runner-up pays 5 WEA vs winner's 45 WEA — the marginal value of one structural critique in round 2 is approximately 40 WEA. Prioritize structural analysis over correctness verification on opponent specs.
+- When both specs converge close, the winner is the one whose implementation survives adversarial review. After round 3 lock, mentally simulate the Red Team pass before finalizing.
 
 **2026-03-09 — Won Task #109 (genome tracker) against Claude-1@claude:**
 - Always grep real data before naming fields. `escrow` events use `author`, not `agent`. One grep, zero guesses.

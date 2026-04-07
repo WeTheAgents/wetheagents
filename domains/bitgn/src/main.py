@@ -56,8 +56,11 @@ def create_provider(name: str, benchmark_id: str = "bitgn/sandbox"):
     elif name == "openai":
         from src.providers.openai_provider import OpenAIProvider
         return OpenAIProvider(tools=openai_tools)
+    elif name == "responses":
+        from src.providers.responses_provider import ResponsesProvider
+        return ResponsesProvider()
     else:
-        raise ValueError(f"Unknown provider: {name}. Use 'anthropic' or 'openai'.")
+        raise ValueError(f"Unknown provider: {name}. Use 'anthropic', 'openai', or 'responses'.")
 
 
 def run_benchmark(
@@ -86,6 +89,10 @@ def run_benchmark(
     provider = create_provider(provider_name, benchmark_id)
     prompt_text = prompt_template or ""
     pcm = _is_pcm(benchmark_id)
+
+    # PCM runtime: auto-enable warmup when router is active (needs vault outline)
+    if pcm and config.router and not config.warmup:
+        config.warmup = True
 
     # Get runtime-specific tool_models and completion class
     if pcm:
@@ -216,6 +223,54 @@ def print_summary(trace: BenchmarkTrace) -> None:
     print(f"\n  FINAL: {style}{pct:0.2f}%{CLI_CLR}")
 
 
+def print_multi_run_summary(all_traces: list[BenchmarkTrace]) -> None:
+    """Print aggregated stats across multiple benchmark runs."""
+    from collections import Counter
+
+    n_runs = len(all_traces)
+    scores = [t.total_score for t in all_traces]
+    avg = sum(scores) / n_runs
+    lo, hi = min(scores), max(scores)
+
+    # Per-task pass rate
+    task_passes: Counter[str] = Counter()
+    task_total: Counter[str] = Counter()
+    for trace in all_traces:
+        for t in trace.traces:
+            task_total[t.task_id] += 1
+            if t.score >= 1.0:
+                task_passes[t.task_id] += 1
+
+    print("\n" + "=" * 60)
+    print(f"MULTI-RUN SUMMARY ({n_runs} runs)")
+    print(f"  Avg: {avg * 100:.1f}%  Min: {lo * 100:.1f}%  Max: {hi * 100:.1f}%")
+    print(f"  Scores: {', '.join(f'{s*100:.0f}%' for s in scores)}")
+    print()
+
+    # Sort by pass rate (worst first)
+    all_tasks = sorted(task_total.keys(), key=lambda tid: (int(tid[1:]) if tid[1:].isdigit() else 0))
+    for tid in all_tasks:
+        total = task_total[tid]
+        passed = task_passes[tid]
+        rate = passed / total
+        if rate == 1.0:
+            style = CLI_GREEN
+        elif rate == 0.0:
+            style = CLI_RED
+        else:
+            style = "\x1B[33m"  # yellow
+        bar = "█" * passed + "░" * (total - passed)
+        print(f"  {tid}: {style}{bar} {passed}/{total} ({rate*100:.0f}%){CLI_CLR}")
+
+    # Highlight unstable and hard tasks
+    flaky = [tid for tid in all_tasks if 0 < task_passes[tid] < task_total[tid]]
+    never = [tid for tid in all_tasks if task_passes[tid] == 0]
+    if flaky:
+        print(f"\n  Flaky (vault-dependent): {', '.join(flaky)}")
+    if never:
+        print(f"  Never passed: {', '.join(never)}")
+
+
 def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
     """Extract --feature flags from args, return (remaining_args, config)."""
     config = AgentConfig()
@@ -245,6 +300,46 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
             i += 1
         elif args[i] == "--watchdog":
             config.watchdog = True
+            i += 1
+        elif args[i] == "--router":
+            config.router = True
+            config.enrichment = True
+            i += 1
+        elif args[i] == "--complex-model" and i + 1 < len(args):
+            config.complex_model = args[i + 1]
+            config.router = True  # model routing requires router
+            config.enrichment = True
+            i += 2
+        elif args[i] == "--genome":
+            config.use_genome = True
+            config.warmup = True  # genome mode requires warmup (planner needs vault context)
+            config.enrichment = True
+            config.defense_mode = "soft_block"  # hard blocks data entirely; soft_block shows with warning
+            config.step_validator = True
+            i += 1
+        elif args[i] == "--hybrid":
+            config.hybrid = True
+            config.warmup = True
+            config.enrichment = True
+            config.defense_mode = "soft_block"
+            config.step_validator = True
+            i += 1
+        elif args[i] == "--phase-length" and i + 1 < len(args):
+            config.hybrid_phase_length = int(args[i + 1])
+            i += 2
+        elif args[i] == "--executor-model" and i + 1 < len(args):
+            config.hybrid_executor_model = args[i + 1]
+            i += 2
+        elif args[i] == "--controller-model" and i + 1 < len(args):
+            config.hybrid_controller_model = args[i + 1]
+            i += 2
+        elif args[i] == "--dual":
+            config.use_genome = True
+            config.dual_executor = True
+            config.warmup = True
+            config.enrichment = True
+            config.defense_mode = "soft_block"
+            config.step_validator = True
             i += 1
         elif args[i] == "--all-features":
             config.warmup = True
@@ -298,6 +393,10 @@ def main() -> None:
         print(f"Features: enrichment=ON, defense={config.defense_mode}")
     if config.step_validator:
         print("Features: step_validator=ON")
+    if config.router:
+        print(f"Features: router=ON (model={config.router_model})")
+    if config.complex_model:
+        print(f"Features: complex_model={config.complex_model}")
     if config.watchdog:
         print(
             f"Features: watchdog=ON "

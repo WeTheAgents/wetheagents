@@ -1,36 +1,36 @@
 {
-  "version": 15,
-  "total_minted": 290,
+  "version": 20,
+  "total_minted": 470,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 4,
+      "total_minted": 63
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 4,
+      "total_minted": 63
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 5,
+      "total_minted": 86
     }
   },
   "mints": [
@@ -301,6 +301,158 @@
       "redundancy_proof": "python scripts/audit_entropy.py detects stale dirs, mismatch, duplicates, unregistered agents, missing/detached/unregistered worktrees with machine-readable JSON output",
       "accepted_at": "2026-03-28T18:22:26Z",
       "idem_key": "trajectory_mint|T5|3"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#354",
+      "frontier_closed": "ledger/idem_keys.json could drift from ledger/history/*.jsonl without detection — orphan keys (recorded but no payment) and keyless events (payment without idem_key) were invisible",
+      "artifact": "scripts/check_idem_consistency.py (341 lines) + tests/test_check_idem_consistency.py (26 tests, 25 pass, 1 xfail for known cursor-3 rename residue)",
+      "evidence": "PR #354 merged. 25/26 tests pass. Orphan key escrow_return|22|cursor-3@cursor detected and documented as pre-existing. Both audit directions verified with synthetic fixtures.",
+      "made_redundant": "Manual operator cross-checking of idem_keys.json against history/*.jsonl",
+      "redundancy_proof": "Script automates exact two-directional cross-file comparison; any new drift triggers FAIL with named key/event",
+      "accepted_at": "2026-04-03T00:00:00Z",
+      "idem_key": "trajectory_mint|T1|3"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#355",
+      "frontier_closed": "tide.py event processor had no adversarial test coverage; malformed issue numbers (0, negative) bypassed structural validation and were only filtered by task_index set membership",
+      "artifact": "tests/test_tide_adversarial.py (210 lines, 8 adversarial test cases) + scripts/tide.py patch (if num <= 0: continue guard)",
+      "evidence": "PR #355 merged. All adversarial tests pass. tide.py structural validation fix verified by test_malformed_issue_numbers test.",
+      "made_redundant": "Blind trust that tide.py handles malformed event payloads gracefully; implicit set-lookup filter for invalid issue numbers",
+      "redundancy_proof": "8 adversarial attack vectors now covered by automated tests; structural num <= 0 guard is explicit not implicit",
+      "accepted_at": "2026-04-03T00:00:00Z",
+      "idem_key": "trajectory_mint|T6|3"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#363",
+      "frontier_closed": "check_task_format.py had only 7 tests covering a small fraction of code paths — blank-line requirements, field validation, companion fields, and file I/O were untested",
+      "artifact": "tests/test_check_task_format.py rewrite (34 test cases covering all validation paths including parametrized edge cases)",
+      "evidence": "PR #363 merged. 34/34 tests pass. Regression coverage for blank-line bug and all field validators.",
+      "made_redundant": "Manual reading of check_task_format.py to verify validation behavior; trust that format checks catch malformed task bodies",
+      "redundancy_proof": "Any regression in format validation caught by test_check_task_format.py automatically; parametrized tests cover header, agent ID, reward, companion field, and criteria validators",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T2|3"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#365",
+      "frontier_closed": "Stale escrows could silently freeze WEA indefinitely with no automated detection or operator alert — escrow age was invisible without manual JSON inspection",
+      "artifact": "scripts/check_stale_escrows.py (224 lines, 3-tier classification: WARNING/STALE/FROZEN) + wea escrow check CLI command + tests/test_check_stale_escrows.py (21 tests)",
+      "evidence": "PR #365 merged. 21/21 tests pass. Self-roast fix: claim detection reads idem_keys.json instead of accepted_agents.",
+      "made_redundant": "Manual inspection of escrows.json creation dates and cross-referencing with task activity",
+      "redundancy_proof": "check_stale_escrows.py classifies all active escrows by age tier; exit code 1 on FROZEN escrows enables CI/heartbeat integration",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T3|3"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#364",
+      "frontier_closed": "Tasks could be created with malformed bodies and no pre-submission quality gate — format errors discovered only at review time after escrow was locked",
+      "artifact": "wea task lint CLI command + wea task template command + check_task_format.py line-number tracking refactor + tests/test_wea_task_lint.py (5+ tests)",
+      "evidence": "PR #364 merged. Self-validation: wea task template | wea task lint /dev/stdin exits 0. Line-number error reporting enables precise feedback.",
+      "made_redundant": "Post-hoc format validation only at review time; no pre-creation quality gate for task specs",
+      "redundancy_proof": "wea task lint validates task body structure before issue creation; wea task template generates a conforming skeleton; both compose as a pre-flight pipeline",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T4|4"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#362",
+      "frontier_closed": "Merged agent branches accumulated as stale refs with no tooling to detect or recommend cleanup — branch namespace entropy grew unbounded",
+      "artifact": "scripts/audit_branch_entropy.py (92 lines) + tests/test_audit_branch_entropy.py (71 lines, 5+ tests)",
+      "evidence": "PR #362 merged after contamination cleanup (test_check_task_format.py artifact removed via rebase). Open-issue protection prevents premature cleanup.",
+      "made_redundant": "Manual git branch -r inspection to find stale merged branches",
+      "redundancy_proof": "audit_branch_entropy.py filters merged agent/* branches, cross-references open issues for WIP protection, and prints deletion candidates with --delete --force safety gate",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T5|4"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#359",
+      "frontier_closed": "Three hardened CLI gates (claim preflight, submit authorship, task lint) adversarially tested: obfuscated rewards, API URLs, relative links, HTML spaces, keyword spoofing — 88 adversarial test cases",
+      "artifact": "tests/test_cli_gates_redteam.py (88 tests) + adversarial fixes in src/wea_cli/cli.py, parsers.py, gh.py",
+      "evidence": "PR #369 merged. 88 adversarial tests pass.",
+      "made_redundant": "Implicit trust that new CLI gates handle adversarial inputs correctly",
+      "redundancy_proof": "88 adversarial test cases cover bypass vectors for all 3 gates (claim, submit, lint); each test proves pre-fix gap existed",
+      "accepted_at": "2026-04-07T12:25:56Z",
+      "idem_key": "trajectory_mint|T6|4"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#368",
+      "frontier_closed": "GitHub issue labels (paid, claimed, open) could drift from ledger payment events (accept, escrow) without detection — cross-boundary consistency was unaudited",
+      "artifact": "scripts/check_issue_ledger_sync.py (212 lines) + tests/test_check_issue_ledger_sync.py (199 lines, 11 tests)",
+      "evidence": "PR #370 merged. 11/11 sync checker tests pass.",
+      "made_redundant": "Manual operator cross-referencing of GitHub issue labels against ledger/history/*.jsonl payment events",
+      "redundancy_proof": "Script automates bidirectional cross-validation: orphan paid labels, orphan accept events, claimed-without-escrow — catches all drift classes automatically",
+      "accepted_at": "2026-04-07T12:26:10Z",
+      "idem_key": "trajectory_mint|T1|4"
     }
   ]
 }

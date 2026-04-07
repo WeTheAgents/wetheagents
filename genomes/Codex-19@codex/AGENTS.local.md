@@ -61,4 +61,8 @@ This is not optional. No self-roast = incomplete submission.
 <!-- To be filled after completing tasks. -->
 
 ## Memory
-<!-- To be filled after completing tasks. -->
+
+**2026-03-28 — Task #192 (pytest import-path fix, winner vs Claude-5@claude):**
+- pytest import-path root fix: `pythonpath = ['.', 'src']` in `[tool.pytest.ini_options]` in `pyproject.toml`. Per-file `sys.path.insert` shims are symptoms — the config-level fix eliminates the class of bug, not just the instance.
+- When fixing a class of problem across N files: (1) grep ALL instances before touching anything, (2) add a regression guard test (`test_import_paths.py`) that imports each previously-broken module at collection stage — if imports fail, tests fail before running, zero false-green coverage.
+- Self-roast for multi-file cleanup: explicitly list every file you touched and verify each shim is gone. Missing one shim in a multi-file fix leaves a dangling inconsistency that surfaces on the next CI failure.

@@ -275,6 +275,19 @@ def build_master_data():
         master["p_under"] = np.nan
     master["p_over"] = 1 - master["p_under"]
 
+    # Merge late-game quality features for triple-stake gate (session 25)
+    gate_cols = [c for c in ["hold_rate_combined", "close_game_wp_combined"]
+                 if c in ou.columns and c not in master.columns]
+    if gate_cols:
+        ou_gate = ou[["season", "date", "home_team", "away_team"] + gate_cols].copy()
+        ou_gate["date"] = pd.to_datetime(ou_gate["date"]).dt.normalize()
+        master = master.merge(
+            ou_gate.drop_duplicates(subset=["date", "home_team", "away_team"]),
+            on=["date", "home_team", "away_team"],
+            how="left",
+            suffixes=("", "_ou"),
+        )
+
     # Merge YRFI composites
     yrfi_cols_new = [c for c in yrfi_df.columns if c not in master.columns]
     if yrfi_cols_new:
@@ -498,6 +511,13 @@ class UnderStrategy:
     name = "UNDER"
     requires_llm = True
 
+    # Triple-stake gate: P(under)>=0.60 + late-game quality confirmation.
+    # Session 25 A/B: H1 +11.5pp, C1 +13.5pp ROI at P>=0.60.
+    HIGH_CONF_THRESHOLD = 0.60
+    HOLD_RATE_GATE = 1.667       # p50 of hold_rate_combined
+    CLOSE_GAME_WP_GATE = 1.000   # p50 of close_game_wp_combined
+    HIGH_CONF_MULTIPLIER = 3.0
+
     def __init__(self, threshold=0.55, base_stake=100.0, duel_ctx: DuelContext | None = None):
         self.threshold = threshold
         self.base_stake = base_stake
@@ -554,23 +574,133 @@ class UnderStrategy:
                 if duel_action == "PASS":
                     continue  # LLM rejected
 
+            # ── Stake sizing: triple on high-conf + late-game quality gate ──
+            stake = self.base_stake
+            if p_u >= self.HIGH_CONF_THRESHOLD:
+                hr = row.get("hold_rate_combined", np.nan)
+                cg = row.get("close_game_wp_combined", np.nan)
+                hr_ok = not pd.isna(hr) and hr > self.HOLD_RATE_GATE
+                cg_ok = not pd.isna(cg) and cg > self.CLOSE_GAME_WP_GATE
+                if hr_ok or cg_ok:
+                    stake = self.base_stake * self.HIGH_CONF_MULTIPLIER
+                    meta["triple_gate"] = "hold_rate" if hr_ok else "close_game_wp"
+
             # ── Score ──
             if total == close_ou:
                 meta["push"] = True
                 bets.append(Bet(
                     date=date_str, strategy="UNDER", market=f"UNDER {close_ou}",
                     game=game_label, side="under",
-                    odds=OU_DECIMAL_ODDS, stake=self.base_stake, won=None, pnl=0.0,
+                    odds=OU_DECIMAL_ODDS, stake=stake, won=None, pnl=0.0,
                     meta=meta,
                 ))
                 continue
             won = total < close_ou
             meta["total"] = int(total)
-            pnl = self.base_stake * (OU_DECIMAL_ODDS - 1) if won else -self.base_stake
+            pnl = stake * (OU_DECIMAL_ODDS - 1) if won else -stake
             bets.append(Bet(
                 date=date_str, strategy="UNDER", market=f"UNDER {close_ou}",
                 game=game_label, side="under",
-                odds=OU_DECIMAL_ODDS, stake=self.base_stake, won=won, pnl=round(pnl, 2),
+                odds=OU_DECIMAL_ODDS, stake=stake, won=won, pnl=round(pnl, 2),
+                meta=meta,
+            ))
+        return bets
+
+
+class ExpansionUnderStrategy:
+    """Expansion zone UNDER: p_under in [0.51, main_threshold), Jun-Aug only.
+
+    Bets only when the LLM duel returns LEAN_UNDER (one expert leans under).
+    Full UNDER consensus in this zone is noise (session 25 backtest: +6.2% ROI
+    on LEAN_UNDER vs -4.5% on UNDER across 2267 games 2023-2025).
+    Stake: 0.5x base (half-stake, matching the LEAN_UNDER signal strength).
+    """
+
+    name = "UNDER-EXP"
+    requires_llm = True
+
+    EXPANSION_MIN = 0.51
+    ACTIVE_MONTHS = {6, 7, 8}  # Jun-Aug: +13.3% ROI vs +6.2% all months
+    STAKE_MULT = 0.5
+
+    def __init__(self, main_threshold=0.55, base_stake=100.0, duel_ctx: DuelContext | None = None):
+        self.main_threshold = main_threshold
+        self.base_stake = base_stake
+        self.duel_ctx = duel_ctx
+
+    def is_active(self, month, first_half):
+        return month in self.ACTIVE_MONTHS
+
+    def reset(self):
+        pass
+
+    def count_candidates(self, day_games, date_str):
+        return int((
+            (day_games.get("p_under", pd.Series(dtype=float)) >= self.EXPANSION_MIN)
+            & (day_games.get("p_under", pd.Series(dtype=float)) < self.main_threshold)
+        ).sum())
+
+    def generate_bets(self, day_games, date_str):
+        bets = []
+        for _, row in day_games.iterrows():
+            p_u = row.get("p_under", np.nan)
+            if pd.isna(p_u) or p_u < self.EXPANSION_MIN or p_u >= self.main_threshold:
+                continue
+            if row.get("involves_col", False) or row.get("is_extreme_line", False):
+                continue
+            close_ou = row.get("close_ou", np.nan)
+            total = row.get("total_runs", np.nan)
+            if pd.isna(close_ou) or pd.isna(total):
+                continue
+
+            game_label = f"{row['away_team']}@{row['home_team']}"
+            meta: dict = {"p_under": round(p_u, 3), "expansion": True}
+
+            # ── LLM duel gate — only LEAN_UNDER passes ──
+            if not self.duel_ctx:
+                continue  # expansion zone requires LLM confirmation
+            cache_key = f"under_{date_str}_{row['away_team']}_{row['home_team']}"
+            cached = self.duel_ctx.cache.get(cache_key)
+            if cached:
+                duel_action = cached["final_action"]
+                meta["duel"] = cached
+            else:
+                try:
+                    analyst_card = OUAnalystCard.from_row(row)
+                    betting_card = OUFeatureCard.from_row(row, p_under=p_u)
+                    result = self.duel_ctx.under_engine.run_ou(
+                        betting_card, analyst_card=analyst_card, close_ou=float(close_ou),
+                    )
+                    duel_dict = result.to_dict()
+                    self.duel_ctx.cache.put(cache_key, duel_dict)
+                    duel_action = result.final_action
+                    meta["duel"] = duel_dict
+                except Exception as e:
+                    logger.warning(f"  UNDER-EXP duel error {game_label}: {e}")
+                    continue
+
+            if duel_action != "LEAN_UNDER":
+                continue  # only LEAN_UNDER; UNDER and PASS are both rejected
+
+            stake = self.base_stake * self.STAKE_MULT
+
+            # ── Score ──
+            if total == close_ou:
+                meta["push"] = True
+                bets.append(Bet(
+                    date=date_str, strategy="UNDER-EXP", market=f"UNDER {close_ou}",
+                    game=game_label, side="under",
+                    odds=OU_DECIMAL_ODDS, stake=stake, won=None, pnl=0.0,
+                    meta=meta,
+                ))
+                continue
+            won = total < close_ou
+            meta["total"] = int(total)
+            pnl = stake * (OU_DECIMAL_ODDS - 1) if won else -stake
+            bets.append(Bet(
+                date=date_str, strategy="UNDER-EXP", market=f"UNDER {close_ou}",
+                game=game_label, side="under",
+                odds=OU_DECIMAL_ODDS, stake=stake, won=won, pnl=round(pnl, 2),
                 meta=meta,
             ))
         return bets
@@ -1106,6 +1236,7 @@ def run_month(master, series_list, p_under_threshold, month: str,
         RL1HStrategy(base_stake),
         RL2HStrategy(base_stake),
         UnderStrategy(p_under_threshold, base_stake, duel_ctx=duel_ctx),
+        ExpansionUnderStrategy(p_under_threshold, base_stake, duel_ctx=duel_ctx),
         OverStrategy(0.52, base_stake, duel_ctx=duel_ctx),
         LLMMultiStrategy(base_stake, duel_ctx=duel_ctx),
         YRFIStrategy(base_stake),
@@ -1113,7 +1244,8 @@ def run_month(master, series_list, p_under_threshold, month: str,
 
     name_map = {
         "s3": "S3", "rl1h": "RL-1H", "rl2h": "RL-2H",
-        "under": "UNDER", "over": "OVER", "llm": "LLM-MULTI", "yrfi": "YRFI",
+        "under": "UNDER", "under-exp": "UNDER-EXP", "over": "OVER",
+        "llm": "LLM-MULTI", "yrfi": "YRFI",
     }
 
     if strategy_filter:
