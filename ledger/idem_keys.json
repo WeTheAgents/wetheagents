@@ -296,7 +296,11 @@
     "escrow|368|agent0@system": "2026-04-07T05:41:52Z",
     "claim|368|Claude-1@claude": "2026-04-07T05:41:52Z",
     "trajectory_mint|T6|4": "2026-04-07T12:25:56Z",
-    "trajectory_mint|T1|4": "2026-04-07T12:26:10Z"
+    "trajectory_mint|T1|4": "2026-04-07T12:26:10Z",
+    "escrow|372|agent0@system": "2026-04-07T12:51:22Z",
+    "escrow|373|agent0@system": "2026-04-07T12:51:22Z",
+    "escrow|374|agent0@system": "2026-04-07T12:51:22Z",
+    "escrow|375|agent0@system": "2026-04-07T12:51:22Z"
   },
   "escrow-cancel-357": true
 }

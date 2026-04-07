@@ -954,6 +954,95 @@
       "rounds": null,
       "status": "open",
       "created_at": "2026-03-20T09:37:43Z"
+    },
+    "372": {
+      "title": "[Gauntlet T2S4] Full task lifecycle integration test",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 23,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-07T12:31:12Z",
+      "body_hash_raw": "sha256:3f7289a6fb6d34ca50e6dbe69693574bc12dc1c8b1d5b65a86fef6ab77c62d94",
+      "body_hash_semantic": "sha256:43b87be6e519e8043283b1d3492678a1f52ce576943530d5b306737da6378cfb",
+      "verification_criteria": [
+        "MUST: At least 2 complete lifecycle scenarios (standard + every_good) end-to-end",
+        "MUST: Intermediate state assertions at each transition (balances, escrows, idem_keys, task_index)",
+        "MUST: Both every_good and standard reward types covered with correct payment amounts",
+        "MUST: `python -m pytest tests/test_task_lifecycle.py -q` exits 0",
+        "MUST: No regressions in `python -m pytest tests/ -q`",
+        "MUST NOT: Require real GitHub API calls (use fixtures/mocks)",
+        "MUST NOT: Modify existing source files"
+      ]
+    },
+    "373": {
+      "title": "[Gauntlet T3S4] Multi-check failure incident correlation",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 23,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-07T12:31:34Z",
+      "body_hash_raw": "sha256:2595ec61fd805a25c564cf259f0970be6c3ff3bb1d4fe68fb7f4e10c45c95819",
+      "body_hash_semantic": "sha256:43b87be6e519e8043283b1d3492678a1f52ce576943530d5b306737da6378cfb",
+      "verification_criteria": [
+        "MUST: Runs at least 4 existing check scripts and collects results",
+        "MUST: At least 3 multi-failure correlation rules documented and tested",
+        "MUST: Incident report identifies root cause vs. symptom ordering",
+        "MUST: `python -m pytest tests/test_incident_correlator.py -q` exits 0",
+        "MUST NOT: Modify existing check scripts' exit behavior or output format",
+        "MUST NOT: Require external dependencies beyond stdlib"
+      ]
+    },
+    "374": {
+      "title": "[Gauntlet T4S5] Reward budget calculator and anti-gaming enforcement",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 24,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-07T12:31:56Z",
+      "body_hash_raw": "sha256:383942a50eea8d51b5f222aee13dbf23a3d197272d52e3961d23392bf085cbb5",
+      "body_hash_semantic": "sha256:744427e389a2bb7943dd272bb6ee541c1983c9e1494814f4301943729cd58dfc",
+      "verification_criteria": [
+        "MUST: calc-budget produces correct output for all 6 reward types",
+        "MUST: At least 2 budget mismatch classes caught by lint",
+        "MUST: At least 2 anti-gaming rules machine-enforced",
+        "MUST: `python -m pytest tests/test_budget_calc.py -q` exits 0",
+        "MUST: No regressions in `python -m pytest tests/ -q`",
+        "MUST NOT: Break backward compat for existing task creation flow"
+      ]
+    },
+    "375": {
+      "title": "[Gauntlet T5S5] Cross-document guidance reconciliation audit",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 24,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-07T12:32:20Z",
+      "body_hash_raw": "sha256:2c278df27b66f2f719c8883c2e9a2d798543a6b0910d7affca766a98d69e4be2",
+      "body_hash_semantic": "sha256:744427e389a2bb7943dd272bb6ee541c1983c9e1494814f4301943729cd58dfc",
+      "verification_criteria": [
+        "MUST: Audit covers all 6+ documentation files with operational guidance",
+        "MUST: At least 3 contradictions identified with exact quotes from conflicting files",
+        "MUST: Each contradiction resolved with canonical source chosen and non-canonical file fixed",
+        "MUST: Canonical Sources table added to docs/",
+        "MUST NOT: Modify infrastructure code, CI workflows, or ledger files",
+        "MUST NOT: Delete documentation files (only fix content within them)"
+      ]
     }
   }
 }
