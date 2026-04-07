@@ -151,6 +151,8 @@ def inspect_acceptance_criteria(body: str) -> AcceptanceCriteriaCheck:
             errors.append("Structured acceptance criteria must include at least one `MUST NOT:` item.")
     else:
         criteria = tuple(parsed_items)
+        if criteria:
+            errors.append("Acceptance criteria must use structured `MUST:` or `MUST NOT:` formats.")
 
     if not criteria:
         errors.append("No acceptance criteria found.")
@@ -162,7 +164,7 @@ def inspect_acceptance_criteria(body: str) -> AcceptanceCriteriaCheck:
     if any(not criterion.text for criterion in criteria):
         errors.append("Acceptance criteria must not have empty descriptions.")
 
-    source = "malformed" if errors else ("structured" if any(structured_flags) else "legacy")
+    source = "malformed" if errors else "structured"
     return AcceptanceCriteriaCheck(source=source, criteria=criteria, errors=tuple(errors))
 
 

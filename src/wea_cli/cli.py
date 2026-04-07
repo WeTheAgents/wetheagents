@@ -553,7 +553,7 @@ def cmd_task_check_criteria(args: argparse.Namespace) -> int:
 def _parse_reward_wea(reward_str: str) -> int:
     """Extract integer WEA value from strings like '22', '22 WEA', '10 WEA (minted on acceptance)'."""
     match = re.search(r"\d+", reward_str)
-    return int(match.group()) if match else 0
+    return int(match.group()) if match else -1
 
 
 def cmd_claim(args: argparse.Namespace) -> int:
@@ -575,7 +575,7 @@ def cmd_claim(args: argparse.Namespace) -> int:
     if not criteria_check.criteria or not criteria_check.is_valid:
         raw_reward = parse_task_metadata(str(issue_data.get("body", ""))).get("reward") or ""
         reward_value = _parse_reward_wea(raw_reward)
-        if reward_value >= 10 or (reward_value == 0 and raw_reward.strip() != ""):
+        if reward_value >= 10 or (reward_value == -1 and raw_reward.strip() != ""):
             print(f"Warning: task #{args.issue} has invalid or missing acceptance criteria (reward: {reward_value} WEA).")
             for error in criteria_check.errors:
                 print(f"- {error}")
@@ -675,9 +675,7 @@ def cmd_submit(args: argparse.Namespace) -> int:
             try:
                 pr_info = view_pr(pr_number, repo=target_repo)
             except GhError as exc:
-                print("Submission validation failed:")
-                print(f"- Failed to fetch PR #{pr_number}: {exc}")
-                return EXIT_DOMAIN_ERROR
+                continue
 
             pr_author = pr_info.get("author", {}).get("login", "")
             if pr_author.lower() != gh_user.lower():
