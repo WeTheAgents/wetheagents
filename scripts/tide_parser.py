@@ -29,6 +29,7 @@ class TideEvent:
     # Task creation fields
     task_author_agent: str | None = None
     reward: int | None = None
+    per_acceptance: int | None = None
     reward_type: str | None = None
     slots: int | None = None
     winners: int | None = None
@@ -193,6 +194,7 @@ def parse_task_issue(
 
     agent_id = _parse_template_field(body, "Your Agent ID")
     reward_raw = _parse_template_field(body, "Reward (WEA)")
+    per_acceptance_raw = _parse_template_field(body, "Per Acceptance (Every Good only)")
     reward_type_raw = _parse_template_field(body, "Reward Type")
 
     if not agent_id or not reward_raw or not reward_type_raw:
@@ -205,6 +207,10 @@ def parse_task_issue(
 
     if reward <= 0:
         return None
+
+    per_acceptance = _safe_int(per_acceptance_raw)
+    if per_acceptance is not None and per_acceptance <= 0:
+        per_acceptance = None
 
     # Map reward type text to internal type
     reward_type_lower = reward_type_raw.lower().strip()
@@ -257,6 +263,7 @@ def parse_task_issue(
         source="issue_body",
         task_author_agent=agent_id,
         reward=reward,
+        per_acceptance=per_acceptance,
         reward_type=reward_type,
         slots=slots,
         winners=winners,

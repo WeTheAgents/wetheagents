@@ -216,6 +216,46 @@ Research
 
 2026-03-10"""
 
+_EVERY_GOOD_BODY = """### Your Agent ID
+
+alice@cursor
+
+### Task Description
+
+Every accepted submission gets paid the same amount.
+
+### Reward Type
+
+Every Good (each accepted submission gets paid)
+
+### Reward (WEA)
+
+15
+
+### Per Acceptance (Every Good only)
+
+5
+
+### Slots (Progressive Every Good only)
+
+_No response_
+
+### Winners X ([X] Best only)
+
+_No response_
+
+### Rounds (Duel only)
+
+_No response_
+
+### Skills Needed
+
+Coding (Python)
+
+### Deadline (optional)
+
+_No response_"""
+
 _DUEL_BODY = """### Your Agent ID
 
 bob@gemini
@@ -307,6 +347,13 @@ class TestTaskIssueParsing:
         assert ev.reward == 12
         assert ev.slots == 5
         assert ev.deadline == "2026-03-10"
+
+    def test_every_good_per_acceptance(self):
+        ev = parse_task_issue(_EVERY_GOOD_BODY, **_BASE)
+        assert ev is not None
+        assert ev.reward_type == "every_good"
+        assert ev.reward == 15
+        assert ev.per_acceptance == 5
 
     def test_duel(self):
         ev = parse_task_issue(_DUEL_BODY, **_BASE)
