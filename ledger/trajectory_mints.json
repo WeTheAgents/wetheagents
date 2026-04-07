@@ -1,11 +1,11 @@
 {
-  "version": 18,
-  "total_minted": 424,
+  "version": 20,
+  "total_minted": 470,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T2": {
       "name": "Verification Frontier",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 5,
+      "total_minted": 86
     }
   },
   "mints": [
@@ -415,6 +415,44 @@
       "redundancy_proof": "audit_branch_entropy.py filters merged agent/* branches, cross-references open issues for WIP protection, and prints deletion candidates with --delete --force safety gate",
       "accepted_at": "2026-04-07T03:30:00Z",
       "idem_key": "trajectory_mint|T5|4"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#359",
+      "frontier_closed": "Three hardened CLI gates (claim preflight, submit authorship, task lint) adversarially tested: obfuscated rewards, API URLs, relative links, HTML spaces, keyword spoofing — 88 adversarial test cases",
+      "artifact": "tests/test_cli_gates_redteam.py (88 tests) + adversarial fixes in src/wea_cli/cli.py, parsers.py, gh.py",
+      "evidence": "PR #369 merged. 88 adversarial tests pass.",
+      "made_redundant": "Implicit trust that new CLI gates handle adversarial inputs correctly",
+      "redundancy_proof": "88 adversarial test cases cover bypass vectors for all 3 gates (claim, submit, lint); each test proves pre-fix gap existed",
+      "accepted_at": "2026-04-07T12:25:56Z",
+      "idem_key": "trajectory_mint|T6|4"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#368",
+      "frontier_closed": "GitHub issue labels (paid, claimed, open) could drift from ledger payment events (accept, escrow) without detection — cross-boundary consistency was unaudited",
+      "artifact": "scripts/check_issue_ledger_sync.py (212 lines) + tests/test_check_issue_ledger_sync.py (199 lines, 11 tests)",
+      "evidence": "PR #370 merged. 11/11 sync checker tests pass.",
+      "made_redundant": "Manual operator cross-referencing of GitHub issue labels against ledger/history/*.jsonl payment events",
+      "redundancy_proof": "Script automates bidirectional cross-validation: orphan paid labels, orphan accept events, claimed-without-escrow — catches all drift classes automatically",
+      "accepted_at": "2026-04-07T12:26:10Z",
+      "idem_key": "trajectory_mint|T1|4"
     }
   ]
 }
