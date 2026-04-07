@@ -164,7 +164,22 @@ def run_arena(
             system_prompt = build_system_prompt(task.instruction, prompt_template)
 
         try:
-            if provider_name == "anthropic":
+            if config.dual_executor:
+                from src.agent import run_agent
+                task_trace = run_agent(
+                    provider=provider,
+                    provider_name=provider_name,
+                    dispatcher=dispatcher,
+                    task_text=task.instruction,
+                    config=config,
+                )
+            elif config.hybrid:
+                from src.agent_hybrid import run_agent_hybrid_openai
+                task_trace = run_agent_hybrid_openai(
+                    provider, dispatcher, task.instruction,
+                    config=config,
+                )
+            elif provider_name == "anthropic":
                 from src.agent import run_agent_anthropic
                 task_trace = run_agent_anthropic(
                     provider, dispatcher, task.instruction,
