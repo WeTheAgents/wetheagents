@@ -102,6 +102,15 @@ body:
       required: true
 
   - type: input
+    id: per_acceptance
+    attributes:
+      label: Per Acceptance (Every Good only)
+      description: "Optional payout amount for each accepted submission. Leave blank to default to the full reward."
+      placeholder: "5"
+    validations:
+      required: false
+
+  - type: input
     id: slots
     attributes:
       label: Slots (Progressive / Linear only)

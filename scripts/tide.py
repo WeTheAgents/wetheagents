@@ -207,6 +207,7 @@ def build_events(
             ev.body_hash_raw = "sha256:" + hashlib.sha256(body.encode(errors="replace")).hexdigest()
             semantic = json.dumps({
                 "reward": ev.reward,
+                "per_acceptance": ev.per_acceptance,
                 "reward_type": ev.reward_type,
                 "slots": ev.slots,
                 "winners": ev.winners,
@@ -411,7 +412,26 @@ class TideProcessor:
             escrow_entry["slots"] = slots
             escrow_entry["paid_count"] = 0
         elif rtype == "every_good":
-            escrow_entry["per_acceptance"] = reward
+            if ev.per_acceptance is not None:
+                if ev.per_acceptance < 1:
+                    self._comment(ev.issue, "Per-acceptance payout must be positive.")
+                    return False
+                if ev.per_acceptance > reward:
+                    self._comment(
+                        ev.issue,
+                        "Per-acceptance payout cannot exceed the total reward.",
+                    )
+                    return False
+                if reward % ev.per_acceptance != 0:
+                    self._comment(
+                        ev.issue,
+                        f"Per-acceptance ({ev.per_acceptance}) must divide evenly "
+                        f"into reward ({reward}) to avoid locked escrow dust.",
+                    )
+                    return False
+            escrow_entry["per_acceptance"] = (
+                ev.per_acceptance if ev.per_acceptance is not None else reward
+            )
             escrow_entry["paid_count"] = 0
         elif rtype == "best_x":
             winners = ev.winners or 1

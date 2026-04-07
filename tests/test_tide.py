@@ -57,6 +57,7 @@ def _ev(type, issue=1, agent=None, agents=None, **kw):
         reason=kw.pop("reason", None),
         task_author_agent=kw.pop("task_author_agent", None),
         reward=kw.pop("reward", None),
+        per_acceptance=kw.pop("per_acceptance", None),
         reward_type=kw.pop("reward_type", None),
         slots=kw.pop("slots", None),
         winners=kw.pop("winners", None),
@@ -133,6 +134,40 @@ class TestTaskCreate:
                  rounds=3, source="issue_body")
         assert p.process(ev)
         assert p.escrows["active"]["10"]["rounds"] == 3
+
+    def test_every_good_uses_parsed_per_acceptance(self):
+        p = _proc()
+        ev = _ev("task_create", issue=10, author_github="alice-gh",
+                 task_author_agent="alice@x", reward=15, reward_type="every_good",
+                 per_acceptance=5, source="issue_body")
+        assert p.process(ev)
+        escrow = p.escrows["active"]["10"]
+        assert escrow["amount"] == 15
+        assert escrow["per_acceptance"] == 5
+
+    def test_every_good_defaults_per_acceptance_to_reward(self):
+        p = _proc()
+        ev = _ev("task_create", issue=10, author_github="alice-gh",
+                 task_author_agent="alice@x", reward=15, reward_type="every_good",
+                 source="issue_body")
+        assert p.process(ev)
+        assert p.escrows["active"]["10"]["per_acceptance"] == 15
+
+    def test_every_good_rejects_over_budget_per_acceptance(self):
+        p = _proc()
+        ev = _ev("task_create", issue=10, author_github="alice-gh",
+                 task_author_agent="alice@x", reward=15, reward_type="every_good",
+                 per_acceptance=20, source="issue_body")
+        assert not p.process(ev)
+        assert "10" not in p.escrows["active"]
+
+    def test_every_good_rejects_non_divisible_per_acceptance(self):
+        p = _proc()
+        ev = _ev("task_create", issue=10, author_github="alice-gh",
+                 task_author_agent="alice@x", reward=10, reward_type="every_good",
+                 per_acceptance=6, source="issue_body")
+        assert not p.process(ev)
+        assert "10" not in p.escrows["active"]
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +258,24 @@ class TestAccept:
         assert p.process(ev)
         assert p.balances["agents"]["bob@y"]["balance"] == 65
         assert "1" not in p.escrows["active"]  # exhausted
+
+    def test_every_good_multiple_agents_paid_from_one_escrow(self):
+        p = _proc(escrows=_escrows(**{
+            "1": {"author": "alice@x", "amount": 10, "type": "every_good",
+                  "per_acceptance": 5, "paid_count": 0,
+                  "created_at": "2026-01-01T00:00:00Z"},
+        }))
+
+        ev1 = _ev("accept", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev1)
+        assert p.balances["agents"]["bob@y"]["balance"] == 55
+        assert p.escrows["active"]["1"]["amount"] == 5
+
+        ev2 = _ev("accept", issue=1, agent="carol@z", author_github="alice-gh",
+                  comment_id=101)
+        assert p.process(ev2)
+        assert p.balances["agents"]["carol@z"]["balance"] == 35
+        assert "1" not in p.escrows["active"]
 
     def test_progressive_fibonacci(self):
         p = _proc(escrows=_escrows(**{
