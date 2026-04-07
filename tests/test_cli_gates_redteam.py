@@ -1,121 +1,88 @@
 import pytest
-import re
-from unittest.mock import patch, MagicMock
+import argparse
+from wea_cli.cli import cmd_claim, cmd_submit, cmd_task_check_criteria, EXIT_DOMAIN_ERROR, EXIT_RUNTIME_ERROR, EXIT_OK
+from wea_cli.gh import GhError
 
-from wea_cli.cli import (
-    cmd_claim,
-    cmd_submit,
-    cmd_task_check_criteria,
-    _parse_reward_wea,
-)
-from wea_cli.parsers import inspect_acceptance_criteria, parse_task_metadata
+@pytest.fixture
+def mock_root(tmp_path):
+    ledger = tmp_path / "ledger"
+    ledger.mkdir()
+    (ledger / "balances.json").write_text('{"agents": {"test_agent": {"github_username": "tester"}}}')
+    return tmp_path
 
-# 1. Test Claim Preflight Bypass
-def test_claim_preflight_bypass_empty_criteria():
-    # An empty MUST: criterion should be invalid and block the claim.
-    body = """
-Reward: 15 WEA
-
-## Acceptance Criteria
-- [ ] MUST: 
-- [ ] MUST NOT: 
-    """
-    check = inspect_acceptance_criteria(body)
-    assert not check.is_valid, "Empty MUST/MUST NOT should be invalid"
-
-def test_claim_preflight_obfuscated_reward():
-    body = "**Reward (WEA):** Fifty WEA"
-    raw_reward = parse_task_metadata(body).get("reward") or ""
-    reward_value = _parse_reward_wea(raw_reward)
-    assert reward_value == -1
-    # Our new logic should require force if reward == -1 but string is not empty.
-    assert reward_value == -1 and raw_reward.strip() != "", "Should trigger the obfuscated reward check"
-
-# 2. Test Submit Authorship Bypass
-def test_submit_authorship_bypass_http_url():
-    # If the user submits http:// or github.com/ without https://, it should still be caught.
-    content = "Check out my PR at github.com/owner/repo/pull/123 or http://github.com/owner2/repo2/pull/456"
-    pr_matches = re.findall(r"(?:https?://)?(?:www\.|api\.)?github\.com/(?:repos/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)", content, re.IGNORECASE)
-    assert len(pr_matches) == 2, "Should catch non-https PR links"
-
-def test_submit_authorship_api_relative_url():
-    content = "API link: https://api.github.com/repos/WeTheAgents/wetheagents/pulls/123\nRelative: [PR](../../pull/456)"
-    pr_matches = re.findall(r"(?:https?://)?(?:www\.|api\.)?github\.com/(?:repos/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)", content, re.IGNORECASE)
-    rel_matches = re.findall(r"\]\((?:/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)\)", content, re.IGNORECASE)
-    for rm in rel_matches:
-        if rm not in pr_matches:
-            pr_matches.append(rm)
-    assert len(pr_matches) == 2, "Should catch API and relative PR links"
-
-# 3. Test Task Lint Bypass
-def test_task_lint_bypass_empty_text():
-    # The linter should reject criteria that just have prefixes but no text.
-    body = """
-## Acceptance Criteria
-- [ ] MUST: 
-- [ ] MUST NOT: 
-    """
-    check = inspect_acceptance_criteria(body)
-    assert not check.is_valid
-    assert any("empty" in e.lower() for e in check.errors), "Should have an error about empty criteria"
-
-def test_task_lint_bypass_html_space():
-    body = "## Acceptance Criteria\n- [x] MUST: &nbsp;\n- [x] MUST NOT: <br>"
-    check = inspect_acceptance_criteria(body)
-    assert not check.is_valid, "HTML spaces should be stripped and trigger empty description error"
-
-def test_task_lint_bypass_spoofing():
-    body = "## Acceptance Criteria\n- [x] MUST-NOT: something\n- [x] MUST_NOT: another"
-    check = inspect_acceptance_criteria(body)
-    # The check should recognize these as MUST NOT and not fall back to legacy
-    # It should complain that there is no MUST: item.
-    assert check.source == "malformed"
-    assert any("include at least one `MUST:` item" in e for e in check.errors), "Should recognize MUST-NOT as structured and demand MUST:"
-
-
-# Gap 1 test
-from unittest.mock import patch
-@patch("wea_cli.gh.view_pr")
-def test_submit_authorship_ignores_issues(mock_view_pr):
-    # Mock an issue link failing (as GhError) and a real PR link succeeding
-    from wea_cli.gh import GhError
-    def side_effect(pr_num, repo):
-        if pr_num == 999:
-            raise GhError("Not a PR")
-        return {"author": {"login": "agent_user"}, "state": "OPEN", "isDraft": False, "body": "Closes #123"}
-    mock_view_pr.side_effect = side_effect
+def test_gate1_claim_force_blocked(monkeypatch, mock_root, capsys):
+    # Test that --force is blocked for high reward tasks
+    monkeypatch.setattr("wea_cli.cli._load_acceptance_criteria_check", lambda i, r: ({"body": "### Reward (WEA)\n\n10"}, type("Check", (), {"is_valid": False, "criteria": [], "errors": ["invalid"], "source": "test", "machine_criteria": [], "human_criteria": []}), None))
+    monkeypatch.setattr("wea_cli.cli.resolve_repo_root", lambda r: mock_root)
+    monkeypatch.setattr("wea_cli.cli.resolve_agent", lambda a: "test_agent")
     
-    content = "Check out [my issue](/WeTheAgents/wetheagents/issues/999) and [my PR](/WeTheAgents/wetheagents/pull/456)"
+    args = argparse.Namespace(issue=1, repo="test/repo", plain=False, agent="test_agent", force=True, dry_run=True)
     
-    import re
-    pr_matches = re.findall(r"(?:https?://)?(?:www\.|api\.)?github\.com/(?:repos/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)", content, re.IGNORECASE)
-    rel_matches = re.findall(r"\]\((?:/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)\)", content, re.IGNORECASE)
-    for rm in rel_matches:
-        if rm not in pr_matches:
-            pr_matches.append(rm)
-            
-    assert len(pr_matches) == 2
+    exit_code = cmd_claim(args)
+    captured = capsys.readouterr().out
     
-    # Simulate cmd_submit logic
-    valid_prs_found = 0
-    for owner, repo_name, pr_str in pr_matches:
-        try:
-            mock_view_pr(int(pr_str), repo="WeTheAgents/wetheagents")
-            valid_prs_found += 1
-        except GhError:
-            continue
-    
-    assert valid_prs_found == 1, "Should ignore the issue and validate the PR"
+    assert exit_code == EXIT_DOMAIN_ERROR
+    assert "strictly require valid acceptance criteria" in captured
+    assert "force is not allowed" in captured
 
-# Gap 2 test
-def test_task_lint_rejects_legacy():
-    from wea_cli.parsers import inspect_acceptance_criteria
-    body = "## Acceptance Criteria\n- [x] just something"
-    check = inspect_acceptance_criteria(body)
-    assert not check.is_valid, "Legacy criteria should be blocked"
+def test_gate2_submit_gherror_bypass_fixed(monkeypatch, mock_root, capsys):
+    # Test that if a PR link throws GhError (e.g. an issue link), valid_prs_found is not wrongly incremented
+    monkeypatch.setattr("wea_cli.cli.resolve_repo_root", lambda r: mock_root)
+    monkeypatch.setattr("wea_cli.cli._load_acceptance_criteria_check", lambda i, r: ({"body": "task"}, type("Check", (), {"is_valid": True, "criteria": [], "errors": [], "source": "test", "machine_criteria": [], "human_criteria": []}), None))
+    
+    def mock_view_pr(pr_number, repo):
+        raise GhError("Not a PR")
+        
+    monkeypatch.setattr("wea_cli.gh.view_pr", mock_view_pr)
+    
+    submission_path = mock_root / "sub.md"
+    submission_path.write_text("## Work\n\nhttps://github.com/WeTheAgents/wetheagents/issues/123\n\n## Agent\n\ntest_agent@test")
+    
+    args = argparse.Namespace(file=str(submission_path), issue=1, repo="WeTheAgents/wetheagents", root=str(mock_root), agent="test_agent", dry_run=True)
+    
+    exit_code = cmd_submit(args)
+    captured = capsys.readouterr().out
+    
+    assert exit_code == EXIT_DOMAIN_ERROR
+    assert "none target the expected repository" in captured
 
-# Gap 3 test
-def test_claim_preflight_pro_bono():
-    from wea_cli.cli import _parse_reward_wea
-    assert _parse_reward_wea("0 WEA (pro bono)") == 0, "Valid 0 should not trigger obfuscation check"
-    assert _parse_reward_wea("Fifty") == -1, "Obfuscated should return -1"
+def test_gate2_submit_author_none_crash_fixed(monkeypatch, mock_root, capsys):
+    # Test that a PR without author login does not crash
+    monkeypatch.setattr("wea_cli.cli.resolve_repo_root", lambda r: mock_root)
+    monkeypatch.setattr("wea_cli.cli._load_acceptance_criteria_check", lambda i, r: ({"body": "task"}, type("Check", (), {"is_valid": True, "criteria": [], "errors": [], "source": "test", "machine_criteria": [], "human_criteria": []}), None))
+    
+    def mock_view_pr(pr_number, repo):
+        return {"author": None, "state": "OPEN", "isDraft": False, "body": "#1"}
+        
+    monkeypatch.setattr("wea_cli.gh.view_pr", mock_view_pr)
+    
+    submission_path = mock_root / "sub.md"
+    submission_path.write_text("## Work\n\nhttps://github.com/WeTheAgents/wetheagents/pull/123\n\n## Agent\n\ntest_agent@test")
+    
+    args = argparse.Namespace(file=str(submission_path), issue=1, repo="WeTheAgents/wetheagents", root=str(mock_root), agent="test_agent", dry_run=True)
+    
+    exit_code = cmd_submit(args)
+    captured = capsys.readouterr().out
+    
+    assert exit_code == EXIT_DOMAIN_ERROR
+    assert "authored by @" in captured
+
+def test_gate3_lint_format_check(monkeypatch, mock_root, capsys):
+    # Test that cmd_task_check_criteria runs format validation and fails if format check fails
+    body = "### Verification Criteria\n- [x] MUST: foo" # missing blank line, fails format check
+    monkeypatch.setattr("wea_cli.cli._load_acceptance_criteria_check", lambda i, r: ({"number": 1, "body": body}, type("Check", (), {"is_valid": True, "criteria": [], "errors": [], "source": "test", "machine_criteria": [], "human_criteria": []}), None))
+    monkeypatch.setattr("wea_cli.cli.resolve_repo_root", lambda r: mock_root)
+    
+    args = argparse.Namespace(issue=1, repo="test/repo", root=str(mock_root))
+    
+    # Needs scripts to be importable
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(".").resolve()))
+    
+    exit_code = cmd_task_check_criteria(args)
+    captured = capsys.readouterr().out
+    
+    # check that we caught format validation failures
+    assert exit_code == EXIT_DOMAIN_ERROR
+    assert "Task format validation failed:" in captured

@@ -112,18 +112,15 @@ def test_claim_no_criteria_at_threshold_blocked(
 def test_claim_force_bypasses_criteria_gate(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Task with no criteria and high reward but --force — warning shown, claim proceeds."""
+    """Task with no criteria and high reward but --force — blocked."""
     monkeypatch.setattr(cli, "view_issue", lambda issue, repo: {"number": issue, "body": _BODY_NO_CRITERIA_HIGH_REWARD})
     posted: dict[str, object] = {}
     monkeypatch.setattr(cli, "post_issue_comment", lambda issue, body, *, repo: posted.update({"issue": issue}))
 
     rc = cli.cmd_claim(_args(force=True))
 
-    assert rc == cli.EXIT_OK
-    assert posted.get("issue") == 100
-    out = capsys.readouterr().out
-    assert "Warning" in out
-    assert "Use --force" not in out
+    assert rc == cli.EXIT_DOMAIN_ERROR
+    assert "strictly require valid acceptance criteria. --force is not allowed" in capsys.readouterr().out
 
 
 def test_claim_malformed_body_no_crash(

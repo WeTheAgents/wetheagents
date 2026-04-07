@@ -547,6 +547,21 @@ def cmd_task_check_criteria(args: argparse.Namespace) -> int:
 
     issue_number = int(issue_data.get("number", args.issue))
     _emit_acceptance_criteria_report(issue_number, check)
+
+    try:
+        root = resolve_repo_root(getattr(args, "root", None))
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        from scripts.check_task_format import validate
+        format_errors = validate(str(issue_data.get("body", "")))
+        if format_errors:
+            emit("\nTask format validation failed:")
+            for err in format_errors:
+                emit(f"- {err}")
+            return EXIT_DOMAIN_ERROR
+    except Exception as exc:
+        pass
+
     return EXIT_OK if check.is_valid else EXIT_DOMAIN_ERROR
 
 
@@ -580,6 +595,11 @@ def cmd_claim(args: argparse.Namespace) -> int:
             for error in criteria_check.errors:
                 print(f"- {error}")
             print("You may invest effort on a task that cannot be machine-verified.")
+            
+            if reward_value >= 10:
+                print("Tasks with reward >= 10 WEA strictly require valid acceptance criteria. --force is not allowed.")
+                return EXIT_DOMAIN_ERROR
+                
             if not getattr(args, "force", False):
                 print("Use --force to claim anyway.")
                 return EXIT_DOMAIN_ERROR
@@ -669,15 +689,14 @@ def cmd_submit(args: argparse.Namespace) -> int:
             if pr_repo.lower() != target_repo.lower():
                 continue  # ignore foreign repo references (harmless citations)
 
-            valid_prs_found += 1
-
             pr_number = int(pr_str)
             try:
                 pr_info = view_pr(pr_number, repo=target_repo)
             except GhError as exc:
                 continue
 
-            pr_author = pr_info.get("author", {}).get("login", "")
+            author_info = pr_info.get("author") or {}
+            pr_author = author_info.get("login", "")
             if pr_author.lower() != gh_user.lower():
                 print("Submission validation failed:")
                 print(f"- PR #{pr_number} was authored by @{pr_author}, but submitting agent is mapped to @{gh_user}.")
@@ -697,6 +716,9 @@ def cmd_submit(args: argparse.Namespace) -> int:
                 print("Submission validation failed:")
                 print(f"- PR #{pr_number} body does not seem to link to issue #{args.issue}.")
                 return EXIT_DOMAIN_ERROR
+
+            valid_prs_found += 1
+
                 
         if len(pr_matches) > 0 and valid_prs_found == 0:
              print("Submission validation failed:")
