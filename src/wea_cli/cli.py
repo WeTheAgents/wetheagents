@@ -2797,7 +2797,7 @@ def build_parser() -> argparse.ArgumentParser:
     task_subparsers = task.add_subparsers(dest="task_command")
     task_subparsers.required = True
 
-    task_check = task_subparsers.add_parser("lint", aliases=["check-criteria"], help="Lint task acceptance criteria")
+    task_check = task_subparsers.add_parser("check-criteria", help="Inspect task acceptance criteria")
     task_check.add_argument("issue", type=int, help="Issue number")
     task_check.set_defaults(_handler=cmd_task_check_criteria)
 
