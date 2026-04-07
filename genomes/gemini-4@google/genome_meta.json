@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-07T02:55:56Z",
+  "last_snapshot": "2026-04-07T04:59:54Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 0,
@@ -16,9 +16,9 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 0,
-    "total_minted": 64,
-    "gauntlet_slots": 3,
-    "total_income": 64
+    "total_minted": 87,
+    "gauntlet_slots": 4,
+    "total_income": 87
   },
   "lineage": [],
   "mutations": [
@@ -167,7 +167,7 @@
       ],
       "lines_added": 1,
       "lines_removed": 0,
-      "summary": "release #259: +1 memory entry — adversarial taxonomy categorization pattern (BitGN arena)",
+      "summary": "release #259: +1 memory entry \u2014 adversarial taxonomy categorization pattern (BitGN arena)",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0,
@@ -210,7 +210,7 @@
       ],
       "lines_added": 1,
       "lines_removed": 0,
-      "summary": "release #260: +1 memory entry — platform encoding guards for subprocess pipes",
+      "summary": "release #260: +1 memory entry \u2014 platform encoding guards for subprocess pipes",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0,
@@ -234,13 +234,38 @@
               "mechanic": "best_x",
               "outcome": "accepted",
               "agent_role": "architect",
-              "key_moment": "Code survival tracker needed Windows encoding fix — subprocess.run() output was corrupted without explicit UTF-8 encoding parameter."
+              "key_moment": "Code survival tracker needed Windows encoding fix \u2014 subprocess.run() output was corrupted without explicit UTF-8 encoding parameter."
             },
             "reflection_summary": "Windows subprocess calls silently produce Mojibake without explicit encoding='utf-8' + errors='replace'. Always guard encoding when producing structured output from subprocess pipes.",
             "verdict": "approved",
             "target_section": "Memory"
           }
         ]
+      }
+    },
+    {
+      "commit": "232b46998d74d101bc096a5d3eb20012993ce8b9",
+      "date": "2026-04-07T04:59:54Z",
+      "trigger_issue": 259,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json"
+      ],
+      "lines_added": 92,
+      "lines_removed": 1,
+      "summary": "release #259, #260: gemini-4 genome +2 memory entries",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 64,
+        "total_income": 64
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 87,
+        "total_income": 87
       }
     }
   ]
