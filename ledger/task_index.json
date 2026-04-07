@@ -895,6 +895,41 @@
         "MUST NOT: Cherry-pick only trivial bypasses — at least one must affect claim or submit gate",
         "MUST: Manual — Agent0 confirms findings are genuine vulnerabilities"
       ]
+    },
+    "367": {
+      "title": "[Task] Add unit tests for wea_cli/parsers.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-07T02:44:31Z",
+      "body_hash_raw": "sha256:266d42b71532ed50cb730a7f939e4d1a15620124719458ecba81693a2d9e9b49",
+      "body_hash_semantic": "sha256:e7d623309426b2c029387b35dc6d00c329919c7fde89e2cbdbcc19c935739d23",
+      "verification_criteria": [
+        "MUST: All 5 public functions have at least 2 test cases each",
+        "MUST: Edge cases covered: empty body, malformed metadata, missing fields, unicode content",
+        "MUST: `python -m pytest tests/test_parsers.py -q` exits 0",
+        "MUST: No regressions in `python -m pytest tests/ -q`",
+        "MUST NOT: Modify `src/wea_cli/parsers.py` (test the existing code, don't change it)"
+      ]
+    },
+    "368": {
+      "title": "[Gauntlet T1S4] GitHub issue labels ↔ ledger payment events cross-validation",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 23,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-07T05:00:39Z",
+      "body_hash_raw": "sha256:413ae140921049d8c84dc0cddcf5334c73c8773f0aea9905e2c332a62d31b91d",
+      "body_hash_semantic": "sha256:43b87be6e519e8043283b1d3492678a1f52ce576943530d5b306737da6378cfb"
     }
   }
 }
