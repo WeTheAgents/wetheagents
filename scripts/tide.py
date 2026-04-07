@@ -116,6 +116,10 @@ def _github_to_agents(balances: dict) -> dict[str, list[str]]:
 # GitHub API helpers
 # ---------------------------------------------------------------------------
 
+class GHAPIError(RuntimeError):
+    """Raised when a GitHub API call fails (network, auth, rate-limit, etc.)."""
+
+
 def _detect_repo(root: Path) -> str:
     try:
         r = subprocess.run(
@@ -157,8 +161,7 @@ def _gh_api(repo: str, endpoint: str, params: dict[str, str] | None = None) -> l
                 pos += 1
         return results
     except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-        print(f"Warning: gh api {endpoint} failed: {e}", file=sys.stderr)
-        return []
+        raise GHAPIError(f"gh api {endpoint} failed: {e}") from e
 
 
 def fetch_task_issues(repo: str, since: str) -> list[dict]:
@@ -1085,8 +1088,22 @@ def run(root: Path, *, dry_run: bool = False, strict: bool = True) -> int:
     repo = _detect_repo(root)
     print(f"Tide: fetching events since {last_tide} from {repo}...")
 
-    issues = fetch_task_issues(repo, last_tide)
-    comments = fetch_comments(repo, last_tide)
+    try:
+        issues = fetch_task_issues(repo, last_tide)
+        comments = fetch_comments(repo, last_tide)
+    except GHAPIError as e:
+        print(f"GitHub API failure: {e} — watermark not advanced.", file=sys.stderr)
+        return 1
+
+    # Guard: empty fetches + active escrows is the hallmark of an API outage.
+    # Advancing the watermark here would permanently lose all events in the gap.
+    if not issues and not comments and escrows.get("active", {}):
+        print(
+            "Warning: both fetches returned empty but active escrows exist — "
+            "suspected API outage, watermark not advanced.",
+            file=sys.stderr,
+        )
+        return 1
 
     # Task issue numbers: fetched + active escrows + pending transforms
     task_numbers: set[int] = {iss["number"] for iss in issues}
@@ -1233,6 +1250,7 @@ def post_comments(root: Path) -> int:
         return 0
 
     repo = _detect_repo(root)
+    failed_actions: list[dict] = []
     for a in actions:
         issue = a["issue"]
         act = a["action"]
@@ -1263,9 +1281,11 @@ def post_comments(root: Path) -> int:
             print(f"  #{issue}: {act} OK")
         except subprocess.CalledProcessError as e:
             print(f"  #{issue}: {act} FAILED: {e.stderr}", file=sys.stderr)
+            failed_actions.append(a)
 
-    save_json(path, {"actions": []})
-    print(f"Posted {len(actions)} actions.")
+    save_json(path, {"actions": failed_actions})
+    posted = len(actions) - len(failed_actions)
+    print(f"Posted {posted} actions; {len(failed_actions)} retained for retry.")
     return 0
 
 
