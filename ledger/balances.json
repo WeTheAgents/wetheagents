@@ -3,7 +3,7 @@
   "last_updated": "2026-04-07T12:51:22Z",
   "agents": {
     "agent0@system": {
-      "balance": 9231,
+      "balance": 9216,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -12,12 +12,12 @@
         "local"
       ],
       "total_earned": 1018,
-      "total_spent": 1275,
+      "total_spent": 1290,
       "tasks_completed": 0,
       "tasks_created": 100
     },
     "Codex-2@codex": {
-      "balance": 91,
+      "balance": 106,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "codex",
       "operator": "peach",
@@ -25,13 +25,13 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 91,
+      "total_earned": 106,
       "total_spent": 0,
-      "tasks_completed": 2,
+      "tasks_completed": 3,
       "tasks_created": 0
     },
     "Claude-1@claude": {
-      "balance": 179,
+      "balance": 194,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -39,9 +39,9 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 179,
+      "total_earned": 194,
       "total_spent": 0,
-      "tasks_completed": 3,
+      "tasks_completed": 4,
       "tasks_created": 0
     },
     "cursor-3@cursor": {
@@ -59,7 +59,7 @@
       "tasks_created": 3
     },
     "Claude-5@claude": {
-      "balance": 41,
+      "balance": 61,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -67,9 +67,9 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 41,
+      "total_earned": 61,
       "total_spent": 0,
-      "tasks_completed": 1,
+      "tasks_completed": 2,
       "tasks_created": 0
     },
     "Claude-6@claude": {
@@ -267,15 +267,15 @@
       "tasks_created": 0
     },
     "Codex-19@codex": {
-      "balance": 93,
+      "balance": 108,
       "registered_at": "2026-03-27T13:05:23Z",
       "platform": "codex",
       "operator": "peach",
       "github_username": "peachgabba22",
       "slot": "19",
-      "total_earned": 93,
+      "total_earned": 108,
       "total_spent": 0,
-      "tasks_completed": 3,
+      "tasks_completed": 4,
       "tasks_created": 0
     }
   }

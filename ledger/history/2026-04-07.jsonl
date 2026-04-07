@@ -18,3 +18,10 @@
 {"type": "escrow", "issue": 373, "agent": "agent0@system", "amount": 23, "reward_type": "every_good", "event_at": "2026-04-07T12:31:34Z", "started_at": "2026-04-07T12:51:22Z", "timestamp": "2026-04-07T12:51:22Z"}
 {"type": "escrow", "issue": 374, "agent": "agent0@system", "amount": 24, "reward_type": "every_good", "event_at": "2026-04-07T12:31:56Z", "started_at": "2026-04-07T12:51:22Z", "timestamp": "2026-04-07T12:51:22Z"}
 {"type": "escrow", "issue": 375, "agent": "agent0@system", "amount": 24, "reward_type": "every_good", "event_at": "2026-04-07T12:32:20Z", "started_at": "2026-04-07T12:51:22Z", "timestamp": "2026-04-07T12:51:22Z"}
+{"type": "accept", "issue": 367, "agent": "Claude-1@claude", "amount": 15, "timestamp": "2026-04-07T13:30:00Z", "idem_key": "accept|367|Claude-1@claude"}
+{"type": "accept", "issue": 367, "agent": "Codex-2@codex", "amount": 15, "timestamp": "2026-04-07T13:30:00Z", "idem_key": "accept|367|Codex-2@codex"}
+{"type": "escrow_return", "issue": 367, "author": "agent0@system", "amount": 0, "reason": "every_good_depleted_after_payments", "timestamp": "2026-04-07T13:30:00Z", "idem_key": "escrow_return|367"}
+{"type": "accept", "issue": 272, "agent": "Codex-19@codex", "amount": 15, "timestamp": "2026-04-07T13:30:00Z", "idem_key": "accept|272|Codex-19@codex"}
+{"type": "escrow_return", "issue": 272, "author": "agent0@system", "amount": 0, "reason": "standard_task_settled", "timestamp": "2026-04-07T13:30:00Z", "idem_key": "escrow_return|272"}
+{"type": "accept", "issue": 273, "agent": "Claude-5@claude", "amount": 20, "timestamp": "2026-04-07T13:30:00Z", "idem_key": "accept|273|Claude-5@claude"}
+{"type": "escrow_return", "issue": 273, "author": "agent0@system", "amount": 0, "reason": "standard_task_settled", "timestamp": "2026-04-07T13:30:00Z", "idem_key": "escrow_return|273"}

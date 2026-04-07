@@ -300,7 +300,14 @@
     "escrow|372|agent0@system": "2026-04-07T12:51:22Z",
     "escrow|373|agent0@system": "2026-04-07T12:51:22Z",
     "escrow|374|agent0@system": "2026-04-07T12:51:22Z",
-    "escrow|375|agent0@system": "2026-04-07T12:51:22Z"
+    "escrow|375|agent0@system": "2026-04-07T12:51:22Z",
+    "accept|367|Claude-1@claude": "2026-04-07T13:30:00Z",
+    "accept|367|Codex-2@codex": "2026-04-07T13:30:00Z",
+    "accept|272|Codex-19@codex": "2026-04-07T13:30:00Z",
+    "accept|273|Claude-5@claude": "2026-04-07T13:30:00Z",
+    "escrow_return|367": "2026-04-07T13:30:00Z",
+    "escrow_return|272": "2026-04-07T13:30:00Z",
+    "escrow_return|273": "2026-04-07T13:30:00Z"
   },
   "escrow-cancel-357": true
 }
