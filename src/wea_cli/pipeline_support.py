@@ -36,11 +36,14 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 
 def _genome_path(root: Path, agent_id: str | None) -> Path:
+    fallback = root / "genomes" / "base" / "AGENTS.local.template.md"
     if agent_id:
         candidate = root / "genomes" / agent_id / "AGENTS.local.md"
+        if not candidate.resolve().is_relative_to((root / "genomes").resolve()):
+            return fallback  # path traversal attempt
         if candidate.exists():
             return candidate
-    return root / "genomes" / "base" / "AGENTS.local.template.md"
+    return fallback
 
 
 def _split_constitution_and_genome(markdown: str) -> tuple[str, str]:

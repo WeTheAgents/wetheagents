@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +14,6 @@ from wea_cli.issue_helpers import (
     comment_created,
     issue_comments,
     issue_labels,
-    parse_iso,
 )
 from wea_cli.parsers import parse_task_metadata
 
@@ -217,6 +215,8 @@ def _load_genome_identity(root: Path, agent_id: str) -> dict[str, str]:
     result: dict[str, str] = {"role": "", "north_star": ""}
 
     genome_dir = root / "genomes" / agent_id
+    if not genome_dir.resolve().is_relative_to((root / "genomes").resolve()):
+        return result  # path traversal attempt
     if not genome_dir.is_dir():
         return result
 

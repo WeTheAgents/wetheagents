@@ -1315,6 +1315,10 @@ def cmd_verify(args: argparse.Namespace) -> int:
         print(f"No active escrow found for issue #{args.issue}.")
         return EXIT_DOMAIN_ERROR
 
+    if args.payee == proposer:
+        print(f"Self-verification not allowed: proposer and payee are both {proposer}.")
+        return EXIT_DOMAIN_ERROR
+
     ts = _now_iso()
     entry: dict[str, Any] = {
         "type": "verification",
@@ -1394,6 +1398,10 @@ def cmd_accept(args: argparse.Namespace) -> int:
 
     else:
         print(f"Use 'wea ranking' or 'wea duel-winner' for {mechanic} mechanic.")
+        return EXIT_DOMAIN_ERROR
+
+    if args.payee == proposer:
+        print(f"Self-payment not allowed: proposer and payee are both {proposer}.")
         return EXIT_DOMAIN_ERROR
 
     entry: dict[str, Any] = {

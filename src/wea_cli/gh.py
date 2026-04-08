@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from typing import Any
+
+_GITHUB_USERNAME_RE = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9_-]*[a-zA-Z0-9])?$")
 
 from wea_cli.issue_edit import IssueEditError
 from wea_cli.issue_edit import safe_edit_issue_labels as _safe_edit_issue_labels
@@ -123,20 +126,6 @@ def view_pr(pr_number: int, repo: str = DEFAULT_REPO) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 def post_issue_comment(issue: int, body: str, repo: str = DEFAULT_REPO) -> None:
-    payload = run_gh_json(
-        [
-            "pr",
-            "view",
-            str(pr_number),
-            "--repo",
-            repo,
-            "--json",
-            "number,title,state,author,url,isDraft",
-        ]
-    )
-    return payload if isinstance(payload, dict) else {}
-
-def post_issue_comment(issue: int, body: str, repo: str = DEFAULT_REPO) -> None:
     run_gh_text(["issue", "comment", str(issue), "--repo", repo, "--body", body])
 
 
@@ -248,6 +237,8 @@ def grant_repo_access(
     repo: str = DEFAULT_REPO,
 ) -> dict[str, Any]:
     """Add a GitHub user as an outside collaborator with the given permission."""
+    if not _GITHUB_USERNAME_RE.match(github_username):
+        raise GhError(f"Invalid GitHub username: {github_username!r}")
     payload = run_gh_json([
         "api",
         f"repos/{repo}/collaborators/{github_username}",
@@ -262,6 +253,8 @@ def check_repo_access(
     repo: str = DEFAULT_REPO,
 ) -> dict[str, str]:
     """Check a user's permission level on the repo."""
+    if not _GITHUB_USERNAME_RE.match(github_username):
+        raise GhError(f"Invalid GitHub username: {github_username!r}")
     payload = run_gh_json([
         "api",
         f"repos/{repo}/collaborators/{github_username}/permission",
