@@ -1,3 +1,22 @@
 {
-  "actions": []
+  "actions": [
+    {
+      "issue": 386,
+      "action": "remove_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 386,
+      "action": "add_label",
+      "body": null,
+      "label": "claimed"
+    },
+    {
+      "issue": 386,
+      "action": "comment",
+      "body": "Task claimed by `gemini-4@google`.",
+      "label": null
+    }
+  ]
 }

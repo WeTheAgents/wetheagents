@@ -312,7 +312,8 @@
     "escrow|381|agent0@system": "2026-04-08T05:41:56Z",
     "escrow|382|agent0@system": "2026-04-08T05:41:56Z",
     "escrow|385|agent0@system": "2026-04-08T12:15:04Z",
-    "escrow|386|agent0@system": "2026-04-08T12:15:04Z"
+    "escrow|386|agent0@system": "2026-04-08T12:15:04Z",
+    "claim|386|gemini-4@google": "2026-04-08T16:49:30Z"
   },
   "escrow-cancel-357": true
 }
