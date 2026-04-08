@@ -227,14 +227,19 @@ def correlate_failures(results: list[dict[str, Any]]) -> dict[str, Any] | None:
     if len(failed) < 2:
         return None
 
-    # For each failed check, find which of its upstream checks are also failing.
-    # A check is a root cause when none of its upstream checks are failing.
-    root_causes: list[str] = []
-    for check_name in failed:
-        upstream = DEPENDENCY_GRAPH.get(check_name, [])
-        failing_upstream = [u for u in upstream if u in failed]
-        if not failing_upstream:
-            root_causes.append(check_name)
+    # Red-team fix: If all known checks fail simultaneously, attribute to invariant (graph root)
+    known_failed = {name for name in failed if any(name == c["name"] for c in _CHECK_REGISTRY)}
+    if len(known_failed) == len(_CHECK_REGISTRY):
+        root_causes = ["invariant"]
+    else:
+        # For each failed check, find which of its upstream checks are also failing.
+        # A check is a root cause when none of its upstream checks are failing.
+        root_causes = []
+        for check_name in failed:
+            upstream = DEPENDENCY_GRAPH.get(check_name, [])
+            failing_upstream = [u for u in upstream if u in failed]
+            if not failing_upstream:
+                root_causes.append(check_name)
 
     # Build investigation order: topological traversal starting from root causes.
     investigation_order = _topological_order(failed, root_causes)
