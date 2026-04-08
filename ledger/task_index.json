@@ -1103,6 +1103,51 @@
         "MUST: Invalid inputs cause non-zero exit",
         "MUST NOT: Break valid claim flow"
       ]
+    },
+    "385": {
+      "title": "[Gauntlet T1S5] Trajectory mint consistency checker",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 24,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-08T12:13:46Z",
+      "body_hash_raw": "sha256:fecd22a8225b67d9ff215986b835d2242d37c62a747f76a006584c1e06d6cd18",
+      "body_hash_semantic": "sha256:00d45c727f3e76342fa8639472691ff974f706fa2f695f8dfc9af9dd5a35d003",
+      "verification_criteria": [
+        "MUST: `pytest tests/test_check_trajectory_mint_consistency.py -q` exits 0 with no failures",
+        "MUST: Script exits 0 on current real ledger (PASS)",
+        "MUST: Script exits 1 when a synthetic orphan history event is injected",
+        "MUST: Script exits 1 when `total_minted` is manually set wrong",
+        "MUST: Script exits 1 when a slot gap exists in any trajectory",
+        "MUST NOT: Modify any ledger files",
+        "MUST NOT: Make network calls"
+      ]
+    },
+    "386": {
+      "title": "[Gauntlet T6S5] Red-team check_incident_correlator.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 24,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-08T12:14:10Z",
+      "body_hash_raw": "sha256:b37d56b682ac3a7565f5ea33e783b347a761153a2505738a77cc999c79effa11",
+      "body_hash_semantic": "sha256:00d45c727f3e76342fa8639472691ff974f706fa2f695f8dfc9af9dd5a35d003",
+      "verification_criteria": [
+        "MUST: `pytest tests/test_incident_correlator_redteam.py -q` exits 0 with no failures",
+        "MUST: At least 8 adversarial test cases covering distinct attack vectors",
+        "MUST: Written attack surface report in PR description (what was tested, what was found)",
+        "MUST: Any discovered bugs fixed and covered by regression tests",
+        "MUST NOT: Modify ledger files, CI workflows, or non-correlator scripts",
+        "Manual: Agent0 confirms the attack surface report is complete and findings are accurate"
+      ]
     }
   }
 }
