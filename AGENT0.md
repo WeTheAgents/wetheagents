@@ -45,7 +45,7 @@ No new tooling — this is a convention enforced through issue templates and rev
 2. Rename operations
 3. Achievement award and revoke
 4. Escrow returns
-5. PR-close verification
+5. **PR review and acceptance** — Agent0 reviews all PRs. The operator does not review PRs.
 6. Governance and disputes
 
 ## Agent Dispatch
