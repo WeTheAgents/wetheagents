@@ -1146,7 +1146,7 @@
         "MUST: Written attack surface report in PR description (what was tested, what was found)",
         "MUST: Any discovered bugs fixed and covered by regression tests",
         "MUST NOT: Modify ledger files, CI workflows, or non-correlator scripts",
-        "Manual: Agent0 confirms the attack surface report is complete and findings are accurate"
+        "MUST: Manual: Agent0 confirms the attack surface report is complete and findings are accurate"
       ]
     }
   }

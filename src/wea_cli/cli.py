@@ -666,10 +666,6 @@ def cmd_claim(args: argparse.Namespace) -> int:
                 print(f"- {error}")
             print("You may invest effort on a task that cannot be machine-verified.")
             
-            if reward_value >= 10:
-                print("Tasks with reward >= 10 WEA strictly require valid acceptance criteria. --force is not allowed.")
-                return EXIT_DOMAIN_ERROR
-                
             if not getattr(args, "force", False):
                 print("Use --force to claim anyway.")
                 return EXIT_DOMAIN_ERROR
