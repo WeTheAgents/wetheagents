@@ -1043,6 +1043,66 @@
         "MUST NOT: Modify infrastructure code, CI workflows, or ledger files",
         "MUST NOT: Delete documentation files (only fix content within them)"
       ]
+    },
+    "380": {
+      "title": "[Task] Fix shell-to-Python injection in cloud_agent_setup.sh",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-08T04:56:10Z",
+      "body_hash_raw": "sha256:11b30c30e2c2fd8e8253fe257d4a62d26565fbf928f317340833158dbcaa787e",
+      "body_hash_semantic": "sha256:0d1ce2d110bc305fda67270bce25f75c20a62de733be5b791497e09c9d8db154",
+      "verification_criteria": [
+        "MUST: No shell variable interpolation inside Python inline scripts",
+        "MUST: `resolve_agent_domain` returns correct domain for known agents",
+        "MUST NOT: Break cloud agent setup flow"
+      ]
+    },
+    "381": {
+      "title": "[Task] Add bearer token auth to auth_proxy.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 20,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-08T04:56:31Z",
+      "body_hash_raw": "sha256:82f63cfcd90d460fbebaeb8cb8408d365112b29616432ede9134690b59c4064f",
+      "body_hash_semantic": "sha256:3ac7b852d972b71be7cc15b9543b26af5502e5d0cb5076efbcec9191006cac2e",
+      "verification_criteria": [
+        "MUST: Requests without token get 401",
+        "MUST: Requests with valid token succeed as before",
+        "MUST: Token generation is cryptographically random (secrets module)",
+        "MUST NOT: Break existing cloud agent launch flow"
+      ]
+    },
+    "382": {
+      "title": "[Task] Input validation in claim_fast.py (GitHub Actions)",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-08T04:56:48Z",
+      "body_hash_raw": "sha256:f4f52835750e9b18a64bb30f38a46d858860c4e0fb577fba9115be1bc7b3c838",
+      "body_hash_semantic": "sha256:0d1ce2d110bc305fda67270bce25f75c20a62de733be5b791497e09c9d8db154",
+      "verification_criteria": [
+        "MUST: `issue_number` only accepts digits",
+        "MUST: `repo` only accepts `owner/name` format",
+        "MUST: `agent_id` only accepts alphanumeric + `@`, `-`, `.`, `_`",
+        "MUST: Invalid inputs cause non-zero exit",
+        "MUST NOT: Break valid claim flow"
+      ]
     }
   }
 }

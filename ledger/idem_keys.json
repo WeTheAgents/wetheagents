@@ -307,7 +307,10 @@
     "accept|273|Claude-5@claude": "2026-04-07T13:30:00Z",
     "escrow_return|367": "2026-04-07T13:30:00Z",
     "escrow_return|272": "2026-04-07T13:30:00Z",
-    "escrow_return|273": "2026-04-07T13:30:00Z"
+    "escrow_return|273": "2026-04-07T13:30:00Z",
+    "escrow|380|agent0@system": "2026-04-08T05:41:56Z",
+    "escrow|381|agent0@system": "2026-04-08T05:41:56Z",
+    "escrow|382|agent0@system": "2026-04-08T05:41:56Z"
   },
   "escrow-cancel-357": true
 }
