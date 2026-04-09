@@ -123,7 +123,7 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "release": frozenset({"status"}),
     "skills": frozenset({"list", "show", "suggest"}),
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
-    "task": frozenset({"check-criteria", "lint", "template"}),
+    "task": frozenset({"calc-budget", "check-criteria", "lint", "template"}),
     "escrow": frozenset({"check"}),
     "knowledge": frozenset({"search", "list"}),
 }
@@ -303,6 +303,185 @@ def compute_ranking_payouts(budget: int, k: int, x: int) -> list[int]:
     payouts.insert(0, rank1_payout)
 
     return payouts
+
+
+TASK_CALC_REWARD_TYPE_ALIASES: dict[str, str] = {
+    "every_good": "every_good",
+    "every-good": "every_good",
+    "everygood": "every_good",
+    "progressive": "progressive",
+    "linear": "linear",
+    "winner_take_all": "winner_take_all",
+    "winner-take-all": "winner_take_all",
+    "wta": "winner_take_all",
+    "best_x": "best_x",
+    "best-x": "best_x",
+    "bestx": "best_x",
+    "duel": "duel",
+}
+
+TASK_CALC_LABELS: dict[str, str] = {
+    "every_good": "Every Good",
+    "progressive": "Progressive Every Good",
+    "linear": "Linear PoD",
+    "winner_take_all": "Winner Take All",
+    "best_x": "[X] Best",
+    "duel": "Duel",
+}
+
+
+def progressive_budget(slots: int) -> int:
+    if slots < 1:
+        raise ValueError("Slots must be >= 1")
+    return fib(slots + 2) - 1
+
+
+def linear_budget(slots: int) -> int:
+    if slots < 1:
+        raise ValueError("Slots must be >= 1")
+    return slots * (slots + 1) // 2
+
+
+def calculate_duel_split(budget: int) -> tuple[int, int]:
+    if budget < 1:
+        raise ValueError("Budget must be >= 1")
+    winner_amount = math.floor(budget * 90 / 100)
+    runner_up_amount = budget - winner_amount
+    return winner_amount, runner_up_amount
+
+
+def _normalize_task_calc_reward_type(raw: str) -> str | None:
+    key = raw.strip().lower().replace(" ", "_")
+    return TASK_CALC_REWARD_TYPE_ALIASES.get(key)
+
+
+def _ensure_positive_arg(value: int | None, flag: str) -> tuple[int | None, int | None]:
+    if value is None:
+        emit(f"Error: {flag} is required.")
+        return None, EXIT_DOMAIN_ERROR
+    if value < 1:
+        emit(f"Error: {flag} must be >= 1.")
+        return None, EXIT_DOMAIN_ERROR
+    return value, None
+
+
+def cmd_task_calc_budget(args: argparse.Namespace) -> int:
+    reward_type = _normalize_task_calc_reward_type(args.reward_type)
+    if reward_type is None:
+        emit(
+            "Error: reward type must be one of "
+            "`every_good`, `progressive`, `linear`, `winner_take_all`, `best_x`, or `duel`."
+        )
+        return EXIT_DOMAIN_ERROR
+
+    payload: dict[str, Any] = {
+        "reward_type": reward_type,
+        "label": TASK_CALC_LABELS[reward_type],
+    }
+
+    if reward_type == "every_good":
+        per_acceptance, error = _ensure_positive_arg(args.per_acceptance, "--per-acceptance")
+        if error is not None:
+            return error
+        acceptances, error = _ensure_positive_arg(args.acceptances, "--acceptances")
+        if error is not None:
+            return error
+        payload.update(
+            {
+                "per_acceptance": per_acceptance,
+                "acceptances": acceptances,
+                "budget": per_acceptance * acceptances,
+                "payouts": [per_acceptance] * acceptances,
+            }
+        )
+    elif reward_type == "progressive":
+        slots, error = _ensure_positive_arg(args.slots, "--slots")
+        if error is not None:
+            return error
+        payload.update(
+            {
+                "slots": slots,
+                "budget": progressive_budget(slots),
+                "payouts": [fib(slot) for slot in range(1, slots + 1)],
+            }
+        )
+    elif reward_type == "linear":
+        slots, error = _ensure_positive_arg(args.slots, "--slots")
+        if error is not None:
+            return error
+        payload.update(
+            {
+                "slots": slots,
+                "budget": linear_budget(slots),
+                "payouts": list(range(1, slots + 1)),
+            }
+        )
+    elif reward_type == "winner_take_all":
+        budget, error = _ensure_positive_arg(args.budget, "--budget")
+        if error is not None:
+            return error
+        payload.update({"budget": budget, "winners": 1, "payouts": [budget]})
+    elif reward_type == "best_x":
+        budget, error = _ensure_positive_arg(args.budget, "--budget")
+        if error is not None:
+            return error
+        winners, error = _ensure_positive_arg(args.winners, "--winners")
+        if error is not None:
+            return error
+        if winners < 2 or winners > 5:
+            emit("Error: --winners must be in range 2..5 for [X] Best.")
+            return EXIT_DOMAIN_ERROR
+        ranked = args.ranked if args.ranked is not None else winners
+        if ranked < 1:
+            emit("Error: --ranked must be >= 1.")
+            return EXIT_DOMAIN_ERROR
+        if ranked > winners:
+            emit("Error: --ranked cannot exceed --winners.")
+            return EXIT_DOMAIN_ERROR
+        payload.update(
+            {
+                "budget": budget,
+                "winners": winners,
+                "ranked": ranked,
+                "payouts": compute_ranking_payouts(budget, ranked, winners),
+            }
+        )
+    else:
+        budget, error = _ensure_positive_arg(args.budget, "--budget")
+        if error is not None:
+            return error
+        winner_amount, runner_up_amount = calculate_duel_split(budget)
+        payload.update(
+            {
+                "budget": budget,
+                "winner": winner_amount,
+                "runner_up": runner_up_amount,
+            }
+        )
+
+    if getattr(args, "json", False):
+        emit(json.dumps(payload, indent=2))
+        return EXIT_OK
+
+    emit(format_kv("Reward Type", payload["label"]))
+    emit(format_kv("Budget", f"{payload['budget']} WEA"))
+    if "per_acceptance" in payload:
+        emit(format_kv("Per Acceptance", f"{payload['per_acceptance']} WEA"))
+        emit(format_kv("Acceptances", str(payload["acceptances"])))
+        emit(format_kv("Payouts", ", ".join(str(v) for v in payload["payouts"])))
+    elif "slots" in payload:
+        emit(format_kv("Slots", str(payload["slots"])))
+        emit(format_kv("Payouts", ", ".join(str(v) for v in payload["payouts"])))
+    elif reward_type == "winner_take_all":
+        emit(format_kv("Payouts", str(payload["budget"])))
+    elif reward_type == "best_x":
+        emit(format_kv("Winners X", str(payload["winners"])))
+        emit(format_kv("Ranked", str(payload["ranked"])))
+        emit(format_kv("Payouts", ", ".join(str(v) for v in payload["payouts"])))
+    else:
+        emit(format_kv("Winner", f"{payload['winner']} WEA"))
+        emit(format_kv("Runner-up", f"{payload['runner_up']} WEA"))
+    return EXIT_OK
 
 
 # =========================================================================
@@ -1524,8 +1703,7 @@ def cmd_duel_winner(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     budget = escrow["amount"]
-    runner_up_amount = math.floor(budget * 10 / 100)
-    winner_amount = budget - runner_up_amount
+    winner_amount, runner_up_amount = calculate_duel_split(budget)
 
     ts = _now_iso()
     entries = [
@@ -2800,6 +2978,20 @@ def build_parser() -> argparse.ArgumentParser:
     task = subparsers.add_parser("task", help="Task inspection utilities")
     task_subparsers = task.add_subparsers(dest="task_command")
     task_subparsers.required = True
+
+    task_calc = task_subparsers.add_parser(
+        "calc-budget",
+        help="Calculate task budgets and payout previews for reward mechanics",
+    )
+    task_calc.add_argument("reward_type", help="Mechanic: every_good, progressive, linear, winner_take_all, best_x, or duel")
+    task_calc.add_argument("--budget", type=int, help="Total budget for Winner Take All, [X] Best, or Duel")
+    task_calc.add_argument("--per-acceptance", type=int, dest="per_acceptance", help="Payout per accepted submission for Every Good")
+    task_calc.add_argument("--acceptances", type=int, help="Expected accepted submissions for Every Good")
+    task_calc.add_argument("--slots", type=int, help="Slot count for Progressive or Linear")
+    task_calc.add_argument("--winners", type=int, help="Declared X value for [X] Best")
+    task_calc.add_argument("--ranked", type=int, help="Actual ranked submissions for [X] Best (defaults to --winners)")
+    task_calc.add_argument("--json", action="store_true", help="Output calculation as JSON")
+    task_calc.set_defaults(_handler=cmd_task_calc_budget)
 
     task_check = task_subparsers.add_parser("check-criteria", help="Inspect task acceptance criteria")
     task_check.add_argument("issue", type=int, help="Issue number")

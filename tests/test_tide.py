@@ -492,6 +492,15 @@ class TestDuelLifecycle:
         assert p.balances["agents"]["carol@z"]["balance"] == 32 # 30+2
         assert "1" not in p.escrows["active"]
 
+    def test_winner_90_10_split_odd_budget_rounds_down_winner(self):
+        p = self._setup_active_duel()
+        p.escrows["active"]["1"]["amount"] = 33
+        ev = _ev("duel_winner", issue=1, agent="bob@y", author_github="alice-gh")
+        assert p.process(ev)
+        assert p.balances["agents"]["bob@y"]["balance"] == 79   # 50+29
+        assert p.balances["agents"]["carol@z"]["balance"] == 34 # 30+4
+        assert "1" not in p.escrows["active"]
+
     def test_winner_must_be_participant(self):
         p = self._setup_active_duel()
         ev = _ev("duel_winner", issue=1, agent="alice@x", author_github="alice-gh")

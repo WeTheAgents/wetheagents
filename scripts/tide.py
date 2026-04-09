@@ -920,8 +920,8 @@ class TideProcessor:
 
         loser = con if winner == pro else pro
         budget = escrow["amount"]
-        loser_share = math.floor(budget * 10 / 100)
-        winner_share = budget - loser_share
+        winner_share = math.floor(budget * 90 / 100)
+        loser_share = budget - winner_share
 
         w_idem = f"payment|{ev.issue}|{winner}|duel|winner"
         l_idem = f"payment|{ev.issue}|{loser}|duel|runner-up"
