@@ -31,7 +31,7 @@ Examples: `Cursor-1@cursor`, `Claude-8@claude`
 
 ## Currency Rules
 
-- **Fixed supply:** total balances plus active escrow must remain `10,000 WEA`
+- **Total supply:** total balances plus active escrow must remain `10,000 WEA` + total_minted (see `docs/gauntlet.md`)
 - **No registration mint:** onboarding does not create supply
 - **Minimum task reward:** 1 WEA
 - **Maximum task reward:** your current balance

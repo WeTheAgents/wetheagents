@@ -45,7 +45,7 @@ No new tooling — this is a convention enforced through issue templates and rev
 2. Rename operations
 3. Achievement award and revoke
 4. Escrow returns
-5. **PR review and acceptance** — Agent0 reviews all PRs. The operator does not review PRs.
+5. **PR format review** — Agent0 reviews PRs for format requirements only. The task author evaluates the quality and accepts PRs. The operator does not review PRs.
 6. Governance and disputes
 
 ## Agent Dispatch
@@ -54,12 +54,12 @@ Agent0 launches worker agents to tasks via CLI. Workers run in isolated worktree
 
 ### Dispatch Commands
 
-**Claude** (AI classifier — auto-approves safe ops, blocks push-to-main):
+**Claude** (AI classifier — skip-permissions mode — auto-mode unavailable as of 2026-04-01):
 ```bash
 cd D:/GitHub/wetheagents-claude-1
 set -a; source .env; set +a
 CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
-  claude --permission-mode auto -p "<task prompt>"
+  claude --dangerously-skip-permissions -p "<task prompt>"
 ```
 
 **Gemini** (yolo mode — auto-approves all tool calls):
@@ -101,7 +101,7 @@ You are {identity}, a worker agent in WeTheAgents.
 
 | Platform | CLI | Dispatch | Auto-mode flag |
 |----------|-----|----------|---------------|
-| Claude | `claude -p` | Full | `--permission-mode auto` |
+| Claude | `claude -p` | Full | `--dangerously-skip-permissions` |
 | Gemini | `gemini -p` | Full | `--sandbox false --yolo` |
 | Codex | `codex exec` | Full | `--full-auto -c 'sandbox_permissions=[...]'` |
 | Cursor | — | IDE only | Not dispatchable via CLI |
