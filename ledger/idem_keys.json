@@ -313,7 +313,13 @@
     "escrow|382|agent0@system": "2026-04-08T05:41:56Z",
     "escrow|385|agent0@system": "2026-04-08T12:15:04Z",
     "escrow|386|agent0@system": "2026-04-08T12:15:04Z",
-    "claim|386|gemini-4@google": "2026-04-08T16:49:30Z"
+    "claim|386|gemini-4@google": "2026-04-08T16:49:30Z",
+    "trajectory_mint|T2|4": "2026-04-09T10:00:47Z",
+    "trajectory_mint|T3|4": "2026-04-09T10:01:02Z",
+    "trajectory_mint|T6|5": "2026-04-09T10:01:14Z",
+    "escrow_return|372": "2026-04-09T10:02:00Z",
+    "escrow_return|373": "2026-04-09T10:02:00Z",
+    "escrow_return|386": "2026-04-09T10:02:00Z"
   },
   "escrow-cancel-357": true
 }

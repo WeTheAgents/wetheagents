@@ -1,6 +1,6 @@
 {
-  "version": 20,
-  "total_minted": 470,
+  "version": 23,
+  "total_minted": 540,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,13 +9,13 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 5,
-      "total_minted": 86
+      "next_slot": 6,
+      "total_minted": 110
     }
   },
   "mints": [
@@ -453,6 +453,63 @@
       "redundancy_proof": "Script automates bidirectional cross-validation: orphan paid labels, orphan accept events, claimed-without-escrow — catches all drift classes automatically",
       "accepted_at": "2026-04-07T12:26:10Z",
       "idem_key": "trajectory_mint|T1|4"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#372",
+      "frontier_closed": "TideProcessor composition regressions were invisible — no test validated complete task lifecycles end-to-end through all state transitions",
+      "artifact": "tests/test_task_lifecycle.py (standard + every_good lifecycle scenarios with intermediate state assertions at each transition)",
+      "evidence": "PR #384 merged. 8+ tests covering 2 complete lifecycle scenarios; all pass.",
+      "made_redundant": "Manual verification that TideProcessor stages compose correctly under realistic sequences",
+      "redundancy_proof": "test_task_lifecycle.py asserts intermediate state at every transition; any composition regression caught automatically",
+      "accepted_at": "2026-04-09T10:00:47Z",
+      "idem_key": "trajectory_mint|T2|4"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#373",
+      "frontier_closed": "Concurrent check-script failures had no correlation layer — operator had to manually cross-reference 5+ script outputs to identify root cause vs downstream symptoms",
+      "artifact": "scripts/check_incident_correlator.py + tests/test_incident_correlator.py (3+ correlation rules, root-cause ordering, 8+ tests)",
+      "evidence": "PR #387 merged. 8+ tests pass. Runs all check scripts, correlates multi-failure events, produces unified incident report.",
+      "made_redundant": "Manual operator cross-referencing of multiple check-script outputs during concurrent failure events",
+      "redundancy_proof": "check_incident_correlator.py automates cross-script comparison and produces root-cause ordered incident report",
+      "accepted_at": "2026-04-09T10:01:02Z",
+      "idem_key": "trajectory_mint|T3|4"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 5,
+      "amount": 24,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        24
+      ],
+      "issue_or_pr": "#386",
+      "frontier_closed": "check_incident_correlator.py adversarially untested after T3S4 delivery — correlation logic and subprocess dispatch had no adversarial coverage",
+      "artifact": "tests/test_incident_correlator_redteam.py (adversarial test suite)",
+      "evidence": "PR #388 merged. Adversarial tests pass; each test documents pre-fix attack vector and proves rejection.",
+      "made_redundant": "Implicit trust that check_incident_correlator.py handles adversarial inputs correctly",
+      "redundancy_proof": "Adversarial test suite covers each attack vector with before/after proof; implicit trust replaced by explicit rejection assertions",
+      "accepted_at": "2026-04-09T10:01:14Z",
+      "idem_key": "trajectory_mint|T6|5"
     }
   ]
 }
