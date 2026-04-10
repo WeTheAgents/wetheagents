@@ -159,24 +159,17 @@ def run_benchmark(
                     vm = MiniRuntimeClientSync(trial.harness_url)
                     dispatcher = bitgn_dispatcher(vm)
 
-                if provider_name == "anthropic":
-                    from src.agent import run_agent_anthropic
-                    task_trace = run_agent_anthropic(
-                        provider, dispatcher, trial.instruction,
-                        system_prompt_override=system_prompt,
-                        config=config,
-                        tool_models=tool_models,
-                        completion_cls=completion_cls,
-                    )
-                else:
-                    from src.agent import run_agent_openai
-                    task_trace = run_agent_openai(
-                        provider, dispatcher, trial.instruction,
-                        system_prompt_override=system_prompt,
-                        config=config,
-                        tool_models=tool_models,
-                        completion_cls=completion_cls,
-                    )
+                from src.agent import run_agent
+                task_trace = run_agent(
+                    provider=provider,
+                    provider_name=provider_name,
+                    dispatcher=dispatcher,
+                    task_text=trial.instruction,
+                    system_prompt_override=system_prompt,
+                    config=config,
+                    tool_models=tool_models,
+                    completion_cls=completion_cls,
+                )
             except Exception as e:
                 print(f"{CLI_RED}Agent error: {e}{CLI_CLR}")
                 import traceback
@@ -231,24 +224,17 @@ def run_benchmark(
                             from bitgn.vm.mini_connect import MiniRuntimeClientSync
                             vm = MiniRuntimeClientSync(trial.harness_url)
                             dispatcher = bitgn_dispatcher(vm)
-                        if provider_name == "anthropic":
-                            from src.agent import run_agent_anthropic
-                            task_trace = run_agent_anthropic(
-                                provider, dispatcher, trial.instruction,
-                                system_prompt_override=system_prompt,
-                                config=config,
-                                tool_models=tool_models,
-                                completion_cls=completion_cls,
-                            )
-                        else:
-                            from src.agent import run_agent_openai
-                            task_trace = run_agent_openai(
-                                provider, dispatcher, trial.instruction,
-                                system_prompt_override=system_prompt,
-                                config=config,
-                                tool_models=tool_models,
-                                completion_cls=completion_cls,
-                            )
+                        from src.agent import run_agent
+                        task_trace = run_agent(
+                            provider=provider,
+                            provider_name=provider_name,
+                            dispatcher=dispatcher,
+                            task_text=trial.instruction,
+                            system_prompt_override=system_prompt,
+                            config=config,
+                            tool_models=tool_models,
+                            completion_cls=completion_cls,
+                        )
                     except Exception as e:
                         print(f"{CLI_RED}Agent error: {e}{CLI_CLR}")
                         import traceback
@@ -416,11 +402,26 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
         elif args[i] == "--dual":
             config.use_genome = True
             config.dual_executor = True
+            config.planner_loop = True
             config.warmup = True
             config.enrichment = True
             config.defense_mode = "soft_block"
             config.step_validator = True
             i += 1
+        elif args[i] == "--planner-loop":
+            config.use_genome = True
+            config.planner_loop = True
+            config.warmup = True
+            config.enrichment = True
+            config.defense_mode = "soft_block"
+            config.step_validator = True
+            i += 1
+        elif args[i] == "--replan-every" and i + 1 < len(args):
+            config.planner_replan_every = int(args[i + 1])
+            i += 2
+        elif args[i] == "--replan-from-step" and i + 1 < len(args):
+            config.planner_replan_min_step = int(args[i + 1])
+            i += 2
         elif args[i] == "--all-features":
             config.warmup = True
             config.compress_history = True
@@ -488,6 +489,23 @@ def main() -> None:
             f"every={config.watchdog_check_every} steps, "
             f"from step {config.watchdog_min_step})"
         )
+    if config.planner_loop:
+        print(
+            f"Features: planner_loop=ON "
+            f"(replan_every={config.planner_replan_every}, "
+            f"from_step={config.planner_replan_min_step}, "
+            f"max_escalations={config.max_escalations})"
+        )
+    if config.hybrid:
+        print(
+            f"Features: hybrid=ON "
+            f"(controller={config.hybrid_controller_model}, "
+            f"executor={config.hybrid_executor_model}, "
+            f"phase_length={config.hybrid_phase_length}, "
+            f"max_steps={config.hybrid_max_steps})"
+        )
+    if config.dual_executor:
+        print("Features: dual_executor=ON")
 
     if BITGN_API_KEY:
         print(f"Leaderboard: ON (run_name={run_name!r})")

@@ -56,8 +56,11 @@ class AgentConfig:
     action_model: str = os.getenv("ACTION_MODEL", "gpt-4.1")  # fast model for straightforward execution
     deliberation_model: str = os.getenv("DELIBERATION_MODEL", "gpt-5.4-mini")  # reasoning model for hidden constraints
     deliberation_complex_model: str = os.getenv("DELIBERATION_COMPLEX_MODEL", "gpt-5.4")  # strongest model for deliberation+complex
-    max_escalations: int = 1  # max Watchdog → Planner escalations per task
+    max_escalations: int = 2  # max planner replans per task
     dual_executor: bool = False  # planner routes to lean (hybrid) or complete (genome) executor
+    planner_loop: bool = False
+    planner_replan_every: int = 7
+    planner_replan_min_step: int = 4
 
     # --- Hybrid controller-executor ---
     hybrid: bool = False
@@ -72,7 +75,7 @@ class AgentConfig:
     watchdog_gate_model: str = _WATCHDOG_GATE_MODEL_DEFAULT  # pre-final gate model
     watchdog_check_every: int = 5   # fire every N executed steps
     watchdog_min_step: int = 4      # first check after this many steps
-    watchdog_gate_retries: int = 3  # max times pre-final gate can reject
+    watchdog_gate_retries: int = 2  # first reject retries locally, second escalates to planner
 
 
 # Singleton default — used when no config is explicitly passed

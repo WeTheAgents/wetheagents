@@ -37,6 +37,7 @@ class PlanResult:
     genes: list[str] = field(default_factory=list)
     brief: str = ""
     is_replan: bool = False
+    replan_kind: str = ""
     planner_trace: list[dict] = field(default_factory=list)
 
     @property
@@ -78,6 +79,9 @@ def _build_planner_prompt(
     warmup_context: str | None = None,
     executor_trace: str | None = None,
     escalation_reason: str | None = None,
+    replan_kind: str | None = None,
+    current_plan_summary: str | None = None,
+    side_effect_count: int = 0,
 ) -> str:
     """Build the planner prompt from genome genes + context."""
     parts = []
@@ -97,7 +101,10 @@ def _build_planner_prompt(
     # Add re-plan context if escalated
     if executor_trace and escalation_reason:
         prompt += (
-            f"\n\nPREVIOUS ATTEMPT FAILED. Watchdog escalated with reason:\n{escalation_reason}"
+            f"\n\nPREVIOUS ATTEMPT FAILED. Replan kind: {replan_kind or 'unspecified'}."
+            f"\nEscalation reason:\n{escalation_reason}"
+            f"\nCurrent plan summary:\n{current_plan_summary or '(none)'}"
+            f"\nSide effects already executed: {side_effect_count}"
             f"\n\nExecutor's trace from previous attempt:\n{executor_trace}"
         )
 
@@ -183,6 +190,9 @@ def run_planner(
     model: str | None = None,
     executor_trace: str | None = None,
     escalation_reason: str | None = None,
+    replan_kind: str | None = None,
+    current_plan_summary: str | None = None,
+    side_effect_count: int = 0,
 ) -> PlanResult:
     """Run the Planner agent.
 
@@ -193,6 +203,9 @@ def run_planner(
         model: LLM model override.
         executor_trace: Previous attempt trace (for re-planning).
         escalation_reason: Why Watchdog escalated (for re-planning).
+        replan_kind: checkpoint | watchdog_midstream | action_brake | final_gate | conflict.
+        current_plan_summary: Brief summary of the active plan.
+        side_effect_count: Number of writes/deletes/moves already executed.
 
     Returns:
         PlanResult with route, genes, brief, etc.
@@ -212,7 +225,14 @@ def run_planner(
 
     # Build prompt and call model
     prompt = _build_planner_prompt(
-        genome, task_text, warmup_context, executor_trace, escalation_reason,
+        genome,
+        task_text,
+        warmup_context,
+        executor_trace,
+        escalation_reason,
+        replan_kind,
+        current_plan_summary,
+        side_effect_count,
     )
 
     trace_entry = {"step": "plan", "model": model}
@@ -233,6 +253,7 @@ def run_planner(
     # Tag re-plan
     if executor_trace:
         result.is_replan = True
+        result.replan_kind = replan_kind or "replan"
 
     return result
 

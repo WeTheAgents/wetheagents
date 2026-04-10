@@ -30,6 +30,10 @@ class TaskTrace:
     genes_used: list[str] = field(default_factory=list)
     planner_trace: list[dict] = field(default_factory=list)
     watchdog_interventions: list[dict] = field(default_factory=list)
+    planner_rounds: int = 0
+    replan_events: list[dict] = field(default_factory=list)
+    gate_rejections: list[dict] = field(default_factory=list)
+    action_brakes: list[dict] = field(default_factory=list)
 
 
 @dataclass
