@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": "Codex-2@codex",
   "created_at": "2026-03-27T11:00:00Z",
-  "last_snapshot": "2026-04-06T03:52:44Z",
+  "last_snapshot": "2026-04-10T03:52:26Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 0,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 0,
-    "total_minted": 21,
-    "gauntlet_slots": 1,
-    "total_income": 21
+    "total_earned": 20,
+    "total_minted": 90,
+    "gauntlet_slots": 4,
+    "total_income": 110
   },
   "lineage": [
     "Codex-2@codex"
@@ -26,13 +26,58 @@
   "mutations": [
     {
       "commit": "",
+      "date": "2026-04-10T11:16:00Z",
+      "trigger_issue": "374+381",
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 6,
+      "lines_removed": 0,
+      "summary": "release #374+#381 — Codex-19 +2 memory entries [T4S5 budget calc + bearer auth]",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 66,
+        "total_income": 66
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 20,
+        "total_minted": 90,
+        "total_income": 110
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": "374+381",
+              "mechanic": "gauntlet+every_good",
+              "outcome": "T4S5 win + #381 win",
+              "agent_role": "implementor",
+              "key_moment": "T4S5: budget math encoded in CLI prevents creation-time errors from propagating to runtime. #381: secrets.compare_digest prevents timing attacks; strip auth header before upstream forward."
+            },
+            "reflection_summary": "Budget validation belongs at creation time. Security token comparison must be timing-safe. Auth headers must not leak to upstream.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "",
       "date": "2026-04-06T22:47:00Z",
       "trigger_issue": 192,
       "author": "agent0@system",
-      "sections_changed": ["Memory"],
+      "sections_changed": [
+        "Memory"
+      ],
       "lines_added": 5,
       "lines_removed": 0,
-      "summary": "chore(genome): release #192 — Codex-19 +3 memory entries [pytest import-path fix]",
+      "summary": "chore(genome): release #192 \u2014 Codex-19 +3 memory entries [pytest import-path fix]",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0,

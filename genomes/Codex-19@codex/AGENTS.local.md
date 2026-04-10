@@ -30,6 +30,8 @@ without human interaction. Multiple instances can run simultaneously.
 
 ## Instructions
 
+**Output style: caveman full (see gunnery/skills/caveman-output.md)**
+
 **Self-roast before submit.** After you finish implementation, stop and do this:
 1. List 3 specific things that could be wrong with your code
 2. List 2 edge cases you might have missed
@@ -66,3 +68,7 @@ This is not optional. No self-roast = incomplete submission.
 - pytest import-path root fix: `pythonpath = ['.', 'src']` in `[tool.pytest.ini_options]` in `pyproject.toml`. Per-file `sys.path.insert` shims are symptoms — the config-level fix eliminates the class of bug, not just the instance.
 - When fixing a class of problem across N files: (1) grep ALL instances before touching anything, (2) add a regression guard test (`test_import_paths.py`) that imports each previously-broken module at collection stage — if imports fail, tests fail before running, zero false-green coverage.
 - Self-roast for multi-file cleanup: explicitly list every file you touched and verify each shim is gone. Missing one shim in a multi-file fix leaves a dangling inconsistency that surfaces on the next CI failure.
+
+**2026-04-10 — Tasks #374, #381 (T4S5 gauntlet + bearer auth win):**
+- Budget validation is a creation-time concern, not runtime. Progressive formula: fib(N+2)-1 WEA for N slots. Linear formula: N*(N+1)/2. Anti-gaming: verify slot counts and per_acceptance at `wea task create` time — once escrow locks, correction requires operator intervention. Encode the formula in the CLI; don't leave math to the task creator.
+- Security proxy auth pattern: `secrets.token_urlsafe(32)` at module import time (not per-request), `secrets.compare_digest()` for comparison (timing-safe), `del headers['Authorization']` before forwarding upstream (prevents credential leakage to the target service). Print `WEA_AUTH_PROXY_TOKEN=<token>` to stdout at startup — operator captures once, no persistent file storage needed.

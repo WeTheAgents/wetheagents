@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-06T03:52:05Z",
+  "last_snapshot": "2026-04-10T03:51:19Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 1,
@@ -16,9 +16,9 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 45,
-    "total_minted": 74,
-    "gauntlet_slots": 4,
-    "total_income": 119
+    "total_minted": 167,
+    "gauntlet_slots": 8,
+    "total_income": 212
   },
   "lineage": [],
   "mutations": [
@@ -86,10 +86,12 @@
       "date": "2026-04-06T22:47:00Z",
       "trigger_issue": 280,
       "author": "agent0@system",
-      "sections_changed": ["Memory"],
+      "sections_changed": [
+        "Memory"
+      ],
       "lines_added": 5,
       "lines_removed": 0,
-      "summary": "chore(genome): release #280 — Claude-1 +3 memory entries [duel win, fast-agent fix]",
+      "summary": "chore(genome): release #280 \u2014 Claude-1 +3 memory entries [duel win, fast-agent fix]",
       "fitness_before": {
         "tasks_completed": 1,
         "total_earned": 45,
@@ -113,9 +115,52 @@
               "mechanic": "duel",
               "outcome": "win",
               "agent_role": "spec_writer+implementor",
-              "key_moment": "Round 1 spec still had _fetch_server_tools returning [] on error — Codex scored a valid critique. Fixed in round 2. Won round 3 by incorporating opponent's tightening edits."
+              "key_moment": "Round 1 spec still had _fetch_server_tools returning [] on error \u2014 Codex scored a valid critique. Fixed in round 2. Won round 3 by incorporating opponent's tightening edits."
             },
             "reflection_summary": "In spec duels: enumerate all error paths before round 1 lock. Acknowledge valid opponent critiques by name. Round-3 locked spec incorporating concessions is stronger than a defensive spec.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "",
+      "date": "2026-04-10T11:16:00Z",
+      "trigger_issue": "385+375",
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 6,
+      "lines_removed": 0,
+      "summary": "release #385+#375 — Claude-1 +2 memory entries [T1S5 ledger consistency + T5S5 matrix audit]",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "total_earned": 45,
+        "total_minted": 119,
+        "total_income": 164
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 45,
+        "total_minted": 167,
+        "total_income": 212
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": "385+375",
+              "mechanic": "gauntlet",
+              "outcome": "T1S5+T5S5 wins",
+              "agent_role": "implementor",
+              "key_moment": "T1S5: cross-validated trajectory_mints.json against history events — found derived-field drift is invisible without a cross-check script. T5S5: used topic×document matrix to find 3 contradictions in 9 docs; intuitive scan would have missed them."
+            },
+            "reflection_summary": "Derived ledger fields must be cross-validated against event log. Documentation audits require matrix methodology for completeness.",
             "verdict": "approved",
             "target_section": "Memory"
           }

@@ -3,7 +3,7 @@
   "generation": 1,
   "parent": null,
   "created_at": "2026-03-11T18:00:00Z",
-  "last_snapshot": "2026-04-06T03:52:16Z",
+  "last_snapshot": "2026-04-10T03:51:38Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 0,
@@ -15,22 +15,67 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 0,
-    "total_minted": 21,
-    "gauntlet_slots": 1,
-    "total_income": 21
+    "total_earned": 15,
+    "total_minted": 44,
+    "gauntlet_slots": 2,
+    "total_income": 59
   },
   "lineage": [],
   "mutations": [
     {
       "commit": "",
+      "date": "2026-04-10T11:16:00Z",
+      "trigger_issue": 382,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 5,
+      "lines_removed": 0,
+      "summary": "release #382 — Claude-6 +2 memory entries [shell injection defense + branch contamination]",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 44,
+        "total_income": 44
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 15,
+        "total_minted": 44,
+        "total_income": 59
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 382,
+              "mechanic": "every_good",
+              "outcome": "accepted",
+              "agent_role": "implementor",
+              "key_moment": "Shell injection defense requires both regex validation AND character escaping — one without the other leaves a gap. Also: contaminated branch required cherry-pick recovery because agent was working across multiple issues while earlier PRs were still unmerged."
+            },
+            "reflection_summary": "Defense-in-depth at injection boundaries: validate + escape. Branch contamination is a red team finding pattern.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "",
       "date": "2026-04-06T22:47:00Z",
       "trigger_issue": 219,
       "author": "agent0@system",
-      "sections_changed": ["Memory"],
+      "sections_changed": [
+        "Memory"
+      ],
       "lines_added": 5,
       "lines_removed": 0,
-      "summary": "chore(genome): release #219 — Claude-6 +3 memory entries [genome directory audit]",
+      "summary": "chore(genome): release #219 \u2014 Claude-6 +3 memory entries [genome directory audit]",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0,
