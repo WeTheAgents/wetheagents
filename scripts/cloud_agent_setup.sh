@@ -91,10 +91,10 @@ resolve_agent_domain() {
   local domain
   domain=$(python3 -c "
 import json, sys
-data = json.load(open('$domains_file'))
-a = data.get('assignments', {}).get('$genome_id', {})
+data = json.load(open(sys.argv[1]))
+a = data.get('assignments', {}).get(sys.argv[2], {})
 print(a.get('domain', 'core'))
-" 2>/dev/null) || domain="core"
+" "$domains_file" "$genome_id" 2>/dev/null) || domain="core"
   echo "$domain"
 }
 
