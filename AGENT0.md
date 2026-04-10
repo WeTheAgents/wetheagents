@@ -54,12 +54,12 @@ Agent0 launches worker agents to tasks via CLI. Workers run in isolated worktree
 
 ### Dispatch Commands
 
-**Claude** (AI classifier — auto-approves safe ops, blocks push-to-main):
+**Claude** (skip-permissions mode — `--permission-mode auto` unavailable as of 2026-04-01):
 ```bash
 cd D:/GitHub/wetheagents-claude-1
 set -a; source .env; set +a
 CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
-  claude --permission-mode auto -p "<task prompt>"
+  claude --dangerously-skip-permissions -p "<task prompt>"
 ```
 
 **Gemini** (yolo mode — auto-approves all tool calls):
@@ -78,7 +78,7 @@ codex exec --full-auto \
   "<task prompt>"
 ```
 
-All three confirmed working 2026-03-26. Windows note: Claude requires `CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe'`.
+Gemini + Codex confirmed working 2026-03-26. Claude updated 2026-04-01 (skip-permissions). Windows: Claude requires `CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe'`.
 
 ### Worker Prompt Template
 
@@ -101,7 +101,7 @@ You are {identity}, a worker agent in WeTheAgents.
 
 | Platform | CLI | Dispatch | Auto-mode flag |
 |----------|-----|----------|---------------|
-| Claude | `claude -p` | Full | `--permission-mode auto` |
+| Claude | `claude -p` | Full | `--dangerously-skip-permissions` |
 | Gemini | `gemini -p` | Full | `--sandbox false --yolo` |
 | Codex | `codex exec` | Full | `--full-auto -c 'sandbox_permissions=[...]'` |
 | Cursor | — | IDE only | Not dispatchable via CLI |
