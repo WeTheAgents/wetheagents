@@ -26,7 +26,7 @@ _REWARD_TYPE_MAP = {
     "every good": "every_good",
     "progressive every good": "progressive",
     "linear pod": "linear",
-    "winner take all": "best_x",
+    "winner take all": "winner_take_all",
     "[x] best": "best_x",
     "duel": "duel",
 }
@@ -80,6 +80,10 @@ Winner Take All (single winner, full budget)
 ### Reward (WEA)
 
 10
+
+### Per Acceptance (Every Good only)
+
+_No response_
 
 ### Slots (Progressive / Linear only)
 
@@ -162,6 +166,30 @@ def _find_value_line(body: str, label: str) -> int | None:
     return _line_number(body, match.start(1) + value_match.start())
 
 
+def _normalize_reward_type(reward_type_raw: str) -> str | None:
+    reward_type_lower = reward_type_raw.lower().strip()
+    for prefix, canonical in _REWARD_TYPE_MAP.items():
+        if reward_type_lower.startswith(prefix):
+            return canonical
+    return None
+
+
+def _first_populated_field(body: str, labels: list[str]) -> tuple[str | None, str | None, int]:
+    for label in labels:
+        raw = _parse_field(body, label)
+        if raw is not None:
+            return label, raw, _find_value_line(body, label) or 1
+    return None, None, 1
+
+
+def _parse_positive_int(raw: str) -> int | None:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
 def validate_detailed(body: str) -> list[ValidationIssue]:
     """Return validation issues with approximate line numbers."""
     errors: list[ValidationIssue] = []
@@ -212,9 +240,11 @@ def validate_detailed(body: str) -> list[ValidationIssue]:
 
     # Reward must be positive integer
     reward_raw = _parse_field(body, "Reward (WEA)")
+    reward_val = None
     if reward_raw:
         try:
             reward = int(reward_raw)
+            reward_val = reward
             if reward <= 0:
                 errors.append(
                     ValidationIssue(
@@ -233,9 +263,8 @@ def validate_detailed(body: str) -> list[ValidationIssue]:
     # Reward type must match known types; companion fields must be present
     reward_type_raw = _parse_field(body, "Reward Type")
     if reward_type_raw:
-        rt_lower = reward_type_raw.lower().strip()
-        matched = any(rt_lower.startswith(prefix) for prefix in _REWARD_TYPE_MAP)
-        if not matched:
+        reward_type = _normalize_reward_type(reward_type_raw)
+        if reward_type is None:
             valid_types = ", ".join(f"`{k}`" for k in _REWARD_TYPE_MAP)
             errors.append(
                 ValidationIssue(
@@ -247,14 +276,72 @@ def validate_detailed(body: str) -> list[ValidationIssue]:
                 )
             )
         else:
-            # Progressive / Linear slot-based modes require Slots.
-            if rt_lower.startswith("progressive every good") or rt_lower.startswith("linear pod"):
-                slots_raw = (
-                    _parse_field(body, "Slots (Progressive / Linear only)")
-                    or _parse_field(body, "Slots (Progressive Every Good only)")
-                )
-                if not slots_raw:
-                    reward_label = "Linear PoD" if rt_lower.startswith("linear pod") else "Progressive Every Good"
+            slots_label, slots_raw, slots_line = _first_populated_field(
+                body,
+                ["Slots (Progressive / Linear only)", "Slots (Progressive Every Good only)"],
+            )
+            winners_label, winners_raw, winners_line = _first_populated_field(
+                body,
+                ["Winners X ([X] Best only)"],
+            )
+            rounds_label, rounds_raw, rounds_line = _first_populated_field(
+                body,
+                ["Rounds (Duel only)"],
+            )
+            per_acceptance_label, per_acceptance_raw, per_acceptance_line = _first_populated_field(
+                body,
+                ["Per Acceptance (Every Good only)"],
+            )
+
+            slots = None
+            if slots_raw is not None:
+                slots = _parse_positive_int(slots_raw)
+                if slots is None:
+                    errors.append(
+                        ValidationIssue(
+                            line=slots_line,
+                            message=f"Slots must be a positive integer, got `{slots_raw}`.",
+                        )
+                    )
+
+            winners = None
+            if winners_raw is not None:
+                winners = _parse_positive_int(winners_raw)
+                if winners is None:
+                    errors.append(
+                        ValidationIssue(
+                            line=winners_line,
+                            message=f"Winners X must be a positive integer, got `{winners_raw}`.",
+                        )
+                    )
+
+            rounds = None
+            if rounds_raw is not None:
+                rounds = _parse_positive_int(rounds_raw)
+                if rounds is None:
+                    errors.append(
+                        ValidationIssue(
+                            line=rounds_line,
+                            message=f"Rounds must be a positive integer, got `{rounds_raw}`.",
+                        )
+                    )
+
+            per_acceptance = None
+            if per_acceptance_raw is not None:
+                per_acceptance = _parse_positive_int(per_acceptance_raw)
+                if per_acceptance is None:
+                    errors.append(
+                        ValidationIssue(
+                            line=per_acceptance_line,
+                            message=(
+                                f"Per Acceptance must be a positive integer, got `{per_acceptance_raw}`."
+                            ),
+                        )
+                    )
+
+            if reward_type in {"progressive", "linear"}:
+                reward_label = "Linear PoD" if reward_type == "linear" else "Progressive Every Good"
+                if slots_raw is None:
                     errors.append(
                         ValidationIssue(
                             line=_find_value_line(body, "Reward Type") or 1,
@@ -265,10 +352,23 @@ def validate_detailed(body: str) -> list[ValidationIssue]:
                             ),
                         )
                     )
-            # [X] Best requires Winners X
-            if rt_lower.startswith("[x] best"):
-                winners_raw = _parse_field(body, "Winners X ([X] Best only)")
-                if not winners_raw:
+                elif reward_raw and slots is not None:
+                    expected_reward = (
+                        slots * (slots + 1) // 2 if reward_type == "linear" else _progressive_budget(slots)
+                    )
+                    if reward_val is not None and reward_val != expected_reward:
+                        errors.append(
+                            ValidationIssue(
+                                line=_find_value_line(body, "Reward (WEA)") or 1,
+                                message=(
+                                    f"Reward `{reward_val}` does not match {reward_label} budget for {slots} slot(s); "
+                                    f"expected `{expected_reward}`."
+                                ),
+                            )
+                        )
+
+            if reward_type == "best_x":
+                if winners_raw is None:
                     errors.append(
                         ValidationIssue(
                             line=_find_value_line(body, "Reward Type") or 1,
@@ -278,14 +378,94 @@ def validate_detailed(body: str) -> list[ValidationIssue]:
                             ),
                         )
                     )
+                elif winners is not None and not 2 <= winners <= 5:
+                    errors.append(
+                        ValidationIssue(
+                            line=winners_line,
+                            message=(
+                                "Winners X must be in range `2..5` for `[X] Best`. "
+                                "Use `Winner Take All` for a single winner."
+                            ),
+                        )
+                    )
+
+            if reward_type == "winner_take_all" and winners_raw is not None:
+                errors.append(
+                    ValidationIssue(
+                        line=winners_line,
+                        message=(
+                            "Winner Take All must leave **Winners X** blank. "
+                            "Use `[X] Best` when multiple ranks should share the budget."
+                        ),
+                    )
+                )
+
+            if reward_type == "every_good" and per_acceptance is not None and reward_val is not None:
+                if per_acceptance > reward_val:
+                    errors.append(
+                        ValidationIssue(
+                            line=per_acceptance_line,
+                            message=(
+                                f"Per Acceptance `{per_acceptance}` exceeds total reward `{reward_val}`."
+                            ),
+                        )
+                    )
+                elif reward_val % per_acceptance != 0:
+                    errors.append(
+                        ValidationIssue(
+                            line=per_acceptance_line,
+                            message=(
+                                f"Reward `{reward_val}` is not divisible by Per Acceptance `{per_acceptance}`. "
+                                "Every Good budgets must split into whole acceptances."
+                            ),
+                        )
+                    )
+
+            if reward_type != "every_good" and per_acceptance_raw is not None:
+                errors.append(
+                    ValidationIssue(
+                        line=per_acceptance_line,
+                        message=(
+                            f"Field **{per_acceptance_label}** only applies to `Every Good` tasks. "
+                            f"Leave it blank for `{reward_type_raw}`."
+                        ),
+                    )
+                )
+
+            if reward_type not in {"progressive", "linear"} and slots_raw is not None:
+                errors.append(
+                    ValidationIssue(
+                        line=slots_line,
+                        message=(
+                            f"Field **{slots_label}** only applies to `Progressive Every Good` or `Linear PoD` tasks. "
+                            f"Leave it blank for `{reward_type_raw}`."
+                        ),
+                    )
+                )
+
+            if reward_type not in {"best_x", "winner_take_all"} and winners_raw is not None:
+                errors.append(
+                    ValidationIssue(
+                        line=winners_line,
+                        message=(
+                            f"Field **{winners_label}** only applies to `[X] Best` tasks. "
+                            f"Leave it blank for `{reward_type_raw}`."
+                        ),
+                    )
+                )
+
+            if reward_type != "duel" and rounds_raw is not None:
+                errors.append(
+                    ValidationIssue(
+                        line=rounds_line,
+                        message=(
+                            f"Field **{rounds_label}** only applies to `Duel` tasks. "
+                            f"Leave it blank for `{reward_type_raw}`."
+                        ),
+                    )
+                )
 
     # Verification criteria — required for tasks >= 10 WEA
-    reward_val = None
-    if reward_raw:
-        try:
-            reward_val = int(reward_raw)
-        except ValueError:
-            pass
     verification_raw = _parse_field(body, "Verification Criteria")
     has_criteria = bool(verification_raw and verification_raw.strip())
     if reward_val is not None and reward_val >= 10 and not has_criteria:
@@ -301,6 +481,17 @@ def validate_detailed(body: str) -> list[ValidationIssue]:
         )
 
     return errors
+
+
+def _progressive_budget(slots: int) -> int:
+    return _fib(slots + 2) - 1
+
+
+def _fib(n: int) -> int:
+    a, b = 1, 1
+    for _ in range(n - 1):
+        a, b = b, a + b
+    return a
 
 
 def validate(body: str) -> list[str]:
