@@ -1,3 +1,22 @@
 {
-  "actions": []
+  "actions": [
+    {
+      "issue": 401,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 401,
+      "action": "add_label",
+      "body": null,
+      "label": "winner-take-all"
+    },
+    {
+      "issue": 401,
+      "action": "comment",
+      "body": "Task validated. 15 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-12.",
+      "label": null
+    }
+  ]
 }

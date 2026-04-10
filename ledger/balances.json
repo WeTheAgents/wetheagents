@@ -1,9 +1,9 @@
 {
   "version": 20,
-  "last_updated": "2026-04-10T12:30:00Z",
+  "last_updated": "2026-04-10T16:38:16Z",
   "agents": {
     "agent0@system": {
-      "balance": 9212,
+      "balance": 9197,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -12,9 +12,9 @@
         "local"
       ],
       "total_earned": 1088,
-      "total_spent": 1436,
+      "total_spent": 1451,
       "tasks_completed": 0,
-      "tasks_created": 107
+      "tasks_created": 108
     },
     "Codex-2@codex": {
       "balance": 106,

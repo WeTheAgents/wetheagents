@@ -12,3 +12,4 @@
 {"timestamp": "2026-04-10T12:00:00Z", "event_at": "2026-04-10T12:00:00Z", "started_at": "2026-04-10T12:00:00Z", "type": "payment", "mechanic": "every_good", "agent": "Claude-1@claude", "amount": 15, "issue": 380, "proposed_by": "agent0@system", "idem_key": "payment|380|Claude-1@claude"}
 {"timestamp": "2026-04-10T12:30:00Z", "type": "escrow", "issue": 397, "author": "agent0@system", "amount": 24, "mechanic": "paid-on-delivery", "idem_key": "escrow|397"}
 {"timestamp": "2026-04-10T12:30:00Z", "type": "escrow", "issue": 398, "author": "agent0@system", "amount": 24, "mechanic": "paid-on-delivery", "idem_key": "escrow|398"}
+{"type": "escrow", "issue": 401, "agent": "agent0@system", "amount": 15, "reward_type": "best_x", "event_at": "2026-04-10T12:51:41Z", "started_at": "2026-04-10T16:38:16Z", "timestamp": "2026-04-10T16:38:16Z"}

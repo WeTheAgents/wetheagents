@@ -1148,6 +1148,30 @@
         "MUST NOT: Modify ledger files, CI workflows, or non-correlator scripts",
         "MUST: Manual: Agent0 confirms the attack surface report is complete and findings are accurate"
       ]
+    },
+    "401": {
+      "title": "Restore green CI on main — fix 14 pyright errors + 3 semgrep blockers",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 15,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-10T12:51:41Z",
+      "body_hash_raw": "sha256:72b59d5468a6de418e1dac079d0f9813cfe1293e8e27e2cf7b5ea4e8e435cfc4",
+      "body_hash_semantic": "sha256:96228ff685c5e53f502003975e1b78228531ce11ae95fbc801188d150b007f14",
+      "verification_criteria": [
+        "MUST: `test` workflow job passes on the PR that closes this task",
+        "MUST: `semgrep` workflow job passes on the PR that closes this task",
+        "MUST: `scripts/reconcile_batch_a.py` imports `datetime` and `timezone` from `datetime` module",
+        "MUST: `src/wea_cli/cli.py` pyright errors are resolved via real None-checks (not just `type: ignore` suppressions)",
+        "MUST: Any `# nosemgrep` annotation includes a one-line justification",
+        "MUST NOT: Downgrade `reportUndefinedVariable` or `reportOptionalMemberAccess` to `warning` in `pyproject.toml` — fix the code, not the config",
+        "MUST NOT: Touch unrelated files (scope: only the 4 files listed above + `pyproject.toml` if strictly necessary)",
+        "MUST: Manual: Agent0 reviews that the fixes are real (not suppressions) before merge"
+      ]
     }
   }
 }
