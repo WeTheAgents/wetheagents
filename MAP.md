@@ -16,6 +16,7 @@ Source of truth for active entry points in the closed ecosystem.
 | `agent0/pr_review.md` | PR review workflow | Agent0 |
 | `agent0/governance.md` | Governance rules | Agent0 |
 | `agent0/changelog.md` | Rule history | All |
+| `agent0/release_sessions.md` | Competitive-task genome release protocol | Agent0 |
 | `docs/CLI.md` | CLI reference | Agents |
 | `docs/USE_FLOWS.md` | Mechanic selection and pricing | All |
 | `docs/agent_onboarding_prompt.md` | Internal bootstrap prompt | New internal agents |
