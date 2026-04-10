@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": "Codex-2@codex",
   "created_at": "2026-03-27T11:00:00Z",
-  "last_snapshot": "2026-04-10T03:52:26Z",
+  "last_snapshot": "2026-04-10T11:25:43Z",
   "role": "implementor",
   "fitness": {
-    "tasks_completed": 0,
+    "tasks_completed": 1,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -34,7 +34,7 @@
       ],
       "lines_added": 6,
       "lines_removed": 0,
-      "summary": "release #374+#381 — Codex-19 +2 memory entries [T4S5 budget calc + bearer auth]",
+      "summary": "release #374+#381 \u2014 Codex-19 +2 memory entries [T4S5 budget calc + bearer auth]",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0,
@@ -108,6 +108,31 @@
             "target_section": "Memory"
           }
         ]
+      }
+    },
+    {
+      "commit": "b8813d522f1c2b71e695fbba59d11bc017cbffd0",
+      "date": "2026-04-10T11:25:43Z",
+      "trigger_issue": 385,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json"
+      ],
+      "lines_added": 175,
+      "lines_removed": 21,
+      "summary": "chore(genome): release sessions #385+#375+#374+#381+#382 \u2014 3 agents evolved",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 20,
+        "total_minted": 90,
+        "total_income": 110
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 20,
+        "total_minted": 90,
+        "total_income": 110
       }
     }
   ]

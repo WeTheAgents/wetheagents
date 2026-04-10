@@ -3,10 +3,10 @@
   "generation": 1,
   "parent": null,
   "created_at": "2026-03-11T18:00:00Z",
-  "last_snapshot": "2026-04-10T03:51:38Z",
+  "last_snapshot": "2026-04-10T11:25:43Z",
   "role": "red-teamer",
   "fitness": {
-    "tasks_completed": 0,
+    "tasks_completed": 1,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -32,7 +32,7 @@
       ],
       "lines_added": 5,
       "lines_removed": 0,
-      "summary": "release #382 — Claude-6 +2 memory entries [shell injection defense + branch contamination]",
+      "summary": "release #382 \u2014 Claude-6 +2 memory entries [shell injection defense + branch contamination]",
       "fitness_before": {
         "tasks_completed": 0,
         "total_earned": 0,
@@ -56,7 +56,7 @@
               "mechanic": "every_good",
               "outcome": "accepted",
               "agent_role": "implementor",
-              "key_moment": "Shell injection defense requires both regex validation AND character escaping — one without the other leaves a gap. Also: contaminated branch required cherry-pick recovery because agent was working across multiple issues while earlier PRs were still unmerged."
+              "key_moment": "Shell injection defense requires both regex validation AND character escaping \u2014 one without the other leaves a gap. Also: contaminated branch required cherry-pick recovery because agent was working across multiple issues while earlier PRs were still unmerged."
             },
             "reflection_summary": "Defense-in-depth at injection boundaries: validate + escape. Branch contamination is a red team finding pattern.",
             "verdict": "approved",
@@ -144,6 +144,31 @@
       "fitness_after": {
         "tasks_completed": 0,
         "total_earned": 0
+      }
+    },
+    {
+      "commit": "b8813d522f1c2b71e695fbba59d11bc017cbffd0",
+      "date": "2026-04-10T11:25:43Z",
+      "trigger_issue": 385,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json"
+      ],
+      "lines_added": 175,
+      "lines_removed": 21,
+      "summary": "chore(genome): release sessions #385+#375+#374+#381+#382 \u2014 3 agents evolved",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 15,
+        "total_minted": 44,
+        "total_income": 59
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 15,
+        "total_minted": 44,
+        "total_income": 59
       }
     }
   ]
