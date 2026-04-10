@@ -19,7 +19,10 @@ from bitgn.harness_pb2 import (
     EvalPolicy,
     GetBenchmarkRequest,
     StartPlaygroundRequest,
+    StartRunRequest,
+    StartTrialRequest,
     StatusRequest,
+    SubmitRunRequest,
 )
 from connectrpc.errors import ConnectError
 
@@ -29,6 +32,7 @@ from src.tools import bitgn_dispatcher
 from src.trace import BenchmarkTrace, TaskTrace
 
 BITGN_URL = os.getenv("BENCHMARK_HOST", "https://api.bitgn.com")
+BITGN_API_KEY = os.getenv("BITGN_API_KEY", "")
 
 CLI_RED = "\x1B[31m"
 CLI_GREEN = "\x1B[32m"
@@ -70,6 +74,7 @@ def run_benchmark(
     prompt_version: str = "default",
     config: AgentConfig | None = None,
     benchmark_id: str = "bitgn/sandbox",
+    run_name: str = "WEA v1",
 ) -> BenchmarkTrace:
     """Run the full benchmark and return a structured trace.
 
@@ -81,6 +86,7 @@ def run_benchmark(
         prompt_version: Label for this prompt version (e.g. 'gen_003').
         config: Optional AgentConfig for feature flags.
         benchmark_id: Benchmark to run ('bitgn/sandbox' or 'bitgn/pac1-dev').
+        run_name: Display name for this run on the leaderboard (used when BITGN_API_KEY is set).
 
     Returns:
         BenchmarkTrace with all task traces, scores, and metadata.
@@ -121,34 +127,31 @@ def run_benchmark(
             f"with {len(res.tasks)} tasks."
         )
 
-        for t in res.tasks:
-            if task_filter and t.task_id not in task_filter:
-                continue
+        def _run_trial(trial_id_or_task_id, *, leaderboard_trial_id: str | None = None):
+            """Run a single trial and return its TaskTrace. Used by both flows."""
+            nonlocal trial
+            if leaderboard_trial_id is not None:
+                trial = client.start_trial(StartTrialRequest(trial_id=leaderboard_trial_id))
+                task_id = trial.task_id
+            else:
+                trial = client.start_playground(
+                    StartPlaygroundRequest(
+                        benchmark_id=benchmark_id,
+                        task_id=trial_id_or_task_id,
+                    )
+                )
+                task_id = trial_id_or_task_id
 
             print("=" * 60)
-            print(f"TASK: {t.task_id}")
-
-            trial = client.start_playground(
-                StartPlaygroundRequest(
-                    benchmark_id=benchmark_id,
-                    task_id=t.task_id,
-                )
-            )
-
+            print(f"TASK: {task_id}")
             print(f"Instruction: {trial.instruction}\n")
 
-            # Build system prompt for this task
             system_prompt = build_system_prompt(trial.instruction, prompt_template)
 
             try:
-                # Create gRPC dispatcher based on runtime
                 if pcm:
-                    from bitgn.vm.pcm_connect import (
-                        PcmRuntimeClientSync,
-                    )
-
+                    from bitgn.vm.pcm_connect import PcmRuntimeClientSync
                     from src.pcm_tools import pcm_dispatcher
-
                     vm = PcmRuntimeClientSync(trial.harness_url)
                     dispatcher = pcm_dispatcher(vm)
                 else:
@@ -179,24 +182,101 @@ def run_benchmark(
                 import traceback
                 traceback.print_exc()
                 task_trace = TaskTrace(
-                    task_id=t.task_id,
+                    task_id=task_id,
                     instruction=trial.instruction,
                     error=str(e),
                 )
 
             result = client.end_trial(EndTrialRequest(trial_id=trial.trial_id))
-
-            # Fill in score info from BitGN API
-            task_trace.task_id = t.task_id
+            task_trace.task_id = task_id
             if result.score >= 0:
                 task_trace.score = result.score
                 task_trace.score_detail = list(result.score_detail)
-
                 style = CLI_GREEN if result.score == 1 else CLI_RED
                 explain = textwrap.indent("\n".join(result.score_detail), "  ")
                 print(f"\n{style}Score: {result.score:0.2f}\n{explain}\n{CLI_CLR}")
 
-            trace.traces.append(task_trace)
+            return task_trace
+
+        trial = None  # will be set inside _run_trial
+
+        if BITGN_API_KEY:
+            # Leaderboard flow: start_run → start_trial per slot → submit_run
+            run = client.start_run(StartRunRequest(
+                name=run_name,
+                benchmark_id=benchmark_id,
+                api_key=BITGN_API_KEY,
+            ))
+            print(f"Leaderboard run started: {run.run_id}")
+            try:
+                for lid in run.trial_ids:
+                    # Peek at task_id without consuming the trial slot
+                    peek = client.start_trial(StartTrialRequest(trial_id=lid))
+                    if task_filter and peek.task_id not in task_filter:
+                        continue
+                    # Re-use the already-started trial (trial object is set inside)
+                    trial = peek
+                    task_id = trial.task_id
+                    print("=" * 60)
+                    print(f"TASK: {task_id}")
+                    print(f"Instruction: {trial.instruction}\n")
+                    system_prompt = build_system_prompt(trial.instruction, prompt_template)
+                    try:
+                        if pcm:
+                            from bitgn.vm.pcm_connect import PcmRuntimeClientSync
+                            from src.pcm_tools import pcm_dispatcher
+                            vm = PcmRuntimeClientSync(trial.harness_url)
+                            dispatcher = pcm_dispatcher(vm)
+                        else:
+                            from bitgn.vm.mini_connect import MiniRuntimeClientSync
+                            vm = MiniRuntimeClientSync(trial.harness_url)
+                            dispatcher = bitgn_dispatcher(vm)
+                        if provider_name == "anthropic":
+                            from src.agent import run_agent_anthropic
+                            task_trace = run_agent_anthropic(
+                                provider, dispatcher, trial.instruction,
+                                system_prompt_override=system_prompt,
+                                config=config,
+                                tool_models=tool_models,
+                                completion_cls=completion_cls,
+                            )
+                        else:
+                            from src.agent import run_agent_openai
+                            task_trace = run_agent_openai(
+                                provider, dispatcher, trial.instruction,
+                                system_prompt_override=system_prompt,
+                                config=config,
+                                tool_models=tool_models,
+                                completion_cls=completion_cls,
+                            )
+                    except Exception as e:
+                        print(f"{CLI_RED}Agent error: {e}{CLI_CLR}")
+                        import traceback
+                        traceback.print_exc()
+                        task_trace = TaskTrace(
+                            task_id=task_id,
+                            instruction=trial.instruction,
+                            error=str(e),
+                        )
+                    result = client.end_trial(EndTrialRequest(trial_id=trial.trial_id))
+                    task_trace.task_id = task_id
+                    if result.score >= 0:
+                        task_trace.score = result.score
+                        task_trace.score_detail = list(result.score_detail)
+                        style = CLI_GREEN if result.score == 1 else CLI_RED
+                        explain = textwrap.indent("\n".join(result.score_detail), "  ")
+                        print(f"\n{style}Score: {result.score:0.2f}\n{explain}\n{CLI_CLR}")
+                    trace.traces.append(task_trace)
+            finally:
+                client.submit_run(SubmitRunRequest(run_id=run.run_id, force=True))
+                print(f"Run submitted: {run.run_id}")
+        else:
+            # Playground flow (no leaderboard): start_playground per task
+            for t in res.tasks:
+                if task_filter and t.task_id not in task_filter:
+                    continue
+                task_trace = _run_trial(t.task_id)
+                trace.traces.append(task_trace)
 
     except ConnectError as e:
         print(f"{CLI_RED}{e.code}: {e.message}{CLI_CLR}")
@@ -361,6 +441,7 @@ def main() -> None:
     task_filter = []
     provider_name = os.getenv("LLM_PROVIDER", "anthropic")
     benchmark_id = os.getenv("BENCHMARK_ID", "bitgn/sandbox")
+    run_name = "WEA v1"
 
     args = sys.argv[1:]
     args, config = _parse_config_from_args(args)
@@ -379,6 +460,9 @@ def main() -> None:
         elif args[i].startswith("--benchmark="):
             benchmark_id = args[i].split("=", 1)[1]
             i += 1
+        elif args[i] == "--run-name" and i + 1 < len(args):
+            run_name = args[i + 1]
+            i += 2
         else:
             task_filter.append(args[i])
             i += 1
@@ -405,11 +489,17 @@ def main() -> None:
             f"from step {config.watchdog_min_step})"
         )
 
+    if BITGN_API_KEY:
+        print(f"Leaderboard: ON (run_name={run_name!r})")
+    else:
+        print("Leaderboard: OFF (set BITGN_API_KEY to enable)")
+
     trace = run_benchmark(
         provider_name=provider_name,
         task_filter=task_filter if task_filter else None,
         config=config,
         benchmark_id=benchmark_id,
+        run_name=run_name,
     )
 
     print_summary(trace)
