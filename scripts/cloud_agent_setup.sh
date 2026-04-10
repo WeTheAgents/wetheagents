@@ -294,9 +294,11 @@ echo "  ok: push-origin configured (credential helper reads GITHUB_TOKEN from en
 # ── 8. Start multi-provider auth proxy ────────────────────────────────
 # Routes API requests by path prefix (/anthropic, /openai, /gemini) to upstream,
 # transforms auth headers, and streams SSE responses.
+# Prints WEA_AUTH_PROXY_TOKEN=<token> on startup; captured and exported here.
 AUTH_PROXY_SCRIPT="$REPO/scripts/auth_proxy.py"
 AUTH_PROXY_PORT=18080
 AUTH_PROXY_PIDFILE="/tmp/auth-proxy.pid"
+AUTH_PROXY_STDOUT="/tmp/auth-proxy.startup"
 
 if [ -f "$AUTH_PROXY_SCRIPT" ]; then
   # Kill any existing proxy
@@ -305,11 +307,20 @@ if [ -f "$AUTH_PROXY_SCRIPT" ]; then
     rm -f "$AUTH_PROXY_PIDFILE"
   fi
 
-  python3 "$AUTH_PROXY_SCRIPT" "$AUTH_PROXY_PORT" &
+  # Redirect stdout to temp file so we can capture the bearer token line
+  python3 "$AUTH_PROXY_SCRIPT" "$AUTH_PROXY_PORT" > "$AUTH_PROXY_STDOUT" 2>&1 &
   echo $! > "$AUTH_PROXY_PIDFILE"
   sleep 0.5
 
-  # Health check via /health endpoint
+  # Extract and export bearer token printed by the proxy at startup
+  WEA_AUTH_PROXY_TOKEN=$(grep '^WEA_AUTH_PROXY_TOKEN=' "$AUTH_PROXY_STDOUT" 2>/dev/null | cut -d= -f2-)
+  export WEA_AUTH_PROXY_TOKEN
+
+  # Echo startup messages to setup output, then clean up temp file
+  cat "$AUTH_PROXY_STDOUT" 2>/dev/null || true
+  rm -f "$AUTH_PROXY_STDOUT"
+
+  # Health check via /health endpoint (no auth required)
   HEALTH=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$AUTH_PROXY_PORT/health" 2>/dev/null || echo "000")
   if [ "$HEALTH" = "200" ]; then
     PROVIDERS=$(curl -s "http://127.0.0.1:$AUTH_PROXY_PORT/health" | python3 -c "import sys,json; print(', '.join(json.load(sys.stdin)['providers']))" 2>/dev/null || echo "?")
@@ -354,12 +365,14 @@ echo "  Claude-1:"
 echo "    cd /home/user/wetheagents-claude-1"
 echo "    source $REPO/.venv/bin/activate"
 echo "    GITHUB_TOKEN=\$CLAUDE1_GITHUB_TOKEN WEA_AGENT=Claude-1@claude \\"
+echo "      WEA_AUTH_PROXY_TOKEN=\"\$WEA_AUTH_PROXY_TOKEN\" \\"
 echo "      env -u CLAUDECODE -u CLAUDE_CODE_OAUTH_TOKEN_FILE_DESCRIPTOR -u CLAUDE_CODE_WEBSOCKET_AUTH_FILE_DESCRIPTOR \\"
 echo "      ANTHROPIC_API_KEY=\"\$(cat $SESSION_TOKEN_FILE)\" \\"
 echo "      ANTHROPIC_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/anthropic\" \\"
 echo "      claude -p --model haiku --permission-mode default '...'"
 echo ""
 echo "  Codex-2:"
+echo "    WEA_AUTH_PROXY_TOKEN=\"\$WEA_AUTH_PROXY_TOKEN\" \\"
 echo "    OPENAI_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/openai\" \\"
 echo "      GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"
 echo ""

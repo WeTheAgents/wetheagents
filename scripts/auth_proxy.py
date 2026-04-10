@@ -21,16 +21,24 @@ See docs/cloud_subprocess_launch.md for launch examples.
 
 from __future__ import annotations
 
+import hmac
 import http.client
 import http.server
 import json
 import os
+import secrets
 import socket
 import socketserver
 import ssl
 import sys
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 18080
+
+# ── Shared-secret bearer token ───────────────────────────────
+# Generated once at startup; printed to stdout so cloud_agent_setup.sh
+# can capture it and pass it to agent environments via WEA_AUTH_PROXY_TOKEN.
+
+_BEARER_TOKEN = secrets.token_urlsafe(32)
 
 # ── Auth transforms ──────────────────────────────────────────
 
@@ -125,6 +133,12 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
     # ── Core proxy logic ─────────────────────────────────────
 
     def _proxy(self, method: str):
+        # ── Bearer token check ───────────────────────────────
+        auth = self.headers.get("Authorization", "")
+        if not hmac.compare_digest(auth, f"Bearer {_BEARER_TOKEN}"):
+            self._error(401, "Unauthorized")
+            return
+
         provider, remote_path = self._resolve_route()
         if provider is None:
             self._error(404, f"No route for {self.path}")
@@ -139,6 +153,10 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         for key, val in self.headers.items():
             if key.lower() not in skip:
                 hdrs[key.lower()] = val
+
+        # Strip the proxy's own Authorization header before forwarding.
+        # Each provider's auth transform injects the correct upstream credential.
+        hdrs.pop("authorization", None)
 
         # Auth transform
         cfg["transform"](hdrs)
@@ -240,6 +258,7 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 if __name__ == "__main__":
     server = ThreadingHTTPServer(("127.0.0.1", PORT), ProxyHandler)
     providers = ", ".join(sorted(PROVIDERS))
+    print(f"WEA_AUTH_PROXY_TOKEN={_BEARER_TOKEN}", flush=True)
     print(
         f"auth-proxy listening on http://127.0.0.1:{PORT} "
         f"[providers: {providers}]",
