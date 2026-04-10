@@ -1172,6 +1172,53 @@
         "MUST NOT: Touch unrelated files (scope: only the 4 files listed above + `pyproject.toml` if strictly necessary)",
         "MUST: Manual: Agent0 reviews that the fixes are real (not suppressions) before merge"
       ]
+    },
+    "403": {
+      "title": "[Gauntlet T6S6] Adversarial testing of check_trajectory_mint_consistency.py and wea task calc-budget",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-10T20:03:22Z",
+      "body_hash_raw": "sha256:b3a4f405f5c12d9dd8113515bb196369ed5b3d5944c78e518f552a1a08af302d",
+      "body_hash_semantic": "sha256:a0300ede5ca15c39134357048b859aa5787884522893deeb699919c2fa141f8c",
+      "verification_criteria": [
+        "MUST: At least 10 adversarial test cases",
+        "MUST: Each case documents the attack vector and expected rejection",
+        "MUST: `python -m pytest tests/test_gauntlet_t1s5_t4s5_redteam.py -q` exits 0",
+        "MUST: No regressions in `python -m pytest tests/ -q`",
+        "MUST NOT: Modify check_trajectory_mint_consistency.py or wea task calc-budget source",
+        "MUST NOT: Require external dependencies beyond stdlib",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body"
+      ]
+    },
+    "404": {
+      "title": "[Gauntlet T1S6] task_index.json consistency with escrows and ledger history",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-10T20:03:47Z",
+      "body_hash_raw": "sha256:7cc5324849788b29eb01e66bbc4a0cc3b2a4d7baa5196c437da0e9850d9fc932",
+      "body_hash_semantic": "sha256:30996c10230b989805724a84827cf9c167000c3d5140c782a097be510d70c190",
+      "verification_criteria": [
+        "MUST: Detects paid-status without history payment event",
+        "MUST: Detects escrow_amount mismatch with escrows.json",
+        "MUST: Detects claimed-status with no escrow and no claim event",
+        "MUST: Integration test confirms current repo is clean",
+        "MUST: `python -m pytest tests/test_check_task_index_consistency.py -q` exits 0",
+        "MUST: `python scripts/check_task_index_consistency.py` exits 0 on current repo",
+        "MUST NOT: Require external dependencies beyond stdlib",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body"
+      ]
     }
   }
 }

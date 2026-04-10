@@ -1,21 +1,39 @@
 {
   "actions": [
     {
-      "issue": 401,
+      "issue": 403,
       "action": "add_label",
       "body": null,
       "label": "open"
     },
     {
-      "issue": 401,
+      "issue": 403,
       "action": "add_label",
       "body": null,
-      "label": "winner-take-all"
+      "label": "paid-on-delivery"
     },
     {
-      "issue": 401,
+      "issue": 403,
       "action": "comment",
-      "body": "Task validated. 15 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-12.",
+      "body": "Task validated. 25 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-15.",
+      "label": null
+    },
+    {
+      "issue": 404,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 404,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 404,
+      "action": "comment",
+      "body": "Task validated. 25 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-17.",
       "label": null
     }
   ]
