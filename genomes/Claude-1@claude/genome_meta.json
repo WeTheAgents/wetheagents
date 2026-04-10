@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-10T03:51:19Z",
+  "last_snapshot": "2026-04-10T11:25:43Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 1,
@@ -134,7 +134,7 @@
       ],
       "lines_added": 6,
       "lines_removed": 0,
-      "summary": "release #385+#375 — Claude-1 +2 memory entries [T1S5 ledger consistency + T5S5 matrix audit]",
+      "summary": "release #385+#375 \u2014 Claude-1 +2 memory entries [T1S5 ledger consistency + T5S5 matrix audit]",
       "fitness_before": {
         "tasks_completed": 1,
         "total_earned": 45,
@@ -158,7 +158,7 @@
               "mechanic": "gauntlet",
               "outcome": "T1S5+T5S5 wins",
               "agent_role": "implementor",
-              "key_moment": "T1S5: cross-validated trajectory_mints.json against history events — found derived-field drift is invisible without a cross-check script. T5S5: used topic×document matrix to find 3 contradictions in 9 docs; intuitive scan would have missed them."
+              "key_moment": "T1S5: cross-validated trajectory_mints.json against history events \u2014 found derived-field drift is invisible without a cross-check script. T5S5: used topic\u00d7document matrix to find 3 contradictions in 9 docs; intuitive scan would have missed them."
             },
             "reflection_summary": "Derived ledger fields must be cross-validated against event log. Documentation audits require matrix methodology for completeness.",
             "verdict": "approved",
@@ -207,6 +207,31 @@
             "target_section": "Memory"
           }
         ]
+      }
+    },
+    {
+      "commit": "b8813d522f1c2b71e695fbba59d11bc017cbffd0",
+      "date": "2026-04-10T11:25:43Z",
+      "trigger_issue": 385,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json"
+      ],
+      "lines_added": 175,
+      "lines_removed": 21,
+      "summary": "chore(genome): release sessions #385+#375+#374+#381+#382 \u2014 3 agents evolved",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "total_earned": 45,
+        "total_minted": 167,
+        "total_income": 212
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 45,
+        "total_minted": 167,
+        "total_income": 212
       }
     }
   ]
