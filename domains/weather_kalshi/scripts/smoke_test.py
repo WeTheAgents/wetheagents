@@ -247,6 +247,73 @@ def test_bulk_obs_csv():
     return resp.text
 
 
+def test_city_registry():
+    """Test city registry loads all cities with timezone fields."""
+    logger.info("=== Test 7: City Registry ===")
+    from src.cities import CITIES, INTERNATIONAL_CITIES, US_CITIES
+
+    assert len(CITIES) >= 40, f"Expected 40+ cities, got {len(CITIES)}"
+    assert len(INTERNATIONAL_CITIES) >= 15, f"Expected 15+ international, got {len(INTERNATIONAL_CITIES)}"
+    assert len(US_CITIES) >= 10, f"Expected 10+ US, got {len(US_CITIES)}"
+
+    # All cities must have timezone
+    for slug, city in CITIES.items():
+        assert city.timezone, f"City {slug} missing timezone"
+        assert city.unit in ("C", "F"), f"City {slug} has invalid unit: {city.unit}"
+
+    # International cities should not have NBM
+    for city in INTERNATIONAL_CITIES:
+        assert not city.nbm, f"International city {city.slug} has nbm=True"
+
+    logger.info(f"  {len(CITIES)} cities, {len(INTERNATIONAL_CITIES)} international, {len(US_CITIES)} US")
+    logger.info("  PASS: all cities valid with timezone")
+
+
+def test_multimodel_fetch():
+    """Test multi-model ensemble fetch for Tokyo (international city)."""
+    logger.info("=== Test 8: Multi-Model Ensemble Fetch ===")
+    from src.openmeteo_client import fetch_multimodel_ensemble_sync
+
+    forecasts = fetch_multimodel_ensemble_sync(
+        lat=35.5494, lon=139.78, station="tokyo",
+        temperature_unit="celsius", timezone="Asia/Tokyo",
+        forecast_days=3,
+    )
+
+    assert len(forecasts) > 0, "Should get at least 1 forecast date"
+    first = forecasts[0]
+    logger.info(f"  Date: {first.target_date}, Members: {first.n_members}, "
+                f"Mean: {first.mean:.1f}C, Spread: {first.spread:.1f}C")
+
+    assert first.n_members > 50, f"Expected >50 members (multi-model), got {first.n_members}"
+    assert first.mean > -30 and first.mean < 50, f"Mean temp out of range: {first.mean}"
+    logger.info("  PASS: multi-model ensemble returns >50 members")
+
+
+def test_historical_obs_fetch():
+    """Test historical observations fetch for London."""
+    logger.info("=== Test 9: Historical Observations Fetch ===")
+    from datetime import date as _date
+    from src.openmeteo_client import fetch_historical_obs_sync
+
+    df = fetch_historical_obs_sync(
+        lat=51.47, lon=-0.4543,
+        start_date=_date(2024, 1, 1),
+        end_date=_date(2024, 1, 31),
+        temperature_unit="celsius",
+        timezone="Europe/London",
+    )
+
+    assert len(df) >= 28, f"Expected ~31 days, got {len(df)}"
+    assert "temp_max" in df.columns, "Missing temp_max column"
+    assert "temp_min" in df.columns, "Missing temp_min column"
+
+    mean_max = df["temp_max"].mean()
+    logger.info(f"  London Jan 2024: {len(df)} days, mean max: {mean_max:.1f}C")
+    assert -5 < mean_max < 20, f"London Jan mean max out of range: {mean_max}"
+    logger.info("  PASS: historical obs returns valid data")
+
+
 def main():
     logger.info("Weather Kalshi Pipeline Smoke Test")
     logger.info("=" * 50)
@@ -258,6 +325,9 @@ def main():
         test_bias_and_brackets()
         test_bulk_mos_csv()
         test_bulk_obs_csv()
+        test_city_registry()
+        test_multimodel_fetch()
+        test_historical_obs_fetch()
 
         logger.info("\n" + "=" * 50)
         logger.info("ALL TESTS PASSED")
