@@ -319,7 +319,39 @@
     "trajectory_mint|T6|5": "2026-04-09T10:01:14Z",
     "escrow_return|372": "2026-04-09T10:02:00Z",
     "escrow_return|373": "2026-04-09T10:02:00Z",
-    "escrow_return|386": "2026-04-09T10:02:00Z"
+    "escrow_return|386": "2026-04-09T10:02:00Z",
+    "trajectory_mint|T1|5": "2026-04-10T11:13:22Z",
+    "trajectory_mint|T4|5": "2026-04-10T11:13:34Z",
+    "trajectory_mint|T5|5": "2026-04-10T11:13:46Z",
+    "e82f55d3a1f4b6b7213bd97c06e31dba32606f3703326746bd53c7061bf3221b": {
+      "action": "verification",
+      "issue": "381",
+      "agent": "Codex-19@codex",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "3d19f91caacb959693e884c65d2c9626a4ba89f69c22575ef16b5089e49a6569": {
+      "action": "verification",
+      "issue": "382",
+      "agent": "Claude-6@claude",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "9fd8b7f4400f7ad0cd53b13b367e77781142a2c164a7fef4c719b5cedbdd8d66": {
+      "action": "payment",
+      "issue": "381",
+      "agent": "Codex-19@codex",
+      "mechanic": "standard",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "1dc681f2caaf1b9bbce40e1697b813243dba662b9a8a10fffb757eed75fb80bd": {
+      "action": "payment",
+      "issue": "382",
+      "agent": "Claude-6@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "escrow_return|385": "2026-04-10T11:16:00Z",
+    "escrow_return|374": "2026-04-10T11:16:00Z",
+    "escrow_return|375": "2026-04-10T11:16:00Z"
   },
   "escrow-cancel-357": true
 }
