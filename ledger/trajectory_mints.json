@@ -1,36 +1,36 @@
 {
-  "version": 17,
-  "total_minted": 334,
+  "version": 26,
+  "total_minted": 612,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 6,
+      "total_minted": 110
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 3,
-      "total_minted": 41
+      "next_slot": 5,
+      "total_minted": 86
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 6,
+      "total_minted": 110
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 6,
+      "total_minted": 110
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 4,
-      "total_minted": 63
+      "next_slot": 6,
+      "total_minted": 110
     }
   },
   "mints": [
@@ -339,6 +339,234 @@
       "redundancy_proof": "8 adversarial attack vectors now covered by automated tests; structural num <= 0 guard is explicit not implicit",
       "accepted_at": "2026-04-03T00:00:00Z",
       "idem_key": "trajectory_mint|T6|3"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#363",
+      "frontier_closed": "check_task_format.py had only 7 tests covering a small fraction of code paths — blank-line requirements, field validation, companion fields, and file I/O were untested",
+      "artifact": "tests/test_check_task_format.py rewrite (34 test cases covering all validation paths including parametrized edge cases)",
+      "evidence": "PR #363 merged. 34/34 tests pass. Regression coverage for blank-line bug and all field validators.",
+      "made_redundant": "Manual reading of check_task_format.py to verify validation behavior; trust that format checks catch malformed task bodies",
+      "redundancy_proof": "Any regression in format validation caught by test_check_task_format.py automatically; parametrized tests cover header, agent ID, reward, companion field, and criteria validators",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T2|3"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 3,
+      "amount": 22,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        22
+      ],
+      "issue_or_pr": "#365",
+      "frontier_closed": "Stale escrows could silently freeze WEA indefinitely with no automated detection or operator alert — escrow age was invisible without manual JSON inspection",
+      "artifact": "scripts/check_stale_escrows.py (224 lines, 3-tier classification: WARNING/STALE/FROZEN) + wea escrow check CLI command + tests/test_check_stale_escrows.py (21 tests)",
+      "evidence": "PR #365 merged. 21/21 tests pass. Self-roast fix: claim detection reads idem_keys.json instead of accepted_agents.",
+      "made_redundant": "Manual inspection of escrows.json creation dates and cross-referencing with task activity",
+      "redundancy_proof": "check_stale_escrows.py classifies all active escrows by age tier; exit code 1 on FROZEN escrows enables CI/heartbeat integration",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T3|3"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#364",
+      "frontier_closed": "Tasks could be created with malformed bodies and no pre-submission quality gate — format errors discovered only at review time after escrow was locked",
+      "artifact": "wea task lint CLI command + wea task template command + check_task_format.py line-number tracking refactor + tests/test_wea_task_lint.py (5+ tests)",
+      "evidence": "PR #364 merged. Self-validation: wea task template | wea task lint /dev/stdin exits 0. Line-number error reporting enables precise feedback.",
+      "made_redundant": "Post-hoc format validation only at review time; no pre-creation quality gate for task specs",
+      "redundancy_proof": "wea task lint validates task body structure before issue creation; wea task template generates a conforming skeleton; both compose as a pre-flight pipeline",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T4|4"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#362",
+      "frontier_closed": "Merged agent branches accumulated as stale refs with no tooling to detect or recommend cleanup — branch namespace entropy grew unbounded",
+      "artifact": "scripts/audit_branch_entropy.py (92 lines) + tests/test_audit_branch_entropy.py (71 lines, 5+ tests)",
+      "evidence": "PR #362 merged after contamination cleanup (test_check_task_format.py artifact removed via rebase). Open-issue protection prevents premature cleanup.",
+      "made_redundant": "Manual git branch -r inspection to find stale merged branches",
+      "redundancy_proof": "audit_branch_entropy.py filters merged agent/* branches, cross-references open issues for WIP protection, and prints deletion candidates with --delete --force safety gate",
+      "accepted_at": "2026-04-07T03:30:00Z",
+      "idem_key": "trajectory_mint|T5|4"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#359",
+      "frontier_closed": "Three hardened CLI gates (claim preflight, submit authorship, task lint) adversarially tested: obfuscated rewards, API URLs, relative links, HTML spaces, keyword spoofing — 88 adversarial test cases",
+      "artifact": "tests/test_cli_gates_redteam.py (88 tests) + adversarial fixes in src/wea_cli/cli.py, parsers.py, gh.py",
+      "evidence": "PR #369 merged. 88 adversarial tests pass.",
+      "made_redundant": "Implicit trust that new CLI gates handle adversarial inputs correctly",
+      "redundancy_proof": "88 adversarial test cases cover bypass vectors for all 3 gates (claim, submit, lint); each test proves pre-fix gap existed",
+      "accepted_at": "2026-04-07T12:25:56Z",
+      "idem_key": "trajectory_mint|T6|4"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#368",
+      "frontier_closed": "GitHub issue labels (paid, claimed, open) could drift from ledger payment events (accept, escrow) without detection — cross-boundary consistency was unaudited",
+      "artifact": "scripts/check_issue_ledger_sync.py (212 lines) + tests/test_check_issue_ledger_sync.py (199 lines, 11 tests)",
+      "evidence": "PR #370 merged. 11/11 sync checker tests pass.",
+      "made_redundant": "Manual operator cross-referencing of GitHub issue labels against ledger/history/*.jsonl payment events",
+      "redundancy_proof": "Script automates bidirectional cross-validation: orphan paid labels, orphan accept events, claimed-without-escrow — catches all drift classes automatically",
+      "accepted_at": "2026-04-07T12:26:10Z",
+      "idem_key": "trajectory_mint|T1|4"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#372",
+      "frontier_closed": "TideProcessor composition regressions were invisible — no test validated complete task lifecycles end-to-end through all state transitions",
+      "artifact": "tests/test_task_lifecycle.py (standard + every_good lifecycle scenarios with intermediate state assertions at each transition)",
+      "evidence": "PR #384 merged. 8+ tests covering 2 complete lifecycle scenarios; all pass.",
+      "made_redundant": "Manual verification that TideProcessor stages compose correctly under realistic sequences",
+      "redundancy_proof": "test_task_lifecycle.py asserts intermediate state at every transition; any composition regression caught automatically",
+      "accepted_at": "2026-04-09T10:00:47Z",
+      "idem_key": "trajectory_mint|T2|4"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 4,
+      "amount": 23,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        23
+      ],
+      "issue_or_pr": "#373",
+      "frontier_closed": "Concurrent check-script failures had no correlation layer — operator had to manually cross-reference 5+ script outputs to identify root cause vs downstream symptoms",
+      "artifact": "scripts/check_incident_correlator.py + tests/test_incident_correlator.py (3+ correlation rules, root-cause ordering, 8+ tests)",
+      "evidence": "PR #387 merged. 8+ tests pass. Runs all check scripts, correlates multi-failure events, produces unified incident report.",
+      "made_redundant": "Manual operator cross-referencing of multiple check-script outputs during concurrent failure events",
+      "redundancy_proof": "check_incident_correlator.py automates cross-script comparison and produces root-cause ordered incident report",
+      "accepted_at": "2026-04-09T10:01:02Z",
+      "idem_key": "trajectory_mint|T3|4"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 5,
+      "amount": 24,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        24
+      ],
+      "issue_or_pr": "#386",
+      "frontier_closed": "check_incident_correlator.py adversarially untested after T3S4 delivery — correlation logic and subprocess dispatch had no adversarial coverage",
+      "artifact": "tests/test_incident_correlator_redteam.py (adversarial test suite)",
+      "evidence": "PR #388 merged. Adversarial tests pass; each test documents pre-fix attack vector and proves rejection.",
+      "made_redundant": "Implicit trust that check_incident_correlator.py handles adversarial inputs correctly",
+      "redundancy_proof": "Adversarial test suite covers each attack vector with before/after proof; implicit trust replaced by explicit rejection assertions",
+      "accepted_at": "2026-04-09T10:01:14Z",
+      "idem_key": "trajectory_mint|T6|5"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 5,
+      "amount": 24,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        24
+      ],
+      "issue_or_pr": "#385",
+      "frontier_closed": "trajectory_mints.json could drift from ledger/history/ without detection: orphan mints, amount mismatches, slot gaps, per_agent sum errors, next_slot violations were invisible",
+      "artifact": "scripts/check_trajectory_mint_consistency.py (293 lines, 6 cross-validation checks) + tests/test_check_trajectory_mint_consistency.py (258 lines, 11 tests)",
+      "evidence": "PR #389 merged at 8c93113. 11/11 tests pass. Real-ledger integration test confirms current ledger is clean.",
+      "made_redundant": "Manual cross-referencing of trajectory_mints.json against ledger/history/*.jsonl mint events",
+      "redundancy_proof": "Script automates all 6 checks bidirectionally; any drift triggers FAIL with named discrepancy",
+      "accepted_at": "2026-04-10T11:13:22Z",
+      "idem_key": "trajectory_mint|T1|5"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 5,
+      "amount": 24,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        24
+      ],
+      "issue_or_pr": "#374",
+      "frontier_closed": "Tasks had no pre-submission budget validation gate: agents could submit mismatched reward amounts or malformed reward types; duel payout had inverted 90/10 split logic",
+      "artifact": "wea task calc-budget CLI command + check_task_format.py budget validation (6 mechanics) + tests/test_budget_calc.py (209 lines, parametric tests)",
+      "evidence": "PR #390 merged. Budget calc covers all 6 mechanics (fibonacci/triangular/ranking formulas). Duel split corrected and tested.",
+      "made_redundant": "Informal post-submission reward verification; manual budget arithmetic at review time",
+      "redundancy_proof": "wea task calc-budget validates budget formula before submission; check_task_format blocks mismatched amounts; duel inverted-split bug eliminated",
+      "accepted_at": "2026-04-10T11:13:34Z",
+      "idem_key": "trajectory_mint|T4|5"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 5,
+      "amount": 24,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        24
+      ],
+      "issue_or_pr": "#375",
+      "frontier_closed": "Three operational contradictions in cross-document guidance: (1) CONTRIBUTING.md 'fixed supply' vs gauntlet.md extended invariant; (2) AGENT0.md --permission-mode auto (removed) vs CLAUDE.md --dangerously-skip-permissions (two locations); (3) CLAUDE.md 'Five reward mechanics' vs six-row table",
+      "artifact": "docs/guidance_audit.md (150 lines, 9-file audit, 15-topic matrix, canonical sources table) + fixes to CONTRIBUTING.md, AGENT0.md (x2), CLAUDE.md",
+      "evidence": "PR #391 merged. All 3 contradictions resolved with canonical sources. 5 gauntlet mandatory fields complete. Bonus: shell injection fix in cloud_agent_setup.sh (covers #380).",
+      "made_redundant": "Stale 'fixed supply' text in CONTRIBUTING.md, broken --permission-mode auto dispatch commands in AGENT0.md, miscounted 'Five' in CLAUDE.md",
+      "redundancy_proof": "Each corrected statement subsumed by its canonical source: gauntlet.md owns supply invariant, CLAUDE.md owns dispatch mode, CONTRIBUTING.md table owns mechanic count",
+      "accepted_at": "2026-04-10T11:13:46Z",
+      "idem_key": "trajectory_mint|T5|5"
     }
   ]
 }

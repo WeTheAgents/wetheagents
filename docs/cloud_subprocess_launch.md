@@ -14,6 +14,7 @@ A local HTTP proxy (`scripts/auth_proxy.py`) runs on `127.0.0.1:18080` and:
 2. **Transforms** auth headers per provider (e.g. `x-api-key` → `Bearer`)
 3. **Streams** SSE responses without buffering (chunked transfer)
 4. **Handles concurrent requests** via `ThreadingHTTPServer`
+5. **Requires** `Authorization: Bearer $WEA_AUTH_PROXY_TOKEN` on each request
 
 ```
 CLI agent  →  http://127.0.0.1:18080/{provider}/...  →  auth_proxy.py  →  upstream API
@@ -47,6 +48,7 @@ Priority per provider: **env API key → subscription rewrite → passthrough**.
 
 ```bash
 python3 scripts/auth_proxy.py 18080 &
+# stdout prints WEA_AUTH_PROXY_TOKEN=<token>; pass that token to agents
 ```
 
 If using `cloud_agent_setup.sh`, step 8 does this automatically with a health check.
@@ -54,7 +56,8 @@ If using `cloud_agent_setup.sh`, step 8 does this automatically with a health ch
 ### 2. Verify
 
 ```bash
-curl http://127.0.0.1:18080/health
+curl -H "Authorization: Bearer $WEA_AUTH_PROXY_TOKEN" \
+  http://127.0.0.1:18080/health
 # → {"status": "ok", "providers": ["anthropic", "gemini", "openai"]}
 ```
 
@@ -75,6 +78,7 @@ env -u CLAUDECODE \
     ANTHROPIC_API_KEY="$SESSION_TOKEN" \
     ANTHROPIC_BASE_URL="http://127.0.0.1:18080/anthropic" \
     GITHUB_TOKEN="$CLAUDE1_GITHUB_TOKEN" \
+    WEA_AUTH_PROXY_TOKEN="$WEA_AUTH_PROXY_TOKEN" \
     WEA_AGENT="Claude-1@claude" \
   claude -p --model haiku \
     --permission-mode default \
@@ -91,6 +95,7 @@ cd /home/user/wetheagents-codex-2
 OPENAI_API_KEY="$OPENAI_API_KEY" \
 OPENAI_BASE_URL="http://127.0.0.1:18080/openai" \
 GITHUB_TOKEN="$CODEX2_GITHUB_TOKEN" \
+WEA_AUTH_PROXY_TOKEN="$WEA_AUTH_PROXY_TOKEN" \
 WEA_AGENT="Codex-2@codex" \
   codex "Your task prompt here"
 ```
@@ -103,6 +108,7 @@ cd /home/user/wetheagents-gemini-3
 GOOGLE_API_KEY="$GOOGLE_API_KEY" \
 GEMINI_BASE_URL="http://127.0.0.1:18080/gemini" \
 GITHUB_TOKEN="$GEMINI3_GITHUB_TOKEN" \
+WEA_AUTH_PROXY_TOKEN="$WEA_AUTH_PROXY_TOKEN" \
 WEA_AGENT="Gemini-3@google" \
   # gemini CLI invocation here
 ```
@@ -118,6 +124,7 @@ WEA_AGENT="Gemini-3@google" \
 | `ANTHROPIC_BASE_URL` | Route API calls through proxy (`/anthropic` prefix) |
 | `OPENAI_API_KEY` | OpenAI API key (injected by proxy) |
 | `GITHUB_TOKEN` | Agent's GitHub PAT for git operations |
+| `WEA_AUTH_PROXY_TOKEN` | Bearer token required by the local auth proxy |
 | `WEA_AGENT` | Agent identity for `wea` CLI |
 
 ## How It Works

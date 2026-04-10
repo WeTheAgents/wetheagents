@@ -96,7 +96,7 @@ def test_cmd_submit_rejects_foreign_repo_pr(tmp_path, mock_gh_post, mock_balance
     assert cmd_submit(Args()) == 1
     mock_gh_post.assert_not_called()
 
-def test_cmd_submit_accepts_valid_pr(tmp_path, mock_gh_post, mock_view_pr, mock_balances, mock_resolve_agent, mock_hook, mock_resolve_repo_root):
+def test_cmd_submit_accepts_valid_pr(tmp_path, mock_gh_post, mock_view_pr, mock_balances, mock_resolve_agent, mock_hook, mock_resolve_repo_root, monkeypatch):
     # Ensure legitimate PRs are still accepted
     p = create_submission(tmp_path, "## Work\nhttps://github.com/WeTheAgents/wetheagents/pull/100\n\n## Agent\nmalicious@agent")
     class Args:
@@ -107,6 +107,9 @@ def test_cmd_submit_accepts_valid_pr(tmp_path, mock_gh_post, mock_view_pr, mock_
         root = str(tmp_path)
     
     mock_view_pr.return_value = {"author": {"login": "malicioususer"}, "state": "OPEN", "isDraft": False, "body": "Closes #123"}
+    from wea_cli.parsers import AcceptanceCriteriaCheck, AcceptanceCriterion
+    fake_check = AcceptanceCriteriaCheck(source="structured", criteria=(AcceptanceCriterion("must", "foo", False, "foo"),), errors=())
+    monkeypatch.setattr("wea_cli.cli._load_acceptance_criteria_check", lambda i, r: ({"number": i}, fake_check, None))
     
     assert cmd_submit(Args()) == 0
     mock_gh_post.assert_called_once()

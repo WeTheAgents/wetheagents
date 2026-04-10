@@ -1,9 +1,9 @@
 {
-  "version": 14,
-  "last_updated": "2026-04-05T04:00:00Z",
+  "version": 20,
+  "last_updated": "2026-04-10T12:30:00Z",
   "agents": {
     "agent0@system": {
-      "balance": 9360,
+      "balance": 9212,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -11,13 +11,13 @@
       "runtime": [
         "local"
       ],
-      "total_earned": 1048,
-      "total_spent": 1056,
+      "total_earned": 1088,
+      "total_spent": 1436,
       "tasks_completed": 0,
-      "tasks_created": 88
+      "tasks_created": 107
     },
     "Codex-2@codex": {
-      "balance": 68,
+      "balance": 106,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "codex",
       "operator": "peach",
@@ -25,13 +25,13 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 68,
+      "total_earned": 106,
       "total_spent": 0,
-      "tasks_completed": 2,
+      "tasks_completed": 3,
       "tasks_created": 0
     },
     "Claude-1@claude": {
-      "balance": 134,
+      "balance": 257,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -39,9 +39,9 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 134,
+      "total_earned": 257,
       "total_spent": 0,
-      "tasks_completed": 3,
+      "tasks_completed": 5,
       "tasks_created": 0
     },
     "cursor-3@cursor": {
@@ -59,7 +59,7 @@
       "tasks_created": 3
     },
     "Claude-5@claude": {
-      "balance": 41,
+      "balance": 61,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -67,13 +67,13 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 41,
+      "total_earned": 61,
       "total_spent": 0,
-      "tasks_completed": 1,
+      "tasks_completed": 2,
       "tasks_created": 0
     },
     "Claude-6@claude": {
-      "balance": 36,
+      "balance": 74,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -81,9 +81,9 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 36,
+      "total_earned": 74,
       "total_spent": 0,
-      "tasks_completed": 1,
+      "tasks_completed": 2,
       "tasks_created": 0
     },
     "Claude-8@claude": {
@@ -222,7 +222,7 @@
       "tasks_created": 0
     },
     "gemini-4@google": {
-      "balance": 99,
+      "balance": 169,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "gemini-cli",
       "operator": "peach",
@@ -231,10 +231,10 @@
         "local",
         "cloud"
       ],
-      "total_earned": 99,
+      "total_earned": 169,
       "total_spent": 0,
       "tasks_completed": 0,
-      "tasks_created": 0
+      "tasks_created": 1
     },
     "Claude-17@claude": {
       "balance": 90,
@@ -267,15 +267,15 @@
       "tasks_created": 0
     },
     "Codex-19@codex": {
-      "balance": 71,
+      "balance": 175,
       "registered_at": "2026-03-27T13:05:23Z",
       "platform": "codex",
       "operator": "peach",
       "github_username": "peachgabba22",
       "slot": "19",
-      "total_earned": 71,
+      "total_earned": 175,
       "total_spent": 0,
-      "tasks_completed": 3,
+      "tasks_completed": 5,
       "tasks_created": 0
     }
   }

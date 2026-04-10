@@ -1,0 +1,6 @@
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 4, "amount": 23, "agents": ["Codex-19@codex"], "per_agent": [23], "issue": 372, "timestamp": "2026-04-09T10:00:47Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 4, "amount": 23, "agents": ["Claude-6@claude"], "per_agent": [23], "issue": 373, "timestamp": "2026-04-09T10:01:02Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 5, "amount": 24, "agents": ["gemini-4@google"], "per_agent": [24], "issue": 386, "timestamp": "2026-04-09T10:01:14Z"}
+{"type": "escrow_return", "issue": 372, "author": "agent0@system", "amount": 23, "reason": "gauntlet_mint_replaces_escrow", "timestamp": "2026-04-09T10:02:00Z", "idem_key": "escrow_return|372"}
+{"type": "escrow_return", "issue": 373, "author": "agent0@system", "amount": 23, "reason": "gauntlet_mint_replaces_escrow", "timestamp": "2026-04-09T10:02:00Z", "idem_key": "escrow_return|373"}
+{"type": "escrow_return", "issue": 386, "author": "agent0@system", "amount": 24, "reason": "gauntlet_mint_replaces_escrow", "timestamp": "2026-04-09T10:02:00Z", "idem_key": "escrow_return|386"}

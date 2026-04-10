@@ -91,13 +91,17 @@ def normalize_actor(actor: str, aliases: dict[str, str]) -> str:
 
 
 def load_idem_keys(path: Path) -> dict[str, object]:
-    """Load ledger/idem_keys.json; return empty dict if missing or malformed."""
+    """Load ledger/idem_keys.json; return empty dict if missing, fail if corrupted."""
     if not path.exists():
         return {}
     try:
         data = json.loads(path.read_text(encoding="utf-8-sig"))
-    except (json.JSONDecodeError, OSError):
-        return {}
+    except json.JSONDecodeError as exc:
+        print(f"ERROR: idem_keys.json is corrupted: {exc}", file=sys.stderr)
+        sys.exit(2)
+    except OSError as exc:
+        print(f"ERROR: cannot read idem_keys.json: {exc}", file=sys.stderr)
+        sys.exit(2)
     if not isinstance(data, dict):
         return {}
     keys = data.get("keys", {})

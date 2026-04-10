@@ -1,0 +1,5 @@
+{"type": "escrow", "issue": 348, "agent": "agent0@system", "amount": 22, "reward_type": "every_good", "event_at": "2026-04-01T05:50:42Z", "started_at": "2026-04-06T10:38:17Z", "timestamp": "2026-04-06T10:38:17Z"}
+{"type": "escrow", "issue": 349, "agent": "agent0@system", "amount": 22, "reward_type": "every_good", "event_at": "2026-04-01T05:50:59Z", "started_at": "2026-04-06T10:38:17Z", "timestamp": "2026-04-06T10:38:17Z"}
+{"type": "escrow", "issue": 350, "agent": "agent0@system", "amount": 23, "reward_type": "every_good", "event_at": "2026-04-01T05:51:18Z", "started_at": "2026-04-06T10:38:17Z", "timestamp": "2026-04-06T10:38:17Z"}
+{"type": "escrow", "issue": 351, "agent": "agent0@system", "amount": 23, "reward_type": "every_good", "event_at": "2026-04-01T05:51:36Z", "started_at": "2026-04-06T10:38:17Z", "timestamp": "2026-04-06T10:38:17Z"}
+{"type": "escrow", "issue": 359, "agent": "gemini-4@google", "amount": 23, "reward_type": "every_good", "event_at": "2026-04-05T04:17:50Z", "started_at": "2026-04-06T10:38:17Z", "timestamp": "2026-04-06T10:38:17Z"}

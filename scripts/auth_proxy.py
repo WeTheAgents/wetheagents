@@ -25,12 +25,16 @@ import http.client
 import http.server
 import json
 import os
+import secrets
 import socket
 import socketserver
 import ssl
 import sys
 
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 18080
+DEFAULT_PORT = 18080
+
+# Generated once per proxy process and shared with agents via setup stdout.
+_BEARER_TOKEN = secrets.token_urlsafe(32)
 
 # ── Auth transforms ──────────────────────────────────────────
 
@@ -99,6 +103,8 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/health":
+            if not self._require_auth():
+                return
             body = json.dumps(
                 {"status": "ok", "providers": sorted(PROVIDERS)}
             ).encode()
@@ -125,6 +131,9 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
     # ── Core proxy logic ─────────────────────────────────────
 
     def _proxy(self, method: str):
+        if not self._require_auth():
+            return
+
         provider, remote_path = self._resolve_route()
         if provider is None:
             self._error(404, f"No route for {self.path}")
@@ -134,7 +143,7 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
         target = cfg["target"]
 
         # Collect headers (lowercase keys, skip hop-by-hop)
-        skip = {"host", "transfer-encoding", "connection"}
+        skip = {"host", "transfer-encoding", "connection", "authorization"}
         hdrs: dict[str, str] = {}
         for key, val in self.headers.items():
             if key.lower() not in skip:
@@ -216,6 +225,23 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
     # ── Helpers ──────────────────────────────────────────────
 
+    def _require_auth(self) -> bool:
+        auth = self.headers.get("Authorization", "")
+        scheme, _, token = auth.partition(" ")
+        if scheme.lower() == "bearer" and secrets.compare_digest(token, _BEARER_TOKEN):
+            return True
+        self._unauthorized()
+        return False
+
+    def _unauthorized(self):
+        body = json.dumps({"error": "Unauthorized"}).encode()
+        self.send_response(401)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("WWW-Authenticate", 'Bearer realm="auth-proxy"')
+        self.end_headers()
+        self.wfile.write(body)
+
     def _error(self, code: int, msg: str):
         body = json.dumps({"error": msg}).encode()
         self.send_response(code)
@@ -238,10 +264,12 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), ProxyHandler)
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PORT
+    server = ThreadingHTTPServer(("127.0.0.1", port), ProxyHandler)
     providers = ", ".join(sorted(PROVIDERS))
+    print(f"WEA_AUTH_PROXY_TOKEN={_BEARER_TOKEN}", flush=True)
     print(
-        f"auth-proxy listening on http://127.0.0.1:{PORT} "
+        f"auth-proxy listening on http://127.0.0.1:{port} "
         f"[providers: {providers}]",
         flush=True,
     )

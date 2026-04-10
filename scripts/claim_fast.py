@@ -20,6 +20,9 @@ import sys
 from pathlib import Path
 
 _CLAIM_RE = re.compile(r"^claim\s+(\S+)", re.IGNORECASE | re.MULTILINE)
+_ISSUE_NUMBER_RE = re.compile(r"^\d+$")
+_REPO_RE = re.compile(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$")
+_AGENT_ID_RE = re.compile(r"^[a-zA-Z0-9@._-]+$")
 
 
 def _run(cmd: list[str]) -> str:
@@ -62,12 +65,26 @@ def main() -> int:
     commenter_login = os.environ.get("COMMENTER_LOGIN", "")
     repo = os.environ.get("REPO", "")
 
+    if not _ISSUE_NUMBER_RE.match(issue_number):
+        print(f"Invalid ISSUE_NUMBER: {issue_number!r}", file=sys.stderr)
+        return 1
+
+    if not _REPO_RE.match(repo):
+        print(f"Invalid REPO: {repo!r}", file=sys.stderr)
+        return 1
+
     m = _CLAIM_RE.search(comment_body)
     if not m:
         return 0
 
     agent_id = m.group(1).strip()
-    print(f"Claim detected: {agent_id} on issue #{issue_number}")
+
+    if not _AGENT_ID_RE.match(agent_id):
+        print(f"Invalid agent_id in claim: {agent_id!r}", file=sys.stderr)
+        return 1
+
+    safe_agent_id = agent_id.replace("`", "\\`")
+    print(f"Claim detected: {safe_agent_id} on issue #{issue_number}")
 
     root = _find_root()
 
@@ -76,14 +93,14 @@ def main() -> int:
     agent_info = balances.get("agents", {}).get(agent_id)
     if agent_info is None:
         _comment(repo, issue_number,
-            f"Agent `{agent_id}` is not registered. "
+            f"Agent `{safe_agent_id}` is not registered. "
             "Registration is internal - contact Agent0.")
         return 0
 
     registered_gh = agent_info.get("github_username", "").lower()
     if registered_gh and commenter_login.lower() != registered_gh:
         _comment(repo, issue_number,
-            f"Agent `{agent_id}` is registered to @{registered_gh}, not @{commenter_login}. "
+            f"Agent `{safe_agent_id}` is registered to @{registered_gh}, not @{commenter_login}. "
             "Only the owner can claim with this agent ID.")
         return 0
 
@@ -94,7 +111,7 @@ def main() -> int:
         _add_label(repo, issue_number, "claimed")
         _set_assignee(repo, issue_number, commenter_login)
         _comment(repo, issue_number,
-            f"Claim received — `{agent_id}` is on it. "
+            f"Claim received — `{safe_agent_id}` is on it. "
             "Tide will process the ledger entry within ~15 min.")
         return 0
 
@@ -123,7 +140,7 @@ def main() -> int:
         if current_hash and current_hash != stored_hash:
             _comment(repo, issue_number,
                 f"⚠️ Task body has been modified since escrow. "
-                f"Claim by `{agent_id}` paused — @peachgabba22 review needed.\n"
+                f"Claim by `{safe_agent_id}` paused — @peachgabba22 review needed.\n"
                 f"(body hash mismatch on issue #{issue_number})")
             print(f"Hash mismatch on #{issue_number}: stored={stored_hash} current={current_hash}")
             return 1
@@ -132,9 +149,9 @@ def main() -> int:
     _add_label(repo, issue_number, "claimed")
     _set_assignee(repo, issue_number, commenter_login)
     _comment(repo, issue_number,
-        f"Claim received — `{agent_id}` is on it. "
+        f"Claim received — `{safe_agent_id}` is on it. "
         "Tide will process the ledger entry within ~15 min.")
-    print(f"Claim fast-processed: {agent_id} on #{issue_number}")
+    print(f"Claim fast-processed: {safe_agent_id} on #{issue_number}")
     return 0
 
 
