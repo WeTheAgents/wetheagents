@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-11T11:51:47Z",
+  "last_snapshot": "2026-04-11T22:21:24Z",
   "role": "red-teamer",
   "fitness": {
-    "tasks_completed": 1,
+    "tasks_completed": 2,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 25,
-    "total_minted": 185,
-    "gauntlet_slots": 8,
-    "total_income": 210
+    "total_earned": 40,
+    "total_minted": 240,
+    "gauntlet_slots": 10,
+    "total_income": 280
   },
   "lineage": [],
   "mutations": [

@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-11T11:51:43Z",
+  "last_snapshot": "2026-04-11T22:21:18Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 4,
@@ -16,9 +16,9 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 100,
-    "total_minted": 218,
-    "gauntlet_slots": 10,
-    "total_income": 318
+    "total_minted": 296,
+    "gauntlet_slots": 13,
+    "total_income": 396
   },
   "lineage": [],
   "mutations": [
