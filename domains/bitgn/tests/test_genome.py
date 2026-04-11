@@ -157,20 +157,27 @@ def test_work_method_selection():
 
 
 def test_route_filtering():
-    """Inbox-only genes excluded from query route."""
+    """Inbox-only genes excluded from query route. Finance/relationship
+    shared genes (policy_compliance, contact_lookup) now LOAD for query
+    route after PROD-leak hedge fixes F1/F2."""
     genome = load_genome("executor")
 
     genes_query = _select_genes(genome, "query", warmup=False)
     gene_names = {g.name for g in genes_query}
 
-    # inbox_processing should NOT be in query
+    # inbox_processing should NOT be in query (still inbox-only)
     assert "inbox_processing" not in gene_names, "inbox_processing should not appear for query route"
     # overlay_query should be present
     assert "overlay_query" in gene_names, "overlay_query missing for query route"
-    # contact_lookup should NOT be in query (routes: inbox_email, vault_ops)
-    assert "contact_lookup" not in gene_names, "contact_lookup should not appear for query route"
+    # contact_lookup NOW LOADS for query (F2 — needed for relationship/knowledge queries)
+    assert "contact_lookup" in gene_names, "contact_lookup must load for query route (F2 fix)"
+    # policy_compliance NOW LOADS for query (F1 — needed for finance/aggregation queries)
+    assert "policy_compliance" in gene_names, "policy_compliance must load for query route (F1 fix)"
 
-    print("  OK: route filtering works (inbox genes excluded from query)")
+    # side_effect_discipline still EXCLUDED from query (read-only route)
+    assert "side_effect_discipline" not in gene_names, "side_effect_discipline should not appear for query route"
+
+    print("  OK: route filtering works; finance/relationship shared genes available for query")
 
 
 def test_gene_isolation():
