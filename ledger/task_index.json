@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "tasks": {
     "70": {
       "title": "[Task] Script: check_claim_ttl.py вЂ” detect expired claims",
@@ -1229,7 +1229,7 @@
       "winners": null,
       "slots": null,
       "rounds": null,
-      "status": "paid",
+      "status": "open",
       "created_at": "2026-04-11T03:58:02Z",
       "body_hash_raw": "sha256:66280c23e3b12c6b40bee53dad1f4ea39ca4c88247c781279521a32b8493066f",
       "body_hash_semantic": "sha256:da5f25974d7354d05fc142f71491829607243544cbcc84b56cb417b0a531b352",
@@ -1241,9 +1241,7 @@
         "MUST NOT: Modify check_task_index_consistency.py source",
         "MUST NOT: Require external dependencies beyond stdlib",
         "MUST: Include all 5 mandatory gauntlet fields in PR body"
-      ],
-      "paid_at": "2026-04-11T12:18:01Z",
-      "agent": "Claude-1@claude"
+      ]
     },
     "412": {
       "title": "[Gauntlet T3S6] Unified ledger health report",
