@@ -1,11 +1,11 @@
 {
-  "version": 35,
-  "total_minted": 839,
+  "version": 36,
+  "total_minted": 916,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 8,
-      "total_minted": 161
+      "next_slot": 9,
+      "total_minted": 188
     },
     "T2": {
       "name": "Verification Frontier",
@@ -14,13 +14,13 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 6,
-      "total_minted": 110
+      "next_slot": 7,
+      "total_minted": 135
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 6,
-      "total_minted": 110
+      "next_slot": 7,
+      "total_minted": 135
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -738,6 +738,63 @@
       "redundancy_proof": "Script extracts issue numbers, looks up task_index.json status, and outputs STALE/ACTIVE/REVIEW classification automatically",
       "accepted_at": "2026-04-11T20:18:33Z",
       "idem_key": "trajectory_mint|T5|6"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 8,
+      "amount": 27,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        27
+      ],
+      "issue_or_pr": "#422",
+      "frontier_closed": "T1S7 delivered run_all_checks.py but CI never called it — ledger integrity violations could be introduced by any merged PR without automated detection.",
+      "artifact": ".github/workflows/test-protocol.yml (one new step added)",
+      "evidence": "PR #428 merged. CI step runs python scripts/run_all_checks.py on every PR/push to main. Uploads --json report as artifact. Step warns but does not fail when run_all_checks.py absent.",
+      "made_redundant": "Operator manually running python scripts/run_all_checks.py before approving PRs to check ledger integrity.",
+      "redundancy_proof": "CI now runs run_all_checks.py on every PR automatically. PRs that introduce ledger violations will fail the check step rather than being silently merged.",
+      "accepted_at": "2026-04-11T21:00:00Z",
+      "idem_key": "trajectory_mint|T1|8"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 6,
+      "amount": 25,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        25
+      ],
+      "issue_or_pr": "#412",
+      "frontier_closed": "No automated persistent record of ecosystem health — check scripts only produced output when manually invoked, with no machine-readable JSON log, no trend tracking, and no unified pass/fail.",
+      "artifact": "scripts/ledger_health_report.py (new) + tests/test_ledger_health_report.py (new, 9 tests)",
+      "evidence": "PR #430 merged. 9/9 tests pass. Script exits 0 on current repo and writes valid ledger/health_report.json with overall: PASS, per-check status, duration, and ISO-8601 timestamp.",
+      "made_redundant": "Running individual check_*.py scripts one by one to get an ecosystem health picture; no persistent log existed.",
+      "redundancy_proof": "Script auto-discovers all check_*.py, runs each, produces a structured JSON snapshot readable by heartbeat, CI, or dashboard instead of invoking individual scripts.",
+      "accepted_at": "2026-04-11T21:00:00Z",
+      "idem_key": "trajectory_mint|T3|6"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 6,
+      "amount": 25,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        25
+      ],
+      "issue_or_pr": "#413",
+      "frontier_closed": "Tasks in task_index.json could reach claimed/accepted/paid state with missing required fields — no machine validation existed, so payment errors were latent.",
+      "artifact": "scripts/check_task_spec_completeness.py (new) + tests/test_check_task_spec_completeness.py (new, 20 tests)",
+      "evidence": "PR #429 merged. 20/20 tests pass. Script exits 0 on current real task_index.json. Validates field completeness by status tier.",
+      "made_redundant": "Manual review of task_index.json entries to verify field completeness before processing payments.",
+      "redundancy_proof": "Script auto-validates all tasks by status tier — missing reward_type, escrow_idem_key, or paid_at fields are flagged automatically before they cause payment errors downstream.",
+      "accepted_at": "2026-04-11T21:00:00Z",
+      "idem_key": "trajectory_mint|T4|6"
     }
   ]
 }
