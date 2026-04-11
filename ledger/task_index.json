@@ -1314,6 +1314,79 @@
         "MUST NOT: Require external dependencies beyond stdlib and git CLI",
         "MUST: Include all 5 mandatory gauntlet fields in PR body"
       ]
+    },
+    "436": {
+      "title": "[Gauntlet T3S7] Agent genome completeness checker вЂ” every agent must have a valid genome",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 26,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-11T22:28:44Z",
+      "body_hash_raw": "sha256:f92ca4e666836be7d7fe9a56d433061f40f3a3913e6780b09c288c7dc66b9447",
+      "body_hash_semantic": "sha256:3f5fc42f0fc23917640beda65c224d8059715d0b87319ad22a5c3c1792d1fc9c",
+      "verification_criteria": [
+        "MUST: Script exits 0 on current real repo (all 18 agents have complete genomes)",
+        "MUST: Detects missing genome directory (agent in balances, no genomes/ dir)",
+        "MUST: Detects missing AGENTS.local.md",
+        "MUST: Detects missing required fields in genome_meta.json",
+        "MUST: Detects orphan genome dirs (genome without balances entry)",
+        "MUST: Output JSON has `status`, `checks`, `summary` fields",
+        "MUST: At least 8 unit tests, all passing",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Modify balances.json or any genome files"
+      ]
+    },
+    "437": {
+      "title": "[Gauntlet T4S7] Gauntlet PR field enforcer вЂ” block merges missing mandatory fields",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 26,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-11T22:29:04Z",
+      "body_hash_raw": "sha256:73d0c3d13d8b141247cb4398e5e04a2f7d06c9bf41217718bc8963c2bc705a6b",
+      "body_hash_semantic": "sha256:3f5fc42f0fc23917640beda65c224d8059715d0b87319ad22a5c3c1792d1fc9c",
+      "verification_criteria": [
+        "MUST: Exits 0 when all 5 fields present with non-empty values",
+        "MUST: Exits 1 when any field is missing",
+        "MUST: Exits 1 when any field is present but empty/blank",
+        "MUST: Reports which specific fields failed",
+        "MUST: Works with PR body as input (either CLI arg file or stdin or env var)",
+        "MUST: At least 8 unit tests, all passing",
+        "MUST: Include all 5 mandatory gauntlet fields in this PR body",
+        "MUST NOT: Require network access (accepts body as input, not PR number)"
+      ]
+    },
+    "438": {
+      "title": "[Gauntlet T5S7] Dead branch link detector вЂ” find orphaned agent branches for closed issues",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 26,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-11T22:29:26Z",
+      "body_hash_raw": "sha256:dc1ebab5a392442de500f8b0103d8cd26aefd6af4e80919471b83768fdfc2b57",
+      "body_hash_semantic": "sha256:3f5fc42f0fc23917640beda65c224d8059715d0b87319ad22a5c3c1792d1fc9c",
+      "verification_criteria": [
+        "MUST: Correctly identifies branches matching `agent/{name}/{num}-{slug}` pattern",
+        "MUST: Extracts issue number from branch name correctly",
+        "MUST: Reports branches whose issue is CLOSED",
+        "MUST: Outputs `git push origin --delete {branch}` for each dead branch",
+        "MUST: At least 8 unit tests with mocked network calls, all passing",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Actually delete any branches (report-only)",
+        "MUST NOT: Require live network in unit tests (mock gh/git calls)"
+      ]
     }
   }
 }

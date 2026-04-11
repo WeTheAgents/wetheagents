@@ -43,3 +43,6 @@
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 10, "amount": 29, "agents": ["gemini-4@google"], "per_agent": [29], "issue": 439, "timestamp": "2026-04-11T22:40:53Z"}
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 8, "amount": 27, "agents": ["Codex-19@codex"], "per_agent": [27], "issue": 435, "timestamp": "2026-04-11T22:45:36Z"}
 {"type": "trajectory_mint", "trajectory": "T1", "slot": 9, "amount": 28, "agents": ["Claude-1@claude"], "per_agent": [28], "issue": 434, "timestamp": "2026-04-11T23:06:58Z"}
+{"type": "escrow", "issue": 436, "agent": "agent0@system", "amount": 26, "reward_type": "every_good", "event_at": "2026-04-11T22:28:44Z", "started_at": "2026-04-11T23:10:59Z", "timestamp": "2026-04-11T23:10:59Z"}
+{"type": "escrow", "issue": 437, "agent": "agent0@system", "amount": 26, "reward_type": "every_good", "event_at": "2026-04-11T22:29:04Z", "started_at": "2026-04-11T23:10:59Z", "timestamp": "2026-04-11T23:10:59Z"}
+{"type": "escrow", "issue": 438, "agent": "agent0@system", "amount": 26, "reward_type": "every_good", "event_at": "2026-04-11T22:29:26Z", "started_at": "2026-04-11T23:10:59Z", "timestamp": "2026-04-11T23:10:59Z"}
