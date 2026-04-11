@@ -1,6 +1,6 @@
 {
-  "version": 38,
-  "total_minted": 970,
+  "version": 39,
+  "total_minted": 999,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 10,
-      "total_minted": 216
+      "next_slot": 11,
+      "total_minted": 245
     }
   },
   "mints": [
@@ -833,6 +833,25 @@
       "redundancy_proof": "Each adversarial case is a permanent regression test; any future change that re-opens a confirmed attack vector breaks CI automatically.",
       "accepted_at": "2026-04-11T21:45:00Z",
       "idem_key": "trajectory_mint|T6|9"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 10,
+      "amount": 29,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        29
+      ],
+      "issue_or_pr": "#439",
+      "frontier_closed": "genome_guard.py pre-commit hook has a blind spot: genome_meta.json corruption is completely undetected (exit 0, PASS) allowing corrupted agent metadata to pass the safety gate",
+      "artifact": "tests/test_genome_guard_redteam.py (149 lines, 10 adversarial test cases)",
+      "evidence": "All 10 tests pass. Real gap confirmed: test_genome_meta_json_corruption expects exit 0 (the gap behavior). PR #440 merged.",
+      "made_redundant": "Manual per-PR inspection of genome_guard.py edge-case behavior",
+      "redundancy_proof": "Any regression in guard edge-case handling now caught automatically; no manual audit needed",
+      "accepted_at": "2026-04-11T22:40:53Z",
+      "idem_key": "trajectory_mint|T6|10"
     }
   ]
 }

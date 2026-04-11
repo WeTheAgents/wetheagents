@@ -40,3 +40,4 @@
 {"type": "escrow_return", "issue": 426, "amount": 26, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint", "idem_key": "escrow_return|426|agent0@system", "created_at": "2026-04-11T21:30:00Z"}
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 9, "amount": 28, "agent": "gemini-4@google", "issue": 431, "idem_key": "trajectory_mint|T6|9", "created_at": "2026-04-11T21:45:00Z"}
 {"type": "escrow_return", "issue": 431, "amount": 28, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint", "idem_key": "escrow_return|431|agent0@system", "created_at": "2026-04-11T21:45:00Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 10, "amount": 29, "agents": ["gemini-4@google"], "per_agent": [29], "issue": 439, "timestamp": "2026-04-11T22:40:53Z"}
