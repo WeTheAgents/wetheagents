@@ -1,11 +1,11 @@
 {
-  "version": 31,
-  "total_minted": 736,
+  "version": 32,
+  "total_minted": 762,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 7,
-      "total_minted": 135
+      "next_slot": 8,
+      "total_minted": 161
     },
     "T2": {
       "name": "Verification Frontier",
@@ -662,6 +662,25 @@
       "redundancy_proof": "Any broken logic in payment reconciliation tools will immediately fail CI tests during any change to the validation infrastructure.",
       "accepted_at": "2026-04-11T04:12:25Z",
       "idem_key": "trajectory_mint|T6|7"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 7,
+      "amount": 26,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        26
+      ],
+      "issue_or_pr": "#410",
+      "frontier_closed": "No single command runs all ledger integrity checks; operators invoke them individually and can silently skip one. New check_*.py scripts added to scripts/ can go unexecuted indefinitely.",
+      "artifact": "scripts/run_all_checks.py + tests/test_run_all_checks.py",
+      "evidence": "PR #418 merged. 10/10 tests pass. Runner discovers 21 check_*.py scripts, correctly skips 5 CI-only checks (exit 2), and surfaced 5 pre-existing integrity violations on main (check_history_reconciliation, check_idem_consistency, check_incident_correlator, check_issue_ledger_sync, check_task_escrow_sync).",
+      "made_redundant": "Manual per-check invocation of all scripts/check_*.py scripts.",
+      "redundancy_proof": "Runner uses glob('check_*.py') at runtime — any new check added to scripts/ is automatically included in the next sweep without updating any list.",
+      "accepted_at": "2026-04-11T04:21:21Z",
+      "idem_key": "trajectory_mint|T1|7"
     }
   ]
 }
