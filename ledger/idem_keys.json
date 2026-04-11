@@ -429,7 +429,14 @@
     "escrow|411|agent0@system": "2026-04-11T05:20:09Z",
     "escrow|412|agent0@system": "2026-04-11T05:20:09Z",
     "escrow|413|agent0@system": "2026-04-11T05:20:09Z",
-    "escrow|414|agent0@system": "2026-04-11T05:20:09Z"
+    "escrow|414|agent0@system": "2026-04-11T05:20:09Z",
+    "0cb7700a59fd2aeaca0a9c4f9b17231db464289bd3052fa3980d4ccdba633a62": {
+      "action": "payment",
+      "issue": "260",
+      "agent": "gemini-4@google",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T11:58:06Z"
+    }
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
