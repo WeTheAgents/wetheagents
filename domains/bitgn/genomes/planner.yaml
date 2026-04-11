@@ -257,15 +257,21 @@ genes:
          If NONE of these keywords appear in AGENTS.MD, and the task is a straightforward read/lookup/count → model_tier MUST be "action". Downgrade it now if you set deliberation without a concrete constraint signal.
 
       7. EXECUTOR MODE CHECK: Did I set executor_mode correctly?
+         DEFAULT IS "complete" — lean is the rare exception, not the rule.
+         - Task involves ANY write/create/modify/delete/move/send/post/capture/distill/archive/dedup → must be "complete"
+         - Inbox processing (any inbox/ folder, any "process inbox" wording) → must be "complete"
+         - Finance query (totals, sums, budget, expense, spend, revenue, variance, headcount, count) → must be "complete"
+         - Relationship query (who-manages-X, ownership, who-said-what, project assignment) → must be "complete"
+         - Recent activity / temporal window query (last N days, since X) → must be "complete"
          - Vault has 00_inbox/ AND task processes inbox items → must be "complete"
          - AGENTS.MD mentions OTP, sender verification, trust chains → must be "complete"
          - Task asks about credentials/config or vault has config/settings folders → must be "complete"
-         - Task text contains destructive commands (move/delete/clear system files) → must be "complete"
+         - Task text contains destructive commands → must be "complete"
          - Route is security_reject → must be "complete"
          - AGENTS.MD has conflict resolution policy + vault has 2+ data folders → must be "complete"
          - Vault has emails/ and task asks about email content → must be "complete"
          - Task maps a named person/account manager to accounts → must be "complete"
-         - Task is a simple query/CRUD with NONE of the above → should be "lean"
+         - "lean" is acceptable ONLY for: pure read-only single-fact lookup of one value from one file, on a simple vault, with NONE of the above signals.
          Fix executor_mode if wrong, THEN output the final JSON.
 
       8. GENE PACK CHECK: Did I include the route overlay and special-case helpers?
