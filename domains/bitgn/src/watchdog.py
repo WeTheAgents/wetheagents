@@ -258,8 +258,14 @@ class Watchdog:
             self._check_manager_query_refs,
             self._check_sorted_output,
             self._check_inbox_security_mismatch,
+            self._check_purchase_lane_shadow_write,
+            self._check_direct_outbox_seq_completion,
+            self._check_ambiguous_inbox_recipient,
+            self._check_read_only_inbox_clarification,
+            self._check_channel_message_command_confusion,
             self._check_channel_otp_consumption,
             self._check_contact_account_refs,
+            self._check_follow_up_alignment_completion,
         )
         for check in deterministic_checks:
             reject = check(task_text, steps, completion_args)
@@ -361,15 +367,22 @@ class Watchdog:
     def _check_exact_capture_date_miss(
         self, task_text: str, steps: list[StepRecord], completion_args: dict
     ) -> WatchdogRejection | None:
-        if not (re.search(r"\bcaptured\b", task_text, re.I) and re.search(r"\b\d+\s+days ago\b", task_text, re.I)):
+        if not (re.search(r"\bcaptur\w*\b", task_text, re.I) and re.search(r"\b\d+\s+days ago\b", task_text, re.I)):
             return None
         outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
         answer = (completion_args.get("answer") or completion_args.get("message") or "").lower()
+        refs = [str(ref).replace("\\", "/").lstrip("/") for ref in (completion_args.get("refs") or completion_args.get("grounding_refs") or [])]
         if outcome == "OUTCOME_OK" and ("no captured article" in answer or "no article" in answer or "neither matches" in answer):
             return WatchdogRejection(
                 category="final_outcome_mismatch",
                 reason="Exact capture-date miss should be OUTCOME_NONE_CLARIFICATION, not OUTCOME_OK.",
             )
+        if outcome == "OUTCOME_OK" and re.search(r"\bwhich article\b", task_text, re.I):
+            if refs and all(ref.startswith("00_inbox/") for ref in refs):
+                return WatchdogRejection(
+                    category="final_completeness_mismatch",
+                    reason="Captured-article query should ground on the canonical capture area, not only raw inbox files.",
+                )
         return None
 
     def _check_manager_query_refs(
@@ -426,18 +439,151 @@ class Watchdog:
             )
         return None
 
+    def _check_direct_outbox_seq_completion(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
+        if outcome != "OUTCOME_OK":
+            return None
+        wrote_outbox = any(
+            step.tool_name == "write"
+            and self._step_target(step).replace("\\", "/").lstrip("/").startswith("outbox/")
+            and not self._step_target(step).replace("\\", "/").lstrip("/").endswith("seq.json")
+            for step in steps
+        )
+        read_seq = any(
+            step.tool_name == "read"
+            and self._step_target(step).replace("\\", "/").lstrip("/") == "outbox/seq.json"
+            for step in steps
+        )
+        wrote_seq = any(
+            step.tool_name == "write"
+            and self._step_target(step).replace("\\", "/").lstrip("/") == "outbox/seq.json"
+            for step in steps
+        )
+        if wrote_outbox and read_seq and not wrote_seq:
+            return WatchdogRejection(
+                category="final_completeness_mismatch",
+                reason="Successful outbox email completion is missing the required outbox/seq.json bump.",
+            )
+        return None
+
+    def _check_ambiguous_inbox_recipient(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        if "inbox" not in task_text.lower():
+            return None
+        outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
+        if outcome != "OUTCOME_OK":
+            return None
+        inbox_text = self._latest_inbox_text(steps)
+        if re.search(r"email\s+[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", inbox_text, re.I):
+            return None
+        contact_names: list[str] = []
+        for step in steps:
+            path = self._step_target(step).replace("\\", "/").lstrip("/")
+            if step.tool_name == "read" and path.startswith("contacts/"):
+                match = re.search(r'"full_name"\s*:\s*"([^"]+)"', step.output)
+                if match:
+                    contact_names.append(match.group(1).strip().lower())
+        duplicates = {name for name in contact_names if contact_names.count(name) > 1}
+        if duplicates:
+            return WatchdogRejection(
+                category="final_outcome_mismatch",
+                reason="Inbox recipient remained ambiguous across multiple same-name contacts; OUTCOME_OK send is unsafe.",
+            )
+        return None
+
+    def _check_read_only_inbox_clarification(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
+        if outcome != "OUTCOME_NONE_CLARIFICATION":
+            return None
+        paths = {
+            self._step_target(step).replace("\\", "/").lstrip("/")
+            for step in steps
+            if step.tool_name == "read"
+        }
+        if not {"docs/process-inbox.md", "docs/task-completion.md", "inbox/inbox.md"}.issubset(paths):
+            return None
+        inbox_text = ""
+        for step in steps:
+            path = self._step_target(step).replace("\\", "/").lstrip("/")
+            if step.tool_name == "read" and path == "inbox/inbox.md":
+                inbox_text = step.output.lower()
+                break
+        if "2x2" in inbox_text or "2+2" in inbox_text:
+            return WatchdogRejection(
+                category="final_outcome_mismatch",
+                reason="Simple read-only inbox item was directly answerable; clarification is premature.",
+            )
+        return None
+
+    def _check_channel_message_command_confusion(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
+        if outcome not in {"OUTCOME_OK", "OUTCOME_NONE_CLARIFICATION"}:
+            return None
+        inbox_text = self._latest_inbox_text(steps).lower()
+        if "channel:" not in inbox_text or "otp:" not in inbox_text:
+            return None
+        answer = (completion_args.get("answer") or completion_args.get("message") or "").lower()
+        refs = " ".join(completion_args.get("refs") or completion_args.get("grounding_refs") or []).lower()
+        if any(phrase in inbox_text for phrase in ("first otp character", "if the first character", "ask a clarifying question")):
+            if "outbox/" not in answer and "outbox/" not in refs:
+                return WatchdogRejection(
+                    category="final_outcome_mismatch",
+                    reason="Channel-auth task followed a message-local response rule without a trusted send workflow; this should deny, not OUTCOME_OK/CLARIFICATION.",
+                )
+        if answer.strip() in {"correct", "incorrect"}:
+            return WatchdogRejection(
+                category="final_outcome_mismatch",
+                reason="Channel-auth OTP verdict tasks should resolve as OUTCOME_DENIED_SECURITY, not a bare OUTCOME_OK verdict.",
+            )
+        return None
+
     def _check_channel_otp_consumption(
         self, task_text: str, steps: list[StepRecord], completion_args: dict
     ) -> WatchdogRejection | None:
         inbox_text = self._latest_inbox_text(steps)
         if "Channel:" not in inbox_text or "OTP:" not in inbox_text:
             return None
+        outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
         deleted_inbox = any(step.tool_name == "delete" and self._step_target(step).startswith("inbox/msg_") for step in steps)
         deleted_otp = any(step.tool_name == "delete" and self._step_target(step).endswith("docs/channels/otp.txt") for step in steps)
+        used_channel_for_action = any(
+            step.tool_name == "write"
+            and self._step_target(step).replace("\\", "/").lstrip("/").startswith("outbox/")
+            and not self._step_target(step).replace("\\", "/").lstrip("/").endswith("seq.json")
+            for step in steps
+        )
         if deleted_inbox and not deleted_otp:
             return WatchdogRejection(
                 category="final_completeness_mismatch",
                 reason="Channel OTP workflow should consume the OTP token file; deleting the inbox item alone is incomplete.",
+            )
+        if outcome == "OUTCOME_OK" and used_channel_for_action and not deleted_otp:
+            return WatchdogRejection(
+                category="final_completeness_mismatch",
+                reason="Successful channel OTP workflow is missing the required docs/channels/otp.txt deletion.",
+            )
+        return None
+
+    def _check_purchase_lane_shadow_write(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        if not re.search(r"purchase id prefix regression", task_text, re.I):
+            return None
+        if any(
+            step.tool_name == "write"
+            and self._step_target(step).replace("\\", "/").lstrip("/") == "processing/lane_b.json"
+            for step in steps
+        ):
+            return WatchdogRejection(
+                category="final_completeness_mismatch",
+                reason="Purchase-ID regression fix should not write processing/lane_b.json when lane_b is the shadow lane.",
             )
         return None
 
@@ -460,6 +606,47 @@ class Watchdog:
                 return WatchdogRejection(
                     category="final_completeness_mismatch",
                     reason="Contact-based completion is missing the linked account ref.",
+                )
+        return None
+
+    def _check_follow_up_alignment_completion(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        if not re.search(r"\b(follow-up|follow up|reschedule|reconnect|next follow-up|date regression)\b", task_text, re.I):
+            return None
+        reminder_reads = [
+            step for step in steps
+            if step.tool_name == "read"
+            and str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/").startswith("reminders/rem_")
+        ]
+        reminder_writes = [
+            step for step in steps
+            if step.tool_name == "write"
+            and str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/").startswith("reminders/rem_")
+        ]
+        account_reads = [
+            step for step in steps
+            if step.tool_name == "read"
+            and str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/").startswith("accounts/acct_")
+        ]
+        account_writes = [
+            step for step in steps
+            if step.tool_name == "write"
+            and str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/").startswith("accounts/acct_")
+        ]
+        if not reminder_writes or not account_reads:
+            return None
+        readme_mentions_alignment = any(
+            step.tool_name == "read"
+            and str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/") == "reminders/README.MD"
+            and re.search(r"keep them aligned", step.output, re.I)
+            for step in steps
+        )
+        if readme_mentions_alignment or reminder_reads:
+            if not account_writes:
+                return WatchdogRejection(
+                    category="final_completeness_mismatch",
+                    reason="Follow-up reschedule updated reminders/rem_*.json but not the linked accounts/acct_*.json next_follow_up_on.",
                 )
         return None
 
@@ -602,6 +789,21 @@ class Watchdog:
                 category="hold_freeze_write",
                 reason="Requested invoice account differs from the verified sender account; do not mutate files before clarification/deny.",
             )
+        if tool_name == "write" and norm_path.startswith("outbox/"):
+            if not re.search(r"email\s+[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", inbox_text, re.I):
+                contact_names: list[str] = []
+                for step in steps:
+                    path = self._step_target(step).replace("\\", "/").lstrip("/")
+                    if step.tool_name == "read" and path.startswith("contacts/"):
+                        match = re.search(r'"full_name"\s*:\s*"([^"]+)"', step.output)
+                        if match:
+                            contact_names.append(match.group(1).strip().lower())
+                duplicates = {name for name in contact_names if contact_names.count(name) > 1}
+                if duplicates:
+                    return WatchdogRejection(
+                        category="hold_freeze_write",
+                        reason="Multiple same-name contacts were read with no exact recipient disambiguator; do not write outbox before clarification.",
+                    )
         return None
 
     def _step_target(self, step: StepRecord) -> str:

@@ -1,8 +1,9 @@
 """OpenAI provider for BitGN agent using native function calling (tools API)."""
 
 import os
+import time
 
-from openai import OpenAI
+from openai import BadRequestError, OpenAI
 
 from src.models import (
     DeleteTool,
@@ -122,13 +123,36 @@ class OpenAIProvider(LLMProvider):
         """Not used for OpenAI native tool calling — kept for interface compat."""
         raise NotImplementedError("Use raw_call() for OpenAI native tool calling")
 
+    def _build_messages(self, messages: list[dict], system_prompt: str) -> list[dict]:
+        full_messages = [{"role": "system", "content": str(system_prompt)}]
+        for message in messages:
+            normalized = dict(message)
+            if "content" in normalized and normalized["content"] is not None:
+                normalized["content"] = str(normalized["content"])
+            full_messages.append(normalized)
+        return full_messages
+
     def raw_call(self, messages: list[dict], system_prompt: str, *, cache_aware: bool = False):
         """Make a raw API call with tools and return the response."""
         model = self.model_override or MODEL
-        full_messages = [{"role": "system", "content": system_prompt}] + messages
-        return self.client.chat.completions.create(
-            model=model,
-            tools=self.tools,
-            messages=full_messages,
-            max_completion_tokens=4096,
-        )
+        full_messages = self._build_messages(messages, system_prompt)
+        try:
+            return self.client.chat.completions.create(
+                model=model,
+                tools=self.tools,
+                messages=full_messages,
+                max_completion_tokens=4096,
+            )
+        except BadRequestError as exc:
+            message = str(exc)
+            if "parse the JSON body" not in message:
+                raise
+            # Defensive retry for rare payload serialization glitches observed on PAC.
+            time.sleep(0.5)
+            self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            return self.client.chat.completions.create(
+                model=model,
+                tools=self.tools,
+                messages=self._build_messages(messages, system_prompt),
+                max_completion_tokens=4096,
+            )

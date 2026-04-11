@@ -179,3 +179,10 @@ def run_taxonomy(
         result.taxonomy_trace.append(trace_entry)
 
     return result
+
+
+def should_rerun_taxonomy(kind: str, reason: str) -> bool:
+    if kind in {"conflict", "action_brake", "final_gate"}:
+        return True
+    lowered = reason.lower()
+    return "route mismatch" in lowered or "route_mismatch" in lowered

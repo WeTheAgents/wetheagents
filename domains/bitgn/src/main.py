@@ -1,5 +1,6 @@
 """Entry point for BitGN benchmark runner (sandbox + PAC1)."""
 
+import json
 import os
 import sys
 import textwrap
@@ -29,7 +30,7 @@ from connectrpc.errors import ConnectError
 from src.config import DEFAULT_CONFIG, AgentConfig
 from src.prompts import build_system_prompt
 from src.tools import bitgn_dispatcher
-from src.trace import BenchmarkTrace, TaskTrace, build_failure_digest, save_trace
+from src.trace import BenchmarkTrace, TaskTrace, build_answers_digest, build_failure_digest, save_trace
 
 BITGN_URL = os.getenv("BENCHMARK_HOST", "https://api.bitgn.com")
 BITGN_API_KEY = os.getenv("BITGN_API_KEY", "")
@@ -37,6 +38,41 @@ BITGN_API_KEY = os.getenv("BITGN_API_KEY", "")
 CLI_RED = "\x1B[31m"
 CLI_GREEN = "\x1B[32m"
 CLI_CLR = "\x1B[0m"
+
+
+def _start_leaderboard_run(client: HarnessServiceClientSync, *, run_name: str, benchmark_id: str, leaderboard_api_key: str):
+    """Start a leaderboard run across old/new API shapes."""
+    request_kwargs = {
+        "name": run_name,
+        "benchmark_id": benchmark_id,
+    }
+    if "api_key" in StartRunRequest.DESCRIPTOR.fields_by_name:
+        request_kwargs["api_key"] = leaderboard_api_key
+        return client.start_run(StartRunRequest(**request_kwargs))
+
+    request = StartRunRequest(**request_kwargs)
+    header_variants = []
+    if leaderboard_api_key:
+        header_variants = [
+            {"x-api-key": leaderboard_api_key},
+            {"X-Api-Key": leaderboard_api_key},
+            {"authorization": f"Bearer {leaderboard_api_key}"},
+            {"Authorization": f"Bearer {leaderboard_api_key}"},
+        ]
+
+    last_error = None
+    for headers in header_variants or [None]:
+        try:
+            return client.start_run(request, headers=headers)
+        except ConnectError as exc:
+            last_error = exc
+            message = str(exc).lower()
+            if "api key" not in message and "auth" not in message:
+                raise
+
+    if last_error is not None:
+        raise last_error
+    return client.start_run(request)
 
 
 def _is_pcm(benchmark_id: str) -> bool:
@@ -196,11 +232,12 @@ def run_benchmark(
 
         if leaderboard_api_key:
             # Leaderboard flow: start_run → start_trial per slot → submit_run
-            run = client.start_run(StartRunRequest(
-                name=run_name,
+            run = _start_leaderboard_run(
+                client,
+                run_name=run_name,
                 benchmark_id=benchmark_id,
-                api_key=leaderboard_api_key,
-            ))
+                leaderboard_api_key=leaderboard_api_key,
+            )
             print(f"Leaderboard run started: {run.run_id}")
             try:
                 for lid in run.trial_ids:
@@ -574,8 +611,11 @@ def main() -> None:
     trace_path = os.path.join(logs_dir, f"{safe_name}-{timestamp}-trace.json")
     save_trace(trace_path, trace)
     print(f"Saved trace: {trace_path}")
+    answers_path = os.path.join(logs_dir, f"{safe_name}-{timestamp}-answers.json")
+    with open(answers_path, "w", encoding="utf-8") as f:
+        json.dump(build_answers_digest(trace), f, indent=2, ensure_ascii=False)
+    print(f"Saved answers digest: {answers_path}")
     if trace.failed_tasks:
-        import json
         failure_path = os.path.join(logs_dir, f"{safe_name}-{timestamp}-failures.json")
         with open(failure_path, "w", encoding="utf-8") as f:
             json.dump(build_failure_digest(trace), f, indent=2, ensure_ascii=False)
