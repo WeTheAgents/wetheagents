@@ -1,17 +1,17 @@
 {
-  "updated_at": "2026-04-11T12:05:46.173Z",
+  "updated_at": "2026-04-11T12:07:02.795Z",
   "score": {
-    "bullish": 7,
-    "available": 13,
-    "ratio": 0.5384615384615384,
+    "bullish": 5,
+    "available": 8,
+    "ratio": 0.625,
     "verdict": "Подготовка к покупке — DCA малыми частями",
     "color": "yellow"
   },
   "btc_price": {
     "usd": 72947,
     "eur": 62207,
-    "change_24h": 1.1087759441697889,
-    "change_7d": 8.383778335110831
+    "change_24h": 1.1092546783965664,
+    "change_7d": 8.392082820386259
   },
   "tiers": {
     "t1": [
@@ -19,73 +19,16 @@
         "id": "etf_flows",
         "name": "BTC spot ETF net flows",
         "tier": "t1",
-        "state": "ok",
-        "signal": "bullish",
-        "value": 652.2,
-        "display_value": "+$652M (7d)",
-        "context": "Приток $652M за 7д, $543M за 21д. Институционалы набирают позицию через спот-ETF.",
-        "history": [
-          {
-            "ts": "2026-03-23",
-            "value": 167.2
-          },
-          {
-            "ts": "2026-03-24",
-            "value": -74.5
-          },
-          {
-            "ts": "2026-03-25",
-            "value": 7.8
-          },
-          {
-            "ts": "2026-03-26",
-            "value": -171.3
-          },
-          {
-            "ts": "2026-03-27",
-            "value": -225.5
-          },
-          {
-            "ts": "2026-03-30",
-            "value": 69.4
-          },
-          {
-            "ts": "2026-03-31",
-            "value": 117.5
-          },
-          {
-            "ts": "2026-04-01",
-            "value": -173.7
-          },
-          {
-            "ts": "2026-04-02",
-            "value": 9
-          },
-          {
-            "ts": "2026-04-06",
-            "value": 471.4
-          },
-          {
-            "ts": "2026-04-07",
-            "value": -159.1
-          },
-          {
-            "ts": "2026-04-08",
-            "value": -93.9
-          },
-          {
-            "ts": "2026-04-09",
-            "value": 358.1
-          },
-          {
-            "ts": "2026-04-10",
-            "value": 240.4
-          }
-        ],
+        "state": "broken_scraper",
+        "signal": "neutral",
+        "value": null,
+        "display_value": "SCRAPER BROKEN",
+        "context": "HTML-структура источника изменилась. Нужно починить парсер.",
+        "history": [],
         "source": "Farside Investors",
-        "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T12:05:44.971Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-11T12:06:47.801Z",
+        "error": "curl: proxy not configured for \"US\""
       },
       {
         "id": "fear_greed",
@@ -220,7 +163,7 @@
         ],
         "source": "alternative.me",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:05:43.678Z",
+        "fetched_at": "2026-04-11T12:06:48.094Z",
         "error": null
       },
       {
@@ -356,7 +299,7 @@
         ],
         "source": "DefiLlama",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:05:43.784Z",
+        "fetched_at": "2026-04-11T12:06:48.009Z",
         "error": null
       },
       {
@@ -378,30 +321,23 @@
         "history": [],
         "source": "Polymarket (Gamma)",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:05:43.601Z",
+        "fetched_at": "2026-04-11T12:06:48.077Z",
         "error": null
       },
       {
         "id": "kalshi_fed",
         "name": "Fed decision (Kalshi)",
         "tier": "t1",
-        "state": "ok",
+        "state": "no_data",
         "signal": "neutral",
-        "value": {
-          "pCut": 0.020000000000000018,
-          "pHold": 0.97,
-          "pHike": 0.01,
-          "currentUpper": 3.75,
-          "meetingDate": "2026-04-29",
-          "eventTicker": "KXFED-26APR"
-        },
-        "display_value": "P(cut)=2% · hold=97% · hike=1%",
-        "context": "Заседание Apr (2026-04-29): Kalshi закладывает 97% hold (тек. верхняя 3.75%).",
+        "value": null,
+        "display_value": "нет данных",
+        "context": "Источник не отвечает: This operation was aborted",
         "history": [],
         "source": "Kalshi (KXFED via US proxy)",
-        "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:05:46.167Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-11T12:07:02.786Z",
+        "error": "This operation was aborted"
       },
       {
         "id": "polymarket_btc_price",
@@ -410,7 +346,7 @@
         "state": "ok",
         "signal": "bullish",
         "value": {
-          "current": 72947,
+          "current": 72950,
           "closestUp": {
             "target": 75000,
             "p": 0.715
@@ -427,7 +363,7 @@
         "history": [],
         "source": "Polymarket (Gamma)",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:05:44.116Z",
+        "fetched_at": "2026-04-11T12:06:48.232Z",
         "error": null
       }
     ],
@@ -436,113 +372,16 @@
         "id": "m2",
         "name": "Global M2 (лаг 84d)",
         "tier": "t2",
-        "state": "ok",
-        "signal": "bullish",
-        "value": 22667.3,
-        "display_value": "$22.7T (US)",
-        "context": "M2 растёт +1.7% за 3 мес. При лаге 84 дня позитивный импульс дойдёт до BTC через ~3 месяца.",
-        "history": [
-          {
-            "ts": "2024-03-01",
-            "value": 20973.2
-          },
-          {
-            "ts": "2024-04-01",
-            "value": 20958.8
-          },
-          {
-            "ts": "2024-05-01",
-            "value": 21019.9
-          },
-          {
-            "ts": "2024-06-01",
-            "value": 21067.7
-          },
-          {
-            "ts": "2024-07-01",
-            "value": 21094.4
-          },
-          {
-            "ts": "2024-08-01",
-            "value": 21185.8
-          },
-          {
-            "ts": "2024-09-01",
-            "value": 21268.6
-          },
-          {
-            "ts": "2024-10-01",
-            "value": 21331
-          },
-          {
-            "ts": "2024-11-01",
-            "value": 21451.6
-          },
-          {
-            "ts": "2024-12-01",
-            "value": 21485.3
-          },
-          {
-            "ts": "2025-01-01",
-            "value": 21547.6
-          },
-          {
-            "ts": "2025-02-01",
-            "value": 21613.2
-          },
-          {
-            "ts": "2025-03-01",
-            "value": 21693.5
-          },
-          {
-            "ts": "2025-04-01",
-            "value": 21775.5
-          },
-          {
-            "ts": "2025-05-01",
-            "value": 21833.8
-          },
-          {
-            "ts": "2025-06-01",
-            "value": 21938.7
-          },
-          {
-            "ts": "2025-07-01",
-            "value": 22019.9
-          },
-          {
-            "ts": "2025-08-01",
-            "value": 22086.8
-          },
-          {
-            "ts": "2025-09-01",
-            "value": 22169.8
-          },
-          {
-            "ts": "2025-10-01",
-            "value": 22250.4
-          },
-          {
-            "ts": "2025-11-01",
-            "value": 22296.5
-          },
-          {
-            "ts": "2025-12-01",
-            "value": 22386.9
-          },
-          {
-            "ts": "2026-01-01",
-            "value": 22469.1
-          },
-          {
-            "ts": "2026-02-01",
-            "value": 22667.3
-          }
-        ],
+        "state": "no_data",
+        "signal": "neutral",
+        "value": null,
+        "display_value": "нет данных",
+        "context": "Источник не отвечает: This operation was aborted",
+        "history": [],
         "source": "FRED (M2SL)",
-        "source_updated": "2026-02-01",
-        "fetched_at": "2026-04-11T12:05:44.005Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-11T12:07:02.788Z",
+        "error": "This operation was aborted"
       },
       {
         "id": "btc_vs_200dma",
@@ -551,17 +390,17 @@
         "state": "ok",
         "signal": "bearish",
         "value": {
-          "price": 72946.888649269,
-          "ma200": 88198.92171496012,
-          "diff_pct": -17.292765908161993,
+          "price": 72952.47792076315,
+          "ma200": 88198.94952228098,
+          "diff_pct": -17.28645486607098,
           "price_meta": {
             "usd": 72947,
             "eur": 62207,
-            "change_24h": 1.1087759441697889,
-            "change_7d": 8.383778335110831
+            "change_24h": 1.1092546783965664,
+            "change_7d": 8.392082820386259
           }
         },
-        "display_value": "$72,947 (-17.3% to MA200)",
+        "display_value": "$72,952 (-17.3% to MA200)",
         "context": "Цена на 17.3% ниже 200-дневной средней. Глубоко под институциональной себестоимостью.",
         "history": [
           {
@@ -682,12 +521,12 @@
           },
           {
             "ts": "2026-04-11",
-            "value": 72946.888649269
+            "value": 72952.47792076315
           }
         ],
         "source": "CoinGecko → Binance",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:05:43.906Z",
+        "fetched_at": "2026-04-11T12:06:48.051Z",
         "error": null
       },
       {
@@ -823,208 +662,38 @@
         ],
         "source": "Yahoo ^VIX",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T12:05:43.683Z",
+        "fetched_at": "2026-04-11T12:06:47.976Z",
         "error": null
       },
       {
         "id": "treasury_2y",
         "name": "2-Year Treasury yield",
         "tier": "t2",
-        "state": "ok",
-        "signal": "bearish",
-        "value": 3.78,
-        "display_value": "3.78%",
-        "context": "2Y доходность 3.78%, +0.14pp за 30д. Выше Fed Funds и растёт — ожидания ужесточения.",
-        "history": [
-          {
-            "ts": "2026-02-27",
-            "value": 3.38
-          },
-          {
-            "ts": "2026-03-02",
-            "value": 3.47
-          },
-          {
-            "ts": "2026-03-03",
-            "value": 3.51
-          },
-          {
-            "ts": "2026-03-04",
-            "value": 3.54
-          },
-          {
-            "ts": "2026-03-05",
-            "value": 3.57
-          },
-          {
-            "ts": "2026-03-06",
-            "value": 3.56
-          },
-          {
-            "ts": "2026-03-09",
-            "value": 3.56
-          },
-          {
-            "ts": "2026-03-10",
-            "value": 3.57
-          },
-          {
-            "ts": "2026-03-11",
-            "value": 3.64
-          },
-          {
-            "ts": "2026-03-12",
-            "value": 3.76
-          },
-          {
-            "ts": "2026-03-13",
-            "value": 3.73
-          },
-          {
-            "ts": "2026-03-16",
-            "value": 3.68
-          },
-          {
-            "ts": "2026-03-17",
-            "value": 3.68
-          },
-          {
-            "ts": "2026-03-18",
-            "value": 3.76
-          },
-          {
-            "ts": "2026-03-19",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-03-20",
-            "value": 3.88
-          },
-          {
-            "ts": "2026-03-23",
-            "value": 3.83
-          },
-          {
-            "ts": "2026-03-24",
-            "value": 3.9
-          },
-          {
-            "ts": "2026-03-25",
-            "value": 3.84
-          },
-          {
-            "ts": "2026-03-26",
-            "value": 3.96
-          },
-          {
-            "ts": "2026-03-27",
-            "value": 3.88
-          },
-          {
-            "ts": "2026-03-30",
-            "value": 3.82
-          },
-          {
-            "ts": "2026-03-31",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-04-01",
-            "value": 3.81
-          },
-          {
-            "ts": "2026-04-02",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-04-03",
-            "value": 3.84
-          },
-          {
-            "ts": "2026-04-06",
-            "value": 3.84
-          },
-          {
-            "ts": "2026-04-07",
-            "value": 3.81
-          },
-          {
-            "ts": "2026-04-08",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-04-09",
-            "value": 3.78
-          }
-        ],
+        "state": "no_data",
+        "signal": "neutral",
+        "value": null,
+        "display_value": "нет данных",
+        "context": "Источник не отвечает: This operation was aborted",
+        "history": [],
         "source": "FRED (DGS2, DFF)",
-        "source_updated": "2026-04-09",
-        "fetched_at": "2026-04-11T12:05:44.097Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-11T12:07:02.792Z",
+        "error": "This operation was aborted"
       },
       {
         "id": "cpi",
         "name": "CPI YoY",
         "tier": "t2",
-        "state": "ok",
+        "state": "no_data",
         "signal": "neutral",
-        "value": 3.320205581223676,
-        "display_value": "3.3% YoY",
-        "context": "CPI 3.3%. Без чёткого тренда.",
-        "history": [
-          {
-            "ts": "2025-03-01",
-            "value": 2.3819814628055505
-          },
-          {
-            "ts": "2025-04-01",
-            "value": 2.3253882302578393
-          },
-          {
-            "ts": "2025-05-01",
-            "value": 2.377265107368083
-          },
-          {
-            "ts": "2025-06-01",
-            "value": 2.68045386591023
-          },
-          {
-            "ts": "2025-07-01",
-            "value": 2.7426180521671357
-          },
-          {
-            "ts": "2025-08-01",
-            "value": 2.9385917430316257
-          },
-          {
-            "ts": "2025-09-01",
-            "value": 3.0225715847133356
-          },
-          {
-            "ts": "2025-11-01",
-            "value": 2.9882996283635057
-          },
-          {
-            "ts": "2025-12-01",
-            "value": 3.0022620431683724
-          },
-          {
-            "ts": "2026-01-01",
-            "value": 2.8286797395498917
-          },
-          {
-            "ts": "2026-02-01",
-            "value": 2.6645890876940963
-          },
-          {
-            "ts": "2026-03-01",
-            "value": 3.320205581223676
-          }
-        ],
+        "value": null,
+        "display_value": "нет данных",
+        "context": "Источник не отвечает: This operation was aborted",
+        "history": [],
         "source": "FRED (CPIAUCSL)",
-        "source_updated": "2026-03-01",
-        "fetched_at": "2026-04-11T12:05:43.840Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-11T12:07:02.794Z",
+        "error": "This operation was aborted"
       }
     ],
     "t3": [
@@ -1161,7 +830,7 @@
         ],
         "source": "Yahoo (GC=F, GLD)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T12:05:43.736Z",
+        "fetched_at": "2026-04-11T12:06:48.045Z",
         "error": null
       },
       {
@@ -1297,10 +966,12 @@
         ],
         "source": "Yahoo (HG=F / GC=F)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T12:05:43.745Z",
+        "fetched_at": "2026-04-11T12:06:47.990Z",
         "error": null
       }
     ]
   },
-  "alerts": []
+  "alerts": [
+    "BTC spot ETF net flows: HTML-структура источника изменилась. Нужно починить парсер."
+  ]
 }
