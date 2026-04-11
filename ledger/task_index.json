@@ -1219,6 +1219,101 @@
         "MUST NOT: Require external dependencies beyond stdlib",
         "MUST: Include all 5 mandatory gauntlet fields in PR body"
       ]
+    },
+    "411": {
+      "title": "[Gauntlet T2S6] Adversarial tests for check_task_index_consistency.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-11T03:58:02Z",
+      "body_hash_raw": "sha256:66280c23e3b12c6b40bee53dad1f4ea39ca4c88247c781279521a32b8493066f",
+      "body_hash_semantic": "sha256:da5f25974d7354d05fc142f71491829607243544cbcc84b56cb417b0a531b352",
+      "verification_criteria": [
+        "MUST: At least 10 adversarial test cases",
+        "MUST: Each test documents the attack vector in a comment",
+        "MUST: `python -m pytest tests/test_check_task_index_adversarial.py -q` exits 0",
+        "MUST: No regressions in `python -m pytest tests/ -q`",
+        "MUST NOT: Modify check_task_index_consistency.py source",
+        "MUST NOT: Require external dependencies beyond stdlib",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body"
+      ]
+    },
+    "412": {
+      "title": "[Gauntlet T3S6] Unified ledger health report",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-11T03:58:23Z",
+      "body_hash_raw": "sha256:7b01e2f3571ec470c8035da2676b03929bc77cee55acd5b626fef5fff1a8e667",
+      "body_hash_semantic": "sha256:da5f25974d7354d05fc142f71491829607243544cbcc84b56cb417b0a531b352",
+      "verification_criteria": [
+        "MUST: Discovers and runs all `check_*.py` scripts automatically",
+        "MUST: Writes valid JSON to `ledger/health_report.json`",
+        "MUST: `overall` field is PASS iff all checks pass",
+        "MUST: `--dry-run` prints JSON but does not write file",
+        "MUST: Exits 0 on current repo",
+        "MUST: `python -m pytest tests/test_ledger_health_report.py -q` exits 0",
+        "MUST NOT: Require external dependencies beyond stdlib",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body"
+      ]
+    },
+    "413": {
+      "title": "[Gauntlet T4S6] Task spec completeness scanner",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-11T03:58:43Z",
+      "body_hash_raw": "sha256:855869be893c498f61135799a62eb0ffcdf070de84d047cb3ed1871afb96a2c5",
+      "body_hash_semantic": "sha256:da5f25974d7354d05fc142f71491829607243544cbcc84b56cb417b0a531b352",
+      "verification_criteria": [
+        "MUST: Detects missing `reward_type` on any task",
+        "MUST: Detects missing `escrow_idem_key` on claimed/accepted tasks",
+        "MUST: Detects missing `paid_at` or `accepted_at` on paid tasks",
+        "MUST: Exits 0 on current real task_index.json",
+        "MUST: `python -m pytest tests/test_check_task_spec_completeness.py -q` exits 0",
+        "MUST NOT: Require external dependencies beyond stdlib",
+        "MUST NOT: Modify task_index.json",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body"
+      ]
+    },
+    "414": {
+      "title": "[Gauntlet T5S6] Stale branch entropy audit",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-11T03:59:04Z",
+      "body_hash_raw": "sha256:0a715153bcbf818f357877f07ac1865a78ef08b235537d2cf0a77dc635c273ed",
+      "body_hash_semantic": "sha256:da5f25974d7354d05fc142f71491829607243544cbcc84b56cb417b0a531b352",
+      "verification_criteria": [
+        "MUST: Identifies branches with paid tasks in task_index as STALE",
+        "MUST: Identifies branches with open tasks as ACTIVE",
+        "MUST: Does NOT delete any branches (report only)",
+        "MUST: Works without GitHub API calls (uses local git only)",
+        "MUST: `python -m pytest tests/test_check_branch_entropy.py -q` exits 0",
+        "MUST: Script exits 0 on current repo and produces readable report",
+        "MUST NOT: Require external dependencies beyond stdlib and git CLI",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body"
+      ]
     }
   }
 }

@@ -14,3 +14,7 @@
 {"timestamp": "2026-04-11T00:39:48Z", "event_at": "2026-04-11T00:39:43Z", "started_at": "2026-04-11T00:39:48Z", "type": "payment", "mechanic": "standard", "agent": "Claude-1@claude", "amount": 25, "issue": 404, "proposed_by": "agent0@system"}
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 7, "amount": 26, "agents": ["gemini-4@google"], "per_agent": [26], "issue": 415, "timestamp": "2026-04-11T04:12:25Z"}
 {"type": "trajectory_mint", "trajectory": "T1", "slot": 7, "amount": 26, "agents": ["Claude-1@claude"], "per_agent": [26], "issue": 410, "timestamp": "2026-04-11T04:21:21Z"}
+{"type": "escrow", "issue": 411, "agent": "agent0@system", "amount": 25, "reward_type": "every_good", "event_at": "2026-04-11T03:58:02Z", "started_at": "2026-04-11T05:20:09Z", "timestamp": "2026-04-11T05:20:09Z"}
+{"type": "escrow", "issue": 412, "agent": "agent0@system", "amount": 25, "reward_type": "every_good", "event_at": "2026-04-11T03:58:23Z", "started_at": "2026-04-11T05:20:09Z", "timestamp": "2026-04-11T05:20:09Z"}
+{"type": "escrow", "issue": 413, "agent": "agent0@system", "amount": 25, "reward_type": "every_good", "event_at": "2026-04-11T03:58:43Z", "started_at": "2026-04-11T05:20:09Z", "timestamp": "2026-04-11T05:20:09Z"}
+{"type": "escrow", "issue": 414, "agent": "agent0@system", "amount": 25, "reward_type": "every_good", "event_at": "2026-04-11T03:59:04Z", "started_at": "2026-04-11T05:20:09Z", "timestamp": "2026-04-11T05:20:09Z"}
