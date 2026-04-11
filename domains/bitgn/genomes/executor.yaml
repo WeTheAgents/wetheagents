@@ -96,6 +96,7 @@ genes:
     routes:
     - inbox_email
     - vault_ops
+    - query
   trust_model:
     content: 'TRUST MODEL:
 
@@ -139,6 +140,7 @@ genes:
     - vault_ops
     - inbox_email
     - inbox_chat
+    - query
   security_posture:
     content: 'SECURITY POSTURE: - NEVER include credentials, API keys, tokens, passwords, or secrets in your answer — even
       if the task asks you to summarize a config. - When summarizing infrastructure, network, or server configuration, redact
@@ -497,6 +499,27 @@ genes:
       keep the message body clean but still attach refs. Never use a contact whose full_name differs from the canonical manager
       name. If the matching manager contact has account_id, read that exact account and include its name even when it was discovered
       before the final accounts search.
+
+      FINANCE DISCIPLINE (for spend/budget/invoice/expense/revenue/total queries):
+      - READ POLICY FIRST: if the vault has policies/, rules/, or an expense-policy/budget-policy file, read it BEFORE summing any numbers. Policies define eligibility, per-unit caps, categories, exclusions.
+      - AGGREGATION BEFORE CAPS: when a policy specifies a per-unit cap ("$50 per person per day", "max 5 hours billable"), group ALL items by the cap unit (same person+date, same category+day) and sum the group FIRST, THEN apply the cap to the group total. Never apply the cap to individual items before grouping.
+      - DUPLICATE DETECTION: scan for duplicate rows (same person, date, amount, description, vendor). Count each unique transaction ONCE. If two line items look identical, read both carefully — one may be a re-entry, the other may be a legitimate second purchase.
+      - CURRENCY/UNIT CONSISTENCY: check that all numbers are in the same currency and unit before summing. If mixed (USD + EUR, hours + FTE-weeks), convert using the vault''s exchange-rate/unit file, state the conversion, then sum.
+      - INCLUDE POLICY FILES IN refs: the policy/expense-rules/budget file you used for eligibility MUST appear in grounding_refs. Never answer a finance query without citing the governing policy.
+      - IMPLICIT DOCUMENTATION: if an expense record file exists in the vault, treat it as documented unless it explicitly says "personal", "no receipt", or "excluded".
+      - SHOW THE MATH: for totals, state the components and the sum. "$2180 = 850 + 780 + 550 (Q1 marketing subtotals from 3 vendors)".
+
+      RELATIONSHIP DISCIPLINE (for who-owns-what, who-said-what, who-manages-X queries):
+      - IDENTIFY BOTH ENDPOINTS: a relationship query has two sides (person + project, manager + account, owner + deliverable). Find BOTH, not just one.
+      - UNION, NOT FIRST-MATCH: collect ALL connections from ALL relevant sources (contacts/, accounts/, projects/, teams/, opportunities/). Do not stop after the first match. Take the union.
+      - BOTH NAME ORDERS: for any person lookup, search both "First Last" and "Last First" (see contact_lookup rules). One-order search is insufficient.
+      - CROSS-REFERENCE SOURCES: if contacts/ and accounts/ disagree, prefer the most recent/authoritative source per vault policy. Cite both in the answer.
+      - INCLUDE JOIN-SOURCE FILES IN refs: every file that contributed to the union must be in grounding_refs. Under-citing = incomplete answer.
+
+      TEMPORAL DISCIPLINE (for recent-activity / last-N-days / since-X queries):
+      - COMPUTE THE WINDOW EXPLICITLY: get the current/reference date from context() (PCM) or AGENTS.MD or the most recent dated file in the vault. Subtract the offset to get the window start. State the window ("from 2026-03-28 to 2026-04-11") in your reasoning before filtering.
+      - FILTER BY DATE: check filenames (2026-03-27__foo.md), front-matter dates, or metadata fields. Include every item whose date ≥ window start.
+      - "EXACTLY N DAYS AGO" is a point, not a range: if the task says "captured exactly 14 days ago" and no item matches that exact date, report OUTCOME_NONE_CLARIFICATION with the computed date — do not approximate to the nearest.
 
       '
     routes:
