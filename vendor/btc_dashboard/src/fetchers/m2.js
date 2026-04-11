@@ -22,9 +22,9 @@ async function fetchM2() {
   const displayValue = `$${(latest.value / 1000).toFixed(1)}T (US)`;
 
   const contextMap = {
-    bullish: `M2 растёт ${formatPct(change3m)} за 3 мес. При лаге 84 дня позитивный импульс дойдёт до BTC через ~3 месяца.`,
-    bearish: `M2 падает ${formatPct(change3m)} за 3 мес — негативно для BTC на горизонте ~3 месяца.`,
-    neutral: `M2 ${formatPct(change3m)} за 3 мес — вяло. Нет чёткого сигнала.`
+    bullish: `M2 rising ${formatPct(change3m)} over 3 months. With an 84-day lag the positive impulse reaches BTC in ~3 months.`,
+    bearish: `M2 falling ${formatPct(change3m)} over 3 months — negative for BTC on a ~3-month horizon.`,
+    neutral: `M2 ${formatPct(change3m)} over 3 months — flat. No clear signal.`
   };
 
   return {

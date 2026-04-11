@@ -37,9 +37,9 @@ async function fetchStablecoin() {
 
   const displayValue = `$${(latest.value / 1e9).toFixed(0)}B`;
   const contextMap = {
-    bullish: `Капитализация $${(latest.value / 1e9).toFixed(0)}B, рост ${formatPct(change30)} за 30д — dry powder накапливается.`,
-    bearish: `Капитализация $${(latest.value / 1e9).toFixed(0)}B, падение ${formatPct(change30)} за 30д — ликвидность уходит.`,
-    neutral: `Капитализация $${(latest.value / 1e9).toFixed(0)}B, изменение ${formatPct(change30)} за 30д — без резких движений.`
+    bullish: `Market cap $${(latest.value / 1e9).toFixed(0)}B, up ${formatPct(change30)} over 30d — dry powder accumulating.`,
+    bearish: `Market cap $${(latest.value / 1e9).toFixed(0)}B, down ${formatPct(change30)} over 30d — liquidity draining.`,
+    neutral: `Market cap $${(latest.value / 1e9).toFixed(0)}B, change ${formatPct(change30)} over 30d — no sharp moves.`
   };
 
   return {

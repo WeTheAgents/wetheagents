@@ -55,9 +55,9 @@ async function fetchBtcVs200Dma() {
   const displayValue = `$${Math.round(latest).toLocaleString('en-US')} (${diffPct >= 0 ? '+' : ''}${diffPct.toFixed(1)}% to MA200)`;
 
   const contextMap = {
-    bullish: `Цена ≥ 200-дневной средней ($${Math.round(ma200).toLocaleString('en-US')}). Выше зоны накопления — бычий режим.`,
-    bearish: `Цена на ${Math.abs(diffPct).toFixed(1)}% ниже 200-дневной средней. Глубоко под институциональной себестоимостью.`,
-    neutral: `Цена чуть ниже 200-дневной средней ($${Math.round(ma200).toLocaleString('en-US')}) — граница зоны накопления.`
+    bullish: `Price ≥ 200-day MA ($${Math.round(ma200).toLocaleString('en-US')}). Above the accumulation zone — bullish regime.`,
+    bearish: `Price ${Math.abs(diffPct).toFixed(1)}% below the 200-day MA. Deep under institutional cost basis.`,
+    neutral: `Price slightly below the 200-day MA ($${Math.round(ma200).toLocaleString('en-US')}) — edge of the accumulation zone.`
   };
 
   return {

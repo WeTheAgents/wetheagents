@@ -106,9 +106,9 @@ async function fetchKalshiFed() {
     `P(cut)=${(pCut * 100).toFixed(0)}% · hold=${(pHold * 100).toFixed(0)}% · hike=${(pHike * 100).toFixed(0)}%`;
 
   const contextMap = {
-    bullish: `Заседание ${monthName} (${meetingDate}): Kalshi закладывает снижение с вероятностью ${(pCut * 100).toFixed(0)}% (тек. верхняя ${currentUpper}%). Бычий для BTC.`,
-    bearish: `Заседание ${monthName} (${meetingDate}): Kalshi даёт ${(pHike * 100).toFixed(0)}% на повышение (тек. верхняя ${currentUpper}%). Ястребиный фон.`,
-    neutral: `Заседание ${monthName} (${meetingDate}): Kalshi закладывает ${(pHold * 100).toFixed(0)}% hold (тек. верхняя ${currentUpper}%).`
+    bullish: `${monthName} meeting (${meetingDate}): Kalshi prices a cut at ${(pCut * 100).toFixed(0)}% (current upper ${currentUpper}%). Bullish for BTC.`,
+    bearish: `${monthName} meeting (${meetingDate}): Kalshi gives ${(pHike * 100).toFixed(0)}% for a hike (current upper ${currentUpper}%). Hawkish backdrop.`,
+    neutral: `${monthName} meeting (${meetingDate}): Kalshi prices ${(pHold * 100).toFixed(0)}% hold (current upper ${currentUpper}%).`
   };
 
   return {

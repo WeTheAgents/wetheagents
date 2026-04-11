@@ -42,9 +42,9 @@ async function fetchCpi() {
   const displayValue = `${latest.value.toFixed(1)}% YoY`;
 
   const contextMap = {
-    bullish: `CPI ${latest.value.toFixed(1)}% (${prev2.value.toFixed(1)} → ${prev1.value.toFixed(1)} → ${latest.value.toFixed(1)}). Дезинфляция 2+ мес, путь к смягчению ФРС.`,
-    bearish: `CPI ${latest.value.toFixed(1)}% (${prev2.value.toFixed(1)} → ${prev1.value.toFixed(1)} → ${latest.value.toFixed(1)}). Реинфляция — снижает вероятность смягчения.`,
-    neutral: `CPI ${latest.value.toFixed(1)}%. Без чёткого тренда.`
+    bullish: `CPI ${latest.value.toFixed(1)}% (${prev2.value.toFixed(1)} → ${prev1.value.toFixed(1)} → ${latest.value.toFixed(1)}). Disinflation 2+ months, path to Fed easing.`,
+    bearish: `CPI ${latest.value.toFixed(1)}% (${prev2.value.toFixed(1)} → ${prev1.value.toFixed(1)} → ${latest.value.toFixed(1)}). Reinflation — lowers the odds of easing.`,
+    neutral: `CPI ${latest.value.toFixed(1)}%. No clear trend.`
   };
 
   return {

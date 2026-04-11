@@ -92,9 +92,9 @@ async function fetchPolymarketBtcPrice() {
 
   const biasPct = (bias * 100).toFixed(0);
   const contextMap = {
-    bullish: `Рынок ставит ${(closestUp.pYes * 100).toFixed(0)}% на касание $${fmtK(closestUp.target)} против ${(closestDown.pYes * 100).toFixed(0)}% на $${fmtK(closestDown.target)} (bias +${biasPct}%). Бычий сантимент.`,
-    bearish: `Рынок ставит ${(closestDown.pYes * 100).toFixed(0)}% на касание $${fmtK(closestDown.target)} против ${(closestUp.pYes * 100).toFixed(0)}% на $${fmtK(closestUp.target)} (bias ${biasPct}%). Медвежий сантимент.`,
-    neutral: `Близкие уровни: +$${fmtK(closestUp.target)} ${(closestUp.pYes * 100).toFixed(0)}%, -$${fmtK(closestDown.target)} ${(closestDown.pYes * 100).toFixed(0)}% (bias ${biasPct}%). Нейтрально.`
+    bullish: `Market prices ${(closestUp.pYes * 100).toFixed(0)}% chance of hitting $${fmtK(closestUp.target)} vs ${(closestDown.pYes * 100).toFixed(0)}% for $${fmtK(closestDown.target)} (bias +${biasPct}%). Bullish sentiment.`,
+    bearish: `Market prices ${(closestDown.pYes * 100).toFixed(0)}% chance of hitting $${fmtK(closestDown.target)} vs ${(closestUp.pYes * 100).toFixed(0)}% for $${fmtK(closestUp.target)} (bias ${biasPct}%). Bearish sentiment.`,
+    neutral: `Nearby levels: +$${fmtK(closestUp.target)} ${(closestUp.pYes * 100).toFixed(0)}%, -$${fmtK(closestDown.target)} ${(closestDown.pYes * 100).toFixed(0)}% (bias ${biasPct}%). Neutral.`
   };
 
   return {

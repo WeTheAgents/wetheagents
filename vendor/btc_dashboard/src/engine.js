@@ -25,7 +25,7 @@ const INDICATORS = [
   { id: 'polymarket_btc_price', name: 'BTC price bias (Polymarket)', tier: 't1', module: './fetchers/polymarket-btc-price' },
 
   // Tier 2 — weekly
-  { id: 'm2',                name: 'Global M2 (лаг 84d)',     tier: 't2', module: './fetchers/m2' },
+  { id: 'm2',                name: 'Global M2 (84d lag)',     tier: 't2', module: './fetchers/m2' },
   { id: 'btc_vs_200dma',     name: 'BTC vs 200-day MA',       tier: 't2', module: './fetchers/btc-vs-200dma' },
   { id: 'vix',               name: 'VIX',                     tier: 't2', module: './fetchers/vix' },
   { id: 'treasury_2y',       name: '2-Year Treasury yield',   tier: 't2', module: './fetchers/treasury-2y' },
@@ -76,7 +76,7 @@ function normalizeResult(ind, result) {
       signal: 'neutral',
       value: null,
       display_value: '—',
-      context: 'нет данных',
+      context: 'no data',
       history: [],
       source: '—',
       source_updated: null,
@@ -111,10 +111,10 @@ async function runFetcher(ind) {
     return normalizeResult(ind, {
       state: isScraperFile ? 'broken_scraper' : 'no_data',
       signal: 'neutral',
-      display_value: isScraperFile ? 'SCRAPER BROKEN' : 'нет данных',
+      display_value: isScraperFile ? 'SCRAPER BROKEN' : 'no data',
       context: isScraperFile
-        ? 'HTML-структура источника изменилась. Нужно починить парсер.'
-        : `Источник не отвечает: ${err.message}`,
+        ? 'Source HTML structure changed. Parser needs a fix.'
+        : `Source unreachable: ${err.message}`,
       source: mod.SOURCE || '—',
       fetched_at: new Date().toISOString(),
       error: String(err.message || err)
@@ -146,19 +146,19 @@ function computeScore(indicators) {
 
   let verdict, color;
   if (available === 0) {
-    verdict = 'Нет данных';
+    verdict = 'No data';
     color = 'gray';
   } else if (ratio >= 0.65) {
-    verdict = 'Окно для входа — зелёный свет';
+    verdict = 'Entry window — green light';
     color = 'green';
   } else if (ratio >= 0.45) {
-    verdict = 'Подготовка к покупке — DCA малыми частями';
+    verdict = 'Prepare to buy — DCA in small slices';
     color = 'yellow';
   } else if (ratio >= 0.25) {
-    verdict = 'Смешанно — держать порох сухим';
+    verdict = 'Mixed — keep the powder dry';
     color = 'orange';
   } else {
-    verdict = 'Макро против — ждать';
+    verdict = 'Macro against — wait';
     color = 'red';
   }
 
@@ -168,7 +168,7 @@ function computeScore(indicators) {
 function buildAlerts(indicators) {
   return indicators
     .filter((i) => i.state === 'broken_scraper')
-    .map((i) => `${i.name}: ${i.context || 'скрейпер сломан'}`);
+    .map((i) => `${i.name}: ${i.context || 'scraper broken'}`);
 }
 
 function splitByTier(indicators) {

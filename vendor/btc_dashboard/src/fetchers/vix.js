@@ -26,9 +26,9 @@ async function fetchVix() {
   else signal = 'neutral';
 
   const contextMap = {
-    bullish: `VIX ${latest.toFixed(1)} — спокойно, risk-on среда для BTC.`,
-    bearish: `VIX ${latest.toFixed(1)} — стресс-режим, рискованные активы под давлением.`,
-    neutral: `VIX ${latest.toFixed(1)} — нейтрально, ни паника, ни эйфория.`
+    bullish: `VIX ${latest.toFixed(1)} — calm, risk-on environment for BTC.`,
+    bearish: `VIX ${latest.toFixed(1)} — stress mode, risk assets under pressure.`,
+    neutral: `VIX ${latest.toFixed(1)} — neutral, neither panic nor euphoria.`
   };
 
   return {

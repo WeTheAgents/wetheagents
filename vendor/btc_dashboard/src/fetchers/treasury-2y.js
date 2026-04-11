@@ -27,11 +27,11 @@ async function fetchTreasury2y() {
   const displayValue = `${latest2y.value.toFixed(2)}%`;
 
   const contextMap = {
-    bullish: `2Y доходность ${latest2y.value.toFixed(2)}%, ${change30d >= 0 ? '+' : ''}${change30d.toFixed(2)}pp за 30д. ${
-      belowFF ? `Ниже Fed Funds (${latestFF.toFixed(2)}%) — рынок закладывает снижение ставки.` : 'Снижается — ожидания смягчения.'
+    bullish: `2Y yield ${latest2y.value.toFixed(2)}%, ${change30d >= 0 ? '+' : ''}${change30d.toFixed(2)}pp over 30d. ${
+      belowFF ? `Below Fed Funds (${latestFF.toFixed(2)}%) — market pricing a rate cut.` : 'Falling — easing expectations.'
     }`,
-    bearish: `2Y доходность ${latest2y.value.toFixed(2)}%, ${change30d >= 0 ? '+' : ''}${change30d.toFixed(2)}pp за 30д. Выше Fed Funds и растёт — ожидания ужесточения.`,
-    neutral: `2Y доходность ${latest2y.value.toFixed(2)}%. Без чёткого сдвига ожиданий.`
+    bearish: `2Y yield ${latest2y.value.toFixed(2)}%, ${change30d >= 0 ? '+' : ''}${change30d.toFixed(2)}pp over 30d. Above Fed Funds and rising — tightening expectations.`,
+    neutral: `2Y yield ${latest2y.value.toFixed(2)}%. No clear shift in expectations.`
   };
 
   return {

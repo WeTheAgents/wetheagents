@@ -136,9 +136,9 @@ async function fetchEtfFlows() {
   const displayValue = `${sum7 >= 0 ? '+' : ''}$${sum7.toFixed(0)}M (7d)`;
 
   const contextMap = {
-    bullish: `Приток $${sum7.toFixed(0)}M за 7д, $${sum21.toFixed(0)}M за 21д. Институционалы набирают позицию через спот-ETF.`,
-    bearish: `Оттоки ${sum7.toFixed(0)}M за 7д, ${sum21.toFixed(0)}M за 21д. Давление на продажу от ETF-инвесторов.`,
-    neutral: `7д: ${sum7 >= 0 ? '+' : ''}$${sum7.toFixed(0)}M, 21д: ${sum21 >= 0 ? '+' : ''}$${sum21.toFixed(0)}M. Смешанные потоки.`
+    bullish: `Inflows $${sum7.toFixed(0)}M over 7d, $${sum21.toFixed(0)}M over 21d. Institutions accumulating via spot ETFs.`,
+    bearish: `Outflows ${sum7.toFixed(0)}M over 7d, ${sum21.toFixed(0)}M over 21d. Selling pressure from ETF investors.`,
+    neutral: `7d: ${sum7 >= 0 ? '+' : ''}$${sum7.toFixed(0)}M, 21d: ${sum21 >= 0 ? '+' : ''}$${sum21.toFixed(0)}M. Mixed flows.`
   };
 
   return {

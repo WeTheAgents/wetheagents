@@ -80,9 +80,9 @@ async function fetchPolymarketFed() {
     `P(cut)=${(pCut * 100).toFixed(0)}% · hold=${(pHold * 100).toFixed(0)}% · hike=${(pHike * 100).toFixed(0)}%`;
 
   const contextMap = {
-    bullish: `Заседание ${monthName} (${meetingDate}): рынок закладывает снижение с вероятностью ${(pCut * 100).toFixed(0)}%. Бычий для BTC.`,
-    bearish: `Заседание ${monthName} (${meetingDate}): вероятность повышения ${(pHike * 100).toFixed(0)}% — ястребиный фон.`,
-    neutral: `Заседание ${monthName} (${meetingDate}): рынок закладывает ${(pHold * 100).toFixed(0)}% hold, снижение ${(pCut * 100).toFixed(0)}%. ФРС, скорее всего, держит.`
+    bullish: `${monthName} meeting (${meetingDate}): market prices a cut at ${(pCut * 100).toFixed(0)}%. Bullish for BTC.`,
+    bearish: `${monthName} meeting (${meetingDate}): odds of a hike ${(pHike * 100).toFixed(0)}% — hawkish backdrop.`,
+    neutral: `${monthName} meeting (${meetingDate}): market prices ${(pHold * 100).toFixed(0)}% hold, cut ${(pCut * 100).toFixed(0)}%. Fed most likely holds.`
   };
 
   return {

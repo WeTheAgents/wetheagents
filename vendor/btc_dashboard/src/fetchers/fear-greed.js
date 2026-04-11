@@ -29,9 +29,9 @@ async function fetchFearGreed() {
     }));
 
   const ctxMap = {
-    bullish: `${value} — ${classification}. Зона extreme fear исторически совпадает с зонами накопления.`,
-    bearish: `${value} — ${classification}. Зона эйфории, осторожно.`,
-    neutral: `${value} — ${classification}. Нейтральный диапазон, ждём сдвига.`
+    bullish: `${value} — ${classification}. Extreme fear historically overlaps with accumulation zones.`,
+    bearish: `${value} — ${classification}. Euphoria zone — caution.`,
+    neutral: `${value} — ${classification}. Neutral range, waiting for a shift.`
   };
 
   return {

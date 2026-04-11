@@ -34,9 +34,9 @@ async function fetchGoldRotation() {
   const displayValue = `$${Math.round(latest).toLocaleString('en-US')} / oz`;
 
   const contextMap = {
-    bullish: `Золото $${Math.round(latest)}, ${formatPct(change30d)} (30д) после ${formatPct(change90d)} (90д). Ралли выдыхается → исторический лаг ротации в BTC: 4–7 мес.`,
-    bearish: `Золото $${Math.round(latest)}, ${formatPct(change30d)} (30д), ${formatPct(change90d)} (90д). Safe-haven режим — BTC обычно отстаёт.`,
-    neutral: `Золото $${Math.round(latest)}, ${formatPct(change30d)} (30д), ${formatPct(change90d)} (90д). Ротация не включилась.`
+    bullish: `Gold $${Math.round(latest)}, ${formatPct(change30d)} (30d) after ${formatPct(change90d)} (90d). Rally losing steam → historical rotation lag into BTC: 4–7 months.`,
+    bearish: `Gold $${Math.round(latest)}, ${formatPct(change30d)} (30d), ${formatPct(change90d)} (90d). Safe-haven mode — BTC typically lags.`,
+    neutral: `Gold $${Math.round(latest)}, ${formatPct(change30d)} (30d), ${formatPct(change90d)} (90d). Rotation hasn't kicked in.`
   };
 
   return {

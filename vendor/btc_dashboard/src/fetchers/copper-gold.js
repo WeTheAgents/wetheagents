@@ -35,9 +35,9 @@ async function fetchCopperGold() {
   const displayValue = `${latest.toFixed(4)}`;
 
   const contextMap = {
-    bullish: `Copper/Gold ${latest.toFixed(4)}, ${formatPct(change)} за 30д. Медь обгоняет золото → risk-on, промышленный спрос растёт.`,
-    bearish: `Copper/Gold ${latest.toFixed(4)}, ${formatPct(change)} за 30д. Золото обгоняет медь → risk-off, замедление.`,
-    neutral: `Copper/Gold ${latest.toFixed(4)}, ${formatPct(change)} за 30д. Без чёткого сдвига циклического аппетита.`
+    bullish: `Copper/Gold ${latest.toFixed(4)}, ${formatPct(change)} over 30d. Copper outpaces gold → risk-on, industrial demand rising.`,
+    bearish: `Copper/Gold ${latest.toFixed(4)}, ${formatPct(change)} over 30d. Gold outpaces copper → risk-off, slowdown.`,
+    neutral: `Copper/Gold ${latest.toFixed(4)}, ${formatPct(change)} over 30d. No clear shift in cyclical appetite.`
   };
 
   return {
