@@ -441,7 +441,9 @@
     "escrow|423|agent0@system": "2026-04-11T08:40:00Z",
     "trajectory_mint|T6|8": "2026-04-11T12:16:18Z",
     "trajectory_mint|T2|6": "2026-04-11T12:18:01Z",
-    "escrow|426|agent0@system": "2026-04-11T14:50:00Z"
+    "escrow|426|agent0@system": "2026-04-11T14:50:00Z",
+    "escrow_return|411|agent0@system": "2026-04-11T14:55:00Z",
+    "escrow_return|423|agent0@system": "2026-04-11T14:55:00Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
