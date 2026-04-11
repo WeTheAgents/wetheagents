@@ -7,6 +7,8 @@ import os
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 
+from src.replan_utils import detect_subtree_anchor_prefix
+
 
 @dataclass
 class StepRecord:
@@ -66,6 +68,64 @@ class BenchmarkTrace:
         self.total_score = sum(t.score for t in self.traces) / len(self.traces)
 
 
+def extract_final_answer(task: TaskTrace) -> dict:
+    """Extract the final report_completion payload from a task trace."""
+    snapshot = dict(task.final_completion_snapshot or {})
+    if snapshot:
+        return {
+            "code": snapshot.get("code", snapshot.get("outcome", "")),
+            "answer": snapshot.get("answer", snapshot.get("message", "")),
+            "refs": list(snapshot.get("refs", snapshot.get("grounding_refs", [])) or []),
+            "completed_steps": list(snapshot.get("completed_steps_laconic", []) or []),
+            "raw": snapshot,
+        }
+
+    for step in reversed(task.steps):
+        if step.tool_name != "report_completion":
+            continue
+        payload = dict(step.tool_input)
+        return {
+            "code": payload.get("code", payload.get("outcome", "")),
+            "answer": payload.get("answer", payload.get("message", "")),
+            "refs": list(payload.get("refs", payload.get("grounding_refs", [])) or []),
+            "completed_steps": list(payload.get("completed_steps_laconic", []) or []),
+            "raw": payload,
+        }
+
+    return {
+        "code": "",
+        "answer": "",
+        "refs": [],
+        "completed_steps": [],
+        "raw": {},
+    }
+
+
+def build_answers_digest(trace: BenchmarkTrace) -> list[dict]:
+    """Build a compact per-task summary of submitted answers."""
+    digest: list[dict] = []
+    for task in trace.traces:
+        final = extract_final_answer(task)
+        digest.append(
+            {
+                "task_id": task.task_id,
+                "instruction": task.instruction,
+                "score": task.score,
+                "score_detail": list(task.score_detail),
+                "total_steps": task.total_steps,
+                "error": task.error,
+                "answer_code": final["code"],
+                "answer": final["answer"],
+                "refs": final["refs"],
+                "completed_steps": final["completed_steps"],
+                "planner_rounds": task.planner_rounds,
+                "taxonomy_rounds": task.taxonomy_rounds,
+                "failure_bucket": task.failure_bucket,
+            }
+        )
+    return digest
+
+
 # --- Serialization helpers ---
 
 OUTPUT_TRUNCATE = 500  # max chars for tool output in traces
@@ -121,6 +181,7 @@ def build_failure_digest(trace: BenchmarkTrace) -> list[dict]:
         final_status = "completed_scored_failed" if any(s.tool_name == "report_completion" for s in task.steps) else ""
         if task.error and not final_status:
             final_status = "error"
+        anchor_prefix = detect_subtree_anchor_prefix(task.steps)
         digest.append(
             {
                 "task_id": task.task_id,
@@ -135,6 +196,9 @@ def build_failure_digest(trace: BenchmarkTrace) -> list[dict]:
                 "taxonomy_override_count": len(task.taxonomy_overrides),
                 "replan_kinds": [event.get("kind", "") for event in task.replan_events],
                 "repeated_read_set": repeated[:8],
+                "search_anchor_failure": bool(anchor_prefix),
+                "failure_pattern": "subtree_anchor" if anchor_prefix else "",
+                "anchor_prefix": anchor_prefix,
                 "final_completion_attempt_status": final_status,
                 "failure_bucket": task.failure_bucket,
                 "final_completion_snapshot": task.final_completion_snapshot,

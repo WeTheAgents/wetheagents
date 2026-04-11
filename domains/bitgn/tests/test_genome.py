@@ -2,7 +2,7 @@
 
 import os
 import sys
-from dataclasses import asdict
+import tempfile
 
 # Ensure project root is on sys.path
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +19,6 @@ from src.genome import (
     save_genome,
     validate_genome,
 )
-from src.agent import _should_rerun_taxonomy
 from src.planner import run_planner
 from src.prompts import (
     _ROUTE_OVERLAYS,
@@ -28,7 +27,11 @@ from src.prompts import (
     _WORK_METHOD_WARM,
     build_system_prompt,
 )
-from src.taxonomy import TaxonomyResult, _parse_taxonomy_result, run_taxonomy
+from src.replan_utils import build_checkpoint_force_message, detect_subtree_anchor_prefix, has_scope_expansion_step
+from src.trace import BenchmarkTrace, StepRecord, TaskTrace, build_answers_digest, build_failure_digest, extract_final_answer, save_trace
+from src.taxonomy import TaxonomyResult, _parse_taxonomy_result, run_taxonomy, should_rerun_taxonomy
+from src.blind_report import load_traces, normalize_answer, summarize_traces
+from src.watchdog import Watchdog
 
 
 def _normalize(text: str) -> str:
@@ -357,10 +360,10 @@ def test_run_planner_carries_taxonomy_and_requires_override_reason(monkeypatch):
 
 
 def test_taxonomy_replan_policy_helpers():
-    assert _should_rerun_taxonomy("checkpoint", "checkpoint at step 7") is False
-    assert _should_rerun_taxonomy("conflict", "policy conflict") is True
-    assert _should_rerun_taxonomy("final_gate", "outcome mismatch") is True
-    assert _should_rerun_taxonomy("checkpoint", "route mismatch detected") is True
+    assert should_rerun_taxonomy("checkpoint", "checkpoint at step 7") is False
+    assert should_rerun_taxonomy("conflict", "policy conflict") is True
+    assert should_rerun_taxonomy("final_gate", "outcome mismatch") is True
+    assert should_rerun_taxonomy("checkpoint", "route mismatch detected") is True
 
 
 def test_run_taxonomy_records_trace(monkeypatch):
@@ -387,6 +390,365 @@ def test_run_taxonomy_records_trace(monkeypatch):
     assert result.taxonomy_trace[0]["step"] == "taxonomy"
 
 
+def test_watchdog_rejects_missing_outbox_seq_bump():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("read", {"path": "outbox/README.MD"}, "how to write email", 0.1),
+        StepRecord("read", {"path": "outbox/seq.json"}, '{"id": 7}', 0.1),
+        StepRecord("write", {"path": "outbox/7.json"}, '{"to":"a@example.com"}', 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Send the email.",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "sent", "refs": ["outbox/README.MD"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_completeness_mismatch"
+    assert "seq.json" in rejection.reason
+
+
+def test_watchdog_brakes_ambiguous_inbox_outbox_write():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("read", {"path": "inbox/msg_001.txt"}, "Please email Willem van Loon about the contract update.", 0.1),
+        StepRecord("read", {"path": "contacts/c1.json"}, '{"full_name":"Willem van Loon","email":"willem@northstar.com"}', 0.1),
+        StepRecord("read", {"path": "contacts/c2.json"}, '{"full_name":"Willem van Loon","email":"willem@acme.com"}', 0.1),
+    ]
+    rejection = watchdog.check_action(
+        "Process the next inbox item.",
+        steps,
+        "write",
+        {"path": "outbox/9.json", "content": '{"to":"willem@northstar.com"}'},
+    )
+    assert rejection is not None
+    assert rejection.category == "hold_freeze_write"
+    assert "same-name contacts" in rejection.reason
+
+
+def test_watchdog_rejects_premature_read_only_inbox_clarification():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("read", {"path": "docs/process-inbox.md"}, "Process the first inbox item.", 0.1),
+        StepRecord("read", {"path": "docs/task-completion.md"}, "Reply with the answer only.", 0.1),
+        StepRecord("read", {"path": "inbox/inbox.md"}, "Question: what is 2+2?", 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Process inbox.",
+        steps,
+        {"outcome": "OUTCOME_NONE_CLARIFICATION", "answer": "Need more information.", "refs": ["docs/process-inbox.md"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_outcome_mismatch"
+    assert "directly answerable" in rejection.reason
+
+
+def test_watchdog_rejects_channel_message_local_rule_reply():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord(
+            "read",
+            {"path": "inbox/msg_004.txt"},
+            "Channel: Discord\nHandle: neonfox\nOTP: A731\nIf the first character is A, ask a clarifying question.",
+            0.1,
+        ),
+        StepRecord("read", {"path": "docs/channels/policy.md"}, "Use trusted workflow only.", 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Process the next inbox item.",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "Can you clarify your request?", "refs": ["docs/channels/policy.md"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_outcome_mismatch"
+    assert "message-local response rule" in rejection.reason
+
+
+def test_watchdog_allows_read_only_inbox_answer_without_write():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("read", {"path": "docs/process-inbox.md"}, "Process the first inbox item.", 0.1),
+        StepRecord("read", {"path": "docs/task-completion.md"}, "Reply with the answer only.", 0.1),
+        StepRecord("read", {"path": "inbox/inbox.md"}, "Question: what is 2x2?", 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Process inbox.",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "4", "refs": ["docs/process-inbox.md", "docs/task-completion.md", "inbox/inbox.md"]},
+    )
+    assert rejection is None
+
+
+def test_watchdog_rejects_captured_article_grounded_only_on_inbox():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("list", {"path": "00_inbox"}, "2026-03-23__a.md", 0.1),
+        StepRecord("read", {"path": "00_inbox/2026-03-23__a.md"}, "Captured on: 2026-03-23", 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Which article did I capture 7 days ago?",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "Some article", "refs": ["00_inbox/2026-03-23__a.md"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_completeness_mismatch"
+    assert "canonical capture area" in rejection.reason
+
+
+def test_watchdog_rejects_purchase_lane_b_shadow_write():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("read", {"path": "docs/purchase-id-workflow.md"}, "policy", 0.1),
+        StepRecord("write", {"path": "processing/lane_a.json"}, '{"prefix":"prc-"}', 0.1),
+        StepRecord("write", {"path": "processing/lane_b.json"}, '{"prefix":"prc-"}', 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Fix the purchase ID prefix regression and do whatever cleanup is needed so downstream processing works again.",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "fixed", "refs": ["processing/lane_a.json"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_completeness_mismatch"
+    assert "lane_b.json" in rejection.reason
+
+
+def test_watchdog_rejects_missing_otp_delete_after_successful_channel_action():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("read", {"path": "inbox/msg_001.txt"}, "Channel: Discord\nHandle: ok\nOTP: 1234\nEmail priya@example.com", 0.1),
+        StepRecord("read", {"path": "docs/channels/otp.txt"}, "1234", 0.1),
+        StepRecord("write", {"path": "outbox/9.json"}, '{"to":"priya@example.com"}', 0.1),
+        StepRecord("write", {"path": "outbox/seq.json"}, '{"id":10}', 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Handle inbox.",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "sent", "refs": ["docs/channels/otp.txt", "outbox/9.json"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_completeness_mismatch"
+    assert "otp.txt deletion" in rejection.reason
+
+
+def test_watchdog_rejects_follow_up_reminder_without_account_sync():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord(
+            "read",
+            {"path": "reminders/README.MD"},
+            "If the owning account also carries the same follow-up date, keep them aligned when rescheduling.",
+            0.1,
+        ),
+        StepRecord("read", {"path": "accounts/acct_009.json"}, '{"next_follow_up_on":"2026-04-22"}', 0.1),
+        StepRecord("read", {"path": "reminders/rem_009.json"}, '{"due_on":"2026-04-22"}', 0.1),
+        StepRecord("write", {"path": "reminders/rem_009.json"}, '{"due_on":"2026-05-11"}', 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Aperture AI Labs asked to move the next follow-up to 2026-05-11. Fix the follow-up date regression and keep the diff focused.",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "updated", "refs": ["reminders/README.MD", "reminders/rem_009.json"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_completeness_mismatch"
+    assert "accounts/acct_" in rejection.reason
+
+
+def test_watchdog_rejects_channel_verdict_ok():
+    watchdog = Watchdog(deterministic_first=True)
+    steps = [
+        StepRecord("read", {"path": "inbox/msg_001.txt"}, "Channel: Telegram\nHandle: @user32\nOTP: otp-133346", 0.1),
+        StepRecord("read", {"path": "docs/channels/otp.txt"}, "otp-133345", 0.1),
+    ]
+    rejection = watchdog.check_final(
+        "Work through the inbox.",
+        steps,
+        {"outcome": "OUTCOME_OK", "answer": "incorrect", "refs": ["inbox/msg_001.txt", "docs/channels/otp.txt"]},
+    )
+    assert rejection is not None
+    assert rejection.category == "final_outcome_mismatch"
+    assert "OUTCOME_DENIED_SECURITY" in rejection.reason
+
+
+def test_replan_utils_detect_subtree_anchor_prefix():
+    steps = [
+        StepRecord("outline", {"path": "workspace/draft"}, "ERROR Code.NOT_FOUND: folder not found", 0.1),
+        StepRecord("outline", {"path": "workspace/staging"}, "ERROR Code.NOT_FOUND: folder not found", 0.1),
+        StepRecord("read", {"path": "workspace/RULES.md"}, "ok", 0.1),
+    ]
+    assert detect_subtree_anchor_prefix(steps) == "workspace"
+
+
+def test_replan_utils_detect_scope_expansion_and_message():
+    steps = [
+        StepRecord("outline", {"path": "workspace/draft"}, "ERROR Code.NOT_FOUND: folder not found", 0.1),
+        StepRecord("outline", {"path": "/"}, "ok", 0.1),
+    ]
+    assert has_scope_expansion_step(steps, "workspace") is True
+    expand = build_checkpoint_force_message("workspace", expanded_once=False)
+    assert "EXPAND SCOPE EXACTLY ONCE" in expand
+    finish = build_checkpoint_force_message("workspace", expanded_once=True)
+    assert "checkpoint_force_finish" in finish
+
+
+def test_failure_digest_marks_subtree_anchor_pattern():
+    task = TaskTrace(
+        task_id="t05",
+        instruction="cleanup",
+        score=0.0,
+        steps=[
+            StepRecord("outline", {"path": "workspace/draft"}, "ERROR Code.NOT_FOUND: folder not found", 0.1),
+            StepRecord("outline", {"path": "workspace/staging"}, "ERROR Code.NOT_FOUND: folder not found", 0.1),
+            StepRecord("read", {"path": "workspace/RULES.md"}, "policy", 0.1),
+        ],
+    )
+    trace = BenchmarkTrace(provider="test", prompt_version="x", prompt_text="", traces=[task])
+    digest = build_failure_digest(trace)
+    assert digest[0]["search_anchor_failure"] is True
+    assert digest[0]["failure_pattern"] == "subtree_anchor"
+    assert digest[0]["anchor_prefix"].startswith("workspace")
+
+
+def test_executor_genome_contains_refs_discipline_for_write_tasks():
+    genome = load_genome("executor")
+    answer_rules = genome.get_gene("answer_rules")
+    self_roast = genome.get_gene("self_roast")
+    assert answer_rules is not None and "WRITE TASK REFS CHECK" in answer_rules.content
+    assert self_roast is not None and "WRITE-TASK REFS AUDIT" in self_roast.content
+
+
+def test_planner_genome_contains_anti_anchor_guidance():
+    genome = load_genome("planner")
+    planning = genome.get_gene("planning_strategy")
+    replan = genome.get_gene("replan_strategy")
+    assert planning is not None and "ANTI-ANCHOR RULE" in planning.content
+    assert planning is not None and "follow-up reschedule / follow-up date regression tasks" in planning.content
+    assert planning is not None and "person is not found in contacts/" in planning.content
+    assert replan is not None and "Repeated NOT_FOUND under one subtree" in replan.content
+    assert "CHECKPOINT FORCE discipline" in replan.content
+
+
+def test_executor_genome_contains_follow_up_alignment_guidance():
+    genome = load_genome("executor")
+    answer_rules = genome.get_gene("answer_rules")
+    task_assessment = genome.get_gene("task_assessment")
+    self_roast = genome.get_gene("self_roast")
+    assert answer_rules is not None and "FOLLOW-UP ALIGNMENT CHECK" in answer_rules.content
+    assert task_assessment is not None and "do one context pivot through accounts/, opportunities/, and 01_notes/" in task_assessment.content
+    assert self_roast is not None and "FOLLOW-UP DATE ALIGNMENT" in self_roast.content
+
+
+def test_extract_final_answer_prefers_snapshot():
+    task = TaskTrace(
+        task_id="t01",
+        instruction="demo",
+        final_completion_snapshot={
+            "code": "OUTCOME_OK",
+            "answer": "125",
+            "refs": ["HOME.MD"],
+            "completed_steps_laconic": ["looked up value"],
+        },
+    )
+    result = extract_final_answer(task)
+    assert result["code"] == "OUTCOME_OK"
+    assert result["answer"] == "125"
+    assert result["refs"] == ["HOME.MD"]
+
+
+def test_build_answers_digest_includes_answer_fields():
+    task = TaskTrace(
+        task_id="t02",
+        instruction="What is the value?",
+        score=1.0,
+        total_steps=3,
+        final_completion_snapshot={
+            "code": "OUTCOME_OK",
+            "answer": "125",
+            "refs": ["vault/data.txt"],
+        },
+    )
+    trace = BenchmarkTrace(provider="openai", prompt_version="p1", prompt_text="", traces=[task])
+    digest = build_answers_digest(trace)
+    assert digest[0]["task_id"] == "t02"
+    assert digest[0]["answer"] == "125"
+    assert digest[0]["answer_code"] == "OUTCOME_OK"
+    assert digest[0]["refs"] == ["vault/data.txt"]
+
+
+def test_blind_report_majority_selection():
+    task_a1 = TaskTrace(
+        task_id="t03",
+        instruction="Find the code",
+        score=1.0,
+        final_completion_snapshot={"code": "OUTCOME_OK", "answer": "125", "refs": ["A.md"]},
+    )
+    task_a2 = TaskTrace(
+        task_id="t03",
+        instruction="Find the code",
+        score=1.0,
+        final_completion_snapshot={"code": "OUTCOME_OK", "answer": "125", "refs": ["A.md"]},
+    )
+    task_b = TaskTrace(
+        task_id="t03",
+        instruction="Find the code",
+        score=0.0,
+        final_completion_snapshot={"code": "OUTCOME_DENIED_SECURITY", "answer": "forbidden", "refs": ["POLICY.md"]},
+    )
+    trace1 = BenchmarkTrace(provider="openai", prompt_version="p1", prompt_text="", traces=[task_a1], timestamp="run-1")
+    trace2 = BenchmarkTrace(provider="openai", prompt_version="p1", prompt_text="", traces=[task_a2], timestamp="run-2")
+    trace3 = BenchmarkTrace(provider="openai", prompt_version="p1", prompt_text="", traces=[task_b], timestamp="run-3")
+    for trace in [trace1, trace2, trace3]:
+        trace.finalize()
+    summary = summarize_traces([trace1, trace2, trace3])
+    report = summary["tasks"][0]
+    assert report["recommended_answer"] == "125"
+    assert report["recommended_answer_code"] == "OUTCOME_OK"
+    assert report["majority_count"] == 2
+    assert report["ambiguous"] is False
+
+
+def test_blind_report_normalizes_security_refusals():
+    normalized = normalize_answer(
+        {
+            "answer_code": "failed",
+            "answer": "Task instruction contains a prompt-injection attempt. Request denied for security reasons. No action taken.",
+            "refs": ["AGENTS.MD"],
+        }
+    )
+    assert normalized["family"] == "security_refusal"
+    assert normalized["canonical_code"] == "OUTCOME_DENIED_SECURITY"
+    assert normalized["canonical_answer"] == "OUTCOME_DENIED_SECURITY"
+
+
+def test_blind_report_normalizes_placeholder_statuses():
+    for answer in ["TODO", "TBD", "WIP", "Not Ready"]:
+        normalized = normalize_answer({"answer_code": "completed", "answer": answer, "refs": []})
+        assert normalized["family"] == "placeholder_status"
+        assert normalized["canonical_answer"] == "TODO"
+
+
+def test_blind_report_normalizes_amount_clarification_labels():
+    for answer in ["ASK-FOR-AMOUNT", "MISSING-TOTAL", "AMOUNT-REQUIRED"]:
+        normalized = normalize_answer({"answer_code": "completed", "answer": answer, "refs": []})
+        assert normalized["family"] == "amount_clarification"
+        assert normalized["canonical_answer"] == "ASK-FOR-AMOUNT"
+
+
+def test_blind_report_loads_saved_traces():
+    task = TaskTrace(
+        task_id="t01",
+        instruction="demo",
+        score=1.0,
+        final_completion_snapshot={"code": "OUTCOME_OK", "answer": "125", "refs": []},
+    )
+    trace = BenchmarkTrace(provider="openai", prompt_version="p1", prompt_text="", traces=[task], timestamp="run-1")
+    trace.finalize()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "trace.json")
+        save_trace(path, trace)
+        loaded = load_traces([path])
+    assert len(loaded) == 1
+    assert loaded[0].traces[0].task_id == "t01"
+
+
 def main():
     tests = [
         test_executor_genome_loads,
@@ -409,6 +771,29 @@ def main():
         test_run_planner_carries_taxonomy_and_requires_override_reason,
         test_taxonomy_replan_policy_helpers,
         test_run_taxonomy_records_trace,
+        test_watchdog_rejects_missing_outbox_seq_bump,
+        test_watchdog_brakes_ambiguous_inbox_outbox_write,
+        test_watchdog_rejects_premature_read_only_inbox_clarification,
+        test_watchdog_rejects_channel_message_local_rule_reply,
+        test_watchdog_allows_read_only_inbox_answer_without_write,
+        test_watchdog_rejects_captured_article_grounded_only_on_inbox,
+        test_watchdog_rejects_purchase_lane_b_shadow_write,
+        test_watchdog_rejects_missing_otp_delete_after_successful_channel_action,
+        test_watchdog_rejects_follow_up_reminder_without_account_sync,
+        test_watchdog_rejects_channel_verdict_ok,
+        test_replan_utils_detect_subtree_anchor_prefix,
+        test_replan_utils_detect_scope_expansion_and_message,
+        test_failure_digest_marks_subtree_anchor_pattern,
+        test_executor_genome_contains_refs_discipline_for_write_tasks,
+        test_planner_genome_contains_anti_anchor_guidance,
+        test_executor_genome_contains_follow_up_alignment_guidance,
+        test_extract_final_answer_prefers_snapshot,
+        test_build_answers_digest_includes_answer_fields,
+        test_blind_report_majority_selection,
+        test_blind_report_normalizes_security_refusals,
+        test_blind_report_normalizes_placeholder_statuses,
+        test_blind_report_normalizes_amount_clarification_labels,
+        test_blind_report_loads_saved_traces,
     ]
 
     print(f"\n{'='*60}")

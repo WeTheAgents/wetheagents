@@ -16,6 +16,7 @@ from src.enrichment import AgentContext, enriched_dispatcher
 from src.models import ReportCompletion
 from src.prompts import build_system_prompt
 from src.providers.anthropic_provider import AnthropicProvider
+from src.replan_utils import build_checkpoint_force_message, detect_subtree_anchor_prefix, has_scope_expansion_step
 from src.tool_defs import mini_tool_models
 from src.tools import Dispatcher
 from src.trace import StepRecord, TaskTrace, truncate_output
@@ -241,10 +242,9 @@ def _taxonomy_replan_context(reason: str, steps: list[StepRecord]) -> str:
 
 
 def _should_rerun_taxonomy(kind: str, reason: str) -> bool:
-    if kind in {"conflict", "action_brake", "final_gate"}:
-        return True
-    lowered = reason.lower()
-    return "route mismatch" in lowered or "route_mismatch" in lowered
+    from src.taxonomy import should_rerun_taxonomy
+
+    return should_rerun_taxonomy(kind, reason)
 
 
 def _record_taxonomy_override(trace: TaskTrace, plan_result, *, planner_round: int, phase: str) -> None:
@@ -425,24 +425,23 @@ def _run_openai_genome_planner_loop(
         nonlocal plan_result, system_prompt, event_replans_used, checkpoint_replans_used, taxonomy_result
         if kind == "checkpoint":
             if checkpoint_replans_used >= config.planner_checkpoint_limit:
+                anchor_prefix = detect_subtree_anchor_prefix(trace.steps)
+                expanded_once = has_scope_expansion_step(trace.steps, anchor_prefix)
+                replan_kind = "checkpoint_force_expand" if anchor_prefix and not expanded_once else "checkpoint_force_finish"
                 messages.append(
                     {
                         "role": "user",
-                        "content": (
-                            "[PLANNER REPLAN]: STOP DISCOVERY. Use the current evidence and either act now "
-                            "with the minimal remaining write set or report the correct final outcome now.\n"
-                            "[REPLAN KIND]: checkpoint_force_finish\n"
-                            "Previous exploratory plan is obsolete. Do not reopen broad discovery."
-                        ),
+                        "content": build_checkpoint_force_message(anchor_prefix, expanded_once),
                     }
                 )
                 trace.replan_events.append(
                     {
-                        "kind": "checkpoint_force_finish",
+                        "kind": replan_kind,
                         "reason": reason,
                         "route": plan_result.route,
                         "model_tier": plan_result.model_tier,
                         "executor_mode": plan_result.executor_mode,
+                        "anchor_prefix": anchor_prefix,
                     }
                 )
                 return True
