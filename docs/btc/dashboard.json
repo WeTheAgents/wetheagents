@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-11T14:39:48.468Z",
+  "updated_at": "2026-04-11T14:42:17.422Z",
   "score": {
     "bullish": 5,
     "available": 8,
@@ -8,10 +8,10 @@
     "color": "yellow"
   },
   "btc_price": {
-    "usd": 72693,
-    "eur": 61990,
-    "change_24h": -0.5430472153604995,
-    "change_7d": 8.004156179228557
+    "usd": 72642,
+    "eur": 61947,
+    "change_24h": -0.32595822861236484,
+    "change_7d": 7.928135846603114
   },
   "tiers": {
     "t1": [
@@ -27,7 +27,7 @@
         "history": [],
         "source": "Farside Investors",
         "source_updated": null,
-        "fetched_at": "2026-04-11T14:39:33.475Z",
+        "fetched_at": "2026-04-11T14:42:02.424Z",
         "error": "curl: proxy not configured for \"US\""
       },
       {
@@ -163,7 +163,7 @@
         ],
         "source": "alternative.me",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:39:33.655Z",
+        "fetched_at": "2026-04-11T14:42:02.524Z",
         "error": null
       },
       {
@@ -299,7 +299,7 @@
         ],
         "source": "DefiLlama",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:39:33.611Z",
+        "fetched_at": "2026-04-11T14:42:02.732Z",
         "error": null
       },
       {
@@ -321,7 +321,7 @@
         "history": [],
         "source": "Polymarket (Gamma)",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:39:33.799Z",
+        "fetched_at": "2026-04-11T14:42:02.716Z",
         "error": null
       },
       {
@@ -336,7 +336,7 @@
         "history": [],
         "source": "Kalshi (KXFED via US proxy)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T14:39:48.452Z",
+        "fetched_at": "2026-04-11T14:42:17.411Z",
         "error": "This operation was aborted"
       },
       {
@@ -346,7 +346,7 @@
         "state": "ok",
         "signal": "bullish",
         "value": {
-          "current": 72702,
+          "current": 72653,
           "closestUp": {
             "target": 75000,
             "p": 0.715
@@ -363,7 +363,7 @@
         "history": [],
         "source": "Polymarket (Gamma)",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:39:34.210Z",
+        "fetched_at": "2026-04-11T14:42:02.769Z",
         "error": null
       }
     ],
@@ -380,7 +380,7 @@
         "history": [],
         "source": "FRED (M2SL)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T14:39:48.456Z",
+        "fetched_at": "2026-04-11T14:42:17.413Z",
         "error": "This operation was aborted"
       },
       {
@@ -390,17 +390,17 @@
         "state": "ok",
         "signal": "bearish",
         "value": {
-          "price": 72691.38680610279,
-          "ma200": 88197.65056151153,
-          "diff_pct": -17.581266231796317,
+          "price": 72640.22189171899,
+          "ma200": 88197.39600969867,
+          "diff_pct": -17.639040177862995,
           "price_meta": {
-            "usd": 72693,
-            "eur": 61990,
-            "change_24h": -0.5430472153604995,
-            "change_7d": 8.004156179228557
+            "usd": 72642,
+            "eur": 61947,
+            "change_24h": -0.32595822861236484,
+            "change_7d": 7.928135846603114
           }
         },
-        "display_value": "$72,691 (-17.6% to MA200)",
+        "display_value": "$72,640 (-17.6% to MA200)",
         "context": "Цена на 17.6% ниже 200-дневной средней. Глубоко под институциональной себестоимостью.",
         "history": [
           {
@@ -521,12 +521,12 @@
           },
           {
             "ts": "2026-04-11",
-            "value": 72691.38680610279
+            "value": 72640.22189171899
           }
         ],
         "source": "CoinGecko → Binance",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:39:33.824Z",
+        "fetched_at": "2026-04-11T14:42:02.739Z",
         "error": null
       },
       {
@@ -662,7 +662,7 @@
         ],
         "source": "Yahoo ^VIX",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T14:39:33.690Z",
+        "fetched_at": "2026-04-11T14:42:02.656Z",
         "error": null
       },
       {
@@ -677,7 +677,7 @@
         "history": [],
         "source": "FRED (DGS2, DFF)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T14:39:48.462Z",
+        "fetched_at": "2026-04-11T14:42:17.416Z",
         "error": "This operation was aborted"
       },
       {
@@ -692,7 +692,7 @@
         "history": [],
         "source": "FRED (CPIAUCSL)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T14:39:48.467Z",
+        "fetched_at": "2026-04-11T14:42:17.421Z",
         "error": "This operation was aborted"
       }
     ],
@@ -830,7 +830,7 @@
         ],
         "source": "Yahoo (GC=F, GLD)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T14:39:33.728Z",
+        "fetched_at": "2026-04-11T14:42:02.692Z",
         "error": null
       },
       {
@@ -966,7 +966,7 @@
         ],
         "source": "Yahoo (HG=F / GC=F)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T14:39:33.952Z",
+        "fetched_at": "2026-04-11T14:42:02.672Z",
         "error": null
       }
     ]
