@@ -1,6 +1,6 @@
 {
-  "version": 32,
-  "total_minted": 762,
+  "version": 33,
+  "total_minted": 789,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 8,
-      "total_minted": 161
+      "next_slot": 9,
+      "total_minted": 188
     }
   },
   "mints": [
@@ -681,6 +681,25 @@
       "redundancy_proof": "Runner uses glob('check_*.py') at runtime — any new check added to scripts/ is automatically included in the next sweep without updating any list.",
       "accepted_at": "2026-04-11T04:21:21Z",
       "idem_key": "trajectory_mint|T1|7"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 8,
+      "amount": 27,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        27
+      ],
+      "issue_or_pr": "#423",
+      "frontier_closed": "run_all_checks.py blind spots: vacuous pass on empty glob, false PASS when check exits 0 with JSON failure payload, exit-code-2 handling",
+      "artifact": "tests/test_run_all_checks_redteam.py (11 adversarial test cases)",
+      "evidence": "PR #424 merged. 11/11 tests pass. Real gap found: exit-0-with-JSON-failure bypasses runner detection.",
+      "made_redundant": "Manual review of run_all_checks.py for edge cases",
+      "redundancy_proof": "Tests automate scenario verification previously requiring manual source reasoning; exit-0-false-PASS gap is a permanent regression test",
+      "accepted_at": "2026-04-11T12:16:18Z",
+      "idem_key": "trajectory_mint|T6|8"
     }
   ]
 }
