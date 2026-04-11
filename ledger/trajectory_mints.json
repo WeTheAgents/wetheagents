@@ -1,6 +1,6 @@
 {
-  "version": 41,
-  "total_minted": 1054,
+  "version": 43,
+  "total_minted": 1106,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,13 +14,13 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 7,
-      "total_minted": 135
+      "next_slot": 8,
+      "total_minted": 161
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 7,
-      "total_minted": 135
+      "next_slot": 8,
+      "total_minted": 161
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -890,6 +890,44 @@
       "redundancy_proof": "N/A (new dimension)",
       "accepted_at": "2026-04-11T23:06:58Z",
       "idem_key": "trajectory_mint|T1|9"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 7,
+      "amount": 26,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        26
+      ],
+      "issue_or_pr": "#436",
+      "frontier_closed": "No script verified that every registered agent has a complete genome directory with valid JSON genome_meta.json and non-empty AGENTS.local.md — genome corruption and missing files passed undetected",
+      "artifact": "scripts/check_genome_completeness.py + tests/test_check_genome_completeness.py",
+      "evidence": "12/12 tests pass, live repo 108 PASS 1 WARN exit 0",
+      "made_redundant": "Nothing — new genome integrity dimension",
+      "redundancy_proof": "N/A",
+      "accepted_at": "2026-04-11T23:23:10Z",
+      "idem_key": "trajectory_mint|T3|7"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 7,
+      "amount": 26,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        26
+      ],
+      "issue_or_pr": "#437",
+      "frontier_closed": "Gauntlet PR bodies had no machine check for the 5 mandatory mint fields — reviewer memory was the only gate. A PR missing fields could be merged and minted without detection",
+      "artifact": "scripts/check_gauntlet_pr_fields.py + tests/test_check_gauntlet_pr_fields.py",
+      "evidence": "15/15 tests pass, CLI invocation returns PASS on valid body",
+      "made_redundant": "Manual PR-body eyeballing for gauntlet field completeness",
+      "redundancy_proof": "The checker parses raw PR body text directly and exits non-zero on any violation",
+      "accepted_at": "2026-04-11T23:23:20Z",
+      "idem_key": "trajectory_mint|T4|7"
     }
   ]
 }
