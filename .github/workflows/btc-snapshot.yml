@@ -62,4 +62,8 @@ jobs:
         if: steps.commit.outputs.changed == 'true'
         run: npx --yes wrangler@4 deploy
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Pin the account explicitly — the "Edit Cloudflare Workers"
+          # token template doesn't include User:Memberships:Read, so
+          # wrangler can't auto-discover the account via /memberships.
+          CLOUDFLARE_ACCOUNT_ID: 87da8db35a676ce8bb2604dd2d53ff04
