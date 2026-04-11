@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-11T12:07:02.795Z",
+  "updated_at": "2026-04-11T14:39:48.468Z",
   "score": {
     "bullish": 5,
     "available": 8,
@@ -8,10 +8,10 @@
     "color": "yellow"
   },
   "btc_price": {
-    "usd": 72947,
-    "eur": 62207,
-    "change_24h": 1.1092546783965664,
-    "change_7d": 8.392082820386259
+    "usd": 72693,
+    "eur": 61990,
+    "change_24h": -0.5430472153604995,
+    "change_7d": 8.004156179228557
   },
   "tiers": {
     "t1": [
@@ -27,7 +27,7 @@
         "history": [],
         "source": "Farside Investors",
         "source_updated": null,
-        "fetched_at": "2026-04-11T12:06:47.801Z",
+        "fetched_at": "2026-04-11T14:39:33.475Z",
         "error": "curl: proxy not configured for \"US\""
       },
       {
@@ -163,7 +163,7 @@
         ],
         "source": "alternative.me",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:06:48.094Z",
+        "fetched_at": "2026-04-11T14:39:33.655Z",
         "error": null
       },
       {
@@ -299,7 +299,7 @@
         ],
         "source": "DefiLlama",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:06:48.009Z",
+        "fetched_at": "2026-04-11T14:39:33.611Z",
         "error": null
       },
       {
@@ -314,14 +314,14 @@
           "pHike": 0.0065,
           "meetingDate": "2026-04-29",
           "slug": "fed-decision-in-april",
-          "volume": 72686181.45642172
+          "volume": 72968541.26034175
         },
         "display_value": "P(cut)=1% · hold=98% · hike=1%",
         "context": "Заседание April (2026-04-29): рынок закладывает 98% hold, снижение 1%. ФРС, скорее всего, держит.",
         "history": [],
         "source": "Polymarket (Gamma)",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:06:48.077Z",
+        "fetched_at": "2026-04-11T14:39:33.799Z",
         "error": null
       },
       {
@@ -336,7 +336,7 @@
         "history": [],
         "source": "Kalshi (KXFED via US proxy)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T12:07:02.786Z",
+        "fetched_at": "2026-04-11T14:39:48.452Z",
         "error": "This operation was aborted"
       },
       {
@@ -346,24 +346,24 @@
         "state": "ok",
         "signal": "bullish",
         "value": {
-          "current": 72950,
+          "current": 72702,
           "closestUp": {
             "target": 75000,
             "p": 0.715
           },
           "closestDown": {
             "target": 65000,
-            "p": 0.315
+            "p": 0.305
           },
-          "bias": 0.39999999999999997,
+          "bias": 0.41,
           "slug": "what-price-will-bitcoin-hit-in-april-2026"
         },
-        "display_value": "+$75K: 72% · -$65K: 32%",
-        "context": "Рынок ставит 72% на касание $75K против 32% на $65K (bias +40%). Бычий сантимент.",
+        "display_value": "+$75K: 72% · -$65K: 31%",
+        "context": "Рынок ставит 72% на касание $75K против 31% на $65K (bias +41%). Бычий сантимент.",
         "history": [],
         "source": "Polymarket (Gamma)",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:06:48.232Z",
+        "fetched_at": "2026-04-11T14:39:34.210Z",
         "error": null
       }
     ],
@@ -380,7 +380,7 @@
         "history": [],
         "source": "FRED (M2SL)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T12:07:02.788Z",
+        "fetched_at": "2026-04-11T14:39:48.456Z",
         "error": "This operation was aborted"
       },
       {
@@ -390,18 +390,18 @@
         "state": "ok",
         "signal": "bearish",
         "value": {
-          "price": 72952.47792076315,
-          "ma200": 88198.94952228098,
-          "diff_pct": -17.28645486607098,
+          "price": 72691.38680610279,
+          "ma200": 88197.65056151153,
+          "diff_pct": -17.581266231796317,
           "price_meta": {
-            "usd": 72947,
-            "eur": 62207,
-            "change_24h": 1.1092546783965664,
-            "change_7d": 8.392082820386259
+            "usd": 72693,
+            "eur": 61990,
+            "change_24h": -0.5430472153604995,
+            "change_7d": 8.004156179228557
           }
         },
-        "display_value": "$72,952 (-17.3% to MA200)",
-        "context": "Цена на 17.3% ниже 200-дневной средней. Глубоко под институциональной себестоимостью.",
+        "display_value": "$72,691 (-17.6% to MA200)",
+        "context": "Цена на 17.6% ниже 200-дневной средней. Глубоко под институциональной себестоимостью.",
         "history": [
           {
             "ts": "2026-03-14",
@@ -521,12 +521,12 @@
           },
           {
             "ts": "2026-04-11",
-            "value": 72952.47792076315
+            "value": 72691.38680610279
           }
         ],
         "source": "CoinGecko → Binance",
         "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T12:06:48.051Z",
+        "fetched_at": "2026-04-11T14:39:33.824Z",
         "error": null
       },
       {
@@ -662,7 +662,7 @@
         ],
         "source": "Yahoo ^VIX",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T12:06:47.976Z",
+        "fetched_at": "2026-04-11T14:39:33.690Z",
         "error": null
       },
       {
@@ -677,7 +677,7 @@
         "history": [],
         "source": "FRED (DGS2, DFF)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T12:07:02.792Z",
+        "fetched_at": "2026-04-11T14:39:48.462Z",
         "error": "This operation was aborted"
       },
       {
@@ -692,7 +692,7 @@
         "history": [],
         "source": "FRED (CPIAUCSL)",
         "source_updated": null,
-        "fetched_at": "2026-04-11T12:07:02.794Z",
+        "fetched_at": "2026-04-11T14:39:48.467Z",
         "error": "This operation was aborted"
       }
     ],
@@ -830,7 +830,7 @@
         ],
         "source": "Yahoo (GC=F, GLD)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T12:06:48.045Z",
+        "fetched_at": "2026-04-11T14:39:33.728Z",
         "error": null
       },
       {
@@ -966,7 +966,7 @@
         ],
         "source": "Yahoo (HG=F / GC=F)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T12:06:47.990Z",
+        "fetched_at": "2026-04-11T14:39:33.952Z",
         "error": null
       }
     ]
