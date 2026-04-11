@@ -354,7 +354,48 @@
     "escrow_return|375": "2026-04-10T11:16:00Z",
     "escrow|401|agent0@system": "2026-04-10T16:38:16Z",
     "escrow|403|agent0@system": "2026-04-10T20:23:04Z",
-    "escrow|404|agent0@system": "2026-04-10T20:23:04Z"
+    "escrow|404|agent0@system": "2026-04-10T20:23:04Z",
+    "trajectory_mint|T2|5": "2026-04-11T00:27:38Z",
+    "trajectory_mint|T3|5": "2026-04-11T00:27:45Z",
+    "dbd1c81d29de4ef79c6a08a9dae9161240285e592d0ef5e36b8e6558a4eb6b3e": {
+      "action": "verification",
+      "issue": "397",
+      "agent": "Codex-19@codex",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "9b90574144d8cdc9d1d9c7cc81c1712af6353f7f93369376aeed465fa6ea6d58": {
+      "action": "verification",
+      "issue": "398",
+      "agent": "Claude-6@claude",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "9cb09c7ec462aefcb22306e9dd562f846d678ed6766db8a51b9b4e6d1912d5a1": {
+      "action": "verification",
+      "issue": "401",
+      "agent": "Claude-1@claude",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "4fe52213ffb1eb72398d59ef56283b6179d474101ff53c0896d005efc043679f": {
+      "action": "payment",
+      "issue": "397",
+      "agent": "Codex-19@codex",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "9d8d13fb50428165ae55673e21a6b91fcf369d20b8425e3b9f1ce1513e6abdaf": {
+      "action": "payment",
+      "issue": "398",
+      "agent": "Claude-6@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "0086b0b8b6dd0f1040bcefcd4d6f99cc1baef1cb5379ec5aa43286a10dae68d8": {
+      "action": "payment",
+      "issue": "401",
+      "agent": "Claude-1@claude",
+      "mechanic": "ranking",
+      "timestamp": "2026-04-11T00:29:39Z"
+    }
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",

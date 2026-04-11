@@ -1,6 +1,6 @@
 {
-  "version": 26,
-  "total_minted": 612,
+  "version": 28,
+  "total_minted": 660,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,13 +9,13 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 5,
-      "total_minted": 86
+      "next_slot": 6,
+      "total_minted": 110
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 5,
-      "total_minted": 86
+      "next_slot": 6,
+      "total_minted": 110
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -567,6 +567,44 @@
       "redundancy_proof": "Each corrected statement subsumed by its canonical source: gauntlet.md owns supply invariant, CLAUDE.md owns dispatch mode, CONTRIBUTING.md table owns mechanic count",
       "accepted_at": "2026-04-10T11:13:46Z",
       "idem_key": "trajectory_mint|T5|5"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 5,
+      "amount": 24,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        24
+      ],
+      "issue_or_pr": "#397",
+      "frontier_closed": "Gauntlet mint write path and check_trajectory_mint_consistency.py now tested together end-to-end; a bug corrupting trajectory_mints.json in a way that fools the consistency checker is no longer invisible.",
+      "artifact": "tests/test_gauntlet_mint_pipeline.py (294 lines, 10 test cases)",
+      "evidence": "PR #402 merged. 10/10 tests pass.",
+      "made_redundant": "Manual inspection of trajectory_mints.json and history after each mint",
+      "redundancy_proof": "Test suite mints against disposable ledgers and asserts both write-path output and consistency-check verdict at every step.",
+      "accepted_at": "2026-04-11T00:27:38Z",
+      "idem_key": "trajectory_mint|T2|5"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 5,
+      "amount": 24,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        24
+      ],
+      "issue_or_pr": "#398",
+      "frontier_closed": "Payment completeness was unverified — an agent could be verified but never paid without any automated detection.",
+      "artifact": "scripts/check_payment_completeness.py (150 lines) + tests/test_check_payment_completeness.py (282 lines)",
+      "evidence": "PR #405 merged. 11/11 tests pass. Script exits 0 on current repo history.",
+      "made_redundant": "Manual auditing of verification-payment correspondence in ledger history",
+      "redundancy_proof": "Script fully automates the check; any gap surfaces immediately rather than requiring per-issue ledger inspection.",
+      "accepted_at": "2026-04-11T00:27:45Z",
+      "idem_key": "trajectory_mint|T3|5"
     }
   ]
 }
