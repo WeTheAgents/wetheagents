@@ -516,13 +516,31 @@ def save_outputs(
     output_dir: Path = DEFAULT_OUTPUT_DIR,
     report_markdown: str | None = None,
 ) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    starter_game_logs.to_parquet(output_dir / "starter_game_logs.parquet", index=False)
-    starter_entering_features.to_parquet(
-        output_dir / "starter_entering_features.parquet", index=False
+    # Use io_safety helpers for atomic writes, backups, sidecar JSONs, audit log.
+    from data.fetch_2026.io_safety import (
+        atomic_write_text,
+        safe_write_parquet,
     )
-    game_id_bridge.to_parquet(output_dir / "game_id_bridge.parquet", index=False)
+
+    safe_write_parquet(
+        starter_game_logs,
+        output_dir / "starter_game_logs.parquet",
+        generator="src.retrosheet_pitchers.save_outputs",
+        date_col="date",
+    )
+    safe_write_parquet(
+        starter_entering_features,
+        output_dir / "starter_entering_features.parquet",
+        generator="src.retrosheet_pitchers.save_outputs",
+        date_col="date",
+    )
+    safe_write_parquet(
+        game_id_bridge,
+        output_dir / "game_id_bridge.parquet",
+        generator="src.retrosheet_pitchers.save_outputs",
+        date_col="date",
+        audit_action="historical_retrosheet_rebuild",
+    )
 
     if report_markdown is not None:
-        (output_dir / "build_report.md").write_text(report_markdown, encoding="utf-8")
+        atomic_write_text(report_markdown, output_dir / "build_report.md")

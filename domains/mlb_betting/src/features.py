@@ -959,31 +959,41 @@ def build_all_features(
         from src.data_loader import (
             PROCESSED_DIR,
             _map_team_code_to_retrosheet,
+            load_combined_bullpen_features,
+            load_combined_game_id_bridge,
+            load_combined_starter_entering_features,
             merge_retrosheet_pitchers,
             merge_retrosheet_starter_entering_features,
         )
 
-        bridge_path = PROCESSED_DIR / "pitchers" / "game_id_bridge.parquet"
-        entering_path = PROCESSED_DIR / "pitchers" / "starter_entering_features.parquet"
+        # Load historical (Retrosheet) + 2026 (mlb_boxscore) sources together.
+        bridge_df = load_combined_game_id_bridge()
+        entering_df = load_combined_starter_entering_features()
 
-        if bridge_path.exists() and entering_path.exists():
-            logger.info("Merging Retrosheet starter IDs...")
-            enriched = merge_retrosheet_pitchers(enriched, bridge_path=bridge_path)
+        if not bridge_df.empty and not entering_df.empty:
+            logger.info(
+                "Merging Retrosheet starter IDs (combined: %d bridge rows)...",
+                len(bridge_df),
+            )
+            enriched = merge_retrosheet_pitchers(enriched, bridge_df=bridge_df)
 
-            logger.info("Merging Retrosheet entering features (WHIP, K/BB, K9, etc.)...")
+            logger.info(
+                "Merging Retrosheet entering features (combined: %d rows)...",
+                len(entering_df),
+            )
             enriched = merge_retrosheet_starter_entering_features(
-                enriched, entering_path=entering_path
+                enriched, entering_df=entering_df
             )
         else:
             missing = []
-            if not bridge_path.exists():
-                missing.append(str(bridge_path))
-            if not entering_path.exists():
-                missing.append(str(entering_path))
+            if bridge_df.empty:
+                missing.append("game_id_bridge (historical + 2026 both empty)")
+            if entering_df.empty:
+                missing.append("starter_entering_features (historical + 2026 both empty)")
             logger.warning(
                 f"Retrosheet parquets not found: {missing}. "
-                "Run scripts/build_retrosheet_pitchers.py first. "
-                "Skipping Retrosheet entering features."
+                "Run scripts/build_retrosheet_pitchers.py and/or backfill "
+                "2026 boxscores. Skipping Retrosheet entering features."
             )
 
         # ── Pitcher hand from Retrosheet allplayers ──────────────────────
@@ -1018,10 +1028,12 @@ def build_all_features(
                 logger.warning("retrosheet_batters not available, skipping pitcher hand")
 
         # ── Bullpen features (FIP, workload) ─────────────────────────────
-        bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
-        if bp_path.exists():
-            logger.info("Merging bullpen features (FIP, workload)...")
-            bp = pd.read_parquet(bp_path)
+        bp = load_combined_bullpen_features()
+        if not bp.empty:
+            logger.info(
+                "Merging bullpen features (combined: %d rows historical+2026)...",
+                len(bp),
+            )
             bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
             enriched["date"] = pd.to_datetime(enriched["date"]).dt.normalize()
 
@@ -1048,7 +1060,7 @@ def build_all_features(
             if "bp_ip_3d_home" in enriched.columns:
                 enriched["bullpen_workload_3d_diff"] = enriched["bp_ip_3d_home"] - enriched["bp_ip_3d_away"]
         else:
-            logger.warning(f"Bullpen features not found at {bp_path}")
+            logger.warning("Bullpen features not found in either historical or 2026 paths")
 
         # ── Batting lineup vs-hand features ──────────────────────────────
         lineup_path = PROCESSED_DIR / "retrosheet" / "game_lineup_features.parquet"
@@ -1267,9 +1279,10 @@ def build_spec_features(
 
     # ── Bullpen diffs (skip if already merged by build_all_features) ─────
     if "bp_fip_short_home" not in df.columns:
-        bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
-        if bp_path.exists():
-            bp = pd.read_parquet(bp_path)
+        from src.data_loader import load_combined_bullpen_features
+
+        bp = load_combined_bullpen_features()
+        if not bp.empty:
             bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
             df["date"] = pd.to_datetime(df["date"]).dt.normalize()
 
@@ -1291,7 +1304,7 @@ def build_spec_features(
                 df = df.merge(side_bp, on=[f"_bp_{side}_team", "date"], how="left")
                 df = df.drop(columns=[f"_bp_{side}_team"])
         else:
-            logger.warning(f"Bullpen features not found at {bp_path}. Using NaN.")
+            logger.warning("Bullpen features not found in historical or 2026 paths. Using NaN.")
 
     if "bullpen_fip_diff" not in df.columns:
         if "bp_fip_short_home" in df.columns:

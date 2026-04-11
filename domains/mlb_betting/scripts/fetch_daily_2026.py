@@ -81,14 +81,14 @@ def main() -> None:
         start = date.fromisoformat(args.backfill[0])
         end = date.fromisoformat(args.backfill[1])
         total = run_backfill(start, end)
-        print(f"\nBackfill complete: {total} rows added ({start} → {end})")
+        print(f"\nBackfill complete: {total} rows added ({start} -> {end})")
         return
 
     if args.backfill_boxscore:
         start = date.fromisoformat(args.backfill_boxscore[0])
         end = date.fromisoformat(args.backfill_boxscore[1])
         total = run_boxscore_backfill(start, end)
-        print(f"\nBoxscore backfill complete: {total} pitcher lines ({start} → {end})")
+        print(f"\nBoxscore backfill complete: {total} pitcher lines ({start} -> {end})")
         return
 
     if not args.phase:

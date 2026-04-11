@@ -8,12 +8,13 @@ Endpoints:
   Schedule:  GET https://statsapi.mlb.com/api/v1/schedule?date=YYYY-MM-DD&sportId=1
   Boxscore:  GET https://statsapi.mlb.com/api/v1/game/{gamePk}/boxscore
 
-Output:
+Output (ALL writes go to pitchers_2026/ — historical paths are owned by
+the Retrosheet build scripts and read together via src.data_loader helpers):
   data/processed/pitchers_2026/pitcher_game_logs.parquet  — all pitchers, all games
   data/processed/pitchers_2026/starter_game_logs.parquet  — starters only (p_seq=1)
   data/processed/pitchers_2026/starter_entering_features.parquet
   data/processed/pitchers_2026/game_id_bridge.parquet
-  data/processed/retrosheet/bullpen_features.parquet  — drop-in for feature pipeline
+  data/processed/pitchers_2026/bullpen_features.parquet
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ import httpx
 import numpy as np
 import pandas as pd
 
+from .io_safety import append_audit, atomic_write_text, safe_write_parquet
 from .team_mapping import normalize_team
 
 logger = logging.getLogger(__name__)
@@ -37,10 +39,12 @@ RATE_LIMIT_SECONDS = 0.5
 _last_request_time = 0.0
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # data/
+# 2026 fetcher writes EXCLUSIVELY to pitchers_2026/. The historical Retrosheet
+# build (`scripts/build_retrosheet_pitchers.py` + `build_bullpen_features.py`)
+# writes to `pitchers/` and `retrosheet/`. The two paths are read together by
+# `src/data_loader.load_combined_*` helpers, so neither code path can clobber
+# the other (this is the architectural cure for Bug A — see plans/§11.2 #6).
 OUTPUT_DIR = BASE_DIR / "processed" / "pitchers_2026"
-RETROSHEET_OUTPUT_DIR = BASE_DIR / "processed" / "retrosheet"
-# Also write to the pitchers/ dir so the feature pipeline finds them
-PITCHERS_OUTPUT_DIR = BASE_DIR / "processed" / "pitchers"
 STATE_PATH = Path(__file__).parent / "state.json"
 
 
@@ -59,9 +63,7 @@ def _load_state() -> dict:
 
 
 def _save_state(state: dict) -> None:
-    STATE_PATH.write_text(
-        json.dumps(state, indent=2, default=str), encoding="utf-8"
-    )
+    atomic_write_text(json.dumps(state, indent=2, default=str), STATE_PATH)
 
 
 # ---------------------------------------------------------------------------
@@ -232,9 +234,14 @@ def _load_pitcher_logs() -> pd.DataFrame:
 
 
 def _save_pitcher_logs(df: pd.DataFrame) -> None:
-    """Save pitcher game logs parquet."""
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(OUTPUT_DIR / "pitcher_game_logs.parquet", index=False)
+    """Save pitcher game logs parquet (atomic write + backup + sidecar + audit)."""
+    safe_write_parquet(
+        df,
+        OUTPUT_DIR / "pitcher_game_logs.parquet",
+        generator="mlb_boxscore.run_boxscore_fetch",
+        date_col="date",
+        audit_action="save_pitcher_logs",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -565,39 +572,67 @@ def run_boxscore_backfill(start: date, end: date) -> int:
 
 
 def _rebuild_features(pitcher_logs: pd.DataFrame) -> None:
-    """Rebuild all derived parquets from the full pitcher log store."""
+    """Rebuild all derived parquets from the full pitcher log store.
+
+    Writes go to ``OUTPUT_DIR`` (pitchers_2026/) ONLY. The historical
+    Retrosheet build owns ``pitchers/`` and ``retrosheet/`` — they're loaded
+    together via ``src.data_loader.load_combined_*`` helpers. Architectural
+    fix for Bug A: 2026 fetcher physically cannot overwrite historical state.
+    """
     # 1. Starter game logs
     starter_logs = build_starter_logs(pitcher_logs)
     if starter_logs.empty:
         return
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    starter_logs.to_parquet(OUTPUT_DIR / "starter_game_logs.parquet", index=False)
+    safe_write_parquet(
+        starter_logs,
+        OUTPUT_DIR / "starter_game_logs.parquet",
+        generator="mlb_boxscore._rebuild_features",
+        date_col="date",
+    )
 
-    # 2. Entering features
+    # 2. Entering features (2026 only)
     entering = build_entering_features(starter_logs)
-    entering.to_parquet(OUTPUT_DIR / "starter_entering_features.parquet", index=False)
+    safe_write_parquet(
+        entering,
+        OUTPUT_DIR / "starter_entering_features.parquet",
+        generator="mlb_boxscore._rebuild_features",
+        date_col="date",
+    )
 
-    # 3. Game ID bridge
+    # 3. Game ID bridge (2026 only)
     bridge = build_game_id_bridge(starter_logs)
-    bridge.to_parquet(OUTPUT_DIR / "game_id_bridge.parquet", index=False)
+    safe_write_parquet(
+        bridge,
+        OUTPUT_DIR / "game_id_bridge.parquet",
+        generator="mlb_boxscore._rebuild_features",
+        date_col=None,
+    )
 
-    # Also write to pitchers/ dir (where features.py looks by default)
-    PITCHERS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    entering.to_parquet(PITCHERS_OUTPUT_DIR / "starter_entering_features.parquet", index=False)
-    bridge.to_parquet(PITCHERS_OUTPUT_DIR / "game_id_bridge.parquet", index=False)
-
-    # 4. Bullpen features
+    # 4. Bullpen features (2026 only)
     bp_features = build_bullpen_features(pitcher_logs)
     if not bp_features.empty:
-        RETROSHEET_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-        bp_features.to_parquet(
-            RETROSHEET_OUTPUT_DIR / "bullpen_features.parquet", index=False
+        safe_write_parquet(
+            bp_features,
+            OUTPUT_DIR / "bullpen_features.parquet",
+            generator="mlb_boxscore._rebuild_features",
+            date_col="date",
         )
 
     n_games = len(bridge)
     n_bp = len(bp_features) if not bp_features.empty else 0
     logger.info(
-        "Rebuilt features: %d games, %d starter entering rows, %d bullpen rows",
+        "Rebuilt 2026 features: %d games, %d starter entering rows, %d bullpen rows",
         n_games, len(entering), n_bp,
+    )
+    append_audit(
+        "rebuild_features",
+        rows_total=n_games,
+        files_written=[
+            "pitchers_2026/starter_game_logs.parquet",
+            "pitchers_2026/starter_entering_features.parquet",
+            "pitchers_2026/game_id_bridge.parquet",
+            "pitchers_2026/bullpen_features.parquet",
+        ],
+        extra={"starter_entering_rows": int(len(entering)), "bullpen_rows": int(n_bp)},
     )

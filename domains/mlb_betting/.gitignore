@@ -1,6 +1,7 @@
 # Data files (downloaded by data/download.py)
 data/raw/
 data/processed/
+data/backups/
 
 # Retrosheets archives (large, reproducible)
 retrosheets/*.zip

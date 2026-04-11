@@ -40,9 +40,11 @@ def load_pitcher_cache() -> dict[str, dict]:
 
 
 def save_pitcher_cache(cache: dict[str, dict]) -> None:
-    """Persist pitcher cache to disk."""
-    CACHE_PATH.write_text(
-        json.dumps(cache, indent=2, ensure_ascii=False), encoding="utf-8"
+    """Persist pitcher cache to disk (atomic write)."""
+    from .io_safety import atomic_write_text
+
+    atomic_write_text(
+        json.dumps(cache, indent=2, ensure_ascii=False), CACHE_PATH
     )
 
 

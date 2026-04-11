@@ -29,6 +29,12 @@ from .espn_api import (
     parse_pregame_odds,
     parse_probable_pitchers,
 )
+from .io_safety import (
+    append_audit,
+    atomic_write_text,
+    atomic_write_xlsx,
+    safe_write_parquet,
+)
 from .mlb_api import fetch_pitcher_hand, load_pitcher_cache, save_pitcher_cache
 from .pitcher_codes import PitcherCodeRegistry
 
@@ -63,9 +69,7 @@ def _load_state() -> dict:
 
 
 def _save_state(state: dict) -> None:
-    STATE_PATH.write_text(
-        json.dumps(state, indent=2, default=str), encoding="utf-8"
-    )
+    atomic_write_text(json.dumps(state, indent=2, default=str), STATE_PATH)
 
 
 # ---------------------------------------------------------------------------
@@ -93,15 +97,22 @@ def _load_parquet() -> pd.DataFrame:
 
 
 def _save_parquet(df: pd.DataFrame) -> None:
-    RAW_2026_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(PARQUET_PATH, index=False)
+    safe_write_parquet(
+        df,
+        PARQUET_PATH,
+        generator="orchestrator.run_postgame",
+        date_col="date",
+        audit_action="save_games_2026",
+    )
 
 
 def _export_xlsx(df: pd.DataFrame) -> Path:
-    """Export the 23-column xlsx for data_loader.py consumption."""
-    RAW_ODDS_DIR.mkdir(parents=True, exist_ok=True)
+    """Export the 23-column xlsx for data_loader.py consumption.
+
+    No backup: derived from the parquet which is already backed up.
+    """
     out = df[XLSX_COLUMNS].copy()
-    out.to_excel(XLSX_PATH, index=False, header=True)
+    atomic_write_xlsx(out, XLSX_PATH, index=False, header=True)
     size_kb = XLSX_PATH.stat().st_size / 1024
     logger.info("Exported %s (%.0f KB, %d rows)", XLSX_PATH.name, size_kb, len(out))
     return XLSX_PATH
@@ -207,6 +218,40 @@ def _result_rows_to_df(
         records.append(rec)
 
     return pd.DataFrame(records)
+
+
+# ---------------------------------------------------------------------------
+# Dedup helper — Bug E fix
+# ---------------------------------------------------------------------------
+
+
+def _dedup_games(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop duplicate game rows.
+
+    Doubleheaders share (date, team, vh) but have distinct event_ids — the
+    legacy (date, team, vh) dedup silently collapsed one DH game per pair
+    (Bug E in plans/§2). The fix dedups by (event_id, team, vh) for any row
+    that has an event_id, and falls back to the legacy key only for legacy
+    rows pre-dating the event_id column.
+    """
+    if df.empty:
+        return df
+    if "event_id" not in df.columns:
+        return df.drop_duplicates(subset=["date", "team", "vh"], keep="last")
+
+    has_event = df["event_id"].notna()
+    if has_event.all():
+        return df.drop_duplicates(subset=["event_id", "team", "vh"], keep="last")
+    if not has_event.any():
+        return df.drop_duplicates(subset=["date", "team", "vh"], keep="last")
+
+    with_event = df[has_event].drop_duplicates(
+        subset=["event_id", "team", "vh"], keep="last"
+    )
+    without_event = df[~has_event].drop_duplicates(
+        subset=["date", "team", "vh"], keep="last"
+    )
+    return pd.concat([with_event, without_event], ignore_index=True)
 
 
 # ---------------------------------------------------------------------------
@@ -320,31 +365,28 @@ def run_pregame(dt: date | None = None) -> int:
         return 0
 
     # Save raw snapshot — timestamped so multiple captures per day are preserved
-    RAW_2026_DIR.mkdir(parents=True, exist_ok=True)
     from datetime import datetime as _dt
 
     now_str = _dt.now().strftime("%H%M")
     snapshot_path = RAW_2026_DIR / f"pregame_{dt.strftime('%Y%m%d')}_{now_str}.json"
-    snapshot_path.write_text(
-        json.dumps(
-            [
-                {
-                    "event_id": r.event_id,
-                    "team": r.team_abbr,
-                    "home_away": r.home_away,
-                    "pitcher": r.pitcher_name,
-                    "moneyline": r.moneyline,
-                    "spread_line": r.spread_line,
-                    "spread_odds": r.spread_odds,
-                    "total_line": r.total_line,
-                    "total_odds": r.total_odds,
-                }
-                for r in odds_rows
-            ],
-            indent=2,
-        ),
-        encoding="utf-8",
+    snapshot_payload = json.dumps(
+        [
+            {
+                "event_id": r.event_id,
+                "team": r.team_abbr,
+                "home_away": r.home_away,
+                "pitcher": r.pitcher_name,
+                "moneyline": r.moneyline,
+                "spread_line": r.spread_line,
+                "spread_odds": r.spread_odds,
+                "total_line": r.total_line,
+                "total_odds": r.total_odds,
+            }
+            for r in odds_rows
+        ],
+        indent=2,
     )
+    atomic_write_text(snapshot_payload, snapshot_path)
     logger.info("Saved odds snapshot: %s (%d rows)", snapshot_path.name, len(odds_rows))
 
     # Update state
@@ -352,6 +394,13 @@ def run_pregame(dt: date | None = None) -> int:
     state["last_pregame_date"] = str(dt)
     state["last_pregame_rows"] = len(odds_rows)
     _save_state(state)
+
+    append_audit(
+        "pregame_capture",
+        target_date=dt,
+        rows_total=len(odds_rows),
+        files_written=[snapshot_path.name],
+    )
 
     return len(odds_rows)
 
@@ -399,12 +448,17 @@ def run_pitchers(dt: date | None = None) -> int:
     save_pitcher_cache(pitcher_cache)
 
     # Save snapshot
-    RAW_2026_DIR.mkdir(parents=True, exist_ok=True)
     snapshot_path = RAW_2026_DIR / f"pitchers_{dt.strftime('%Y%m%d')}.json"
-    snapshot_path.write_text(
-        json.dumps(resolved, indent=2, ensure_ascii=False), encoding="utf-8"
+    atomic_write_text(
+        json.dumps(resolved, indent=2, ensure_ascii=False), snapshot_path
     )
     logger.info("Saved pitchers: %s (%d rows)", snapshot_path.name, len(resolved))
+    append_audit(
+        "pitchers_capture",
+        target_date=dt,
+        rows_total=len(resolved),
+        files_written=[snapshot_path.name],
+    )
 
     state = _load_state()
     state["last_pitchers_date"] = str(dt)
@@ -493,11 +547,7 @@ def run_postgame(dt: date | None = None) -> int:
     # 7. Append to parquet store
     existing = _load_parquet()
     combined = pd.concat([existing, merged], ignore_index=True)
-
-    # Dedup by (date, team, vh)
-    combined = combined.drop_duplicates(
-        subset=["date", "team", "vh"], keep="last"
-    )
+    combined = _dedup_games(combined)
     combined = _sort_vh_pairs(combined)
     combined = _assign_rot_numbers(combined)
 
@@ -514,6 +564,14 @@ def run_postgame(dt: date | None = None) -> int:
     state["last_postgame_date"] = str(dt)
     state["total_games"] = len(combined)
     _save_state(state)
+
+    append_audit(
+        "postgame_merge",
+        target_date=dt,
+        rows_added=len(merged),
+        rows_total=len(combined),
+        files_written=["games_2026.parquet", "mlb-odds-2026.xlsx"],
+    )
 
     logger.info("Added %d rows for %s (total: %d)", len(merged), dt, len(combined))
     return len(merged)
@@ -575,9 +633,7 @@ def run_backfill(start: date, end: date) -> int:
 
             existing = _load_parquet()
             combined = pd.concat([existing, results_df], ignore_index=True)
-            combined = combined.drop_duplicates(
-                subset=["date", "team", "vh"], keep="last"
-            )
+            combined = _dedup_games(combined)
             combined = _sort_vh_pairs(combined)
             combined = _assign_rot_numbers(combined)
             _save_parquet(combined)
