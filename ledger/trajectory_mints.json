@@ -1,6 +1,6 @@
 {
-  "version": 33,
-  "total_minted": 789,
+  "version": 34,
+  "total_minted": 814,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 6,
-      "total_minted": 110
+      "next_slot": 7,
+      "total_minted": 135
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -700,6 +700,25 @@
       "redundancy_proof": "Tests automate scenario verification previously requiring manual source reasoning; exit-0-false-PASS gap is a permanent regression test",
       "accepted_at": "2026-04-11T12:16:18Z",
       "idem_key": "trajectory_mint|T6|8"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 6,
+      "amount": 25,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        25
+      ],
+      "issue_or_pr": "#411",
+      "frontier_closed": "Adversarial coverage of check_task_index_consistency.py — 4 false-negative blind spots documented including wrong-agent payment bypass, null-reward bypass, and open-task missing escrow",
+      "artifact": "tests/test_check_task_index_adversarial.py (12 adversarial cases: 5 FAIL, 3 PASS, 4 GAP)",
+      "evidence": "PR #425 merged. 12/12 tests pass. 4 real gaps found and documented in GAP-category tests.",
+      "made_redundant": "Manual adversarial analysis of check_task_index_consistency.py for missed attack vectors",
+      "redundancy_proof": "GAP test cases permanently encode discovered blind spots as regression tests; future fixes automatically validated",
+      "accepted_at": "2026-04-11T12:18:01Z",
+      "idem_key": "trajectory_mint|T2|6"
     }
   ]
 }
