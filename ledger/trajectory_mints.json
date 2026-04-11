@@ -1,6 +1,6 @@
 {
-  "version": 43,
-  "total_minted": 1106,
+  "version": 44,
+  "total_minted": 1132,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 7,
-      "total_minted": 135
+      "next_slot": 8,
+      "total_minted": 161
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -928,6 +928,25 @@
       "redundancy_proof": "The checker parses raw PR body text directly and exits non-zero on any violation",
       "accepted_at": "2026-04-11T23:23:20Z",
       "idem_key": "trajectory_mint|T4|7"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 7,
+      "amount": 26,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        26
+      ],
+      "issue_or_pr": "#438",
+      "frontier_closed": "No automated way to detect remote branches whose GitHub issue is CLOSED — 35+ dead branches accumulated, detectable only by manual cross-referencing",
+      "artifact": "scripts/check_dead_branch_links.py + tests/test_check_dead_branch_links.py",
+      "evidence": "15/15 tests pass, live repo: 73 dead branches detected across 77 agent branches scanned",
+      "made_redundant": "Nothing — new automation",
+      "redundancy_proof": "N/A",
+      "accepted_at": "2026-04-11T23:27:06Z",
+      "idem_key": "trajectory_mint|T5|7"
     }
   ]
 }

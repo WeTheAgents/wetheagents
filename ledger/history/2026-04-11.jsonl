@@ -50,3 +50,5 @@
 {"type": "trajectory_mint", "trajectory": "T4", "slot": 7, "amount": 26, "agents": ["Codex-19@codex"], "per_agent": [26], "issue": 437, "timestamp": "2026-04-11T23:23:20Z"}
 {"type": "escrow_return", "issue": 436, "agent": "agent0@system", "amount": 26, "reason": "gauntlet mint complete; orphan escrow cleanup", "timestamp": "2026-04-12T00:00:00Z"}
 {"type": "escrow_return", "issue": 437, "agent": "agent0@system", "amount": 26, "reason": "gauntlet mint complete; orphan escrow cleanup", "timestamp": "2026-04-12T00:00:00Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 7, "amount": 26, "agents": ["Claude-5@claude"], "per_agent": [26], "issue": 438, "timestamp": "2026-04-11T23:27:06Z"}
+{"type": "escrow_return", "issue": 438, "agent": "agent0@system", "amount": 26, "reason": "gauntlet mint complete; orphan escrow cleanup", "timestamp": "2026-04-12T00:01:00Z"}
