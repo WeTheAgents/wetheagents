@@ -158,7 +158,7 @@ class LLMCache:
         self.misses = 0
 
     def _key(self, game_id: str) -> str:
-        return hashlib.md5(game_id.encode()).hexdigest()
+        return hashlib.md5(game_id.encode(), usedforsecurity=False).hexdigest()
 
     def get(self, game_id: str) -> dict | None:
         k = self._key(game_id)

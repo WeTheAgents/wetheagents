@@ -386,6 +386,8 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
         acceptances, error = _ensure_positive_arg(args.acceptances, "--acceptances")
         if error is not None:
             return error
+        assert per_acceptance is not None
+        assert acceptances is not None
         payload.update(
             {
                 "per_acceptance": per_acceptance,
@@ -428,6 +430,7 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
         winners, error = _ensure_positive_arg(args.winners, "--winners")
         if error is not None:
             return error
+        assert winners is not None
         if winners < 2 or winners > 5:
             emit("Error: --winners must be in range 2..5 for [X] Best.")
             return EXIT_DOMAIN_ERROR
@@ -752,6 +755,8 @@ def cmd_task_check_criteria(args: argparse.Namespace) -> int:
     issue_data, check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
     if error_code is not None:
         return error_code
+    assert issue_data is not None
+    assert check is not None
 
     issue_number = int(issue_data.get("number", args.issue))
     _emit_acceptance_criteria_report(issue_number, check)
@@ -835,6 +840,8 @@ def cmd_claim(args: argparse.Namespace) -> int:
     issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
     if error_code is not None:
         return error_code
+    assert issue_data is not None
+    assert criteria_check is not None
 
     if not criteria_check.criteria or not criteria_check.is_valid:
         raw_reward = parse_task_metadata(str(issue_data.get("body", ""))).get("reward") or ""
@@ -884,6 +891,8 @@ def cmd_submit(args: argparse.Namespace) -> int:
     issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
     if error_code is not None:
         return error_code
+    assert issue_data is not None
+    assert criteria_check is not None
 
     issue_number = int(issue_data.get("number", args.issue))
     _emit_acceptance_criteria_report(issue_number, criteria_check, remind_humans=True)
@@ -1197,7 +1206,7 @@ def _github_api(
         },
     )
     try:
-        with urllib.request.urlopen(request) as response:
+        with urllib.request.urlopen(request) as response:  # nosemgrep: dynamic-urllib-use-detected  # URL is constructed from validated gh API endpoints, not user input
             body = response.read()
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
