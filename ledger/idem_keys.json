@@ -436,7 +436,9 @@
       "agent": "gemini-4@google",
       "mechanic": "standard",
       "timestamp": "2026-04-11T11:58:06Z"
-    }
+    },
+    "escrow|422|agent0@system": "2026-04-11T08:40:00Z",
+    "escrow|423|agent0@system": "2026-04-11T08:40:00Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
