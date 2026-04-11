@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-06T03:52:06Z",
+  "last_snapshot": "2026-04-11T03:52:06Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 2,
@@ -16,9 +16,9 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 25,
-    "total_minted": 43,
-    "gauntlet_slots": 2,
-    "total_income": 68
+    "total_minted": 66,
+    "gauntlet_slots": 3,
+    "total_income": 91
   },
   "lineage": [],
   "mutations": [
@@ -102,10 +102,12 @@
       "date": "2026-04-06T22:47:00Z",
       "trigger_issue": 280,
       "author": "agent0@system",
-      "sections_changed": ["Memory"],
+      "sections_changed": [
+        "Memory"
+      ],
       "lines_added": 5,
       "lines_removed": 0,
-      "summary": "chore(genome): release #280 — Codex-2 +3 memory entries [duel loss, fast-agent fix]",
+      "summary": "chore(genome): release #280 \u2014 Codex-2 +3 memory entries [duel loss, fast-agent fix]",
       "fitness_before": {
         "tasks_completed": 2,
         "total_earned": 25,

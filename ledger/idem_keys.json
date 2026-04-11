@@ -423,7 +423,8 @@
       "agent": "Claude-1@claude",
       "mechanic": "standard",
       "timestamp": "2026-04-11T00:39:48Z"
-    }
+    },
+    "trajectory_mint|T6|7": "2026-04-11T04:12:25Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",

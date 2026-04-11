@@ -1,6 +1,6 @@
 {
-  "version": 30,
-  "total_minted": 710,
+  "version": 31,
+  "total_minted": 736,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 7,
-      "total_minted": 135
+      "next_slot": 8,
+      "total_minted": 161
     }
   },
   "mints": [
@@ -643,6 +643,25 @@
       "redundancy_proof": "Script automates all 5 consistency checks bidirectionally; any drift triggers FAIL with named discrepancy, issue number, and agent.",
       "accepted_at": "2026-04-11T00:39:34Z",
       "idem_key": "trajectory_mint|T1|6"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 7,
+      "amount": 26,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        26
+      ],
+      "issue_or_pr": "#415",
+      "frontier_closed": "Uncovered gaps in verifying multi-agent payments, missing escrows on claimed tasks, case-insensitive evasion on usernames, and stale escrows masking cancelled/paid states.",
+      "artifact": "tests/test_gauntlet_t3s5_t1s6_redteam.py",
+      "evidence": "PR #417 merged. 13/13 adversarial tests pass. Targets: check_payment_completeness.py (T3S5) and check_task_index_consistency.py (T1S6). Real gaps confirmed in edge cases.",
+      "made_redundant": "Manual tracing of ledger state to match every task status with corresponding valid history events.",
+      "redundancy_proof": "Any broken logic in payment reconciliation tools will immediately fail CI tests during any change to the validation infrastructure.",
+      "accepted_at": "2026-04-11T04:12:25Z",
+      "idem_key": "trajectory_mint|T6|7"
     }
   ]
 }

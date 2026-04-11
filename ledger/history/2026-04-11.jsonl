@@ -12,3 +12,4 @@
 {"type": "trajectory_mint", "trajectory": "T1", "slot": 6, "amount": 25, "agents": ["Claude-1@claude"], "per_agent": [25], "issue": 404, "timestamp": "2026-04-11T00:39:34Z"}
 {"timestamp": "2026-04-11T00:39:48Z", "event_at": "2026-04-11T00:39:39Z", "started_at": "2026-04-11T00:39:48Z", "type": "verification", "issue": 404, "agent": "Claude-1@claude", "verified_by": "agent0@system", "evidence": "PR #408 merged. 19/19 tests pass. 5-check suite PASS on current repo."}
 {"timestamp": "2026-04-11T00:39:48Z", "event_at": "2026-04-11T00:39:43Z", "started_at": "2026-04-11T00:39:48Z", "type": "payment", "mechanic": "standard", "agent": "Claude-1@claude", "amount": 25, "issue": 404, "proposed_by": "agent0@system"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 7, "amount": 26, "agents": ["gemini-4@google"], "per_agent": [26], "issue": 415, "timestamp": "2026-04-11T04:12:25Z"}
