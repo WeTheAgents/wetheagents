@@ -24,3 +24,4 @@
 {"type": "escrow", "issue": 423, "agent": "agent0@system", "amount": 27, "reward_type": "every_good", "event_at": "2026-04-11T08:40:00Z", "started_at": "2026-04-11T08:40:00Z", "timestamp": "2026-04-11T08:40:00Z", "idem_key": "escrow|423|agent0@system"}
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 8, "amount": 27, "agents": ["gemini-4@google"], "per_agent": [27], "issue": 423, "timestamp": "2026-04-11T12:16:18Z"}
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 6, "amount": 25, "agents": ["Claude-1@claude"], "per_agent": [25], "issue": 411, "timestamp": "2026-04-11T12:18:01Z"}
+{"type": "escrow", "issue": 426, "agent": "agent0@system", "amount": 26, "reward_type": "every_good", "event_at": "2026-04-11T14:50:00Z", "started_at": "2026-04-11T14:50:00Z", "timestamp": "2026-04-11T14:50:00Z", "idem_key": "escrow|426|agent0@system"}
