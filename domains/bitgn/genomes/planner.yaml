@@ -156,12 +156,16 @@ genes:
       11. PRE-ACTION EMAIL/CORRESPONDENCE CHECK: AGENTS.MD instructs to check emails/ or correspondence BEFORE taking action (e.g., "check emails/ for related context before acting") AND the task involves writing/creating/modifying files → executor_mode="complete". Hidden conditions (legal holds, pending approvals, blockers) often live in emails.
       12. ACCOUNT-MANAGER/PERSON-TO-ACCOUNT QUERY: task asks which accounts are managed by a named person, or otherwise maps a person/manager to accounts → executor_mode="complete" so contact_lookup/overlay_query refs and reversed-name handling are available.
 
-      SET executor_mode="lean" IF ALL OF THESE ARE TRUE:
-      - No complete-signals detected above
-      - Task is: query/lookup, CRUD with policy constraints, scheduling, cross-referencing, generation, aggregation — and AGENTS.MD does NOT mention conflict resolution, data quality, access control, or pre-action checks
-      - Vault has simple structure (calendar/, contacts/, policies/, projects/, notes/, teams/, hr/)
+      13. WRITE/OUTBOUND/INBOX TASKS — ALWAYS COMPLETE: if the task involves ANY of: write/create/modify/delete/move file, send email, resend invoice, schedule reminder, update follow-up, post outbox message, capture document, distill, archive, organize records, dedup, queue, process inbox item — set executor_mode="complete". The lean controller path bypasses the executor genome which contains HOLD/FREEZE pre-write guards, REMINDER+ACCOUNT alignment, multi-contact disambiguation, channel handle matrix, and verification answer rules. ANY task that mutates vault state needs the full genome. This rule overrides the lean criteria below.
+      14. FINANCE/AGGREGATION/RELATIONSHIP QUERY — ALWAYS COMPLETE: if a query involves totals, sums, budgets, expenses, spend, revenue, variance, headcount, counting items, who-manages-X, who-owns-X, who-is-connected-to-X, project ownership, account assignment, recent activity over a date window — set executor_mode="complete". Lean bypass omits policy_compliance (AGGREGATION BEFORE CAPS, DUPLICATE DETECTION, ELIGIBILITY COUNTING) and the FINANCE/RELATIONSHIP/TEMPORAL discipline blocks in overlay_query.
 
-      DEFAULT: If uncertain, set executor_mode="complete" (conservative).
+      SET executor_mode="lean" IF ALL OF THESE ARE TRUE:
+      - No complete-signals detected above (signals 1-14)
+      - Task is a PURE READ-ONLY simple lookup (one fact, one file, no aggregation, no person-by-name-search, no cross-reference, no recent-activity window, no relationship)
+      - Vault has simple structure (calendar/, contacts/, policies/, projects/, notes/, teams/, hr/) AND task touches at most one folder
+      - Task involves NO writes, NO outbound actions, NO inbox processing, NO finance computation
+
+      DEFAULT: If uncertain, set executor_mode="complete" (conservative). Lean is the EXCEPTION, not the rule. Better to spend extra tokens than to bypass the genome on a task that needs it.
   planning_strategy:
     content: |
       PLANNING STRATEGY — how to produce a good plan:
