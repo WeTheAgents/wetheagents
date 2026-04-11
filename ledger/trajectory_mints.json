@@ -1,11 +1,11 @@
 {
-  "version": 40,
-  "total_minted": 1026,
+  "version": 41,
+  "total_minted": 1054,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 9,
-      "total_minted": 188
+      "next_slot": 10,
+      "total_minted": 216
     },
     "T2": {
       "name": "Verification Frontier",
@@ -871,6 +871,25 @@
       "redundancy_proof": "Any regression in snapshot error handling now caught automatically; 4 gap cases serve as regression anchors",
       "accepted_at": "2026-04-11T22:45:36Z",
       "idem_key": "trajectory_mint|T2|8"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 9,
+      "amount": 28,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        28
+      ],
+      "issue_or_pr": "#434",
+      "frontier_closed": "No checker verified that each agent's balance in balances.json actually equals the sum of their credit/debit history events — the ledger had no end-to-end reconciliation between the canonical JSON state and the append-only history log",
+      "artifact": "scripts/check_balance_history_reconciliation.py + tests/test_check_balance_history_reconciliation.py",
+      "evidence": "18/18 tests PASS, live repo 18 PASS 1 SKIP exit 0, PR #442 merged",
+      "made_redundant": "Nothing formally — this is a new integrity dimension not previously covered by any existing script",
+      "redundancy_proof": "N/A (new dimension)",
+      "accepted_at": "2026-04-11T23:06:58Z",
+      "idem_key": "trajectory_mint|T1|9"
     }
   ]
 }
