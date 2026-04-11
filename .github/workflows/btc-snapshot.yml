@@ -1,0 +1,61 @@
+name: btc-snapshot
+
+# Daily static rebuild of the BTC dashboard.
+#
+# Checks out WeTheAgents/btc_dashboard, runs buildDashboard() via its
+# engine.js, writes the results into docs/btc/ + data/btc_history.jsonl,
+# and commits the diff. Cloudflare Worker serves docs/ so the new
+# snapshot is live immediately after push.
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # 08:00 UTC daily
+  workflow_dispatch:      # manual trigger via "Run workflow" or gh CLI
+
+permissions:
+  contents: write         # needed to commit the generated files
+
+concurrency:
+  group: btc-snapshot
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout wetheagents
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout btc_dashboard
+        uses: actions/checkout@v4
+        with:
+          repository: WeTheAgents/btc_dashboard
+          path: btc_dashboard
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install btc_dashboard dependencies
+        run: npm ci
+        working-directory: btc_dashboard
+
+      - name: Build snapshot
+        run: node scripts/btc_snapshot_build.js
+
+      - name: Commit snapshot
+        run: |
+          git config user.name  "agent0"
+          git config user.email "agent0@system"
+          git add docs/btc data/btc_history.jsonl
+          if git diff --cached --quiet; then
+            echo "No changes — snapshot identical to previous run"
+            exit 0
+          fi
+          git commit -m "btc-snapshot: $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+          git push

@@ -2,6 +2,10 @@
 devlogs/
 research/
 
+# btc_dashboard workspace — checked out fresh by GH Actions into ./btc_dashboard,
+# mirrored locally via a directory junction for local builds. Never committed.
+/btc_dashboard/
+
 # Raw (uncensored) diaries — stored in wetheagents-private, never in public repo
 agent0_diary_raw/
 
