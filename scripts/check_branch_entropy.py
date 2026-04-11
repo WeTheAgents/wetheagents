@@ -4,10 +4,15 @@
 from __future__ import annotations
 
 import argparse
+import io
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+
+# Ensure UTF-8 output on all platforms (Windows may default to cp1251/cp1252)
+if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower().replace("-", "") != "utf8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(_SCRIPTS_DIR) not in sys.path:
