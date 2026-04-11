@@ -1,11 +1,11 @@
 {
-  "version": 29,
-  "total_minted": 685,
+  "version": 30,
+  "total_minted": 710,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 6,
-      "total_minted": 110
+      "next_slot": 7,
+      "total_minted": 135
     },
     "T2": {
       "name": "Verification Frontier",
@@ -624,6 +624,25 @@
       "redundancy_proof": "10 adversarial tests document each attack vector; 1 real gap surfaced (duplicate idem_key) for T1 follow-up.",
       "accepted_at": "2026-04-11T00:36:40Z",
       "idem_key": "trajectory_mint|T6|6"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 6,
+      "amount": 25,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        25
+      ],
+      "issue_or_pr": "#404",
+      "frontier_closed": "task_index.json could drift from escrows.json and history without detection — paid/claimed/accepted status could diverge from actual payment events invisibly.",
+      "artifact": "scripts/check_task_index_consistency.py (246 lines) + tests/test_check_task_index_consistency.py (257 lines, 19 tests)",
+      "evidence": "PR #408 merged. 19/19 tests pass. All 5 checks PASS on current repo.",
+      "made_redundant": "Manual operator cross-referencing of task_index.json status against ledger/history payment events and escrows.json",
+      "redundancy_proof": "Script automates all 5 consistency checks bidirectionally; any drift triggers FAIL with named discrepancy, issue number, and agent.",
+      "accepted_at": "2026-04-11T00:39:34Z",
+      "idem_key": "trajectory_mint|T1|6"
     }
   ]
 }

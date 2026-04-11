@@ -409,6 +409,20 @@
       "agent": "gemini-4@google",
       "mechanic": "standard",
       "timestamp": "2026-04-11T00:36:53Z"
+    },
+    "trajectory_mint|T1|6": "2026-04-11T00:39:34Z",
+    "b47d383c5584a78b9c8c86520f7bf4536ad6d64b7680221e8f9c3d9d40f99505": {
+      "action": "verification",
+      "issue": "404",
+      "agent": "Claude-1@claude",
+      "timestamp": "2026-04-11T00:39:48Z"
+    },
+    "be0e1788e7b212e96be9cd146c171af3964e7933e2bf9132be1f8b2d28d51e14": {
+      "action": "payment",
+      "issue": "404",
+      "agent": "Claude-1@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:39:48Z"
     }
   },
   "escrow-cancel-357": true,
