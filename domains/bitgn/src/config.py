@@ -52,12 +52,19 @@ class AgentConfig:
     # --- Genome system ---
     use_genome: bool = False  # use gene-based prompt assembly instead of monolithic prompts
     genomes_dir: str = "genomes"  # directory containing genome YAML files
-    planner_model: str = os.getenv("PLANNER_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    taxonomy_model: str = os.getenv("TAXONOMY_MODEL", os.getenv("PLANNER_MODEL", "gpt-5.4-mini"))
+    planner_model: str = os.getenv("PLANNER_MODEL", "gpt-5.4")
     action_model: str = os.getenv("ACTION_MODEL", "gpt-4.1")  # fast model for straightforward execution
     deliberation_model: str = os.getenv("DELIBERATION_MODEL", "gpt-5.4-mini")  # reasoning model for hidden constraints
     deliberation_complex_model: str = os.getenv("DELIBERATION_COMPLEX_MODEL", "gpt-5.4")  # strongest model for deliberation+complex
-    max_escalations: int = 1  # max Watchdog → Planner escalations per task
+    executor_fixed_model: str = os.getenv("EXECUTOR_FIXED_MODEL", "gpt-4.1")
+    disable_executor_tier_routing: bool = False
+    max_escalations: int = 2  # max planner replans per task
     dual_executor: bool = False  # planner routes to lean (hybrid) or complete (genome) executor
+    planner_loop: bool = False
+    planner_replan_every: int = 7
+    planner_replan_min_step: int = 4
+    planner_checkpoint_limit: int = 2
 
     # --- Hybrid controller-executor ---
     hybrid: bool = False
@@ -70,9 +77,10 @@ class AgentConfig:
     watchdog: bool = False
     watchdog_model: str = _WATCHDOG_MODEL_DEFAULT       # mid-stream check model
     watchdog_gate_model: str = _WATCHDOG_GATE_MODEL_DEFAULT  # pre-final gate model
+    watchdog_deterministic_first: bool = False
     watchdog_check_every: int = 5   # fire every N executed steps
     watchdog_min_step: int = 4      # first check after this many steps
-    watchdog_gate_retries: int = 3  # max times pre-final gate can reject
+    watchdog_gate_retries: int = 2  # first reject retries locally, second escalates to planner
 
 
 # Singleton default — used when no config is explicitly passed

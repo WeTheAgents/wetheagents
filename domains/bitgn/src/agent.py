@@ -20,7 +20,7 @@ from src.tool_defs import mini_tool_models
 from src.tools import Dispatcher
 from src.trace import StepRecord, TaskTrace, truncate_output
 from src.warmup import warmup_vault
-from src.watchdog import Watchdog
+from src.watchdog import Watchdog, WatchdogEscalation, WatchdogRejection
 
 CLI_RED = "\x1B[31m"
 CLI_GREEN = "\x1B[32m"
@@ -120,21 +120,22 @@ def _prepare_agent(
     # --- Genome mode: full Planner agent ---
     if plan_result is None and config.use_genome:
         from src.planner import run_planner
+        from src.taxonomy import run_taxonomy
 
+        taxonomy_result = run_taxonomy(
+            task_text,
+            warmup_context=warmup_context,
+            model=config.taxonomy_model,
+        )
         plan_result = run_planner(
             task_text,
+            taxonomy_result=taxonomy_result,
             warmup_context=warmup_context,
             model=config.planner_model,
         )
     if config.use_genome and plan_result is not None:
         from src.genome import assemble_prompt as genome_assemble, load_genome
-        # Select execution model based on planner's model_tier
-        if plan_result.model_tier == "action":
-            exec_model = config.action_model
-        elif plan_result.complexity == "complex":
-            exec_model = config.deliberation_complex_model
-        else:
-            exec_model = config.deliberation_model
+        exec_model = _executor_model_for_plan(config, plan_result)
         print(
             f"  {CLI_BLUE}Planner: {plan_result.route} "
             f"({plan_result.complexity}, {plan_result.model_tier}→{exec_model}) "
@@ -205,6 +206,588 @@ def _prepare_agent(
     return system_prompt, dispatcher, ctx, route_result, plan_result
 
 
+def _executor_model_for_plan(config: AgentConfig, plan_result) -> str:
+    if config.disable_executor_tier_routing:
+        return config.executor_fixed_model
+    if plan_result.model_tier == "action":
+        return config.action_model
+    if plan_result.complexity == "complex":
+        return config.deliberation_complex_model
+    return config.deliberation_model
+
+
+def _plan_summary(plan_result) -> str:
+    return (
+        f"route={plan_result.route}; complexity={plan_result.complexity}; "
+        f"model_tier={plan_result.model_tier}; executor_mode={plan_result.executor_mode}; "
+        f"brief={plan_result.brief}"
+    )
+
+
+def _taxonomy_replan_context(reason: str, steps: list[StepRecord]) -> str:
+    lines = [f"REPLAN REASON: {reason}"]
+    if steps:
+        lines.append("RECENT EXECUTOR TRACE:")
+        for i, step in enumerate(steps[-12:], start=1):
+            args = ", ".join(
+                f"{k}={str(v)[:40]!r}"
+                for k, v in step.tool_input.items()
+                if k != "tool"
+            )
+            lines.append(f"  {i}. {step.tool_name}({args})")
+            if step.output:
+                lines.append(f"     -> {step.output[:120].replace(chr(10), ' ')}")
+    return "\n".join(lines)
+
+
+def _should_rerun_taxonomy(kind: str, reason: str) -> bool:
+    if kind in {"conflict", "action_brake", "final_gate"}:
+        return True
+    lowered = reason.lower()
+    return "route mismatch" in lowered or "route_mismatch" in lowered
+
+
+def _record_taxonomy_override(trace: TaskTrace, plan_result, *, planner_round: int, phase: str) -> None:
+    if not getattr(plan_result, "taxonomy_override", False):
+        return
+    trace.taxonomy_overrides.append(
+        {
+            "planner_round": planner_round,
+            "phase": phase,
+            "route_candidate": plan_result.taxonomy_used.get("route_candidate", ""),
+            "final_route": plan_result.route,
+            "reason": plan_result.taxonomy_override_reason,
+            "taxonomy_summary": dict(plan_result.taxonomy_used),
+        }
+    )
+
+
+def _count_side_effects(steps: list[StepRecord]) -> int:
+    return sum(1 for step in steps if step.tool_name in {"write", "delete", "move"})
+
+
+def _step_target(step: StepRecord) -> str:
+    for key in ("path", "root", "name", "pattern"):
+        value = step.tool_input.get(key)
+        if value:
+            return str(value)
+    return ""
+
+
+def _has_deterministic_loop(steps: list[StepRecord]) -> bool:
+    if len(steps) < 4:
+        return False
+    recent = steps[-4:]
+    pairs = [(step.tool_name, _step_target(step)) for step in recent]
+    read_like = {"read", "search", "list", "find", "tree", "context"}
+    return all(name in read_like for name, _ in pairs) and pairs[:2] == pairs[2:]
+
+
+def _should_checkpoint_replan(executed_steps: int, *, every: int, min_step: int) -> bool:
+    if executed_steps < min_step:
+        return False
+    return (executed_steps - min_step) % every == 0
+
+
+def _build_genome_prompt(
+    *,
+    task_text: str,
+    config: AgentConfig,
+    plan_result,
+    warmup_context: str | None,
+    system_prompt_override: str | None,
+) -> str:
+    if system_prompt_override:
+        prompt = system_prompt_override
+        if warmup_context and "{warmup_context}" not in prompt:
+            prompt += f"\n\n{warmup_context}"
+        prompt += f"\n\nPLANNER BRIEF (strategic context for this task):\n{plan_result.brief}"
+        return prompt
+
+    from src.genome import assemble_prompt as genome_assemble, load_genome
+
+    executor_genome = load_genome("executor", config.genomes_dir)
+    return genome_assemble(
+        executor_genome,
+        route=plan_result.route,
+        warmup=bool(warmup_context),
+        task_text=task_text,
+        gene_selection=plan_result.gene_selection if plan_result.genes else None,
+        is_complex=(plan_result.complexity == "complex"),
+        planning_brief=plan_result.brief,
+        warmup_context=warmup_context,
+    )
+
+
+def _run_openai_genome_planner_loop(
+    provider,
+    dispatcher: Dispatcher,
+    task_text: str,
+    *,
+    config: AgentConfig,
+    system_prompt_override: str | None,
+    tool_models: dict[str, type] | None,
+    completion_cls: type | None,
+) -> TaskTrace:
+    from src.planner import format_executor_trace_for_replan, run_planner
+    from src.taxonomy import run_taxonomy
+
+    completion_cls = completion_cls or ReportCompletion
+    use_tree = tool_models is not None and "tree" in tool_models
+
+    warmup_context = None
+    trust_chain: set[str] = set()
+    if config.warmup:
+        warmup_text, trust_chain = warmup_vault(
+            dispatcher,
+            read_agents_md=config.warmup_read_agents_md,
+            use_tree=use_tree,
+        )
+        warmup_context = warmup_text
+        print(f"  {CLI_BLUE}Warmup: outline + {len(trust_chain)} trust chain files{CLI_CLR}")
+
+    taxonomy_result = run_taxonomy(
+        task_text,
+        warmup_context=warmup_context,
+        model=config.taxonomy_model,
+    )
+    plan_result = run_planner(
+        task_text,
+        taxonomy_result=taxonomy_result,
+        warmup_context=warmup_context,
+        model=config.planner_model,
+    )
+    print(
+        f"  {CLI_BLUE}Planner: {plan_result.route} "
+        f"({plan_result.complexity}, {plan_result.model_tier}, mode={plan_result.executor_mode}) "
+        f"— {plan_result.brief[:60]}{CLI_CLR}"
+    )
+
+    ctx = AgentContext(max_steps=MAX_STEPS)
+    ctx.trust_chain = trust_chain
+    if plan_result.complexity == "complex":
+        ctx.max_steps = max(ctx.max_steps, MAX_STEPS + config.complex_extra_steps)
+
+    if config.enrichment:
+        dispatcher = enriched_dispatcher(dispatcher, ctx, config)
+
+    watchdog = (
+        Watchdog(
+            model=config.watchdog_model,
+            gate_model=config.watchdog_gate_model,
+            deterministic_first=config.watchdog_deterministic_first,
+            check_every=config.watchdog_check_every,
+            min_step=config.watchdog_min_step,
+        )
+        if config.watchdog
+        else None
+    )
+
+    system_prompt = _build_genome_prompt(
+        task_text=task_text,
+        config=config,
+        plan_result=plan_result,
+        warmup_context=warmup_context,
+        system_prompt_override=system_prompt_override,
+    )
+    if hasattr(provider, "model_override"):
+        provider.model_override = _executor_model_for_plan(config, plan_result)
+
+    if tool_models is not None:
+        TOOL_MODELS = {k: v for k, v in tool_models.items() if k != "report_completion"}
+    else:
+        TOOL_MODELS = mini_tool_models()
+        del TOOL_MODELS["report_completion"]
+
+    trace = TaskTrace(task_id="", instruction=task_text, executor_mode="complete")
+    trace.genes_used = plan_result.gene_selection if plan_result.genes else []
+    trace.taxonomy_trace = list(taxonomy_result.taxonomy_trace)
+    trace.taxonomy_rounds = 1
+    trace.taxonomy_result = taxonomy_result.as_dict()
+    trace.planner_trace = list(plan_result.planner_trace)
+    trace.planner_rounds = 1
+    trace.planner_model = config.planner_model
+    trace.executor_model = _executor_model_for_plan(config, plan_result)
+    trace.executor_tier_routing_disabled = config.disable_executor_tier_routing
+    trace.watchdog_mode = "deterministic-first" if config.watchdog_deterministic_first else "llm-midstream"
+    _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
+
+    messages = [{"role": "user", "content": task_text}]
+
+    action_reject_category = ""
+    action_reject_count = 0
+    final_reject_category = ""
+    final_reject_count = 0
+    event_replans_used = 0
+    checkpoint_replans_used = 0
+
+    def trigger_replan(kind: str, reason: str) -> bool:
+        nonlocal plan_result, system_prompt, event_replans_used, checkpoint_replans_used, taxonomy_result
+        if kind == "checkpoint":
+            if checkpoint_replans_used >= config.planner_checkpoint_limit:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "[PLANNER REPLAN]: STOP DISCOVERY. Use the current evidence and either act now "
+                            "with the minimal remaining write set or report the correct final outcome now.\n"
+                            "[REPLAN KIND]: checkpoint_force_finish\n"
+                            "Previous exploratory plan is obsolete. Do not reopen broad discovery."
+                        ),
+                    }
+                )
+                trace.replan_events.append(
+                    {
+                        "kind": "checkpoint_force_finish",
+                        "reason": reason,
+                        "route": plan_result.route,
+                        "model_tier": plan_result.model_tier,
+                        "executor_mode": plan_result.executor_mode,
+                    }
+                )
+                return True
+            checkpoint_replans_used += 1
+        else:
+            if event_replans_used >= config.max_escalations:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "[PLANNER REPLAN]: STOP DISCOVERY. Use the current evidence and report the best supported "
+                            "final outcome now. Do not start a new search branch.\n"
+                            "[REPLAN KIND]: event_force_finish"
+                        ),
+                    }
+                )
+                trace.replan_events.append(
+                    {
+                        "kind": "event_force_finish",
+                        "reason": reason,
+                        "route": plan_result.route,
+                        "model_tier": plan_result.model_tier,
+                        "executor_mode": plan_result.executor_mode,
+                    }
+                )
+                return True
+            event_replans_used += 1
+
+        current_summary = _plan_summary(plan_result)
+        relevant_steps = trace.steps[-12:] if trace.steps else []
+        taxonomy_for_plan = taxonomy_result
+        if _should_rerun_taxonomy(kind, reason):
+            taxonomy_for_plan = run_taxonomy(
+                task_text,
+                warmup_context=warmup_context,
+                model=config.taxonomy_model,
+                prior_taxonomy=taxonomy_result,
+                replan_context=_taxonomy_replan_context(reason, relevant_steps),
+            )
+            taxonomy_result = taxonomy_for_plan
+            trace.taxonomy_rounds += 1
+            trace.taxonomy_trace.extend(taxonomy_for_plan.taxonomy_trace)
+            trace.taxonomy_result = taxonomy_for_plan.as_dict()
+        replan_result = run_planner(
+            task_text,
+            taxonomy_result=taxonomy_for_plan,
+            warmup_context=warmup_context,
+            model=config.planner_model,
+            executor_trace=format_executor_trace_for_replan(relevant_steps),
+            escalation_reason=reason,
+            replan_kind=kind,
+            current_plan_summary=current_summary,
+            side_effect_count=_count_side_effects(trace.steps),
+        )
+        plan_result = replan_result
+        trace.planner_rounds += 1
+        trace.planner_trace.extend(replan_result.planner_trace)
+        trace.replan_events.append(
+            {
+                "kind": kind,
+                "reason": reason,
+                "route": replan_result.route,
+                "model_tier": replan_result.model_tier,
+                "executor_mode": replan_result.executor_mode,
+                "checkpoint_replans_used": checkpoint_replans_used,
+                "event_replans_used": event_replans_used,
+            }
+        )
+        if replan_result.genes:
+            trace.genes_used = sorted(set(trace.genes_used) | set(replan_result.gene_selection))
+        if replan_result.complexity == "complex":
+            ctx.max_steps = max(ctx.max_steps, MAX_STEPS + config.complex_extra_steps)
+        system_prompt = _build_genome_prompt(
+            task_text=task_text,
+            config=config,
+            plan_result=replan_result,
+            warmup_context=warmup_context,
+            system_prompt_override=system_prompt_override,
+        )
+        if hasattr(provider, "model_override"):
+            provider.model_override = _executor_model_for_plan(config, replan_result)
+        trace.executor_model = _executor_model_for_plan(config, replan_result)
+        messages.append(
+            {
+                "role": "user",
+                "content": (
+                    f"[PLANNER REPLAN]: {replan_result.brief}\n"
+                    f"[REPLAN KIND]: {kind}\n"
+                    "Previous plan is obsolete. Follow this updated planner brief."
+                ),
+            }
+        )
+        print(
+            f"  {CLI_BLUE}[REPLAN] {kind}: {replan_result.route} "
+            f"({replan_result.complexity}, {replan_result.model_tier}) — "
+            f"{replan_result.brief[:80]}{CLI_CLR}"
+        )
+        _record_taxonomy_override(trace, replan_result, planner_round=trace.planner_rounds, phase=f"replan:{kind}")
+        return True
+
+    i = 0
+    while i < ctx.max_steps:
+        ctx.step = i + 1
+        step_name = f"step_{i + 1}"
+        print(f"\n{step_name}... ", end="", flush=True)
+
+        call_messages = messages
+        if config.compress_history and len(messages) > config.compress_threshold:
+            call_messages = compress_history(messages, keep_last=config.compress_keep_last)
+
+        started = time.time()
+        resp = provider.raw_call(
+            call_messages, system_prompt,
+            cache_aware=config.cache_aware_prompt,
+        )
+        elapsed = time.time() - started
+
+        choice = resp.choices[0]
+        msg = choice.message
+        thinking = (msg.content or "")[:100]
+        print(f"{thinking} ({elapsed:.1f}s)")
+
+        assistant_msg = {"role": "assistant", "content": msg.content or ""}
+        if msg.tool_calls:
+            assistant_msg["tool_calls"] = [
+                {
+                    "type": "function",
+                    "id": tc.id,
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in msg.tool_calls
+            ]
+        messages.append(assistant_msg)
+
+        if not msg.tool_calls:
+            full_text = msg.content or ""
+            outcome_hint = ""
+            for outcome_code in ["OUTCOME_NONE_UNSUPPORTED", "OUTCOME_NONE_CLARIFICATION", "OUTCOME_DENIED_SECURITY"]:
+                if outcome_code in full_text:
+                    outcome_hint = f" You already determined the outcome is {outcome_code} — call report_completion with that outcome NOW."
+                    break
+            print(f"  {CLI_RED}No tool call in response{CLI_CLR}")
+            messages.append({
+                "role": "user",
+                "content": f"You must call a tool. If you have the answer, use report_completion immediately.{outcome_hint}",
+            })
+            i += 1
+            continue
+
+        completed = False
+        pending_replan: tuple[str, str] | None = None
+        handled_tool_call_ids: set[str] = set()
+
+        for tc in msg.tool_calls:
+            tool_name = tc.function.name
+            tool_input = json.loads(tc.function.arguments)
+            if "tool" not in tool_input:
+                tool_input["tool"] = tool_name
+
+            print(f"  -> {tool_name}: {_summarize_input(tool_input)}")
+
+            action_reject: WatchdogRejection | None = None
+            if watchdog is not None:
+                action_reject = watchdog.check_action(task_text, trace.steps, tool_name, tool_input)
+            if action_reject:
+                trace.action_brakes.append(
+                    {
+                        "category": action_reject.category,
+                        "reason": action_reject.reason,
+                        "step": i + 1,
+                        "tool": tool_name,
+                    }
+                )
+                if action_reject.category == action_reject_category:
+                    action_reject_count += 1
+                else:
+                    action_reject_category = action_reject.category
+                    action_reject_count = 1
+                print(f"  {CLI_RED}[BRAKE:{action_reject.category}] {action_reject.reason}{CLI_CLR}")
+                messages.append({
+                    "role": "tool",
+                    "content": f"[WATCHDOG BRAKE]: {action_reject.reason}",
+                    "tool_call_id": tc.id,
+                })
+                handled_tool_call_ids.add(tc.id)
+                trace.failure_bucket = action_reject.category
+                if action_reject_count >= config.watchdog_gate_retries:
+                    pending_replan = ("action_brake", f"{action_reject.category}: {action_reject.reason}")
+                break
+
+            step_started = time.time()
+
+            if tool_name == "report_completion":
+                gate_reject: WatchdogRejection | None = None
+                if watchdog is not None:
+                    gate_reject = watchdog.check_final(task_text, trace.steps, tool_input)
+                if gate_reject:
+                    trace.gate_rejections.append(
+                        {
+                            "category": gate_reject.category,
+                            "reason": gate_reject.reason,
+                            "step": i + 1,
+                        }
+                    )
+                    if gate_reject.category == final_reject_category:
+                        final_reject_count += 1
+                    else:
+                        final_reject_category = gate_reject.category
+                        final_reject_count = 1
+                    print(f"  {CLI_RED}[GATE:{gate_reject.category}] {gate_reject.reason}{CLI_CLR}")
+                    messages.append({
+                        "role": "tool",
+                        "content": f"[WATCHDOG GATE]: {gate_reject.reason}",
+                        "tool_call_id": tc.id,
+                    })
+                    handled_tool_call_ids.add(tc.id)
+                    trace.failure_bucket = gate_reject.category
+                    if final_reject_count >= config.watchdog_gate_retries:
+                        pending_replan = ("final_gate", f"{gate_reject.category}: {gate_reject.reason}")
+                    break
+
+                code = tool_input.get("code", "")
+                if code == "CONFLICT_DETECTED":
+                    conflict_answer = tool_input.get("answer", "")
+                    print(f"  {CLI_BLUE}[CONFLICT] {conflict_answer[:80]}{CLI_CLR}")
+                    pending_replan = ("conflict", conflict_answer)
+                    trace.failure_bucket = "conflict"
+                    break
+
+                completion = completion_cls.model_validate(tool_input)
+                result_text = dispatcher(completion)
+                messages.append({"role": "tool", "content": result_text, "tool_call_id": tc.id})
+                handled_tool_call_ids.add(tc.id)
+                trace.final_completion_snapshot = dict(tool_input)
+                trace.steps.append(StepRecord(
+                    tool_name=tool_name,
+                    tool_input=tool_input,
+                    output=truncate_output(result_text),
+                    elapsed=time.time() - step_started,
+                ))
+                _print_completion(completion)
+                completed = True
+                break
+
+            model_cls = TOOL_MODELS.get(tool_name)
+            if model_cls is None:
+                result_text = f"Unknown tool: {tool_name}"
+            else:
+                tool_obj = model_cls.model_validate(tool_input)
+                result_text = dispatcher(tool_obj)
+
+            step_elapsed = time.time() - step_started
+            truncated = result_text[:200] + "..." if len(result_text) > 200 else result_text
+            print(f"  {CLI_GREEN}OUT{CLI_CLR}: {truncated}")
+
+            trace.steps.append(StepRecord(
+                tool_name=tool_name,
+                tool_input=tool_input,
+                output=truncate_output(result_text),
+                elapsed=step_elapsed,
+            ))
+            messages.append({"role": "tool", "content": result_text, "tool_call_id": tc.id})
+            handled_tool_call_ids.add(tc.id)
+
+        for tc in msg.tool_calls:
+            if tc.id not in handled_tool_call_ids:
+                messages.append({
+                    "role": "tool",
+                    "content": "[PLANNER LOOP]: skipped because another tool call in this batch triggered completion, brake, or replan.",
+                    "tool_call_id": tc.id,
+                })
+
+        if completed:
+            trace.total_steps = len(trace.steps)
+            return trace
+
+        if pending_replan:
+            trace.watchdog_interventions.append(
+                {"type": pending_replan[0], "reason": pending_replan[1], "step": i + 1}
+            )
+            if not trigger_replan(*pending_replan):
+                return trace
+            i += 1
+            continue
+
+        if watchdog is not None and watchdog.should_check(len(trace.steps)):
+            escalation = watchdog.check_midstream(task_text, trace.steps)
+            if escalation:
+                trace.watchdog_interventions.append(
+                    {
+                        "type": "escalate",
+                        "category": escalation.category,
+                        "reason": escalation.reason,
+                        "step": i + 1,
+                    }
+                )
+                print(
+                    f"  {CLI_RED}[WATCHDOG ESCALATE:{escalation.category}] "
+                    f"{escalation.reason}{CLI_CLR}"
+                )
+                if not trigger_replan("watchdog_midstream", f"{escalation.category}: {escalation.reason}"):
+                    return trace
+                i += 1
+                continue
+
+        if config.planner_loop and (
+            _has_deterministic_loop(trace.steps)
+            or _should_checkpoint_replan(
+                len(trace.steps),
+                every=config.planner_replan_every,
+                min_step=config.planner_replan_min_step,
+            )
+        ):
+            reason = (
+                "deterministic repeated read/search loop detected"
+                if _has_deterministic_loop(trace.steps)
+                else f"checkpoint at step {len(trace.steps)}"
+            )
+            if not trigger_replan("checkpoint", reason):
+                return trace
+            i += 1
+            continue
+
+        if not config.enrichment and i == FORCE_ANSWER_AT - 1:
+            messages.append({
+                "role": "user",
+                "content": (
+                    "[SYSTEM: You have only 5 steps remaining. "
+                    "Submit your answer NOW using report_completion.]"
+                ),
+            })
+
+        i += 1
+
+    print(f"\n{CLI_RED}Max steps reached without completion{CLI_CLR}")
+    trace.total_steps = len(trace.steps)
+    trace.error = "Max steps reached without completion"
+    if not trace.failure_bucket:
+        trace.failure_bucket = "max_steps"
+    return trace
+
+
 def run_agent(
     provider,
     provider_name: str,
@@ -221,6 +804,40 @@ def run_agent(
     Otherwise falls through to the standard executor path.
     """
     config = config or DEFAULT_CONFIG
+
+    if config.hybrid:
+        if provider_name != "openai":
+            raise ValueError("Hybrid controller-executor mode currently requires the OpenAI provider.")
+        from src.agent_hybrid import run_agent_hybrid_openai
+        return run_agent_hybrid_openai(
+            provider, dispatcher, task_text,
+            system_prompt_override=system_prompt_override,
+            config=config,
+            tool_models=tool_models,
+            completion_cls=completion_cls,
+        )
+
+    if config.use_genome and config.planner_loop:
+        if provider_name == "openai":
+            return _run_openai_genome_planner_loop(
+                provider,
+                dispatcher,
+                task_text,
+                config=config,
+                system_prompt_override=system_prompt_override,
+                tool_models=tool_models,
+                completion_cls=completion_cls,
+            )
+        if provider_name == "anthropic":
+            return run_agent_anthropic(
+                provider,
+                dispatcher,
+                task_text,
+                system_prompt_override=system_prompt_override,
+                config=config,
+                tool_models=tool_models,
+                completion_cls=completion_cls,
+            )
 
     if not (config.use_genome and config.dual_executor):
         # Non-dual path: direct to standard executor
@@ -243,6 +860,7 @@ def run_agent(
 
     # --- Dual executor: planner decides lean vs complete ---
     from src.planner import run_planner
+    from src.taxonomy import run_taxonomy
 
     use_tree = tool_models is not None and "tree" in tool_models
 
@@ -257,9 +875,15 @@ def run_agent(
         warmup_context = warmup_text
         print(f"  {CLI_BLUE}Warmup: outline + {len(trust_chain)} trust chain files{CLI_CLR}")
 
-    # Single planner call
+    # Single taxonomy + planner call
+    taxonomy_result = run_taxonomy(
+        task_text,
+        warmup_context=warmup_context,
+        model=config.taxonomy_model,
+    )
     plan_result = run_planner(
         task_text,
+        taxonomy_result=taxonomy_result,
         warmup_context=warmup_context,
         model=config.planner_model,
     )
@@ -281,7 +905,11 @@ def run_agent(
             trust_chain=trust_chain,
         )
         trace.executor_mode = "lean"
+        trace.taxonomy_trace = list(taxonomy_result.taxonomy_trace)
+        trace.taxonomy_rounds = 1
+        trace.taxonomy_result = taxonomy_result.as_dict()
         trace.planner_trace = plan_result.planner_trace
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
         return trace
     else:
         print(f"  {CLI_BLUE}→ COMPLETE executor (genome mode){CLI_CLR}")
@@ -305,6 +933,10 @@ def run_agent(
                 pre_trust_chain=trust_chain,
             )
         trace.executor_mode = "complete"
+        trace.taxonomy_trace = list(taxonomy_result.taxonomy_trace)
+        trace.taxonomy_rounds = 1
+        trace.taxonomy_result = taxonomy_result.as_dict()
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
         return trace
 
 
@@ -342,7 +974,11 @@ def run_agent_anthropic(
     # Populate genome trace data
     if plan_result is not None:
         trace.genes_used = plan_result.gene_selection if plan_result.genes else []
+        trace.taxonomy_trace = list(plan_result.taxonomy_used.get("taxonomy_trace", []))
+        trace.taxonomy_rounds = 1 if plan_result.taxonomy_used else 0
+        trace.taxonomy_result = dict(plan_result.taxonomy_used)
         trace.planner_trace = plan_result.planner_trace
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
 
     messages = [{"role": "user", "content": task_text}]
 
@@ -428,12 +1064,12 @@ def run_agent_anthropic(
             if tool_name == "report_completion":
                 # Gate: reject and redirect if watchdog finds a problem
                 if watchdog is not None and gate_retries < config.watchdog_gate_retries:
-                    gate_correction = watchdog.check_final(task_text, trace.steps, tool_input)
-                    if gate_correction:
+                    gate_reject = watchdog.check_final(task_text, trace.steps, tool_input)
+                    if gate_reject:
                         gate_retries += 1
                         # 3rd reject → ESCALATE instead of another retry
                         if gate_retries >= config.watchdog_gate_retries and config.use_genome:
-                            escalate_reason = f"gate rejected {gate_retries}x: {gate_correction}"
+                            escalate_reason = f"gate rejected {gate_retries}x: {gate_reject.category}: {gate_reject.reason}"
                             print(f"  {CLI_RED}[GATE ESCALATE] {escalate_reason}{CLI_CLR}")
                             trace.watchdog_interventions.append(
                                 {"type": "gate_escalate", "reason": escalate_reason, "step": i + 1}
@@ -441,12 +1077,12 @@ def run_agent_anthropic(
                             trace.error = f"gate_escalate: {escalate_reason}"
                             trace.total_steps = len(trace.steps)
                             return trace  # caller handles replan
-                        print(f"  {CLI_RED}[GATE] {gate_correction}{CLI_CLR}")
+                        print(f"  {CLI_RED}[GATE:{gate_reject.category}] {gate_reject.reason}{CLI_CLR}")
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": tool_call.id,
                             "content": (
-                                f"[REDTEAM]: {gate_correction} "
+                                f"[REDTEAM]: {gate_reject.reason} "
                                 "Correct the issue and resubmit."
                             ),
                         })
@@ -516,19 +1152,19 @@ def run_agent_anthropic(
 
         # Watchdog: Haiku checks for stuck/looping behavior every N executed steps
         if watchdog is not None and watchdog.should_check(len(trace.steps)):
-            correction = watchdog.check(task_text, trace.steps)
-            if correction:
-                if correction.upper().startswith("ESCALATE:"):
-                    print(f"  {CLI_RED}[WATCHDOG ESCALATE] {correction}{CLI_CLR}")
+            escalation = watchdog.check_midstream(task_text, trace.steps)
+            if escalation:
+                correction = f"{escalation.category}: {escalation.reason}"
+                print(f"  {CLI_RED}[WATCHDOG ESCALATE] {correction}{CLI_CLR}")
+                if config.use_genome:
                     trace.watchdog_interventions.append(
                         {"type": "escalate", "reason": correction, "step": i + 1}
                     )
                     trace.error = f"watchdog_escalate: {correction}"
                     break  # exit step loop — caller handles replan
-                print(f"  {CLI_RED}[WATCHDOG] {correction}{CLI_CLR}")
-                messages.append({"role": "user", "content": f"[WATCHDOG]: {correction}"})
+                messages.append({"role": "user", "content": f"[WATCHDOG ESCALATE]: {correction}"})
                 trace.watchdog_interventions.append(
-                    {"type": "correction", "content": correction, "step": i + 1}
+                    {"type": "escalate", "reason": correction, "step": i + 1}
                 )
 
         # Budget warning (only if enrichment not active — enrichment handles this)
@@ -592,7 +1228,11 @@ def run_agent_openai(
     # Populate genome trace data
     if plan_result is not None:
         trace.genes_used = plan_result.gene_selection if plan_result.genes else []
+        trace.taxonomy_trace = list(plan_result.taxonomy_used.get("taxonomy_trace", []))
+        trace.taxonomy_rounds = 1 if plan_result.taxonomy_used else 0
+        trace.taxonomy_result = dict(plan_result.taxonomy_used)
         trace.planner_trace = plan_result.planner_trace
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
 
     # Model selection: genome mode uses planner's model_tier, legacy uses complex_model
     if plan_result is not None and hasattr(provider, "model_override"):
@@ -693,6 +1333,7 @@ def run_agent_openai(
 
         # Process ALL tool calls
         completed = False
+        handled_tool_call_ids: set[str] = set()
 
         for tc in msg.tool_calls:
             tool_name = tc.function.name
@@ -708,11 +1349,11 @@ def run_agent_openai(
             if tool_name == "report_completion":
                 # Gate: reject and redirect if watchdog finds a problem
                 if watchdog is not None and gate_retries < config.watchdog_gate_retries:
-                    gate_correction = watchdog.check_final(task_text, trace.steps, tool_input)
-                    if gate_correction:
+                    gate_reject = watchdog.check_final(task_text, trace.steps, tool_input)
+                    if gate_reject:
                         gate_retries += 1
                         if gate_retries >= config.watchdog_gate_retries and config.use_genome:
-                            escalate_reason = f"gate rejected {gate_retries}x: {gate_correction}"
+                            escalate_reason = f"gate rejected {gate_retries}x: {gate_reject.category}: {gate_reject.reason}"
                             print(f"  {CLI_RED}[GATE ESCALATE] {escalate_reason}{CLI_CLR}")
                             trace.watchdog_interventions.append(
                                 {"type": "gate_escalate", "reason": escalate_reason, "step": i + 1}
@@ -720,15 +1361,16 @@ def run_agent_openai(
                             trace.error = f"gate_escalate: {escalate_reason}"
                             trace.total_steps = len(trace.steps)
                             return trace
-                        print(f"  {CLI_RED}[GATE] {gate_correction}{CLI_CLR}")
+                        print(f"  {CLI_RED}[GATE:{gate_reject.category}] {gate_reject.reason}{CLI_CLR}")
                         messages.append({
                             "role": "tool",
                             "content": (
-                                f"[REDTEAM]: {gate_correction} "
+                                f"[REDTEAM]: {gate_reject.reason} "
                                 "Correct the issue and resubmit."
                             ),
                             "tool_call_id": tc.id,
                         })
+                        handled_tool_call_ids.add(tc.id)
                         break  # don't accept completion; re-enter outer loop
 
                 # Self-escalation: executor detected a conflict → re-plan
@@ -747,6 +1389,7 @@ def run_agent_openai(
                 completion = completion_cls.model_validate(tool_input)
                 result_text = dispatcher(completion)
                 messages.append({"role": "tool", "content": result_text, "tool_call_id": tc.id})
+                handled_tool_call_ids.add(tc.id)
                 trace.steps.append(StepRecord(
                     tool_name=tool_name,
                     tool_input=tool_input,
@@ -778,6 +1421,15 @@ def run_agent_openai(
 
             # OpenAI format: each tool result is a separate message
             messages.append({"role": "tool", "content": result_text, "tool_call_id": tc.id})
+            handled_tool_call_ids.add(tc.id)
+
+        for tc in msg.tool_calls:
+            if tc.id not in handled_tool_call_ids:
+                messages.append({
+                    "role": "tool",
+                    "content": "[EXECUTOR]: skipped because another tool call in this batch completed or redirected the task.",
+                    "tool_call_id": tc.id,
+                })
 
         if completed:
             trace.total_steps = len(trace.steps)
@@ -785,20 +1437,17 @@ def run_agent_openai(
 
         # Watchdog: Haiku checks for stuck/looping behavior every N executed steps
         if watchdog is not None and watchdog.should_check(len(trace.steps)):
-            correction = watchdog.check(task_text, trace.steps)
-            if correction:
-                if correction.upper().startswith("ESCALATE:"):
-                    print(f"  {CLI_RED}[WATCHDOG ESCALATE] {correction}{CLI_CLR}")
-                    trace.watchdog_interventions.append(
-                        {"type": "escalate", "reason": correction, "step": i + 1}
-                    )
-                    trace.error = f"watchdog_escalate: {correction}"
-                    break
-                print(f"  {CLI_RED}[WATCHDOG] {correction}{CLI_CLR}")
-                messages.append({"role": "user", "content": f"[WATCHDOG]: {correction}"})
+            escalation = watchdog.check_midstream(task_text, trace.steps)
+            if escalation:
+                correction = f"{escalation.category}: {escalation.reason}"
+                print(f"  {CLI_RED}[WATCHDOG ESCALATE] {correction}{CLI_CLR}")
                 trace.watchdog_interventions.append(
-                    {"type": "correction", "content": correction, "step": i + 1}
+                    {"type": "escalate", "reason": correction, "step": i + 1}
                 )
+                trace.error = f"watchdog_escalate: {correction}"
+                if config.use_genome:
+                    break
+                messages.append({"role": "user", "content": f"[WATCHDOG ESCALATE]: {correction}"})
 
         # Budget warning (only if enrichment not active)
         if not config.enrichment and i == FORCE_ANSWER_AT - 1:
