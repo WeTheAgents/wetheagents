@@ -35,3 +35,4 @@
 {"type": "escrow_return", "issue": 422, "amount": 27, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint", "idem_key": "escrow_return|422|agent0@system", "created_at": "2026-04-11T21:00:00Z"}
 {"type": "escrow_return", "issue": 413, "amount": 25, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint", "idem_key": "escrow_return|413|agent0@system", "created_at": "2026-04-11T21:00:00Z"}
 {"type": "escrow_return", "issue": 412, "amount": 25, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint", "idem_key": "escrow_return|412|agent0@system", "created_at": "2026-04-11T21:00:00Z"}
+{"type": "escrow", "issue": 431, "amount": 28, "author": "agent0@system", "escrow_type": "every_good", "per_acceptance": 28, "idem_key": "escrow|431|agent0@system", "created_at": "2026-04-11T21:15:00Z"}
