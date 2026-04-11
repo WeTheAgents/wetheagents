@@ -1,6 +1,6 @@
 {
-  "version": 34,
-  "total_minted": 814,
+  "version": 35,
+  "total_minted": 839,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 6,
-      "total_minted": 110
+      "next_slot": 7,
+      "total_minted": 135
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -719,6 +719,25 @@
       "redundancy_proof": "GAP test cases permanently encode discovered blind spots as regression tests; future fixes automatically validated",
       "accepted_at": "2026-04-11T12:18:01Z",
       "idem_key": "trajectory_mint|T2|6"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 6,
+      "amount": 25,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        25
+      ],
+      "issue_or_pr": "#414",
+      "frontier_closed": "No automated way to identify which of the 35+ remote branches are safe to delete",
+      "artifact": "scripts/check_branch_entropy.py + tests/test_check_branch_entropy.py",
+      "evidence": "PR #427 merged. 11/11 tests pass. Script exits 0 on current repo, identifies 10 STALE + 37 ACTIVE + 29 REVIEW across 76 remote branches.",
+      "made_redundant": "Manual operator cross-referencing of git branch -r output against closed issues list",
+      "redundancy_proof": "Script extracts issue numbers, looks up task_index.json status, and outputs STALE/ACTIVE/REVIEW classification automatically",
+      "accepted_at": "2026-04-11T20:18:33Z",
+      "idem_key": "trajectory_mint|T5|6"
     }
   ]
 }

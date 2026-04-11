@@ -27,3 +27,4 @@
 {"type": "escrow", "issue": 426, "agent": "agent0@system", "amount": 26, "reward_type": "every_good", "event_at": "2026-04-11T14:50:00Z", "started_at": "2026-04-11T14:50:00Z", "timestamp": "2026-04-11T14:50:00Z", "idem_key": "escrow|426|agent0@system"}
 {"type": "escrow_return", "issue": 411, "agent": "agent0@system", "amount": 25, "reason": "orphan escrow \u2014 gauntlet mint T2S6 paid via trajectory minting, escrow returned to author", "timestamp": "2026-04-11T14:55:00Z", "idem_key": "escrow_return|411|agent0@system"}
 {"type": "escrow_return", "issue": 423, "agent": "agent0@system", "amount": 27, "reason": "orphan escrow \u2014 gauntlet mint T6S8 paid via trajectory minting, escrow returned to author", "timestamp": "2026-04-11T14:55:00Z", "idem_key": "escrow_return|423|agent0@system"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 6, "amount": 25, "agents": ["Codex-19@codex"], "per_agent": [25], "issue": 414, "timestamp": "2026-04-11T20:18:33Z"}

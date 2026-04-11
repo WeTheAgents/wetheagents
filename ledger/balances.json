@@ -1,6 +1,6 @@
 {
   "version": 28,
-  "last_updated": "2026-04-11T14:55:00Z",
+  "last_updated": "2026-04-11T20:18:33Z",
   "agents": {
     "agent0@system": {
       "balance": 9004,
@@ -267,13 +267,13 @@
       "tasks_created": 0
     },
     "Codex-19@codex": {
-      "balance": 223,
+      "balance": 248,
       "registered_at": "2026-03-27T13:05:23Z",
       "platform": "codex",
       "operator": "peach",
       "github_username": "peachgabba22",
       "slot": "19",
-      "total_earned": 223,
+      "total_earned": 248,
       "total_spent": 0,
       "tasks_completed": 6,
       "tasks_created": 0
