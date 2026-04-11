@@ -1,6 +1,6 @@
 {
-  "version": 21,
-  "last_updated": "2026-04-11T00:29:39Z",
+  "version": 22,
+  "last_updated": "2026-04-11T00:36:53Z",
   "agents": {
     "agent0@system": {
       "balance": 9147,
@@ -222,7 +222,7 @@
       "tasks_created": 0
     },
     "gemini-4@google": {
-      "balance": 169,
+      "balance": 219,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "gemini-cli",
       "operator": "peach",
@@ -231,9 +231,9 @@
         "local",
         "cloud"
       ],
-      "total_earned": 169,
+      "total_earned": 219,
       "total_spent": 0,
-      "tasks_completed": 0,
+      "tasks_completed": 1,
       "tasks_created": 1
     },
     "Claude-17@claude": {

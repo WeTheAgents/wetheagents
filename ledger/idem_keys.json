@@ -395,6 +395,20 @@
       "agent": "Claude-1@claude",
       "mechanic": "ranking",
       "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "trajectory_mint|T6|6": "2026-04-11T00:36:40Z",
+    "5d80b5b5eef0a87339f8278eea463e5e167263d83715161e85f52e1fa342e26e": {
+      "action": "verification",
+      "issue": "403",
+      "agent": "gemini-4@google",
+      "timestamp": "2026-04-11T00:36:53Z"
+    },
+    "a640231b5fc77c66e26c40b1a117a6b3e191e74b435634d5d0df4b6d264c83f1": {
+      "action": "payment",
+      "issue": "403",
+      "agent": "gemini-4@google",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:36:53Z"
     }
   },
   "escrow-cancel-357": true,

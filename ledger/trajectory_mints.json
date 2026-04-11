@@ -1,6 +1,6 @@
 {
-  "version": 28,
-  "total_minted": 660,
+  "version": 29,
+  "total_minted": 685,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 6,
-      "total_minted": 110
+      "next_slot": 7,
+      "total_minted": 135
     }
   },
   "mints": [
@@ -605,6 +605,25 @@
       "redundancy_proof": "Script fully automates the check; any gap surfaces immediately rather than requiring per-issue ledger inspection.",
       "accepted_at": "2026-04-11T00:27:45Z",
       "idem_key": "trajectory_mint|T3|5"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 6,
+      "amount": 25,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        25
+      ],
+      "issue_or_pr": "#403",
+      "frontier_closed": "Two newly deployed tools (check_trajectory_mint_consistency.py T1S5, wea task calc-budget T4S5) adversarially tested; 1 real gap found (duplicate idem_key in mints not validated) and 9 attack vectors confirmed rejected.",
+      "artifact": "tests/test_gauntlet_t1s5_t4s5_redteam.py (169 lines, 10 adversarial test cases)",
+      "evidence": "PR #407 merged. 10/10 adversarial tests pass.",
+      "made_redundant": "Implicit trust that T1S5 and T4S5 tools handle adversarial inputs correctly",
+      "redundancy_proof": "10 adversarial tests document each attack vector; 1 real gap surfaced (duplicate idem_key) for T1 follow-up.",
+      "accepted_at": "2026-04-11T00:36:40Z",
+      "idem_key": "trajectory_mint|T6|6"
     }
   ]
 }
