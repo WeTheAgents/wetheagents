@@ -170,12 +170,15 @@ genes:
       4. If the task is complete from current evidence, tell the executor to report_completion rather than continue searching.
       5. For repair/regression tasks, instruct the executor to read the workflow docs, current config, audit file, and 2-3 representative bad records, then identify the minimal write set and act. Do NOT repeatedly reread the same evidence.
       6. For outbox email, brief the executor to read outbox/README.MD and seq.json; if seq has {"id": N}, write outbox/N.json and then update seq to {"id": N+1}, unless the README explicitly says otherwise.
-        7. For account-manager queries, include contact_lookup and overlay_query even when the query is simple/lean. Brief the executor to search contacts/ for both name orders, read the matching manager contact, and include that contact file in grounding_refs while keeping the answer body to the requested account names.
-        8. For generic inbox/email tasks, include contact_lookup, policy_compliance, capability_boundaries, inbox_processing, overlay_inbox_email, and planning_inbox. Brief the executor that invoice resend requests must clarify if the sender's account differs from the requested invoice account, and that outbox seq {"id": N} means write outbox/N.json.
-        9. Avoid vague instructions like "figure it out"; specify the final output expected and any calculation method.
-        10. CHECKPOINT REPLANS are sparse course corrections, not full restarts. Either confirm the current plan, sharply narrow the remaining evidence set, switch route/outcome, or tell the executor to stop discovery and report now.
-        11. Never send the executor to reread the same files unless you can name the single new missing fact that those files would provide.
-        12. After enough evidence exists, prefer "report now" over another exploration cycle.
+      7. For external-system tasks (Salesforce, HubSpot, live calendar systems, Slack, Jira, etc.), decide early: if the vault outline shows no internal mechanism/config for that system, brief "UNSUPPORTED: STOP" rather than asking the executor to improvise.
+      8. For calendar invites specifically, treat them as supported only when the outline shows calendar/, meetings/, invites/, drafts/, or an explicit proxy workflow. If there is no such mechanism, the expected target outcome is OUTCOME_NONE_UNSUPPORTED, not clarification.
+      9. For account-manager queries, include contact_lookup and overlay_query even when the query is simple/lean. Brief the executor to search contacts/ for both name orders, read the matching manager contact, and include that contact file in grounding_refs while keeping the answer body to the requested account names.
+      10. For generic inbox/email tasks, include contact_lookup, policy_compliance, capability_boundaries, inbox_processing, overlay_inbox_email, and planning_inbox. If the inbox message requests an invoice for an account different from the sender's verified account, brief clarification/deny rather than send. If the message uses Channel:/Handle:/OTP:, brief the executor to treat it as a channel-auth workflow, consume the OTP artifact if policy uses one, and do not delete the inbox item unless the policy explicitly says so.
+      11. For exact date/capture queries ("captured N days ago"), brief the executor that this is an exact lookup. If the computed date has no exact match, target OUTCOME_NONE_CLARIFICATION; do not approximate.
+      12. Avoid vague instructions like "figure it out"; specify the final output expected and any calculation method.
+      13. CHECKPOINT REPLANS are sparse course corrections, not full restarts. Either confirm the current plan, sharply narrow the remaining evidence set, switch route/outcome, or tell the executor to stop discovery and report now.
+      14. Never send the executor to reread the same files unless you can name the single new missing fact that those files would provide.
+      15. After enough evidence exists, prefer "report now" over another exploration cycle.
   replan_strategy:
     weight: 1.0
     content: |
@@ -206,12 +209,15 @@ genes:
       - Watchdog action brake? → stop unsafe mutation, prefer the minimal remaining write set, or report/deny if no safe mutation remains
       - Watchdog final gate? → fix the exact answer shape/outcome/completeness issue without reopening broad exploration
       - Checkpoint replan? → either confirm the current path or sharply narrow the remaining evidence set
+      - External action with no mechanism? → switch to OUTCOME_NONE_UNSUPPORTED and tell the executor to stop exploring
+      - Generic inbox that reveals domain spoofing, sender/account mismatch, or OTP/channel auth failure? → switch to clarification/deny and tell the executor not to send/delete
 
       CRITICAL:
       - Your re-plan brief must contain a CONCRETE ACTION, not just "resolve the conflict". Say exactly what the executor should do next.
       - After unsafe side effects, default to stop further mutation and report clarification/deny unless exact safe cleanup is justified by known state.
       - For structured-file repairs, require a full-file read before any rewrite. Do not ask the executor to heal JSON/YAML/record files via blind range writes.
       - If the evidence is already sufficient, explicitly tell the executor to report now.
+      - Use one of these finish-oriented forms when appropriate: "ACT NOW", "REPORT OUTCOME_OK NOW", "REPORT OUTCOME_NONE_CLARIFICATION NOW", "REPORT OUTCOME_DENIED_SECURITY NOW", or "UNSUPPORTED: STOP".
 
       Set is_replan=true in your output.
   self_roast:

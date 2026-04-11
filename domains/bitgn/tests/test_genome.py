@@ -2,6 +2,7 @@
 
 import os
 import sys
+from dataclasses import asdict
 
 # Ensure project root is on sys.path
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,6 +19,8 @@ from src.genome import (
     save_genome,
     validate_genome,
 )
+from src.agent import _should_rerun_taxonomy
+from src.planner import run_planner
 from src.prompts import (
     _ROUTE_OVERLAYS,
     _STATIC_INSTRUCTIONS,
@@ -25,6 +28,7 @@ from src.prompts import (
     _WORK_METHOD_WARM,
     build_system_prompt,
 )
+from src.taxonomy import TaxonomyResult, _parse_taxonomy_result, run_taxonomy
 
 
 def _normalize(text: str) -> str:
@@ -56,6 +60,13 @@ def test_watchdog_genome_loads():
     assert genome.name == "watchdog"
     assert len(genome.genes) > 0
     print(f"  OK: watchdog genome loaded, {len(genome.genes)} genes")
+
+
+def test_taxonomy_genome_loads():
+    genome = load_genome("taxonomy")
+    assert genome.name == "taxonomy"
+    assert len(genome.genes) > 0
+    print(f"  OK: taxonomy genome loaded, {len(genome.genes)} genes")
 
 
 def test_executor_genome_validates():
@@ -236,11 +247,152 @@ def test_task_injection():
     print("  OK: task injection at end of prompt")
 
 
+def test_taxonomy_parse_valid_json():
+    raw = """{
+      "route_candidate": "inbox_chat",
+      "task_family": "process_task",
+      "auth_mode": "channel_otp",
+      "match_policy": "exact",
+      "side_effect_policy": "delete_if_policy_allows",
+      "external_support": "vault_native",
+      "risk_flags": ["otp", "handle_trust"],
+      "requires_exact_match": true,
+      "inbox_mode": "chat_inbox",
+      "deletion_default": "allow_process",
+      "reasoning": "Channel message with OTP."
+    }"""
+    result = _parse_taxonomy_result(raw)
+    assert result.route_candidate == "inbox_chat"
+    assert result.auth_mode == "channel_otp"
+    assert result.requires_exact_match is True
+    assert result.risk_flags == ["otp", "handle_trust"]
+
+
+def test_taxonomy_parse_fenced_json():
+    raw = """```json
+    {
+      "route_candidate": "query",
+      "task_family": "query",
+      "auth_mode": "none",
+      "match_policy": "role_resolution",
+      "side_effect_policy": "no_delete",
+      "external_support": "maybe_proxy",
+      "risk_flags": [],
+      "requires_exact_match": false,
+      "inbox_mode": "none",
+      "deletion_default": "forbid",
+      "reasoning": "Lookup."
+    }
+    ```"""
+    result = _parse_taxonomy_result(raw)
+    assert result.route_candidate == "query"
+    assert result.match_policy == "role_resolution"
+
+
+def test_taxonomy_parse_invalid_fallback():
+    result = _parse_taxonomy_result("not json")
+    assert result.route_candidate == "beyond"
+    assert "taxonomy_fallback" in result.risk_flags
+
+
+def test_taxonomy_parse_unknown_values_default_conservatively():
+    raw = """{
+      "route_candidate": "weird",
+      "task_family": "mystery",
+      "auth_mode": "something",
+      "match_policy": "loose",
+      "side_effect_policy": "whatever",
+      "external_support": "strange",
+      "risk_flags": "oops",
+      "requires_exact_match": true,
+      "inbox_mode": "mailbox",
+      "deletion_default": "yes",
+      "reasoning": "Unknown values"
+    }"""
+    result = _parse_taxonomy_result(raw)
+    assert result.route_candidate == "beyond"
+    assert result.task_family == "process_task"
+    assert result.auth_mode == "none"
+    assert result.match_policy == "exact"
+    assert result.side_effect_policy == "no_delete"
+    assert result.external_support == "maybe_proxy"
+    assert result.inbox_mode == "none"
+    assert result.deletion_default == "forbid"
+    assert result.risk_flags == []
+
+
+def test_run_planner_carries_taxonomy_and_requires_override_reason(monkeypatch):
+    taxonomy = TaxonomyResult(
+        route_candidate="query",
+        task_family="query",
+        auth_mode="none",
+        match_policy="exact",
+        side_effect_policy="no_delete",
+        external_support="maybe_proxy",
+        risk_flags=[],
+        requires_exact_match=False,
+        inbox_mode="none",
+        deletion_default="forbid",
+        reasoning="Read only lookup",
+    )
+
+    def fake_call(prompt: str, model: str) -> str:
+        assert "MANDATORY TASK TAXONOMY INPUT" in prompt
+        assert '"route_candidate": "query"' in prompt
+        return """{
+          "route": "vault_ops",
+          "complexity": "simple",
+          "model_tier": "action",
+          "executor_mode": "complete",
+          "genes": ["identity"],
+          "brief": "Planner decided this is actually a write.",
+          "taxonomy_override_reason": "Task requests creating an artifact."
+        }"""
+
+    monkeypatch.setattr("src.planner._call_planner_model", fake_call)
+    result = run_planner("Create a reminder", taxonomy_result=taxonomy, warmup_context="outbox/")
+    assert result.taxonomy_used["route_candidate"] == "query"
+    assert result.taxonomy_override is True
+    assert result.taxonomy_override_reason == "Task requests creating an artifact."
+
+
+def test_taxonomy_replan_policy_helpers():
+    assert _should_rerun_taxonomy("checkpoint", "checkpoint at step 7") is False
+    assert _should_rerun_taxonomy("conflict", "policy conflict") is True
+    assert _should_rerun_taxonomy("final_gate", "outcome mismatch") is True
+    assert _should_rerun_taxonomy("checkpoint", "route mismatch detected") is True
+
+
+def test_run_taxonomy_records_trace(monkeypatch):
+    def fake_call(prompt: str, model: str) -> str:
+        assert "TASK TO CLASSIFY" in prompt
+        return """{
+          "route_candidate": "inbox_email",
+          "task_family": "process_task",
+          "auth_mode": "sender_verify",
+          "match_policy": "exact",
+          "side_effect_policy": "delete_if_policy_allows",
+          "external_support": "vault_native",
+          "risk_flags": ["sender_verification"],
+          "requires_exact_match": false,
+          "inbox_mode": "email_inbox",
+          "deletion_default": "allow_process",
+          "reasoning": "Inbox processing flow."
+        }"""
+
+    monkeypatch.setattr("src.taxonomy._call_taxonomy_model", fake_call)
+    result = run_taxonomy("Process inbox", warmup_context="inbox/")
+    assert result.route_candidate == "inbox_email"
+    assert len(result.taxonomy_trace) == 1
+    assert result.taxonomy_trace[0]["step"] == "taxonomy"
+
+
 def main():
     tests = [
         test_executor_genome_loads,
         test_planner_genome_loads,
         test_watchdog_genome_loads,
+        test_taxonomy_genome_loads,
         test_executor_genome_validates,
         test_content_preservation,
         test_route_overlay_selection,
@@ -250,6 +402,13 @@ def main():
         test_gene_selection_override,
         test_save_load_roundtrip,
         test_task_injection,
+        test_taxonomy_parse_valid_json,
+        test_taxonomy_parse_fenced_json,
+        test_taxonomy_parse_invalid_fallback,
+        test_taxonomy_parse_unknown_values_default_conservatively,
+        test_run_planner_carries_taxonomy_and_requires_override_reason,
+        test_taxonomy_replan_policy_helpers,
+        test_run_taxonomy_records_trace,
     ]
 
     print(f"\n{'='*60}")

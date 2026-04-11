@@ -58,6 +58,7 @@ SEASONS = [
     2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,  # sports-statistics.com
     2021,  # sports-statistics.com
     2022, 2023, 2024, 2025,  # ArnavSaraogi JSON + SDQL merge
+    2026,  # ESPN scoreboard API (data/fetch_2026/)
 ]
 
 

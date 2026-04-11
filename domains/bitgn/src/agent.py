@@ -120,21 +120,22 @@ def _prepare_agent(
     # --- Genome mode: full Planner agent ---
     if plan_result is None and config.use_genome:
         from src.planner import run_planner
+        from src.taxonomy import run_taxonomy
 
+        taxonomy_result = run_taxonomy(
+            task_text,
+            warmup_context=warmup_context,
+            model=config.taxonomy_model,
+        )
         plan_result = run_planner(
             task_text,
+            taxonomy_result=taxonomy_result,
             warmup_context=warmup_context,
             model=config.planner_model,
         )
     if config.use_genome and plan_result is not None:
         from src.genome import assemble_prompt as genome_assemble, load_genome
-        # Select execution model based on planner's model_tier
-        if plan_result.model_tier == "action":
-            exec_model = config.action_model
-        elif plan_result.complexity == "complex":
-            exec_model = config.deliberation_complex_model
-        else:
-            exec_model = config.deliberation_model
+        exec_model = _executor_model_for_plan(config, plan_result)
         print(
             f"  {CLI_BLUE}Planner: {plan_result.route} "
             f"({plan_result.complexity}, {plan_result.model_tier}→{exec_model}) "
@@ -206,6 +207,8 @@ def _prepare_agent(
 
 
 def _executor_model_for_plan(config: AgentConfig, plan_result) -> str:
+    if config.disable_executor_tier_routing:
+        return config.executor_fixed_model
     if plan_result.model_tier == "action":
         return config.action_model
     if plan_result.complexity == "complex":
@@ -218,6 +221,44 @@ def _plan_summary(plan_result) -> str:
         f"route={plan_result.route}; complexity={plan_result.complexity}; "
         f"model_tier={plan_result.model_tier}; executor_mode={plan_result.executor_mode}; "
         f"brief={plan_result.brief}"
+    )
+
+
+def _taxonomy_replan_context(reason: str, steps: list[StepRecord]) -> str:
+    lines = [f"REPLAN REASON: {reason}"]
+    if steps:
+        lines.append("RECENT EXECUTOR TRACE:")
+        for i, step in enumerate(steps[-12:], start=1):
+            args = ", ".join(
+                f"{k}={str(v)[:40]!r}"
+                for k, v in step.tool_input.items()
+                if k != "tool"
+            )
+            lines.append(f"  {i}. {step.tool_name}({args})")
+            if step.output:
+                lines.append(f"     -> {step.output[:120].replace(chr(10), ' ')}")
+    return "\n".join(lines)
+
+
+def _should_rerun_taxonomy(kind: str, reason: str) -> bool:
+    if kind in {"conflict", "action_brake", "final_gate"}:
+        return True
+    lowered = reason.lower()
+    return "route mismatch" in lowered or "route_mismatch" in lowered
+
+
+def _record_taxonomy_override(trace: TaskTrace, plan_result, *, planner_round: int, phase: str) -> None:
+    if not getattr(plan_result, "taxonomy_override", False):
+        return
+    trace.taxonomy_overrides.append(
+        {
+            "planner_round": planner_round,
+            "phase": phase,
+            "route_candidate": plan_result.taxonomy_used.get("route_candidate", ""),
+            "final_route": plan_result.route,
+            "reason": plan_result.taxonomy_override_reason,
+            "taxonomy_summary": dict(plan_result.taxonomy_used),
+        }
     )
 
 
@@ -289,6 +330,7 @@ def _run_openai_genome_planner_loop(
     completion_cls: type | None,
 ) -> TaskTrace:
     from src.planner import format_executor_trace_for_replan, run_planner
+    from src.taxonomy import run_taxonomy
 
     completion_cls = completion_cls or ReportCompletion
     use_tree = tool_models is not None and "tree" in tool_models
@@ -304,8 +346,14 @@ def _run_openai_genome_planner_loop(
         warmup_context = warmup_text
         print(f"  {CLI_BLUE}Warmup: outline + {len(trust_chain)} trust chain files{CLI_CLR}")
 
+    taxonomy_result = run_taxonomy(
+        task_text,
+        warmup_context=warmup_context,
+        model=config.taxonomy_model,
+    )
     plan_result = run_planner(
         task_text,
+        taxonomy_result=taxonomy_result,
         warmup_context=warmup_context,
         model=config.planner_model,
     )
@@ -327,6 +375,7 @@ def _run_openai_genome_planner_loop(
         Watchdog(
             model=config.watchdog_model,
             gate_model=config.watchdog_gate_model,
+            deterministic_first=config.watchdog_deterministic_first,
             check_every=config.watchdog_check_every,
             min_step=config.watchdog_min_step,
         )
@@ -352,8 +401,16 @@ def _run_openai_genome_planner_loop(
 
     trace = TaskTrace(task_id="", instruction=task_text, executor_mode="complete")
     trace.genes_used = plan_result.gene_selection if plan_result.genes else []
+    trace.taxonomy_trace = list(taxonomy_result.taxonomy_trace)
+    trace.taxonomy_rounds = 1
+    trace.taxonomy_result = taxonomy_result.as_dict()
     trace.planner_trace = list(plan_result.planner_trace)
     trace.planner_rounds = 1
+    trace.planner_model = config.planner_model
+    trace.executor_model = _executor_model_for_plan(config, plan_result)
+    trace.executor_tier_routing_disabled = config.disable_executor_tier_routing
+    trace.watchdog_mode = "deterministic-first" if config.watchdog_deterministic_first else "llm-midstream"
+    _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
 
     messages = [{"role": "user", "content": task_text}]
 
@@ -361,20 +418,77 @@ def _run_openai_genome_planner_loop(
     action_reject_count = 0
     final_reject_category = ""
     final_reject_count = 0
-    replans_used = 0
+    event_replans_used = 0
+    checkpoint_replans_used = 0
 
     def trigger_replan(kind: str, reason: str) -> bool:
-        nonlocal plan_result, system_prompt, replans_used
-        if replans_used >= config.max_escalations:
-            trace.error = f"planner_loop_exhausted: {kind}: {reason}"
-            trace.total_steps = len(trace.steps)
-            return False
+        nonlocal plan_result, system_prompt, event_replans_used, checkpoint_replans_used, taxonomy_result
+        if kind == "checkpoint":
+            if checkpoint_replans_used >= config.planner_checkpoint_limit:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "[PLANNER REPLAN]: STOP DISCOVERY. Use the current evidence and either act now "
+                            "with the minimal remaining write set or report the correct final outcome now.\n"
+                            "[REPLAN KIND]: checkpoint_force_finish\n"
+                            "Previous exploratory plan is obsolete. Do not reopen broad discovery."
+                        ),
+                    }
+                )
+                trace.replan_events.append(
+                    {
+                        "kind": "checkpoint_force_finish",
+                        "reason": reason,
+                        "route": plan_result.route,
+                        "model_tier": plan_result.model_tier,
+                        "executor_mode": plan_result.executor_mode,
+                    }
+                )
+                return True
+            checkpoint_replans_used += 1
+        else:
+            if event_replans_used >= config.max_escalations:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "[PLANNER REPLAN]: STOP DISCOVERY. Use the current evidence and report the best supported "
+                            "final outcome now. Do not start a new search branch.\n"
+                            "[REPLAN KIND]: event_force_finish"
+                        ),
+                    }
+                )
+                trace.replan_events.append(
+                    {
+                        "kind": "event_force_finish",
+                        "reason": reason,
+                        "route": plan_result.route,
+                        "model_tier": plan_result.model_tier,
+                        "executor_mode": plan_result.executor_mode,
+                    }
+                )
+                return True
+            event_replans_used += 1
 
-        replans_used += 1
         current_summary = _plan_summary(plan_result)
         relevant_steps = trace.steps[-12:] if trace.steps else []
+        taxonomy_for_plan = taxonomy_result
+        if _should_rerun_taxonomy(kind, reason):
+            taxonomy_for_plan = run_taxonomy(
+                task_text,
+                warmup_context=warmup_context,
+                model=config.taxonomy_model,
+                prior_taxonomy=taxonomy_result,
+                replan_context=_taxonomy_replan_context(reason, relevant_steps),
+            )
+            taxonomy_result = taxonomy_for_plan
+            trace.taxonomy_rounds += 1
+            trace.taxonomy_trace.extend(taxonomy_for_plan.taxonomy_trace)
+            trace.taxonomy_result = taxonomy_for_plan.as_dict()
         replan_result = run_planner(
             task_text,
+            taxonomy_result=taxonomy_for_plan,
             warmup_context=warmup_context,
             model=config.planner_model,
             executor_trace=format_executor_trace_for_replan(relevant_steps),
@@ -393,6 +507,8 @@ def _run_openai_genome_planner_loop(
                 "route": replan_result.route,
                 "model_tier": replan_result.model_tier,
                 "executor_mode": replan_result.executor_mode,
+                "checkpoint_replans_used": checkpoint_replans_used,
+                "event_replans_used": event_replans_used,
             }
         )
         if replan_result.genes:
@@ -408,6 +524,7 @@ def _run_openai_genome_planner_loop(
         )
         if hasattr(provider, "model_override"):
             provider.model_override = _executor_model_for_plan(config, replan_result)
+        trace.executor_model = _executor_model_for_plan(config, replan_result)
         messages.append(
             {
                 "role": "user",
@@ -423,6 +540,7 @@ def _run_openai_genome_planner_loop(
             f"({replan_result.complexity}, {replan_result.model_tier}) — "
             f"{replan_result.brief[:80]}{CLI_CLR}"
         )
+        _record_taxonomy_override(trace, replan_result, planner_round=trace.planner_rounds, phase=f"replan:{kind}")
         return True
 
     i = 0
@@ -513,6 +631,7 @@ def _run_openai_genome_planner_loop(
                     "tool_call_id": tc.id,
                 })
                 handled_tool_call_ids.add(tc.id)
+                trace.failure_bucket = action_reject.category
                 if action_reject_count >= config.watchdog_gate_retries:
                     pending_replan = ("action_brake", f"{action_reject.category}: {action_reject.reason}")
                 break
@@ -543,6 +662,7 @@ def _run_openai_genome_planner_loop(
                         "tool_call_id": tc.id,
                     })
                     handled_tool_call_ids.add(tc.id)
+                    trace.failure_bucket = gate_reject.category
                     if final_reject_count >= config.watchdog_gate_retries:
                         pending_replan = ("final_gate", f"{gate_reject.category}: {gate_reject.reason}")
                     break
@@ -552,12 +672,14 @@ def _run_openai_genome_planner_loop(
                     conflict_answer = tool_input.get("answer", "")
                     print(f"  {CLI_BLUE}[CONFLICT] {conflict_answer[:80]}{CLI_CLR}")
                     pending_replan = ("conflict", conflict_answer)
+                    trace.failure_bucket = "conflict"
                     break
 
                 completion = completion_cls.model_validate(tool_input)
                 result_text = dispatcher(completion)
                 messages.append({"role": "tool", "content": result_text, "tool_call_id": tc.id})
                 handled_tool_call_ids.add(tc.id)
+                trace.final_completion_snapshot = dict(tool_input)
                 trace.steps.append(StepRecord(
                     tool_name=tool_name,
                     tool_input=tool_input,
@@ -661,6 +783,8 @@ def _run_openai_genome_planner_loop(
     print(f"\n{CLI_RED}Max steps reached without completion{CLI_CLR}")
     trace.total_steps = len(trace.steps)
     trace.error = "Max steps reached without completion"
+    if not trace.failure_bucket:
+        trace.failure_bucket = "max_steps"
     return trace
 
 
@@ -736,6 +860,7 @@ def run_agent(
 
     # --- Dual executor: planner decides lean vs complete ---
     from src.planner import run_planner
+    from src.taxonomy import run_taxonomy
 
     use_tree = tool_models is not None and "tree" in tool_models
 
@@ -750,9 +875,15 @@ def run_agent(
         warmup_context = warmup_text
         print(f"  {CLI_BLUE}Warmup: outline + {len(trust_chain)} trust chain files{CLI_CLR}")
 
-    # Single planner call
+    # Single taxonomy + planner call
+    taxonomy_result = run_taxonomy(
+        task_text,
+        warmup_context=warmup_context,
+        model=config.taxonomy_model,
+    )
     plan_result = run_planner(
         task_text,
+        taxonomy_result=taxonomy_result,
         warmup_context=warmup_context,
         model=config.planner_model,
     )
@@ -774,7 +905,11 @@ def run_agent(
             trust_chain=trust_chain,
         )
         trace.executor_mode = "lean"
+        trace.taxonomy_trace = list(taxonomy_result.taxonomy_trace)
+        trace.taxonomy_rounds = 1
+        trace.taxonomy_result = taxonomy_result.as_dict()
         trace.planner_trace = plan_result.planner_trace
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
         return trace
     else:
         print(f"  {CLI_BLUE}→ COMPLETE executor (genome mode){CLI_CLR}")
@@ -798,6 +933,10 @@ def run_agent(
                 pre_trust_chain=trust_chain,
             )
         trace.executor_mode = "complete"
+        trace.taxonomy_trace = list(taxonomy_result.taxonomy_trace)
+        trace.taxonomy_rounds = 1
+        trace.taxonomy_result = taxonomy_result.as_dict()
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
         return trace
 
 
@@ -835,7 +974,11 @@ def run_agent_anthropic(
     # Populate genome trace data
     if plan_result is not None:
         trace.genes_used = plan_result.gene_selection if plan_result.genes else []
+        trace.taxonomy_trace = list(plan_result.taxonomy_used.get("taxonomy_trace", []))
+        trace.taxonomy_rounds = 1 if plan_result.taxonomy_used else 0
+        trace.taxonomy_result = dict(plan_result.taxonomy_used)
         trace.planner_trace = plan_result.planner_trace
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
 
     messages = [{"role": "user", "content": task_text}]
 
@@ -1085,7 +1228,11 @@ def run_agent_openai(
     # Populate genome trace data
     if plan_result is not None:
         trace.genes_used = plan_result.gene_selection if plan_result.genes else []
+        trace.taxonomy_trace = list(plan_result.taxonomy_used.get("taxonomy_trace", []))
+        trace.taxonomy_rounds = 1 if plan_result.taxonomy_used else 0
+        trace.taxonomy_result = dict(plan_result.taxonomy_used)
         trace.planner_trace = plan_result.planner_trace
+        _record_taxonomy_override(trace, plan_result, planner_round=1, phase="initial")
 
     # Model selection: genome mode uses planner's model_tier, legacy uses complex_model
     if plan_result is not None and hasattr(provider, "model_override"):

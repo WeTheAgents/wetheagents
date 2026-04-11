@@ -15,6 +15,7 @@ import os
 from dataclasses import dataclass, field
 
 from src.genome import Genome, load_genome
+from src.taxonomy import TaxonomyResult
 
 _PLANNER_MODEL = os.getenv("PLANNER_MODEL", os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
 
@@ -39,6 +40,9 @@ class PlanResult:
     is_replan: bool = False
     replan_kind: str = ""
     planner_trace: list[dict] = field(default_factory=list)
+    taxonomy_used: dict = field(default_factory=dict)
+    taxonomy_override: bool = False
+    taxonomy_override_reason: str = ""
 
     @property
     def needs_strong_model(self) -> bool:
@@ -76,6 +80,7 @@ def _call_planner_model(prompt: str, model: str) -> str:
 def _build_planner_prompt(
     genome: Genome,
     task_text: str,
+    taxonomy_result: TaxonomyResult | None = None,
     warmup_context: str | None = None,
     executor_trace: str | None = None,
     escalation_reason: str | None = None,
@@ -94,6 +99,15 @@ def _build_planner_prompt(
     # Add vault context
     if warmup_context:
         prompt += f"\n\nVAULT CONTEXT:\n{warmup_context}"
+
+    if taxonomy_result is not None:
+        prompt += (
+            "\n\nMANDATORY TASK TAXONOMY INPUT:\n"
+            f"{json.dumps(taxonomy_result.as_dict(), ensure_ascii=False)}\n"
+            "Treat this taxonomy as the default task classification. "
+            "You may override it only when vault context, executor trace, or policy structure gives concrete evidence. "
+            "If your final route differs from taxonomy.route_candidate, you MUST set taxonomy_override_reason."
+        )
 
     # Add task
     prompt += f"\n\nTASK TO PLAN FOR:\n{task_text}"
@@ -169,6 +183,7 @@ def _parse_plan_result(raw: str) -> PlanResult:
         genes=genes,
         brief=str(data.get("brief", "")),
         is_replan=bool(data.get("is_replan", False)),
+        taxonomy_override_reason=str(data.get("taxonomy_override_reason", "")),
     )
 
 
@@ -185,6 +200,7 @@ def _fallback_result(reason: str) -> PlanResult:
 
 def run_planner(
     task_text: str,
+    taxonomy_result: TaxonomyResult | None = None,
     warmup_context: str | None = None,
     genome: Genome | None = None,
     model: str | None = None,
@@ -227,6 +243,7 @@ def run_planner(
     prompt = _build_planner_prompt(
         genome,
         task_text,
+        taxonomy_result,
         warmup_context,
         executor_trace,
         escalation_reason,
@@ -249,6 +266,18 @@ def run_planner(
     # Ensure mandatory genes are included
     if result.genes:
         result.genes = result.gene_selection
+
+    if taxonomy_result is not None:
+        result.taxonomy_used = taxonomy_result.as_dict()
+        if result.route != taxonomy_result.route_candidate:
+            result.taxonomy_override = True
+            if not result.taxonomy_override_reason:
+                result.taxonomy_override_reason = (
+                    f"Planner selected route '{result.route}' instead of taxonomy route_candidate "
+                    f"'{taxonomy_result.route_candidate}' based on stronger context."
+                )
+        elif result.taxonomy_override_reason:
+            result.taxonomy_override = True
 
     # Tag re-plan
     if executor_trace:

@@ -29,7 +29,7 @@ from connectrpc.errors import ConnectError
 from src.config import DEFAULT_CONFIG, AgentConfig
 from src.prompts import build_system_prompt
 from src.tools import bitgn_dispatcher
-from src.trace import BenchmarkTrace, TaskTrace
+from src.trace import BenchmarkTrace, TaskTrace, build_failure_digest, save_trace
 
 BITGN_URL = os.getenv("BENCHMARK_HOST", "https://api.bitgn.com")
 BITGN_API_KEY = os.getenv("BITGN_API_KEY", "")
@@ -75,6 +75,7 @@ def run_benchmark(
     config: AgentConfig | None = None,
     benchmark_id: str = "bitgn/sandbox",
     run_name: str = "WEA v1",
+    leaderboard_api_key: str = "",
 ) -> BenchmarkTrace:
     """Run the full benchmark and return a structured trace.
 
@@ -193,12 +194,12 @@ def run_benchmark(
 
         trial = None  # will be set inside _run_trial
 
-        if BITGN_API_KEY:
+        if leaderboard_api_key:
             # Leaderboard flow: start_run → start_trial per slot → submit_run
             run = client.start_run(StartRunRequest(
                 name=run_name,
                 benchmark_id=benchmark_id,
-                api_key=BITGN_API_KEY,
+                api_key=leaderboard_api_key,
             ))
             print(f"Leaderboard run started: {run.run_id}")
             try:
@@ -367,6 +368,24 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
         elif args[i] == "--watchdog":
             config.watchdog = True
             i += 1
+        elif args[i] == "--planner-model" and i + 1 < len(args):
+            config.planner_model = args[i + 1]
+            i += 2
+        elif args[i] == "--executor-fixed-model" and i + 1 < len(args):
+            config.executor_fixed_model = args[i + 1]
+            i += 2
+        elif args[i] == "--disable-executor-tier-routing":
+            config.disable_executor_tier_routing = True
+            i += 1
+        elif args[i] == "--watchdog-model" and i + 1 < len(args):
+            config.watchdog_model = args[i + 1]
+            i += 2
+        elif args[i] == "--watchdog-gate-model" and i + 1 < len(args):
+            config.watchdog_gate_model = args[i + 1]
+            i += 2
+        elif args[i] == "--watchdog-deterministic-first":
+            config.watchdog_deterministic_first = True
+            i += 1
         elif args[i] == "--router":
             config.router = True
             config.enrichment = True
@@ -416,6 +435,21 @@ def _parse_config_from_args(args: list[str]) -> tuple[list[str], AgentConfig]:
             config.defense_mode = "soft_block"
             config.step_validator = True
             i += 1
+        elif args[i] == "--planner54-executor41":
+            config.use_genome = True
+            config.planner_loop = True
+            config.warmup = True
+            config.enrichment = True
+            config.defense_mode = "soft_block"
+            config.step_validator = True
+            config.watchdog = True
+            config.planner_model = "gpt-5.4"
+            config.executor_fixed_model = "gpt-4.1"
+            config.disable_executor_tier_routing = True
+            config.watchdog_model = "gpt-5.4-mini"
+            config.watchdog_gate_model = "gpt-5.4-mini"
+            config.watchdog_deterministic_first = True
+            i += 1
         elif args[i] == "--replan-every" and i + 1 < len(args):
             config.planner_replan_every = int(args[i + 1])
             i += 2
@@ -443,6 +477,7 @@ def main() -> None:
     provider_name = os.getenv("LLM_PROVIDER", "anthropic")
     benchmark_id = os.getenv("BENCHMARK_ID", "bitgn/sandbox")
     run_name = "WEA v1"
+    leaderboard_api_key = BITGN_API_KEY
 
     args = sys.argv[1:]
     args, config = _parse_config_from_args(args)
@@ -464,6 +499,9 @@ def main() -> None:
         elif args[i] == "--run-name" and i + 1 < len(args):
             run_name = args[i + 1]
             i += 2
+        elif args[i] == "--no-submit":
+            leaderboard_api_key = ""
+            i += 1
         else:
             task_filter.append(args[i])
             i += 1
@@ -485,7 +523,8 @@ def main() -> None:
     if config.watchdog:
         print(
             f"Features: watchdog=ON "
-            f"(model={config.watchdog_model}, "
+            f"(model={config.watchdog_model}, gate={config.watchdog_gate_model}, "
+            f"mode={'deterministic-first' if config.watchdog_deterministic_first else 'llm-midstream'}, "
             f"every={config.watchdog_check_every} steps, "
             f"from step {config.watchdog_min_step})"
         )
@@ -506,8 +545,13 @@ def main() -> None:
         )
     if config.dual_executor:
         print("Features: dual_executor=ON")
+    if config.disable_executor_tier_routing:
+        print(
+            f"Features: executor_fixed_model={config.executor_fixed_model} "
+            f"(tier_routing=OFF, planner_model={config.planner_model})"
+        )
 
-    if BITGN_API_KEY:
+    if leaderboard_api_key:
         print(f"Leaderboard: ON (run_name={run_name!r})")
     else:
         print("Leaderboard: OFF (set BITGN_API_KEY to enable)")
@@ -518,9 +562,24 @@ def main() -> None:
         config=config,
         benchmark_id=benchmark_id,
         run_name=run_name,
+        leaderboard_api_key=leaderboard_api_key,
     )
 
     print_summary(trace)
+
+    timestamp = trace.timestamp.replace(":", "").replace("-", "")
+    safe_name = run_name.replace(" ", "-")
+    logs_dir = os.path.join(_PROJECT_ROOT, "logs")
+    os.makedirs(logs_dir, exist_ok=True)
+    trace_path = os.path.join(logs_dir, f"{safe_name}-{timestamp}-trace.json")
+    save_trace(trace_path, trace)
+    print(f"Saved trace: {trace_path}")
+    if trace.failed_tasks:
+        import json
+        failure_path = os.path.join(logs_dir, f"{safe_name}-{timestamp}-failures.json")
+        with open(failure_path, "w", encoding="utf-8") as f:
+            json.dump(build_failure_digest(trace), f, indent=2, ensure_ascii=False)
+        print(f"Saved failure digest: {failure_path}")
 
 
 if __name__ == "__main__":

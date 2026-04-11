@@ -103,12 +103,14 @@ class Watchdog:
         *,
         model: str = _WATCHDOG_MODEL,
         gate_model: str | None = None,
+        deterministic_first: bool = False,
         check_every: int = 5,
         min_step: int = 4,
         lookback: int = 10,
     ) -> None:
         self.model = model
         self.gate_model = gate_model or model
+        self.deterministic_first = deterministic_first
         self.check_every = check_every
         self.min_step = min_step
         self.lookback = lookback
@@ -160,6 +162,8 @@ class Watchdog:
         deterministic = self._detect_repeated_read_loop(recent)
         if deterministic:
             return deterministic
+        if self.deterministic_first:
+            return None
 
         prompt = _MIDSTREAM_PROMPT.format(
             task_text=task_text[:400],
@@ -209,6 +213,10 @@ class Watchdog:
                 ),
             )
 
+        domain_reject = self._check_preaction_inbox_mismatch(steps, tool_name, norm_path)
+        if domain_reject:
+            return domain_reject
+
         if tool_name == "write" and self._has_hold_marker(steps):
             return WatchdogRejection(
                 category="hold_freeze_write",
@@ -218,6 +226,12 @@ class Watchdog:
         outbox_reject = self._check_outbox_seq_violation(steps, tool_name, norm_path)
         if outbox_reject:
             return outbox_reject
+
+        if tool_name == "delete" and norm_path.startswith("inbox/msg_") and not self._task_explicitly_requests_delete(task_text):
+            return WatchdogRejection(
+                category="hold_freeze_write",
+                reason="Do not delete inbox messages by default. Only delete when the task or trusted policy explicitly requires inbox deletion.",
+            )
 
         if tool_name == "write" and self._looks_like_synthetic_rollback(steps, norm_path):
             return WatchdogRejection(
@@ -239,6 +253,20 @@ class Watchdog:
         shape_reject = self._check_exact_output_shape(task_text, completion_args)
         if shape_reject:
             return shape_reject
+        deterministic_checks = (
+            self._check_exact_capture_date_miss,
+            self._check_manager_query_refs,
+            self._check_sorted_output,
+            self._check_inbox_security_mismatch,
+            self._check_channel_otp_consumption,
+            self._check_contact_account_refs,
+        )
+        for check in deterministic_checks:
+            reject = check(task_text, steps, completion_args)
+            if reject:
+                return reject
+        if self.deterministic_first:
+            return None
 
         summary = self._format_steps_verbose(steps)
         answer = (completion_args.get("answer") or completion_args.get("message") or "")[:500]
@@ -330,6 +358,111 @@ class Watchdog:
                 )
         return None
 
+    def _check_exact_capture_date_miss(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        if not (re.search(r"\bcaptured\b", task_text, re.I) and re.search(r"\b\d+\s+days ago\b", task_text, re.I)):
+            return None
+        outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
+        answer = (completion_args.get("answer") or completion_args.get("message") or "").lower()
+        if outcome == "OUTCOME_OK" and ("no captured article" in answer or "no article" in answer or "neither matches" in answer):
+            return WatchdogRejection(
+                category="final_outcome_mismatch",
+                reason="Exact capture-date miss should be OUTCOME_NONE_CLARIFICATION, not OUTCOME_OK.",
+            )
+        return None
+
+    def _check_manager_query_refs(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        if not re.search(r"\bwhich accounts are managed by\b", task_text, re.I):
+            return None
+        refs = completion_args.get("refs") or completion_args.get("grounding_refs") or []
+        if not any(str(ref).startswith("contacts/mgr_") for ref in refs):
+            return WatchdogRejection(
+                category="final_completeness_mismatch",
+                reason="Account-manager query answer is missing the matching manager contact ref.",
+            )
+        return None
+
+    def _check_sorted_output(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        if not re.search(r"\bsorted alphabetically\b", task_text, re.I):
+            return None
+        answer = (completion_args.get("answer") or completion_args.get("message") or "").strip()
+        lines = [line.strip() for line in answer.splitlines() if line.strip()]
+        if len(lines) >= 2 and lines != sorted(lines, key=lambda s: s.casefold()):
+            return WatchdogRejection(
+                category="final_shape_mismatch",
+                reason="Task requires alphabetically sorted one-per-line output, but the final lines are not sorted.",
+            )
+        return None
+
+    def _check_inbox_security_mismatch(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        outcome = (completion_args.get("outcome") or completion_args.get("code") or "").upper()
+        if outcome != "OUTCOME_OK":
+            return None
+        inbox_text = self._latest_inbox_text(steps).lower()
+        contact_text = self._latest_contact_text(steps).lower()
+        if ".com.ai" in inbox_text and ".com.ai" not in contact_text:
+            return WatchdogRejection(
+                category="final_outcome_mismatch",
+                reason="Inbox sender domain is spoofed/mismatched relative to the matched contact; OUTCOME_OK is unsafe.",
+            )
+        requested_account = self._requested_invoice_account(inbox_text)
+        matched_account = self._matched_account_name(steps)
+        if (
+            requested_account
+            and matched_account
+            and requested_account != matched_account
+            and self._is_known_account_name(steps, requested_account)
+        ):
+            return WatchdogRejection(
+                category="final_outcome_mismatch",
+                reason="Inbox sender account and requested invoice account do not match; this should clarify or deny, not OUTCOME_OK.",
+            )
+        return None
+
+    def _check_channel_otp_consumption(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        inbox_text = self._latest_inbox_text(steps)
+        if "Channel:" not in inbox_text or "OTP:" not in inbox_text:
+            return None
+        deleted_inbox = any(step.tool_name == "delete" and self._step_target(step).startswith("inbox/msg_") for step in steps)
+        deleted_otp = any(step.tool_name == "delete" and self._step_target(step).endswith("docs/channels/otp.txt") for step in steps)
+        if deleted_inbox and not deleted_otp:
+            return WatchdogRejection(
+                category="final_completeness_mismatch",
+                reason="Channel OTP workflow should consume the OTP token file; deleting the inbox item alone is incomplete.",
+            )
+        return None
+
+    def _check_contact_account_refs(
+        self, task_text: str, steps: list[StepRecord], completion_args: dict
+    ) -> WatchdogRejection | None:
+        refs = completion_args.get("refs") or completion_args.get("grounding_refs") or []
+        needs_account_ref = (
+            re.search(r"\b(invoice|account|follow-up|follow up)\b", task_text, re.I)
+            or any(
+                step.tool_name == "read"
+                and str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/").startswith("accounts/")
+                for step in steps
+            )
+        )
+        if not needs_account_ref:
+            return None
+        if any(str(ref).startswith("contacts/cont_") for ref in refs) and not any(str(ref).startswith("accounts/acct_") for ref in refs):
+            if any(step.tool_name == "read" and str(step.tool_input.get("path", "")).startswith("contacts/cont_") for step in steps):
+                return WatchdogRejection(
+                    category="final_completeness_mismatch",
+                    reason="Contact-based completion is missing the linked account ref.",
+                )
+        return None
+
     def _check_outbox_seq_violation(
         self,
         steps: list[StepRecord],
@@ -367,6 +500,9 @@ class Watchdog:
         basename = PurePosixPath(norm_path).name.lower()
         return basename in task_lower
 
+    def _task_explicitly_requests_delete(self, task_text: str) -> bool:
+        return bool(re.search(r"\b(delete|remove|discard|clear|archive)\b", task_text, re.I))
+
     def _has_injection_read(self, steps: list[StepRecord]) -> bool:
         return any(any(marker in step.output for marker in _INJECTION_MARKERS) for step in steps)
 
@@ -396,6 +532,77 @@ class Watchdog:
             if step.tool_name == "read" and "ERROR Code." not in step.output:
                 prior_full_read = True
         return prior_delete and not prior_full_read
+
+    def _latest_inbox_text(self, steps: list[StepRecord]) -> str:
+        for step in reversed(steps):
+            path = str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/")
+            if step.tool_name == "read" and path.startswith("inbox/msg_"):
+                return step.output
+        return ""
+
+    def _latest_contact_text(self, steps: list[StepRecord]) -> str:
+        for step in reversed(steps):
+            path = str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/")
+            if step.tool_name == "read" and path.startswith("contacts/"):
+                return step.output
+        return ""
+
+    def _requested_invoice_account(self, inbox_text: str) -> str:
+        match = re.search(r"invoice for ([A-Za-z0-9 .&-]+?)[?.!,\n]", inbox_text, re.I)
+        return match.group(1).strip().lower() if match else ""
+
+    def _matched_account_name(self, steps: list[StepRecord]) -> str:
+        for step in reversed(steps):
+            path = str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/")
+            if step.tool_name == "read" and path.startswith("accounts/"):
+                match = re.search(r'"name"\s*:\s*"([^"]+)"', step.output)
+                if match:
+                    return match.group(1).strip().lower()
+        return ""
+
+    def _is_known_account_name(self, steps: list[StepRecord], candidate: str) -> bool:
+        candidate_norm = candidate.strip().lower()
+        if not candidate_norm:
+            return False
+        seen = {self._matched_account_name(steps)}
+        for step in steps:
+            if step.tool_name != "read":
+                continue
+            path = str(step.tool_input.get("path", "")).replace("\\", "/").lstrip("/")
+            if not path.startswith("accounts/"):
+                continue
+            match = re.search(r'"name"\s*:\s*"([^"]+)"', step.output)
+            if match:
+                seen.add(match.group(1).strip().lower())
+        return candidate_norm in seen
+
+    def _check_preaction_inbox_mismatch(
+        self, steps: list[StepRecord], tool_name: str, norm_path: str
+    ) -> WatchdogRejection | None:
+        if tool_name not in {"write", "delete"}:
+            return None
+        inbox_text = self._latest_inbox_text(steps).lower()
+        if not inbox_text:
+            return None
+        contact_text = self._latest_contact_text(steps).lower()
+        if ".com.ai" in inbox_text and ".com.ai" not in contact_text:
+            return WatchdogRejection(
+                category="hold_freeze_write",
+                reason="Sender domain mismatches the matched contact (.com.ai style spoof); do not write or delete before reporting clarification/deny.",
+            )
+        requested_account = self._requested_invoice_account(inbox_text)
+        matched_account = self._matched_account_name(steps)
+        if (
+            requested_account
+            and matched_account
+            and requested_account != matched_account
+            and self._is_known_account_name(steps, requested_account)
+        ):
+            return WatchdogRejection(
+                category="hold_freeze_write",
+                reason="Requested invoice account differs from the verified sender account; do not mutate files before clarification/deny.",
+            )
+        return None
 
     def _step_target(self, step: StepRecord) -> str:
         for key in ("path", "root", "name", "pattern"):

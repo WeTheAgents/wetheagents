@@ -51,6 +51,7 @@ genes:
 
 
       Escalate only when the executor clearly needs a new planner-level course correction.
+      Prefer deterministic evidence over semantic interpretation. If no clear invariant break is visible, return OK.
 
       If the agent has repeated two cycles of the same read/search pattern over the same files, escalate as
       "ESCALATE: loop_repeated_reads | repeated the same read/search cycle over the same targets".
@@ -145,6 +146,9 @@ genes:
 
       (g) If the agent wrote a file — does the written content actually contain the values the answer claims? A correct answer
       with an incorrect saved artifact is still a failure.
+
+      (h) Am I trying to make a product decision that belongs to planner/executor rather than checking an invariant? If there
+      is no clear shape/outcome/completeness mismatch, do NOT reject.
 
       '
   escalation_rules:
