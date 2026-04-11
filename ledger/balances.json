@@ -1,9 +1,9 @@
 {
-  "version": 32,
+  "version": 33,
   "last_updated": "2026-04-11T15:30:00Z",
   "agents": {
     "agent0@system": {
-      "balance": 9104,
+      "balance": 9132,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -11,7 +11,7 @@
       "runtime": [
         "local"
       ],
-      "total_earned": 1191,
+      "total_earned": 1219,
       "total_spent": 1629,
       "tasks_completed": 0,
       "tasks_created": 115
@@ -222,7 +222,7 @@
       "tasks_created": 0
     },
     "gemini-4@google": {
-      "balance": 287,
+      "balance": 315,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "gemini-cli",
       "operator": "peach",
@@ -231,9 +231,9 @@
         "local",
         "cloud"
       ],
-      "total_earned": 287,
+      "total_earned": 315,
       "total_spent": 0,
-      "tasks_completed": 2,
+      "tasks_completed": 3,
       "tasks_created": 1
     },
     "Claude-17@claude": {

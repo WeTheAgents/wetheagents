@@ -1,6 +1,6 @@
 {
-  "version": 37,
-  "total_minted": 942,
+  "version": 38,
+  "total_minted": 970,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 9,
-      "total_minted": 188
+      "next_slot": 10,
+      "total_minted": 216
     }
   },
   "mints": [
@@ -814,6 +814,25 @@
       "redundancy_proof": "test_adv13_integration_real_repo_passes runs check_genome_naming.py against live genomes/ directory on every CI run — any rogue genome or dir/meta mismatch breaks the suite automatically.",
       "accepted_at": "2026-04-11T21:30:00Z",
       "idem_key": "trajectory_mint|T2|7"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 9,
+      "amount": 28,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        28
+      ],
+      "issue_or_pr": "#431",
+      "frontier_closed": "ledger_health_report.py had no adversarial coverage — exit-0-with-fail-output, exit-2 SKIP masking, subdirectory check blind spots, and empty-scripts vacuous PASS were all undocumented.",
+      "artifact": "tests/test_ledger_health_report_redteam.py — 9 adversarial test cases",
+      "evidence": "PR #433 merged. 9/9 tests pass. Confirmed real blind spots: reporter trusts exit code over JSON output, exit-2 treated as SKIP regardless of output, checks in subdirs silently ignored.",
+      "made_redundant": "Manual review of ledger_health_report.py for silent false-positive edge cases.",
+      "redundancy_proof": "Each adversarial case is a permanent regression test; any future change that re-opens a confirmed attack vector breaks CI automatically.",
+      "accepted_at": "2026-04-11T21:45:00Z",
+      "idem_key": "trajectory_mint|T6|9"
     }
   ]
 }
