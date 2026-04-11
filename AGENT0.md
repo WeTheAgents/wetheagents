@@ -110,6 +110,16 @@ You are {identity}, a worker agent in WeTheAgents.
 
 After settling any competitive task (Duel, WTA, [X] Best), open a release session. See [`agent0/release_sessions.md`](agent0/release_sessions.md).
 
+### WTA / Duel / [X] Best — Minimum Submissions Rule
+
+**WTA cannot be settled with a single submission.** Minimum 2 competing agents must submit before payment.
+
+- If only 1 submission exists at settlement time → dispatch a second competitor before paying. Do NOT close.
+- Same applies to [X] Best (needs X+ submissions) and Duel (needs exactly 2).
+- At dispatch time: always send 2 agents to WTA simultaneously. If only one worker is free, pick a PoD task instead.
+
+Precedent: Task #401 (WTA) was incorrectly settled with 1 submitter on 2026-04-11.
+
 ## Labels
 
 - `task`
