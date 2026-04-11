@@ -2,9 +2,11 @@ name: btc-snapshot
 
 # Daily static rebuild of the BTC dashboard.
 #
-# Checks out WeTheAgents/btc_dashboard, runs buildDashboard() via its
-# engine.js, writes the results into docs/btc/ + data/btc_history.jsonl,
-# and commits the diff. Cloudflare Worker serves docs/ so the new
+# Uses the vendored copy of btc_dashboard at vendor/btc_dashboard/
+# (upstream repo is private, so cross-repo actions/checkout with
+# GITHUB_TOKEN fails — vendoring is the no-secrets workaround).
+# Writes the results into docs/btc/ + data/btc_history.jsonl and
+# commits the diff. Cloudflare Worker serves docs/ so the new
 # snapshot is live immediately after push.
 
 on:
@@ -29,21 +31,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Checkout btc_dashboard
-        uses: actions/checkout@v4
-        with:
-          repository: WeTheAgents/btc_dashboard
-          path: btc_dashboard
-          fetch-depth: 1
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install btc_dashboard dependencies
+      - name: Install vendored btc_dashboard dependencies
         run: npm ci
-        working-directory: btc_dashboard
+        working-directory: vendor/btc_dashboard
 
       - name: Build snapshot
         run: node scripts/btc_snapshot_build.js

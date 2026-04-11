@@ -2,9 +2,9 @@
 devlogs/
 research/
 
-# btc_dashboard workspace — checked out fresh by GH Actions into ./btc_dashboard,
-# mirrored locally via a directory junction for local builds. Never committed.
-/btc_dashboard/
+# Vendored btc_dashboard — runtime state only, never committed.
+/vendor/btc_dashboard/node_modules/
+/vendor/btc_dashboard/data/
 
 # Raw (uncensored) diaries — stored in wetheagents-private, never in public repo
 agent0_diary_raw/

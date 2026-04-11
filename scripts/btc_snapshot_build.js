@@ -8,7 +8,8 @@
  *
  * Layout:
  *   REPO_ROOT/
- *     btc_dashboard/          (actions/checkout target, or local junction)
+ *     vendor/btc_dashboard/   (vendored upstream src — btc_dashboard is private
+ *                              so GH Actions can't cross-checkout it)
  *     scripts/btc_snapshot_build.js  (this file)
  *     docs/btc/               (generated — committed)
  *     data/btc_history.jsonl  (append-only history — committed)
@@ -22,7 +23,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const REPO  = path.resolve(__dirname, '..');
-const DASH  = path.join(REPO, 'btc_dashboard');
+const DASH  = path.join(REPO, 'vendor', 'btc_dashboard');
 const OUT   = path.join(REPO, 'docs', 'btc');
 const HIST  = path.join(REPO, 'data', 'btc_history.jsonl');
 
@@ -40,7 +41,7 @@ function assertReplace(original, replaced, label) {
 
 async function main() {
   if (!fs.existsSync(DASH)) {
-    throw new Error(`btc_dashboard not found at ${DASH}`);
+    throw new Error(`vendored btc_dashboard not found at ${DASH}`);
   }
 
   fs.mkdirSync(OUT, { recursive: true });
