@@ -1,6 +1,6 @@
 {
-  "version": 48,
-  "total_minted": 1245,
+  "version": 50,
+  "total_minted": 1300,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 9,
-      "total_minted": 188
+      "next_slot": 10,
+      "total_minted": 216
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 8,
-      "total_minted": 161
+      "next_slot": 9,
+      "total_minted": 188
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -1023,6 +1023,44 @@
       "redundancy_proof": "Each adversarial test demonstrates a scenario that the pre-fix checker would have silently passed. Post-fix, all 10 fail correctly.",
       "accepted_at": "2026-04-12T11:58:05Z",
       "idem_key": "trajectory_mint|T6|11"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 8,
+      "amount": 27,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        27
+      ],
+      "issue_or_pr": "#451",
+      "frontier_closed": "No automated detection of check_*.py scripts built and accepted but never wired into run_all_checks.py or CI — creating false confidence that all checks run automatically",
+      "artifact": "scripts/check_orphan_scripts.py + tests/test_check_orphan_scripts.py",
+      "evidence": "Script exits 0 (PASS) on real repo (30 scripts checked, all wired via wildcard glob). 8/8 unit tests pass.",
+      "made_redundant": "Manual audit of run_all_checks.py and CI workflows to verify each check_*.py is included",
+      "redundancy_proof": "Script automates the exact cross-file check: enumerates check_*.py, parses run_all_checks.py imports, parses workflow YML invocations, reports any gaps",
+      "accepted_at": "2026-04-12T12:16:14Z",
+      "idem_key": "trajectory_mint|T5|8"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 9,
+      "amount": 28,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        28
+      ],
+      "issue_or_pr": "#448",
+      "frontier_closed": "check_balance_history_reconciliation.py (T1S9) lacked adversarial test coverage — edge cases including direct tamper, duplicate events, and wrong event type counting were untested",
+      "artifact": "tests/test_check_balance_history_reconciliation_redteam.py",
+      "evidence": "12/12 adversarial tests pass. Tests use temp file fixtures; do not touch real ledger/.",
+      "made_redundant": "Manual edge-case reasoning about whether check_balance_history_reconciliation.py handles tampered balances, duplicate entries, and float drift",
+      "redundancy_proof": "Any regression that causes the script to false-PASS on a tampered ledger will now be caught by the 12 adversarial tests",
+      "accepted_at": "2026-04-12T12:16:25Z",
+      "idem_key": "trajectory_mint|T2|9"
     }
   ]
 }

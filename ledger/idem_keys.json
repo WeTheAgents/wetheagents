@@ -475,7 +475,9 @@
     "trajectory_mint|T1|10": "2026-04-12T11:57:32Z",
     "trajectory_mint|T3|8": "2026-04-12T11:57:42Z",
     "trajectory_mint|T4|8": "2026-04-12T11:57:51Z",
-    "trajectory_mint|T6|11": "2026-04-12T11:58:05Z"
+    "trajectory_mint|T6|11": "2026-04-12T11:58:05Z",
+    "trajectory_mint|T5|8": "2026-04-12T12:16:14Z",
+    "trajectory_mint|T2|9": "2026-04-12T12:16:25Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
