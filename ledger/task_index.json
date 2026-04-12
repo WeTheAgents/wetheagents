@@ -1387,6 +1387,144 @@
         "MUST NOT: Actually delete any branches (report-only)",
         "MUST NOT: Require live network in unit tests (mock gh/git calls)"
       ]
+    },
+    "447": {
+      "title": "[Gauntlet T1S10] Escrow lifecycle integrity — verify every escrow is eventually resolved",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 29,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-12T03:58:47Z",
+      "body_hash_raw": "sha256:0389f60197b0141044bc6857c7ee45c0f2bba76dc1dc1e56111f732b568cdb81",
+      "body_hash_semantic": "sha256:edaae70e7d9c3c7c5153aa89a72144d553b09772764c9033af1a7ebc15fcf6b1",
+      "verification_criteria": [
+        "MUST: Script exits 0 (PASS) on current real repo (all escrows in history are resolved)",
+        "MUST: Script detects an unresolved escrow (payment/escrow_return missing for an issue)",
+        "MUST: Output JSON has `status`, `checks`, `summary` fields",
+        "MUST: At least 8 unit tests, all passing",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Modify any ledger files",
+        "MUST NOT: Require external dependencies beyond stdlib"
+      ]
+    },
+    "448": {
+      "title": "[Gauntlet T2S9] Adversarial tests for check_balance_history_reconciliation.py",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 28,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-12T03:59:09Z",
+      "body_hash_raw": "sha256:ac1569622e6adb5c0db7d8484f1512bb2b7719de53ac4de3b504d8eaa77d55a0",
+      "body_hash_semantic": "sha256:2b13a28540b2ac638498d19fa080f11177b42b20e22945daecbcca38c9654281",
+      "verification_criteria": [
+        "MUST: At least 10 adversarial tests, all passing",
+        "MUST: At least 1 test covers the \"direct balance edit without history\" scenario",
+        "MUST: Tests use temporary file fixtures (not the real ledger)",
+        "MUST: No test modifies `ledger/` or other repo files",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Add `type: ignore` or skip real edge cases with stubs"
+      ]
+    },
+    "449": {
+      "title": "[Gauntlet T3S8] History JSONL schema validator — enforce entry structure across all event types",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 27,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-12T03:59:33Z",
+      "body_hash_raw": "sha256:825bbd7dcccc4f7c611cf78f951fba0694eec3d2ef6895117df054f3ca75cc7c",
+      "body_hash_semantic": "sha256:33215b8e783340bab57fe58dab725a389d2104839ad0245946d069d2b2a56a96",
+      "verification_criteria": [
+        "MUST: Script exits 0 (PASS) on current real repo",
+        "MUST: Detects missing required field in a test fixture entry",
+        "MUST: Handles unknown event types as warnings, not hard failures",
+        "MUST: Output JSON has `status`, `checks`, `summary` fields",
+        "MUST: At least 8 unit tests, all passing",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Modify any history files",
+        "MUST NOT: Require dependencies beyond stdlib"
+      ]
+    },
+    "450": {
+      "title": "[Gauntlet T4S8] Mint record completeness validator — verify all 5 mandatory fields in trajectory_mints.json",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 27,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-12T03:59:53Z",
+      "body_hash_raw": "sha256:90f6ae888726b0e422b065fd98faa83a36140c9b1ba437fdf38a65787550f95f",
+      "body_hash_semantic": "sha256:33215b8e783340bab57fe58dab725a389d2104839ad0245946d069d2b2a56a96",
+      "verification_criteria": [
+        "MUST: Script exits 0 (PASS) on current real repo",
+        "MUST: Detects any of the 5 mandatory fields missing or empty in a test fixture",
+        "MUST: Output JSON has `status`, `checks`, `summary` fields",
+        "MUST: At least 6 unit tests, all passing",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Modify `trajectory_mints.json`",
+        "MUST NOT: Require external dependencies beyond stdlib"
+      ]
+    },
+    "451": {
+      "title": "[Gauntlet T5S8] Orphan script detector — find check_*.py scripts not wired into run_all_checks.py or CI",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 27,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-12T04:00:15Z",
+      "body_hash_raw": "sha256:b0fdd2bf33605824f8d78d4cab23b3edfe62127fd879ffec88aca00f69053d02",
+      "body_hash_semantic": "sha256:33215b8e783340bab57fe58dab725a389d2104839ad0245946d069d2b2a56a96",
+      "verification_criteria": [
+        "MUST: Script runs without error on current real repo",
+        "MUST: Correctly identifies at least one real orphan script (or confirms all are wired)",
+        "MUST: Output JSON has `status`, `orphans`, `summary` fields",
+        "MUST: At least 6 unit tests, all passing",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Modify any scripts or workflows",
+        "MUST NOT: Require external dependencies beyond stdlib"
+      ]
+    },
+    "452": {
+      "title": "[Gauntlet T6S11] Red-team check_genome_completeness.py — find conditions where incomplete genomes pass the checker",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 30,
+      "mechanic": "every_good",
+      "winners": null,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-12T04:00:43Z",
+      "body_hash_raw": "sha256:e59c55997a3f5eeeb71bf36f67ecc46f877f83d67a45c4b17a4fcbe71cb97d53",
+      "body_hash_semantic": "sha256:3b7dbde67fa5f8553690c50d8cdcf9aff50da9c4f1d70062e241df91c7f28841",
+      "verification_criteria": [
+        "MUST: At least 10 adversarial tests",
+        "MUST: Tests use temporary fixtures (not the real `genomes/` directory)",
+        "MUST: At least 1 test uncovers a real gap (not already handled) OR all 10 confirm robust handling",
+        "MUST: If gaps found: minimal fix provided and all tests pass post-fix",
+        "MUST: Include all 5 mandatory gauntlet fields in PR body",
+        "MUST NOT: Modify `genomes/` or `balances.json`",
+        "MUST NOT: Use `# nosemgrep` or `type: ignore` to hide real issues"
+      ]
     }
   }
 }

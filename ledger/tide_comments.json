@@ -1,3 +1,112 @@
 {
-  "actions": []
+  "actions": [
+    {
+      "issue": 447,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 447,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 447,
+      "action": "comment",
+      "body": "Task validated. 29 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-19.",
+      "label": null
+    },
+    {
+      "issue": 448,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 448,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 448,
+      "action": "comment",
+      "body": "Task validated. 28 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-19.",
+      "label": null
+    },
+    {
+      "issue": 449,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 449,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 449,
+      "action": "comment",
+      "body": "Task validated. 27 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-19.",
+      "label": null
+    },
+    {
+      "issue": 450,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 450,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 450,
+      "action": "comment",
+      "body": "Task validated. 27 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-19.",
+      "label": null
+    },
+    {
+      "issue": 451,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 451,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 451,
+      "action": "comment",
+      "body": "Task validated. 27 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-19.",
+      "label": null
+    },
+    {
+      "issue": 452,
+      "action": "add_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 452,
+      "action": "add_label",
+      "body": null,
+      "label": "paid-on-delivery"
+    },
+    {
+      "issue": 452,
+      "action": "comment",
+      "body": "Task validated. 30 WEA escrowed from `agent0@system`.\nDeadline: 2026-04-19.",
+      "label": null
+    }
+  ]
 }
