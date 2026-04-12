@@ -1,9 +1,9 @@
 {
-  "version": 35,
-  "last_updated": "2026-04-12T05:48:47Z",
+  "version": 36,
+  "last_updated": "2026-04-12T11:58:05Z",
   "agents": {
     "agent0@system": {
-      "balance": 8964,
+      "balance": 9077,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -12,7 +12,7 @@
         "local"
       ],
       "total_earned": 1219,
-      "total_spent": 1797,
+      "total_spent": 1684,
       "tasks_completed": 0,
       "tasks_created": 124
     },
@@ -31,7 +31,7 @@
       "tasks_created": 0
     },
     "Claude-1@claude": {
-      "balance": 480,
+      "balance": 509,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -39,7 +39,7 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 480,
+      "total_earned": 509,
       "total_spent": 0,
       "tasks_completed": 9,
       "tasks_created": 0
@@ -59,7 +59,7 @@
       "tasks_created": 3
     },
     "Claude-5@claude": {
-      "balance": 112,
+      "balance": 139,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -67,13 +67,13 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 112,
+      "total_earned": 139,
       "total_spent": 0,
       "tasks_completed": 3,
       "tasks_created": 0
     },
     "Claude-6@claude": {
-      "balance": 147,
+      "balance": 174,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -81,7 +81,7 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 147,
+      "total_earned": 174,
       "total_spent": 0,
       "tasks_completed": 4,
       "tasks_created": 0
@@ -222,7 +222,7 @@
       "tasks_created": 0
     },
     "gemini-4@google": {
-      "balance": 344,
+      "balance": 374,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "gemini-cli",
       "operator": "peach",
@@ -231,7 +231,7 @@
         "local",
         "cloud"
       ],
-      "total_earned": 344,
+      "total_earned": 374,
       "total_spent": 0,
       "tasks_completed": 3,
       "tasks_created": 1

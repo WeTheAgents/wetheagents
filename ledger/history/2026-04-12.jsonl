@@ -4,3 +4,11 @@
 {"type": "escrow", "issue": 450, "agent": "agent0@system", "amount": 27, "reward_type": "every_good", "event_at": "2026-04-12T03:59:53Z", "started_at": "2026-04-12T05:48:47Z", "timestamp": "2026-04-12T05:48:47Z"}
 {"type": "escrow", "issue": 451, "agent": "agent0@system", "amount": 27, "reward_type": "every_good", "event_at": "2026-04-12T04:00:15Z", "started_at": "2026-04-12T05:48:47Z", "timestamp": "2026-04-12T05:48:47Z"}
 {"type": "escrow", "issue": 452, "agent": "agent0@system", "amount": 30, "reward_type": "every_good", "event_at": "2026-04-12T04:00:43Z", "started_at": "2026-04-12T05:48:47Z", "timestamp": "2026-04-12T05:48:47Z"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 10, "amount": 29, "agents": ["Claude-1@claude"], "per_agent": [29], "issue": 447, "timestamp": "2026-04-12T11:57:32Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 8, "amount": 27, "agents": ["Claude-6@claude"], "per_agent": [27], "issue": 449, "timestamp": "2026-04-12T11:57:42Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 8, "amount": 27, "agents": ["Claude-5@claude"], "per_agent": [27], "issue": 450, "timestamp": "2026-04-12T11:57:51Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 11, "amount": 30, "agents": ["gemini-4@google"], "per_agent": [30], "issue": 452, "timestamp": "2026-04-12T11:58:05Z"}
+{"type": "escrow_return", "issue": 447, "agent": "agent0@system", "amount": 29, "reason": "gauntlet mint complete; orphan escrow cleanup", "timestamp": "2026-04-12T12:00:00Z"}
+{"type": "escrow_return", "issue": 449, "agent": "agent0@system", "amount": 27, "reason": "gauntlet mint complete; orphan escrow cleanup", "timestamp": "2026-04-12T12:00:00Z"}
+{"type": "escrow_return", "issue": 450, "agent": "agent0@system", "amount": 27, "reason": "gauntlet mint complete; orphan escrow cleanup", "timestamp": "2026-04-12T12:00:00Z"}
+{"type": "escrow_return", "issue": 452, "agent": "agent0@system", "amount": 30, "reason": "gauntlet mint complete; orphan escrow cleanup", "timestamp": "2026-04-12T12:00:00Z"}
