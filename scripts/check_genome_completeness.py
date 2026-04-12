@@ -55,6 +55,16 @@ def _load_balances(balances_path: Path) -> dict[str, Any] | None:
 def _check_agent(agent_id: str, genomes_dir: Path) -> list[dict[str, Any]]:
     """Return a list of check result dicts for a single agent."""
     results: list[dict[str, Any]] = []
+
+    if not agent_id or "/" in agent_id or "\\" in agent_id or agent_id in (".", ".."):
+        results.append({
+            "agent": agent_id,
+            "check": "agent_id_validity",
+            "status": "FAIL",
+            "detail": f"Invalid agent_id '{agent_id}'",
+        })
+        return results
+
     agent_dir = genomes_dir / agent_id
 
     # 1. genome directory must exist
@@ -77,12 +87,12 @@ def _check_agent(agent_id: str, genomes_dir: Path) -> list[dict[str, Any]]:
 
     # 2. genome_meta.json must exist
     meta_path = agent_dir / "genome_meta.json"
-    if not meta_path.exists():
+    if not meta_path.is_file():
         results.append({
             "agent": agent_id,
             "check": "genome_meta_present",
             "status": "FAIL",
-            "detail": f"genomes/{agent_id}/genome_meta.json not found",
+            "detail": f"genomes/{agent_id}/genome_meta.json not found or not a file",
         })
     else:
         results.append({
@@ -96,12 +106,12 @@ def _check_agent(agent_id: str, genomes_dir: Path) -> list[dict[str, Any]]:
         try:
             raw = meta_path.read_text(encoding="utf-8")
             meta = json.loads(raw)
-        except json.JSONDecodeError as exc:
+        except (json.JSONDecodeError, OSError) as exc:
             results.append({
                 "agent": agent_id,
                 "check": "genome_meta_valid_json",
                 "status": "FAIL",
-                "detail": f"genome_meta.json is not valid JSON: {exc}",
+                "detail": f"genome_meta.json is not valid JSON or unreadable: {exc}",
             })
             meta = None
         else:
@@ -143,36 +153,62 @@ def _check_agent(agent_id: str, genomes_dir: Path) -> list[dict[str, Any]]:
                     "detail": f"genome_meta.json missing required fields: {missing}",
                 })
             else:
-                results.append({
-                    "agent": agent_id,
-                    "check": "genome_meta_required_fields",
-                    "status": "PASS",
-                    "detail": f"all required fields present: {list(REQUIRED_META_FIELDS)}",
-                })
+                empty = [f for f in REQUIRED_META_FIELDS if meta[f] in (None, "")]
+                if empty:
+                    results.append({
+                        "agent": agent_id,
+                        "check": "genome_meta_required_fields",
+                        "status": "FAIL",
+                        "detail": f"genome_meta.json has empty or null required fields: {empty}",
+                    })
+                elif str(meta.get("agent_id")) != agent_id:
+                    results.append({
+                        "agent": agent_id,
+                        "check": "genome_meta_agent_id",
+                        "status": "FAIL",
+                        "detail": f"agent_id in meta ({meta.get('agent_id')}) does not match directory ({agent_id})",
+                    })
+                else:
+                    results.append({
+                        "agent": agent_id,
+                        "check": "genome_meta_required_fields",
+                        "status": "PASS",
+                        "detail": f"all required fields present: {list(REQUIRED_META_FIELDS)}",
+                    })
 
     # 6. AGENTS.local.md must exist and be non-empty
     local_md = agent_dir / "AGENTS.local.md"
-    if not local_md.exists():
+    if not local_md.is_file():
         results.append({
             "agent": agent_id,
             "check": "agents_local_md",
             "status": "FAIL",
-            "detail": f"genomes/{agent_id}/AGENTS.local.md not found",
-        })
-    elif local_md.stat().st_size == 0:
-        results.append({
-            "agent": agent_id,
-            "check": "agents_local_md",
-            "status": "FAIL",
-            "detail": f"genomes/{agent_id}/AGENTS.local.md is empty",
+            "detail": f"genomes/{agent_id}/AGENTS.local.md not found or not a file",
         })
     else:
-        results.append({
-            "agent": agent_id,
-            "check": "agents_local_md",
-            "status": "PASS",
-            "detail": "AGENTS.local.md present and non-empty",
-        })
+        try:
+            content = local_md.read_text(encoding="utf-8").strip()
+            if not content:
+                results.append({
+                    "agent": agent_id,
+                    "check": "agents_local_md",
+                    "status": "FAIL",
+                    "detail": f"genomes/{agent_id}/AGENTS.local.md is empty",
+                })
+            else:
+                results.append({
+                    "agent": agent_id,
+                    "check": "agents_local_md",
+                    "status": "PASS",
+                    "detail": "AGENTS.local.md present and non-empty",
+                })
+        except OSError as exc:
+            results.append({
+                "agent": agent_id,
+                "check": "agents_local_md",
+                "status": "FAIL",
+                "detail": f"genomes/{agent_id}/AGENTS.local.md unreadable: {exc}",
+            })
 
     return results
 
@@ -222,6 +258,13 @@ def run(root: Path) -> tuple[dict[str, Any], bool]:
         }, False
 
     agents_data: dict[str, Any] = balances.get("agents", {})
+    if not isinstance(agents_data, dict):
+        return {
+            "status": "FAIL",
+            "checks": [],
+            "summary": "balances.json 'agents' is not a dictionary",
+        }, False
+
     agent_ids = {aid for aid in agents_data if aid not in _SKIP_AGENTS}
 
     all_checks: list[dict[str, Any]] = []
