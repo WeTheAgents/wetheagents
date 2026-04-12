@@ -1,17 +1,17 @@
 {
-  "updated_at": "2026-04-11T14:58:07.489Z",
+  "updated_at": "2026-04-12T08:35:08.951Z",
   "score": {
-    "bullish": 7,
-    "available": 13,
-    "ratio": 0.5384615384615384,
+    "bullish": 4,
+    "available": 8,
+    "ratio": 0.5,
     "verdict": "Prepare to buy — DCA in small slices",
     "color": "yellow"
   },
   "btc_price": {
-    "usd": 72741,
-    "eur": 62031,
-    "change_24h": -0.2318755365336314,
-    "change_7d": 8.078192893448795
+    "usd": 71719,
+    "eur": 61160,
+    "change_24h": -1.4480927351787072,
+    "change_7d": 3.960319489458211
   },
   "tiers": {
     "t1": [
@@ -19,73 +19,16 @@
         "id": "etf_flows",
         "name": "BTC spot ETF net flows",
         "tier": "t1",
-        "state": "ok",
-        "signal": "bullish",
-        "value": 652.2,
-        "display_value": "+$652M (7d)",
-        "context": "Inflows $652M over 7d, $543M over 21d. Institutions accumulating via spot ETFs.",
-        "history": [
-          {
-            "ts": "2026-03-23",
-            "value": 167.2
-          },
-          {
-            "ts": "2026-03-24",
-            "value": -74.5
-          },
-          {
-            "ts": "2026-03-25",
-            "value": 7.8
-          },
-          {
-            "ts": "2026-03-26",
-            "value": -171.3
-          },
-          {
-            "ts": "2026-03-27",
-            "value": -225.5
-          },
-          {
-            "ts": "2026-03-30",
-            "value": 69.4
-          },
-          {
-            "ts": "2026-03-31",
-            "value": 117.5
-          },
-          {
-            "ts": "2026-04-01",
-            "value": -173.7
-          },
-          {
-            "ts": "2026-04-02",
-            "value": 9
-          },
-          {
-            "ts": "2026-04-06",
-            "value": 471.4
-          },
-          {
-            "ts": "2026-04-07",
-            "value": -159.1
-          },
-          {
-            "ts": "2026-04-08",
-            "value": -93.9
-          },
-          {
-            "ts": "2026-04-09",
-            "value": 358.1
-          },
-          {
-            "ts": "2026-04-10",
-            "value": 240.4
-          }
-        ],
+        "state": "broken_scraper",
+        "signal": "neutral",
+        "value": null,
+        "display_value": "SCRAPER BROKEN",
+        "context": "Source HTML structure changed. Parser needs a fix.",
+        "history": [],
         "source": "Farside Investors",
-        "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T14:58:06.221Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-12T08:34:53.968Z",
+        "error": "curl: proxy not configured for \"US\""
       },
       {
         "id": "fear_greed",
@@ -93,14 +36,10 @@
         "tier": "t1",
         "state": "ok",
         "signal": "bullish",
-        "value": 15,
-        "display_value": "15 — Extreme Fear",
-        "context": "15 — Extreme Fear. Extreme fear historically overlaps with accumulation zones.",
+        "value": 16,
+        "display_value": "16 — Extreme Fear",
+        "context": "16 — Extreme Fear. Extreme fear historically overlaps with accumulation zones.",
         "history": [
-          {
-            "ts": "2026-03-13",
-            "value": 15
-          },
           {
             "ts": "2026-03-14",
             "value": 16
@@ -216,11 +155,15 @@
           {
             "ts": "2026-04-11",
             "value": 15
+          },
+          {
+            "ts": "2026-04-12",
+            "value": 16
           }
         ],
         "source": "alternative.me",
-        "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:58:04.566Z",
+        "source_updated": "2026-04-12",
+        "fetched_at": "2026-04-12T08:34:54.139Z",
         "error": null
       },
       {
@@ -229,134 +172,134 @@
         "tier": "t1",
         "state": "ok",
         "signal": "neutral",
-        "value": 317486139061.54,
-        "display_value": "$317B",
-        "context": "Market cap $317B, change +1.1% over 30d — no sharp moves.",
+        "value": 317574736314.25,
+        "display_value": "$318B",
+        "context": "Market cap $318B, change +1.0% over 30d — no sharp moves.",
         "history": [
           {
-            "ts": "2026-03-13",
-            "value": 314551731879
-          },
-          {
             "ts": "2026-03-14",
-            "value": 315005309229
+            "value": 314990776622
           },
           {
             "ts": "2026-03-15",
-            "value": 314960964085
+            "value": 314946431478
           },
           {
             "ts": "2026-03-16",
-            "value": 314950661983
+            "value": 314936129376
           },
           {
             "ts": "2026-03-17",
-            "value": 315007110806
+            "value": 314983579423
           },
           {
             "ts": "2026-03-18",
-            "value": 315325632827
+            "value": 315302101443
           },
           {
             "ts": "2026-03-19",
-            "value": 314673603346
+            "value": 314650071963
           },
           {
             "ts": "2026-03-20",
-            "value": 315268882500
+            "value": 315245351116
           },
           {
             "ts": "2026-03-21",
-            "value": 315219901886
+            "value": 315196370502
           },
           {
             "ts": "2026-03-22",
-            "value": 315483270074
+            "value": 315459738690
           },
           {
             "ts": "2026-03-23",
-            "value": 315320314293
+            "value": 315296782910
           },
           {
             "ts": "2026-03-24",
-            "value": 314826988336
+            "value": 314803456953
           },
           {
             "ts": "2026-03-25",
-            "value": 315101712671
+            "value": 315078181288
           },
           {
             "ts": "2026-03-26",
-            "value": 315265984574
+            "value": 315242453191
           },
           {
             "ts": "2026-03-27",
-            "value": 314795030926
+            "value": 314771499543
           },
           {
             "ts": "2026-03-28",
-            "value": 314492836940
+            "value": 314469474960
           },
           {
             "ts": "2026-03-29",
-            "value": 314385375740
+            "value": 314398654807
           },
           {
             "ts": "2026-03-30",
-            "value": 314758216148
+            "value": 314706813278
           },
           {
             "ts": "2026-03-31",
-            "value": 315036450141
+            "value": 315012918758
           },
           {
             "ts": "2026-04-01",
-            "value": 315413792633
+            "value": 315390434463
           },
           {
             "ts": "2026-04-02",
-            "value": 315605773943
+            "value": 315607464512
           },
           {
             "ts": "2026-04-03",
-            "value": 315846798283
+            "value": 315832270152
           },
           {
             "ts": "2026-04-04",
-            "value": 316253236747
+            "value": 316229705364
           },
           {
             "ts": "2026-04-05",
-            "value": 316198383353
+            "value": 316174851970
           },
           {
             "ts": "2026-04-06",
-            "value": 316177928475
+            "value": 316185314271
           },
           {
             "ts": "2026-04-07",
-            "value": 315884483391
+            "value": 315860952007
           },
           {
             "ts": "2026-04-08",
-            "value": 316588893200
+            "value": 316565361817
           },
           {
             "ts": "2026-04-09",
-            "value": 317034754367
+            "value": 316573536699
           },
           {
             "ts": "2026-04-10",
-            "value": 316797489033
+            "value": 316773957650
           },
           {
             "ts": "2026-04-11",
-            "value": 317486139061.54
+            "value": 317462607678
+          },
+          {
+            "ts": "2026-04-12",
+            "value": 317574736314.25
           }
         ],
         "source": "DefiLlama",
-        "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:58:04.411Z",
+        "source_updated": "2026-04-12",
+        "fetched_at": "2026-04-12T08:34:54.557Z",
         "error": null
       },
       {
@@ -366,68 +309,61 @@
         "state": "ok",
         "signal": "neutral",
         "value": {
-          "pCut": 0.0125,
-          "pHold": 0.9825,
-          "pHike": 0.0065,
+          "pCut": 0.016,
+          "pHold": 0.9795,
+          "pHike": 0.0055,
           "meetingDate": "2026-04-29",
           "slug": "fed-decision-in-april",
-          "volume": 73102172.07252775
+          "volume": 75138288.2588338
         },
-        "display_value": "P(cut)=1% · hold=98% · hike=1%",
-        "context": "April meeting (2026-04-29): market prices 98% hold, cut 1%. Fed most likely holds.",
+        "display_value": "P(cut)=2% · hold=98% · hike=1%",
+        "context": "April meeting (2026-04-29): market prices 98% hold, cut 2%. Fed most likely holds.",
         "history": [],
         "source": "Polymarket (Gamma)",
-        "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:58:04.428Z",
+        "source_updated": "2026-04-12",
+        "fetched_at": "2026-04-12T08:34:54.329Z",
         "error": null
       },
       {
         "id": "kalshi_fed",
         "name": "Fed decision (Kalshi)",
         "tier": "t1",
-        "state": "ok",
+        "state": "no_data",
         "signal": "neutral",
-        "value": {
-          "pCut": 0.010000000000000009,
-          "pHold": 0.98,
-          "pHike": 0.01,
-          "currentUpper": 3.75,
-          "meetingDate": "2026-04-29",
-          "eventTicker": "KXFED-26APR"
-        },
-        "display_value": "P(cut)=1% · hold=98% · hike=1%",
-        "context": "Apr meeting (2026-04-29): Kalshi prices 98% hold (current upper 3.75%).",
+        "value": null,
+        "display_value": "no data",
+        "context": "Source unreachable: This operation was aborted",
         "history": [],
         "source": "Kalshi (KXFED via US proxy)",
-        "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:58:07.484Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-12T08:35:08.925Z",
+        "error": "This operation was aborted"
       },
       {
         "id": "polymarket_btc_price",
         "name": "BTC price bias (Polymarket)",
         "tier": "t1",
         "state": "ok",
-        "signal": "bullish",
+        "signal": "neutral",
         "value": {
-          "current": 72741,
+          "current": 71716,
           "closestUp": {
             "target": 75000,
-            "p": 0.715
+            "p": 0.58
           },
           "closestDown": {
             "target": 65000,
-            "p": 0.305
+            "p": 0.385
           },
-          "bias": 0.41,
+          "bias": 0.19499999999999995,
           "slug": "what-price-will-bitcoin-hit-in-april-2026"
         },
-        "display_value": "+$75K: 72% · -$65K: 31%",
-        "context": "Market prices 72% chance of hitting $75K vs 31% for $65K (bias +41%). Bullish sentiment.",
+        "display_value": "+$75K: 58% · -$65K: 39%",
+        "context": "Nearby levels: +$75K 58%, -$65K 39% (bias 19%). Neutral.",
         "history": [],
         "source": "Polymarket (Gamma)",
-        "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:58:04.633Z",
+        "source_updated": "2026-04-12",
+        "fetched_at": "2026-04-12T08:34:54.842Z",
         "error": null
       }
     ],
@@ -436,113 +372,16 @@
         "id": "m2",
         "name": "Global M2 (84d lag)",
         "tier": "t2",
-        "state": "ok",
-        "signal": "bullish",
-        "value": 22667.3,
-        "display_value": "$22.7T (US)",
-        "context": "M2 rising +1.7% over 3 months. With an 84-day lag the positive impulse reaches BTC in ~3 months.",
-        "history": [
-          {
-            "ts": "2024-03-01",
-            "value": 20973.2
-          },
-          {
-            "ts": "2024-04-01",
-            "value": 20958.8
-          },
-          {
-            "ts": "2024-05-01",
-            "value": 21019.9
-          },
-          {
-            "ts": "2024-06-01",
-            "value": 21067.7
-          },
-          {
-            "ts": "2024-07-01",
-            "value": 21094.4
-          },
-          {
-            "ts": "2024-08-01",
-            "value": 21185.8
-          },
-          {
-            "ts": "2024-09-01",
-            "value": 21268.6
-          },
-          {
-            "ts": "2024-10-01",
-            "value": 21331
-          },
-          {
-            "ts": "2024-11-01",
-            "value": 21451.6
-          },
-          {
-            "ts": "2024-12-01",
-            "value": 21485.3
-          },
-          {
-            "ts": "2025-01-01",
-            "value": 21547.6
-          },
-          {
-            "ts": "2025-02-01",
-            "value": 21613.2
-          },
-          {
-            "ts": "2025-03-01",
-            "value": 21693.5
-          },
-          {
-            "ts": "2025-04-01",
-            "value": 21775.5
-          },
-          {
-            "ts": "2025-05-01",
-            "value": 21833.8
-          },
-          {
-            "ts": "2025-06-01",
-            "value": 21938.7
-          },
-          {
-            "ts": "2025-07-01",
-            "value": 22019.9
-          },
-          {
-            "ts": "2025-08-01",
-            "value": 22086.8
-          },
-          {
-            "ts": "2025-09-01",
-            "value": 22169.8
-          },
-          {
-            "ts": "2025-10-01",
-            "value": 22250.4
-          },
-          {
-            "ts": "2025-11-01",
-            "value": 22296.5
-          },
-          {
-            "ts": "2025-12-01",
-            "value": 22386.9
-          },
-          {
-            "ts": "2026-01-01",
-            "value": 22469.1
-          },
-          {
-            "ts": "2026-02-01",
-            "value": 22667.3
-          }
-        ],
+        "state": "no_data",
+        "signal": "neutral",
+        "value": null,
+        "display_value": "no data",
+        "context": "Source unreachable: This operation was aborted",
+        "history": [],
         "source": "FRED (M2SL)",
-        "source_updated": "2026-02-01",
-        "fetched_at": "2026-04-11T14:58:04.374Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-12T08:35:08.932Z",
+        "error": "This operation was aborted"
       },
       {
         "id": "btc_vs_200dma",
@@ -551,23 +390,19 @@
         "state": "ok",
         "signal": "bearish",
         "value": {
-          "price": 72741.2166610049,
-          "ma200": 88197.89847123742,
-          "diff_pct": -17.525000116950814,
+          "price": 71717.57367493708,
+          "ma200": 87998.93369123821,
+          "diff_pct": -18.50176966169559,
           "price_meta": {
-            "usd": 72741,
-            "eur": 62031,
-            "change_24h": -0.2318755365336314,
-            "change_7d": 8.078192893448795
+            "usd": 71719,
+            "eur": 61160,
+            "change_24h": -1.4480927351787072,
+            "change_7d": 3.960319489458211
           }
         },
-        "display_value": "$72,741 (-17.5% to MA200)",
-        "context": "Price 17.5% below the 200-day MA. Deep under institutional cost basis.",
+        "display_value": "$71,718 (-18.5% to MA200)",
+        "context": "Price 18.5% below the 200-day MA. Deep under institutional cost basis.",
         "history": [
-          {
-            "ts": "2026-03-14",
-            "value": 70965.28228600459
-          },
           {
             "ts": "2026-03-15",
             "value": 71217.1010283798
@@ -681,13 +516,17 @@
             "value": 72972.70823557042
           },
           {
-            "ts": "2026-04-11",
-            "value": 72741.2166610049
+            "ts": "2026-04-12",
+            "value": 73053.88808483821
+          },
+          {
+            "ts": "2026-04-12",
+            "value": 71717.57367493708
           }
         ],
         "source": "CoinGecko → Binance",
-        "source_updated": "2026-04-11",
-        "fetched_at": "2026-04-11T14:58:04.608Z",
+        "source_updated": "2026-04-12",
+        "fetched_at": "2026-04-12T08:34:54.415Z",
         "error": null
       },
       {
@@ -823,208 +662,38 @@
         ],
         "source": "Yahoo ^VIX",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T14:58:04.380Z",
+        "fetched_at": "2026-04-12T08:34:54.501Z",
         "error": null
       },
       {
         "id": "treasury_2y",
         "name": "2-Year Treasury yield",
         "tier": "t2",
-        "state": "ok",
-        "signal": "bearish",
-        "value": 3.78,
-        "display_value": "3.78%",
-        "context": "2Y yield 3.78%, +0.14pp over 30d. Above Fed Funds and rising — tightening expectations.",
-        "history": [
-          {
-            "ts": "2026-02-27",
-            "value": 3.38
-          },
-          {
-            "ts": "2026-03-02",
-            "value": 3.47
-          },
-          {
-            "ts": "2026-03-03",
-            "value": 3.51
-          },
-          {
-            "ts": "2026-03-04",
-            "value": 3.54
-          },
-          {
-            "ts": "2026-03-05",
-            "value": 3.57
-          },
-          {
-            "ts": "2026-03-06",
-            "value": 3.56
-          },
-          {
-            "ts": "2026-03-09",
-            "value": 3.56
-          },
-          {
-            "ts": "2026-03-10",
-            "value": 3.57
-          },
-          {
-            "ts": "2026-03-11",
-            "value": 3.64
-          },
-          {
-            "ts": "2026-03-12",
-            "value": 3.76
-          },
-          {
-            "ts": "2026-03-13",
-            "value": 3.73
-          },
-          {
-            "ts": "2026-03-16",
-            "value": 3.68
-          },
-          {
-            "ts": "2026-03-17",
-            "value": 3.68
-          },
-          {
-            "ts": "2026-03-18",
-            "value": 3.76
-          },
-          {
-            "ts": "2026-03-19",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-03-20",
-            "value": 3.88
-          },
-          {
-            "ts": "2026-03-23",
-            "value": 3.83
-          },
-          {
-            "ts": "2026-03-24",
-            "value": 3.9
-          },
-          {
-            "ts": "2026-03-25",
-            "value": 3.84
-          },
-          {
-            "ts": "2026-03-26",
-            "value": 3.96
-          },
-          {
-            "ts": "2026-03-27",
-            "value": 3.88
-          },
-          {
-            "ts": "2026-03-30",
-            "value": 3.82
-          },
-          {
-            "ts": "2026-03-31",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-04-01",
-            "value": 3.81
-          },
-          {
-            "ts": "2026-04-02",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-04-03",
-            "value": 3.84
-          },
-          {
-            "ts": "2026-04-06",
-            "value": 3.84
-          },
-          {
-            "ts": "2026-04-07",
-            "value": 3.81
-          },
-          {
-            "ts": "2026-04-08",
-            "value": 3.79
-          },
-          {
-            "ts": "2026-04-09",
-            "value": 3.78
-          }
-        ],
+        "state": "no_data",
+        "signal": "neutral",
+        "value": null,
+        "display_value": "no data",
+        "context": "Source unreachable: This operation was aborted",
+        "history": [],
         "source": "FRED (DGS2, DFF)",
-        "source_updated": "2026-04-09",
-        "fetched_at": "2026-04-11T14:58:04.374Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-12T08:35:08.944Z",
+        "error": "This operation was aborted"
       },
       {
         "id": "cpi",
         "name": "CPI YoY",
         "tier": "t2",
-        "state": "ok",
+        "state": "no_data",
         "signal": "neutral",
-        "value": 3.320205581223676,
-        "display_value": "3.3% YoY",
-        "context": "CPI 3.3%. No clear trend.",
-        "history": [
-          {
-            "ts": "2025-03-01",
-            "value": 2.3819814628055505
-          },
-          {
-            "ts": "2025-04-01",
-            "value": 2.3253882302578393
-          },
-          {
-            "ts": "2025-05-01",
-            "value": 2.377265107368083
-          },
-          {
-            "ts": "2025-06-01",
-            "value": 2.68045386591023
-          },
-          {
-            "ts": "2025-07-01",
-            "value": 2.7426180521671357
-          },
-          {
-            "ts": "2025-08-01",
-            "value": 2.9385917430316257
-          },
-          {
-            "ts": "2025-09-01",
-            "value": 3.0225715847133356
-          },
-          {
-            "ts": "2025-11-01",
-            "value": 2.9882996283635057
-          },
-          {
-            "ts": "2025-12-01",
-            "value": 3.0022620431683724
-          },
-          {
-            "ts": "2026-01-01",
-            "value": 2.8286797395498917
-          },
-          {
-            "ts": "2026-02-01",
-            "value": 2.6645890876940963
-          },
-          {
-            "ts": "2026-03-01",
-            "value": 3.320205581223676
-          }
-        ],
+        "value": null,
+        "display_value": "no data",
+        "context": "Source unreachable: This operation was aborted",
+        "history": [],
         "source": "FRED (CPIAUCSL)",
-        "source_updated": "2026-03-01",
-        "fetched_at": "2026-04-11T14:58:04.356Z",
-        "error": null
+        "source_updated": null,
+        "fetched_at": "2026-04-12T08:35:08.950Z",
+        "error": "This operation was aborted"
       }
     ],
     "t3": [
@@ -1034,9 +703,9 @@
         "tier": "t3",
         "state": "ok",
         "signal": "bullish",
-        "value": 4761.89990234375,
-        "display_value": "$4,762 / oz",
-        "context": "Gold $4762, -7.8% (30d) after +6.2% (90d). Rally losing steam → historical rotation lag into BTC: 4–7 months.",
+        "value": 4787.39990234375,
+        "display_value": "$4,787 / oz",
+        "context": "Gold $4787, -7.4% (30d) after +6.8% (90d). Rally losing steam → historical rotation lag into BTC: 4–7 months.",
         "history": [
           {
             "ts": "2026-02-27",
@@ -1156,12 +825,12 @@
           },
           {
             "ts": "2026-04-10",
-            "value": 4761.89990234375
+            "value": 4787.39990234375
           }
         ],
         "source": "Yahoo (GC=F, GLD)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T14:58:04.452Z",
+        "fetched_at": "2026-04-12T08:34:54.576Z",
         "error": null
       },
       {
@@ -1170,9 +839,9 @@
         "tier": "t3",
         "state": "ok",
         "signal": "bullish",
-        "value": 0.0012328062765134243,
+        "value": 0.0012294774358668054,
         "display_value": "0.0012",
-        "context": "Copper/Gold 0.0012, +9.0% over 30d. Copper outpaces gold → risk-on, industrial demand rising.",
+        "context": "Copper/Gold 0.0012, +8.7% over 30d. Copper outpaces gold → risk-on, industrial demand rising.",
         "history": [
           {
             "ts": "2026-02-27",
@@ -1292,15 +961,17 @@
           },
           {
             "ts": "2026-04-10",
-            "value": 0.0012328062765134243
+            "value": 0.0012294774358668054
           }
         ],
         "source": "Yahoo (HG=F / GC=F)",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-11T14:58:04.502Z",
+        "fetched_at": "2026-04-12T08:34:54.568Z",
         "error": null
       }
     ]
   },
-  "alerts": []
+  "alerts": [
+    "BTC spot ETF net flows: Source HTML structure changed. Parser needs a fix."
+  ]
 }
