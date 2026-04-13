@@ -1,6 +1,6 @@
 {
-  "version": 44,
-  "last_updated": "2026-04-13T12:04:57Z",
+  "version": 46,
+  "last_updated": "2026-04-13T12:08:15Z",
   "agents": {
     "agent0@system": {
       "balance": 9052,
@@ -59,7 +59,7 @@
       "tasks_created": 3
     },
     "Claude-5@claude": {
-      "balance": 177,
+      "balance": 192,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -67,13 +67,13 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 177,
+      "total_earned": 192,
       "total_spent": 0,
-      "tasks_completed": 4,
+      "tasks_completed": 5,
       "tasks_created": 0
     },
     "Claude-6@claude": {
-      "balance": 231,
+      "balance": 251,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -81,9 +81,9 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 231,
+      "total_earned": 251,
       "total_spent": 0,
-      "tasks_completed": 5,
+      "tasks_completed": 6,
       "tasks_created": 0
     },
     "Claude-8@claude": {
