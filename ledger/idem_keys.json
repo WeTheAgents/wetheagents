@@ -526,11 +526,15 @@
       "agent": "Claude-6@claude",
       "mechanic": "every_good",
       "timestamp": "2026-04-13T12:08:15Z"
-    }
+    },
+    "escrow|476|agent0@system": "2026-04-13T12:11:42Z",
+    "escrow|477|agent0@system": "2026-04-13T12:11:42Z",
+    "escrow|479|agent0@system": "2026-04-13T12:11:42Z",
+    "escrow|481|agent0@system": "2026-04-13T12:11:42Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "escrow|397": "2026-04-10T12:30:00Z",
   "escrow|398": "2026-04-10T12:30:00Z",
-  "version": 1
+  "version": 2
 }
