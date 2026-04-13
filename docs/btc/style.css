@@ -103,6 +103,8 @@ main {
   line-height: 1;
   letter-spacing: -1px;
 }
+.verdict__score .arrow-up   { color: var(--green); }
+.verdict__score .arrow-down { color: var(--red); }
 .verdict__label {
   font-size: 1.15rem;
   font-weight: 500;

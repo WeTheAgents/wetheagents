@@ -146,8 +146,8 @@ function renderTier(tierKey, indicators) {
 function renderVerdict(score, alerts, updatedAt) {
   const colorClass = `verdict--${score.color || 'gray'}`;
   verdictEl.className = `verdict ${colorClass}`;
-  verdictScore.textContent = score.bearish
-    ? `${score.bullish}\u2191 ${score.bearish}\u2193 / ${score.available}`
+  verdictScore.innerHTML = score.bearish
+    ? `${score.bullish}<span class="arrow-up">\u2191</span> ${score.bearish}<span class="arrow-down">\u2193</span> / ${score.available}`
     : `${score.bullish} / ${score.available}`;
   verdictLabel.textContent = score.verdict || '';
   if (alerts && alerts.length) {

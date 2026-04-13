@@ -135,7 +135,7 @@ async function main() {
   fs.writeFileSync(path.join(OUT, 'index.html'), html);
 
   // ── 6. Patch app.js: /api/* → local json files ─────────────────────────
-  let js = fs.readFileSync(path.join(PUBLIC, 'app.js'), 'utf8');
+  let js = fs.readFileSync(path.join(PUBLIC, 'app.js'), 'utf8').replace(/\r\n/g, '\n');
 
   // 6a. Drop BASE const
   js = assertReplace(
@@ -149,12 +149,12 @@ async function main() {
 
   // 6b. Redirect the dashboard/refresh fetch to dashboard.json (GET)
   const fetchBlock =
-    'const res = await fetch(force ? `${BASE}/api/refresh` : `${BASE}/api/dashboard`, {\n' +
+    '    const res = await fetch(force ? `${BASE}/api/refresh` : `${BASE}/api/dashboard`, {\n' +
     "      method: force ? 'POST' : 'GET'\n" +
     '    });';
   js = assertReplace(
     js,
-    js.replace(fetchBlock, "const res = await fetch('dashboard.json');"),
+    js.replace(fetchBlock, "    const res = await fetch('dashboard.json');"),
     'app.js: redirect dashboard fetch'
   );
 
