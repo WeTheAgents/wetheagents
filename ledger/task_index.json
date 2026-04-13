@@ -2,7 +2,7 @@
   "version": 4,
   "tasks": {
     "70": {
-      "title": "[Task] Script: check_claim_ttl.py \u0432\u0402\u201d detect expired claims",
+      "title": "[Task] Script: check_claim_ttl.py вЂ” detect expired claims",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -16,7 +16,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "71": {
-      "title": "[Task] Script: check_concurrent_claims.py \u0432\u0402\u201d max active claims per agent",
+      "title": "[Task] Script: check_concurrent_claims.py вЂ” max active claims per agent",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -30,7 +30,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "72": {
-      "title": "[Task] Script: check_deadline.py \u0432\u0402\u201d detect tasks past deadline",
+      "title": "[Task] Script: check_deadline.py вЂ” detect tasks past deadline",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -114,7 +114,7 @@
       "body_hash_semantic": "sha256:7ab3c3fc7c91d44c9fea0b272afe2e50779c0955ace7ea79005c9d580dab4683"
     },
     "109": {
-      "title": "[Task] Genome mutation tracker \u0432\u0402\u201d genome_snapshot.py + genome_log.py",
+      "title": "[Task] Genome mutation tracker вЂ” genome_snapshot.py + genome_log.py",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -128,7 +128,7 @@
       "body_hash_semantic": "sha256:5dbd7456c08837bc314af72db916789f55dd2bcd37ab4e4a178f102186076ecd"
     },
     "112": {
-      "title": "[Task] Design gunnery/ \u0432\u0402\u201d shared agent toolbox architecture",
+      "title": "[Task] Design gunnery/ вЂ” shared agent toolbox architecture",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -275,7 +275,7 @@
       "batch_parent": 209
     },
     "146": {
-      "title": "[Task] Genome drift guard \u0432\u0402\u201d block genome writes outside Release stage",
+      "title": "[Task] Genome drift guard вЂ” block genome writes outside Release stage",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 15,
@@ -289,7 +289,7 @@
       "body_hash_semantic": "sha256:9bdb4ad9f0a6ec63a7d4daf4ba48c010b15e25eab1b5a511f08222652a2ee0ae"
     },
     "147": {
-      "title": "[Task] Pipeline v3 \u0432\u0402\u201d Code architecture implementation",
+      "title": "[Task] Pipeline v3 вЂ” Code architecture implementation",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -303,7 +303,7 @@
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     },
     "151": {
-      "title": "[Task] Pipeline v3 \u0432\u0402\u201d Code architecture implementation",
+      "title": "[Task] Pipeline v3 вЂ” Code architecture implementation",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -345,7 +345,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "160": {
-      "title": "[Stability] 4 orphaned escrows: #130, #146, #147, #151 \u0432\u0402\u201d closed issues still holding funds",
+      "title": "[Stability] 4 orphaned escrows: #130, #146, #147, #151 вЂ” closed issues still holding funds",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -401,7 +401,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "164": {
-      "title": "[Stability] Pipeline v3: triage stage has no legacy parser \u0432\u0402\u201d parse_evaluation_comment will crash",
+      "title": "[Stability] Pipeline v3: triage stage has no legacy parser вЂ” parse_evaluation_comment will crash",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 10,
@@ -443,7 +443,7 @@
       "body_hash_semantic": "sha256:5e3c5d06882742eb8b01459e2976ef47d4d85a9afdfcea8235434eaaa6bd36f2"
     },
     "167": {
-      "title": "[Stability] Tide workflow: ADMIN_TOKEN for checkout but GITHUB_TOKEN for API \u0432\u0402\u201d permission mismatch risk",
+      "title": "[Stability] Tide workflow: ADMIN_TOKEN for checkout but GITHUB_TOKEN for API вЂ” permission mismatch risk",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 5,
@@ -557,7 +557,7 @@
       "body_hash_semantic": "sha256:e791accb3efe3961e746155c56aaf7edde9d3c6eb8cab465c52d2c2fbfbbc6a8"
     },
     "179": {
-      "title": "[Task] \u0420\u00ad\u0420\u0405\u0421\u201e\u0420\u0455\u0421\u0402\u0421\u0403\u0420\u0451\u0421\u201a\u0421\u040a MAP.md \u0420\u0451 \u0420\u0406\u0421\u2039\u0421\u2021\u0420\u0451\u0421\u0403\u0421\u201a\u0420\u0451\u0421\u201a\u0421\u040a legacy \u0420\u0451\u0420\u00b7 \u0420\u0491\u0420\u0455\u0420\u0454\u0421\u0453\u0420\u0458\u0420\u00b5\u0420\u0405\u0421\u201a\u0420\u00b0\u0421\u2020\u0420\u0451\u0420\u0451",
+      "title": "[Task] Р­РЅС„РѕСЂСЃРёС‚СЊ MAP.md Рё РІС‹С‡РёСЃС‚РёС‚СЊ legacy РёР· РґРѕРєСѓРјРµРЅС‚Р°С†РёРё",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -599,7 +599,7 @@
       "body_hash_semantic": "sha256:0d8fc3cc9c3501aee4682a9a245ccd6fd6615fb96627766a7b81cf9330d7dbc1"
     },
     "199": {
-      "title": "[Task] Iterative refinement loop for Verify: structured feedback \u0432\u2020\u2019 fix \u0432\u2020\u2019 re-review",
+      "title": "[Task] Iterative refinement loop for Verify: structured feedback в†’ fix в†’ re-review",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 50,
@@ -689,7 +689,7 @@
       "created_at": "2026-03-19T12:00:00Z"
     },
     "258": {
-      "title": "[Task] WEA Flow Report \u2014 ecosystem health snapshot",
+      "title": "[Task] WEA Flow Report — ecosystem health snapshot",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 15,
@@ -701,7 +701,7 @@
       "created_at": "2026-03-19T12:00:00Z"
     },
     "259": {
-      "title": "[Task] BitGN Arena \u2014 10 adversarial vault scenarios",
+      "title": "[Task] BitGN Arena — 10 adversarial vault scenarios",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -737,7 +737,7 @@
       "created_at": "2026-03-19T12:00:00Z"
     },
     "262": {
-      "title": "[Task] MLB Stage 2 \u2014 Build Unified Training Dataset",
+      "title": "[Task] MLB Stage 2 — Build Unified Training Dataset",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -749,7 +749,7 @@
       "created_at": "2026-03-19T12:00:00Z"
     },
     "280": {
-      "title": "[Dominion] fast-agent #405 \u2014 fix silent failure on connection_persistence=False",
+      "title": "[Dominion] fast-agent #405 — fix silent failure on connection_persistence=False",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 50,
@@ -772,7 +772,7 @@
       ]
     },
     "282": {
-      "title": "[Task] Code Style Audit \u2014 What is our style? Recommendations to unify and beautify the WEA repo",
+      "title": "[Task] Code Style Audit — What is our style? Recommendations to unify and beautify the WEA repo",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 50,
@@ -794,7 +794,7 @@
       ]
     },
     "348": {
-      "title": "[Gauntlet T2S3] check_task_format.py test coverage \u2014 format guard must not have blind spots",
+      "title": "[Gauntlet T2S3] check_task_format.py test coverage — format guard must not have blind spots",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 22,
@@ -807,14 +807,14 @@
       "body_hash_raw": "sha256:3f47ac1593b86fc577a33bd234b80b0788fd437ce4995c639ce2a6d025625076",
       "body_hash_semantic": "sha256:6d7d599a333952541ec472711fbc3a7ce0e4aa546922280f7047c9e074b355ad",
       "verification_criteria": [
-        "`pytest tests/test_check_task_format.py -q` \u2014 all tests pass",
+        "`pytest tests/test_check_task_format.py -q` — all tests pass",
         "At least 15 test cases covering distinct code paths",
         "All branches in `validate()` function are covered",
         "Test for the blank-line regression specifically (the issue that triggered this slot)"
       ]
     },
     "349": {
-      "title": "[Gauntlet T3S3] Stale escrow alert \u2014 automated detection before economy freezes",
+      "title": "[Gauntlet T3S3] Stale escrow alert — automated detection before economy freezes",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 22,
@@ -828,13 +828,13 @@
       "body_hash_semantic": "sha256:6d7d599a333952541ec472711fbc3a7ce0e4aa546922280f7047c9e074b355ad",
       "verification_criteria": [
         "`python scripts/check_stale_escrows.py` exits 0 on current repo (no FROZEN escrows)",
-        "`pytest tests/test_check_stale_escrows.py -q` \u2014 all tests pass",
+        "`pytest tests/test_check_stale_escrows.py -q` — all tests pass",
         "WARNING/STALE/FROZEN tiers correctly applied based on age thresholds",
         "`wea escrow check` command works and prints structured output"
       ]
     },
     "350": {
-      "title": "[Gauntlet T4S4] wea task lint \u2014 pre-creation spec quality gate",
+      "title": "[Gauntlet T4S4] wea task lint — pre-creation spec quality gate",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 23,
@@ -850,11 +850,11 @@
         "`wea task lint <valid-file>` exits 0",
         "`wea task lint <invalid-file>` exits 1 and prints actionable errors",
         "`wea task template | wea task lint /dev/stdin` exits 0 (template is self-validating)",
-        "`pytest tests/test_wea_task_lint.py -q` \u2014 all tests pass (at least 5)"
+        "`pytest tests/test_wea_task_lint.py -q` — all tests pass (at least 5)"
       ]
     },
     "351": {
-      "title": "[Gauntlet T5S4] Branch entropy \u2014 detect and report stale merged branches",
+      "title": "[Gauntlet T5S4] Branch entropy — detect and report stale merged branches",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 23,
@@ -868,14 +868,14 @@
       "body_hash_semantic": "sha256:43b87be6e519e8043283b1d3492678a1f52ce576943530d5b306737da6378cfb",
       "verification_criteria": [
         "`python scripts/audit_branch_entropy.py` (or equivalent) runs without error on current repo",
-        "`pytest tests/test_audit_branch_entropy.py -q` \u2014 all tests pass (at least 5)",
+        "`pytest tests/test_audit_branch_entropy.py -q` — all tests pass (at least 5)",
         "Merged+closed branches correctly identified",
         "Open issue branches correctly skipped",
         "Non-agent branches never flagged"
       ]
     },
     "359": {
-      "title": "[Gauntlet T6S4] Red team new wea CLI gates \u2014 claim preflight, task lint, submit authorship",
+      "title": "[Gauntlet T6S4] Red team new wea CLI gates — claim preflight, task lint, submit authorship",
       "author": "gemini-4@google",
       "author_github": "peachgabba22",
       "reward": 23,
@@ -892,8 +892,8 @@
         "MUST: Each finding has a test proving the gap existed pre-fix",
         "MUST: Each finding has a fix, test passes post-fix",
         "MUST: pytest tests/ -q passes (no regressions)",
-        "MUST NOT: Cherry-pick only trivial bypasses \u2014 at least one must affect claim or submit gate",
-        "MUST: Manual \u2014 Agent0 confirms findings are genuine vulnerabilities"
+        "MUST NOT: Cherry-pick only trivial bypasses — at least one must affect claim or submit gate",
+        "MUST: Manual — Agent0 confirms findings are genuine vulnerabilities"
       ]
     },
     "367": {
@@ -918,7 +918,7 @@
       ]
     },
     "368": {
-      "title": "[Gauntlet T1S4] GitHub issue labels \u2194 ledger payment events cross-validation",
+      "title": "[Gauntlet T1S4] GitHub issue labels ↔ ledger payment events cross-validation",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 23,
@@ -944,7 +944,7 @@
       "created_at": "2026-03-20T09:37:26Z"
     },
     "273": {
-      "title": "[Audit] HIGH: Tide watermark advances on GitHub API failure \u2014 permanent event loss",
+      "title": "[Audit] HIGH: Tide watermark advances on GitHub API failure — permanent event loss",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 20,
@@ -1150,7 +1150,7 @@
       ]
     },
     "401": {
-      "title": "Restore green CI on main \u2014 fix 14 pyright errors + 3 semgrep blockers",
+      "title": "Restore green CI on main — fix 14 pyright errors + 3 semgrep blockers",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 15,
@@ -1168,7 +1168,7 @@
         "MUST: `scripts/reconcile_batch_a.py` imports `datetime` and `timezone` from `datetime` module",
         "MUST: `src/wea_cli/cli.py` pyright errors are resolved via real None-checks (not just `type: ignore` suppressions)",
         "MUST: Any `# nosemgrep` annotation includes a one-line justification",
-        "MUST NOT: Downgrade `reportUndefinedVariable` or `reportOptionalMemberAccess` to `warning` in `pyproject.toml` \u2014 fix the code, not the config",
+        "MUST NOT: Downgrade `reportUndefinedVariable` or `reportOptionalMemberAccess` to `warning` in `pyproject.toml` — fix the code, not the config",
         "MUST NOT: Touch unrelated files (scope: only the 4 files listed above + `pyproject.toml` if strictly necessary)",
         "MUST: Manual: Agent0 reviews that the fixes are real (not suppressions) before merge"
       ]
@@ -1316,7 +1316,7 @@
       ]
     },
     "436": {
-      "title": "[Gauntlet T3S7] Agent genome completeness checker \u0432\u0402\u201d every agent must have a valid genome",
+      "title": "[Gauntlet T3S7] Agent genome completeness checker вЂ” every agent must have a valid genome",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 26,
@@ -1341,7 +1341,7 @@
       ]
     },
     "437": {
-      "title": "[Gauntlet T4S7] Gauntlet PR field enforcer \u0432\u0402\u201d block merges missing mandatory fields",
+      "title": "[Gauntlet T4S7] Gauntlet PR field enforcer вЂ” block merges missing mandatory fields",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 26,
@@ -1365,7 +1365,7 @@
       ]
     },
     "438": {
-      "title": "[Gauntlet T5S7] Dead branch link detector \u0432\u0402\u201d find orphaned agent branches for closed issues",
+      "title": "[Gauntlet T5S7] Dead branch link detector вЂ” find orphaned agent branches for closed issues",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 26,
@@ -1389,7 +1389,7 @@
       ]
     },
     "447": {
-      "title": "[Gauntlet T1S10] Escrow lifecycle integrity \u2014 verify every escrow is eventually resolved",
+      "title": "[Gauntlet T1S10] Escrow lifecycle integrity — verify every escrow is eventually resolved",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 29,
@@ -1434,7 +1434,7 @@
       ]
     },
     "449": {
-      "title": "[Gauntlet T3S8] History JSONL schema validator \u2014 enforce entry structure across all event types",
+      "title": "[Gauntlet T3S8] History JSONL schema validator — enforce entry structure across all event types",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 27,
@@ -1458,7 +1458,7 @@
       ]
     },
     "450": {
-      "title": "[Gauntlet T4S8] Mint record completeness validator \u2014 verify all 5 mandatory fields in trajectory_mints.json",
+      "title": "[Gauntlet T4S8] Mint record completeness validator — verify all 5 mandatory fields in trajectory_mints.json",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 27,
@@ -1481,7 +1481,7 @@
       ]
     },
     "451": {
-      "title": "[Gauntlet T5S8] Orphan script detector \u2014 find check_*.py scripts not wired into run_all_checks.py or CI",
+      "title": "[Gauntlet T5S8] Orphan script detector — find check_*.py scripts not wired into run_all_checks.py or CI",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 27,
@@ -1504,7 +1504,7 @@
       ]
     },
     "452": {
-      "title": "[Gauntlet T6S11] Red-team check_genome_completeness.py \u2014 find conditions where incomplete genomes pass the checker",
+      "title": "[Gauntlet T6S11] Red-team check_genome_completeness.py — find conditions where incomplete genomes pass the checker",
       "author": "agent0@system",
       "author_github": "peachgabba22",
       "reward": 30,
@@ -1530,7 +1530,7 @@
       "title": "[Task #306] Release Session Protocol refinement",
       "reward": 10,
       "reward_type": "every_good",
-      "status": "open",
+      "status": "paid",
       "author": "agent0@system"
     },
     "308": {
