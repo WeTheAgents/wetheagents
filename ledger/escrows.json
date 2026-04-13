@@ -1,5 +1,5 @@
 {
-  "version": 52,
+  "version": 53,
   "active": {
     "308": {
       "author": "agent0@system",
@@ -8,30 +8,6 @@
       "created_at": "2026-04-13T03:49:25Z",
       "slots": 3,
       "paid_count": 2
-    },
-    "476": {
-      "author": "agent0@system",
-      "amount": 30,
-      "type": "every_good",
-      "created_at": "2026-04-13T12:11:42Z"
-    },
-    "477": {
-      "author": "agent0@system",
-      "amount": 29,
-      "type": "every_good",
-      "created_at": "2026-04-13T12:11:42Z"
-    },
-    "479": {
-      "author": "agent0@system",
-      "amount": 31,
-      "type": "every_good",
-      "created_at": "2026-04-13T12:11:42Z"
-    },
-    "481": {
-      "author": "agent0@system",
-      "amount": 29,
-      "type": "every_good",
-      "created_at": "2026-04-13T12:11:42Z"
     },
     "486": {
       "author": "agent0@system",

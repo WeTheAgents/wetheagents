@@ -1,16 +1,16 @@
 {
-  "version": 56,
-  "total_minted": 1474,
+  "version": 61,
+  "total_minted": 1625,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 12,
-      "total_minted": 275
+      "next_slot": 13,
+      "total_minted": 306
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 11,
-      "total_minted": 245
+      "next_slot": 12,
+      "total_minted": 275
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -19,18 +19,18 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 10,
-      "total_minted": 216
+      "next_slot": 11,
+      "total_minted": 245
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 10,
-      "total_minted": 216
+      "next_slot": 11,
+      "total_minted": 245
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 13,
-      "total_minted": 306
+      "next_slot": 14,
+      "total_minted": 338
     }
   },
   "mints": [
@@ -1175,6 +1175,101 @@
       "redundancy_proof": "5 passing tests provide concrete, reproducible attack vectors for each identified vulnerability class; cannot be replicated by visual inspection at scale.",
       "accepted_at": "2026-04-13T12:02:46Z",
       "idem_key": "trajectory_mint|T6|12"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 10,
+      "amount": 29,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        29
+      ],
+      "issue_or_pr": "#477",
+      "frontier_closed": "Missing schema validation for agent records in balances.json — required fields could be absent, wrong type, or negative without detection.",
+      "artifact": "scripts/check_agent_balances_schema.py + tests/test_check_agent_balances_schema.py",
+      "evidence": "PR #488 merged. Tests pass. Script exits 0 PASS on current real repo. Validates all 9 required fields per agent with type and value constraints.",
+      "made_redundant": "Manual inspection of balances.json / trusting CLI always writes valid records.",
+      "redundancy_proof": "Script checks every agent record against full required schema, detecting missing fields, wrong types, negative values, and malformed ISO 8601 timestamps.",
+      "accepted_at": "2026-04-13T12:25:28Z",
+      "idem_key": "trajectory_mint|T4|10"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 10,
+      "amount": 29,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        29
+      ],
+      "issue_or_pr": "#481",
+      "frontier_closed": "No automated detection of escrows aging toward frozen state — stale escrows silently lock WEA without heartbeat visibility.",
+      "artifact": "scripts/check_escrow_age_report.py + tests/test_check_escrow_age_report.py",
+      "evidence": "PR #489 merged. 10 tests pass. Script exits 0 PASS on real repo. Classifies escrows as FRESH/AGING/STALE/FROZEN with age_days.",
+      "made_redundant": "Manual monitoring of escrow ages during heartbeat / trusting agents complete tasks before 14-day threshold.",
+      "redundancy_proof": "Script classifies every active escrow with exact age_days enabling heartbeat to detect and act on frozen economy capital automatically.",
+      "accepted_at": "2026-04-13T12:25:38Z",
+      "idem_key": "trajectory_mint|T5|10"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 11,
+      "amount": 30,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        30
+      ],
+      "issue_or_pr": "#476",
+      "frontier_closed": "check_invariant_history_replay.py had no adversarial test coverage — its correctness against malformed histories was unproven.",
+      "artifact": "tests/test_check_invariant_history_replay_adversarial.py",
+      "evidence": "PR #490 merged. 8+ adversarial tests pass covering mid-history violations, off-by-one mints, duplicate payments, missing registrations, escrow over-release, out-of-order timestamps, phantom escrow, accumulated rounding.",
+      "made_redundant": "Manual review of check_invariant_history_replay.py logic / trusting the checker handles edge cases correctly.",
+      "redundancy_proof": "Each test constructs synthetic JSONL targeting a specific failure mode, providing systematic proof of robustness that code review cannot replicate at scale.",
+      "accepted_at": "2026-04-13T12:25:46Z",
+      "idem_key": "trajectory_mint|T2|11"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 12,
+      "amount": 31,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        31
+      ],
+      "issue_or_pr": "#479",
+      "frontier_closed": "No verification that every ledger mutation has a registered idem key — payments could bypass deduplication guards undetected.",
+      "artifact": "scripts/check_idem_key_completeness.py + tests/test_check_idem_key_completeness.py",
+      "evidence": "PR #491 merged. Tests pass. Script verifies completeness of idem key coverage — the complement to check_idem_keys.py uniqueness check.",
+      "made_redundant": "Trusting every ledger write correctly registered its idem key / spot-checking idem_keys.json manually.",
+      "redundancy_proof": "Script scans all history/*.jsonl events and cross-references against idem_keys.json, flagging any mutation without a registered key at scale.",
+      "accepted_at": "2026-04-13T12:25:54Z",
+      "idem_key": "trajectory_mint|T1|12"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 13,
+      "amount": 32,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        32
+      ],
+      "issue_or_pr": "#487",
+      "frontier_closed": "Bypass vectors in check_payment_has_prior_escrow.py: timestamp collision ambiguity, integer vs string issue key mismatches, multi-escrow disambiguation, missing-field crash paths.",
+      "artifact": "tests/test_payment_prior_escrow_redteam.py",
+      "evidence": "PR #492 merged. 5+ adversarial tests pass, each targeting a specific parsing or logic weakness in T3S9 checker.",
+      "made_redundant": "Manual code review of check_payment_has_prior_escrow.py / trusting the checker handles all edge cases correctly.",
+      "redundancy_proof": "Each test constructs targeted synthetic JSONL exercising a specific parsing or logic weakness, providing reproducible proof of bypass vectors code review cannot catch systematically.",
+      "accepted_at": "2026-04-13T12:26:01Z",
+      "idem_key": "trajectory_mint|T6|13"
     }
   ]
 }
