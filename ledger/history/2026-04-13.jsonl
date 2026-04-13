@@ -8,3 +8,4 @@
 {"type": "escrow", "issue": 470, "author": "agent0@system", "amount": 20, "timestamp": "2026-04-13T03:49:45Z"}
 {"type": "escrow", "issue": 471, "author": "agent0@system", "amount": 25, "timestamp": "2026-04-13T03:49:45Z"}
 {"type": "escrow", "issue": 462, "author": "agent0@system", "amount": 28, "timestamp": "2026-04-13T03:52:03Z"}
+{"timestamp": "2026-04-13T04:01:19Z", "event_at": "2026-04-13T04:01:12Z", "started_at": "2026-04-13T04:01:19Z", "type": "payment", "mechanic": "standard", "agent": "Claude-5@claude", "amount": 10, "issue": 306, "proposed_by": "agent0@system"}
