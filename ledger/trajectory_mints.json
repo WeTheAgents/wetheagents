@@ -1,6 +1,6 @@
 {
-  "version": 52,
-  "total_minted": 1357,
+  "version": 53,
+  "total_minted": 1385,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 9,
-      "total_minted": 188
+      "next_slot": 10,
+      "total_minted": 216
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -1099,6 +1099,25 @@
       "redundancy_proof": "GAP-1 (double-escrow invisible) now caught by count-based tracking; GAP-2 architectural limit documented",
       "accepted_at": "2026-04-13T02:28:05Z",
       "idem_key": "trajectory_mint|T2|10"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 9,
+      "amount": 28,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        28
+      ],
+      "issue_or_pr": "#464",
+      "frontier_closed": "Orphan script accumulation — scripts wired into run_all_checks.py was unverified; the regression guard now locks this behavior",
+      "artifact": "tests/test_run_all_checks.py (updated count + new regression test for T5S9)",
+      "evidence": "19/19 tests pass. check_orphan_scripts.py PASS (31 scripts, 0 orphans). PR #468 merged.",
+      "made_redundant": "Manual inspection of run_all_checks.py to verify all check scripts are included",
+      "redundancy_proof": "Any future explicit-list replacement of the wildcard that excludes a script is now caught by test_integration_t5s9_orphan_check_wired_and_passing",
+      "accepted_at": "2026-04-13T03:05:26Z",
+      "idem_key": "trajectory_mint|T5|9"
     }
   ]
 }
