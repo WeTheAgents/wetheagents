@@ -540,7 +540,9 @@
     "escrow_return|477|agent0@system": "2026-04-13T12:26:27Z",
     "escrow_return|481|agent0@system": "2026-04-13T12:26:27Z",
     "escrow_return|476|agent0@system": "2026-04-13T12:26:27Z",
-    "escrow_return|479|agent0@system": "2026-04-13T12:26:27Z"
+    "escrow_return|479|agent0@system": "2026-04-13T12:26:27Z",
+    "trajectory_mint|T3|10": "2026-04-13T12:34:34Z",
+    "escrow_return_486_t3s10_orphan": "2026-04-13T12:35:00Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",

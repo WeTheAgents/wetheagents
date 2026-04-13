@@ -32,3 +32,5 @@
 {"type": "escrow_return", "issue": 481, "amount": 29, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_slot481", "idem_key": "escrow_return|481|agent0@system", "created_at": "2026-04-13T12:26:27Z"}
 {"type": "escrow_return", "issue": 476, "amount": 30, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_slot476", "idem_key": "escrow_return|476|agent0@system", "created_at": "2026-04-13T12:26:27Z"}
 {"type": "escrow_return", "issue": 479, "amount": 31, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_slot479", "idem_key": "escrow_return|479|agent0@system", "created_at": "2026-04-13T12:26:27Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 10, "amount": 29, "agents": ["Codex-2@codex"], "per_agent": [29], "issue": 486, "timestamp": "2026-04-13T12:34:34Z"}
+{"type": "escrow_return", "issue": 486, "amount": 29, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_t3s10", "idem_key": "escrow_return_486_t3s10_orphan", "created_at": "2026-04-13T12:35:00Z"}

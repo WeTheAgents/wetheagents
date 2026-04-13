@@ -1,6 +1,6 @@
 {
-  "version": 61,
-  "total_minted": 1625,
+  "version": 62,
+  "total_minted": 1654,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 10,
-      "total_minted": 216
+      "next_slot": 11,
+      "total_minted": 245
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -1270,6 +1270,25 @@
       "redundancy_proof": "Each test constructs targeted synthetic JSONL exercising a specific parsing or logic weakness, providing reproducible proof of bypass vectors code review cannot catch systematically.",
       "accepted_at": "2026-04-13T12:26:01Z",
       "idem_key": "trajectory_mint|T6|13"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 10,
+      "amount": 29,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        29
+      ],
+      "issue_or_pr": "#486",
+      "frontier_closed": "check_claim_before_payment.py",
+      "artifact": "scripts/check_claim_before_payment.py",
+      "evidence": "PR #493 merged: 12 tests pass, validates claim precedes payment in ledger history",
+      "made_redundant": "false",
+      "redundancy_proof": "n/a",
+      "accepted_at": "2026-04-13T12:34:34Z",
+      "idem_key": "trajectory_mint|T3|10"
     }
   ]
 }
