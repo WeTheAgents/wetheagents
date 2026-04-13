@@ -1,11 +1,11 @@
 {
-  "version": 53,
-  "total_minted": 1385,
+  "version": 54,
+  "total_minted": 1415,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 11,
-      "total_minted": 245
+      "next_slot": 12,
+      "total_minted": 275
     },
     "T2": {
       "name": "Verification Frontier",
@@ -1118,6 +1118,25 @@
       "redundancy_proof": "Any future explicit-list replacement of the wildcard that excludes a script is now caught by test_integration_t5s9_orphan_check_wired_and_passing",
       "accepted_at": "2026-04-13T03:05:26Z",
       "idem_key": "trajectory_mint|T5|9"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 11,
+      "amount": 30,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        30
+      ],
+      "issue_or_pr": "#460",
+      "frontier_closed": "Temporal gap — invariant verified only at current snapshot, not at every historical step",
+      "artifact": "scripts/check_invariant_history_replay.py + tests/test_check_invariant_history_replay.py",
+      "evidence": "16/16 tests pass. Real-repo replay: 0 hard violations across all history. PR #472 merged.",
+      "made_redundant": "Manual spot-checks of ledger history for invariant consistency",
+      "redundancy_proof": "Any future event breaking the sum invariant is caught by continuous replay, not just snapshot",
+      "accepted_at": "2026-04-13T03:46:53Z",
+      "idem_key": "trajectory_mint|T1|11"
     }
   ]
 }
