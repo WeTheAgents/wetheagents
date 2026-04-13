@@ -65,13 +65,16 @@ def collect_events(history_dir: Path) -> dict[str, Any]:
 
     Returns a dict with keys:
       escrow_events       : dict[int, dict]  issue → representative escrow event
-      payment_issues      : set[int]
-      return_issues       : set[int]         escrow_return + escrow_return_bulk
+      escrow_counts       : dict[int, int]   issue → total escrow event count
+      payment_counts      : dict[int, int]   issue → payment event count
+      return_counts       : dict[int, int]   issue → return event count
+                                             (escrow_return + escrow_return_bulk)
       trajectory_issues   : set[int]         trajectory_mint
     """
     escrow_events: dict[int, dict] = {}
-    payment_issues: set[int] = set()
-    return_issues: set[int] = set()
+    escrow_counts: dict[int, int] = {}
+    payment_counts: dict[int, int] = {}
+    return_counts: dict[int, int] = {}
     trajectory_issues: set[int] = set()
 
     for _filename, event in _iter_events(history_dir):
@@ -89,10 +92,11 @@ def collect_events(history_dir: Path) -> dict[str, Any]:
                 # Keep first-seen escrow event per issue for reporting
                 if issue_num not in escrow_events:
                     escrow_events[issue_num] = event
+                escrow_counts[issue_num] = escrow_counts.get(issue_num, 0) + 1
             elif etype == "payment":
-                payment_issues.add(issue_num)
+                payment_counts[issue_num] = payment_counts.get(issue_num, 0) + 1
             elif etype == "escrow_return":
-                return_issues.add(issue_num)
+                return_counts[issue_num] = return_counts.get(issue_num, 0) + 1
             elif etype == "trajectory_mint":
                 trajectory_issues.add(issue_num)
 
@@ -100,14 +104,16 @@ def collect_events(history_dir: Path) -> dict[str, Any]:
         if etype == "escrow_return_bulk":
             for raw_i in event.get("issues", []):
                 try:
-                    return_issues.add(int(raw_i))
+                    i = int(raw_i)
+                    return_counts[i] = return_counts.get(i, 0) + 1
                 except (ValueError, TypeError):
                     pass
 
     return {
         "escrow_events": escrow_events,
-        "payment_issues": payment_issues,
-        "return_issues": return_issues,
+        "escrow_counts": escrow_counts,
+        "payment_counts": payment_counts,
+        "return_counts": return_counts,
         "trajectory_issues": trajectory_issues,
     }
 
@@ -119,16 +125,22 @@ def classify_escrows(
     """Classify each escrowed issue into lifecycle categories.
 
     Categories:
-      resolved   — has payment OR escrow_return in history
+      resolved   — has payment OR escrow_return in history (count-matched)
       pending    — in escrows.json active (legitimately open)
-      orphan     — trajectory_mint exists but no escrow_return, not pending
+      orphan     — trajectory_mint exists but escrow unresolved, not pending
       unresolved — no resolution, no trajectory_mint, not pending (pre-history gap)
+
+    Resolution is count-aware: if an issue has N escrow events and M resolution
+    events (payment + escrow_return), M escrows are resolved and N-M remain
+    unresolved. This detects the case where a second escrow is created after
+    the first is resolved (previously a false PASS due to first-seen-only logic).
 
     Returns a dict with category lists and counts.
     """
     escrow_events = events["escrow_events"]
-    payment_issues = events["payment_issues"]
-    return_issues = events["return_issues"]
+    escrow_counts = events["escrow_counts"]
+    payment_counts = events["payment_counts"]
+    return_counts = events["return_counts"]
     trajectory_issues = events["trajectory_issues"]
 
     resolved: list[dict] = []
@@ -144,20 +156,27 @@ def classify_escrows(
             "agent": ev.get("agent") or ev.get("author"),
         }
 
-        is_resolved = issue_num in payment_issues or issue_num in return_issues
+        total_escrows = escrow_counts.get(issue_num, 1)
+        total_resolutions = (
+            payment_counts.get(issue_num, 0) + return_counts.get(issue_num, 0)
+        )
+        resolved_count = min(total_escrows, total_resolutions)
+        unresolved_remaining = total_escrows - resolved_count
+
+        for _ in range(resolved_count):
+            resolved.append(entry)
+
         is_pending = issue_num in active_issues
         is_gauntlet_paid = issue_num in trajectory_issues
-
-        if is_resolved:
-            resolved.append(entry)
-        elif is_pending:
-            pending.append(entry)
-        elif is_gauntlet_paid:
-            # trajectory_mint happened but no escrow_return — orphan
-            orphan.append(entry)
-        else:
-            # No evidence of resolution in history; likely pre-history era
-            unresolved.append(entry)
+        for _ in range(unresolved_remaining):
+            if is_pending:
+                pending.append(entry)
+            elif is_gauntlet_paid:
+                # trajectory_mint happened but escrow not returned — orphan
+                orphan.append(entry)
+            else:
+                # No evidence of resolution in history; likely pre-history era
+                unresolved.append(entry)
 
     return {
         "resolved": resolved,
