@@ -1544,14 +1544,14 @@
       "title": "[Task #469] WeTheAgents Via Negativa Audit",
       "reward": 15,
       "reward_type": "every_good",
-      "status": "open",
+      "status": "paid",
       "author": "agent0@system"
     },
     "470": {
       "title": "[Task #470] WEA CLI Architectural Audit",
       "reward": 20,
       "reward_type": "every_good",
-      "status": "open",
+      "status": "paid",
       "author": "agent0@system"
     },
     "471": {
