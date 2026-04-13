@@ -131,14 +131,7 @@ async function main() {
     ),
     'index.html: remove API_BASE script'
   );
-  html = assertReplace(
-    html,
-    html.replace(
-      '<button id="refreshBtn" class="refresh">Refresh</button>',
-      '<button id="refreshBtn" class="refresh" disabled title="Daily snapshot — not live">Snapshot</button>'
-    ),
-    'index.html: neutralize Refresh button'
-  );
+  // Refresh button already hidden in source (<span hidden>), no patch needed.
   fs.writeFileSync(path.join(OUT, 'index.html'), html);
 
   // ── 6. Patch app.js: /api/* → local json files ─────────────────────────

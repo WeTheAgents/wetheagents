@@ -122,9 +122,25 @@ function renderTier(tierKey, indicators) {
     const cardEl = host.querySelector(`.card[data-id="${ind.id}"]`);
     if (!cardEl) return;
     const sparkEl = cardEl.querySelector('[data-spark]');
-    const color = Sparkline.SIGNAL_COLOR[ind.signal] || Sparkline.SIGNAL_COLOR.accent;
-    Sparkline.render(sparkEl, ind.history || [], { color });
+    if (sparkEl) {
+      const color = Sparkline.SIGNAL_COLOR[ind.signal] || Sparkline.SIGNAL_COLOR.accent;
+      Sparkline.render(sparkEl, ind.history || [], { color });
+    }
   });
+  // Sync expand/collapse of <details> across cards in the same grid row
+  const cards = [...host.querySelectorAll('.card')];
+  for (let i = 0; i < cards.length; i += 2) {
+    const pair = [cards[i], cards[i + 1]].filter(Boolean);
+    if (pair.length < 2) continue;
+    const details = pair.map((c) => c.querySelector('details.card__edu')).filter(Boolean);
+    if (details.length < 2) continue;
+    details.forEach((det) => {
+      det.addEventListener('toggle', () => {
+        const open = det.open;
+        details.forEach((d) => { if (d !== det) d.open = open; });
+      });
+    });
+  }
 }
 
 function renderVerdict(score, alerts, updatedAt) {

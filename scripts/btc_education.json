@@ -12,12 +12,12 @@
     "why": "Rising stablecoin supply means more capital is parked and ready to deploy into crypto. It's a leading indicator of potential buying pressure."
   },
   "polymarket_fed": {
-    "what": "Polymarket prediction-market odds for the next Fed interest rate decision (cut / hold / hike).",
-    "why": "Rate cuts weaken the dollar and make risk assets like BTC more attractive. Market-implied probabilities show what traders actually bet on, not just what pundits say."
+    "what": "Prediction-market odds for the next Fed interest rate decision (cut / hold / hike). We track two independent markets \u2014 Polymarket and Kalshi \u2014 to cross-reference and reduce noise.",
+    "why": "Rate cuts weaken the dollar and make risk assets like BTC more attractive. Market-implied probabilities reflect what traders actually bet money on, not just what pundits say."
   },
   "kalshi_fed": {
-    "what": "Kalshi (CFTC-regulated prediction market) odds for the next FOMC rate decision, derived from event contracts.",
-    "why": "Same thesis as Polymarket Fed \u2014 a second independent source of rate expectations. Cross-referencing two markets reduces noise."
+    "what": "Prediction-market odds for the next Fed interest rate decision (cut / hold / hike). We track two independent markets \u2014 Polymarket and Kalshi \u2014 to cross-reference and reduce noise.",
+    "why": "Rate cuts weaken the dollar and make risk assets like BTC more attractive. Market-implied probabilities reflect what traders actually bet money on, not just what pundits say."
   },
   "polymarket_btc_price": {
     "what": "Polymarket contracts on whether BTC will touch specific price levels (e.g., $75K, $100K) by a certain date.",
