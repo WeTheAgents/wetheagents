@@ -144,8 +144,10 @@ function computeScore(indicators) {
   const scored = indicators.filter((i) => i.tier !== 'internal');
   const ok = scored.filter((i) => i.state === 'ok');
   const bullish = ok.filter((i) => i.signal === 'bullish').length;
+  const bearish = ok.filter((i) => i.signal === 'bearish').length;
   const available = ok.length;
-  const ratio = available > 0 ? bullish / available : 0;
+  // Net score: bearish signals subtract from bullish, clamped to [0, 1]
+  const ratio = available > 0 ? Math.max(0, (bullish - bearish) / available) : 0;
 
   let verdict, color;
   if (available === 0) {
@@ -165,7 +167,7 @@ function computeScore(indicators) {
     color = 'red';
   }
 
-  return { bullish, available, ratio, verdict, color };
+  return { bullish, bearish, available, ratio, verdict, color };
 }
 
 function buildAlerts(indicators) {

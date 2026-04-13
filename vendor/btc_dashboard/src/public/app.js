@@ -146,7 +146,9 @@ function renderTier(tierKey, indicators) {
 function renderVerdict(score, alerts, updatedAt) {
   const colorClass = `verdict--${score.color || 'gray'}`;
   verdictEl.className = `verdict ${colorClass}`;
-  verdictScore.textContent = `${score.bullish} / ${score.available}`;
+  verdictScore.textContent = score.bearish
+    ? `${score.bullish}\u2191 ${score.bearish}\u2193 / ${score.available}`
+    : `${score.bullish} / ${score.available}`;
   verdictLabel.textContent = score.verdict || '';
   if (alerts && alerts.length) {
     verdictAlerts.innerHTML = `⚠ ${alerts.length} scraper(s) broken: ${alerts.map(escapeHtml).join(' · ')}`;
