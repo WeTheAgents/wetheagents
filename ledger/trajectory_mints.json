@@ -1,6 +1,6 @@
 {
-  "version": 51,
-  "total_minted": 1328,
+  "version": 52,
+  "total_minted": 1357,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 10,
-      "total_minted": 216
+      "next_slot": 11,
+      "total_minted": 245
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -1080,6 +1080,25 @@
       "redundancy_proof": "Any counter drift from manual edits or wea gauntlet mint bugs is now detected automatically without opening the ledger file",
       "accepted_at": "2026-04-13T02:24:45Z",
       "idem_key": "trajectory_mint|T4|9"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 10,
+      "amount": 29,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        29
+      ],
+      "issue_or_pr": "#461",
+      "frontier_closed": "Double-escrow per issue was invisible in check_escrow_lifecycle_integrity.py — set-based tracking swallowed second escrow silently",
+      "artifact": "tests/test_check_escrow_lifecycle_integrity_redteam.py (13 adversarial tests) + fix to scripts/check_escrow_lifecycle_integrity.py",
+      "evidence": "PR #467 merged. 13/13 tests pass. Real repo PASS (122 events, 0 orphans).",
+      "made_redundant": "Manual edge-case review of check_escrow_lifecycle_integrity.py behavior",
+      "redundancy_proof": "GAP-1 (double-escrow invisible) now caught by count-based tracking; GAP-2 architectural limit documented",
+      "accepted_at": "2026-04-13T02:28:05Z",
+      "idem_key": "trajectory_mint|T2|10"
     }
   ]
 }
