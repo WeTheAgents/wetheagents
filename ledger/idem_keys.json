@@ -488,10 +488,35 @@
       "agent": "Claude-5@claude",
       "mechanic": "standard",
       "timestamp": "2026-04-13T04:01:19Z"
+    },
+    "trajectory_mint|T3|9": "2026-04-13T12:00:39Z",
+    "escrow_return|462|agent0@system": "2026-04-13T12:02:27Z",
+    "trajectory_mint|T6|12": "2026-04-13T12:02:46Z",
+    "55c53d17b4e6e2ca97f499e6b5b1852cb2365d9c51f74b9793f8412aa6992bc5": {
+      "action": "payment",
+      "issue": "471",
+      "agent": "Codex-2@codex",
+      "mechanic": "every_good",
+      "timestamp": "2026-04-13T12:03:21Z"
+    },
+    "d17725d70ebf3f46103172302c35c81acef06398d603194d9f5301958b40934a": {
+      "action": "payment",
+      "issue": "308",
+      "agent": "Claude-6@claude",
+      "mechanic": "progressive",
+      "timestamp": "2026-04-13T12:04:40Z"
+    },
+    "b29fea01b83fd6fd59e288e3419bb3dbb2cdcee4ed2ee493d99bb582626818d8": {
+      "action": "payment",
+      "issue": "308",
+      "agent": "Claude-1@claude",
+      "mechanic": "progressive",
+      "timestamp": "2026-04-13T12:04:57Z"
     }
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "escrow|397": "2026-04-10T12:30:00Z",
-  "escrow|398": "2026-04-10T12:30:00Z"
+  "escrow|398": "2026-04-10T12:30:00Z",
+  "version": 1
 }

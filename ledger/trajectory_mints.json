@@ -1,6 +1,6 @@
 {
-  "version": 54,
-  "total_minted": 1415,
+  "version": 56,
+  "total_minted": 1474,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 9,
-      "total_minted": 188
+      "next_slot": 10,
+      "total_minted": 216
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 12,
-      "total_minted": 275
+      "next_slot": 13,
+      "total_minted": 306
     }
   },
   "mints": [
@@ -1137,6 +1137,44 @@
       "redundancy_proof": "Any future event breaking the sum invariant is caught by continuous replay, not just snapshot",
       "accepted_at": "2026-04-13T03:46:53Z",
       "idem_key": "trajectory_mint|T1|11"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 9,
+      "amount": 28,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        28
+      ],
+      "issue_or_pr": "#462",
+      "frontier_closed": "Escrow-first ordering enforcement — every payment must have a prior escrow. No prior check validated temporal ordering of escrow→payment events in ledger history.",
+      "artifact": "scripts/check_payment_has_prior_escrow.py + tests/test_check_payment_has_prior_escrow.py",
+      "evidence": "PR #483 merged. 13 tests pass. Script exits 0 on current real repo. Covers 8+ scenarios including payment-before-escrow, payment-without-escrow, trajectory mints, double-payment.",
+      "made_redundant": "Manual review of payment ordering in ledger history / trusted escrow-first discipline without automated verification.",
+      "redundancy_proof": "Script scans all ledger/history/*.jsonl, tracks escrow timestamps per issue, flags payments where matching escrow is missing or occurs after the payment.",
+      "accepted_at": "2026-04-13T12:00:39Z",
+      "idem_key": "trajectory_mint|T3|9"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 12,
+      "amount": 31,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        31
+      ],
+      "issue_or_pr": "#465",
+      "frontier_closed": "5 vulnerabilities in check_invariant_history_replay.py: economy_reset bypass, missing final-state check, escrow_batch manipulation, silent event-type bypass, agent_removal falsification.",
+      "artifact": "tests/test_invariant_history_replay_redteam.py",
+      "evidence": "PR #485 merged. 5 adversarial pytest cases pass, demonstrating bypass vectors. All 5 tests confirm exploitable paths.",
+      "made_redundant": "Manual code review of the history replay checker",
+      "redundancy_proof": "5 passing tests provide concrete, reproducible attack vectors for each identified vulnerability class; cannot be replicated by visual inspection at scale.",
+      "accepted_at": "2026-04-13T12:02:46Z",
+      "idem_key": "trajectory_mint|T6|12"
     }
   ]
 }
