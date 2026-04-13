@@ -55,6 +55,13 @@ function cardHtml(ind) {
 
   const updated = ind.source_updated ? escapeHtml(ind.source_updated) : '—';
   const source = ind.source ? escapeHtml(ind.source) : '—';
+  const eduHtml = ind.education
+    ? `<details class="card__edu">
+         <summary>Why this matters</summary>
+         <p><strong>What is it?</strong> ${escapeHtml(ind.education.what)}</p>
+         <p><strong>Why it matters for BTC:</strong> ${escapeHtml(ind.education.why)}</p>
+       </details>`
+    : '';
 
   return `
     <article class="card state-${state}" data-id="${ind.id}">
@@ -65,6 +72,7 @@ function cardHtml(ind) {
       <div class="card__context">${escapeHtml(ind.context || '')}</div>
       <div class="card__spark" data-spark></div>
       <div class="card__meta">${source} · ${updated}</div>
+      ${eduHtml}
     </article>
   `;
 }

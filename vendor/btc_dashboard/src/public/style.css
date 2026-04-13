@@ -271,3 +271,23 @@ main {
   text-align: center;
 }
 .footer .disclaimer { margin-top: 0.25rem; }
+
+/* ── Educational expandable ─────────────────────────────────── */
+.card__edu {
+  margin-top: 0.4rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.card__edu summary {
+  cursor: pointer;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  letter-spacing: 0.3px;
+  user-select: none;
+}
+.card__edu summary:hover { color: var(--text); }
+.card__edu p { margin: 0.4rem 0 0 0; }
+.card__edu p strong { color: var(--text); }

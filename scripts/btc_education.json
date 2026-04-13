@@ -1,0 +1,54 @@
+{
+  "etf_flows": {
+    "what": "Net daily inflows/outflows into US spot Bitcoin ETFs (like BlackRock's IBIT). Positive = new money entering; negative = redemptions.",
+    "why": "Spot ETFs are the main channel for institutional BTC demand. Sustained inflows signal accumulation by large players and reduce available supply on exchanges."
+  },
+  "fear_greed": {
+    "what": "The Crypto Fear & Greed Index (0\u2013100) aggregates volatility, momentum, social media, and surveys into a single sentiment score.",
+    "why": "Extreme fear (< 25) historically marks accumulation zones \u2014 retail panic-sells while smart money buys. Extreme greed (> 75) often precedes corrections."
+  },
+  "stablecoin": {
+    "what": "Total market cap of major stablecoins (USDT, USDC, DAI, etc.) \u2014 the 'dry powder' sitting on the sidelines.",
+    "why": "Rising stablecoin supply means more capital is parked and ready to deploy into crypto. It's a leading indicator of potential buying pressure."
+  },
+  "polymarket_fed": {
+    "what": "Polymarket prediction-market odds for the next Fed interest rate decision (cut / hold / hike).",
+    "why": "Rate cuts weaken the dollar and make risk assets like BTC more attractive. Market-implied probabilities show what traders actually bet on, not just what pundits say."
+  },
+  "kalshi_fed": {
+    "what": "Kalshi (CFTC-regulated prediction market) odds for the next FOMC rate decision, derived from event contracts.",
+    "why": "Same thesis as Polymarket Fed \u2014 a second independent source of rate expectations. Cross-referencing two markets reduces noise."
+  },
+  "polymarket_btc_price": {
+    "what": "Polymarket contracts on whether BTC will touch specific price levels (e.g., $75K, $100K) by a certain date.",
+    "why": "Reveals the market's directional bias. If upside contracts trade at higher implied probability than downside ones, the crowd is net bullish \u2014 and crowds move markets."
+  },
+  "m2": {
+    "what": "US M2 money supply \u2014 the total amount of cash, checking deposits, and easily convertible near-money in the economy.",
+    "why": "BTC price correlates with global liquidity with an ~84-day lag. When central banks expand M2, excess liquidity eventually flows into risk assets including bitcoin."
+  },
+  "btc_vs_200dma": {
+    "what": "BTC's current price relative to its 200-day moving average (MA) \u2014 a widely watched trend-following indicator.",
+    "why": "Price above the 200-day MA signals a bullish regime; below it means bearish. Institutions use this level as a cost-basis proxy \u2014 buying below it is historically profitable on a 1-year horizon."
+  },
+  "vix": {
+    "what": "The CBOE Volatility Index ('Wall Street's fear gauge') measures expected 30-day volatility of the S&P 500, derived from options prices.",
+    "why": "Low VIX (< 20) = calm markets, risk-on appetite \u2014 good for BTC. High VIX (> 30) = stress, capital flees to safety. BTC is still treated as a risk asset by most allocators."
+  },
+  "treasury_2y": {
+    "what": "Yield on US 2-year Treasury notes \u2014 the bond market's best guess of where Fed rates will be in two years.",
+    "why": "When 2Y yields fall (especially below the Fed Funds rate), the bond market is pricing rate cuts ahead \u2014 bullish for BTC. Rising yields mean tighter money, headwind for risk assets."
+  },
+  "cpi": {
+    "what": "Consumer Price Index year-over-year \u2014 the headline US inflation number, released monthly by the Bureau of Labor Statistics.",
+    "why": "Falling CPI (disinflation) opens the door for Fed rate cuts, which is bullish. Rising CPI delays easing and pressures risk assets. BTC's 'inflation hedge' narrative also strengthens when CPI is elevated."
+  },
+  "gold_rotation": {
+    "what": "Gold price trend and its relationship to BTC. Historically, capital rotates from gold into bitcoin with a 4\u20137 month lag after major gold rallies.",
+    "why": "Gold rallies first as the 'safe haven' trade. Once risk appetite returns, some of that capital rotates into BTC \u2014 a higher-beta store of value. A peaking gold rally can signal BTC's turn."
+  },
+  "copper_gold": {
+    "what": "The Copper/Gold ratio \u2014 copper (industrial demand) divided by gold (safe-haven demand). A classic macro risk indicator.",
+    "why": "Rising ratio = factories humming, growth expectations up \u2192 risk-on, good for BTC. Falling ratio = fear, slowdown expectations \u2192 risk-off, headwind for BTC."
+  }
+}

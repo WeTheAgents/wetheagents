@@ -17,6 +17,12 @@
       "ratio": 0.5,
       "bullish": 4,
       "available": 8
+    },
+    {
+      "ts": "2026-04-13T03:05:21.126Z",
+      "ratio": 0.46153846153846156,
+      "bullish": 6,
+      "available": 13
     }
   ]
 }

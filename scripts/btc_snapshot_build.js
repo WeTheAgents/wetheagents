@@ -50,6 +50,19 @@ async function main() {
   // ── 1. Build fresh data via engine.buildDashboard ──────────────────────
   const { buildDashboard } = require(path.join(DASH, 'src', 'engine.js'));
   const data = await buildDashboard({ force: true });
+
+  // ── 1b. Inject static educational content per indicator ────────────────
+  const education = JSON.parse(
+    fs.readFileSync(path.join(__dirname, 'btc_education.json'), 'utf8')
+  );
+  for (const tier of Object.values(data.tiers)) {
+    for (const ind of tier) {
+      if (education[ind.id]) {
+        ind.education = education[ind.id];
+      }
+    }
+  }
+
   fs.writeFileSync(
     path.join(OUT, 'dashboard.json'),
     JSON.stringify(data, null, 2) + '\n'

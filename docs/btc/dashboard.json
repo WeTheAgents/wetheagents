@@ -1,17 +1,17 @@
 {
-  "updated_at": "2026-04-12T08:35:08.951Z",
+  "updated_at": "2026-04-13T03:05:21.126Z",
   "score": {
-    "bullish": 4,
-    "available": 8,
-    "ratio": 0.5,
+    "bullish": 6,
+    "available": 13,
+    "ratio": 0.46153846153846156,
     "verdict": "Prepare to buy — DCA in small slices",
     "color": "yellow"
   },
   "btc_price": {
-    "usd": 71719,
-    "eur": 61160,
-    "change_24h": -1.4480927351787072,
-    "change_7d": 3.960319489458211
+    "usd": 71030,
+    "eur": 60769,
+    "change_24h": -1.1370683961880386,
+    "change_7d": 3.1513530386686908
   },
   "tiers": {
     "t1": [
@@ -19,16 +19,69 @@
         "id": "etf_flows",
         "name": "BTC spot ETF net flows",
         "tier": "t1",
-        "state": "broken_scraper",
-        "signal": "neutral",
-        "value": null,
-        "display_value": "SCRAPER BROKEN",
-        "context": "Source HTML structure changed. Parser needs a fix.",
-        "history": [],
+        "state": "ok",
+        "signal": "bullish",
+        "value": 652.2,
+        "display_value": "+$652M (7d)",
+        "context": "Inflows $652M over 7d, $450M over 21d. Institutions accumulating via spot ETFs.",
+        "history": [
+          {
+            "ts": "2026-03-25",
+            "value": 7.8
+          },
+          {
+            "ts": "2026-03-26",
+            "value": -171.3
+          },
+          {
+            "ts": "2026-03-27",
+            "value": -225.5
+          },
+          {
+            "ts": "2026-03-30",
+            "value": 69.4
+          },
+          {
+            "ts": "2026-03-31",
+            "value": 117.5
+          },
+          {
+            "ts": "2026-04-01",
+            "value": -173.7
+          },
+          {
+            "ts": "2026-04-02",
+            "value": 9
+          },
+          {
+            "ts": "2026-04-06",
+            "value": 471.4
+          },
+          {
+            "ts": "2026-04-07",
+            "value": -159.1
+          },
+          {
+            "ts": "2026-04-08",
+            "value": -93.9
+          },
+          {
+            "ts": "2026-04-09",
+            "value": 358.1
+          },
+          {
+            "ts": "2026-04-10",
+            "value": 240.4
+          }
+        ],
         "source": "Farside Investors",
-        "source_updated": null,
-        "fetched_at": "2026-04-12T08:34:53.968Z",
-        "error": "curl: proxy not configured for \"US\""
+        "source_updated": "2026-04-10",
+        "fetched_at": "2026-04-13T03:05:19.563Z",
+        "error": null,
+        "education": {
+          "what": "Net daily inflows/outflows into US spot Bitcoin ETFs (like BlackRock's IBIT). Positive = new money entering; negative = redemptions.",
+          "why": "Spot ETFs are the main channel for institutional BTC demand. Sustained inflows signal accumulation by large players and reduce available supply on exchanges."
+        }
       },
       {
         "id": "fear_greed",
@@ -36,14 +89,10 @@
         "tier": "t1",
         "state": "ok",
         "signal": "bullish",
-        "value": 16,
-        "display_value": "16 — Extreme Fear",
-        "context": "16 — Extreme Fear. Extreme fear historically overlaps with accumulation zones.",
+        "value": 12,
+        "display_value": "12 — Extreme Fear",
+        "context": "12 — Extreme Fear. Extreme fear historically overlaps with accumulation zones.",
         "history": [
-          {
-            "ts": "2026-03-14",
-            "value": 16
-          },
           {
             "ts": "2026-03-15",
             "value": 15
@@ -159,12 +208,20 @@
           {
             "ts": "2026-04-12",
             "value": 16
+          },
+          {
+            "ts": "2026-04-13",
+            "value": 12
           }
         ],
         "source": "alternative.me",
-        "source_updated": "2026-04-12",
-        "fetched_at": "2026-04-12T08:34:54.139Z",
-        "error": null
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:18.031Z",
+        "error": null,
+        "education": {
+          "what": "The Crypto Fear & Greed Index (0–100) aggregates volatility, momentum, social media, and surveys into a single sentiment score.",
+          "why": "Extreme fear (< 25) historically marks accumulation zones — retail panic-sells while smart money buys. Extreme greed (> 75) often precedes corrections."
+        }
       },
       {
         "id": "stablecoin",
@@ -172,14 +229,10 @@
         "tier": "t1",
         "state": "ok",
         "signal": "neutral",
-        "value": 317574736314.25,
-        "display_value": "$318B",
-        "context": "Market cap $318B, change +1.0% over 30d — no sharp moves.",
+        "value": 318626023249.92,
+        "display_value": "$319B",
+        "context": "Market cap $319B, change +1.2% over 30d — no sharp moves.",
         "history": [
-          {
-            "ts": "2026-03-14",
-            "value": 314990776622
-          },
           {
             "ts": "2026-03-15",
             "value": 314946431478
@@ -294,13 +347,21 @@
           },
           {
             "ts": "2026-04-12",
-            "value": 317574736314.25
+            "value": 317574736314
+          },
+          {
+            "ts": "2026-04-13",
+            "value": 318626023249.92
           }
         ],
         "source": "DefiLlama",
-        "source_updated": "2026-04-12",
-        "fetched_at": "2026-04-12T08:34:54.557Z",
-        "error": null
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:18.191Z",
+        "error": null,
+        "education": {
+          "what": "Total market cap of major stablecoins (USDT, USDC, DAI, etc.) — the 'dry powder' sitting on the sidelines.",
+          "why": "Rising stablecoin supply means more capital is parked and ready to deploy into crypto. It's a leading indicator of potential buying pressure."
+        }
       },
       {
         "id": "polymarket_fed",
@@ -309,35 +370,50 @@
         "state": "ok",
         "signal": "neutral",
         "value": {
-          "pCut": 0.016,
-          "pHold": 0.9795,
-          "pHike": 0.0055,
+          "pCut": 0.012,
+          "pHold": 0.9815,
+          "pHike": 0.0065,
           "meetingDate": "2026-04-29",
           "slug": "fed-decision-in-april",
-          "volume": 75138288.2588338
+          "volume": 77000847.91020085
         },
-        "display_value": "P(cut)=2% · hold=98% · hike=1%",
-        "context": "April meeting (2026-04-29): market prices 98% hold, cut 2%. Fed most likely holds.",
+        "display_value": "P(cut)=1% · hold=98% · hike=1%",
+        "context": "April meeting (2026-04-29): market prices 98% hold, cut 1%. Fed most likely holds.",
         "history": [],
         "source": "Polymarket (Gamma)",
-        "source_updated": "2026-04-12",
-        "fetched_at": "2026-04-12T08:34:54.329Z",
-        "error": null
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:17.973Z",
+        "error": null,
+        "education": {
+          "what": "Polymarket prediction-market odds for the next Fed interest rate decision (cut / hold / hike).",
+          "why": "Rate cuts weaken the dollar and make risk assets like BTC more attractive. Market-implied probabilities show what traders actually bet on, not just what pundits say."
+        }
       },
       {
         "id": "kalshi_fed",
         "name": "Fed decision (Kalshi)",
         "tier": "t1",
-        "state": "no_data",
+        "state": "ok",
         "signal": "neutral",
-        "value": null,
-        "display_value": "no data",
-        "context": "Source unreachable: This operation was aborted",
+        "value": {
+          "pCut": 0.020000000000000018,
+          "pHold": 0.97,
+          "pHike": 0.01,
+          "currentUpper": 3.75,
+          "meetingDate": "2026-04-29",
+          "eventTicker": "KXFED-26APR"
+        },
+        "display_value": "P(cut)=2% · hold=97% · hike=1%",
+        "context": "Apr meeting (2026-04-29): Kalshi prices 97% hold (current upper 3.75%).",
         "history": [],
         "source": "Kalshi (KXFED via US proxy)",
-        "source_updated": null,
-        "fetched_at": "2026-04-12T08:35:08.925Z",
-        "error": "This operation was aborted"
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:21.119Z",
+        "error": null,
+        "education": {
+          "what": "Kalshi (CFTC-regulated prediction market) odds for the next FOMC rate decision, derived from event contracts.",
+          "why": "Same thesis as Polymarket Fed — a second independent source of rate expectations. Cross-referencing two markets reduces noise."
+        }
       },
       {
         "id": "polymarket_btc_price",
@@ -346,25 +422,29 @@
         "state": "ok",
         "signal": "neutral",
         "value": {
-          "current": 71716,
+          "current": 71028,
           "closestUp": {
             "target": 75000,
-            "p": 0.58
+            "p": 0.535
           },
           "closestDown": {
             "target": 65000,
-            "p": 0.385
+            "p": 0.39
           },
-          "bias": 0.19499999999999995,
+          "bias": 0.14500000000000002,
           "slug": "what-price-will-bitcoin-hit-in-april-2026"
         },
-        "display_value": "+$75K: 58% · -$65K: 39%",
-        "context": "Nearby levels: +$75K 58%, -$65K 39% (bias 19%). Neutral.",
+        "display_value": "+$75K: 54% · -$65K: 39%",
+        "context": "Nearby levels: +$75K 54%, -$65K 39% (bias 15%). Neutral.",
         "history": [],
         "source": "Polymarket (Gamma)",
-        "source_updated": "2026-04-12",
-        "fetched_at": "2026-04-12T08:34:54.842Z",
-        "error": null
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:18.395Z",
+        "error": null,
+        "education": {
+          "what": "Polymarket contracts on whether BTC will touch specific price levels (e.g., $75K, $100K) by a certain date.",
+          "why": "Reveals the market's directional bias. If upside contracts trade at higher implied probability than downside ones, the crowd is net bullish — and crowds move markets."
+        }
       }
     ],
     "t2": [
@@ -372,16 +452,117 @@
         "id": "m2",
         "name": "Global M2 (84d lag)",
         "tier": "t2",
-        "state": "no_data",
-        "signal": "neutral",
-        "value": null,
-        "display_value": "no data",
-        "context": "Source unreachable: This operation was aborted",
-        "history": [],
+        "state": "ok",
+        "signal": "bullish",
+        "value": 22667.3,
+        "display_value": "$22.7T (US)",
+        "context": "M2 rising +1.7% over 3 months. With an 84-day lag the positive impulse reaches BTC in ~3 months.",
+        "history": [
+          {
+            "ts": "2024-03-01",
+            "value": 20973.2
+          },
+          {
+            "ts": "2024-04-01",
+            "value": 20958.8
+          },
+          {
+            "ts": "2024-05-01",
+            "value": 21019.9
+          },
+          {
+            "ts": "2024-06-01",
+            "value": 21067.7
+          },
+          {
+            "ts": "2024-07-01",
+            "value": 21094.4
+          },
+          {
+            "ts": "2024-08-01",
+            "value": 21185.8
+          },
+          {
+            "ts": "2024-09-01",
+            "value": 21268.6
+          },
+          {
+            "ts": "2024-10-01",
+            "value": 21331
+          },
+          {
+            "ts": "2024-11-01",
+            "value": 21451.6
+          },
+          {
+            "ts": "2024-12-01",
+            "value": 21485.3
+          },
+          {
+            "ts": "2025-01-01",
+            "value": 21547.6
+          },
+          {
+            "ts": "2025-02-01",
+            "value": 21613.2
+          },
+          {
+            "ts": "2025-03-01",
+            "value": 21693.5
+          },
+          {
+            "ts": "2025-04-01",
+            "value": 21775.5
+          },
+          {
+            "ts": "2025-05-01",
+            "value": 21833.8
+          },
+          {
+            "ts": "2025-06-01",
+            "value": 21938.7
+          },
+          {
+            "ts": "2025-07-01",
+            "value": 22019.9
+          },
+          {
+            "ts": "2025-08-01",
+            "value": 22086.8
+          },
+          {
+            "ts": "2025-09-01",
+            "value": 22169.8
+          },
+          {
+            "ts": "2025-10-01",
+            "value": 22250.4
+          },
+          {
+            "ts": "2025-11-01",
+            "value": 22296.5
+          },
+          {
+            "ts": "2025-12-01",
+            "value": 22386.9
+          },
+          {
+            "ts": "2026-01-01",
+            "value": 22469.1
+          },
+          {
+            "ts": "2026-02-01",
+            "value": 22667.3
+          }
+        ],
         "source": "FRED (M2SL)",
-        "source_updated": null,
-        "fetched_at": "2026-04-12T08:35:08.932Z",
-        "error": "This operation was aborted"
+        "source_updated": "2026-02-01",
+        "fetched_at": "2026-04-13T03:05:18.164Z",
+        "error": null,
+        "education": {
+          "what": "US M2 money supply — the total amount of cash, checking deposits, and easily convertible near-money in the economy.",
+          "why": "BTC price correlates with global liquidity with an ~84-day lag. When central banks expand M2, excess liquidity eventually flows into risk assets including bitcoin."
+        }
       },
       {
         "id": "btc_vs_200dma",
@@ -390,23 +571,19 @@
         "state": "ok",
         "signal": "bearish",
         "value": {
-          "price": 71717.57367493708,
-          "ma200": 87998.93369123821,
-          "diff_pct": -18.50176966169559,
+          "price": 71034.3896749139,
+          "ma200": 87783.77447715648,
+          "diff_pct": -19.08027411899586,
           "price_meta": {
-            "usd": 71719,
-            "eur": 61160,
-            "change_24h": -1.4480927351787072,
-            "change_7d": 3.960319489458211
+            "usd": 71030,
+            "eur": 60769,
+            "change_24h": -1.1370683961880386,
+            "change_7d": 3.1513530386686908
           }
         },
-        "display_value": "$71,718 (-18.5% to MA200)",
-        "context": "Price 18.5% below the 200-day MA. Deep under institutional cost basis.",
+        "display_value": "$71,034 (-19.1% to MA200)",
+        "context": "Price 19.1% below the 200-day MA. Deep under institutional cost basis.",
         "history": [
-          {
-            "ts": "2026-03-15",
-            "value": 71217.1010283798
-          },
           {
             "ts": "2026-03-16",
             "value": 72681.9132538886
@@ -520,14 +697,22 @@
             "value": 73053.88808483821
           },
           {
-            "ts": "2026-04-12",
-            "value": 71717.57367493708
+            "ts": "2026-04-13",
+            "value": 70756.75105500016
+          },
+          {
+            "ts": "2026-04-13",
+            "value": 71034.3896749139
           }
         ],
         "source": "CoinGecko → Binance",
-        "source_updated": "2026-04-12",
-        "fetched_at": "2026-04-12T08:34:54.415Z",
-        "error": null
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:18.197Z",
+        "error": null,
+        "education": {
+          "what": "BTC's current price relative to its 200-day moving average (MA) — a widely watched trend-following indicator.",
+          "why": "Price above the 200-day MA signals a bullish regime; below it means bearish. Institutions use this level as a cost-basis proxy — buying below it is historically profitable on a 1-year horizon."
+        }
       },
       {
         "id": "vix",
@@ -662,38 +847,220 @@
         ],
         "source": "Yahoo ^VIX",
         "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-12T08:34:54.501Z",
-        "error": null
+        "fetched_at": "2026-04-13T03:05:18.046Z",
+        "error": null,
+        "education": {
+          "what": "The CBOE Volatility Index ('Wall Street's fear gauge') measures expected 30-day volatility of the S&P 500, derived from options prices.",
+          "why": "Low VIX (< 20) = calm markets, risk-on appetite — good for BTC. High VIX (> 30) = stress, capital flees to safety. BTC is still treated as a risk asset by most allocators."
+        }
       },
       {
         "id": "treasury_2y",
         "name": "2-Year Treasury yield",
         "tier": "t2",
-        "state": "no_data",
-        "signal": "neutral",
-        "value": null,
-        "display_value": "no data",
-        "context": "Source unreachable: This operation was aborted",
-        "history": [],
+        "state": "ok",
+        "signal": "bearish",
+        "value": 3.78,
+        "display_value": "3.78%",
+        "context": "2Y yield 3.78%, +0.14pp over 30d. Above Fed Funds and rising — tightening expectations.",
+        "history": [
+          {
+            "ts": "2026-02-27",
+            "value": 3.38
+          },
+          {
+            "ts": "2026-03-02",
+            "value": 3.47
+          },
+          {
+            "ts": "2026-03-03",
+            "value": 3.51
+          },
+          {
+            "ts": "2026-03-04",
+            "value": 3.54
+          },
+          {
+            "ts": "2026-03-05",
+            "value": 3.57
+          },
+          {
+            "ts": "2026-03-06",
+            "value": 3.56
+          },
+          {
+            "ts": "2026-03-09",
+            "value": 3.56
+          },
+          {
+            "ts": "2026-03-10",
+            "value": 3.57
+          },
+          {
+            "ts": "2026-03-11",
+            "value": 3.64
+          },
+          {
+            "ts": "2026-03-12",
+            "value": 3.76
+          },
+          {
+            "ts": "2026-03-13",
+            "value": 3.73
+          },
+          {
+            "ts": "2026-03-16",
+            "value": 3.68
+          },
+          {
+            "ts": "2026-03-17",
+            "value": 3.68
+          },
+          {
+            "ts": "2026-03-18",
+            "value": 3.76
+          },
+          {
+            "ts": "2026-03-19",
+            "value": 3.79
+          },
+          {
+            "ts": "2026-03-20",
+            "value": 3.88
+          },
+          {
+            "ts": "2026-03-23",
+            "value": 3.83
+          },
+          {
+            "ts": "2026-03-24",
+            "value": 3.9
+          },
+          {
+            "ts": "2026-03-25",
+            "value": 3.84
+          },
+          {
+            "ts": "2026-03-26",
+            "value": 3.96
+          },
+          {
+            "ts": "2026-03-27",
+            "value": 3.88
+          },
+          {
+            "ts": "2026-03-30",
+            "value": 3.82
+          },
+          {
+            "ts": "2026-03-31",
+            "value": 3.79
+          },
+          {
+            "ts": "2026-04-01",
+            "value": 3.81
+          },
+          {
+            "ts": "2026-04-02",
+            "value": 3.79
+          },
+          {
+            "ts": "2026-04-03",
+            "value": 3.84
+          },
+          {
+            "ts": "2026-04-06",
+            "value": 3.84
+          },
+          {
+            "ts": "2026-04-07",
+            "value": 3.81
+          },
+          {
+            "ts": "2026-04-08",
+            "value": 3.79
+          },
+          {
+            "ts": "2026-04-09",
+            "value": 3.78
+          }
+        ],
         "source": "FRED (DGS2, DFF)",
-        "source_updated": null,
-        "fetched_at": "2026-04-12T08:35:08.944Z",
-        "error": "This operation was aborted"
+        "source_updated": "2026-04-09",
+        "fetched_at": "2026-04-13T03:05:18.292Z",
+        "error": null,
+        "education": {
+          "what": "Yield on US 2-year Treasury notes — the bond market's best guess of where Fed rates will be in two years.",
+          "why": "When 2Y yields fall (especially below the Fed Funds rate), the bond market is pricing rate cuts ahead — bullish for BTC. Rising yields mean tighter money, headwind for risk assets."
+        }
       },
       {
         "id": "cpi",
         "name": "CPI YoY",
         "tier": "t2",
-        "state": "no_data",
+        "state": "ok",
         "signal": "neutral",
-        "value": null,
-        "display_value": "no data",
-        "context": "Source unreachable: This operation was aborted",
-        "history": [],
+        "value": 3.320205581223676,
+        "display_value": "3.3% YoY",
+        "context": "CPI 3.3%. No clear trend.",
+        "history": [
+          {
+            "ts": "2025-03-01",
+            "value": 2.3819814628055505
+          },
+          {
+            "ts": "2025-04-01",
+            "value": 2.3253882302578393
+          },
+          {
+            "ts": "2025-05-01",
+            "value": 2.377265107368083
+          },
+          {
+            "ts": "2025-06-01",
+            "value": 2.68045386591023
+          },
+          {
+            "ts": "2025-07-01",
+            "value": 2.7426180521671357
+          },
+          {
+            "ts": "2025-08-01",
+            "value": 2.9385917430316257
+          },
+          {
+            "ts": "2025-09-01",
+            "value": 3.0225715847133356
+          },
+          {
+            "ts": "2025-11-01",
+            "value": 2.9882996283635057
+          },
+          {
+            "ts": "2025-12-01",
+            "value": 3.0022620431683724
+          },
+          {
+            "ts": "2026-01-01",
+            "value": 2.8286797395498917
+          },
+          {
+            "ts": "2026-02-01",
+            "value": 2.6645890876940963
+          },
+          {
+            "ts": "2026-03-01",
+            "value": 3.320205581223676
+          }
+        ],
         "source": "FRED (CPIAUCSL)",
-        "source_updated": null,
-        "fetched_at": "2026-04-12T08:35:08.950Z",
-        "error": "This operation was aborted"
+        "source_updated": "2026-03-01",
+        "fetched_at": "2026-04-13T03:05:18.164Z",
+        "error": null,
+        "education": {
+          "what": "Consumer Price Index year-over-year — the headline US inflation number, released monthly by the Bureau of Labor Statistics.",
+          "why": "Falling CPI (disinflation) opens the door for Fed rate cuts, which is bullish. Rising CPI delays easing and pressures risk assets. BTC's 'inflation hedge' narrative also strengthens when CPI is elevated."
+        }
       }
     ],
     "t3": [
@@ -703,14 +1070,10 @@
         "tier": "t3",
         "state": "ok",
         "signal": "bullish",
-        "value": 4787.39990234375,
-        "display_value": "$4,787 / oz",
-        "context": "Gold $4787, -7.4% (30d) after +6.8% (90d). Rally losing steam → historical rotation lag into BTC: 4–7 months.",
+        "value": 4741.2998046875,
+        "display_value": "$4,741 / oz",
+        "context": "Gold $4741, -7.3% (30d) after +6.6% (90d). Rally losing steam → historical rotation lag into BTC: 4–7 months.",
         "history": [
-          {
-            "ts": "2026-02-27",
-            "value": 5230.5
-          },
           {
             "ts": "2026-03-02",
             "value": 5294.39990234375
@@ -825,13 +1188,21 @@
           },
           {
             "ts": "2026-04-10",
-            "value": 4787.39990234375
+            "value": 4761.89990234375
+          },
+          {
+            "ts": "2026-04-13",
+            "value": 4741.2998046875
           }
         ],
         "source": "Yahoo (GC=F, GLD)",
-        "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-12T08:34:54.576Z",
-        "error": null
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:18.151Z",
+        "error": null,
+        "education": {
+          "what": "Gold price trend and its relationship to BTC. Historically, capital rotates from gold into bitcoin with a 4–7 month lag after major gold rallies.",
+          "why": "Gold rallies first as the 'safe haven' trade. Once risk appetite returns, some of that capital rotates into BTC — a higher-beta store of value. A peaking gold rally can signal BTC's turn."
+        }
       },
       {
         "id": "copper_gold",
@@ -839,14 +1210,10 @@
         "tier": "t3",
         "state": "ok",
         "signal": "bullish",
-        "value": 0.0012294774358668054,
+        "value": 0.001225032158804073,
         "display_value": "0.0012",
-        "context": "Copper/Gold 0.0012, +8.7% over 30d. Copper outpaces gold → risk-on, industrial demand rising.",
+        "context": "Copper/Gold 0.0012, +7.6% over 30d. Copper outpaces gold → risk-on, industrial demand rising.",
         "history": [
-          {
-            "ts": "2026-02-27",
-            "value": 0.0011479781879862275
-          },
           {
             "ts": "2026-03-02",
             "value": 0.001113346155838767
@@ -961,17 +1328,23 @@
           },
           {
             "ts": "2026-04-10",
-            "value": 0.0012294774358668054
+            "value": 0.0012328062765134243
+          },
+          {
+            "ts": "2026-04-13",
+            "value": 0.001225032158804073
           }
         ],
         "source": "Yahoo (HG=F / GC=F)",
-        "source_updated": "2026-04-10",
-        "fetched_at": "2026-04-12T08:34:54.568Z",
-        "error": null
+        "source_updated": "2026-04-13",
+        "fetched_at": "2026-04-13T03:05:18.165Z",
+        "error": null,
+        "education": {
+          "what": "The Copper/Gold ratio — copper (industrial demand) divided by gold (safe-haven demand). A classic macro risk indicator.",
+          "why": "Rising ratio = factories humming, growth expectations up → risk-on, good for BTC. Falling ratio = fear, slowdown expectations → risk-off, headwind for BTC."
+        }
       }
     ]
   },
-  "alerts": [
-    "BTC spot ETF net flows: Source HTML structure changed. Parser needs a fix."
-  ]
+  "alerts": []
 }
