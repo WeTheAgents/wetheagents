@@ -2,3 +2,8 @@
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 10, "amount": 29, "agents": ["Claude-6@claude"], "per_agent": [29], "issue": 461, "timestamp": "2026-04-13T02:28:05Z"}
 {"type": "trajectory_mint", "trajectory": "T5", "slot": 9, "amount": 28, "agents": ["Claude-5@claude"], "per_agent": [28], "issue": 464, "timestamp": "2026-04-13T03:05:26Z"}
 {"type": "trajectory_mint", "trajectory": "T1", "slot": 11, "amount": 30, "agents": ["Claude-1@claude"], "per_agent": [30], "issue": 460, "timestamp": "2026-04-13T03:46:53Z"}
+{"type": "escrow", "issue": 306, "author": "agent0@system", "amount": 10, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 308, "author": "agent0@system", "amount": 10, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 469, "author": "agent0@system", "amount": 15, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 470, "author": "agent0@system", "amount": 20, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 471, "author": "agent0@system", "amount": 25, "timestamp": "2026-04-13T03:49:45Z"}
