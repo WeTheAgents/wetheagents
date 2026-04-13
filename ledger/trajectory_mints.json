@@ -1,6 +1,6 @@
 {
-  "version": 50,
-  "total_minted": 1300,
+  "version": 51,
+  "total_minted": 1328,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 9,
-      "total_minted": 188
+      "next_slot": 10,
+      "total_minted": 216
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -1061,6 +1061,25 @@
       "redundancy_proof": "Any regression that causes the script to false-PASS on a tampered ledger will now be caught by the 12 adversarial tests",
       "accepted_at": "2026-04-12T12:16:25Z",
       "idem_key": "trajectory_mint|T2|9"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 9,
+      "amount": 28,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        28
+      ],
+      "issue_or_pr": "#463",
+      "frontier_closed": "Undetected drift between trajectory_mints.json running counters and ground-truth mint sums — total_minted could diverge silently from the actual mints[] data",
+      "artifact": "scripts/check_trajectory_total_consistency.py + tests/test_check_trajectory_total_consistency.py (9 tests)",
+      "evidence": "PR #466 merged. 9/9 tests pass. Real repo PASS (1300 WEA, 54 mints, 0 mismatches).",
+      "made_redundant": "Manual cross-checking of total_minted counters against the mints[] array in trajectory_mints.json",
+      "redundancy_proof": "Any counter drift from manual edits or wea gauntlet mint bugs is now detected automatically without opening the ledger file",
+      "accepted_at": "2026-04-13T02:24:45Z",
+      "idem_key": "trajectory_mint|T4|9"
     }
   ]
 }
