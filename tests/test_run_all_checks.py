@@ -229,13 +229,54 @@ def test_integration_real_repo_runner_correctness() -> None:
 
     data = json.loads(result.stdout)
 
-    # At least 20 check scripts discovered (repo has 21 as of this writing)
-    assert data["total"] >= 20, f"expected 20+ checks, got {data['total']}"
+    # At least 30 check scripts discovered (repo has 31 as of 2026-04-13)
+    assert data["total"] >= 30, f"expected 30+ checks, got {data['total']}"
 
     # check_invariant must pass — it tests the core economy equation
     inv = next((r for r in data["results"] if r["script"] == "check_invariant.py"), None)
     assert inv is not None, "check_invariant.py not found in results"
     assert inv["passed"], f"check_invariant.py failed:\n{inv['stdout']}"
+
+
+# ---------------------------------------------------------------------------
+# Test 9: Integration — T5S9: check_orphan_scripts.py is wired and passes
+#
+# run_all_checks.py uses a wildcard glob("check_*.py") to auto-discover every
+# check script, including check_orphan_scripts.py itself.  This test is a
+# regression guard: if the wildcard is ever replaced with an explicit list
+# that omits a new script, check_orphan_scripts.py will report WARN and this
+# test will fail.  It also verifies zero orphans exist on the current branch.
+# ---------------------------------------------------------------------------
+
+
+def test_integration_t5s9_orphan_check_wired_and_passing() -> None:
+    """check_orphan_scripts.py is wired into the runner and reports PASS (0 orphans)."""
+    repo_root = Path(__file__).resolve().parent.parent
+    runner = repo_root / "scripts" / "run_all_checks.py"
+    result = subprocess.run(
+        [sys.executable, str(runner), "--json"],
+        capture_output=True,
+        text=True,
+    )
+    # Runner exits 0 or 1 depending on repo health — never crashes
+    assert result.returncode in (0, 1), (
+        f"runner exited {result.returncode} (expected 0 or 1)"
+    )
+
+    data = json.loads(result.stdout)
+
+    # check_orphan_scripts.py must be discovered (wired via wildcard glob)
+    orphan = next(
+        (r for r in data["results"] if r["script"] == "check_orphan_scripts.py"),
+        None,
+    )
+    assert orphan is not None, "check_orphan_scripts.py not found in runner results"
+
+    # It must pass — no orphan scripts on the current branch
+    assert orphan["status"] == "pass", (
+        f"check_orphan_scripts.py reported non-pass status.\n"
+        f"Output:\n{orphan['stdout']}"
+    )
 
 
 # ---------------------------------------------------------------------------
