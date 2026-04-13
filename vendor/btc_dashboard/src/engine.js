@@ -20,13 +20,15 @@ const INDICATORS = [
   { id: 'etf_flows',         name: 'BTC spot ETF net flows',  tier: 't1', module: './fetchers/etf-flows' },
   { id: 'fear_greed',        name: 'Fear & Greed Index',      tier: 't1', module: './fetchers/fear-greed' },
   { id: 'stablecoin',        name: 'Stablecoin supply',       tier: 't1', module: './fetchers/stablecoin' },
+  { id: 'polymarket_btc_price', name: 'BTC price bias (Polymarket)', tier: 't1', module: './fetchers/polymarket-btc-price' },
   { id: 'polymarket_fed',    name: 'Fed decision (Polymarket)', tier: 't1', module: './fetchers/polymarket-fed' },
   { id: 'kalshi_fed',        name: 'Fed decision (Kalshi)',   tier: 't1', module: './fetchers/kalshi-fed' },
-  { id: 'polymarket_btc_price', name: 'BTC price bias (Polymarket)', tier: 't1', module: './fetchers/polymarket-btc-price' },
+
+  // Internal — fetched for BTC price header but not shown as a card
+  { id: 'btc_vs_200dma',     name: 'BTC vs 200-day MA',       tier: 'internal', module: './fetchers/btc-vs-200dma' },
 
   // Tier 2 — weekly
   { id: 'm2',                name: 'Global M2 (84d lag)',     tier: 't2', module: './fetchers/m2' },
-  { id: 'btc_vs_200dma',     name: 'BTC vs 200-day MA',       tier: 't2', module: './fetchers/btc-vs-200dma' },
   { id: 'vix',               name: 'VIX',                     tier: 't2', module: './fetchers/vix' },
   { id: 'treasury_2y',       name: '2-Year Treasury yield',   tier: 't2', module: './fetchers/treasury-2y' },
   { id: 'cpi',               name: 'CPI YoY',                 tier: 't2', module: './fetchers/cpi' },
@@ -139,7 +141,8 @@ async function collectIndicators({ force }) {
 }
 
 function computeScore(indicators) {
-  const ok = indicators.filter((i) => i.state === 'ok');
+  const scored = indicators.filter((i) => i.tier !== 'internal');
+  const ok = scored.filter((i) => i.state === 'ok');
   const bullish = ok.filter((i) => i.signal === 'bullish').length;
   const available = ok.length;
   const ratio = available > 0 ? bullish / available : 0;

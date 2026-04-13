@@ -43,6 +43,43 @@ function fmtPrice(meta) {
   return `<strong>BTC: ${usd}</strong> ${eur} · 24h: <span class="${cls24}">${c24}</span> · 7d: <span class="${cls7}">${c7}</span>`;
 }
 
+function infoGraphic(ind) {
+  if ((ind.id === 'polymarket_fed' || ind.id === 'kalshi_fed') && ind.value && ind.state === 'ok') {
+    const { pCut, pHold, pHike } = ind.value;
+    return `<div class="card__bar">
+      <div class="card__bar-seg bar-cut" style="width:${(pCut*100).toFixed(1)}%"></div>
+      <div class="card__bar-seg bar-hold" style="width:${(pHold*100).toFixed(1)}%"></div>
+      <div class="card__bar-seg bar-hike" style="width:${(pHike*100).toFixed(1)}%"></div>
+    </div>
+    <div class="card__bar-legend">
+      <span class="legend-cut">Cut ${(pCut*100).toFixed(0)}%</span>
+      <span class="legend-hold">Hold ${(pHold*100).toFixed(0)}%</span>
+      <span class="legend-hike">Hike ${(pHike*100).toFixed(0)}%</span>
+    </div>`;
+  }
+  if (ind.id === 'polymarket_btc_price' && ind.value && ind.state === 'ok') {
+    const { closestUp, closestDown } = ind.value;
+    const up = closestUp ? closestUp.p : 0;
+    const dn = closestDown ? closestDown.p : 0;
+    const total = up + dn || 1;
+    const upW = ((up / total) * 100).toFixed(1);
+    const dnW = ((dn / total) * 100).toFixed(1);
+    const upLabel = closestUp ? `$${(closestUp.target/1000).toFixed(0)}K ${(up*100).toFixed(0)}%` : '';
+    const dnLabel = closestDown ? `$${(closestDown.target/1000).toFixed(0)}K ${(dn*100).toFixed(0)}%` : '';
+    return `<div class="card__bias">
+      <div class="card__bias-bar">
+        <div class="bias-up" style="width:${upW}%"></div>
+        <div class="bias-down" style="width:${dnW}%"></div>
+      </div>
+      <div class="card__bias-legend">
+        <span class="legend-up">\u2191 ${upLabel}</span>
+        <span class="legend-down">\u2193 ${dnLabel}</span>
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
 function cardHtml(ind) {
   const state = ind.state || 'no_data';
   const signal = ind.signal || 'neutral';
@@ -70,7 +107,7 @@ function cardHtml(ind) {
         <div class="card__value">${escapeHtml(ind.display_value || '—')}</div>
       </div>
       <div class="card__context">${escapeHtml(ind.context || '')}</div>
-      <div class="card__spark" data-spark></div>
+      ${infoGraphic(ind) || '<div class="card__spark" data-spark></div>'}
       <div class="card__meta">${source} · ${updated}</div>
       ${eduHtml}
     </article>

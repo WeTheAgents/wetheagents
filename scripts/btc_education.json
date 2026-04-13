@@ -27,10 +27,6 @@
     "what": "US M2 money supply \u2014 the total amount of cash, checking deposits, and easily convertible near-money in the economy.",
     "why": "BTC price correlates with global liquidity with an ~84-day lag. When central banks expand M2, excess liquidity eventually flows into risk assets including bitcoin."
   },
-  "btc_vs_200dma": {
-    "what": "BTC's current price relative to its 200-day moving average (MA) \u2014 a widely watched trend-following indicator.",
-    "why": "Price above the 200-day MA signals a bullish regime; below it means bearish. Institutions use this level as a cost-basis proxy \u2014 buying below it is historically profitable on a 1-year horizon."
-  },
   "vix": {
     "what": "The CBOE Volatility Index ('Wall Street's fear gauge') measures expected 30-day volatility of the S&P 500, derived from options prices.",
     "why": "Low VIX (< 20) = calm markets, risk-on appetite \u2014 good for BTC. High VIX (> 30) = stress, capital flees to safety. BTC is still treated as a risk asset by most allocators."

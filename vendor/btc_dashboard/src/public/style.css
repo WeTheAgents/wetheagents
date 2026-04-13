@@ -273,6 +273,25 @@ main {
 }
 .footer .disclaimer { margin-top: 0.25rem; }
 
+/* ── Infographic bars (Fed probability, BTC bias) ───────────── */
+.card__bar { display:flex; height:8px; border-radius:4px; overflow:hidden; margin:0.3rem 0; }
+.card__bar-seg { min-width:2px; }
+.bar-cut  { background: var(--green); }
+.bar-hold { background: var(--gray);  }
+.bar-hike { background: var(--red);   }
+.card__bar-legend { display:flex; justify-content:space-between; font-size:0.72rem; }
+.legend-cut  { color: var(--green); }
+.legend-hold { color: var(--text-faint); }
+.legend-hike { color: var(--red); }
+
+.card__bias { margin:0.3rem 0; }
+.card__bias-bar { display:flex; height:8px; border-radius:4px; overflow:hidden; gap:2px; }
+.bias-up   { background: var(--green); border-radius:4px 0 0 4px; }
+.bias-down { background: var(--red);   border-radius:0 4px 4px 0; }
+.card__bias-legend { display:flex; justify-content:space-between; font-size:0.72rem; margin-top:0.15rem; }
+.legend-up   { color: var(--green); }
+.legend-down { color: var(--red); }
+
 /* ── Educational expandable ─────────────────────────────────── */
 .card__edu {
   margin-top: 0.4rem;
