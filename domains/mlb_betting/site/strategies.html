@@ -223,35 +223,6 @@ P(under) &lt; 0.51: skip</code></div>
       </details>
     </div>
 
-    <div class="card" id="series-dogon-pitcher" data-strat-item="Series Dogon + Pitcher Features ML (fav series) validated" data-status="validated" data-market="ml">
-      <div class="card-header">
-        <div class="card-title">Series Dogon + Pitcher Features</div>
-        <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span>
-      </div>
-      <div class="strat-meta">
-        <div class="strat-field"><div class="strat-field-label">Market</div><div class="strat-field-value">ML (fav series)</div></div>
-        <div class="strat-field"><div class="strat-field-label">Volume</div><div class="strat-field-value">~545 series / 11 seasons</div></div>
-        <div class="strat-field"><div class="strat-field-label">Win / Cover</div><div class="strat-field-value">87.3% series</div></div>
-        <div class="strat-field"><div class="strat-field-label">ROI</div><div class="strat-field-value text-green">+3.07% (full) / +5.21% (TEST)</div></div>
-        <div class="strat-field"><div class="strat-field-label">Sharpe</div><div class="strat-field-value">~0.4</div></div>
-        <div class="strat-field"><div class="strat-field-label">Seasons</div><div class="strat-field-value">11 (2010-2021)</div></div>
-        <div class="strat-field"><div class="strat-field-label">Sessions</div><div class="strat-field-value">2, 3</div></div>
-      </div>
-      <div class="strat-rationale">Martingale within 2-4 game series: bet favorite in G1, double down in G2 if lost. Favorites win ~57% per game, so losing both G1+G2 is ~18%. Pitcher filters (RA momentum, win rate) further select for series where the favorite has a durable pitching edge.</div>
-      <div class="strat-filters"><code>rpi_diff &gt;= 0.03
-wp_diff &gt;= 0.05
-ra_diff &lt;= 0
-wr_diff &gt;= 0.10</code></div>
-      <details class="mt-16">
-        <summary>Evidence</summary>
-        <div class="detail-body">545 series (11 seasons). 87.3% series resolved positively. Train: +3.07% ROI. Test (2019-2021): 194 series, 89.2% WR, +5.21% ROI. The pitcher layer added 7x ROI improvement over team-only dogon.</div>
-      </details>
-      <details>
-        <summary>Caveats</summary>
-        <div class="detail-body">Low ROI (+3-5%) with martingale risk profile. Superseded by higher-ROI strategies. The dogon mechanism amplifies variance: when it loses, it loses big.</div>
-      </details>
-    </div>
-
     <div class="card" id="away-rl-plus15-fip" data-strat-item="Away RL +1.5 (1H + FIP edge) RL +1.5 validated" data-status="validated" data-market="rl">
       <div class="card-header">
         <div class="card-title">Away RL +1.5 (1H + FIP edge)</div>
