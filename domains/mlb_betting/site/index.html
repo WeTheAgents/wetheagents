@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard &mdash; MLB Betting Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">MLB Betting</div>
+  <div class="brand-sub">Strategy Handbook &mdash; April 2026</div>
+  <nav class="nav-section">
+    <div class="nav-section-title">Pages</div>
+    <ul class="nav-list">
+      <li><a href="index.html" class="active">Dashboard</a></li>
+      <li><a href="strategies.html">Strategies</a></li>
+      <li><a href="dead-ends.html">Dead Ends</a></li>
+      <li><a href="data.html">Data & Pipeline</a></li>
+      <li><a href="models.html">Models & LLM</a></li>
+      <li><a href="timeline.html">Research Timeline</a></li>
+      <li><a href="season.html">2026 Season Plan</a></li>
+    </ul>
+  </nav>
+  <div class="nav-section">
+    <div class="nav-section-title">Quick Stats</div>
+    <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
+      29 research sessions<br>
+      21 seasons of data<br>
+      4 live strategies<br>
+      ~194 bets / season<br>
+      ~15-20% blended ROI
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <div class="subtitle">MLB Betting Strategy Handbook &mdash; Season 2026</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric metric--green"><div class="metric-label">Live Strategies</div><div class="metric-value">4</div><div class="metric-sub">In production for 2026</div></div>
+    <div class="metric metric--blue"><div class="metric-label">Validated (Reserve)</div><div class="metric-value">4</div><div class="metric-sub">Ready to activate</div></div>
+    <div class="metric metric--red"><div class="metric-label">Dead Ends</div><div class="metric-value">11</div><div class="metric-sub">Tested & rejected</div></div>
+    <div class="metric metric--yellow"><div class="metric-label">Research Sessions</div><div class="metric-value">29</div><div class="metric-sub">Feb 12 &mdash; Apr 12, 2026</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Current Portfolio</div>
+    <div class="section-desc">Four strategies in production for the 2026 MLB season, targeting Polymarket. All validated on historical data with walk-forward testing.</div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>Strategy</th><th>Market</th><th class="num">Volume</th><th class="num">Win/Cover</th><th class="num">ROI</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="strategies.html#tier1-bullpen-day">Tier 1: Away Bullpen Day</a></td>
+          <td>ML + RL +1.5</td>
+          <td class="num">~24 / season</td>
+          <td class="num">74.2% ML / 83.7% RL</td>
+          <td class="num positive">+63.9%</td>
+          <td><span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></td>
+        </tr>
+        <tr>
+          <td><a href="strategies.html#tier2-fatigue-gap">Tier 2: Bullpen Fatigue Gap</a></td>
+          <td>RL +1.5</td>
+          <td class="num">~25 / season</td>
+          <td class="num">72.2% cover</td>
+          <td class="num positive">+11.2%</td>
+          <td><span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></td>
+        </tr>
+        <tr>
+          <td><a href="strategies.html#tier3-pitcher-advantage">Tier 3: Away Pitcher Advantage</a></td>
+          <td>RL +1.5</td>
+          <td class="num">~8 / season</td>
+          <td class="num">79.0% cover</td>
+          <td class="num positive">+24.7%</td>
+          <td><span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></td>
+        </tr>
+        <tr>
+          <td><a href="strategies.html#fav-rl-minus15">Fav -1.5 Run Line</a></td>
+          <td>RL -1.5</td>
+          <td class="num">~137 / season</td>
+          <td class="num">49.8% TRAIN / 47.9% TEST</td>
+          <td class="num positive">+15.0%</td>
+          <td><span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Reserve Strategies</div>
+    <div class="section-desc">Validated but not in the live portfolio. Can be activated if live strategies underperform or market conditions change.</div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>Strategy</th><th>Market</th><th class="num">Volume</th><th class="num">ROI</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="strategies.html#s3-dual-away-ml">S3-Dual: Away ML Underdog</a></td>
+          <td>ML (dog)</td>
+          <td class="num">~54 / season</td>
+          <td class="num positive">+17.9%</td>
+          <td><span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></td>
+        </tr>
+        <tr>
+          <td><a href="strategies.html#under-totals-ml">UNDER Totals (ML Model)</a></td>
+          <td>O/U (Under)</td>
+          <td class="num">~100-530 / season</td>
+          <td class="num positive">+34.3%</td>
+          <td><span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></td>
+        </tr>
+        <tr>
+          <td><a href="strategies.html#series-dogon-pitcher">Series Dogon + Pitcher Features</a></td>
+          <td>ML (fav series)</td>
+          <td class="num">~545 series / 11 seasons</td>
+          <td class="num positive">+5.2%</td>
+          <td><span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></td>
+        </tr>
+        <tr>
+          <td><a href="strategies.html#away-rl-plus15-fip">Away RL +1.5 (1H + FIP edge)</a></td>
+          <td>RL +1.5</td>
+          <td class="num">~91 / season</td>
+          <td class="num positive">+11.8%</td>
+          <td><span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></td>
+        </tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Key Principles (Learned the Hard Way)</div>
+    <div class="grid-2">
+      <div class="callout callout--green">
+        <strong>Away underdogs only.</strong> Home dogs lose by too much (RL +1.5 cover 54.6% vs 63.7% breakeven). All profitable RL strategies are away-side.
+      </div>
+      <div class="callout callout--green">
+        <strong>Bullpen > Pitching > Offense.</strong> Bullpen workload is the strongest single predictor. Starter quality is second. Offensive signals add noise.
+      </div>
+      <div class="callout callout--red">
+        <strong>Favorites are a trap.</strong> Market prices them within 1% of fair value. Vig eats the rest. Only profitable via RL -1.5 with strict filters.
+      </div>
+      <div class="callout callout--red">
+        <strong>OVER is impossible.</strong> Offensive explosions are inherently unpredictable. Three separate models (inversion, dedicated, minimal) all showed AUC 0.50.
+      </div>
+      <div class="callout callout--blue">
+        <strong>September is profitable.</strong> Tanking teams are HOME, creating opportunities for away bettors. Removing September cost +22% ROI signal.
+      </div>
+      <div class="callout callout--blue">
+        <strong>Platt calibration lies.</strong> Isotonic regression inflated 65% of bets above threshold. Raw ensemble probabilities are more honest.
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Data Coverage</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Source</th><th>Seasons</th><th>Games</th><th>Features</th></tr></thead>
+      <tbody>
+        <tr><td>sports-statistics.com (xlsx)</td><td>2010-2019, 2021</td><td>~26,400</td><td>Full inning data, real closing odds</td></tr>
+        <tr><td>SBR / DraftKings</td><td>2021-2025</td><td>~7,700</td><td>Real away RL odds, 100% match rate</td></tr>
+        <tr><td>Retrosheet pitcher logs</td><td>2010-2025</td><td>75,950 logs</td><td>Anti-leak entering-game stats</td></tr>
+        <tr><td>SDQL / ArnavSaogi</td><td>2004-2009, 2022-2025</td><td>~16,600</td><td>ML + OU (no inning scores)</td></tr>
+        <tr><td>Baseball Savant (Statcast)</td><td>2015-2025</td><td>~30 cols</td><td>xwOBA, barrel rate (weak signal, kept for infra)</td></tr>
+        <tr><td>ESPN Live (2026)</td><td>2026 (Apr 1+)</td><td>414 games</td><td>Real-time starters, odds, scores</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+</div>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>

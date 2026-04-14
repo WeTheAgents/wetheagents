@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Models & LLM &mdash; MLB Betting Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">MLB Betting</div>
+  <div class="brand-sub">Strategy Handbook &mdash; April 2026</div>
+  <nav class="nav-section">
+    <div class="nav-section-title">Pages</div>
+    <ul class="nav-list">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="strategies.html">Strategies</a></li>
+      <li><a href="dead-ends.html">Dead Ends</a></li>
+      <li><a href="data.html">Data & Pipeline</a></li>
+      <li><a href="models.html" class="active">Models & LLM</a></li>
+      <li><a href="timeline.html">Research Timeline</a></li>
+      <li><a href="season.html">2026 Season Plan</a></li>
+    </ul>
+  </nav>
+  <div class="nav-section">
+    <div class="nav-section-title">Quick Stats</div>
+    <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
+      29 research sessions<br>
+      21 seasons of data<br>
+      4 live strategies<br>
+      ~194 bets / season<br>
+      ~15-20% blended ROI
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <div class="page-header">
+    <h1>Models & LLM</h1>
+    <div class="subtitle">Machine learning models and LLM expert systems</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Three Approaches Tested in Parallel</div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">Rules-Based</div>
+        <div class="text-muted text-sm mt-8">Expert criteria from legacy system: RPI, pitcher stats, form. Produces the live Tier 1/2/3 and Fav-RL strategies. Simple, interpretable, robust.</div>
+        <div class="tag tag--live mt-8"><span class="tag-dot"></span> PRIMARY</div>
+      </div>
+      <div class="card">
+        <div class="card-title">CatBoost ML</div>
+        <div class="text-muted text-sm mt-8">Gradient boosting on 35+ features. Regime-split ensemble (CatBoost + Ridge). Used for UNDER totals model and S3-Dual edge calculation. AUC ~0.55 for UNDER; 0.50 for OVER/NRFI.</div>
+        <div class="tag tag--validated mt-8"><span class="tag-dot"></span> RESERVE (UNDER)</div>
+      </div>
+      <div class="card">
+        <div class="card-title">LLM Estimator</div>
+        <div class="text-muted text-sm mt-8">GPT-4o-mini / Claude via API. Feature card analysis + expert reasoning. Genome evolution tracks anti-patterns. Duel system for disagreement resolution.</div>
+        <div class="tag tag--paused mt-8"><span class="tag-dot"></span> PAUSED</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">ML Model Architecture</div>
+    <div class="card">
+      <div class="card-subtitle">src/model.py &mdash; 1,213 lines</div>
+      <div class="strat-rationale mt-8">
+        <strong>Regime-split ensemble:</strong> 50/50 CatBoost + Ridge regression.<br><br>
+        <strong>4 regimes</strong> (outcome-based, trained separately):<br>
+        &bull; M0: All games (baseline)<br>
+        &bull; M2: Favorite won by 2+ (dominant)<br>
+        &bull; M3: Favorite won by 1 (tight)<br>
+        &bull; M4: Favorite lost (upset)<br><br>
+        <strong>Training:</strong> Walk-forward validation. CatBoost depth=4, lr=0.05, 300 iterations. Ridge alphas [0.1, 1.0, 10.0, 100.0]. Isotonic calibration on validation fold (removed for UNDER model after Session 19 Platt discovery).
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">LLM Expert System</div>
+    <div class="card">
+      <div class="card-subtitle">src/llm_expert.py (1,399 lines) + src/llm_duel.py (971 lines) + src/llm_evolution.py (282 lines)</div>
+      <div class="strat-rationale mt-8">
+        <strong>Components:</strong><br>
+        &bull; <strong>Feature Card Generator</strong> (src/feature_card.py, 2,100 lines): 171-feature human-readable game summary with team form, pitcher matchup, market context, red flags.<br>
+        &bull; <strong>Genome:</strong> Expert knowledge representation with anti-patterns, examples, version history. Evolves weekly from outcome analysis.<br>
+        &bull; <strong>Pick Generation:</strong> System prompt instructs Claude/GPT to analyze feature card, produce verdict (market, side, confidence, reasoning).<br>
+        &bull; <strong>Duel System:</strong> Two experts analyze same game independently. Both agree = BET, disagree = 3rd arbiter decides winner by reasoning quality.<br>
+        &bull; <strong>Evolution Engine:</strong> Weekly retrospective (high-confidence losses), monthly crossbreed, half-season promotion/pruning.
+      </div>
+    </div>
+    <div class="callout callout--red">
+      <strong>LLM results were mixed.</strong> Structure genome profitable solo (55.6% accuracy on Fav-RL). Momentum genome toxic (33.3%). Duel system's combined accuracy (40.5%) was worse than either solo. The Coinflip zone duel was killed entirely. LLM adds most value as a filter/gate on model signals (UNDER expansion zone: +15% ROI), not as a standalone predictor.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Model Performance Summary</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Model</th><th>Target</th><th>Metric</th><th>Result</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>UNDER (CatBoost+Ridge V3)</td><td>P(under)</td><td>AUC / ROI</td><td>0.55+ / +6.1% to +34.3%</td><td class="text-green">Validated</td></tr>
+        <tr><td>SPEC (CatBoost+Ridge)</td><td>P(home_win)</td><td>AUC</td><td>~0.55</td><td class="text-blue">Used for S3 edge</td></tr>
+        <tr><td>OVER (3 variants)</td><td>P(over)</td><td>AUC</td><td>0.50 (zero signal)</td><td class="text-red">Dead</td></tr>
+        <tr><td>NRFI (3 feature sets)</td><td>P(nrfi)</td><td>AUC</td><td>0.52 (structural ceiling)</td><td class="text-red">Dead</td></tr>
+        <tr><td>Fav RL -1.5 (CatBoost)</td><td>P(cover)</td><td>AUC</td><td>0.517 (useless)</td><td class="text-red">Dead (rules better)</td></tr>
+        <tr><td>LLM Structure (solo)</td><td>Fav RL verdict</td><td>Accuracy</td><td>55.6%</td><td class="text-yellow">Promising</td></tr>
+        <tr><td>LLM Momentum (solo)</td><td>CF verdict</td><td>Accuracy</td><td>33.3%</td><td class="text-red">Toxic</td></tr>
+        <tr><td>LLM Duel (Structure+Momentum)</td><td>CF verdict</td><td>Accuracy</td><td>40.5%</td><td class="text-red">Killed</td></tr>
+        <tr><td>LLM UNDER Gate</td><td>UNDER filter</td><td>ROI</td><td>+15.0% (expansion zone)</td><td class="text-green">Validated</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+</div>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>
