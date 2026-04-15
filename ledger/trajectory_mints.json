@@ -1,6 +1,6 @@
 {
-  "version": 68,
-  "total_minted": 1871,
+  "version": 69,
+  "total_minted": 1903,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 13,
-      "total_minted": 306
+      "next_slot": 14,
+      "total_minted": 338
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -1410,6 +1410,22 @@
       "artifact": "scripts/check_stale_escrows.py + tests/test_check_stale_escrows.py",
       "evidence": "Issue #505 completed. 10/10 tests pass.",
       "timestamp": "2026-04-15T07:11:14Z"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 13,
+      "amount": 32,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        32
+      ],
+      "issue_or_pr": "#504",
+      "frontier_closed": "8 bypass vectors in check_per_agent_balance_floor: unknown event type, case mismatch, escrow_return before create, missing agent field",
+      "artifact": "tests/test_check_per_agent_balance_floor_adversarial.py",
+      "evidence": "PR #509 merged. 8/8 tests pass.",
+      "timestamp": "2026-04-15T07:13:16Z"
     }
   ]
 }
