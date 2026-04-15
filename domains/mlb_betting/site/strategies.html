@@ -26,10 +26,10 @@
   <div class="nav-section">
     <div class="nav-section-title">Quick Stats</div>
     <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
-      31 research sessions<br>
+      33 research sessions<br>
       21 seasons of data<br>
-      4 live strategies<br>
-      ~194 bets / season<br>
+      5 live strategies<br>
+      ~214 bets / season<br>
       ~15-20% blended ROI
     </div>
   </div>
@@ -163,6 +163,39 @@ power_rate_diff &gt;= 0</code></div>
       <details>
         <summary>Caveats</summary>
         <div class="detail-body">Only validated on 2021-2025 (5 seasons). Earlier seasons lack reliable RL odds data. The 2025 OOS test showed +15.0% (decent but weaker than train). September is a known weak zone. RL odds are estimated at 2.40 average (actual DraftKings odds vary per game).</div>
+      </details>
+    </div>
+
+    <div class="card" id="over-bullpen-mismatch" data-strat-item="OVER: Bad Bullpen + Offensive Mismatch O/U (Over) live" data-status="live" data-market="o/u">
+      <div class="card-header">
+        <div class="card-title">OVER: Bad Bullpen + Offensive Mismatch</div>
+        <span class="tag tag--live"><span class="tag-dot"></span> LIVE</span>
+      </div>
+      <div class="strat-meta">
+        <div class="strat-field"><div class="strat-field-label">Market</div><div class="strat-field-value">O/U (Over)</div></div>
+        <div class="strat-field"><div class="strat-field-label">Volume</div><div class="strat-field-value">~20 / season</div></div>
+        <div class="strat-field"><div class="strat-field-label">Win / Cover</div><div class="strat-field-value">61.7% OVER (12/15 seasons)</div></div>
+        <div class="strat-field"><div class="strat-field-label">ROI</div><div class="strat-field-value text-green">+17.9% raw / +10.0% trim-10%</div></div>
+        <div class="strat-field"><div class="strat-field-label">Sharpe</div><div class="strat-field-value">N/A</div></div>
+        <div class="strat-field"><div class="strat-field-label">Seasons</div><div class="strat-field-value">15 (2010-2025)</div></div>
+        <div class="strat-field"><div class="strat-field-label">Sessions</div><div class="strat-field-value">33b</div></div>
+      </div>
+      <div class="strat-rationale">Three conditions converge to create a scoring explosion: (1) teams' season scoring pace (RPG) exceeds the posted O/U line by 2+ runs — the market is pricing this game low relative to both teams' offensive output; (2) both bullpens are in bad recent form (7-game FIP combined >= 7.5) — relief arms will allow runs; (3) at least one starter is vulnerable (FIP >= 4.5 in short window) — the game won't stay low early either. Mechanism: market anchors on a "normal" game, but the combination of bad pitching and hot offenses makes 9+ runs structurally likely. Era-stable at 60% modern (2021+) vs 63% pre-2021 — delta only -3pp.</div>
+      <div class="strat-filters"><code>rpg_vs_line &gt;= 2.0          &lt;-- teams score 2+ runs above this line
+bullpen_fip_7g_combined &gt;= 7.5  &lt;-- both bullpens bad right now
+sp_quality_floor &gt;= 4.5         &lt;-- weaker starter is vulnerable
+
+&lt;!-- Bet sizing --&gt;
+1x (default):  all three conditions fire
+2x (power):    bullpen_fip_7g_combined &gt;= 10.0   &lt;-- "nuclear" bullpen (76.3% OVER)
+               OR close_ou &lt;= 8.0                &lt;-- low-line game, max mispricing (71.6% OVER)</code></div>
+      <details class="mt-16">
+        <summary>Evidence</summary>
+        <div class="detail-body">298 games (2010-2025), ~20/season. 61.7% OVER at 1.909 odds = +17.9% ROI. 10%-trim (drop top 10% highest-scoring): 57.6% / +10.0% — structural edge survives outlier removal. 12/15 profitable seasons. Cumulative P&amp;L grows monotonically from +2u to +53.3u. Era split: pre-2021=63.0% / +20.3%, modern (2021+)=60.0% / +14.5%. Power buckets: bullpen FIP 10+: N=38, 76.3% / +45.7% ROI. Line [6.5-8.0): N=192, 62% / +18% ROI.</div>
+      </details>
+      <details>
+        <summary>Caveats</summary>
+        <div class="detail-body">Low volume (~20 games/season — high variance per-season). Two bad seasons: 2016 (48%) and 2024 (44%) — both within normal variance at N=18-25. June and August are weak zones (50% and 44% respectively) — consider skipping or reducing stake. The rpg_vs_line signal requires season RPG data (available after ~2 weeks into season). bullpen_fip_7g needs 7 games of bullpen data per team. Live data: use bp_fip_7g from daily bullpen feature builder.</div>
       </details>
     </div>
 
