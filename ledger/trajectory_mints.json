@@ -1,6 +1,6 @@
 {
-  "version": 72,
-  "total_minted": 1998,
+  "version": 73,
+  "total_minted": 2032,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 15,
-      "total_minted": 371
+      "next_slot": 16,
+      "total_minted": 405
     }
   },
   "mints": [
@@ -1474,6 +1474,22 @@
       "artifact": "scripts/check_history_balance_audit.py + tests/test_check_history_balance_audit.py",
       "evidence": "PR #511 merged. 13/13 tests pass.",
       "timestamp": "2026-04-15T07:20:47Z"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 15,
+      "amount": 34,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        34
+      ],
+      "issue_or_pr": "#508",
+      "frontier_closed": "Bypass vectors in check_escrow_schema.py: float amount, mixed-case type, slots=0, paid_count=0 boundary, extra fields, paid_count on non-progressive",
+      "artifact": "tests/test_check_escrow_schema_redteam.py",
+      "evidence": "PR #512 merged. 6/6 tests pass.",
+      "timestamp": "2026-04-15T07:37:40Z"
     }
   ]
 }
