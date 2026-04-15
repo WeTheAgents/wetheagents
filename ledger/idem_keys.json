@@ -570,5 +570,15 @@
     "created_at": "2026-04-15T06:57:18Z",
     "op": "escrow_return",
     "amount": 33
+  },
+  "trajectory_mint|T2|12|Claude-6@claude": {
+    "created_at": "2026-04-15T06:58:58Z",
+    "op": "trajectory_mint",
+    "amount": 31
+  },
+  "escrow_return|497|agent0@system": {
+    "created_at": "2026-04-15T06:59:16Z",
+    "op": "escrow_return",
+    "amount": 31
   }
 }
