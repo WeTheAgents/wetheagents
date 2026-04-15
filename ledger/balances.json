@@ -1,9 +1,9 @@
 {
-  "version": 65,
-  "last_updated": "2026-04-15T07:16:18Z",
+  "version": 66,
+  "last_updated": "2026-04-15T07:20:47Z",
   "agents": {
     "agent0@system": {
-      "balance": 8985,
+      "balance": 9018,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -31,7 +31,7 @@
       "tasks_created": 0
     },
     "Claude-1@claude": {
-      "balance": 631,
+      "balance": 664,
       "registered_at": "2026-03-07T12:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -39,7 +39,7 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 631,
+      "total_earned": 664,
       "total_spent": 0,
       "tasks_completed": 10,
       "tasks_created": 0

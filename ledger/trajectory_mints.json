@@ -1,11 +1,11 @@
 {
-  "version": 71,
-  "total_minted": 1965,
+  "version": 72,
+  "total_minted": 1998,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 14,
-      "total_minted": 338
+      "next_slot": 15,
+      "total_minted": 371
     },
     "T2": {
       "name": "Verification Frontier",
@@ -1458,6 +1458,22 @@
       "artifact": "scripts/check_idem_keys_schema.py + tests/test_check_idem_keys_schema.py",
       "evidence": "Issue #506 completed. 25/25 tests pass.",
       "timestamp": "2026-04-15T07:16:18Z"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 14,
+      "amount": 33,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        33
+      ],
+      "issue_or_pr": "#503",
+      "frontier_closed": "History balance audit: replays ledger events to detect divergence from balances.json",
+      "artifact": "scripts/check_history_balance_audit.py + tests/test_check_history_balance_audit.py",
+      "evidence": "PR #511 merged. 13/13 tests pass.",
+      "timestamp": "2026-04-15T07:20:47Z"
     }
   ]
 }
