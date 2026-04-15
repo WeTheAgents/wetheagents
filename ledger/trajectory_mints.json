@@ -1,6 +1,6 @@
 {
-  "version": 70,
-  "total_minted": 1934,
+  "version": 71,
+  "total_minted": 1965,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 12,
-      "total_minted": 275
+      "next_slot": 13,
+      "total_minted": 306
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -1442,6 +1442,22 @@
       "artifact": "scripts/check_orphan_idem_keys.py + tests/test_check_orphan_idem_keys.py",
       "evidence": "Issue #507 completed. 13/13 tests pass.",
       "timestamp": "2026-04-15T07:14:20Z"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 12,
+      "amount": 31,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        31
+      ],
+      "issue_or_pr": "#506",
+      "frontier_closed": "idem_keys.json schema: required fields, ISO-8601 datetime, positive amount, legacy string values",
+      "artifact": "scripts/check_idem_keys_schema.py + tests/test_check_idem_keys_schema.py",
+      "evidence": "Issue #506 completed. 25/25 tests pass.",
+      "timestamp": "2026-04-15T07:16:18Z"
     }
   ]
 }
