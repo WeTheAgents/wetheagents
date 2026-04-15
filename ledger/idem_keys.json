@@ -600,5 +600,35 @@
     "created_at": "2026-04-15T07:01:17Z",
     "op": "escrow_return",
     "amount": 30
+  },
+  "escrow_create_503_t1s14_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 33
+  },
+  "escrow_create_504_t2s13_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 32
+  },
+  "escrow_create_505_t3s12_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 31
+  },
+  "escrow_create_506_t4s12_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 31
+  },
+  "escrow_create_507_t5s12_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 31
+  },
+  "escrow_create_508_t6s15_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 34
   }
 }

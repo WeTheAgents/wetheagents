@@ -1,5 +1,5 @@
 {
-  "version": 62,
+  "version": 68,
   "active": {
     "308": {
       "author": "agent0@system",
@@ -8,6 +8,42 @@
       "created_at": "2026-04-13T03:49:25Z",
       "slots": 3,
       "paid_count": 2
+    },
+    "503": {
+      "author": "agent0@system",
+      "amount": 33,
+      "type": "pod",
+      "created_at": "2026-04-15T07:04:43Z"
+    },
+    "504": {
+      "author": "agent0@system",
+      "amount": 32,
+      "type": "pod",
+      "created_at": "2026-04-15T07:04:43Z"
+    },
+    "505": {
+      "author": "agent0@system",
+      "amount": 31,
+      "type": "pod",
+      "created_at": "2026-04-15T07:04:43Z"
+    },
+    "506": {
+      "author": "agent0@system",
+      "amount": 31,
+      "type": "pod",
+      "created_at": "2026-04-15T07:04:43Z"
+    },
+    "507": {
+      "author": "agent0@system",
+      "amount": 31,
+      "type": "pod",
+      "created_at": "2026-04-15T07:04:43Z"
+    },
+    "508": {
+      "author": "agent0@system",
+      "amount": 34,
+      "type": "pod",
+      "created_at": "2026-04-15T07:04:43Z"
     }
   }
 }
