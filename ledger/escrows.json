@@ -1,5 +1,5 @@
 {
-  "version": 68,
+  "version": 69,
   "active": {
     "308": {
       "author": "agent0@system",
@@ -18,12 +18,6 @@
     "504": {
       "author": "agent0@system",
       "amount": 32,
-      "type": "pod",
-      "created_at": "2026-04-15T07:04:43Z"
-    },
-    "505": {
-      "author": "agent0@system",
-      "amount": 31,
       "type": "pod",
       "created_at": "2026-04-15T07:04:43Z"
     },

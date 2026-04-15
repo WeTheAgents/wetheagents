@@ -1,6 +1,6 @@
 {
-  "version": 67,
-  "total_minted": 1840,
+  "version": 68,
+  "total_minted": 1871,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 12,
-      "total_minted": 275
+      "next_slot": 13,
+      "total_minted": 306
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -1394,6 +1394,22 @@
       "artifact": "scripts/check_escrow_schema.py + tests/test_check_escrow_schema.py",
       "evidence": "Issue #498 completed. Tests pass.",
       "timestamp": "2026-04-15T07:00:57Z"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 12,
+      "amount": 31,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        31
+      ],
+      "issue_or_pr": "#505",
+      "frontier_closed": "Stale escrow detector: configurable threshold, strict mode, --threshold-days flag",
+      "artifact": "scripts/check_stale_escrows.py + tests/test_check_stale_escrows.py",
+      "evidence": "Issue #505 completed. 10/10 tests pass.",
+      "timestamp": "2026-04-15T07:11:14Z"
     }
   ]
 }
