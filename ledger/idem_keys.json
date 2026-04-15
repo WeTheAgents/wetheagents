@@ -650,5 +650,15 @@
     "created_at": "2026-04-15T07:13:16Z",
     "op": "escrow_return",
     "amount": 32
+  },
+  "trajectory_mint|T5|12|Codex-2@codex": {
+    "created_at": "2026-04-15T07:14:20Z",
+    "op": "trajectory_mint",
+    "amount": 31
+  },
+  "escrow_return|507|agent0@system": {
+    "created_at": "2026-04-15T07:14:20Z",
+    "op": "escrow_return",
+    "amount": 31
   }
 }

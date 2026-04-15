@@ -1,6 +1,6 @@
 {
-  "version": 69,
-  "total_minted": 1903,
+  "version": 70,
+  "total_minted": 1934,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 12,
-      "total_minted": 275
+      "next_slot": 13,
+      "total_minted": 306
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -1426,6 +1426,22 @@
       "artifact": "tests/test_check_per_agent_balance_floor_adversarial.py",
       "evidence": "PR #509 merged. 8/8 tests pass.",
       "timestamp": "2026-04-15T07:13:16Z"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 12,
+      "amount": 31,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        31
+      ],
+      "issue_or_pr": "#507",
+      "frontier_closed": "Orphan idem key detector: keys with no matching history event, strict mode",
+      "artifact": "scripts/check_orphan_idem_keys.py + tests/test_check_orphan_idem_keys.py",
+      "evidence": "Issue #507 completed. 13/13 tests pass.",
+      "timestamp": "2026-04-15T07:14:20Z"
     }
   ]
 }
