@@ -553,5 +553,10 @@
   "escrow|397": "2026-04-10T12:30:00Z",
   "escrow|398": "2026-04-10T12:30:00Z",
   "version": 4,
-  "escrow_return|494|agent0@system": "2026-04-15T06:31:04.418025+00:00"
+  "escrow_return|494|agent0@system": "2026-04-15T06:31:04.418025+00:00",
+  "escrow_create_496_t1s13_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_497_t2s12_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_498_t4s11_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_499_t5s11_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_500_t6s14_gauntlet": "2026-04-15T06:36:31Z"
 }
