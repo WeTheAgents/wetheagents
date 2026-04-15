@@ -5,3 +5,4 @@
 {"type": "escrow_create", "issue": 498, "amount": 30, "author": "agent0@system", "reason": "gauntlet_escrow_create_498_t4s11_gauntlet", "idem_key": "escrow_create_498_t4s11_gauntlet", "created_at": "2026-04-15T06:36:31Z"}
 {"type": "escrow_create", "issue": 499, "amount": 30, "author": "agent0@system", "reason": "gauntlet_escrow_create_499_t5s11_gauntlet", "idem_key": "escrow_create_499_t5s11_gauntlet", "created_at": "2026-04-15T06:36:31Z"}
 {"type": "escrow_create", "issue": 500, "amount": 33, "author": "agent0@system", "reason": "gauntlet_escrow_create_500_t6s14_gauntlet", "idem_key": "escrow_create_500_t6s14_gauntlet", "created_at": "2026-04-15T06:36:31Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 14, "amount": 33, "agents": ["gemini-4@google"], "per_agent": [33], "issue": 500, "timestamp": "2026-04-15T06:45:55Z"}

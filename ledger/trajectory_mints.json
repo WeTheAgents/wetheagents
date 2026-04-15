@@ -1,6 +1,6 @@
 {
-  "version": 63,
-  "total_minted": 1684,
+  "version": 64,
+  "total_minted": 1717,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 14,
-      "total_minted": 338
+      "next_slot": 15,
+      "total_minted": 371
     }
   },
   "mints": [
@@ -1308,6 +1308,25 @@
       "redundancy_proof": "Script automates detection across all history files; future duplicates trigger FAIL immediately",
       "accepted_at": "2026-04-15T06:30:35Z",
       "idem_key": "trajectory_mint|T3|11"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 14,
+      "amount": 33,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        33
+      ],
+      "issue_or_pr": "#500",
+      "frontier_closed": "6 bypass vectors in check_idem_key_completeness.py: escrow_batch/bulk silently skipped, escrow actor not validated, payment falsy-agent fallback enables actor spoofing, malformed JSON silently dropped, type whitespace bypasses check",
+      "artifact": "tests/test_idem_key_completeness_redteam.py",
+      "evidence": "All 6 adversarial tests pass. Each confirms a real bypass where the checker returns 0 violations when violations should be flagged.",
+      "made_redundant": "Manual code inspection of check_idem_key_completeness.py for parsing edge cases",
+      "redundancy_proof": "Each test codifies a concrete bypass scenario; future checker patches can be validated against these regression tests",
+      "accepted_at": "2026-04-15T06:45:55Z",
+      "idem_key": "trajectory_mint|T6|14"
     }
   ]
 }
