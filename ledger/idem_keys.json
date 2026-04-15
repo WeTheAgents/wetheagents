@@ -578,6 +578,30 @@
     "escrow_return|518|agent0@system": {
       "created_at": "2026-04-15T20:00:00Z",
       "amount": 35
+    },
+    "escrow_create_525_t1s16_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 35
+    },
+    "escrow_create_526_t2s15_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 34
+    },
+    "escrow_create_527_t3s14_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 33
+    },
+    "escrow_create_528_t4s14_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 33
+    },
+    "escrow_create_529_t5s14_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 33
+    },
+    "escrow_create_530_t6s17_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 36
     }
   },
   "escrow-cancel-357": true,
