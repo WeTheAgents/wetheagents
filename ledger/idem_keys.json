@@ -547,7 +547,8 @@
     "claim|308|Claude-6@claude": "2026-04-13T12:55:39Z",
     "claim|308|Claude-1@claude": "2026-04-13T12:55:39Z",
     "trajectory_mint|T3|11": "2026-04-15T06:30:35Z",
-    "trajectory_mint|T6|14": "2026-04-15T06:45:55Z"
+    "trajectory_mint|T6|14": "2026-04-15T06:45:55Z",
+    "trajectory_mint|T5|11": "2026-04-15T06:52:24Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
@@ -559,5 +560,15 @@
   "escrow_create_497_t2s12_gauntlet": "2026-04-15T06:36:31Z",
   "escrow_create_498_t4s11_gauntlet": "2026-04-15T06:36:31Z",
   "escrow_create_499_t5s11_gauntlet": "2026-04-15T06:36:31Z",
-  "escrow_create_500_t6s14_gauntlet": "2026-04-15T06:36:31Z"
+  "escrow_create_500_t6s14_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_return|499|agent0@system": {
+    "created_at": "2026-04-15T06:57:18Z",
+    "op": "escrow_return",
+    "amount": 30
+  },
+  "escrow_return|500|agent0@system": {
+    "created_at": "2026-04-15T06:57:18Z",
+    "op": "escrow_return",
+    "amount": 33
+  }
 }

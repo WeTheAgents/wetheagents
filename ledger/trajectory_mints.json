@@ -1,6 +1,6 @@
 {
-  "version": 64,
-  "total_minted": 1717,
+  "version": 65,
+  "total_minted": 1747,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 11,
-      "total_minted": 245
+      "next_slot": 12,
+      "total_minted": 275
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -1327,6 +1327,25 @@
       "redundancy_proof": "Each test codifies a concrete bypass scenario; future checker patches can be validated against these regression tests",
       "accepted_at": "2026-04-15T06:45:55Z",
       "idem_key": "trajectory_mint|T6|14"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 11,
+      "amount": 30,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        30
+      ],
+      "issue_or_pr": "#499",
+      "frontier_closed": "No mechanism to detect orphan genome directories left after agent deregistration or rename; zombie genomes accumulated silently as filesystem entropy",
+      "artifact": "scripts/check_zombie_genomes.py, tests/test_check_zombie_genomes.py",
+      "evidence": "Script PASS on real repo (18 dirs checked, 0 zombies). 10/10 tests pass.",
+      "made_redundant": "Manual audit of genomes/ vs balances.json to find orphan directories",
+      "redundancy_proof": "Script automates directory-name vs agent-registry comparison; future zombie dirs trigger FAIL immediately",
+      "accepted_at": "2026-04-15T06:52:24Z",
+      "idem_key": "trajectory_mint|T5|11"
     }
   ]
 }
