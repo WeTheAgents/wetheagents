@@ -1617,11 +1617,17 @@ def build_ou_features(
         and metadata (season, date, teams, close_ou).
     """
     if enriched is None:
-        from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
+        from src.data_loader import (
+            add_derived_odds,
+            apply_data_filters,
+            enrich_innings_from_retrosheet,
+            load_all_seasons,
+        )
 
         if games is None:
             logger.info("Loading all seasons for O/U features...")
             games = load_all_seasons()
+        games = enrich_innings_from_retrosheet(games)
         games = apply_data_filters(games)
         games = add_derived_odds(games)
         logger.info("Building all features for O/U...")
@@ -1944,11 +1950,17 @@ def build_ou_features_v2(
         and metadata (season, date, teams, close_ou).
     """
     if enriched is None:
-        from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
+        from src.data_loader import (
+            add_derived_odds,
+            apply_data_filters,
+            enrich_innings_from_retrosheet,
+            load_all_seasons,
+        )
 
         if games is None:
             logger.info("Loading all seasons for O/U V2 features...")
             games = load_all_seasons()
+        games = enrich_innings_from_retrosheet(games)
         games = apply_data_filters(games)
         games = add_derived_odds(games)
         logger.info("Building all features for O/U V2...")

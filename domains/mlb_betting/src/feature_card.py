@@ -1100,6 +1100,54 @@ class OUFeatureCard:
         return cls(game_id=game_id, prompt_text=prompt_text)
 
     @classmethod
+    def from_row_neutral(cls, row: pd.Series) -> "OUFeatureCard":
+        """Build a neutral scoring card — no P(under)/P(over), no betting context."""
+        date = row.get("date", "unknown")
+        away = row.get("away_team", "?")
+        home = row.get("home_team", "?")
+        game_id = f"{date}_{away}_{home}"
+
+        ou_line = _safe(row, "close_ou") or 0
+        sections = [
+            f"GAME: {away} @ {home} -- {date} | O/U Line: {ou_line:.1f}",
+            _ou_scoring_environment(row),
+            _ou_starting_pitchers(row),
+            _ou_bullpen_state(row),
+            _neutral_offense_context(row),
+            _ou_late_game_quality(row),
+            _ou_recent_trends(row),
+            _ou_context(row),
+        ]
+
+        prompt_text = "\n\n".join(s for s in sections if s)
+        return cls(game_id=game_id, prompt_text=prompt_text)
+
+    @classmethod
+    def from_row_blind(cls, row: pd.Series) -> "OUFeatureCard":
+        """Build a fully blind scoring card — NO line, NO model info.
+
+        Includes league averages for calibration, vs-hand batting,
+        Savant bullpen xwOBA, pyth W%, WHIP, 1st-inning RA.
+        """
+        date = row.get("date", "unknown")
+        away = row.get("away_team", "?")
+        home = row.get("home_team", "?")
+        game_id = f"{date}_{away}_{home}"
+
+        sections = [
+            f"GAME: {away} @ {home} -- {date}",
+            _blind_scoring_environment(row),
+            _blind_starting_pitchers(row),
+            _blind_bullpen(row),
+            _blind_offense(row),
+            _blind_team_quality(row),
+            _blind_context(row),
+        ]
+
+        prompt_text = "\n\n".join(s for s in sections if s)
+        return cls(game_id=game_id, prompt_text=prompt_text)
+
+    @classmethod
     def from_row_over(cls, row: pd.Series, p_over: float, scenario_text: str = "") -> "OUFeatureCard":
         date = row.get("date", "unknown")
         away = row.get("away_team", "?")
@@ -2096,5 +2144,362 @@ def _margin_context(row: pd.Series) -> str:
     lines.append("")
     lines.append("Pre-filter: this game passed rule-based filters "
                  "(close-game WP + streak) indicating structural dominance potential.")
+
+    return "\n".join(lines)
+
+
+# ── Blind scoring card helpers (no O/U line, with league avgs) ────────────
+
+# League averages (2021-2025) for calibration
+_LG = {
+    "rpg": 4.43,          # RPG per team
+    "rpg_combined": 8.87,  # Combined RPG
+    "rapg": 4.42,
+    "sp_fip": 4.09,
+    "sp_whip": 1.31,
+    "sp_kbb": 3.14,
+    "sp_k9": 8.41,
+    "sp_ip_start": 5.20,
+    "sp_fi_ra": 0.10,      # 1st-inning RA rate per starter
+    "bp_fip": 3.84,
+    "bp_ip_3d": 9.50,
+    "bp_xwoba": 0.275,     # season xwOBA
+    "hold_rate": 0.82,
+    "pyth_wp": 0.50,
+    "top3_obp_vs_rhp": 0.339,
+    "top3_obp_vs_lhp": 0.337,
+    "top3_k_rate_vs_rhp": 0.209,
+    "top3_k_rate_vs_lhp": 0.212,
+    "power_rate": 0.47,
+}
+
+
+def _vs_lg(val: float, lg: float, higher_is: str = "more") -> str:
+    """Label value vs league average. higher_is = 'more'|'better'|'worse'."""
+    pct = (val - lg) / lg * 100
+    if abs(pct) < 5:
+        return "avg"
+    if higher_is == "more":
+        return f"{pct:+.0f}% vs lg" if pct > 0 else f"{pct:+.0f}% vs lg"
+    elif higher_is == "better":
+        return f"{pct:+.0f}% vs lg ({'better' if pct > 0 else 'worse'})"
+    else:  # higher_is == "worse"
+        return f"{pct:+.0f}% vs lg ({'worse' if pct > 0 else 'better'})"
+
+
+def _blind_scoring_environment(row: pd.Series) -> str:
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["-- Scoring Environment --"]
+
+    rpg_h = _safe(row, "rpg_home")
+    rpg_a = _safe(row, "rpg_away")
+    if rpg_h is not None and rpg_a is not None:
+        combined = rpg_h + rpg_a
+        lines.append(
+            f"Combined RPG (season): {combined:.2f} "
+            f"({away} {rpg_a:.2f} + {home} {rpg_h:.2f}) "
+            f"[lg avg {_LG['rpg_combined']:.2f}]"
+        )
+
+    rpg10_h = _safe(row, "rpg_last10_home")
+    rpg10_a = _safe(row, "rpg_last10_away")
+    if rpg10_h is not None and rpg10_a is not None:
+        combined10 = rpg10_h + rpg10_a
+        lines.append(
+            f"Combined RPG (last 10): {combined10:.2f} "
+            f"({away} {rpg10_a:.2f} + {home} {rpg10_h:.2f}) "
+            f"[lg avg {_LG['rpg_combined']:.2f}]"
+        )
+
+    if all(v is not None for v in [rpg_h, rpg_a, rpg10_h, rpg10_a]):
+        momentum = (rpg10_h + rpg10_a) - (rpg_h + rpg_a)
+        if abs(momentum) >= 0.3:
+            direction = "heating up" if momentum > 0 else "cooling down"
+            lines.append(f"Scoring momentum: {momentum:+.2f} ({direction})")
+
+    rapg_h = _safe(row, "rapg_home")
+    rapg_a = _safe(row, "rapg_away")
+    if rapg_h is not None and rapg_a is not None:
+        combined_ra = rapg_h + rapg_a
+        lines.append(
+            f"Combined RAPG (runs allowed): {combined_ra:.2f} "
+            f"({away} {rapg_a:.2f} + {home} {rapg_h:.2f}) "
+            f"[lg avg {_LG['rapg'] * 2:.2f}]"
+        )
+
+    return "\n".join(lines)
+
+
+def _blind_starting_pitchers(row: pd.Series) -> str:
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["-- Starting Pitchers --"]
+
+    for side, team, prefix in [("away", away, "away_sp"), ("home", home, "home_sp")]:
+        pitcher = row.get(f"{side}_pitcher", "?")
+        hand = _pitcher_hand_label(row, prefix)
+        starts = _safe(row, f"{prefix}_starts")
+        starts_str = f", {int(starts)} starts" if starts is not None else ""
+        hand_str = f" {hand}" if hand else ""
+        lines.append(f"\n{team}: {pitcher}{hand_str}{starts_str}")
+
+        # FIP + momentum
+        fip_s = _safe(row, f"{prefix}_fip_short")
+        fip_l = _safe(row, f"{prefix}_fip_long")
+        if fip_s is not None:
+            mom_str = ""
+            if fip_l is not None:
+                fip_mom = fip_s - fip_l
+                if abs(fip_mom) >= 0.3:
+                    label = "IMPROVING" if fip_mom < -0.3 else "DECLINING"
+                    mom_str = f", trend {fip_mom:+.2f} ({label})"
+            lines.append(
+                f"  FIP: {fip_s:.2f} ({_label_fip(fip_s)}) "
+                f"[lg avg {_LG['sp_fip']:.2f}]{mom_str}"
+            )
+
+        # WHIP
+        whip = _safe(row, f"{prefix}_whip_short")
+        if whip is not None:
+            whip_lbl = "elite" if whip < 1.10 else "good" if whip < 1.25 else "avg" if whip < 1.40 else "high traffic"
+            lines.append(
+                f"  WHIP: {whip:.2f} ({whip_lbl}) "
+                f"[lg avg {_LG['sp_whip']:.2f}]"
+            )
+
+        # K/BB + K/9
+        kbb = _safe(row, f"{prefix}_kbb_short")
+        k9 = _safe(row, f"{prefix}_k9_short")
+        parts = []
+        if kbb is not None:
+            parts.append(f"K/BB: {kbb:.1f} ({_label_kbb(kbb)}) [lg {_LG['sp_kbb']:.1f}]")
+        if k9 is not None:
+            parts.append(f"K/9: {k9:.1f} [lg {_LG['sp_k9']:.1f}]")
+        if parts:
+            lines.append(f"  {'  '.join(parts)}")
+
+        # IP/start
+        ip = _safe(row, f"{prefix}_ip_per_start_short")
+        if ip is not None:
+            lines.append(
+                f"  IP/start: {ip:.1f} ({_label_ip_start(ip)}) "
+                f"[lg avg {_LG['sp_ip_start']:.1f}]"
+            )
+
+        # 1st-inning RA rate
+        fi_ra = _safe(row, f"{prefix}_fi_ra_short")
+        if fi_ra is not None:
+            fi_lbl = "solid" if fi_ra < 0.08 else "avg" if fi_ra < 0.12 else "leaky 1st inn"
+            lines.append(
+                f"  1st-inn RA rate: {fi_ra:.3f} ({fi_lbl}) "
+                f"[lg avg {_LG['sp_fi_ra']:.3f}]"
+            )
+
+    # Combined summary
+    fip_h = _safe(row, "home_sp_fip_short")
+    fip_a = _safe(row, "away_sp_fip_short")
+    if fip_h is not None and fip_a is not None:
+        combined_fip = fip_h + fip_a
+        label = "both strong" if combined_fip < 7.0 else "both weak" if combined_fip > 9.0 else "mixed"
+        lines.append(f"\nCombined FIP: {combined_fip:.2f} ({label}) [lg avg {_LG['sp_fip'] * 2:.2f}]")
+
+    ip_h = _safe(row, "home_sp_ip_per_start_short")
+    ip_a = _safe(row, "away_sp_ip_per_start_short")
+    if ip_h is not None and ip_a is not None:
+        combined_ip = ip_h + ip_a
+        label = "deep" if combined_ip > 12.0 else "short" if combined_ip < 10.0 else "average"
+        lines.append(f"Combined IP/start: {combined_ip:.1f} ({label}) [lg avg {_LG['sp_ip_start'] * 2:.1f}]")
+
+    return "\n".join(lines)
+
+
+def _blind_bullpen(row: pd.Series) -> str:
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["-- Bullpen --"]
+
+    # Season FIP
+    bp_fip_h = _safe(row, "bp_fip_short_home")
+    bp_fip_a = _safe(row, "bp_fip_short_away")
+    if bp_fip_h is not None and bp_fip_a is not None:
+        lines.append(
+            f"BP FIP (season): {away} {bp_fip_a:.2f} ({_label_bp_fip(bp_fip_a)}) | "
+            f"{home} {bp_fip_h:.2f} ({_label_bp_fip(bp_fip_h)}) "
+            f"[lg avg {_LG['bp_fip']:.2f}]"
+        )
+
+    # 7-game FIP + oscillator
+    bp_7g_h = _safe(row, "bp_fip_7g_home")
+    bp_7g_a = _safe(row, "bp_fip_7g_away")
+    if bp_7g_h is not None and bp_7g_a is not None:
+        lines.append(
+            f"BP FIP (7-game): {away} {bp_7g_a:.2f} | {home} {bp_7g_h:.2f}"
+        )
+
+    bp_long_h = _safe(row, "bp_fip_long_home")
+    bp_long_a = _safe(row, "bp_fip_long_away")
+    if all(v is not None for v in [bp_7g_h, bp_7g_a, bp_long_h, bp_long_a]):
+        osc_h = bp_7g_h - bp_long_h
+        osc_a = bp_7g_a - bp_long_a
+        if abs(osc_h) >= 0.3 or abs(osc_a) >= 0.3:
+            lines.append(
+                f"  Momentum: {away} {osc_a:+.2f} | {home} {osc_h:+.2f} "
+                f"(+ = deteriorating, - = improving)"
+            )
+
+    # Workload
+    bp_ip_h = _safe(row, "bp_ip_3d_home")
+    bp_ip_a = _safe(row, "bp_ip_3d_away")
+    if bp_ip_h is not None and bp_ip_a is not None:
+        lines.append(
+            f"BP workload (3d IP): {away} {bp_ip_a:.1f} ({_label_bp_workload(bp_ip_a)}) | "
+            f"{home} {bp_ip_h:.1f} ({_label_bp_workload(bp_ip_h)}) "
+            f"[lg avg {_LG['bp_ip_3d']:.1f}]"
+        )
+
+    # Savant xwOBA
+    xw_std_h = _safe(row, "bp_sc_xwoba_std_home")
+    xw_std_a = _safe(row, "bp_sc_xwoba_std_away")
+    xw_3d_h = _safe(row, "bp_sc_xwoba_3d_home")
+    xw_3d_a = _safe(row, "bp_sc_xwoba_3d_away")
+    if xw_std_h is not None and xw_std_a is not None:
+        lines.append(
+            f"BP xwOBA (season): {away} {xw_std_a:.3f} | {home} {xw_std_h:.3f} "
+            f"[lg avg {_LG['bp_xwoba']:.3f}]"
+        )
+    if xw_3d_h is not None and xw_3d_a is not None:
+        lines.append(
+            f"BP xwOBA (3-day): {away} {xw_3d_a:.3f} | {home} {xw_3d_h:.3f} "
+            f"(high = hittable recently)"
+        )
+
+    # Hold rate
+    hold_h = _safe(row, "hold_rate_home")
+    hold_a = _safe(row, "hold_rate_away")
+    if hold_h is not None and hold_a is not None:
+        lines.append(
+            f"Hold rate: {away} {hold_a:.0%} ({_label_hold_rate(hold_a)}) | "
+            f"{home} {hold_h:.0%} ({_label_hold_rate(hold_h)}) "
+            f"[lg avg {_LG['hold_rate']:.0%}]"
+        )
+
+    return "\n".join(lines)
+
+
+def _blind_offense(row: pd.Series) -> str:
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["-- Offense --"]
+
+    # Offense/defense vs league
+    off_h = _safe(row, "offense_vs_league_home")
+    off_a = _safe(row, "offense_vs_league_away")
+    if off_h is not None and off_a is not None:
+        lines.append(
+            f"Offense vs league: {away} {off_a * 100:.0f}% ({_label_offense(off_a)}) | "
+            f"{home} {off_h * 100:.0f}% ({_label_offense(off_h)})"
+        )
+
+    def_h = _safe(row, "defense_vs_league_home")
+    def_a = _safe(row, "defense_vs_league_away")
+    if def_h is not None and def_a is not None:
+        lines.append(
+            f"Defense vs league: {away} {def_a * 100:.0f}% ({_label_defense(def_a)}) | "
+            f"{home} {def_h * 100:.0f}% ({_label_defense(def_h)})"
+        )
+
+    # Power rate
+    pw_h = _safe(row, "power_rate_home")
+    pw_a = _safe(row, "power_rate_away")
+    if pw_h is not None and pw_a is not None:
+        lines.append(
+            f"Power (multi-run inn %): {away} {pw_a:.0%} | {home} {pw_h:.0%} "
+            f"[lg avg {_LG['power_rate']:.0%}]"
+        )
+
+    # Batting vs pitcher hand
+    home_hand = row.get("home_sp_hand")
+    away_hand = row.get("away_sp_hand")
+
+    if home_hand in ("R", "L"):
+        hand_lbl = "RHP" if home_hand == "R" else "LHP"
+        obp_col = f"top3_obp_vs_{'rhp' if home_hand == 'R' else 'lhp'}_away"
+        k_col = f"top3_k_rate_vs_{'rhp' if home_hand == 'R' else 'lhp'}_away"
+        obp = _safe(row, obp_col)
+        k_rate = _safe(row, k_col)
+        lg_obp = _LG[f"top3_obp_vs_{'rhp' if home_hand == 'R' else 'lhp'}"]
+        lg_k = _LG[f"top3_k_rate_vs_{'rhp' if home_hand == 'R' else 'lhp'}"]
+        parts = []
+        if obp is not None:
+            parts.append(f"OBP {obp:.3f} [lg {lg_obp:.3f}]")
+        if k_rate is not None:
+            parts.append(f"K% {k_rate:.3f} [lg {lg_k:.3f}]")
+        if parts:
+            lines.append(f"  {away} top-3 hitters vs {hand_lbl}: {', '.join(parts)}")
+
+    if away_hand in ("R", "L"):
+        hand_lbl = "RHP" if away_hand == "R" else "LHP"
+        obp_col = f"top3_obp_vs_{'rhp' if away_hand == 'R' else 'lhp'}_home"
+        k_col = f"top3_k_rate_vs_{'rhp' if away_hand == 'R' else 'lhp'}_home"
+        obp = _safe(row, obp_col)
+        k_rate = _safe(row, k_col)
+        lg_obp = _LG[f"top3_obp_vs_{'rhp' if away_hand == 'R' else 'lhp'}"]
+        lg_k = _LG[f"top3_k_rate_vs_{'rhp' if away_hand == 'R' else 'lhp'}"]
+        parts = []
+        if obp is not None:
+            parts.append(f"OBP {obp:.3f} [lg {lg_obp:.3f}]")
+        if k_rate is not None:
+            parts.append(f"K% {k_rate:.3f} [lg {lg_k:.3f}]")
+        if parts:
+            lines.append(f"  {home} top-3 hitters vs {hand_lbl}: {', '.join(parts)}")
+
+    # 1st-inning scoring rate (team level)
+    fi_h = _safe(row, "fi_score_rate_home")
+    fi_a = _safe(row, "fi_score_rate_away")
+    if fi_h is not None and fi_a is not None:
+        combined = fi_h + fi_a
+        label = "slow starters" if combined < 0.45 else "fast scoring" if combined > 0.60 else "average"
+        lines.append(f"1st-inning scoring rate (combined): {combined:.2f} ({label})")
+
+    return "\n".join(lines)
+
+
+def _blind_team_quality(row: pd.Series) -> str:
+    away = row.get("away_team", "?")
+    home = row.get("home_team", "?")
+    lines = ["-- Team Quality --"]
+
+    pyth_h = _safe(row, "pyth_wp_home")
+    pyth_a = _safe(row, "pyth_wp_away")
+    if pyth_h is not None and pyth_a is not None:
+        for team, pw, side in [(away, pyth_a, "away"), (home, pyth_h, "home")]:
+            label = "elite" if pw > 0.58 else "strong" if pw > 0.53 else "avg" if pw > 0.47 else "weak" if pw > 0.42 else "poor"
+            lines.append(f"  {team}: Pyth W% {pw:.3f} ({label}) [lg avg .500]")
+
+    if len(lines) == 1:
+        return ""
+    return "\n".join(lines)
+
+
+def _blind_context(row: pd.Series) -> str:
+    lines = ["-- Context --"]
+
+    month = _safe(row, "month")
+    if month is not None:
+        month = int(month)
+        month_names = {4: "April", 5: "May", 6: "June", 7: "July",
+                       8: "August", 9: "September", 10: "October"}
+        month_str = month_names.get(month, f"Month {month}")
+        day = int(_safe(row, "day") or 15)
+        half = "1st half" if month < 7 or (month == 7 and day <= 15) else "2nd half"
+        lines.append(f"Month: {month_str} | Season half: {half}")
+
+    gp_h = _safe(row, "games_played_home")
+    gp_a = _safe(row, "games_played_away")
+    if gp_h is not None and gp_a is not None:
+        min_gp = min(gp_h, gp_a)
+        reliability = "adequate" if min_gp >= 30 else "limited (early season)" if min_gp >= 10 else "very early season"
+        lines.append(f"Games played: {int(gp_a)}/{int(gp_h)} ({reliability} sample)")
 
     return "\n".join(lines)

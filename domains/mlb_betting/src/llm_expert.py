@@ -201,6 +201,26 @@ Rules:
 """
 
 
+_OUTPUT_SCHEMA_OU_SCORER = """\
+Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
+{
+  "predicted_total": 7.5,
+  "probable_delta": 2.0,
+  "key_factors": ["factor 1", "factor 2", "factor 3"],
+  "reasoning": "2-3 sentence rationale explaining your scoring estimate"
+}
+
+Rules:
+- predicted_total: your best estimate of total runs scored by both teams
+- probable_delta: the likely swing in either direction. E.g., predicted_total=7
+  with delta=1.5 means you expect 5.5-8.5 runs. Small delta = high conviction,
+  large delta = uncertain game
+- Build your reasoning FIRST, then derive predicted_total from it
+- League averages are provided in the card — use them for calibration
+- Focus on scoring volume from BOTH sides, not who wins
+"""
+
+
 _OUTPUT_SCHEMA_RL_FAV = """\
 Respond with ONLY a JSON object (no markdown, no explanation outside JSON):
 {
@@ -302,9 +322,14 @@ class LLMExpert:
             )
         return verdict
 
-    def analyze_ou(self, card: OUFeatureCard) -> OUVerdict:
-        """Analyze an O/U feature card and produce a structured verdict."""
-        system_prompt = self._build_system_prompt_ou()
+    def analyze_ou(self, card: OUFeatureCard, *, zone_context: str | None = None) -> OUVerdict:
+        """Analyze an O/U feature card and produce a structured verdict.
+
+        Args:
+            card: Feature card with game matchup data.
+            zone_context: Optional override for the prompt Context section.
+        """
+        system_prompt = self._build_system_prompt_ou(zone_context=zone_context)
         user_prompt = card.to_prompt()
 
         for attempt in range(3):
@@ -410,8 +435,13 @@ class LLMExpert:
 
         return "\n".join(parts)
 
-    def _build_system_prompt_ou(self) -> str:
-        """Compose genome into a system prompt for O/U totals evaluation."""
+    def _build_system_prompt_ou(self, *, zone_context: str | None = None) -> str:
+        """Compose genome into a system prompt for O/U totals evaluation.
+
+        Args:
+            zone_context: Optional override for the Context section. If provided,
+                replaces the default "P(under) >= 60%" framing.
+        """
         g = self.genome
         parts = [
             f"You are {g.name}, an expert MLB totals evaluator.",
@@ -441,15 +471,18 @@ class LLMExpert:
                 parts.append(f"- {key}: {mod:+.2f}")
 
         parts.append("\n## Context")
-        parts.append(
-            "These games have been pre-filtered by an ML classifier that gives them "
-            "P(under) >= 60%. Your job is to validate or override that signal using "
-            "the full statistical context. The ML model is good but not perfect — "
-            "look for factors it might miss: bullpen trends, offensive cold/hot streaks, "
-            "pitcher matchup dynamics. Be honest: if you see OVER, say OVER. "
-            "Standard O/U odds are -110 (52.38% breakeven). "
-            "You need to be right more than 52.4% to be profitable."
-        )
+        if zone_context:
+            parts.append(zone_context)
+        else:
+            parts.append(
+                "These games have been pre-filtered by an ML classifier that gives them "
+                "P(under) >= 60%. Your job is to validate or override that signal using "
+                "the full statistical context. The ML model is good but not perfect — "
+                "look for factors it might miss: bullpen trends, offensive cold/hot streaks, "
+                "pitcher matchup dynamics. Be honest: if you see OVER, say OVER. "
+                "Standard O/U odds are -110 (52.38% breakeven). "
+                "You need to be right more than 52.4% to be profitable."
+            )
 
         parts.append(f"\n## Output Format\n{_OUTPUT_SCHEMA_OU}")
 
@@ -514,6 +547,83 @@ class LLMExpert:
             logger.warning(f"OVER parse retry {attempt + 1}/3 for {card.game_id}")
 
         return verdict
+
+    def _build_system_prompt_ou_scorer(self) -> str:
+        """Compose genome into a neutral scoring estimator prompt.
+
+        No betting context, no action/confidence — just predicted_total
+        and probable_delta (uncertainty range in runs).
+        """
+        g = self.genome
+        parts = [
+            f"You are {g.name}, an expert MLB scoring analyst.",
+            "",
+            "Your job is to estimate the total runs scored in this game. "
+            "You are not making a betting recommendation — just predicting "
+            "scoring volume as accurately as you can.",
+            "",
+            "## Your Approach",
+            g.philosophy,
+        ]
+
+        if g.principles:
+            parts.append("\n## Analytical Principles")
+            for i, p in enumerate(g.principles, 1):
+                parts.append(f"{i}. {p}")
+
+        if g.anti_patterns:
+            parts.append("\n## Pitfalls to Avoid")
+            for i, ap in enumerate(g.anti_patterns, 1):
+                parts.append(f"{i}. {ap}")
+
+        parts.append(f"\n## Output Format\n{_OUTPUT_SCHEMA_OU_SCORER}")
+
+        return "\n".join(parts)
+
+    def analyze_ou_scoring(self, card: "OUFeatureCard") -> dict:
+        """Estimate total runs without betting bias. Returns raw dict.
+
+        Output keys: predicted_total (float), probable_delta (float),
+        key_factors (list[str]), reasoning (str).
+        """
+        system_prompt = self._build_system_prompt_ou_scorer()
+        user_prompt = card.to_prompt()
+
+        for attempt in range(3):
+            raw = self._call_llm(system_prompt, user_prompt)
+            result = self._parse_response_ou_scoring(raw)
+            if result.get("reasoning") != "parse_error":
+                return result
+            logger.warning(
+                f"Scorer parse retry {attempt + 1}/3 for {card.game_id}"
+            )
+        return result
+
+    def _parse_response_ou_scoring(self, raw: str) -> dict:
+        """Parse scorer JSON response into a plain dict."""
+        text = raw.strip()
+        if text.startswith("```"):
+            lines = text.split("\n")
+            lines = [l for l in lines if not l.strip().startswith("```")]
+            text = "\n".join(lines)
+
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            logger.warning(f"Scorer parse error: {text[:200]}")
+            return {
+                "predicted_total": 8.5,
+                "probable_delta": 3.0,
+                "key_factors": ["parse_error"],
+                "reasoning": "parse_error",
+            }
+
+        return {
+            "predicted_total": float(data.get("predicted_total", 8.5)),
+            "probable_delta": float(data.get("probable_delta", 3.0)),
+            "key_factors": data.get("key_factors", []),
+            "reasoning": data.get("reasoning", ""),
+        }
 
     def _parse_response_ou(self, raw: str) -> OUVerdict:
         """Parse LLM response for O/U verdict."""
