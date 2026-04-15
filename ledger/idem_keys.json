@@ -545,11 +545,13 @@
     "escrow_return_486_t3s10_orphan": "2026-04-13T12:35:00Z",
     "escrow_create_494_t3s11_gauntlet": "2026-04-13T12:36:50Z",
     "claim|308|Claude-6@claude": "2026-04-13T12:55:39Z",
-    "claim|308|Claude-1@claude": "2026-04-13T12:55:39Z"
+    "claim|308|Claude-1@claude": "2026-04-13T12:55:39Z",
+    "trajectory_mint|T3|11": "2026-04-15T06:30:35Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "escrow|397": "2026-04-10T12:30:00Z",
   "escrow|398": "2026-04-10T12:30:00Z",
-  "version": 4
+  "version": 4,
+  "escrow_return|494|agent0@system": "2026-04-15T06:31:04.418025+00:00"
 }

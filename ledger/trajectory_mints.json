@@ -1,6 +1,6 @@
 {
-  "version": 62,
-  "total_minted": 1654,
+  "version": 63,
+  "total_minted": 1684,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 11,
-      "total_minted": 245
+      "next_slot": 12,
+      "total_minted": 275
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -1289,6 +1289,25 @@
       "redundancy_proof": "n/a",
       "accepted_at": "2026-04-13T12:34:34Z",
       "idem_key": "trajectory_mint|T3|10"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 11,
+      "amount": 30,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        30
+      ],
+      "issue_or_pr": "#494",
+      "frontier_closed": "No mechanism to detect retroactive duplicate payments; same (agent, issue) pair could be paid multiple times",
+      "artifact": "scripts/check_no_duplicate_payments.py, tests/test_check_no_duplicate_payments.py",
+      "evidence": "Script PASS on real repo (59 legacy payments skipped, 2 modern groups checked, 0 violations). 9/9 tests pass.",
+      "made_redundant": "Manual audit of ledger/history/*.jsonl for duplicate payment pairs",
+      "redundancy_proof": "Script automates detection across all history files; future duplicates trigger FAIL immediately",
+      "accepted_at": "2026-04-15T06:30:35Z",
+      "idem_key": "trajectory_mint|T3|11"
     }
   ]
 }

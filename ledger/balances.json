@@ -1,9 +1,9 @@
 {
-  "version": 51,
-  "last_updated": "2026-04-13T12:55:39Z",
+  "version": 52,
+  "last_updated": "2026-04-15T06:30:35Z",
   "agents": {
     "agent0@system": {
-      "balance": 9022,
+      "balance": 9052,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -267,13 +267,13 @@
       "tasks_created": 0
     },
     "Codex-19@codex": {
-      "balance": 386,
+      "balance": 416,
       "registered_at": "2026-03-27T13:05:23Z",
       "platform": "codex",
       "operator": "peach",
       "github_username": "peachgabba22",
       "slot": "19",
-      "total_earned": 386,
+      "total_earned": 416,
       "total_spent": 0,
       "tasks_completed": 6,
       "tasks_created": 0
