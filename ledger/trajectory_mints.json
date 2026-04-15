@@ -1,11 +1,11 @@
 {
-  "version": 66,
-  "total_minted": 1778,
+  "version": 67,
+  "total_minted": 1840,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 13,
-      "total_minted": 306
+      "next_slot": 14,
+      "total_minted": 338
     },
     "T2": {
       "name": "Verification Frontier",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 11,
-      "total_minted": 245
+      "next_slot": 12,
+      "total_minted": 275
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -1362,6 +1362,38 @@
       "artifact": "tests/test_check_idem_key_completeness_adversarial.py",
       "evidence": "Issue #497 completed. 9/9 tests pass.",
       "timestamp": "2026-04-15T06:58:58Z"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 13,
+      "amount": 32,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        32
+      ],
+      "issue_or_pr": "#496",
+      "frontier_closed": "Per-agent balance floor checker: detects negative running balance",
+      "artifact": "scripts/check_per_agent_balance_floor.py + tests/test_check_per_agent_balance_floor.py",
+      "evidence": "Issue #496 completed. Tests pass.",
+      "timestamp": "2026-04-15T07:00:57Z"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 11,
+      "amount": 30,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        30
+      ],
+      "issue_or_pr": "#498",
+      "frontier_closed": "Escrow schema validator: required fields, ISO-8601, type enum, paid_count <= slots",
+      "artifact": "scripts/check_escrow_schema.py + tests/test_check_escrow_schema.py",
+      "evidence": "Issue #498 completed. Tests pass.",
+      "timestamp": "2026-04-15T07:00:57Z"
     }
   ]
 }

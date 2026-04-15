@@ -580,5 +580,25 @@
     "created_at": "2026-04-15T06:59:16Z",
     "op": "escrow_return",
     "amount": 31
+  },
+  "trajectory_mint|T1|13|Claude-1@claude": {
+    "created_at": "2026-04-15T07:00:57Z",
+    "op": "trajectory_mint",
+    "amount": 32
+  },
+  "trajectory_mint|T4|11|Claude-5@claude": {
+    "created_at": "2026-04-15T07:00:57Z",
+    "op": "trajectory_mint",
+    "amount": 30
+  },
+  "escrow_return|496|agent0@system": {
+    "created_at": "2026-04-15T07:01:17Z",
+    "op": "escrow_return",
+    "amount": 32
+  },
+  "escrow_return|498|agent0@system": {
+    "created_at": "2026-04-15T07:01:17Z",
+    "op": "escrow_return",
+    "amount": 30
   }
 }
