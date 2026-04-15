@@ -26,7 +26,7 @@
   <div class="nav-section">
     <div class="nav-section-title">Quick Stats</div>
     <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
-      29 research sessions<br>
+      31 research sessions<br>
       21 seasons of data<br>
       4 live strategies<br>
       ~194 bets / season<br>
@@ -41,7 +41,7 @@
   </div>
 
   <div class="callout callout--red">
-    <strong>11 approaches tested and killed.</strong> Each dead end represents hours of research, feature engineering, and backtesting. They are documented here so we never revisit them without new evidence.
+    <strong>13 approaches tested and killed.</strong> Each dead end represents hours of research, feature engineering, and backtesting. They are documented here so we never revisit them without new evidence.
   </div>
       <div class="card">
       <div class="card-header">
@@ -150,6 +150,15 @@
         <span class="text-muted text-sm">&bull; RL +1.5</span>
       </div>
       <div class="strat-rationale">Session 4 discovered real odds are 1.57 (not 1.87 assumed). At 1.57, breakeven is 63.7% but baseline cover is 60.2%. Gap too wide. Only works with specific filters (bullpen day, fatigue).</div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">LLM UNDER Gate &mdash; zone [0.52-0.53)</div>
+        <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span>
+        <span class="text-muted text-sm">Sessions: 30, 31</span>
+        <span class="text-muted text-sm">&bull; O/U Under</span>
+      </div>
+      <div class="strat-rationale">718 games, gpt-5.4 neutral scorer + blind card (O/U line removed, league averages for calibration). Correlation(predicted_total, actual) = +0.087; MAE 3.83 worse than naive constant 8.87 (3.78). Scorer systematically underpredicts by 1-2 runs. Promising sub-strategies (gap&gt;=2.0 = 56% hit, ceil_gap&gt;=0.5 = 67% hit, DA=UNDER combo = 54%) collapse on 2024-2025 holdout. A/B test also proved any league-avg banner in the card anchors the LLM (+0.34 runs shift). Zone is dead; return to P&gt;=0.53 auto-bet.</div>
     </div>
 
 

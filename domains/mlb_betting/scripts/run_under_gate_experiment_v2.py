@@ -43,6 +43,12 @@ GENOMES_DIR = Path(__file__).resolve().parent.parent / "genomes"
 PICKS_DIR = Path(__file__).resolve().parent.parent / "picks"
 CHECKPOINT_PATH = PICKS_DIR / "_under_gate_experiment_v2.json"
 V1_CHECKPOINT_PATH = PICKS_DIR / "_under_gate_experiment.json"
+
+
+def _set_checkpoint(suffix: str | None):
+    global CHECKPOINT_PATH
+    if suffix:
+        CHECKPOINT_PATH = PICKS_DIR / f"_under_gate_experiment_v2_{suffix}.json"
 ODDS_UNDER = 1.909
 BASE_UNIT = 100
 
@@ -369,7 +375,11 @@ def main():
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--model", default="gpt-5.4")
+    parser.add_argument("--limit", type=int, default=0, help="Limit scope to first N games")
+    parser.add_argument("--checkpoint-suffix", default="", help="Suffix for checkpoint filename")
     args = parser.parse_args()
+
+    _set_checkpoint(args.checkpoint_suffix or None)
 
     if args.report_only:
         checkpoint = load_checkpoint()
@@ -389,7 +399,12 @@ def main():
         & (preds["p_under"] < ZONE_HI)
     ].copy()
 
+    if args.limit and args.limit > 0:
+        scope = scope.head(args.limit).copy()
+        print(f"\n[LIMIT] scope sliced to first {args.limit} games")
+
     print(f"\nScope: {len(scope)} games in zone [{ZONE_LO}-{ZONE_HI})")
+    print(f"Checkpoint: {CHECKPOINT_PATH.name}")
     print(f"Under rate: {scope['under_hit'].mean()*100:.1f}%")
     est_cost = len(scope) * 0.008  # gpt-5.4 ~$0.008/call
     print(f"Estimated cost: ${est_cost:.2f} ({len(scope)} games x ~$0.008)")

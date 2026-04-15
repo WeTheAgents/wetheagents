@@ -32,7 +32,7 @@ def sidebar(active):
   <div class="nav-section">
     <div class="nav-section-title">Quick Stats</div>
     <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
-      29 research sessions<br>
+      31 research sessions<br>
       21 seasons of data<br>
       4 live strategies<br>
       ~194 bets / season<br>
@@ -215,6 +215,7 @@ DEAD = [
     {"name":"Coinflip Zone (Momentum + Structure Duel)","reason":"40.5% accuracy, -22.1% ROI. Experts cancel each other: 80% away bias, confidence miscalibration (0.65-0.75 conf = 20% accuracy). Zero expert diversity.","sessions":"13, 14, 23, 24","market":"ML (even)"},
     {"name":"Savant Bullpen Statcast","reason":"Market already prices Statcast data (public since 2015). xwOBA mismatch: 53% WR at -0.2% ROI. Fatigue signals are ANTI-predictive (-5% to -13%). CatBoost importance: 1.74%.","sessions":"28","market":"ML"},
     {"name":"Away RL +1.5 (real odds)","reason":"Session 4 discovered real odds are 1.57 (not 1.87 assumed). At 1.57, breakeven is 63.7% but baseline cover is 60.2%. Gap too wide. Only works with specific filters (bullpen day, fatigue).","sessions":"4, 9","market":"RL +1.5"},
+    {"name":"LLM UNDER Gate &mdash; zone [0.52-0.53)","reason":"718 games, gpt-5.4 neutral scorer + blind card (O/U line removed, league averages for calibration). Correlation(predicted_total, actual) = +0.087; MAE 3.83 worse than naive constant 8.87 (3.78). Scorer systematically underpredicts by 1-2 runs. Promising sub-strategies (gap&gt;=2.0 = 56% hit, ceil_gap&gt;=0.5 = 67% hit, DA=UNDER combo = 54%) collapse on 2024-2025 holdout. A/B test also proved any league-avg banner in the card anchors the LLM (+0.34 runs shift). Zone is dead; return to P&gt;=0.53 auto-bet.","sessions":"30, 31","market":"O/U Under"},
 ]
 
 TIMELINE = [
@@ -242,6 +243,8 @@ TIMELINE = [
     ("Mar 27", "27", "live", "Pitcher advantage expansion", "Tier 3: 79.0% cover, +24.7% ROI. Complete away dog portfolio: T1+T2+T3."),
     ("Apr 3", "28", "dead", "Savant Statcast tested", "Market already prices it. Fatigue is anti-predictive. Infrastructure kept."),
     ("Apr 12", "29", "live", "Go-live", "Picks generator, IO safety, data pipeline insurance. System operational."),
+    ("Apr 14", "30", "validated", "UNDER re-validation 2021-2025", "P&gt;=0.53: +10.6% ROI across 5 seasons. build_ou_features bug fixed (missing retrosheet enrichment). P&gt;=0.55 improved +30.8% &rarr; +37.2%."),
+    ("Apr 15", "31", "dead", "LLM UNDER Gate zone [0.52-0.53) killed", "718 games, gpt-5.4 neutral scorer + blind card. Correlation(pred, actual) = 0.087, MAE worse than naive 8.87. Promising sub-strategies (gap&gt;=2.0, DA=UNDER combo) collapsed on 2024-2025 holdout. Zone is dead; return to P&gt;=0.53 auto-bet."),
 ]
 
 BUGS = [
@@ -261,8 +264,8 @@ def build_index():
   <div class="metrics">
     {metric("Live Strategies","4","In production for 2026","green")}
     {metric("Validated (Reserve)","4","Ready to activate","blue")}
-    {metric("Dead Ends","11","Tested & rejected","red")}
-    {metric("Research Sessions","29","Feb 12 &mdash; Apr 12, 2026","yellow")}
+    {metric("Dead Ends","13","Tested & rejected","red")}
+    {metric("Research Sessions","31","Feb 12 &mdash; Apr 15, 2026","yellow")}
   </div>
 
   <div class="section">
@@ -423,7 +426,7 @@ def build_dead_ends():
 
     body = f"""
   <div class="callout callout--red">
-    <strong>11 approaches tested and killed.</strong> Each dead end represents hours of research, feature engineering, and backtesting. They are documented here so we never revisit them without new evidence.
+    <strong>13 approaches tested and killed.</strong> Each dead end represents hours of research, feature engineering, and backtesting. They are documented here so we never revisit them without new evidence.
   </div>
   {rows}
 
@@ -623,7 +626,8 @@ def build_models():
         <tr><td>LLM Structure (solo)</td><td>Fav RL verdict</td><td>Accuracy</td><td>55.6%</td><td class="text-yellow">Promising</td></tr>
         <tr><td>LLM Momentum (solo)</td><td>CF verdict</td><td>Accuracy</td><td>33.3%</td><td class="text-red">Toxic</td></tr>
         <tr><td>LLM Duel (Structure+Momentum)</td><td>CF verdict</td><td>Accuracy</td><td>40.5%</td><td class="text-red">Killed</td></tr>
-        <tr><td>LLM UNDER Gate</td><td>UNDER filter</td><td>ROI</td><td>+15.0% (expansion zone)</td><td class="text-green">Validated</td></tr>
+        <tr><td>LLM UNDER Gate (session 19)</td><td>UNDER filter</td><td>ROI</td><td>+15.0% (expansion zone, 61 bets)</td><td class="text-green">Validated</td></tr>
+        <tr><td>LLM UNDER Gate v2 (session 31)</td><td>Zone [0.52-0.53)</td><td>corr / ROI</td><td>corr=0.087, no robust edge, 718 games</td><td class="text-red">Dead</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -642,7 +646,7 @@ def build_timeline():
 
     body = f"""
   <div class="callout callout--blue">
-    <strong>29 sessions, Feb 12 &mdash; Apr 12, 2026.</strong> From first data load to live production system. Filter by status to see the journey from exploration to go-live.
+    <strong>31 sessions, Feb 12 &mdash; Apr 15, 2026.</strong> From first data load to live production system. Filter by status to see the journey from exploration to go-live.
   </div>
   <div data-tl-root>
     <div class="filters">
@@ -658,7 +662,7 @@ def build_timeline():
 {items}    </div>
   </div>
 """
-    return page("Research Timeline", "timeline.html", body, "29 sessions of systematic research")
+    return page("Research Timeline", "timeline.html", body, "31 sessions of systematic research")
 
 
 def build_season():

@@ -7,6 +7,7 @@ labels) so the LLM gets contextualized signals, not raw numbers.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 import numpy as np
@@ -1136,13 +1137,20 @@ class OUFeatureCard:
 
         sections = [
             f"GAME: {away} @ {home} -- {date}",
+        ]
+        if os.environ.get("OU_BLIND_LG_BANNER") == "1":
+            sections.append(
+                f"League context (2021-2025): avg total runs ~= {_LG['rpg_combined']:.2f}, "
+                f"avg SP FIP {_LG['sp_fip']:.2f}, avg BP FIP {_LG['bp_fip']:.2f}"
+            )
+        sections.extend([
             _blind_scoring_environment(row),
             _blind_starting_pitchers(row),
             _blind_bullpen(row),
             _blind_offense(row),
             _blind_team_quality(row),
             _blind_context(row),
-        ]
+        ])
 
         prompt_text = "\n\n".join(s for s in sections if s)
         return cls(game_id=game_id, prompt_text=prompt_text)
