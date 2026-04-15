@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
-"""Stale escrow detection.
-
-Loads ledger/escrows.json, ledger/task_index.json, and ledger/idem_keys.json,
-computes age per escrow, and reports three tiers:
-
-  WARNING  7+ days, no accepted submissions (checks task_index accepted_agents)
-  STALE    14+ days, no claims (checks idem_keys for claim| entries)
-  FROZEN   21+ days, should be returned
-
-Outputs JSON + human-readable text.
-Exits 0 if no FROZEN escrows. Exits 1 if any FROZEN escrow is found.
-"""
+"""Detect active escrows older than a configurable threshold."""
 
 from __future__ import annotations
 
@@ -27,9 +16,7 @@ if str(_SCRIPTS_DIR) not in sys.path:
 
 from io_helpers import load_json  # noqa: E402
 
-WARN_DAYS = 7
-STALE_DAYS = 14
-FROZEN_DAYS = 21
+DEFAULT_THRESHOLD_DAYS = 7.0
 
 
 def _repo_root_from(root: str | None) -> Path:
@@ -38,186 +25,121 @@ def _repo_root_from(root: str | None) -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def _parse_created_at(value: str) -> datetime | None:
-    """Parse an ISO 8601 UTC timestamp (e.g. '2026-01-01T12:00:00Z').
-
-    Returns None if the value is missing, None, or malformed.
-    """
-    if not value:
+def _parse_created_at(value: Any) -> datetime | None:
+    if not value or not isinstance(value, str):
         return None
     try:
-        # Normalise trailing 'Z' to '+00:00' for fromisoformat compatibility
-        normalised = value.replace("Z", "+00:00")
-        return datetime.fromisoformat(normalised)
-    except (ValueError, AttributeError):
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
         return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def _age_days(created_at: datetime, now: datetime) -> float:
-    """Return the age of *created_at* in fractional days relative to *now*."""
     return (now - created_at).total_seconds() / 86400.0
 
 
-def _load_claimed_issues(idem_keys: dict[str, Any]) -> set[int]:
-    """Return the set of issue numbers that have at least one claim entry."""
-    claimed: set[int] = set()
-    for key in idem_keys.get("keys", {}):
-        if isinstance(key, str) and key.startswith("claim|"):
-            parts = key.split("|")
-            if len(parts) >= 2:
-                try:
-                    claimed.add(int(parts[1]))
-                except ValueError:
-                    pass
-    return claimed
-
-
-def classify_escrows(
+def build_report(
     escrows: dict[str, Any],
-    tasks: dict[str, Any],
     *,
     now: datetime | None = None,
-    claimed_issues: set[int] | None = None,
-) -> dict[str, list[dict[str, Any]]]:
-    """Classify active escrows into WARNING / STALE / FROZEN tiers.
-
-    Each item in the returned lists is a dict with keys:
-      issue       — issue number (str)
-      age_days    — float days since created_at
-      created_at  — original timestamp string (or None)
-      amount      — WEA amount held in escrow
-      tier        — 'WARNING' | 'STALE' | 'FROZEN'
-
-    An escrow with a missing or unparseable created_at is included in a
-    separate 'UNKNOWN' tier so it is visible without crashing.
-
-    claimed_issues: set of issue numbers with a claim in idem_keys.json.
-      When None, treated as empty (no claims known).
-    """
+    threshold_days: float = DEFAULT_THRESHOLD_DAYS,
+    strict: bool = False,
+) -> dict[str, Any]:
     if now is None:
         now = datetime.now(timezone.utc)
-    if claimed_issues is None:
-        claimed_issues = set()
 
-    result: dict[str, list[dict[str, Any]]] = {
-        "WARNING": [],
-        "STALE": [],
-        "FROZEN": [],
-        "UNKNOWN": [],
-    }
+    stale: list[dict[str, Any]] = []
+    skipped_missing_created_at = 0
 
     active = escrows.get("active", {})
-    all_tasks = tasks.get("tasks", {})
-
-    for issue, escrow in sorted(active.items(), key=lambda kv: int(kv[0])):
-        raw_ts = escrow.get("created_at")
-        created_at = _parse_created_at(raw_ts)
-
+    for issue, escrow in sorted(active.items(), key=lambda item: int(item[0])):
+        created_at_raw = escrow.get("created_at")
+        created_at = _parse_created_at(created_at_raw)
         if created_at is None:
-            result["UNKNOWN"].append({
-                "issue": issue,
-                "age_days": None,
-                "created_at": raw_ts,
-                "amount": escrow.get("amount", 0),
-                "tier": "UNKNOWN",
-            })
+            skipped_missing_created_at += 1
             continue
 
-        age = _age_days(created_at, now)
-        task = all_tasks.get(issue, {})
-        has_submissions = bool(task.get("accepted_agents"))
-        issue_num = int(issue)
-        has_claims = issue_num in claimed_issues
+        age_days = _age_days(created_at, now)
+        if age_days >= threshold_days:
+            stale.append(
+                {
+                    "issue": str(issue),
+                    "age_days": round(age_days, 2),
+                    "amount": escrow.get("amount", 0),
+                    "created_at": created_at_raw,
+                }
+            )
 
-        entry = {
-            "issue": issue,
-            "age_days": round(age, 2),
-            "created_at": raw_ts,
-            "amount": escrow.get("amount", 0),
-        }
+    if stale and strict:
+        status = "FAIL"
+    elif stale:
+        status = "WARN"
+    else:
+        status = "PASS"
 
-        if age >= FROZEN_DAYS:
-            entry["tier"] = "FROZEN"
-            result["FROZEN"].append(entry)
-        elif age >= STALE_DAYS and not has_claims:
-            entry["tier"] = "STALE"
-            result["STALE"].append(entry)
-        elif age >= WARN_DAYS and not has_submissions:
-            entry["tier"] = "WARNING"
-            result["WARNING"].append(entry)
+    summary = f"{len(stale)} stale escrow(s) at or above {threshold_days:g} days"
+    if skipped_missing_created_at:
+        summary += f"; skipped {skipped_missing_created_at} with missing/invalid created_at"
 
-    return result
-
-
-def format_report(classified: dict[str, list[dict[str, Any]]]) -> str:
-    """Return a human-readable stale-escrow report string."""
-    lines: list[str] = []
-
-    tier_order = ["FROZEN", "STALE", "WARNING", "UNKNOWN"]
-    tier_labels = {
-        "FROZEN": "FROZEN (21+ days — return recommended)",
-        "STALE":  "STALE  (14+ days, no claims)",
-        "WARNING": "WARNING (7+ days, no submissions)",
-        "UNKNOWN": "UNKNOWN (missing created_at)",
+    return {
+        "status": status,
+        "stale": stale,
+        "summary": summary,
     }
-
-    any_found = any(classified[t] for t in tier_order)
-    if not any_found:
-        return "OK: no stale escrows found."
-
-    for tier in tier_order:
-        items = classified[tier]
-        if not items:
-            continue
-        lines.append(f"\n{tier_labels[tier]}:")
-        for item in items:
-            age_str = f"{item['age_days']} days" if item["age_days"] is not None else "age unknown"
-            lines.append(f"  #{item['issue']:>5}  {age_str:>12}  {item['amount']:>5} WEA  created: {item['created_at']}")
-
-    return "\n".join(lines).lstrip("\n")
 
 
 def run_check(
     root: Path,
     *,
     now: datetime | None = None,
-) -> tuple[dict[str, list[dict[str, Any]]], bool]:
-    """Load ledger files, classify escrows, and return (classified, has_frozen)."""
-    escrows = load_json(root / "ledger" / "escrows.json", default={"active": {}}, encoding="utf-8-sig")
-    tasks = load_json(root / "ledger" / "task_index.json", default={"tasks": {}}, encoding="utf-8-sig")
-    idem_keys = load_json(root / "ledger" / "idem_keys.json", default={"keys": {}}, encoding="utf-8-sig")
-    claimed_issues = _load_claimed_issues(idem_keys)
-    classified = classify_escrows(escrows, tasks, now=now, claimed_issues=claimed_issues)
-    has_frozen = bool(classified["FROZEN"])
-    return classified, has_frozen
+    threshold_days: float = DEFAULT_THRESHOLD_DAYS,
+    strict: bool = False,
+) -> dict[str, Any]:
+    escrows = load_json(
+        root / "ledger" / "escrows.json",
+        default={"active": {}},
+        encoding="utf-8-sig",
+    )
+    return build_report(
+        escrows,
+        now=now,
+        threshold_days=threshold_days,
+        strict=strict,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Detect stale escrows in the WeTheAgents ledger"
+        description="Detect stale active escrows in ledger/escrows.json"
     )
     parser.add_argument(
         "--root",
         default=None,
-        help="Path to repository root (default: auto-detect from script location)",
+        help="Repository root (default: auto-detect from script location)",
     )
     parser.add_argument(
-        "--json",
+        "--threshold-days",
+        type=float,
+        default=DEFAULT_THRESHOLD_DAYS,
+        help=f"Age threshold in days (default: {DEFAULT_THRESHOLD_DAYS:g})",
+    )
+    parser.add_argument(
+        "--strict",
         action="store_true",
-        dest="json_output",
-        help="Output machine-readable JSON instead of human-readable text",
+        help="Return FAIL and exit 1 if stale escrows are found",
     )
     args = parser.parse_args(argv)
 
-    root = _repo_root_from(args.root)
-    classified, has_frozen = run_check(root)
-
-    if args.json_output:
-        print(json.dumps(classified, indent=2))
-    else:
-        print(format_report(classified))
-
-    return 1 if has_frozen else 0
+    report = run_check(
+        _repo_root_from(args.root),
+        threshold_days=args.threshold_days,
+        strict=args.strict,
+    )
+    print(json.dumps(report))
+    return 1 if report["status"] == "FAIL" else 0
 
 
 if __name__ == "__main__":
