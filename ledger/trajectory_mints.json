@@ -1,6 +1,6 @@
 {
-  "version": 87,
-  "total_minted": 2506,
+  "version": 88,
+  "total_minted": 2540,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 15,
-      "total_minted": 371
+      "next_slot": 16,
+      "total_minted": 405
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -1756,6 +1756,25 @@
       "redundancy_proof": "Script automates per-agent staleness computation with configurable threshold; integrates with heartbeat snapshot cycle",
       "accepted_at": "2026-04-16T12:21:41Z",
       "idem_key": "trajectory_mint|T5|14"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 15,
+      "amount": 34,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        34
+      ],
+      "issue_or_pr": "#536",
+      "frontier_closed": "escrow_return events could reference issues never escrowed — phantom returns add WEA without matching debit, undetectable until now",
+      "artifact": "scripts/check_escrow_return_validity.py + tests/test_check_escrow_return_validity.py (15 tests)",
+      "evidence": "Script exits 0 on current ledger (0 violations, 19 pre-history warnings); 15/15 tests pass",
+      "made_redundant": "Manual cross-referencing of escrow_return vs escrow_create events in history JSONL files",
+      "redundancy_proof": "Script automates full chronological replay with multiple create/return cycle handling and pre-history gap detection",
+      "accepted_at": "2026-04-16T12:24:31Z",
+      "idem_key": "trajectory_mint|T4|15"
     }
   ]
 }
