@@ -1,21 +1,21 @@
 {
-  "version": 82,
-  "total_minted": 2333,
+  "version": 86,
+  "total_minted": 2473,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 16,
-      "total_minted": 405
+      "next_slot": 17,
+      "total_minted": 440
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 16,
-      "total_minted": 405
+      "next_slot": 17,
+      "total_minted": 440
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 14,
-      "total_minted": 338
+      "next_slot": 15,
+      "total_minted": 371
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 18,
-      "total_minted": 476
+      "next_slot": 19,
+      "total_minted": 513
     }
   },
   "mints": [
@@ -1661,6 +1661,82 @@
       "redundancy_proof": "script validates exact match for pod/wta/duel escrows and ceiling-only for progressive/linear; missing tasks and no-reward entries skipped gracefully; any discrepancy exits 1 with JSON mismatch report",
       "accepted_at": "2026-04-16T03:57:36Z",
       "idem_key": "trajectory_mint|T4|14"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 16,
+      "amount": 35,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        35
+      ],
+      "issue_or_pr": "#525",
+      "frontier_closed": "tasks_completed counter in balances.json never automatically verified against payment history — inflation by trajectory_mints went undetected",
+      "artifact": "scripts/check_tasks_completed_consistency.py + tests/test_check_tasks_completed_consistency.py (26 tests)",
+      "evidence": "Script exits 0 on current ledger after fixing 4 real divergences detected; 26/26 tests pass",
+      "made_redundant": "Manual cross-referencing of balances.json tasks_completed against hand-counting of payment events in history JSONL files",
+      "redundancy_proof": "Script automates the exact computation in <1s and catches any future divergences automatically",
+      "accepted_at": "2026-04-16T12:13:44Z",
+      "idem_key": "trajectory_mint|T1|16"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 14,
+      "amount": 33,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        33
+      ],
+      "issue_or_pr": "#527",
+      "frontier_closed": "Out-of-order ledger events (backfilled entries, timestamp drift) were undetectable — JSONL files with later events before earlier ones passed all existing checks silently",
+      "artifact": "scripts/check_history_chronological_order.py + tests/test_check_history_chronological_order.py (15 tests)",
+      "evidence": "Script exits 0 on current ledger; 15/15 tests pass",
+      "made_redundant": "Manual chronological inspection of ledger JSONL files to verify event ordering",
+      "redundancy_proof": "Script automates chronological ordering checks for all ledger event types; handles legacy format quirks without false positives",
+      "accepted_at": "2026-04-16T12:13:53Z",
+      "idem_key": "trajectory_mint|T3|14"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 18,
+      "amount": 37,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        37
+      ],
+      "issue_or_pr": "#537",
+      "frontier_closed": "Proved multiple escrow checking bypass vectors in check_escrow_task_reward_match.py: float vs int comparison, progressive underfunded, empty escrow block vacuous PASS all cause checker to exit 0 on invalid ledger state",
+      "artifact": "tests/test_check_escrow_task_reward_match_redteam.py (7 adversarial tests)",
+      "evidence": "7/7 tests pass; 3+ confirmed GAP cases where checker exits 0 when it should FAIL",
+      "made_redundant": "Manual adversarial analysis of check_escrow_task_reward_match.py edge cases",
+      "redundancy_proof": "Each test is a reproducible bypass vector proving the vulnerability exists and is exploitable",
+      "accepted_at": "2026-04-16T12:14:02Z",
+      "idem_key": "trajectory_mint|T6|18"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 16,
+      "amount": 35,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        35
+      ],
+      "issue_or_pr": "#535",
+      "frontier_closed": "5 confirmed false-PASS bypass vectors in check_escrow_task_reward_match.py: reward_wea as str/float/bool, history issue as float, missing issue field all cause checker to exit 0 on invalid ledger state",
+      "artifact": "tests/test_check_escrow_task_reward_match_adversarial.py (12 tests, 5 confirmed GAPs)",
+      "evidence": "12/12 tests pass; 5 CONFIRMED GAP cases documented via isinstance() and str() tracing",
+      "made_redundant": "Manual inspection of check_escrow_task_reward_match.py type-guard logic",
+      "redundancy_proof": "GAPs confirmed by tracing isinstance() guards in _get_task_reward and str() conversion in check_history_escrows",
+      "accepted_at": "2026-04-16T12:16:49Z",
+      "idem_key": "trajectory_mint|T2|16"
     }
   ]
 }
