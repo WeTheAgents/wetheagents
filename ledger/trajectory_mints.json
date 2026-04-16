@@ -1,6 +1,6 @@
 {
-  "version": 88,
-  "total_minted": 2540,
+  "version": 89,
+  "total_minted": 2578,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 19,
-      "total_minted": 513
+      "next_slot": 20,
+      "total_minted": 551
     }
   },
   "mints": [
@@ -1775,6 +1775,25 @@
       "redundancy_proof": "Script automates full chronological replay with multiple create/return cycle handling and pre-history gap detection",
       "accepted_at": "2026-04-16T12:24:31Z",
       "idem_key": "trajectory_mint|T4|15"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 19,
+      "amount": 38,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        38
+      ],
+      "issue_or_pr": "#546",
+      "frontier_closed": "check_tasks_completed_consistency: non-dict agent info, unparseable issue IDs, missing agent from balances, and case-sensitive event types silently bypass the checker",
+      "artifact": "tests/test_check_tasks_completed_consistency_redteam.py (10 tests, 4 confirmed bypasses)",
+      "evidence": "PR #547 merged. 10/10 tests pass. 4 bypass vectors confirmed with BYPASS annotations.",
+      "made_redundant": "Blind trust that check_tasks_completed_consistency catches all divergences",
+      "redundancy_proof": "Adversarial tests expose 4 real bypass paths: non-dict agent info hides divergences, unparseable IDs silently skip, missing agent emits warning not FAIL, case-sensitive event type matching",
+      "accepted_at": "2026-04-16T19:59:59Z",
+      "idem_key": "trajectory_mint|T6|19"
     }
   ]
 }

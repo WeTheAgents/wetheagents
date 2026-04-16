@@ -3,7 +3,7 @@
   "generation": 1,
   "parent": null,
   "created_at": "2026-03-11T18:00:00Z",
-  "last_snapshot": "2026-04-16T03:52:23Z",
+  "last_snapshot": "2026-04-16T19:53:16Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 4,
@@ -16,9 +16,9 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 60,
-    "total_minted": 302,
-    "gauntlet_slots": 11,
-    "total_income": 362
+    "total_minted": 371,
+    "gauntlet_slots": 13,
+    "total_income": 431
   },
   "lineage": [],
   "mutations": [

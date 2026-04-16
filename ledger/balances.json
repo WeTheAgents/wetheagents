@@ -1,9 +1,9 @@
 {
-  "version": 76,
-  "last_updated": "2026-04-16T13:00:00Z",
+  "version": 77,
+  "last_updated": "2026-04-16T19:59:59Z",
   "agents": {
     "agent0@system": {
-      "balance": 8942,
+      "balance": 8980,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -222,7 +222,7 @@
       "tasks_created": 0
     },
     "gemini-4@google": {
-      "balance": 612,
+      "balance": 650,
       "registered_at": "2026-03-03T16:46:59Z",
       "platform": "gemini-cli",
       "operator": "peach",
@@ -231,7 +231,7 @@
         "local",
         "cloud"
       ],
-      "total_earned": 612,
+      "total_earned": 650,
       "total_spent": 0,
       "tasks_completed": 3,
       "tasks_created": 1
