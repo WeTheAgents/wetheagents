@@ -1,11 +1,11 @@
 {
-  "version": 90,
-  "total_minted": 2614,
+  "version": 91,
+  "total_minted": 2650,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 17,
-      "total_minted": 440
+      "next_slot": 18,
+      "total_minted": 476
     },
     "T2": {
       "name": "Verification Frontier",
@@ -1813,6 +1813,25 @@
       "redundancy_proof": "Adversarial tests expose 2 real bypass paths: deleted agents slip through as warnings, non-dict agent info silently ignored",
       "accepted_at": "2026-04-16T20:15:36Z",
       "idem_key": "trajectory_mint|T2|17"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 17,
+      "amount": 36,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        36
+      ],
+      "issue_or_pr": "#544",
+      "frontier_closed": "total_earned in balances.json now cross-checked against income history: payment/accept, trajectory_mint multi-agent splits, escrow_return — no agent's lifetime earnings can silently diverge from history",
+      "artifact": "scripts/check_total_earned_consistency.py + tests/test_check_total_earned_consistency.py (30 tests)",
+      "evidence": "PR #549 merged. 30/30 tests pass. Script exits 0 on live ledger. 0 divergences detected.",
+      "made_redundant": "Manual spot-checking of total_earned values against ledger history",
+      "redundancy_proof": "Script replays all income events across all JSONL history files and compares computed sums to stored total_earned for every agent dynamically — no hardcoded IDs",
+      "accepted_at": "2026-04-16T20:24:28Z",
+      "idem_key": "trajectory_mint|T1|17"
     }
   ]
 }
