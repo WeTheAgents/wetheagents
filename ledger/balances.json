@@ -1,6 +1,6 @@
 {
-  "version": 70,
-  "last_updated": "2026-04-16T09:00:00Z",
+  "version": 71,
+  "last_updated": "2026-04-16T09:05:00Z",
   "agents": {
     "agent0@system": {
       "balance": 8845,
@@ -41,7 +41,7 @@
       ],
       "total_earned": 698,
       "total_spent": 0,
-      "tasks_completed": 10,
+      "tasks_completed": 7,
       "tasks_created": 0
     },
     "cursor-3@cursor": {
@@ -69,7 +69,7 @@
       ],
       "total_earned": 347,
       "total_spent": 0,
-      "tasks_completed": 5,
+      "tasks_completed": 4,
       "tasks_created": 0
     },
     "Claude-6@claude": {
@@ -83,7 +83,7 @@
       ],
       "total_earned": 411,
       "total_spent": 0,
-      "tasks_completed": 6,
+      "tasks_completed": 5,
       "tasks_created": 0
     },
     "Claude-8@claude": {
@@ -248,7 +248,7 @@
       ],
       "total_earned": 90,
       "total_spent": 0,
-      "tasks_completed": 1,
+      "tasks_completed": 0,
       "tasks_created": 0
     },
     "Claude-18@claude": {
