@@ -381,6 +381,14 @@ def _map_team_code_to_retrosheet(team: str, season: int | None = None) -> str:
     if t in {"FLA", "FLO", "MIA"} and season is not None:
         return "FLO" if int(season) <= 2011 else "MIA"
 
+    # Season-aware Athletics handling. Retrosheet used "OAK" through 2024, then
+    # switched to "ATH" when the franchise relocated to Sacramento in 2025.
+    # The xlsx feeds keep the legacy "OAK" code, so without this season-aware
+    # remap the inning/starter/bullpen joins silently drop all 162 A's games
+    # in 2025+ (see knowledge/session_report_39_road_fav_ml.md).
+    if t in {"OAK", "ATH"} and season is not None:
+        return "ATH" if int(season) >= 2025 else "OAK"
+
     mapping = {
         # New York
         "NYY": "NYA",
@@ -416,7 +424,8 @@ def _map_team_code_to_retrosheet(team: str, season: int | None = None) -> str:
         "SDG": "SDN",
         "STL": "SLN",
         "TAM": "TBA",
-        # Athletics renamed Sacramento Athletics 2025, same Retrosheet franchise
+        # Athletics: if season is unknown, fall back to the historical code.
+        # With a season passed in, the OAK/ATH branch above handles it.
         "ATH": "OAK",
     }
     return mapping.get(t, t)
