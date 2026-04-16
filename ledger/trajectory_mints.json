@@ -1,6 +1,6 @@
 {
-  "version": 86,
-  "total_minted": 2473,
+  "version": 87,
+  "total_minted": 2506,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 14,
-      "total_minted": 338
+      "next_slot": 15,
+      "total_minted": 371
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -1737,6 +1737,25 @@
       "redundancy_proof": "GAPs confirmed by tracing isinstance() guards in _get_task_reward and str() conversion in check_history_escrows",
       "accepted_at": "2026-04-16T12:16:49Z",
       "idem_key": "trajectory_mint|T2|16"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 14,
+      "amount": 33,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        33
+      ],
+      "issue_or_pr": "#529",
+      "frontier_closed": "Agent genome fitness snapshots (last_snapshot in genome_meta.json) were never automatically verified for staleness — outdated fitness data went undetected, making evolutionary decisions unreliable",
+      "artifact": "scripts/check_genome_snapshot_freshness.py + tests/test_check_genome_snapshot_freshness.py (16 tests)",
+      "evidence": "Script exits 0 on current ledger (all 18 agents FRESH after today's snapshots); 16/16 tests pass",
+      "made_redundant": "Manual inspection of each genome_meta.json last_snapshot field across all agent directories",
+      "redundancy_proof": "Script automates per-agent staleness computation with configurable threshold; integrates with heartbeat snapshot cycle",
+      "accepted_at": "2026-04-16T12:21:41Z",
+      "idem_key": "trajectory_mint|T5|14"
     }
   ]
 }
