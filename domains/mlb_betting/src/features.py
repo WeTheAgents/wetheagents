@@ -959,31 +959,41 @@ def build_all_features(
         from src.data_loader import (
             PROCESSED_DIR,
             _map_team_code_to_retrosheet,
+            load_combined_bullpen_features,
+            load_combined_game_id_bridge,
+            load_combined_starter_entering_features,
             merge_retrosheet_pitchers,
             merge_retrosheet_starter_entering_features,
         )
 
-        bridge_path = PROCESSED_DIR / "pitchers" / "game_id_bridge.parquet"
-        entering_path = PROCESSED_DIR / "pitchers" / "starter_entering_features.parquet"
+        # Load historical (Retrosheet) + 2026 (mlb_boxscore) sources together.
+        bridge_df = load_combined_game_id_bridge()
+        entering_df = load_combined_starter_entering_features()
 
-        if bridge_path.exists() and entering_path.exists():
-            logger.info("Merging Retrosheet starter IDs...")
-            enriched = merge_retrosheet_pitchers(enriched, bridge_path=bridge_path)
+        if not bridge_df.empty and not entering_df.empty:
+            logger.info(
+                "Merging Retrosheet starter IDs (combined: %d bridge rows)...",
+                len(bridge_df),
+            )
+            enriched = merge_retrosheet_pitchers(enriched, bridge_df=bridge_df)
 
-            logger.info("Merging Retrosheet entering features (WHIP, K/BB, K9, etc.)...")
+            logger.info(
+                "Merging Retrosheet entering features (combined: %d rows)...",
+                len(entering_df),
+            )
             enriched = merge_retrosheet_starter_entering_features(
-                enriched, entering_path=entering_path
+                enriched, entering_df=entering_df
             )
         else:
             missing = []
-            if not bridge_path.exists():
-                missing.append(str(bridge_path))
-            if not entering_path.exists():
-                missing.append(str(entering_path))
+            if bridge_df.empty:
+                missing.append("game_id_bridge (historical + 2026 both empty)")
+            if entering_df.empty:
+                missing.append("starter_entering_features (historical + 2026 both empty)")
             logger.warning(
                 f"Retrosheet parquets not found: {missing}. "
-                "Run scripts/build_retrosheet_pitchers.py first. "
-                "Skipping Retrosheet entering features."
+                "Run scripts/build_retrosheet_pitchers.py and/or backfill "
+                "2026 boxscores. Skipping Retrosheet entering features."
             )
 
         # ── Pitcher hand from Retrosheet allplayers ──────────────────────
@@ -1018,10 +1028,12 @@ def build_all_features(
                 logger.warning("retrosheet_batters not available, skipping pitcher hand")
 
         # ── Bullpen features (FIP, workload) ─────────────────────────────
-        bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
-        if bp_path.exists():
-            logger.info("Merging bullpen features (FIP, workload)...")
-            bp = pd.read_parquet(bp_path)
+        bp = load_combined_bullpen_features()
+        if not bp.empty:
+            logger.info(
+                "Merging bullpen features (combined: %d rows historical+2026)...",
+                len(bp),
+            )
             bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
             enriched["date"] = pd.to_datetime(enriched["date"]).dt.normalize()
 
@@ -1048,7 +1060,7 @@ def build_all_features(
             if "bp_ip_3d_home" in enriched.columns:
                 enriched["bullpen_workload_3d_diff"] = enriched["bp_ip_3d_home"] - enriched["bp_ip_3d_away"]
         else:
-            logger.warning(f"Bullpen features not found at {bp_path}")
+            logger.warning("Bullpen features not found in either historical or 2026 paths")
 
         # ── Batting lineup vs-hand features ──────────────────────────────
         lineup_path = PROCESSED_DIR / "retrosheet" / "game_lineup_features.parquet"
@@ -1100,6 +1112,50 @@ def build_all_features(
             enriched["effective_obp_home"] - enriched["effective_obp_away"]
         )
 
+    # ── Savant Statcast bullpen features (xwOBA, barrel rate, fatigue) ────
+    savant_path = PROCESSED_DIR / "savant" / "savant_bullpen_features.parquet"
+    if savant_path.exists():
+        logger.info("Merging Savant Statcast bullpen features...")
+        savant_bp = pd.read_parquet(savant_path)
+        savant_bp["game_date"] = pd.to_datetime(savant_bp["game_date"]).dt.normalize()
+        enriched["date"] = pd.to_datetime(enriched["date"]).dt.normalize()
+
+        # Savant uses MLB-style codes; our odds data uses sports-statistics codes.
+        _OUR_TO_SAVANT = {
+            "ARI": "AZ",   "ATL": "ATL",  "BAL": "BAL",  "BOS": "BOS",
+            "CHC": "CHC",  "CHW": "CWS",  "CIN": "CIN",  "CLE": "CLE",
+            "COL": "COL",  "DET": "DET",  "HOU": "HOU",  "KCR": "KC",
+            "LAA": "LAA",  "LAD": "LAD",  "MIA": "MIA",  "MIL": "MIL",
+            "MIN": "MIN",  "NYM": "NYM",  "NYY": "NYY",  "OAK": "ATH",
+            "PHI": "PHI",  "PIT": "PIT",  "SDP": "SD",   "SEA": "SEA",
+            "SFG": "SF",   "STL": "STL",  "TBR": "TB",   "TEX": "TEX",
+            "TOR": "TOR",  "WSN": "WSH",
+        }
+
+        savant_cols = [c for c in savant_bp.columns if c.startswith("bp_sc_")]
+        for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+            enriched[f"_sv_{side}"] = enriched[team_col].map(_OUR_TO_SAVANT)
+            sv_rename = {"team": f"_sv_{side}", "game_date": "date"}
+            for c in savant_cols:
+                sv_rename[c] = f"{c}_{side}"
+            side_sv = savant_bp[["team", "game_date"] + savant_cols].rename(columns=sv_rename)
+            side_sv = side_sv.drop_duplicates(subset=[f"_sv_{side}", "date"], keep="first")
+            enriched = enriched.merge(side_sv, on=[f"_sv_{side}", "date"], how="left")
+            enriched = enriched.drop(columns=[f"_sv_{side}"])
+
+        # Diff features (home minus away).
+        for metric in ["xwoba_std", "xwoba_15g", "barrel_std", "barrel_15g",
+                        "whiff_3d", "barrel_3d", "whiff_delta_3d", "barrel_delta_3d"]:
+            h_col = f"bp_sc_{metric}_home"
+            a_col = f"bp_sc_{metric}_away"
+            if h_col in enriched.columns and a_col in enriched.columns:
+                enriched[f"bp_sc_{metric}_diff"] = enriched[h_col] - enriched[a_col]
+
+        n_sv = sum(1 for c in enriched.columns if c.startswith("bp_sc_"))
+        logger.info(f"Savant bullpen features merged: {n_sv} columns")
+    else:
+        logger.info("Savant bullpen features not found (optional), skipping")
+
     n_features = len([c for c in enriched.columns if c not in games.columns])
     logger.info(f"Added {n_features} features to {len(enriched)} games")
 
@@ -1127,6 +1183,16 @@ SPEC_FEATURES = [
     "close_game_wp_diff",   # win% in 1-2 run games (tight game capability)
     "hold_rate_diff",       # win% when leading after 5 innings (closing strength)
     "effective_obp_diff",   # OBP top-3 batters vs opposing pitcher's hand
+    # Session 25: schedule strength + pitcher trajectory + league-relative offense
+    "rpi_diff",               # schedule-adjusted WP — primary S3 filter, was missing from model
+    "sp_ra_momentum_diff",    # pitcher RA trend: ra_short - ra_long (positive = getting worse)
+    "offense_vs_league_diff", # team offense RPG vs league avg (home - away)
+    "defense_vs_league_diff", # team defense RAPG vs league avg (home - away)
+    # Session 28: Statcast bullpen features tested — negligible ML contribution (1.74%
+    # combined importance in CatBoost). Standalone signal break-even on 10 seasons.
+    # Kept in pipeline for research but removed from model spec.
+    # Available columns: bp_sc_xwoba_std_diff, bp_sc_barrel_std_diff,
+    # bp_sc_whiff_delta_3d_diff, bp_sc_barrel_delta_3d_diff
 ]
 
 
@@ -1135,7 +1201,7 @@ def build_spec_features(
     *,
     enriched: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
-    """Build the 14-feature matrix from mlb_feature_spec.md.
+    """Build the 21-feature matrix for walk-forward model training.
 
     Either pass raw `games` (will call build_all_features internally)
     or pass pre-enriched `enriched` DataFrame from build_all_features().
@@ -1152,6 +1218,7 @@ def build_spec_features(
         _map_team_code_to_retrosheet,
         add_derived_odds,
         apply_data_filters,
+        enrich_innings_from_retrosheet,
         load_all_seasons,
     )
     from src.elo import compute_elo
@@ -1161,6 +1228,7 @@ def build_spec_features(
         if games is None:
             logger.info("Loading all seasons...")
             games = load_all_seasons()
+            games = enrich_innings_from_retrosheet(games)
             games = apply_data_filters(games)
             games = add_derived_odds(games)
         logger.info("Building all features (team + pitcher + Retrosheet)...")
@@ -1211,9 +1279,10 @@ def build_spec_features(
 
     # ── Bullpen diffs (skip if already merged by build_all_features) ─────
     if "bp_fip_short_home" not in df.columns:
-        bp_path = PROCESSED_DIR / "retrosheet" / "bullpen_features.parquet"
-        if bp_path.exists():
-            bp = pd.read_parquet(bp_path)
+        from src.data_loader import load_combined_bullpen_features
+
+        bp = load_combined_bullpen_features()
+        if not bp.empty:
             bp["date"] = pd.to_datetime(bp["date"]).dt.normalize()
             df["date"] = pd.to_datetime(df["date"]).dt.normalize()
 
@@ -1235,7 +1304,7 @@ def build_spec_features(
                 df = df.merge(side_bp, on=[f"_bp_{side}_team", "date"], how="left")
                 df = df.drop(columns=[f"_bp_{side}_team"])
         else:
-            logger.warning(f"Bullpen features not found at {bp_path}. Using NaN.")
+            logger.warning("Bullpen features not found in historical or 2026 paths. Using NaN.")
 
     if "bullpen_fip_diff" not in df.columns:
         if "bp_fip_short_home" in df.columns:
@@ -1326,6 +1395,100 @@ def build_spec_features(
     return df
 
 
+# ── Fav Run Line -1.5 Features ──────────────────────────────────────────
+
+# Diff columns to flip from home-away to fav-dog perspective.
+_FAV_DIFF_COLS = [
+    "rpi_diff", "elo_diff", "pyth_wp_diff", "rpg_diff",
+    "starter_fip_diff", "starter_whip_diff", "starter_kbb_diff",
+    "bullpen_fip_diff", "bullpen_workload_3d_diff",
+    "wp_last3_diff", "wp_last6_diff", "wp_last10_diff",
+    "close_game_wp_diff", "hold_rate_diff", "offense_vs_league_diff",
+    "sp_wr_long_diff", "sp_ra_long_diff", "sp_ra_momentum_diff",
+    "streak_diff", "effective_obp_diff",
+]
+
+FAV_RL_FEATURES = [
+    # Flipped diffs (positive = fav stronger)
+    "fav_rpi_diff", "fav_elo_diff", "fav_pyth_wp_diff", "fav_rpg_diff",
+    "fav_starter_fip_diff", "fav_starter_whip_diff", "fav_starter_kbb_diff",
+    "fav_bullpen_fip_diff", "fav_bullpen_workload_3d_diff",
+    "fav_wp_last3_diff", "fav_wp_last6_diff", "fav_wp_last10_diff",
+    "fav_close_game_wp_diff", "fav_hold_rate_diff", "fav_offense_vs_league_diff",
+    "fav_sp_wr_long_diff", "fav_sp_ra_long_diff", "fav_sp_ra_momentum_diff",
+    "fav_streak_diff", "fav_effective_obp_diff",
+    # Absolute fav/dog features (strong solo signals from session 25)
+    "fav_close_game_wp",       # fav close-game WP (INVERSE: low = big wins)
+    "fav_implied_prob",        # ML implied prob of fav (65-70% sweet spot)
+    "combined_rpg",            # total scoring environment
+    "fav_rpg",                 # fav scoring power
+    "home_advantage",          # fav is home 63% of the time
+]
+
+
+def build_fav_rl_features(
+    df: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build fav-oriented features for Run Line -1.5 classification.
+
+    Flips all home-away diff columns to fav-dog perspective and adds
+    absolute fav/dog columns for ML training.
+
+    Expects input from build_spec_features() with fav_is_home and fav_margin.
+
+    Returns DataFrame with FAV_RL_FEATURES columns + target fav_covers_rl.
+    """
+    if df is None:
+        df = build_spec_features()
+
+    if "fav_is_home" not in df.columns:
+        raise ValueError("Input must contain fav_is_home (from build_spec_features)")
+
+    df = df.copy()
+    flip = np.where(df["fav_is_home"], 1, -1)
+
+    # Flip diffs: positive = fav stronger
+    for col in _FAV_DIFF_COLS:
+        if col in df.columns:
+            df[f"fav_{col}"] = df[col] * flip
+        else:
+            df[f"fav_{col}"] = np.nan
+
+    # Individual fav/dog absolute columns
+    for fav_col, home_col, away_col in [
+        ("fav_rpg", "rpg_home", "rpg_away"),
+        ("fav_close_game_wp", "close_game_wp_home", "close_game_wp_away"),
+        ("fav_offense_vs_league", "offense_vs_league_home", "offense_vs_league_away"),
+        ("fav_hold_rate", "hold_rate_home", "hold_rate_away"),
+        ("fav_sp_ra", "home_sp_ra_short", "away_sp_ra_short"),
+        ("dog_bp_ip_3d", "bp_ip_3d_away", "bp_ip_3d_home"),
+    ]:
+        if home_col in df.columns and away_col in df.columns:
+            df[fav_col] = np.where(df["fav_is_home"], df[home_col], df[away_col])
+
+    # Implied prob of favorite
+    if "home_implied_prob" in df.columns and "away_implied_prob" in df.columns:
+        df["fav_implied_prob"] = np.where(
+            df["fav_is_home"], df["home_implied_prob"], df["away_implied_prob"]
+        )
+
+    # Combined RPG (if not already present)
+    if "combined_rpg" not in df.columns and "rpg_home" in df.columns:
+        df["combined_rpg"] = df["rpg_home"] + df["rpg_away"]
+
+    # Target: favorite covers -1.5 (wins by 2+)
+    df["fav_covers_rl"] = (df["fav_margin"] >= 2).astype(int)
+
+    available = [f for f in FAV_RL_FEATURES if f in df.columns and df[f].notna().mean() > 0.3]
+    missing = [f for f in FAV_RL_FEATURES if f not in available]
+    if missing:
+        logger.warning(f"Fav RL features missing: {missing}")
+    logger.info(f"Fav RL features available: {len(available)}/{len(FAV_RL_FEATURES)}, "
+                f"cover rate: {df['fav_covers_rl'].mean()*100:.1f}%")
+
+    return df
+
+
 # ── Over/Under Features ──────────────────────────────────────────────────
 
 OU_FEATURES = [
@@ -1359,8 +1522,9 @@ OU_FEATURES = [
     # Relative to line
     "rpg_vs_line",                # combined_rpg - close_ou
     "rpg_last10_vs_line",         # combined_rpg_last10 - close_ou
-    # Session 18: tested hold_rate/power_rate/effective_obp_combined — all degraded
-    # AUC and ROI. Reverted. See A/B analysis in session 18.
+    # Late-game quality (session 25 A/B test — H1 PASS: +2.7pp ROI @ P>=0.55,
+    # +11.5pp @ P>=0.60. Session 18 bundle failure was power_rate/effective_obp.)
+    "hold_rate_combined",         # hold_rate_home + hold_rate_away (win% when leading after 5)
 ]
 
 # --- V2: Interaction features (session 19 experiment) ---
@@ -1400,6 +1564,17 @@ OU_FEATURES_V3 = OU_FEATURES + [
     "matchup_rpg_x_bp_fip",    # offense × opposing bullpen FIP (10.6% imp)
     "sp_quality_gap",           # abs starter mismatch (5.6% imp)
     "effective_obp_x_sp_fip",  # handedness-matched OBP × opposing FIP (4.2% imp)
+]
+
+# --- A/B experiment: team quality features for UNDER (session 25) ---
+# Testing RPI, hold_rate, close_game_wp individually and combined.
+# Session 18 tested hold_rate+power_rate+effective_obp as bundle → degraded.
+# This experiment isolates each feature to resolve the ambiguity.
+OU_FEATURES_R1 = OU_FEATURES + ["rpi_combined"]
+OU_FEATURES_H1 = OU_FEATURES + ["hold_rate_combined"]
+OU_FEATURES_C1 = OU_FEATURES + ["close_game_wp_combined"]
+OU_FEATURES_RHC = OU_FEATURES + [
+    "rpi_combined", "hold_rate_combined", "close_game_wp_combined",
 ]
 
 # --- NRFI: 1st-inning specific features (Set A) ---
@@ -1442,11 +1617,17 @@ def build_ou_features(
         and metadata (season, date, teams, close_ou).
     """
     if enriched is None:
-        from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
+        from src.data_loader import (
+            add_derived_odds,
+            apply_data_filters,
+            enrich_innings_from_retrosheet,
+            load_all_seasons,
+        )
 
         if games is None:
             logger.info("Loading all seasons for O/U features...")
             games = load_all_seasons()
+        games = enrich_innings_from_retrosheet(games)
         games = apply_data_filters(games)
         games = add_derived_odds(games)
         logger.info("Building all features for O/U...")
@@ -1512,6 +1693,10 @@ def build_ou_features(
     _safe_sum(df, "hold_rate_combined", "hold_rate_home", "hold_rate_away")
     _safe_sum(df, "power_rate_combined", "power_rate_home", "power_rate_away")
     _safe_sum(df, "effective_obp_combined", "effective_obp_home", "effective_obp_away")
+
+    # ── Session 25: team quality combined features for A/B test ───────────
+    _safe_sum(df, "rpi_combined", "rpi_home", "rpi_away")
+    _safe_sum(df, "close_game_wp_combined", "close_game_wp_home", "close_game_wp_away")
 
     # ── O/U regime labels (for regression model) ──────────────────────────
     margin = df["total_runs"] - df["close_ou"]
@@ -1765,11 +1950,17 @@ def build_ou_features_v2(
         and metadata (season, date, teams, close_ou).
     """
     if enriched is None:
-        from src.data_loader import add_derived_odds, apply_data_filters, load_all_seasons
+        from src.data_loader import (
+            add_derived_odds,
+            apply_data_filters,
+            enrich_innings_from_retrosheet,
+            load_all_seasons,
+        )
 
         if games is None:
             logger.info("Loading all seasons for O/U V2 features...")
             games = load_all_seasons()
+        games = enrich_innings_from_retrosheet(games)
         games = apply_data_filters(games)
         games = add_derived_odds(games)
         logger.info("Building all features for O/U V2...")

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data & Pipeline &mdash; MLB Betting Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">MLB Betting</div>
+  <div class="brand-sub">Strategy Handbook &mdash; April 2026</div>
+  <nav class="nav-section">
+    <div class="nav-section-title">Pages</div>
+    <ul class="nav-list">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="strategies.html">Strategies</a></li>
+      <li><a href="dead-ends.html">Dead Ends</a></li>
+      <li><a href="data.html" class="active">Data & Pipeline</a></li>
+      <li><a href="models.html">Models & LLM</a></li>
+      <li><a href="timeline.html">Research Timeline</a></li>
+      <li><a href="season.html">2026 Season Plan</a></li>
+    </ul>
+  </nav>
+  <div class="nav-section">
+    <div class="nav-section-title">Quick Stats</div>
+    <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
+      31 research sessions<br>
+      21 seasons of data<br>
+      4 live strategies<br>
+      ~194 bets / season<br>
+      ~15-20% blended ROI
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <div class="page-header">
+    <h1>Data & Pipeline</h1>
+    <div class="subtitle">Data sources, processing pipeline, and feature inventory</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Data Sources</div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Historical Odds (2004-2025)</div>
+        <div class="text-muted text-sm mt-8">21 seasons, ~50,700 games. Three sources merged: sports-statistics.com (xlsx, 2010-2021), SDQL API (2004-2009), ArnavSaogi JSON (2022-2025). After filters: ~49,700 games, ~38,000 bettable.</div>
+        <div class="strat-filters mt-16"><code>python data/download.py          # original xlsx
+python data/download_historical.py  # SDQL + JSON</code></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Live 2026 Pipeline</div>
+        <div class="text-muted text-sm mt-8">ESPN Scoreboard API for real-time odds (DraftKings), starters, scores. MLB Stats API for pitcher handedness. Orchestrator runs daily. Atomic writes with sidecar JSONs and audit log.</div>
+        <div class="strat-filters mt-16"><code>data/fetch_2026/orchestrator.py   # daily fetch
+data/fetch_2026/io_safety.py       # atomic writes
+scripts/check_2026_pipeline.py     # 5 health assertions</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Processing Pipeline</div>
+    <pre>download.py / download_historical.py
+  &darr;
+data/raw/odds/*.xlsx  (standardized schema)
+  &darr;
+data_loader.py  &rarr;  load_all_seasons() + pair_games()
+  &darr;
+apply_data_filters()  (remove: 2020, missing odds/pitcher, doubleheaders)
+add_derived_odds()    (decimal odds, implied probabilities)
+  &darr;
+features.py           (67 team features: RPI, WP, streaks, RPG)
+pitcher_features.py   (32 pitcher proxy oscillators)
+bullpen_features.py   (30 bullpen workload/quality features)
+retrosheet_*.py       (anti-leak entering-game stats)
+  &darr;
+feature_card.py       (171-feature human-readable game cards)
+  &darr;
+model.py              (CatBoost + Ridge regime ensemble)
+llm_expert.py         (Claude-based pick generation)
+  &darr;
+strategies/*.py       (tier filters &rarr; daily picks)
+  &darr;
+generate_picks_2026.py (JSON output + target pricing)</pre>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Hard Filters (Always Applied)</div>
+    <div class="callout callout--blue">These filters are non-negotiable. Every analysis, backtest, and live pick must apply them.</div>
+    <pre>games = apply_data_filters(games)   # Remove: 2020, missing odds/pitcher, doubleheaders
+games = add_derived_odds(games)     # Add decimal odds, implied probabilities
+
+# Betting filters:
+bettable = games[
+    ~games["involves_col"]        # NEVER bet on Colorado games
+    &amp; ~games["is_extreme_line"]   # Skip extreme favorites (>300)
+]
+# Note: September is INCLUDED (validated profitable across 5 seasons)</pre>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Feature Inventory (171 total)</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Category</th><th class="num">Count</th><th>Key Features</th></tr></thead>
+      <tbody>
+        <tr><td>Team rolling</td><td class="num">35</td><td>RPI, WP (3/6/10/20g windows), RPG, RAPG, streaks, Elo</td></tr>
+        <tr><td>Pitcher proxy</td><td class="num">32</td><td>RA/WR oscillators (short/long), 1st-inning RA, momentum</td></tr>
+        <tr><td>Bullpen</td><td class="num">30</td><td>FIP, WHIP, K9, K/BB, IP (3-day), workload oscillators</td></tr>
+        <tr><td>Retrosheet (entering-game)</td><td class="num">30</td><td>Starter FIP, WHIP, K/BB, HR9 (5/15 start windows), bullpen day flag</td></tr>
+        <tr><td>Savant Statcast</td><td class="num">30</td><td>xwOBA, barrel rate, delta (2015+ only, weak signal)</td></tr>
+        <tr><td>Late-game context</td><td class="num">5</td><td>hold_rate, close_game_wp, deficit_recovery, power_rate</td></tr>
+        <tr><td>Batting splits</td><td class="num">10</td><td>vs-hand OBP (top3), K rate, effective_obp matchups</td></tr>
+        <tr><td>Market context</td><td class="num">10</td><td>implied_prob, edge, odds spread, O/U line</td></tr>
+        <tr><td>Schedule/travel</td><td class="num">4</td><td>rest_days, travel_miles_3d, road_trip_len, tz_changes_3d</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Critical Bugs Fixed</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Bug</th><th>Impact</th><th>Fix</th><th>Severity</th></tr></thead>
+      <tbody>
+        <tr><td>Duplicate rows (88.5%)</td><td>Session 6 validation inflated ROI</td><td>Fixed bullpen_features dedup (session 8)</td><td class="text-red">Critical</td></tr>
+        <tr><td>September filtered incorrectly</td><td>Lost +22% signal in away underdog</td><td>Removed filter, validated positive (session 7)</td><td class="text-yellow">High</td></tr>
+        <tr><td>Retrosheet enrichment missing</td><td>2022-2025 inning data unavailable</td><td>Single import line added (session 25)</td><td class="text-muted">Medium</td></tr>
+        <tr><td>Platt calibration inflated P(u)</td><td>65% of 0.55+ bets actually <0.55</td><td>Removed, uses raw ensemble (session 19)</td><td class="text-yellow">High</td></tr>
+        <tr><td>SBR odds parser (awaySpread)</td><td>Bimodal distribution, 2.5+ odds</td><td>Fixed to awaySpread == 1.5 only (session 26)</td><td class="text-yellow">High</td></tr>
+        <tr><td>Bullpen parquet overwrite</td><td>2014-2025 history wiped on backfill</td><td>Dual-path: pitchers/ vs pitchers_2026/ (session 29)</td><td class="text-red">Critical</td></tr>
+        <tr><td>Pitcher data loss (Mar 26-Apr 5)</td><td>535 rows instead of 1,800</td><td>Backfilled + atomic writes + sidecar JSONs (session 29)</td><td class="text-red">Critical</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Data Quirks</div>
+    <div class="callout callout--red">
+      <strong>home_run_line column contains MIXED data.</strong> Values -1.5 and 1.5 = actual Run Line (spread). Values 5.5+ = Over/Under total (misclassified in raw data). Always filter by <code>home_run_line.isin([-1.5, 1.5])</code> for RL analysis.
+    </div>
+    <div class="callout">
+      <strong>SDQL/JSON seasons (2004-2009, 2022-2025) lack inning-by-inning scores.</strong> Run Line data only available for 2014+ (original) and 2022-2025 (JSON). Features requiring inning data use 2010-2021 window.
+    </div>
+  </div>
+
+</div>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>

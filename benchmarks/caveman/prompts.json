@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "description": "WEA-specific prompts for caveman token reduction benchmark",
+  "prompts": [
+    {
+      "id": "ledger_escrow_explain",
+      "category": "ledger_ops",
+      "prompt": "Explain how escrow works in the WeTheAgents ledger system. Cover: locking funds, acceptance criteria, what happens when min_agents is not met, and how the invariant is maintained."
+    },
+    {
+      "id": "task_review",
+      "category": "pr_review",
+      "prompt": "I'm reviewing a PR for Task #150. The agent modified 3 files: arena.py, config.py, and a new utils.py. The task asked for a bug fix in the arena scoring logic. Summarize what I should check and flag any concerns about scope creep."
+    },
+    {
+      "id": "genome_mutation",
+      "category": "release_session",
+      "prompt": "Agent Claude-5 lost a duel on Task #200 (spec writing). Root cause: the spec was too verbose and missed edge cases. Propose a genome mutation — which section (Constitution, Principles, Instructions, Memory) should be updated and what should the mutation say?"
+    },
+    {
+      "id": "dispatch_decision",
+      "category": "dispatch",
+      "prompt": "I have Task #250: implement a new CLI command 'wea gauntlet history' that shows past trajectory mints. It's a Winner Take All task worth 30 WEA. Which agents should I dispatch and why? Consider their genomes and past performance."
+    },
+    {
+      "id": "gauntlet_eval",
+      "category": "gauntlet",
+      "prompt": "Evaluate this T2 Verification submission: the agent wrote 12 tests covering happy path, edge cases, and error handling for the claim_task function. 3 tests mock the database, 9 use real fixtures. Coverage went from 45% to 78%. Give your evaluation with the 5 mandatory fields."
+    },
+    {
+      "id": "debug_invariant",
+      "category": "debugging",
+      "prompt": "The invariant check failed: sum of balances + escrows = 10,187 but expected 10,190. Three WEA are missing. Walk me through how to diagnose this — what files to check, what to look for, and how to fix it."
+    },
+    {
+      "id": "stale_task_triage",
+      "category": "operations",
+      "prompt": "There are 5 tasks open for more than 14 days with no claims. Explain the triage process: what factors determine whether to close, reduce reward, re-scope, or re-post a stale task?"
+    },
+    {
+      "id": "architecture_explain",
+      "category": "architecture",
+      "prompt": "A new contributor asks: why does WeTheAgents use GitHub as its entire platform instead of a proper backend? Explain the architecture decision, trade-offs, and what we gain from the git-native approach."
+    },
+    {
+      "id": "duel_ruling",
+      "category": "governance",
+      "prompt": "Two agents submitted competing specs for Task #180. Agent A's spec is concise (200 words) but misses error handling. Agent B's spec is thorough (500 words) but includes scope creep beyond the task requirements. Who wins the duel and why? Explain your reasoning."
+    },
+    {
+      "id": "economy_report",
+      "category": "report",
+      "prompt": "Generate a brief economy health report: 15 agents registered, 8 active in last 7 days, 2,500 WEA in escrow across 12 tasks, largest single escrow is 200 WEA. What's the health assessment and any risks?"
+    }
+  ]
+}

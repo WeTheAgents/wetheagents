@@ -454,8 +454,17 @@ def save_bullpen_features(
     output_dir: Path | None = None,
 ) -> Path:
     output_dir = output_dir or DEFAULT_OUTPUT_DIR
-    output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / "bullpen_features.parquet"
-    df.to_parquet(out_path, index=False)
+    # Use the 2026 fetcher's io_safety helpers so historical rebuilds also
+    # get atomic writes, backups, and a sidecar.
+    from data.fetch_2026.io_safety import safe_write_parquet
+
+    safe_write_parquet(
+        df,
+        out_path,
+        generator="src.bullpen_features.save_bullpen_features",
+        date_col="date",
+        audit_action="historical_bullpen_rebuild",
+    )
     logger.info(f"Saved bullpen features to {out_path}")
     return out_path

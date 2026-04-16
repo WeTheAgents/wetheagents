@@ -20,6 +20,21 @@ from typing import Any
 
 from jsonschema import ValidationError
 
+try:
+    from scripts.check_task_format import TASK_BODY_TEMPLATE, validate_detailed
+except ModuleNotFoundError:
+    import importlib.util
+
+    check_task_format_path = Path(__file__).resolve().parents[2] / "scripts" / "check_task_format.py"
+    spec = importlib.util.spec_from_file_location("check_task_format", check_task_format_path)
+    if spec is None or spec.loader is None:
+        raise
+    check_task_format = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = check_task_format
+    spec.loader.exec_module(check_task_format)
+    TASK_BODY_TEMPLATE = check_task_format.TASK_BODY_TEMPLATE
+    validate_detailed = check_task_format.validate_detailed
+
 from wea_cli.config import resolve_agent
 from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gauntlet import (
@@ -66,6 +81,18 @@ from wea_cli.health import (
     now_iso,
     save_health,
 )
+from wea_cli.knowledge import (
+    DEFAULT_CAP,
+    DEFAULT_HALF_LIFE_DAYS,
+    DEFAULT_TOP_N,
+    agent_slug,
+    bm25_search,
+    decay_factor,
+    load_entries,
+    make_entry,
+    save_entries,
+    trim_entries,
+)
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.spawn import run_spawn
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
@@ -96,7 +123,9 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "release": frozenset({"status"}),
     "skills": frozenset({"list", "show", "suggest"}),
     "pipeline": frozenset({"get-task", "get-context", "refinement-status"}),
-    "task": frozenset({"check-criteria"}),
+    "task": frozenset({"calc-budget", "check-criteria", "lint", "template"}),
+    "escrow": frozenset({"check"}),
+    "knowledge": frozenset({"search", "list"}),
 }
 
 
@@ -274,6 +303,188 @@ def compute_ranking_payouts(budget: int, k: int, x: int) -> list[int]:
     payouts.insert(0, rank1_payout)
 
     return payouts
+
+
+TASK_CALC_REWARD_TYPE_ALIASES: dict[str, str] = {
+    "every_good": "every_good",
+    "every-good": "every_good",
+    "everygood": "every_good",
+    "progressive": "progressive",
+    "linear": "linear",
+    "winner_take_all": "winner_take_all",
+    "winner-take-all": "winner_take_all",
+    "wta": "winner_take_all",
+    "best_x": "best_x",
+    "best-x": "best_x",
+    "bestx": "best_x",
+    "duel": "duel",
+}
+
+TASK_CALC_LABELS: dict[str, str] = {
+    "every_good": "Every Good",
+    "progressive": "Progressive Every Good",
+    "linear": "Linear PoD",
+    "winner_take_all": "Winner Take All",
+    "best_x": "[X] Best",
+    "duel": "Duel",
+}
+
+
+def progressive_budget(slots: int) -> int:
+    if slots < 1:
+        raise ValueError("Slots must be >= 1")
+    return fib(slots + 2) - 1
+
+
+def linear_budget(slots: int) -> int:
+    if slots < 1:
+        raise ValueError("Slots must be >= 1")
+    return slots * (slots + 1) // 2
+
+
+def calculate_duel_split(budget: int) -> tuple[int, int]:
+    if budget < 1:
+        raise ValueError("Budget must be >= 1")
+    winner_amount = math.floor(budget * 90 / 100)
+    runner_up_amount = budget - winner_amount
+    return winner_amount, runner_up_amount
+
+
+def _normalize_task_calc_reward_type(raw: str) -> str | None:
+    key = raw.strip().lower().replace(" ", "_")
+    return TASK_CALC_REWARD_TYPE_ALIASES.get(key)
+
+
+def _ensure_positive_arg(value: int | None, flag: str) -> tuple[int | None, int | None]:
+    if value is None:
+        emit(f"Error: {flag} is required.")
+        return None, EXIT_DOMAIN_ERROR
+    if value < 1:
+        emit(f"Error: {flag} must be >= 1.")
+        return None, EXIT_DOMAIN_ERROR
+    return value, None
+
+
+def cmd_task_calc_budget(args: argparse.Namespace) -> int:
+    reward_type = _normalize_task_calc_reward_type(args.reward_type)
+    if reward_type is None:
+        emit(
+            "Error: reward type must be one of "
+            "`every_good`, `progressive`, `linear`, `winner_take_all`, `best_x`, or `duel`."
+        )
+        return EXIT_DOMAIN_ERROR
+
+    payload: dict[str, Any] = {
+        "reward_type": reward_type,
+        "label": TASK_CALC_LABELS[reward_type],
+    }
+
+    if reward_type == "every_good":
+        per_acceptance, error = _ensure_positive_arg(args.per_acceptance, "--per-acceptance")
+        if error is not None:
+            return error
+        acceptances, error = _ensure_positive_arg(args.acceptances, "--acceptances")
+        if error is not None:
+            return error
+        assert per_acceptance is not None
+        assert acceptances is not None
+        payload.update(
+            {
+                "per_acceptance": per_acceptance,
+                "acceptances": acceptances,
+                "budget": per_acceptance * acceptances,
+                "payouts": [per_acceptance] * acceptances,
+            }
+        )
+    elif reward_type == "progressive":
+        slots, error = _ensure_positive_arg(args.slots, "--slots")
+        if error is not None:
+            return error
+        payload.update(
+            {
+                "slots": slots,
+                "budget": progressive_budget(slots),
+                "payouts": [fib(slot) for slot in range(1, slots + 1)],
+            }
+        )
+    elif reward_type == "linear":
+        slots, error = _ensure_positive_arg(args.slots, "--slots")
+        if error is not None:
+            return error
+        payload.update(
+            {
+                "slots": slots,
+                "budget": linear_budget(slots),
+                "payouts": list(range(1, slots + 1)),
+            }
+        )
+    elif reward_type == "winner_take_all":
+        budget, error = _ensure_positive_arg(args.budget, "--budget")
+        if error is not None:
+            return error
+        payload.update({"budget": budget, "winners": 1, "payouts": [budget]})
+    elif reward_type == "best_x":
+        budget, error = _ensure_positive_arg(args.budget, "--budget")
+        if error is not None:
+            return error
+        winners, error = _ensure_positive_arg(args.winners, "--winners")
+        if error is not None:
+            return error
+        assert winners is not None
+        if winners < 2 or winners > 5:
+            emit("Error: --winners must be in range 2..5 for [X] Best.")
+            return EXIT_DOMAIN_ERROR
+        ranked = args.ranked if args.ranked is not None else winners
+        if ranked < 1:
+            emit("Error: --ranked must be >= 1.")
+            return EXIT_DOMAIN_ERROR
+        if ranked > winners:
+            emit("Error: --ranked cannot exceed --winners.")
+            return EXIT_DOMAIN_ERROR
+        payload.update(
+            {
+                "budget": budget,
+                "winners": winners,
+                "ranked": ranked,
+                "payouts": compute_ranking_payouts(budget, ranked, winners),
+            }
+        )
+    else:
+        budget, error = _ensure_positive_arg(args.budget, "--budget")
+        if error is not None:
+            return error
+        winner_amount, runner_up_amount = calculate_duel_split(budget)
+        payload.update(
+            {
+                "budget": budget,
+                "winner": winner_amount,
+                "runner_up": runner_up_amount,
+            }
+        )
+
+    if getattr(args, "json", False):
+        emit(json.dumps(payload, indent=2))
+        return EXIT_OK
+
+    emit(format_kv("Reward Type", payload["label"]))
+    emit(format_kv("Budget", f"{payload['budget']} WEA"))
+    if "per_acceptance" in payload:
+        emit(format_kv("Per Acceptance", f"{payload['per_acceptance']} WEA"))
+        emit(format_kv("Acceptances", str(payload["acceptances"])))
+        emit(format_kv("Payouts", ", ".join(str(v) for v in payload["payouts"])))
+    elif "slots" in payload:
+        emit(format_kv("Slots", str(payload["slots"])))
+        emit(format_kv("Payouts", ", ".join(str(v) for v in payload["payouts"])))
+    elif reward_type == "winner_take_all":
+        emit(format_kv("Payouts", str(payload["budget"])))
+    elif reward_type == "best_x":
+        emit(format_kv("Winners X", str(payload["winners"])))
+        emit(format_kv("Ranked", str(payload["ranked"])))
+        emit(format_kv("Payouts", ", ".join(str(v) for v in payload["payouts"])))
+    else:
+        emit(format_kv("Winner", f"{payload['winner']} WEA"))
+        emit(format_kv("Runner-up", f"{payload['runner_up']} WEA"))
+    return EXIT_OK
 
 
 # =========================================================================
@@ -544,16 +755,74 @@ def cmd_task_check_criteria(args: argparse.Namespace) -> int:
     issue_data, check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
     if error_code is not None:
         return error_code
+    assert issue_data is not None
+    assert check is not None
 
     issue_number = int(issue_data.get("number", args.issue))
     _emit_acceptance_criteria_report(issue_number, check)
+
+    try:
+        root = resolve_repo_root(getattr(args, "root", None))
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        from scripts.check_task_format import validate
+        format_errors = validate(str(issue_data.get("body", "")))
+        if format_errors:
+            emit("\nTask format validation failed:")
+            for err in format_errors:
+                emit(f"- {err}")
+            return EXIT_DOMAIN_ERROR
+    except Exception as exc:
+        pass
+
     return EXIT_OK if check.is_valid else EXIT_DOMAIN_ERROR
+
+
+def _read_task_lint_input(file_arg: str) -> tuple[str, str]:
+    if file_arg in {"-", "/dev/stdin"}:
+        return sys.stdin.read(), file_arg
+
+    path = Path(file_arg).expanduser()
+    try:
+        return path.read_text(encoding="utf-8"), str(path)
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"Task body file not found: {path}") from exc
+
+
+def cmd_task_lint(args: argparse.Namespace) -> int:
+    try:
+        body, source = _read_task_lint_input(args.file)
+    except (FileNotFoundError, OSError) as exc:
+        emit(f"Error: {exc}")
+        return EXIT_RUNTIME_ERROR
+
+    issues = validate_detailed(body)
+    if getattr(args, "json", False):
+        payload = {
+            "ok": not issues,
+            "path": source,
+            "errors": [{"line": issue.line, "message": issue.message} for issue in issues],
+        }
+        print(json.dumps(payload, indent=2))
+    elif issues:
+        emit(f"Task body format: FAIL ({len(issues)} issue(s))")
+        for issue in issues:
+            emit(f"{source}:{issue.line}: {issue.message}")
+    else:
+        emit(f"{source}: OK")
+
+    return EXIT_OK if not issues else EXIT_DOMAIN_ERROR
+
+
+def cmd_task_template(args: argparse.Namespace) -> int:
+    sys.stdout.write(TASK_BODY_TEMPLATE)
+    return EXIT_OK
 
 
 def _parse_reward_wea(reward_str: str) -> int:
     """Extract integer WEA value from strings like '22', '22 WEA', '10 WEA (minted on acceptance)'."""
     match = re.search(r"\d+", reward_str)
-    return int(match.group()) if match else 0
+    return int(match.group()) if match else -1
 
 
 def cmd_claim(args: argparse.Namespace) -> int:
@@ -571,22 +840,21 @@ def cmd_claim(args: argparse.Namespace) -> int:
     issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
     if error_code is not None:
         return error_code
+    assert issue_data is not None
+    assert criteria_check is not None
 
-    if not criteria_check.criteria:
+    if not criteria_check.criteria or not criteria_check.is_valid:
         raw_reward = parse_task_metadata(str(issue_data.get("body", ""))).get("reward") or ""
         reward_value = _parse_reward_wea(raw_reward)
-        if reward_value >= 10:
-            print(f"Warning: task #{args.issue} has no parseable acceptance criteria (reward: {reward_value} WEA).")
+        if reward_value >= 10 or (reward_value == -1 and raw_reward.strip() != ""):
+            print(f"Warning: task #{args.issue} has invalid or missing acceptance criteria (reward: {reward_value} WEA).")
+            for error in criteria_check.errors:
+                print(f"- {error}")
             print("You may invest effort on a task that cannot be machine-verified.")
+            
             if not getattr(args, "force", False):
                 print("Use --force to claim anyway.")
                 return EXIT_DOMAIN_ERROR
-
-    # Warn (non-blocking) on MUST: items with empty verifiable content
-    for criterion in criteria_check.criteria:
-        if criterion.requirement == "must" and not criterion.text:
-            print(f"Warning: task #{args.issue} has a MUST: item with no verifiable content.")
-            break
 
     if args.dry_run:
         print(format_kv("Issue", f"#{args.issue}"))
@@ -623,6 +891,8 @@ def cmd_submit(args: argparse.Namespace) -> int:
     issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
     if error_code is not None:
         return error_code
+    assert issue_data is not None
+    assert criteria_check is not None
 
     issue_number = int(issue_data.get("number", args.issue))
     _emit_acceptance_criteria_report(issue_number, criteria_check, remind_humans=True)
@@ -631,7 +901,11 @@ def cmd_submit(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     # --- PR Authorship & Repository Validation ---
-    pr_matches = re.findall(r"https://github\.com/([^/]+)/([^/]+)/pull/(\d+)", content)
+    pr_matches = re.findall(r"(?:https?://)?(?:www\.|api\.)?github\.com/(?:repos/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)", content, re.IGNORECASE)
+    rel_matches = re.findall(r"\]\((?:/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)\)", content, re.IGNORECASE)
+    for rm in rel_matches:
+        if rm not in pr_matches:
+            pr_matches.append(rm)
     if pr_matches:
         root = resolve_repo_root(getattr(args, "root", None))
         balances = load_balances(root)
@@ -669,17 +943,14 @@ def cmd_submit(args: argparse.Namespace) -> int:
             if pr_repo.lower() != target_repo.lower():
                 continue  # ignore foreign repo references (harmless citations)
 
-            valid_prs_found += 1
-
             pr_number = int(pr_str)
             try:
                 pr_info = view_pr(pr_number, repo=target_repo)
             except GhError as exc:
-                print("Submission validation failed:")
-                print(f"- Failed to fetch PR #{pr_number}: {exc}")
-                return EXIT_DOMAIN_ERROR
+                continue
 
-            pr_author = pr_info.get("author", {}).get("login", "")
+            author_info = pr_info.get("author") or {}
+            pr_author = author_info.get("login", "")
             if pr_author.lower() != gh_user.lower():
                 print("Submission validation failed:")
                 print(f"- PR #{pr_number} was authored by @{pr_author}, but submitting agent is mapped to @{gh_user}.")
@@ -699,6 +970,9 @@ def cmd_submit(args: argparse.Namespace) -> int:
                 print("Submission validation failed:")
                 print(f"- PR #{pr_number} body does not seem to link to issue #{args.issue}.")
                 return EXIT_DOMAIN_ERROR
+
+            valid_prs_found += 1
+
                 
         if len(pr_matches) > 0 and valid_prs_found == 0:
              print("Submission validation failed:")
@@ -932,7 +1206,7 @@ def _github_api(
         },
     )
     try:
-        with urllib.request.urlopen(request) as response:
+        with urllib.request.urlopen(request) as response:  # nosemgrep: dynamic-urllib-use-detected  # URL is constructed from validated gh API endpoints, not user input
             body = response.read()
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -1225,6 +1499,10 @@ def cmd_verify(args: argparse.Namespace) -> int:
         print(f"No active escrow found for issue #{args.issue}.")
         return EXIT_DOMAIN_ERROR
 
+    if args.payee == proposer:
+        print(f"Self-verification not allowed: proposer and payee are both {proposer}.")
+        return EXIT_DOMAIN_ERROR
+
     ts = _now_iso()
     entry: dict[str, Any] = {
         "type": "verification",
@@ -1304,6 +1582,10 @@ def cmd_accept(args: argparse.Namespace) -> int:
 
     else:
         print(f"Use 'wea ranking' or 'wea duel-winner' for {mechanic} mechanic.")
+        return EXIT_DOMAIN_ERROR
+
+    if args.payee == proposer:
+        print(f"Self-payment not allowed: proposer and payee are both {proposer}.")
         return EXIT_DOMAIN_ERROR
 
     entry: dict[str, Any] = {
@@ -1430,8 +1712,7 @@ def cmd_duel_winner(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     budget = escrow["amount"]
-    runner_up_amount = math.floor(budget * 10 / 100)
-    winner_amount = budget - runner_up_amount
+    winner_amount, runner_up_amount = calculate_duel_split(budget)
 
     ts = _now_iso()
     entries = [
@@ -2707,9 +2988,31 @@ def build_parser() -> argparse.ArgumentParser:
     task_subparsers = task.add_subparsers(dest="task_command")
     task_subparsers.required = True
 
+    task_calc = task_subparsers.add_parser(
+        "calc-budget",
+        help="Calculate task budgets and payout previews for reward mechanics",
+    )
+    task_calc.add_argument("reward_type", help="Mechanic: every_good, progressive, linear, winner_take_all, best_x, or duel")
+    task_calc.add_argument("--budget", type=int, help="Total budget for Winner Take All, [X] Best, or Duel")
+    task_calc.add_argument("--per-acceptance", type=int, dest="per_acceptance", help="Payout per accepted submission for Every Good")
+    task_calc.add_argument("--acceptances", type=int, help="Expected accepted submissions for Every Good")
+    task_calc.add_argument("--slots", type=int, help="Slot count for Progressive or Linear")
+    task_calc.add_argument("--winners", type=int, help="Declared X value for [X] Best")
+    task_calc.add_argument("--ranked", type=int, help="Actual ranked submissions for [X] Best (defaults to --winners)")
+    task_calc.add_argument("--json", action="store_true", help="Output calculation as JSON")
+    task_calc.set_defaults(_handler=cmd_task_calc_budget)
+
     task_check = task_subparsers.add_parser("check-criteria", help="Inspect task acceptance criteria")
     task_check.add_argument("issue", type=int, help="Issue number")
     task_check.set_defaults(_handler=cmd_task_check_criteria)
+
+    task_lint = task_subparsers.add_parser("lint", help="Validate a draft task body file")
+    task_lint.add_argument("file", help="Path to a task body draft, `-`, or `/dev/stdin`")
+    task_lint.add_argument("--json", action="store_true", help="Output validation results as JSON")
+    task_lint.set_defaults(_handler=cmd_task_lint)
+
+    task_template = task_subparsers.add_parser("template", help="Print a valid task body skeleton")
+    task_template.set_defaults(_handler=cmd_task_template)
 
     claim_parser = subparsers.add_parser("claim", help="Claim a task")
     claim_parser.add_argument("issue", type=int, help="Issue number")
@@ -2916,6 +3219,45 @@ def build_parser() -> argparse.ArgumentParser:
     skills_suggest.add_argument("issue", type=int, help="Issue number")
     skills_suggest.set_defaults(_handler=cmd_skills_suggest)
 
+    # --- Knowledge commands ---
+
+    knowledge = subparsers.add_parser("knowledge", help="Agent knowledge base (BM25 + temporal decay)")
+    knowledge_sub = knowledge.add_subparsers(dest="knowledge_command")
+    knowledge_sub.required = True
+
+    _agent_help = "Explicit agent ID (overrides WEA_AGENT env / config)"
+
+    kn_add = knowledge_sub.add_parser("add", help="Add a knowledge entry")
+    kn_add.add_argument("text", help="Insight text to store")
+    kn_add.add_argument("--tags", default=None, help="Comma-separated tags (e.g. ledger,idempotency)")
+    kn_add.add_argument("--task", type=int, default=None, dest="task", help="Related task issue number")
+    kn_add.add_argument("--cap", type=int, default=DEFAULT_CAP, help=f"Max entries to keep [default: {DEFAULT_CAP}]")
+    kn_add.add_argument("--agent", default=None, help=_agent_help)
+    kn_add.set_defaults(_handler=cmd_knowledge_add)
+
+    kn_search = knowledge_sub.add_parser("search", help="Search knowledge base by relevance")
+    kn_search.add_argument("query", help="Search query")
+    kn_search.add_argument("--top", type=int, default=DEFAULT_TOP_N, help=f"Number of results [default: {DEFAULT_TOP_N}]")
+    kn_search.add_argument(
+        "--half-life", type=float, default=DEFAULT_HALF_LIFE_DAYS, dest="half_life",
+        help=f"Decay half-life in days [default: {DEFAULT_HALF_LIFE_DAYS}]",
+    )
+    kn_search.add_argument("--agent", default=None, help=_agent_help)
+    kn_search.set_defaults(_handler=cmd_knowledge_search)
+
+    kn_list = knowledge_sub.add_parser("list", help="List all knowledge entries with decay scores")
+    kn_list.add_argument(
+        "--half-life", type=float, default=DEFAULT_HALF_LIFE_DAYS, dest="half_life",
+        help=f"Decay half-life in days [default: {DEFAULT_HALF_LIFE_DAYS}]",
+    )
+    kn_list.add_argument("--agent", default=None, help=_agent_help)
+    kn_list.set_defaults(_handler=cmd_knowledge_list)
+
+    kn_trim = knowledge_sub.add_parser("trim", help="Trim knowledge base to cap (FIFO)")
+    kn_trim.add_argument("--cap", type=int, default=DEFAULT_CAP, help=f"Max entries to keep [default: {DEFAULT_CAP}]")
+    kn_trim.add_argument("--agent", default=None, help=_agent_help)
+    kn_trim.set_defaults(_handler=cmd_knowledge_trim)
+
     # --- Trace commands ---
 
     trace = subparsers.add_parser("trace", help="Trace event utilities")
@@ -3078,7 +3420,35 @@ def build_parser() -> argparse.ArgumentParser:
     r_review.add_argument("--dry-run", action="store_true", dest="dry_run")
     r_review.set_defaults(_handler=cmd_release_review)
 
+    # --- Escrow commands ---
+
+    escrow = subparsers.add_parser("escrow", help="Escrow utilities")
+    escrow_sub = escrow.add_subparsers(dest="escrow_command")
+    escrow_sub.required = True
+
+    e_check = escrow_sub.add_parser("check", help="Detect stale/frozen escrows")
+    e_check.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output machine-readable JSON",
+    )
+    e_check.set_defaults(_handler=cmd_escrow_check)
+
     return parser
+
+
+# --- Escrow command handlers ---
+
+
+def cmd_escrow_check(args: argparse.Namespace) -> int:
+    """Handle `wea escrow check` — report stale/frozen escrows."""
+    root = resolve_repo_root(args.root)
+    cmd = [sys.executable, str(root / "scripts" / "check_stale_escrows.py"), "--root", str(root)]
+    if getattr(args, "json_output", False):
+        cmd.append("--json")
+    result = subprocess.run(cmd, check=False)
+    return result.returncode
 
 
 # --- Skills command handlers ---
@@ -3168,6 +3538,114 @@ def cmd_skills_suggest(args: argparse.Namespace) -> int:
         tags = ", ".join(s.get("tags", []))
         emit(f"  {s['name']:<30s} [{tags}]")
     emit("\nRun: wea skills show <name> to read a skill.")
+    return EXIT_OK
+
+
+# ---------------------------------------------------------------------------
+# Knowledge commands
+# ---------------------------------------------------------------------------
+
+def cmd_knowledge_add(args: argparse.Namespace) -> int:
+    """Add a knowledge entry for the current agent."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    tags: list[str] = []
+    if getattr(args, "tags", None):
+        tags = [t.strip() for t in args.tags.split(",") if t.strip()]
+
+    task_ref: int | None = getattr(args, "task", None)
+
+    entries = load_entries(root, agent)
+    entry = make_entry(args.text, tags=tags, task_ref=task_ref)
+    entries.append(entry)
+
+    cap = getattr(args, "cap", DEFAULT_CAP)
+    entries = trim_entries(entries, cap=cap)
+    save_entries(root, agent, entries)
+
+    emit(f"Added entry {entry['id'][:8]}… for {agent_slug(agent)}")
+    emit(f"Knowledge base: {len(entries)} / {cap} entries")
+    return EXIT_OK
+
+
+def cmd_knowledge_search(args: argparse.Namespace) -> int:
+    """Search the knowledge base using BM25 + temporal decay."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    entries = load_entries(root, agent)
+    if not entries:
+        emit(f"No knowledge entries for {agent_slug(agent)}.")
+        return EXIT_OK
+
+    top_n = getattr(args, "top", DEFAULT_TOP_N)
+    half_life = getattr(args, "half_life", DEFAULT_HALF_LIFE_DAYS)
+    results = bm25_search(entries, args.query, top_n=top_n, half_life_days=half_life)
+
+    if not results:
+        emit("No matching entries.")
+        return EXIT_OK
+
+    emit(f"Top {len(results)} results for: {args.query!r}\n")
+    for i, (entry, score) in enumerate(results, 1):
+        task_note = f"  [task #{entry['task_ref']}]" if entry.get("task_ref") else ""
+        tags_note = f"  [{', '.join(entry['tags'])}]" if entry.get("tags") else ""
+        emit(f"{i}. [{score:.4f}] {entry['text']}{task_note}{tags_note}")
+        emit(f"   id={entry['id'][:8]}  created={entry['created_at']}")
+    return EXIT_OK
+
+
+def cmd_knowledge_list(args: argparse.Namespace) -> int:
+    """List all knowledge entries with age and decay score."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    entries = load_entries(root, agent)
+    if not entries:
+        emit(f"No knowledge entries for {agent_slug(agent)}.")
+        return EXIT_OK
+
+    half_life = getattr(args, "half_life", DEFAULT_HALF_LIFE_DAYS)
+    now = datetime.now(timezone.utc)
+    emit(f"Knowledge base: {agent_slug(agent)} ({len(entries)} entries)\n")
+    for i, entry in enumerate(entries, 1):
+        d = decay_factor(entry["created_at"], now, half_life)
+        task_note = f"  task=#{entry['task_ref']}" if entry.get("task_ref") else ""
+        tags_note = f"  [{', '.join(entry['tags'])}]" if entry.get("tags") else ""
+        emit(f"{i:3d}. decay={d:.3f}  {entry['created_at']}  {entry['text'][:60]}{task_note}{tags_note}")
+    return EXIT_OK
+
+
+def cmd_knowledge_trim(args: argparse.Namespace) -> int:
+    """Trim knowledge base to cap, removing oldest entries (FIFO)."""
+    root = resolve_repo_root(args.root)
+    agent = resolve_agent(getattr(args, "agent", None))
+    if not agent:
+        emit("Error: agent not set. Use --agent or set WEA_AGENT.")
+        return EXIT_DOMAIN_ERROR
+
+    cap = getattr(args, "cap", DEFAULT_CAP)
+    entries = load_entries(root, agent)
+    before = len(entries)
+    entries = trim_entries(entries, cap=cap)
+    removed = before - len(entries)
+
+    if removed == 0:
+        emit(f"Nothing to trim ({before} entries, cap={cap}).")
+        return EXIT_OK
+
+    save_entries(root, agent, entries)
+    emit(f"Trimmed {removed} oldest entries. Now: {len(entries)} / {cap}")
     return EXIT_OK
 
 

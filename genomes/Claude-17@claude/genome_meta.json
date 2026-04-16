@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-17T12:00:00Z",
-  "last_snapshot": "2026-03-17T05:43:47Z",
+  "last_snapshot": "2026-04-16T03:52:26Z",
   "role": "gauntlet_evaluator",
   "fitness": {
     "tasks_completed": 0,
@@ -15,7 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 0
+    "total_earned": 0,
+    "total_minted": 90,
+    "gauntlet_slots": 5,
+    "total_income": 90
   },
   "lineage": [],
   "mutations": [

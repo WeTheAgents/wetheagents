@@ -105,25 +105,22 @@ def test_claim_no_criteria_at_threshold_blocked(
     assert "issue" not in posted
     out = capsys.readouterr().out
     assert "Warning" in out
-    assert "no parseable acceptance criteria" in out
+    assert "invalid or missing acceptance criteria" in out
     assert "--force" in out
 
 
 def test_claim_force_bypasses_criteria_gate(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Task with no criteria and high reward but --force — warning shown, claim proceeds."""
+    """Task with no criteria and high reward but --force — blocked."""
     monkeypatch.setattr(cli, "view_issue", lambda issue, repo: {"number": issue, "body": _BODY_NO_CRITERIA_HIGH_REWARD})
     posted: dict[str, object] = {}
     monkeypatch.setattr(cli, "post_issue_comment", lambda issue, body, *, repo: posted.update({"issue": issue}))
 
     rc = cli.cmd_claim(_args(force=True))
 
-    assert rc == cli.EXIT_OK
-    assert posted.get("issue") == 100
-    out = capsys.readouterr().out
-    assert "Warning" in out
-    assert "Use --force" not in out
+    assert rc == cli.EXIT_DOMAIN_ERROR
+    assert "strictly require valid acceptance criteria. --force is not allowed" in capsys.readouterr().out
 
 
 def test_claim_malformed_body_no_crash(
@@ -141,26 +138,25 @@ def test_claim_malformed_body_no_crash(
     assert rc == cli.EXIT_OK
 
 
-def test_claim_empty_must_warns_but_does_not_block(
+def test_claim_empty_must_blocks_at_threshold(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """MUST: item with empty verifiable text — warning shown but claim is not blocked."""
+    """MUST: item with empty verifiable text — claim is blocked for >= 10 WEA."""
     empty_must = AcceptanceCriterion(requirement="must", text="", is_manual=False, raw="")
-    fake_check = AcceptanceCriteriaCheck(source="structured", criteria=(empty_must,), errors=())
+    fake_check = AcceptanceCriteriaCheck(source="structured", criteria=(empty_must,), errors=("Acceptance criteria must not have empty descriptions.",))
     monkeypatch.setattr(
         cli, "_load_acceptance_criteria_check",
-        lambda issue, repo: ({"number": issue, "body": ""}, fake_check, None),
+        lambda issue, repo: ({"number": issue, "body": _BODY_NO_CRITERIA_HIGH_REWARD}, fake_check, None),
     )
     posted: dict[str, object] = {}
     monkeypatch.setattr(cli, "post_issue_comment", lambda issue, body, *, repo: posted.update({"issue": issue}))
 
     rc = cli.cmd_claim(_args())
 
-    assert rc == cli.EXIT_OK
-    assert posted.get("issue") == 100
+    assert rc == cli.EXIT_DOMAIN_ERROR
+    assert "issue" not in posted
     out = capsys.readouterr().out
     assert "Warning" in out
-    assert "no verifiable content" in out
 
 
 def test_claim_parser_supports_force_flag() -> None:

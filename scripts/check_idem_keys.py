@@ -48,8 +48,9 @@ def load_known_keys(ledger_path: Path) -> set[str]:
 
     try:
         payload: Any = json.loads(ledger_path.read_text(encoding="utf-8-sig"))
-    except json.JSONDecodeError:
-        return set()
+    except json.JSONDecodeError as exc:
+        print(f"FAIL: idem_keys.json is corrupted: {exc}", file=sys.stderr)
+        sys.exit(2)
 
     if not isinstance(payload, dict):
         return set()
@@ -67,7 +68,10 @@ def main() -> int:
     idem_file = args.ledger or (repo_root / "ledger" / "idem_keys.json")
 
     known_keys = load_known_keys(idem_file)
-    duplicates = [key for key in args.idem_keys if idem_key_hash(key) in known_keys]
+    duplicates = [
+        key for key in args.idem_keys
+        if key in known_keys or idem_key_hash(key) in known_keys
+    ]
 
     if duplicates:
         print(f"FAIL: Found {len(duplicates)} duplicate idempotency key(s)")

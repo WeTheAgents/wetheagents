@@ -620,3 +620,109 @@ class NBMForecaster(Forecaster):
                 percentiles=pctls,
             )
         return self.predict(forecast_temp, station, month)
+
+
+class MultiModelForecaster(Forecaster):
+    """Day-specific empirical CDF from pooled multi-model ensemble members.
+
+    International equivalent of NBMForecaster.  Instead of NOAA NBM
+    percentiles (CONUS-only), uses ~179 members from 6 global models
+    (ECMWF IFS, GEFS, ICON, GEM, UKMO, BOM) fetched via Open-Meteo.
+
+    When multi-model members are available (via context dict), uses:
+      - mu = P50 of pooled members
+      - sigma = (P90-P10) / 2.56
+      - distribution = "empirical" with computed percentile dict
+        -> bracket_builder uses PchipInterpolator CDF
+
+    Fallback (no live data): historical sigma per (city, month)
+    learned from Open-Meteo Archive observations.
+    """
+
+    name = "MultiModel"
+
+    def __init__(self, sigma_bounds: tuple[float, float] = (0.5, 15.0)) -> None:
+        self._sigma_bounds = sigma_bounds
+        self._fallback_sigma: dict[tuple[str, int], float] = {}
+        self._global_sigma: float = 3.5
+
+    def fit(self, train_df: pd.DataFrame) -> None:
+        """Learn fallback sigma from historical obs (CRPSigma-style).
+
+        train_df must have: station (city slug), forecast_high, observed_high,
+        month.  For international cities, forecast_high = ensemble mean and
+        observed_high = ERA5 daily max from Open-Meteo Archive.
+        """
+        grouped = train_df.groupby(["station", "month"])
+        for (station, month), group in grouped:
+            if len(group) < MIN_SAMPLES:
+                continue
+            forecasts = group["forecast_high"].values.astype(float)
+            observed = group["observed_high"].values.astype(float)
+            mask = np.isfinite(forecasts) & np.isfinite(observed)
+            if mask.sum() < MIN_SAMPLES:
+                continue
+
+            f, o = forecasts[mask], observed[mask]
+
+            def objective(sigma: float) -> float:
+                return crps_gaussian(o, f, np.full_like(o, sigma)).mean()
+
+            result = optimize.minimize_scalar(
+                objective, bounds=self._sigma_bounds, method="bounded",
+            )
+            if result.success:
+                self._fallback_sigma[(station, int(month))] = max(result.x, MIN_SIGMA)
+
+        # Global fallback
+        f_all = train_df["forecast_high"].values.astype(float)
+        o_all = train_df["observed_high"].values.astype(float)
+        mask = np.isfinite(f_all) & np.isfinite(o_all)
+        if mask.sum() >= MIN_SAMPLES:
+
+            def obj_global(sigma: float) -> float:
+                return crps_gaussian(
+                    o_all[mask], f_all[mask], np.full(mask.sum(), sigma)
+                ).mean()
+
+            result = optimize.minimize_scalar(
+                obj_global, bounds=self._sigma_bounds, method="bounded",
+            )
+            if result.success:
+                self._global_sigma = max(result.x, MIN_SIGMA)
+
+    def predict(
+        self, forecast_temp: float, station: str, month: int
+    ) -> CalibratedForecast:
+        """Fallback prediction (no multi-model context)."""
+        sigma = self._fallback_sigma.get((station, month), self._global_sigma)
+        return CalibratedForecast(
+            mu=forecast_temp, sigma=sigma, method=self.name,
+            station=station, month=month,
+        )
+
+    def predict_day(
+        self,
+        forecast_temp: float,
+        station: str,
+        month: int,
+        forecast_date: date | None = None,
+        context: dict | None = None,
+    ) -> CalibratedForecast:
+        """Day-specific prediction using pooled multi-model members."""
+        if context and "multimodel_members" in context:
+            members = np.array(context["multimodel_members"])
+            if len(members) >= 3:
+                pctls = {
+                    p: float(np.percentile(members, p))
+                    for p in [1, 5, 10, 25, 50, 75, 90, 95, 99]
+                }
+                mu = pctls[50]
+                sigma = max((pctls[90] - pctls[10]) / 2.56, MIN_SIGMA)
+                return CalibratedForecast(
+                    mu=mu, sigma=sigma, method=self.name,
+                    station=station, month=month,
+                    distribution="empirical",
+                    percentiles=pctls,
+                )
+        return self.predict(forecast_temp, station, month)

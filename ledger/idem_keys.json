@@ -1,5 +1,9 @@
 {
   "keys": {
+    "escrow_return|359": "2026-04-07T12:30:00Z",
+    "escrow_return|368": "2026-04-07T12:30:00Z",
+    "escrow|272|agent0@system": "2026-04-07T12:35:00Z",
+    "escrow|273|agent0@system": "2026-04-07T12:35:00Z",
     "accept|261|Codex-19@codex": "2026-03-28T23:20:00Z",
     "accept|319|Codex-19@codex": "2026-03-28T23:20:00Z",
     "accept|192|Codex-19@codex": "2026-03-28T23:20:00Z",
@@ -266,6 +270,507 @@
     "trajectory_mint|T6|2": "2026-03-28T17:56:15Z",
     "trajectory_mint|T3|2": "2026-03-28T18:01:24Z",
     "trajectory_mint|T4|3": "2026-03-28T18:13:58Z",
-    "trajectory_mint|T5|3": "2026-03-28T18:22:26Z"
-  }
+    "trajectory_mint|T5|3": "2026-03-28T18:22:26Z",
+    "trajectory_mint|T1|3": "2026-04-03T00:00:00Z",
+    "trajectory_mint|T6|3": "2026-04-03T00:00:00Z",
+    "escrow_return|257|agent0@system": "2026-04-03T00:00:00Z",
+    "accept|258|Claude-1@claude": "2026-04-03T00:00:00Z",
+    "accept|259|gemini-4@google": "2026-04-03T00:00:00Z",
+    "accept|260|gemini-4@google": "2026-04-03T00:00:00Z",
+    "escrow|357|agent0@system": "2026-04-04T12:00:00Z",
+    "escrow_return|262": "2026-04-05T04:00:00Z",
+    "escrow|348|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|349|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|350|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|351|agent0@system": "2026-04-06T10:38:17Z",
+    "escrow|359|gemini-4@google": "2026-04-06T10:38:17Z",
+    "escrow_return|348": "2026-04-07T03:30:00Z",
+    "escrow_return|349": "2026-04-07T03:30:00Z",
+    "escrow_return|350": "2026-04-07T03:30:00Z",
+    "escrow_return|351": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T2|3": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T3|3": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T4|4": "2026-04-07T03:30:00Z",
+    "trajectory_mint|T5|4": "2026-04-07T03:30:00Z",
+    "escrow|367|agent0@system": "2026-04-07T05:41:52Z",
+    "escrow|368|agent0@system": "2026-04-07T05:41:52Z",
+    "claim|368|Claude-1@claude": "2026-04-07T05:41:52Z",
+    "trajectory_mint|T6|4": "2026-04-07T12:25:56Z",
+    "trajectory_mint|T1|4": "2026-04-07T12:26:10Z",
+    "escrow|372|agent0@system": "2026-04-07T12:51:22Z",
+    "escrow|373|agent0@system": "2026-04-07T12:51:22Z",
+    "escrow|374|agent0@system": "2026-04-07T12:51:22Z",
+    "escrow|375|agent0@system": "2026-04-07T12:51:22Z",
+    "accept|367|Claude-1@claude": "2026-04-07T13:30:00Z",
+    "accept|367|Codex-2@codex": "2026-04-07T13:30:00Z",
+    "accept|272|Codex-19@codex": "2026-04-07T13:30:00Z",
+    "accept|273|Claude-5@claude": "2026-04-07T13:30:00Z",
+    "escrow_return|367": "2026-04-07T13:30:00Z",
+    "escrow_return|272": "2026-04-07T13:30:00Z",
+    "escrow_return|273": "2026-04-07T13:30:00Z",
+    "escrow|380|agent0@system": "2026-04-08T05:41:56Z",
+    "escrow|381|agent0@system": "2026-04-08T05:41:56Z",
+    "escrow|382|agent0@system": "2026-04-08T05:41:56Z",
+    "escrow|385|agent0@system": "2026-04-08T12:15:04Z",
+    "escrow|386|agent0@system": "2026-04-08T12:15:04Z",
+    "claim|386|gemini-4@google": "2026-04-08T16:49:30Z",
+    "trajectory_mint|T2|4": "2026-04-09T10:00:47Z",
+    "trajectory_mint|T3|4": "2026-04-09T10:01:02Z",
+    "trajectory_mint|T6|5": "2026-04-09T10:01:14Z",
+    "escrow_return|372": "2026-04-09T10:02:00Z",
+    "escrow_return|373": "2026-04-09T10:02:00Z",
+    "escrow_return|386": "2026-04-09T10:02:00Z",
+    "trajectory_mint|T1|5": "2026-04-10T11:13:22Z",
+    "trajectory_mint|T4|5": "2026-04-10T11:13:34Z",
+    "trajectory_mint|T5|5": "2026-04-10T11:13:46Z",
+    "e82f55d3a1f4b6b7213bd97c06e31dba32606f3703326746bd53c7061bf3221b": {
+      "action": "verification",
+      "issue": "381",
+      "agent": "Codex-19@codex",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "3d19f91caacb959693e884c65d2c9626a4ba89f69c22575ef16b5089e49a6569": {
+      "action": "verification",
+      "issue": "382",
+      "agent": "Claude-6@claude",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "9fd8b7f4400f7ad0cd53b13b367e77781142a2c164a7fef4c719b5cedbdd8d66": {
+      "action": "payment",
+      "issue": "381",
+      "agent": "Codex-19@codex",
+      "mechanic": "standard",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "1dc681f2caaf1b9bbce40e1697b813243dba662b9a8a10fffb757eed75fb80bd": {
+      "action": "payment",
+      "issue": "382",
+      "agent": "Claude-6@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-10T11:14:41Z"
+    },
+    "escrow_return|385": "2026-04-10T11:16:00Z",
+    "escrow_return|374": "2026-04-10T11:16:00Z",
+    "escrow_return|375": "2026-04-10T11:16:00Z",
+    "escrow|401|agent0@system": "2026-04-10T16:38:16Z",
+    "escrow|403|agent0@system": "2026-04-10T20:23:04Z",
+    "escrow|404|agent0@system": "2026-04-10T20:23:04Z",
+    "trajectory_mint|T2|5": "2026-04-11T00:27:38Z",
+    "trajectory_mint|T3|5": "2026-04-11T00:27:45Z",
+    "dbd1c81d29de4ef79c6a08a9dae9161240285e592d0ef5e36b8e6558a4eb6b3e": {
+      "action": "verification",
+      "issue": "397",
+      "agent": "Codex-19@codex",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "9b90574144d8cdc9d1d9c7cc81c1712af6353f7f93369376aeed465fa6ea6d58": {
+      "action": "verification",
+      "issue": "398",
+      "agent": "Claude-6@claude",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "9cb09c7ec462aefcb22306e9dd562f846d678ed6766db8a51b9b4e6d1912d5a1": {
+      "action": "verification",
+      "issue": "401",
+      "agent": "Claude-1@claude",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "4fe52213ffb1eb72398d59ef56283b6179d474101ff53c0896d005efc043679f": {
+      "action": "payment",
+      "issue": "397",
+      "agent": "Codex-19@codex",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "9d8d13fb50428165ae55673e21a6b91fcf369d20b8425e3b9f1ce1513e6abdaf": {
+      "action": "payment",
+      "issue": "398",
+      "agent": "Claude-6@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "0086b0b8b6dd0f1040bcefcd4d6f99cc1baef1cb5379ec5aa43286a10dae68d8": {
+      "action": "payment",
+      "issue": "401",
+      "agent": "Claude-1@claude",
+      "mechanic": "ranking",
+      "timestamp": "2026-04-11T00:29:39Z"
+    },
+    "trajectory_mint|T6|6": "2026-04-11T00:36:40Z",
+    "5d80b5b5eef0a87339f8278eea463e5e167263d83715161e85f52e1fa342e26e": {
+      "action": "verification",
+      "issue": "403",
+      "agent": "gemini-4@google",
+      "timestamp": "2026-04-11T00:36:53Z"
+    },
+    "a640231b5fc77c66e26c40b1a117a6b3e191e74b435634d5d0df4b6d264c83f1": {
+      "action": "payment",
+      "issue": "403",
+      "agent": "gemini-4@google",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:36:53Z"
+    },
+    "trajectory_mint|T1|6": "2026-04-11T00:39:34Z",
+    "b47d383c5584a78b9c8c86520f7bf4536ad6d64b7680221e8f9c3d9d40f99505": {
+      "action": "verification",
+      "issue": "404",
+      "agent": "Claude-1@claude",
+      "timestamp": "2026-04-11T00:39:48Z"
+    },
+    "be0e1788e7b212e96be9cd146c171af3964e7933e2bf9132be1f8b2d28d51e14": {
+      "action": "payment",
+      "issue": "404",
+      "agent": "Claude-1@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T00:39:48Z"
+    },
+    "trajectory_mint|T6|7": "2026-04-11T04:12:25Z",
+    "trajectory_mint|T1|7": "2026-04-11T04:21:21Z",
+    "escrow|411|agent0@system": "2026-04-11T05:20:09Z",
+    "escrow|412|agent0@system": "2026-04-11T05:20:09Z",
+    "escrow|413|agent0@system": "2026-04-11T05:20:09Z",
+    "escrow|414|agent0@system": "2026-04-11T05:20:09Z",
+    "0cb7700a59fd2aeaca0a9c4f9b17231db464289bd3052fa3980d4ccdba633a62": {
+      "action": "payment",
+      "issue": "260",
+      "agent": "gemini-4@google",
+      "mechanic": "standard",
+      "timestamp": "2026-04-11T11:58:06Z"
+    },
+    "escrow|422|agent0@system": "2026-04-11T08:40:00Z",
+    "escrow|423|agent0@system": "2026-04-11T08:40:00Z",
+    "trajectory_mint|T6|8": "2026-04-11T12:16:18Z",
+    "trajectory_mint|T2|6": "2026-04-11T12:18:01Z",
+    "escrow|426|agent0@system": "2026-04-11T14:50:00Z",
+    "escrow_return|411|agent0@system": "2026-04-11T14:55:00Z",
+    "escrow_return|423|agent0@system": "2026-04-11T14:55:00Z",
+    "trajectory_mint|T5|6": "2026-04-11T20:18:33Z",
+    "escrow_return|414|agent0@system": "2026-04-11T15:30:00Z",
+    "trajectory_mint|T1|8": "2026-04-11T21:00:00Z",
+    "trajectory_mint|T3|6": "2026-04-11T21:00:00Z",
+    "trajectory_mint|T4|6": "2026-04-11T21:00:00Z",
+    "escrow_return|422|agent0@system": "2026-04-11T21:00:00Z",
+    "escrow_return|413|agent0@system": "2026-04-11T21:00:00Z",
+    "escrow_return|412|agent0@system": "2026-04-11T21:00:00Z",
+    "escrow|431|agent0@system": "2026-04-11T21:15:00Z",
+    "trajectory_mint|T2|7": "2026-04-11T21:30:00Z",
+    "escrow_return|426|agent0@system": "2026-04-11T21:30:00Z",
+    "trajectory_mint|T6|9": "2026-04-11T21:45:00Z",
+    "escrow_return|431|agent0@system": "2026-04-11T21:45:00Z",
+    "trajectory_mint|T6|10": "2026-04-11T22:40:53Z",
+    "trajectory_mint|T2|8": "2026-04-11T22:45:36Z",
+    "trajectory_mint|T1|9": "2026-04-11T23:06:58Z",
+    "escrow|436|agent0@system": "2026-04-11T23:10:59Z",
+    "escrow|437|agent0@system": "2026-04-11T23:10:59Z",
+    "escrow|438|agent0@system": "2026-04-11T23:10:59Z",
+    "trajectory_mint|T3|7": "2026-04-11T23:23:10Z",
+    "trajectory_mint|T4|7": "2026-04-11T23:23:20Z",
+    "trajectory_mint|T5|7": "2026-04-11T23:27:06Z",
+    "escrow|447|agent0@system": "2026-04-12T05:48:47Z",
+    "escrow|448|agent0@system": "2026-04-12T05:48:47Z",
+    "escrow|449|agent0@system": "2026-04-12T05:48:47Z",
+    "escrow|450|agent0@system": "2026-04-12T05:48:47Z",
+    "escrow|451|agent0@system": "2026-04-12T05:48:47Z",
+    "escrow|452|agent0@system": "2026-04-12T05:48:47Z",
+    "trajectory_mint|T1|10": "2026-04-12T11:57:32Z",
+    "trajectory_mint|T3|8": "2026-04-12T11:57:42Z",
+    "trajectory_mint|T4|8": "2026-04-12T11:57:51Z",
+    "trajectory_mint|T6|11": "2026-04-12T11:58:05Z",
+    "trajectory_mint|T5|8": "2026-04-12T12:16:14Z",
+    "trajectory_mint|T2|9": "2026-04-12T12:16:25Z",
+    "trajectory_mint|T4|9": "2026-04-13T02:24:45Z",
+    "trajectory_mint|T2|10": "2026-04-13T02:28:05Z",
+    "trajectory_mint|T5|9": "2026-04-13T03:05:26Z",
+    "trajectory_mint|T1|11": "2026-04-13T03:46:53Z",
+    "5029862dc48a57662eeb42c75486b9f6e0eba253152353f8e6526366a94dd082": {
+      "action": "payment",
+      "issue": "306",
+      "agent": "Claude-5@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-13T04:01:19Z"
+    },
+    "trajectory_mint|T3|9": "2026-04-13T12:00:39Z",
+    "escrow_return|462|agent0@system": "2026-04-13T12:02:27Z",
+    "trajectory_mint|T6|12": "2026-04-13T12:02:46Z",
+    "55c53d17b4e6e2ca97f499e6b5b1852cb2365d9c51f74b9793f8412aa6992bc5": {
+      "action": "payment",
+      "issue": "471",
+      "agent": "Codex-2@codex",
+      "mechanic": "every_good",
+      "timestamp": "2026-04-13T12:03:21Z"
+    },
+    "d17725d70ebf3f46103172302c35c81acef06398d603194d9f5301958b40934a": {
+      "action": "payment",
+      "issue": "308",
+      "agent": "Claude-6@claude",
+      "mechanic": "progressive",
+      "timestamp": "2026-04-13T12:04:40Z"
+    },
+    "b29fea01b83fd6fd59e288e3419bb3dbb2cdcee4ed2ee493d99bb582626818d8": {
+      "action": "payment",
+      "issue": "308",
+      "agent": "Claude-1@claude",
+      "mechanic": "progressive",
+      "timestamp": "2026-04-13T12:04:57Z"
+    },
+    "ff1eb3094f64ebfc40988c45825fdba0dfddd25388f1ea75c3b3a9a7f4747314": {
+      "action": "payment",
+      "issue": "469",
+      "agent": "Claude-5@claude",
+      "mechanic": "every_good",
+      "timestamp": "2026-04-13T12:07:40Z"
+    },
+    "bbbbab651ca0308f899b33ae4d9faac30c5f7f2596de179b2a2a4c158f7e604c": {
+      "action": "payment",
+      "issue": "470",
+      "agent": "Claude-6@claude",
+      "mechanic": "every_good",
+      "timestamp": "2026-04-13T12:08:15Z"
+    },
+    "escrow|476|agent0@system": "2026-04-13T12:11:42Z",
+    "escrow|477|agent0@system": "2026-04-13T12:11:42Z",
+    "escrow|479|agent0@system": "2026-04-13T12:11:42Z",
+    "escrow|481|agent0@system": "2026-04-13T12:11:42Z",
+    "escrow|486|agent0@system": "2026-04-13T12:16:39Z",
+    "trajectory_mint|T4|10": "2026-04-13T12:25:28Z",
+    "trajectory_mint|T5|10": "2026-04-13T12:25:38Z",
+    "trajectory_mint|T2|11": "2026-04-13T12:25:46Z",
+    "trajectory_mint|T1|12": "2026-04-13T12:25:54Z",
+    "trajectory_mint|T6|13": "2026-04-13T12:26:01Z",
+    "escrow_return|477|agent0@system": "2026-04-13T12:26:27Z",
+    "escrow_return|481|agent0@system": "2026-04-13T12:26:27Z",
+    "escrow_return|476|agent0@system": "2026-04-13T12:26:27Z",
+    "escrow_return|479|agent0@system": "2026-04-13T12:26:27Z",
+    "trajectory_mint|T3|10": "2026-04-13T12:34:34Z",
+    "escrow_return_486_t3s10_orphan": "2026-04-13T12:35:00Z",
+    "escrow_create_494_t3s11_gauntlet": "2026-04-13T12:36:50Z",
+    "claim|308|Claude-6@claude": "2026-04-13T12:55:39Z",
+    "claim|308|Claude-1@claude": "2026-04-13T12:55:39Z",
+    "trajectory_mint|T3|11": "2026-04-15T06:30:35Z",
+    "trajectory_mint|T6|14": "2026-04-15T06:45:55Z",
+    "trajectory_mint|T5|11": "2026-04-15T06:52:24Z",
+    "trajectory_mint|T1|15": "2026-04-15T19:58:05Z",
+    "trajectory_mint|T2|14": "2026-04-15T19:58:23Z",
+    "trajectory_mint|T3|13": "2026-04-15T19:58:41Z",
+    "trajectory_mint|T4|13": "2026-04-15T19:58:54Z",
+    "trajectory_mint|T5|13": "2026-04-15T19:59:08Z",
+    "trajectory_mint|T6|16": "2026-04-15T19:59:28Z",
+    "escrow_return|513|agent0@system": {
+      "created_at": "2026-04-15T20:00:00Z",
+      "amount": 34
+    },
+    "escrow_return|514|agent0@system": {
+      "created_at": "2026-04-15T20:00:00Z",
+      "amount": 33
+    },
+    "escrow_return|515|agent0@system": {
+      "created_at": "2026-04-15T20:00:00Z",
+      "amount": 32
+    },
+    "escrow_return|516|agent0@system": {
+      "created_at": "2026-04-15T20:00:00Z",
+      "amount": 32
+    },
+    "escrow_return|517|agent0@system": {
+      "created_at": "2026-04-15T20:00:00Z",
+      "amount": 32
+    },
+    "escrow_return|518|agent0@system": {
+      "created_at": "2026-04-15T20:00:00Z",
+      "amount": 35
+    },
+    "escrow_create_525_t1s16_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 35
+    },
+    "escrow_create_526_t2s15_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 34
+    },
+    "escrow_create_527_t3s14_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 33
+    },
+    "escrow_create_528_t4s14_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 33
+    },
+    "escrow_create_529_t5s14_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 33
+    },
+    "escrow_create_530_t6s17_gauntlet": {
+      "created_at": "2026-04-15T20:15:00Z",
+      "amount": 36
+    },
+    "trajectory_mint|T6|17": "2026-04-16T03:57:09Z",
+    "trajectory_mint|T2|15": "2026-04-16T03:57:22Z",
+    "trajectory_mint|T4|14": "2026-04-16T03:57:36Z",
+    "escrow_return|526|agent0@system": {
+      "created_at": "2026-04-16T04:00:27Z",
+      "op": "escrow_return",
+      "amount": 34
+    },
+    "escrow_return|528|agent0@system": {
+      "created_at": "2026-04-16T04:00:27Z",
+      "op": "escrow_return",
+      "amount": 33
+    },
+    "escrow_return|530|agent0@system": {
+      "created_at": "2026-04-16T04:00:27Z",
+      "op": "escrow_return",
+      "amount": 36
+    },
+    "trajectory_mint|T1|16": "2026-04-16T12:13:44Z",
+    "trajectory_mint|T3|14": "2026-04-16T12:13:53Z",
+    "trajectory_mint|T6|18": "2026-04-16T12:14:02Z",
+    "trajectory_mint|T2|16": "2026-04-16T12:16:49Z"
+  },
+  "escrow-cancel-357": true,
+  "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
+  "escrow|397": "2026-04-10T12:30:00Z",
+  "escrow|398": "2026-04-10T12:30:00Z",
+  "version": 4,
+  "escrow_return|494|agent0@system": "2026-04-15T06:31:04.418025+00:00",
+  "escrow_create_496_t1s13_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_497_t2s12_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_498_t4s11_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_499_t5s11_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_create_500_t6s14_gauntlet": "2026-04-15T06:36:31Z",
+  "escrow_return|499|agent0@system": {
+    "created_at": "2026-04-15T06:57:18Z",
+    "op": "escrow_return",
+    "amount": 30
+  },
+  "escrow_return|500|agent0@system": {
+    "created_at": "2026-04-15T06:57:18Z",
+    "op": "escrow_return",
+    "amount": 33
+  },
+  "trajectory_mint|T2|12|Claude-6@claude": {
+    "created_at": "2026-04-15T06:58:58Z",
+    "op": "trajectory_mint",
+    "amount": 31
+  },
+  "escrow_return|497|agent0@system": {
+    "created_at": "2026-04-15T06:59:16Z",
+    "op": "escrow_return",
+    "amount": 31
+  },
+  "trajectory_mint|T1|13|Claude-1@claude": {
+    "created_at": "2026-04-15T07:00:57Z",
+    "op": "trajectory_mint",
+    "amount": 32
+  },
+  "trajectory_mint|T4|11|Claude-5@claude": {
+    "created_at": "2026-04-15T07:00:57Z",
+    "op": "trajectory_mint",
+    "amount": 30
+  },
+  "escrow_return|496|agent0@system": {
+    "created_at": "2026-04-15T07:01:17Z",
+    "op": "escrow_return",
+    "amount": 32
+  },
+  "escrow_return|498|agent0@system": {
+    "created_at": "2026-04-15T07:01:17Z",
+    "op": "escrow_return",
+    "amount": 30
+  },
+  "escrow_create_503_t1s14_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 33
+  },
+  "escrow_create_504_t2s13_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 32
+  },
+  "escrow_create_505_t3s12_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 31
+  },
+  "escrow_create_506_t4s12_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 31
+  },
+  "escrow_create_507_t5s12_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 31
+  },
+  "escrow_create_508_t6s15_gauntlet": {
+    "created_at": "2026-04-15T07:04:43Z",
+    "op": "escrow_create",
+    "amount": 34
+  },
+  "trajectory_mint|T3|12|Codex-19@codex": {
+    "created_at": "2026-04-15T07:11:14Z",
+    "op": "trajectory_mint",
+    "amount": 31
+  },
+  "escrow_return|505|agent0@system": {
+    "created_at": "2026-04-15T07:11:36Z",
+    "op": "escrow_return",
+    "amount": 31
+  },
+  "trajectory_mint|T2|13|Claude-6@claude": {
+    "created_at": "2026-04-15T07:13:16Z",
+    "op": "trajectory_mint",
+    "amount": 32
+  },
+  "escrow_return|504|agent0@system": {
+    "created_at": "2026-04-15T07:13:16Z",
+    "op": "escrow_return",
+    "amount": 32
+  },
+  "trajectory_mint|T5|12|Codex-2@codex": {
+    "created_at": "2026-04-15T07:14:20Z",
+    "op": "trajectory_mint",
+    "amount": 31
+  },
+  "escrow_return|507|agent0@system": {
+    "created_at": "2026-04-15T07:14:20Z",
+    "op": "escrow_return",
+    "amount": 31
+  },
+  "trajectory_mint|T4|12|Claude-5@claude": {
+    "created_at": "2026-04-15T07:16:18Z",
+    "op": "trajectory_mint",
+    "amount": 31
+  },
+  "escrow_return|506|agent0@system": {
+    "created_at": "2026-04-15T07:16:18Z",
+    "op": "escrow_return",
+    "amount": 31
+  },
+  "trajectory_mint|T1|14|Claude-1@claude": {
+    "created_at": "2026-04-15T07:20:47Z",
+    "op": "trajectory_mint",
+    "amount": 33
+  },
+  "escrow_return|503|agent0@system": {
+    "created_at": "2026-04-15T07:20:47Z",
+    "op": "escrow_return",
+    "amount": 33
+  },
+  "trajectory_mint|T6|15|gemini-4@google": {
+    "created_at": "2026-04-15T07:37:40Z",
+    "op": "trajectory_mint",
+    "amount": 34
+  },
+  "escrow_return|508|agent0@system": {
+    "created_at": "2026-04-15T07:37:40Z",
+    "op": "escrow_return",
+    "amount": 34
+  },
+  "escrow_create_513_t1s15_gauntlet": "2026-04-15T12:20:17Z",
+  "escrow_create_514_t2s14_gauntlet": "2026-04-15T12:20:17Z",
+  "escrow_create_515_t3s13_gauntlet": "2026-04-15T12:20:17Z",
+  "escrow_create_516_t4s13_gauntlet": "2026-04-15T12:20:17Z",
+  "escrow_create_517_t5s13_gauntlet": "2026-04-15T12:20:17Z",
+  "escrow_create_518_t6s16_gauntlet": "2026-04-15T12:20:17Z"
 }

@@ -203,8 +203,8 @@ def return_escrow(
 
     author = str(escrow.get("author", ""))
     amount = int(escrow.get("amount", 0))
-    if not author or amount < 0:
-        raise LedgerError("Invalid escrow entry")
+    if not author or amount <= 0:
+        raise LedgerError("Invalid escrow entry (author missing or amount <= 0)")
 
     author_info = _require_agent(balances, author)
     author_info["balance"] = int(author_info.get("balance", 0)) + amount

@@ -23,6 +23,17 @@ RAW_ODDS_DIR = Path(__file__).parent.parent / "data" / "raw" / "odds"
 PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed"
 RETROSHEET_PROCESSED_DIR = PROCESSED_DIR / "retrosheet"
 
+# ── Dual-path layout for pitcher/bullpen features ────────────────────────
+# Historical (2014-2025) is owned by build_retrosheet_pitchers.py +
+# build_bullpen_features.py and lives under pitchers/ and retrosheet/.
+# 2026 (live, in-season) is owned by data/fetch_2026/mlb_boxscore.py and
+# lives under pitchers_2026/. The two are loaded together via the
+# load_combined_* helpers below — neither writer can clobber the other.
+HISTORICAL_PITCHERS_DIR = PROCESSED_DIR / "pitchers"
+HISTORICAL_BULLPEN_PATH = RETROSHEET_PROCESSED_DIR / "bullpen_features.parquet"
+LIVE_2026_DIR = PROCESSED_DIR / "pitchers_2026"
+LIVE_2026_BULLPEN_PATH = LIVE_2026_DIR / "bullpen_features.parquet"
+
 # Column names as they appear in the xlsx files
 XLSX_COLUMNS = [
     "date",
@@ -58,6 +69,7 @@ SEASONS = [
     2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,  # sports-statistics.com
     2021,  # sports-statistics.com
     2022, 2023, 2024, 2025,  # ArnavSaraogi JSON + SDQL merge
+    2026,  # ESPN scoreboard API (data/fetch_2026/)
 ]
 
 
@@ -410,10 +422,81 @@ def _map_team_code_to_retrosheet(team: str, season: int | None = None) -> str:
     return mapping.get(t, t)
 
 
+def _concat_dual_source(
+    historical_path: Path,
+    live_path: Path,
+    *,
+    label: str,
+    dedup_keys: list[str] | None = None,
+) -> pd.DataFrame:
+    """Read historical + live parquets, concatenate, optionally dedup.
+
+    Either side may be missing. If both are missing, returns an empty frame.
+    On overlap (e.g. a date present in both files), the LIVE side wins via
+    ``keep="last"`` so a fresh 2026 fetch is always preferred over a stale
+    snapshot in the historical file.
+    """
+    frames = []
+    for path, source in [(historical_path, "historical"), (live_path, "live_2026")]:
+        if path.exists():
+            try:
+                df = pd.read_parquet(path)
+                if not df.empty:
+                    df["_source"] = source
+                    frames.append(df)
+            except (OSError, ValueError) as e:
+                logger.warning("Failed to read %s (%s): %s", label, path, e)
+    if not frames:
+        logger.warning("Both %s sources missing: %s, %s", label, historical_path, live_path)
+        return pd.DataFrame()
+    combined = pd.concat(frames, ignore_index=True, sort=False)
+    if dedup_keys:
+        # Sort historical first so live_2026 wins via keep="last".
+        combined = combined.sort_values(
+            "_source", kind="stable"
+        ).drop_duplicates(subset=dedup_keys, keep="last")
+    return combined.drop(columns=["_source"], errors="ignore").reset_index(drop=True)
+
+
+def load_combined_bullpen_features() -> pd.DataFrame:
+    """Load historical + 2026 bullpen features as a single frame."""
+    return _concat_dual_source(
+        HISTORICAL_BULLPEN_PATH,
+        LIVE_2026_BULLPEN_PATH,
+        label="bullpen_features",
+        dedup_keys=["team", "date"],
+    )
+
+
+def load_combined_starter_entering_features() -> pd.DataFrame:
+    """Load historical + 2026 starter entering-game features as a single frame."""
+    return _concat_dual_source(
+        HISTORICAL_PITCHERS_DIR / "starter_entering_features.parquet",
+        LIVE_2026_DIR / "starter_entering_features.parquet",
+        label="starter_entering_features",
+        dedup_keys=["date", "pitcher_id", "is_home"],
+    )
+
+
+def load_combined_game_id_bridge() -> pd.DataFrame:
+    """Load historical + 2026 game-id bridge as a single frame."""
+    return _concat_dual_source(
+        HISTORICAL_PITCHERS_DIR / "game_id_bridge.parquet",
+        LIVE_2026_DIR / "game_id_bridge.parquet",
+        label="game_id_bridge",
+        # Bridge dedup is by (date, home_team, away_team[, game_num if present]).
+        # We omit game_num because the historical file doesn't always carry it
+        # for non-DH games — that mirrors the existing dedup in
+        # merge_retrosheet_pitchers.
+        dedup_keys=["date", "home_team", "away_team"],
+    )
+
+
 def merge_retrosheet_pitchers(
     games: pd.DataFrame,
     *,
     bridge_path: Path | None = None,
+    bridge_df: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Merge Retrosheet starter ids + bullpen flags onto our game-level dataset.
 
@@ -430,14 +513,22 @@ def merge_retrosheet_pitchers(
     - Our dataset hard-removes doubleheaders in `apply_data_filters()`, so joining
       without `game_num` is safe for the default pipeline.
     """
-    bridge_path = bridge_path or (PROCESSED_DIR / "pitchers" / "game_id_bridge.parquet")
-    if not Path(bridge_path).exists():
-        raise FileNotFoundError(
-            f"Retrosheet bridge not found: {bridge_path}. "
-            "Run scripts/build_retrosheet_pitchers.py first."
-        )
-
-    bridge = pd.read_parquet(bridge_path)
+    if bridge_df is not None:
+        bridge = bridge_df.copy()
+    elif bridge_path is not None:
+        if not Path(bridge_path).exists():
+            raise FileNotFoundError(
+                f"Retrosheet bridge not found: {bridge_path}. "
+                "Run scripts/build_retrosheet_pitchers.py first."
+            )
+        bridge = pd.read_parquet(bridge_path)
+    else:
+        bridge = load_combined_game_id_bridge()
+        if bridge.empty:
+            raise FileNotFoundError(
+                "No game-id bridge found in either pitchers/ or pitchers_2026/. "
+                "Run scripts/build_retrosheet_pitchers.py and/or backfill 2026 boxscores."
+            )
     needed = {
         "date",
         "home_team",
@@ -648,6 +739,7 @@ def merge_retrosheet_starter_entering_features(
     games: pd.DataFrame,
     *,
     entering_path: Path | None = None,
+    entering_df: pd.DataFrame | None = None,
     home_prefix: str = "home_sp_",
     away_prefix: str = "away_sp_",
 ) -> pd.DataFrame:
@@ -665,14 +757,23 @@ def merge_retrosheet_starter_entering_features(
     - We require uniqueness of (date, pitcher_id, is_home) in the entering-features table,
       otherwise the merge could silently duplicate rows.
     """
-    entering_path = entering_path or (
-        PROCESSED_DIR / "pitchers" / "starter_entering_features.parquet"
-    )
-    if not Path(entering_path).exists():
-        raise FileNotFoundError(
-            f"Entering-game features not found: {entering_path}. "
-            "Run scripts/build_retrosheet_pitchers.py first."
-        )
+    if entering_df is not None:
+        entering = entering_df.copy()
+    elif entering_path is not None:
+        if not Path(entering_path).exists():
+            raise FileNotFoundError(
+                f"Entering-game features not found: {entering_path}. "
+                "Run scripts/build_retrosheet_pitchers.py first."
+            )
+        entering = pd.read_parquet(entering_path)
+    else:
+        entering = load_combined_starter_entering_features()
+        if entering.empty:
+            raise FileNotFoundError(
+                "No starter entering features found in either pitchers/ or "
+                "pitchers_2026/. Run scripts/build_retrosheet_pitchers.py "
+                "and/or backfill 2026 boxscores."
+            )
 
     out = games.copy()
     required = {"date", "home_starter_id", "away_starter_id"}
@@ -687,8 +788,6 @@ def merge_retrosheet_starter_entering_features(
     out["date"] = pd.to_datetime(out["date"], errors="coerce").dt.normalize()
     if pd.api.types.is_datetime64tz_dtype(out["date"]):
         out["date"] = out["date"].dt.tz_convert(None)
-
-    entering = pd.read_parquet(entering_path)
     needed = {"date", "pitcher_id", "is_home"}
     missing_e = needed - set(entering.columns)
     if missing_e:

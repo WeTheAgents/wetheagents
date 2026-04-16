@@ -15,6 +15,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from datetime import date, datetime, timedelta
@@ -24,8 +25,13 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src.cities import INTERNATIONAL_CITIES
 from src.nbm_client import fetch_nbm_batch, save_nbm_snapshot
-from src.openmeteo_client import fetch_ensemble_forecast_sync, save_ensemble_snapshot
+from src.openmeteo_client import (
+    fetch_ensemble_forecast_sync,
+    fetch_multimodel_ensemble_sync,
+    save_ensemble_snapshot,
+)
 from src.stations import POLYMARKET_STATIONS, get_station
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -134,7 +140,32 @@ def capture_snapshot(days_ahead: list[int] | None = None) -> Path:
         except Exception as e:
             logger.warning(f"Ensemble fetch failed for {icao}: {e}")
 
-    # ---- 3. Polymarket prices ----
+    # ---- 3. International multi-model ensemble ----
+    for city in INTERNATIONAL_CITIES:
+        try:
+            forecasts = fetch_multimodel_ensemble_sync(
+                city.lat, city.lon, station=city.slug,
+                temperature_unit="celsius" if city.unit == "C" else "fahrenheit",
+                timezone=city.timezone,
+                forecast_days=7,
+            )
+            save_ensemble_snapshot(forecasts, city.slug)
+            for ef in forecasts:
+                d_ahead = (ef.target_date - today).days
+                rows.append({
+                    "snapshot_time": now,
+                    "station": city.slug,
+                    "target_date": ef.target_date,
+                    "days_ahead": d_ahead,
+                    "ens_mean": ef.mean,
+                    "ens_spread": ef.spread,
+                    "ens_n_members": ef.n_members,
+                    "multimodel_members_json": json.dumps(ef.member_highs),
+                })
+        except Exception as e:
+            logger.warning(f"Multi-model fetch failed for {city.slug}: {e}")
+
+    # ---- 4. Polymarket prices ----
     try:
         pm_df = capture_polymarket_prices(POLYMARKET_STATIONS, target_dates)
         if not pm_df.empty:
@@ -183,10 +214,14 @@ def capture_snapshot(days_ahead: list[int] | None = None) -> Path:
     print(f"Daily Snapshot — {today} ({now.strftime('%H:%M')} UTC)")
     print(f"{'=' * 60}")
     for _, row in snapshot_df.iterrows():
+        n_mem = row.get("ens_n_members")
+        is_multimodel = pd.notna(n_mem) and n_mem > 50
         nbm_s = f"NBM={row.get('nbm_sigma', 'N/A'):.2f}F" if pd.notna(row.get("nbm_sigma")) else "NBM=N/A"
-        ens_s = f"Ens={row.get('ens_spread', 'N/A'):.2f}F" if pd.notna(row.get("ens_spread")) else "Ens=N/A"
+        ens_label = "MM" if is_multimodel else "Ens"
+        ens_s = f"{ens_label}={row.get('ens_spread', 'N/A'):.2f}" if pd.notna(row.get("ens_spread")) else f"{ens_label}=N/A"
         nbm_m = f"med={row.get('nbm_median', 'N/A'):.1f}F" if pd.notna(row.get("nbm_median")) else ""
-        print(f"  {row['station']} {row['target_date']} (D+{row['days_ahead']}): {nbm_s} {ens_s} {nbm_m}")
+        mem_s = f"[{int(n_mem)}m]" if pd.notna(n_mem) else ""
+        print(f"  {row['station']} {row['target_date']} (D+{row['days_ahead']}): {nbm_s} {ens_s} {mem_s} {nbm_m}")
 
     return out_path
 

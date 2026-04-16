@@ -293,6 +293,7 @@ def convert_arnav_json_season(json_path: Path, season: int) -> pd.DataFrame:
             spread_data = odds.get("pointspread", [])
             home_run_line = np.nan
             home_run_line_odds = np.nan
+            away_run_line_odds = np.nan
             for book_name in book_priority:
                 for entry in spread_data:
                     if entry.get("sportsbook") == book_name:
@@ -300,6 +301,7 @@ def convert_arnav_json_season(json_path: Path, season: int) -> pd.DataFrame:
                         if closing.get("homeSpread") is not None:
                             home_run_line = closing["homeSpread"]
                             home_run_line_odds = closing.get("homeOdds", np.nan)
+                            away_run_line_odds = closing.get("awayOdds", np.nan)
                             break
                 if not pd.isna(home_run_line):
                     break
@@ -312,7 +314,7 @@ def convert_arnav_json_season(json_path: Path, season: int) -> pd.DataFrame:
                 "final": away_score,
                 "open_ml": away_open_ml, "close_ml": away_close_ml,
                 "run_line": -home_run_line if not pd.isna(home_run_line) else np.nan,
-                "run_line_odds": np.nan,  # Away RL odds not easily available
+                "run_line_odds": away_run_line_odds,
                 "open_ou": np.nan, "open_ou_odds": np.nan,
                 "close_ou": close_ou, "close_ou_odds": np.nan,
             })

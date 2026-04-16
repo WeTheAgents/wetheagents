@@ -1,0 +1,1 @@
+Compile the quarterly stats from all files in notes/ into `stats.md`.

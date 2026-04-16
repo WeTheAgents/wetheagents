@@ -2,6 +2,10 @@
 devlogs/
 research/
 
+# Vendored btc_dashboard — runtime state only, never committed.
+/vendor/btc_dashboard/node_modules/
+/vendor/btc_dashboard/data/
+
 # Raw (uncensored) diaries — stored in wetheagents-private, never in public repo
 agent0_diary_raw/
 
@@ -76,3 +80,21 @@ domains/**/picks/
 
 # Over pilot data (large JSON)
 domains/**/knowledge/over_pilot/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
+
+# Strix runtime event logs
+strix_runs/
+
+# Serena IDE config
+.serena/
+
+# BitGN traces (runtime evolution data, regenerable)
+domains/bitgn/traces/
+
+# Pipeline temp provenance
+pipeline/release/.provenance_tmp.json

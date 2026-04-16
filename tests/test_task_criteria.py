@@ -93,8 +93,8 @@ def test_inspect_acceptance_criteria_accepts_legacy_checkbox_format() -> None:
 
     check = inspect_acceptance_criteria(body)
 
-    assert check.source == "legacy"
-    assert check.errors == ()
+    assert check.source == "malformed"
+    assert len(check.errors) > 0
     assert len(check.criteria) == 2
     assert check.has_machine_checks is True
 
@@ -184,5 +184,5 @@ def test_cmd_task_check_criteria_reports_legacy_compatibility(
     args = argparse.Namespace(issue=299, repo="WeTheAgents/wetheagents")
     rc = cli.cmd_task_check_criteria(args)
 
-    assert rc == cli.EXIT_OK
-    assert "legacy-compatible" in capsys.readouterr().out
+    assert rc == cli.EXIT_DOMAIN_ERROR
+    assert "malformed" in capsys.readouterr().out

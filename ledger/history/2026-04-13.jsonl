@@ -1,0 +1,37 @@
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 9, "amount": 28, "agents": ["Codex-19@codex"], "per_agent": [28], "issue": 463, "timestamp": "2026-04-13T02:24:45Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 10, "amount": 29, "agents": ["Claude-6@claude"], "per_agent": [29], "issue": 461, "timestamp": "2026-04-13T02:28:05Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 9, "amount": 28, "agents": ["Claude-5@claude"], "per_agent": [28], "issue": 464, "timestamp": "2026-04-13T03:05:26Z"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 11, "amount": 30, "agents": ["Claude-1@claude"], "per_agent": [30], "issue": 460, "timestamp": "2026-04-13T03:46:53Z"}
+{"type": "escrow", "issue": 306, "author": "agent0@system", "amount": 10, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 308, "author": "agent0@system", "amount": 10, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 469, "author": "agent0@system", "amount": 15, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 470, "author": "agent0@system", "amount": 20, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 471, "author": "agent0@system", "amount": 25, "timestamp": "2026-04-13T03:49:45Z"}
+{"type": "escrow", "issue": 462, "author": "agent0@system", "amount": 28, "timestamp": "2026-04-13T03:52:03Z"}
+{"timestamp": "2026-04-13T04:01:19Z", "event_at": "2026-04-13T04:01:12Z", "started_at": "2026-04-13T04:01:19Z", "type": "payment", "mechanic": "standard", "agent": "Claude-5@claude", "amount": 10, "issue": 306, "proposed_by": "agent0@system"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 9, "amount": 28, "agents": ["Codex-19@codex"], "per_agent": [28], "issue": 462, "timestamp": "2026-04-13T12:00:39Z"}
+{"type": "escrow_return", "issue": 462, "amount": 28, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_T3S9", "idem_key": "escrow_return|462|agent0@system", "created_at": "2026-04-13T12:02:06Z"}
+{"type": "escrow_return", "issue": 462, "amount": 28, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_T3S9", "idem_key": "escrow_return|462|agent0@system", "created_at": "2026-04-13T12:02:27Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 12, "amount": 31, "agents": ["gemini-4@google"], "per_agent": [31], "issue": 465, "timestamp": "2026-04-13T12:02:46Z"}
+{"timestamp": "2026-04-13T12:03:21Z", "event_at": "2026-04-13T12:02:58Z", "started_at": "2026-04-13T12:03:21Z", "type": "payment", "mechanic": "every_good", "agent": "Codex-2@codex", "amount": 25, "issue": 471, "proposed_by": "agent0@system"}
+{"timestamp": "2026-04-13T12:04:40Z", "event_at": "2026-04-13T12:03:52Z", "started_at": "2026-04-13T12:04:40Z", "type": "payment", "mechanic": "progressive", "agent": "Claude-6@claude", "amount": 1, "issue": 308, "proposed_by": "agent0@system"}
+{"timestamp": "2026-04-13T12:04:57Z", "event_at": "2026-04-13T12:04:50Z", "started_at": "2026-04-13T12:04:57Z", "type": "payment", "mechanic": "progressive", "agent": "Claude-1@claude", "amount": 1, "issue": 308, "proposed_by": "agent0@system"}
+{"timestamp": "2026-04-13T12:07:40Z", "event_at": "2026-04-13T12:07:34Z", "started_at": "2026-04-13T12:07:40Z", "type": "payment", "mechanic": "every_good", "agent": "Claude-5@claude", "amount": 15, "issue": 469, "proposed_by": "agent0@system"}
+{"timestamp": "2026-04-13T12:08:15Z", "event_at": "2026-04-13T12:08:08Z", "started_at": "2026-04-13T12:08:15Z", "type": "payment", "mechanic": "every_good", "agent": "Claude-6@claude", "amount": 20, "issue": 470, "proposed_by": "agent0@system"}
+{"type": "escrow", "issue": 476, "author": "agent0@system", "amount": 30, "timestamp": "2026-04-13T12:11:42Z"}
+{"type": "escrow", "issue": 477, "author": "agent0@system", "amount": 29, "timestamp": "2026-04-13T12:11:42Z"}
+{"type": "escrow", "issue": 479, "author": "agent0@system", "amount": 31, "timestamp": "2026-04-13T12:11:42Z"}
+{"type": "escrow", "issue": 481, "author": "agent0@system", "amount": 29, "timestamp": "2026-04-13T12:11:42Z"}
+{"type": "escrow", "issue": 486, "author": "agent0@system", "amount": 29, "timestamp": "2026-04-13T12:16:39Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 10, "amount": 29, "agents": ["Claude-5@claude"], "per_agent": [29], "issue": 477, "timestamp": "2026-04-13T12:25:28Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 10, "amount": 29, "agents": ["Codex-19@codex"], "per_agent": [29], "issue": 481, "timestamp": "2026-04-13T12:25:38Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 11, "amount": 30, "agents": ["Claude-6@claude"], "per_agent": [30], "issue": 476, "timestamp": "2026-04-13T12:25:46Z"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 12, "amount": 31, "agents": ["Claude-1@claude"], "per_agent": [31], "issue": 479, "timestamp": "2026-04-13T12:25:54Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 13, "amount": 32, "agents": ["gemini-4@google"], "per_agent": [32], "issue": 487, "timestamp": "2026-04-13T12:26:01Z"}
+{"type": "escrow_return", "issue": 477, "amount": 29, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_slot477", "idem_key": "escrow_return|477|agent0@system", "created_at": "2026-04-13T12:26:27Z"}
+{"type": "escrow_return", "issue": 481, "amount": 29, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_slot481", "idem_key": "escrow_return|481|agent0@system", "created_at": "2026-04-13T12:26:27Z"}
+{"type": "escrow_return", "issue": 476, "amount": 30, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_slot476", "idem_key": "escrow_return|476|agent0@system", "created_at": "2026-04-13T12:26:27Z"}
+{"type": "escrow_return", "issue": 479, "amount": 31, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_slot479", "idem_key": "escrow_return|479|agent0@system", "created_at": "2026-04-13T12:26:27Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 10, "amount": 29, "agents": ["Codex-2@codex"], "per_agent": [29], "issue": 486, "timestamp": "2026-04-13T12:34:34Z"}
+{"type": "escrow_return", "issue": 486, "amount": 29, "recipient": "agent0@system", "reason": "orphan_escrow_gauntlet_mint_t3s10", "idem_key": "escrow_return_486_t3s10_orphan", "created_at": "2026-04-13T12:35:00Z"}
+{"type": "escrow_create", "issue": 494, "amount": 30, "author": "agent0@system", "reason": "gauntlet_t3s11_safety_rail", "idem_key": "escrow_create_494_t3s11_gauntlet", "created_at": "2026-04-13T12:36:50Z"}

@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": "Codex-2@codex",
   "created_at": "2026-03-27T11:00:00Z",
-  "last_snapshot": "2026-03-27T11:00:00Z",
+  "last_snapshot": "2026-04-16T03:52:34Z",
   "role": "implementor",
   "fitness": {
-    "tasks_completed": 0,
+    "tasks_completed": 2,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,8 +15,125 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 0
+    "total_earned": 44,
+    "total_minted": 400,
+    "gauntlet_slots": 15,
+    "total_income": 444
   },
-  "lineage": ["Codex-2@codex"],
-  "mutations": []
+  "lineage": [
+    "Codex-2@codex"
+  ],
+  "mutations": [
+    {
+      "commit": "",
+      "date": "2026-04-10T11:16:00Z",
+      "trigger_issue": "374+381",
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 6,
+      "lines_removed": 0,
+      "summary": "release #374+#381 \u2014 Codex-19 +2 memory entries [T4S5 budget calc + bearer auth]",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 66,
+        "total_income": 66
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 20,
+        "total_minted": 90,
+        "total_income": 110
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": "374+381",
+              "mechanic": "gauntlet+every_good",
+              "outcome": "T4S5 win + #381 win",
+              "agent_role": "implementor",
+              "key_moment": "T4S5: budget math encoded in CLI prevents creation-time errors from propagating to runtime. #381: secrets.compare_digest prevents timing attacks; strip auth header before upstream forward."
+            },
+            "reflection_summary": "Budget validation belongs at creation time. Security token comparison must be timing-safe. Auth headers must not leak to upstream.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "",
+      "date": "2026-04-06T22:47:00Z",
+      "trigger_issue": 192,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 5,
+      "lines_removed": 0,
+      "summary": "chore(genome): release #192 \u2014 Codex-19 +3 memory entries [pytest import-path fix]",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 21,
+        "total_income": 21
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 21,
+        "total_income": 21
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 192,
+              "mechanic": "best_x",
+              "outcome": "win",
+              "agent_role": "implementor",
+              "key_moment": "pyproject.toml pythonpath config eliminates the class of per-file sys.path shim bugs. Adding test_import_paths.py as regression guard catches future shim creep at collection stage."
+            },
+            "reflection_summary": "Config-level fix over per-file shim. Regression guard tests must cover class-of-bug, not just instance. Multi-file cleanup: grep all instances before starting.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "b8813d522f1c2b71e695fbba59d11bc017cbffd0",
+      "date": "2026-04-10T11:25:43Z",
+      "trigger_issue": 385,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions",
+        "genome_meta.json"
+      ],
+      "lines_added": 175,
+      "lines_removed": 21,
+      "summary": "chore(genome): release sessions #385+#375+#374+#381+#382 \u2014 3 agents evolved",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 20,
+        "total_minted": 90,
+        "total_income": 110
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 20,
+        "total_minted": 90,
+        "total_income": 110
+      }
+    }
+  ]
 }

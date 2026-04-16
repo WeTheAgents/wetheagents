@@ -1,143 +1,364 @@
 #!/usr/bin/env python3
 """
-WEA Flow Report
-Generates a markdown report of ecosystem health.
+WEA Flow Report — ecosystem health snapshot.
 
-SELF-ROAST:
-- How it works: Reads JSON files directly using stdlib `json`. Aggregates balances, escrow amounts, and minted tokens. Ranks agents by total_earned. Parses JSONL history for transactions per day and average payment. Finds oldest escrow by sorting timestamps. Computes active vs dormant based on tasks_completed and total_earned.
-- Gaps identified: 
-  1. I originally hardcoded 10000 for an invariant check print; removed it to strictly follow "no hardcoded amounts".
-  2. "Transactions" might include non-economy events, but all lines in history represent ledger state changes, so counting lines is valid for "velocity".
-  3. `payment` might not be the only reward mechanic (e.g., `escrow` payout), but `payment` is the standard final state.
-- Fixes applied: Removed hardcoded 10000. Relied strictly on parsed `amount` and `balance` data.
+Reads live ledger files and outputs a Markdown report with:
+1. Supply summary — WEA in balances vs escrow vs minted
+2. Top earners — agents ranked by total_earned
+3. Flow analysis — WEA velocity (transactions per day), avg task reward
+4. Escrow health — oldest active escrow, total locked WEA
+5. Agent activity — active vs dormant agents, tasks per agent
 """
 
-import os
+from __future__ import annotations
+
+import argparse
 import json
-import glob
-from datetime import datetime
-import sys
+import os
+from collections import Counter
+from datetime import datetime, timezone
 
-def main():
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    balances_path = os.path.join(base_dir, 'ledger', 'balances.json')
-    escrows_path = os.path.join(base_dir, 'ledger', 'escrows.json')
-    mints_path = os.path.join(base_dir, 'ledger', 'trajectory_mints.json')
-    history_pattern = os.path.join(base_dir, 'ledger', 'history', '*.jsonl')
+INITIAL_SUPPLY = 10_000
+DORMANT_THRESHOLD_DAYS = 30
 
-    # Read balances
-    with open(balances_path, 'r', encoding='utf-8') as f:
-        balances_data = json.load(f)
 
-    # Read escrows
-    with open(escrows_path, 'r', encoding='utf-8') as f:
-        escrows_data = json.load(f)
+def _load_json(path: str) -> dict:
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
-    # Read mints
-    total_minted = 0
-    if os.path.exists(mints_path):
-        with open(mints_path, 'r', encoding='utf-8') as f:
-            mints_data = json.load(f)
-            total_minted = mints_data.get('total_minted', 0)
 
-    agents = balances_data.get('agents', {})
-    sum_all_balances = sum(d.get('balance', 0) for d in agents.values())
-    
-    active_escrows = escrows_data.get('active', {})
-    total_escrowed = sum(e.get('amount', 0) for e in active_escrows.values())
-
-    print("# WEA Ecosystem Health Report")
-    print()
-    print("## 1. Supply Summary")
-    print(f"- **Total in Balances:** {sum_all_balances} WEA")
-    print(f"- **Total in Escrow:** {total_escrowed} WEA")
-    print(f"- **Total Minted:** {total_minted} WEA")
-    print(f"- **Total Supply (Balances + Escrow):** {sum_all_balances + total_escrowed} WEA")
-    print()
-
-    print("## 2. Top Earners")
-    sorted_agents = sorted(agents.items(), key=lambda x: x[1].get('total_earned', 0), reverse=True)
-    for rank, (name, data) in enumerate(sorted_agents[:10], 1):
-        earned = data.get('total_earned', 0)
-        print(f"{rank}. **{name}**: {earned} WEA")
-    print()
-
-    # Read history
-    tx_by_day = {}
-    payment_amounts = []
-    
-    for filepath in glob.glob(history_pattern):
-        with open(filepath, 'r', encoding='utf-8') as f:
+def _load_history(history_dir: str) -> list[dict]:
+    """Load all JSONL history events, sorted by timestamp ascending."""
+    events: list[dict] = []
+    if not os.path.isdir(history_dir):
+        return events
+    for fname in sorted(os.listdir(history_dir)):
+        if not fname.endswith(".jsonl"):
+            continue
+        fpath = os.path.join(history_dir, fname)
+        with open(fpath, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
-                if not line:
-                    continue
-                try:
-                    event = json.loads(line)
-                    # use filename for day if timestamp is not available, or extract from timestamp
-                    ts = event.get('timestamp') or event.get('event_at') or event.get('at')
-                    if ts:
-                        day = ts[:10] # YYYY-MM-DD
-                        tx_by_day[day] = tx_by_day.get(day, 0) + 1
-                    
-                    if event.get('type') == 'payment':
-                        amt = event.get('amount')
-                        if isinstance(amt, (int, float)):
-                            payment_amounts.append(amt)
-                except Exception:
-                    pass
+                if line:
+                    try:
+                        events.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        pass
+    events.sort(key=lambda e: e.get("timestamp", ""))
+    return events
 
-    avg_reward = sum(payment_amounts) / len(payment_amounts) if payment_amounts else 0
-    avg_tx_per_day = sum(tx_by_day.values()) / len(tx_by_day) if tx_by_day else 0
 
-    print("## 3. Flow Analysis")
-    print(f"- **Total Transactions:** {sum(tx_by_day.values())}")
-    print(f"- **Active Days:** {len(tx_by_day)}")
-    print(f"- **Average Transactions/Day:** {avg_tx_per_day:.2f}")
-    print(f"- **Average Task Reward:** {avg_reward:.2f} WEA")
-    print()
+def _parse_ts(ts: str | None) -> datetime | None:
+    if not ts:
+        return None
+    for fmt in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            return datetime.strptime(ts, fmt).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+    return None
 
-    print("## 4. Escrow Health")
-    print(f"- **Total Locked WEA:** {total_escrowed} WEA")
-    print(f"- **Active Escrows Count:** {len(active_escrows)}")
-    if active_escrows:
-        oldest_issue = None
-        oldest_ts = "9999"
-        for issue, data in active_escrows.items():
-            ts = data.get('created_at') or data.get('timestamp') or "9999"
-            if ts < oldest_ts:
-                oldest_ts = ts
-                oldest_issue = issue
-        print(f"- **Oldest Active Escrow:** Issue #{oldest_issue} (since {oldest_ts[:10]})")
+
+def section_supply_summary(balances: dict, escrows: dict, mints: dict) -> str:
+    """Section 1: supply breakdown matching check_invariant.py totals."""
+    agents = balances.get("agents", {})
+    sum_balances = sum(
+        d.get("balance", 0)
+        for d in agents.values()
+        if isinstance(d, dict)
+    )
+    active = escrows.get("active", {})
+    sum_escrows = sum(
+        e.get("amount", 0)
+        for e in active.values()
+        if isinstance(e, dict)
+    )
+    total_minted = mints.get("total_minted", 0) if mints else 0
+
+    actual = sum_balances + sum_escrows
+    expected = INITIAL_SUPPLY + total_minted
+    invariant_status = "PASS" if actual == expected else f"FAIL (delta {actual - expected:+d})"
+
+    lines = [
+        "## 1. Supply Summary",
+        "",
+        "| Component | WEA |",
+        "|-----------|----:|",
+        f"| Balances (liquid) | {sum_balances} |",
+        f"| Escrow (locked) | {sum_escrows} |",
+        f"| **Total in circulation** | **{actual}** |",
+        f"| Base supply | {INITIAL_SUPPLY} |",
+        f"| Trajectory minted | {total_minted} |",
+        f"| **Expected supply** | **{expected}** |",
+        f"| Invariant | {invariant_status} |",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def section_top_earners(balances: dict) -> str:
+    """Section 2: agents ranked by total_earned descending."""
+    agents = balances.get("agents", {})
+    ranked = sorted(
+        [(name, d) for name, d in agents.items() if isinstance(d, dict)],
+        key=lambda x: x[1].get("total_earned", 0),
+        reverse=True,
+    )
+
+    lines = [
+        "## 2. Top Earners",
+        "",
+        "| Rank | Agent | Balance | Total Earned | Tasks Completed |",
+        "|-----:|-------|--------:|-------------:|----------------:|",
+    ]
+    for i, (name, d) in enumerate(ranked, 1):
+        balance = d.get("balance", 0)
+        earned = d.get("total_earned", 0)
+        completed = d.get("tasks_completed", 0)
+        lines.append(f"| {i} | {name} | {balance} | {earned} | {completed} |")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def section_flow_analysis(events: list[dict]) -> str:
+    """Section 3: WEA velocity and average task reward from payment events."""
+    payment_events = [e for e in events if e.get("type") == "payment"]
+
+    if not payment_events:
+        return "## 3. Flow Analysis\n\n_No payment events found._\n"
+
+    total_wea_paid = sum(e.get("amount", 0) for e in payment_events)
+    num_payments = len(payment_events)
+    avg_reward = total_wea_paid / num_payments
+
+    # Date range from all events with valid timestamps
+    valid_ts = [_parse_ts(e.get("timestamp")) for e in events]
+    valid_ts = [t for t in valid_ts if t is not None]
+
+    if len(valid_ts) >= 2:
+        first_ts = min(valid_ts)
+        last_ts = max(valid_ts)
+        delta_days = (last_ts - first_ts).total_seconds() / 86400
+        velocity = num_payments / delta_days if delta_days > 0 else float(num_payments)
+        date_range = f"{first_ts.strftime('%Y-%m-%d')} to {last_ts.strftime('%Y-%m-%d')}"
     else:
-        print("- **Oldest Active Escrow:** N/A")
-    print()
+        delta_days = 0.0
+        velocity = 0.0
+        date_range = "—"
 
-    print("## 5. Agent Activity")
-    active_count = 0
-    dormant_count = 0
-    tasks_per_agent = []
-    for name, data in agents.items():
-        tc = data.get('tasks_completed', 0)
-        if tc > 0 or data.get('total_earned', 0) > 0:
-            active_count += 1
+    # Active payment days
+    payment_days: Counter[str] = Counter()
+    for e in payment_events:
+        ts = _parse_ts(e.get("timestamp"))
+        if ts:
+            payment_days[ts.strftime("%Y-%m-%d")] += 1
+
+    lines = [
+        "## 3. Flow Analysis",
+        "",
+        "| Metric | Value |",
+        "|--------|------:|",
+        f"| Date range | {date_range} |",
+        f"| Ledger span (days) | {delta_days:.0f} |",
+        f"| Total payment events | {num_payments} |",
+        f"| Total WEA paid out | {total_wea_paid} |",
+        f"| Average task reward | {avg_reward:.1f} WEA |",
+        f"| Avg payments per day | {velocity:.2f} |",
+        f"| Active payment days | {len(payment_days)} |",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def section_escrow_health(escrows: dict, now: datetime | None = None) -> str:
+    """Section 4: active escrow details and oldest escrow."""
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    active = escrows.get("active", {})
+    if not active:
+        return "## 4. Escrow Health\n\n_No active escrows._\n"
+
+    total_locked = sum(
+        e.get("amount", 0)
+        for e in active.values()
+        if isinstance(e, dict)
+    )
+
+    escrow_rows: list[tuple] = []
+    for issue, e in active.items():
+        if not isinstance(e, dict):
+            continue
+        amount = e.get("amount", 0)
+        etype = e.get("type", "unknown")
+        created_at = _parse_ts(e.get("created_at"))
+        age_days = (now - created_at).total_seconds() / 86400 if created_at else float("inf")
+        escrow_rows.append((issue, amount, etype, created_at, age_days))
+
+    # Sort oldest first (highest age first)
+    escrow_rows.sort(key=lambda x: x[4], reverse=True)
+
+    oldest_issue, _, _, _, oldest_age = escrow_rows[0]
+    oldest_age_str = f"{oldest_age:.0f}" if oldest_age != float("inf") else "unknown"
+
+    lines = [
+        "## 4. Escrow Health",
+        "",
+        "| Metric | Value |",
+        "|--------|------:|",
+        f"| Active escrows | {len(active)} |",
+        f"| Total locked WEA | {total_locked} |",
+        f"| Oldest escrow | Issue #{oldest_issue} ({oldest_age_str} days) |",
+        "",
+        "### Active Escrows",
+        "",
+        "| Issue | Amount | Type | Age (days) |",
+        "|------:|-------:|------|----------:|",
+    ]
+
+    for issue, amount, etype, _, age in escrow_rows:
+        age_str = f"{age:.0f}" if age != float("inf") else "unknown"
+        lines.append(f"| #{issue} | {amount} | {etype} | {age_str} |")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def section_agent_activity(
+    balances: dict, events: list[dict], now: datetime | None = None
+) -> str:
+    """Section 5: active vs dormant agents, tasks per agent."""
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    agents = balances.get("agents", {})
+
+    # Determine last event date per agent from history
+    last_activity: dict[str, datetime] = {}
+
+    def _update_last(agent_name: str, ts: datetime | None) -> None:
+        if ts and agent_name in agents:
+            if agent_name not in last_activity or ts > last_activity[agent_name]:
+                last_activity[agent_name] = ts
+
+    for e in events:
+        ts = _parse_ts(e.get("timestamp"))
+        # Single-agent events use "agent" or "author"
+        for field in ("agent", "author"):
+            name = e.get(field, "")
+            if name:
+                _update_last(name, ts)
+        # trajectory_mint carries a list of agents
+        if e.get("type") == "trajectory_mint":
+            for agent_name in e.get("agents", []):
+                _update_last(agent_name, ts)
+
+    active_rows: list[tuple] = []
+    dormant_rows: list[tuple] = []
+
+    for name, d in sorted(agents.items()):
+        if not isinstance(d, dict):
+            continue
+        last = last_activity.get(name)
+        age_days: float | None = None
+        if last:
+            age_days = (now - last).total_seconds() / 86400
+            is_active = age_days <= DORMANT_THRESHOLD_DAYS
         else:
-            dormant_count += 1
-        tasks_per_agent.append(tc)
-    
-    avg_tasks = sum(tasks_per_agent) / len(tasks_per_agent) if tasks_per_agent else 0
-    print(f"- **Active Agents:** {active_count}")
-    print(f"- **Dormant Agents:** {dormant_count}")
-    print(f"- **Total Agents:** {len(agents)}")
-    print(f"- **Average Tasks per Agent:** {avg_tasks:.2f}")
-    
-    # Also tasks per agent detailed (top 5 maybe? Or just leave it as average)
-    print()
-    print("### Top Agents by Tasks Completed")
-    sorted_by_tasks = sorted(agents.items(), key=lambda x: x[1].get('tasks_completed', 0), reverse=True)
-    for name, data in sorted_by_tasks[:5]:
-        print(f"- **{name}**: {data.get('tasks_completed', 0)} tasks")
+            is_active = False
+
+        row = (
+            name,
+            d.get("tasks_completed", 0),
+            d.get("tasks_created", 0),
+            d.get("total_earned", 0),
+            last,
+            age_days,
+        )
+        if is_active:
+            active_rows.append(row)
+        else:
+            dormant_rows.append(row)
+
+    def _fmt_row(name: str, completed: int, created: int, earned: int,
+                 last: datetime | None, age: float | None) -> str:
+        last_str = last.strftime("%Y-%m-%d") if last else "never"
+        age_str = f"{age:.0f}d" if age is not None else "—"
+        return f"| {name} | {completed} | {created} | {earned} | {last_str} ({age_str}) |"
+
+    header = [
+        "| Agent | Completed | Created | Earned | Last Activity |",
+        "|-------|----------:|--------:|-------:|---------------|",
+    ]
+
+    lines = [
+        "## 5. Agent Activity",
+        "",
+        "| Status | Count |",
+        "|--------|------:|",
+        f"| Active (last {DORMANT_THRESHOLD_DAYS}d) | {len(active_rows)} |",
+        f"| Dormant | {len(dormant_rows)} |",
+        f"| Total registered | {len(agents)} |",
+        "",
+    ]
+
+    if active_rows:
+        lines.extend(["### Active Agents", ""] + header)
+        for row in active_rows:
+            lines.append(_fmt_row(*row))
+        lines.append("")
+
+    if dormant_rows:
+        lines.extend(["### Dormant Agents", ""] + header)
+        for row in dormant_rows:
+            lines.append(_fmt_row(*row))
+        lines.append("")
+
+    return "\n".join(lines)
 
 
-if __name__ == '__main__':
+def generate_report(root: str, now: datetime | None = None) -> str:
+    """Generate the full Markdown report from ledger data at `root`."""
+    ledger_dir = os.path.join(root, "ledger")
+
+    balances = _load_json(os.path.join(ledger_dir, "balances.json"))
+    escrows = _load_json(os.path.join(ledger_dir, "escrows.json"))
+
+    mints_path = os.path.join(ledger_dir, "trajectory_mints.json")
+    mints: dict = _load_json(mints_path) if os.path.exists(mints_path) else {}
+
+    history_dir = os.path.join(ledger_dir, "history")
+    events = _load_history(history_dir)
+
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    report_ts = now.strftime("%Y-%m-%d %H:%M UTC")
+
+    parts = [
+        f"# WEA Flow Report\n\n_Generated {report_ts}_\n",
+        section_supply_summary(balances, escrows, mints),
+        section_top_earners(balances),
+        section_flow_analysis(events),
+        section_escrow_health(escrows, now=now),
+        section_agent_activity(balances, events, now=now),
+    ]
+    return "\n".join(parts)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="WEA Flow Report — ecosystem health snapshot"
+    )
+    parser.add_argument(
+        "--root",
+        help="Root directory of the wetheagents repository",
+        default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    )
+    args = parser.parse_args()
+    print(generate_report(root=args.root))
+
+
+if __name__ == "__main__":
     main()

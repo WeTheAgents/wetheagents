@@ -56,47 +56,77 @@ def _save_json(path: Path, data: Any) -> None:
         raise
 
 
-def compute_fitness(agent_id: str, history_dir: Path) -> dict[str, Any]:
-    """Read all JSONL history files and compute fitness for one agent.
+def _compute_mint_earnings(agent_id: str, ledger_dir: Path) -> tuple[int, int]:
+    """Sum gauntlet mint earnings for an agent from trajectory_mints.json.
 
-    Returns dict with: tasks_completed, total_earned, tasks_created.
+    Returns (total_minted, gauntlet_slots) — total WEA minted and number of
+    gauntlet slots the agent participated in.
+    """
+    mints_path = ledger_dir / "trajectory_mints.json"
+    if not mints_path.exists():
+        return 0, 0
+
+    try:
+        data = json.loads(mints_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return 0, 0
+
+    total_minted = 0
+    gauntlet_slots = 0
+    for mint in data.get("mints", []):
+        agents = mint.get("agents", [])
+        per_agent = mint.get("per_agent", [])
+        for i, aid in enumerate(agents):
+            if aid == agent_id and i < len(per_agent):
+                total_minted += int(per_agent[i])
+                gauntlet_slots += 1
+
+    return total_minted, gauntlet_slots
+
+
+def compute_fitness(agent_id: str, history_dir: Path, ledger_dir: Path | None = None) -> dict[str, Any]:
+    """Read all JSONL history files and trajectory_mints.json to compute fitness.
+
+    Returns dict with: tasks_completed, total_earned, tasks_created,
+    total_minted, gauntlet_slots, total_income.
     All values are int (0 if no events found).
     """
     tasks_completed = 0
     total_earned = 0
     tasks_created = 0
 
-    if not history_dir.is_dir():
-        return {
-            "tasks_completed": tasks_completed,
-            "total_earned": total_earned,
-            "tasks_created": tasks_created,
-        }
-
-    for jsonl_file in sorted(history_dir.glob("*.jsonl")):
-        try:
-            text = jsonl_file.read_text(encoding="utf-8")
-        except OSError:
-            continue
-        for line in text.splitlines():
-            line = line.strip()
-            if not line:
-                continue
+    if history_dir.is_dir():
+        for jsonl_file in sorted(history_dir.glob("*.jsonl")):
             try:
-                event = json.loads(line)
-            except json.JSONDecodeError:
+                text = jsonl_file.read_text(encoding="utf-8")
+            except OSError:
                 continue
-            etype = event.get("type")
-            if etype == "payment" and event.get("agent") == agent_id:
-                tasks_completed += 1
-                total_earned += int(event.get("amount", 0))
-            elif etype == "escrow" and event.get("author") == agent_id:
-                tasks_created += 1
+            for line in text.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                etype = event.get("type")
+                if etype == "payment" and event.get("agent") == agent_id:
+                    tasks_completed += 1
+                    total_earned += int(event.get("amount", 0))
+                elif etype == "escrow" and event.get("author") == agent_id:
+                    tasks_created += 1
+
+    # Gauntlet mints (trajectory_mints.json lives in ledger/)
+    mint_dir = ledger_dir if ledger_dir is not None else history_dir.parent
+    total_minted, gauntlet_slots = _compute_mint_earnings(agent_id, mint_dir)
 
     return {
         "tasks_completed": tasks_completed,
         "total_earned": total_earned,
         "tasks_created": tasks_created,
+        "total_minted": total_minted,
+        "gauntlet_slots": gauntlet_slots,
+        "total_income": total_earned + total_minted,
     }
 
 
@@ -106,6 +136,8 @@ def _extract_fitness_snapshot(meta: dict[str, Any]) -> dict[str, Any]:
     return {
         "tasks_completed": fitness.get("tasks_completed", 0),
         "total_earned": fitness.get("total_earned", 0),
+        "total_minted": fitness.get("total_minted", 0),
+        "total_income": fitness.get("total_income", 0),
     }
 
 
@@ -197,10 +229,15 @@ def update_genome_fitness(
     if not genome_path.exists():
         raise FileNotFoundError(f"genome_meta.json not found for agent: {agent_id}")
 
-    history_dir = root / "ledger" / "history"
-    new_fitness = compute_fitness(agent_id, history_dir)
-
     meta = load_json(genome_path)
+
+    # Use canonical agent_id from genome_meta.json for ledger lookups
+    # (handles case mismatches between directory name and ledger records)
+    canonical_id = meta.get("agent_id", agent_id)
+
+    ledger_dir = root / "ledger"
+    history_dir = ledger_dir / "history"
+    new_fitness = compute_fitness(canonical_id, history_dir, ledger_dir)
 
     # Snapshot fitness BEFORE update (for mutation record)
     fitness_before = _extract_fitness_snapshot(meta)
@@ -212,6 +249,9 @@ def update_genome_fitness(
     meta["fitness"]["tasks_completed"] = new_fitness["tasks_completed"]
     meta["fitness"]["tasks_created"] = new_fitness["tasks_created"]
     meta["fitness"]["total_earned"] = new_fitness["total_earned"]
+    meta["fitness"]["total_minted"] = new_fitness["total_minted"]
+    meta["fitness"]["gauntlet_slots"] = new_fitness["gauntlet_slots"]
+    meta["fitness"]["total_income"] = new_fitness["total_income"]
 
     ts = now or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     meta["last_snapshot"] = ts
@@ -301,9 +341,10 @@ def main() -> None:
     fitness = meta.get("fitness", {})
     print(
         f"Snapshot updated for {args.agent}: "
-        f"tasks_completed={fitness.get('tasks_completed')}, "
-        f"total_earned={fitness.get('total_earned')}, "
-        f"tasks_created={fitness.get('tasks_created')}"
+        f"tasks={fitness.get('tasks_completed')}, "
+        f"earned={fitness.get('total_earned')}, "
+        f"minted={fitness.get('total_minted')}, "
+        f"income={fitness.get('total_income')}"
     )
     if args.record_mutation:
         mutations = meta.get("mutations", [])

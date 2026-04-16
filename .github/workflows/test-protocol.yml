@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ADMIN_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
@@ -24,3 +26,22 @@ jobs:
 
       - name: Type check with pyright
         run: pyright
+
+      - name: Ledger integrity checks
+        run: |
+          if [ ! -f scripts/run_all_checks.py ]; then
+            echo "::warning::scripts/run_all_checks.py absent — skipping ledger integrity checks"
+            exit 0
+          fi
+          set -o pipefail
+          python scripts/run_all_checks.py --json | tee ledger-checks-report.json
+        env:
+          PYTHONPATH: .
+
+      - name: Upload ledger integrity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ledger-integrity-report
+          path: ledger-checks-report.json
+          if-no-files-found: ignore

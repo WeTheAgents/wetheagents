@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Research Timeline &mdash; MLB Betting Handbook</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">MLB Betting</div>
+  <div class="brand-sub">Strategy Handbook &mdash; April 2026</div>
+  <nav class="nav-section">
+    <div class="nav-section-title">Pages</div>
+    <ul class="nav-list">
+      <li><a href="index.html">Dashboard</a></li>
+      <li><a href="strategies.html">Strategies</a></li>
+      <li><a href="dead-ends.html">Dead Ends</a></li>
+      <li><a href="data.html">Data & Pipeline</a></li>
+      <li><a href="models.html">Models & LLM</a></li>
+      <li><a href="timeline.html" class="active">Research Timeline</a></li>
+      <li><a href="season.html">2026 Season Plan</a></li>
+    </ul>
+  </nav>
+  <div class="nav-section">
+    <div class="nav-section-title">Quick Stats</div>
+    <div style="font-size:.82rem;color:var(--muted);line-height:1.8">
+      31 research sessions<br>
+      21 seasons of data<br>
+      4 live strategies<br>
+      ~194 bets / season<br>
+      ~15-20% blended ROI
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <div class="page-header">
+    <h1>Research Timeline</h1>
+    <div class="subtitle">31 sessions of systematic research</div>
+  </div>
+
+  <div class="callout callout--blue">
+    <strong>31 sessions, Feb 12 &mdash; Apr 15, 2026.</strong> From first data load to live production system. Filter by status to see the journey from exploration to go-live.
+  </div>
+  <div data-tl-root>
+    <div class="filters">
+      <select class="filter-select" data-tl-status>
+        <option value="">All</option>
+        <option value="live">Live</option>
+        <option value="validated">Validated</option>
+        <option value="dead">Dead Ends</option>
+        <option value="research">Research</option>
+      </select>
+    </div>
+    <div class="timeline">
+      <div class="tl-item tl--research" data-tl-item="research">
+        <div class="tl-date">Feb 12 2026 &bull; Session 2, 3</div>
+        <div class="tl-title">Data pipeline + Series Dogon <span class="tag tag--research"><span class="tag-dot"></span> RESEARCH</span></div>
+        <div class="tl-desc">Team features, pitcher proxy layer. Dogon +5.21% ROI (TEST). First profitable strategy.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Feb 13 2026 &bull; Session 4</div>
+        <div class="tl-title">Exhaustive market scan <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">RL, F5, ML favorites all tested and killed. Only dogon + pitcher survives.</div>
+      </div>
+      <div class="tl-item tl--research" data-tl-item="research">
+        <div class="tl-date">Feb 15 2026 &bull; Session 5</div>
+        <div class="tl-title">Retrosheet integration <span class="tag tag--research"><span class="tag-dot"></span> RESEARCH</span></div>
+        <div class="tl-desc">75,950 pitcher game logs. 99.91% odds match rate. Anti-leak entering-game features.</div>
+      </div>
+      <div class="tl-item tl--validated" data-tl-item="validated">
+        <div class="tl-date">Mar 18 2026 &bull; Session 6</div>
+        <div class="tl-title">SBR dataset + Away underdog discovery <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></div>
+        <div class="tl-desc">S3 strategy found: +9.9% ROI, Sharpe 0.81. S4 bullpen variant: +20.6% ROI.</div>
+      </div>
+      <div class="tl-item tl--validated" data-tl-item="validated">
+        <div class="tl-date">Mar 19 2026 &bull; Session 7, 8</div>
+        <div class="tl-title">Duplicate fix + September discovery <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></div>
+        <div class="tl-desc">88.5% duplicate rows found and fixed. September is POSITIVE (+22.2%). S3-Dual: +17.9%.</div>
+      </div>
+      <div class="tl-item tl--validated" data-tl-item="validated">
+        <div class="tl-date">Mar 19 2026 &bull; Session 9</div>
+        <div class="tl-title">21-season validation + RL discovery <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></div>
+        <div class="tl-desc">S3-Dual + Away RL +1.5 portfolio. Home underdog confirmed dead.</div>
+      </div>
+      <div class="tl-item tl--validated" data-tl-item="validated">
+        <div class="tl-date">Mar 20 2026 &bull; Session 10</div>
+        <div class="tl-title">UNDER totals model <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></div>
+        <div class="tl-desc">P(u)>=0.55: +34.3% ROI. OVER breakeven. Bullpen filters boost hit rate.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Mar 20 2026 &bull; Session 11</div>
+        <div class="tl-title">Home underdog killed <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">RL +1.5 and ML both dead. Portfolio correlation: zero overlap, -0.025 daily corr.</div>
+      </div>
+      <div class="tl-item tl--research" data-tl-item="research">
+        <div class="tl-date">Mar 21 2026 &bull; Session 12</div>
+        <div class="tl-title">LLM Expert framework <span class="tag tag--research"><span class="tag-dot"></span> RESEARCH</span></div>
+        <div class="tl-desc">Feature cards, offense/bullpen context, expert duel initialization.</div>
+      </div>
+      <div class="tl-item tl--research" data-tl-item="research">
+        <div class="tl-date">Mar 21 2026 &bull; Session 13</div>
+        <div class="tl-title">Coinflip zone <span class="tag tag--research"><span class="tag-dot"></span> RESEARCH</span></div>
+        <div class="tl-desc">Symmetric cards, CF-specific logic. Batch v1 failed (experts follow model blindly).</div>
+      </div>
+      <div class="tl-item tl--research" data-tl-item="research">
+        <div class="tl-date">Mar 22 2026 &bull; Session 14</div>
+        <div class="tl-title">Feature pipeline complete <span class="tag tag--research"><span class="tag-dot"></span> RESEARCH</span></div>
+        <div class="tl-desc">171 features total. CF zone shows 80% accuracy on Jul 4 sample (small).</div>
+      </div>
+      <div class="tl-item tl--validated" data-tl-item="validated">
+        <div class="tl-date">Mar 22 2026 &bull; Session 15</div>
+        <div class="tl-title">UNDER calibration <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></div>
+        <div class="tl-desc">P(u)>=0.60: +42-61% ROI (nuclear). LLM expansion: 10W-1L, +73.5% ROI.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Mar 23 2026 &bull; Session 16</div>
+        <div class="tl-title">OVER pipeline built &amp; killed <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">OVER P>=0.55: 3W-0L (tiny). Entropy asymmetry discovered. OVER dropped.</div>
+      </div>
+      <div class="tl-item tl--research" data-tl-item="research">
+        <div class="tl-date">Mar 23 2026 &bull; Session 17</div>
+        <div class="tl-title">ML retrain planning <span class="tag tag--research"><span class="tag-dot"></span> RESEARCH</span></div>
+        <div class="tl-desc">Feature candidates for SPEC/UNDER models identified. Coverage gaps mapped.</div>
+      </div>
+      <div class="tl-item tl--validated" data-tl-item="validated">
+        <div class="tl-date">Mar 23 2026 &bull; Session 19</div>
+        <div class="tl-title">UNDER V3 overhaul <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></div>
+        <div class="tl-desc">Platt removed. P>=0.52: +6.1%. LLM gate: 61 bets, +15.0%. Production tiering set.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Mar 23 2026 &bull; Session 20</div>
+        <div class="tl-title">OVER ML definitively dead <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">3 model variants: AUC 0.50 each. Offensive explosions = noise.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Mar 24 2026 &bull; Session 21, 22</div>
+        <div class="tl-title">NRFI killed <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">Base rate 49.2% (not 57%). AUC 0.52 structural ceiling. 18 PA = noise.</div>
+      </div>
+      <div class="tl-item tl--research" data-tl-item="research">
+        <div class="tl-date">Mar 24 2026 &bull; Session 23</div>
+        <div class="tl-title">Coinflip zone research plan <span class="tag tag--research"><span class="tag-dot"></span> RESEARCH</span></div>
+        <div class="tl-desc">7-phase plan. CF-specific genomes designed.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Mar 26 2026 &bull; Session 24</div>
+        <div class="tl-title">CF duel killed <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">40.5% accuracy, -22.1% ROI. Momentum genome toxic. Requires fundamental rebuild.</div>
+      </div>
+      <div class="tl-item tl--live" data-tl-item="live">
+        <div class="tl-date">Mar 26 2026 &bull; Session 25</div>
+        <div class="tl-title">Fav -1.5 Run Line <span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></div>
+        <div class="tl-desc">TRAIN +19.6%, TEST +15.0%. impl 62-75% + FIP + power filters. 137 games/season.</div>
+      </div>
+      <div class="tl-item tl--live" data-tl-item="live">
+        <div class="tl-date">Mar 27 2026 &bull; Session 26</div>
+        <div class="tl-title">Bullpen Day discovery <span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></div>
+        <div class="tl-desc">11/11 seasons profitable. 83.7% RL cover. Strongest signal ever found.</div>
+      </div>
+      <div class="tl-item tl--live" data-tl-item="live">
+        <div class="tl-date">Mar 27 2026 &bull; Session 27</div>
+        <div class="tl-title">Pitcher advantage expansion <span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></div>
+        <div class="tl-desc">Tier 3: 79.0% cover, +24.7% ROI. Complete away dog portfolio: T1+T2+T3.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Apr 3 2026 &bull; Session 28</div>
+        <div class="tl-title">Savant Statcast tested <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">Market already prices it. Fatigue is anti-predictive. Infrastructure kept.</div>
+      </div>
+      <div class="tl-item tl--live" data-tl-item="live">
+        <div class="tl-date">Apr 12 2026 &bull; Session 29</div>
+        <div class="tl-title">Go-live <span class="tag tag--live"><span class="tag-dot"></span> LIVE</span></div>
+        <div class="tl-desc">Picks generator, IO safety, data pipeline insurance. System operational.</div>
+      </div>
+      <div class="tl-item tl--validated" data-tl-item="validated">
+        <div class="tl-date">Apr 14 2026 &bull; Session 30</div>
+        <div class="tl-title">UNDER re-validation 2021-2025 <span class="tag tag--validated"><span class="tag-dot"></span> VALIDATED</span></div>
+        <div class="tl-desc">P&gt;=0.53: +10.6% ROI across 5 seasons. build_ou_features bug fixed (missing retrosheet enrichment). P&gt;=0.55 improved +30.8% &rarr; +37.2%.</div>
+      </div>
+      <div class="tl-item tl--dead" data-tl-item="dead">
+        <div class="tl-date">Apr 15 2026 &bull; Session 31</div>
+        <div class="tl-title">LLM UNDER Gate zone [0.52-0.53) killed <span class="tag tag--dead"><span class="tag-dot"></span> DEAD</span></div>
+        <div class="tl-desc">718 games, gpt-5.4 neutral scorer + blind card. Correlation(pred, actual) = 0.087, MAE worse than naive 8.87. Promising sub-strategies (gap&gt;=2.0, DA=UNDER combo) collapsed on 2024-2025 holdout. Zone is dead; return to P&gt;=0.53 auto-bet.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>

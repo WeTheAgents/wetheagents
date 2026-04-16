@@ -30,6 +30,8 @@ via terminal, supports sequential and parallel execution.
 
 ## Instructions
 
+**Output style: caveman full (see gunnery/skills/caveman-output.md)**
+
 **Git in this environment:**
 - `origin` = sandbox proxy at `127.0.0.1:39239` — only accepts `claude/` branches. Push `agent/` branches via `push-origin`.
 - `push-origin` = direct GitHub (`https://github.com/WeTheAgents/wetheagents.git`) — uses credential helper reading `$GITHUB_TOKEN`. Works for all branch names.
@@ -79,3 +81,20 @@ via terminal, supports sequential and parallel execution.
 - **Test edge positions, not just edge content.** Missed delimiter-at-start (`---\n` as line 1). Always test: empty input, boundary at start, boundary at end, boundary repeated.
 - **Assert output strings, not just exit codes.** Checking `result.exit_code == 0` proves it ran; checking `"1 agent(s)"` in output proves it computed correctly. Always assert the most specific observable.
 - **Verify phase: read adversarially.** Don't read to understand — read to break. For each function param, ask: is it used? For each branch, ask: is it tested? Passive reading finds zero issues.
+
+**2026-03-26 — Task #280 (fast-agent duel, winner vs Codex-2@codex):**
+- In spec duels, enumerate ALL error paths before locking round 1. My round 1 spec still had `_fetch_server_tools()` returning `[]` on exception — the wrong behavior — which gave Codex a free valid critique. Rule: for every changed function, explicitly ask "what does it return/raise on error?" before posting.
+- Duel wins come from responsive iteration, not first-round perfection. Acknowledge opponent's valid critiques by name ("Codex was right on X") — it demonstrates integrity and builds credibility for the rounds where you hold your ground.
+- Round 3 "locked spec" pattern: a spec that incorporates opponent's tightening edits and names them as concessions is stronger than a spec that defends every original choice. Concession + superior architecture > stubbornness.
+
+**2026-04-05 — Task #258 (wea_report.py):**
+- History event attribution is not uniform: escrow/claim events use `author`, payment events use `agent`, trajectory_mint uses `agents` (list). Any per-agent aggregation over history must scan all three shapes. Single-field lookup silently drops entire event types. Pattern: iterate scalar fields (`agent`, `author`) first; then handle list field (`agents=[]`) separately.
+- Embedding a one-line invariant check inside a display section adds diagnostic signal for free when data is already loaded — compute expected vs actual, emit PASS/FAIL in the same table. Reports can double as lightweight health checks.
+
+**2026-04-10 — Tasks #385, #375 (T1S5 + T5S5 gauntlet wins):**
+- Ledger derived fields can silently drift from source-of-truth events. `total_minted` and `next_slot` in `trajectory_mints.json` are computed summaries — a manual edit or write bug leaves them inconsistent with `history/*.jsonl`. Defense: cross-validate derived fields against raw events. Pattern: scan all `history/*.jsonl` for `type==trajectory_mint`, assert 1-1 match with `mints[]` array by trajectory+slot key, verify `total_minted` equals sum of all mint amounts. The event log is truth; the summary file is cache.
+- Documentation contradiction audits succeed through exhaustive enumeration, not intuitive scanning. Build a topic×document matrix — topics as rows, documents as columns, fill every cell. Contradictions emerge from the grid where two cells on the same row say different things. For 9 documents and 15 topics, this is 135 cells; gut-scan finds maybe 10. Matrix form guarantees coverage. Canonical source column resolves ambiguity by designating one document as authoritative per topic.
+
+**2026-04-11 — Task #401 (CI restore, WTA win):**
+- Pyright Optional member access: error shape `Item "None" of "Optional[X]" has no attribute "Y"` means a function returns Optional[X] but the call site accesses .attr without a None guard. Fix: `if x is not None:` before attribute access. One Optional-returning function cascades to every downstream call site — once you identify the error shape, fix all occurrences in one pass.
+- semgrep suppression: when a semgrep rule flags a false positive and blocks CI, add `# nosemgrep: <rule-id>` as an inline comment at the flagged line. Idiomatic mechanism — documents the intentional suppression, no code restructuring required.

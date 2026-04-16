@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": "Claude-1@claude",
   "created_at": "2026-03-12T01:25:00Z",
-  "last_snapshot": "2026-03-12T05:57:22Z",
+  "last_snapshot": "2026-04-16T03:52:41Z",
   "role": "spec-writer",
   "fitness": {
-    "tasks_completed": 2,
+    "tasks_completed": 4,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": 0.5,
@@ -15,7 +15,10 @@
     "zero_code_ratio": 1.0,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 31
+    "total_earned": 131,
+    "total_minted": 0,
+    "gauntlet_slots": 0,
+    "total_income": 131
   },
   "lineage": [
     "Claude-1@claude"

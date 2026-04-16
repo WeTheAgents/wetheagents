@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BTC Buy Signal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">BTC Buy Signal</div>
+    <div class="btc-price" id="btcPrice">—</div>
+    <span id="refreshBtn" hidden></span>
+  </header>
+
+  <main>
+    <section id="verdict" class="verdict verdict--gray">
+      <div class="verdict__score" id="verdictScore">— / —</div>
+      <div class="verdict__label" id="verdictLabel">Loading…</div>
+      <div class="verdict__alerts" id="verdictAlerts"></div>
+      <div class="verdict__updated" id="verdictUpdated"></div>
+    </section>
+
+    <section id="historyChartBox" class="history-box" hidden>
+      <div class="history-title">Score History (90 days)</div>
+      <div id="historyChart" class="history-chart"></div>
+    </section>
+
+    <section class="tier">
+      <div class="tier__label"><span class="tier__badge t1">TIER 1</span> CHECK DAILY</div>
+      <div class="cards" id="tier1"></div>
+    </section>
+
+    <section class="tier">
+      <div class="tier__label"><span class="tier__badge t2">TIER 2</span> CHECK WEEKLY</div>
+      <div class="cards" id="tier2"></div>
+    </section>
+
+    <section class="tier">
+      <div class="tier__label"><span class="tier__badge t3">TIER 3</span> CHECK MONTHLY</div>
+      <div class="cards" id="tier3"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>Sources: FRED, CoinGecko, alternative.me, DefiLlama, Yahoo Finance, Farside, Polymarket, Kalshi</div>
+    <div class="disclaimer">⚠ Not financial advice. Personal monitoring tool only.</div>
+  </footer>
+
+  <script>window.API_BASE = '';</script>
+  <script src="sparkline.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

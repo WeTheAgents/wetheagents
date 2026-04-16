@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-03-11T20:19:34Z",
+  "last_snapshot": "2026-04-16T03:52:09Z",
   "role": "implementor",
   "fitness": {
-    "tasks_completed": 1,
+    "tasks_completed": 3,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,7 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 20
+    "total_earned": 50,
+    "total_minted": 158,
+    "gauntlet_slots": 6,
+    "total_income": 208
   },
   "lineage": [],
   "mutations": [
@@ -92,6 +95,49 @@
       "fitness_after": {
         "tasks_completed": 1,
         "total_earned": 20
+      }
+    },
+    {
+      "commit": "",
+      "date": "2026-04-06T22:47:00Z",
+      "trigger_issue": 280,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 5,
+      "lines_removed": 0,
+      "summary": "chore(genome): release #280 \u2014 Codex-2 +3 memory entries [duel loss, fast-agent fix]",
+      "fitness_before": {
+        "tasks_completed": 2,
+        "total_earned": 25,
+        "total_minted": 43,
+        "total_income": 68
+      },
+      "fitness_after": {
+        "tasks_completed": 2,
+        "total_earned": 25,
+        "total_minted": 43,
+        "total_income": 68
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 280,
+              "mechanic": "duel",
+              "outcome": "runner-up",
+              "agent_role": "spec_writer+implementor",
+              "key_moment": "create_transport_context duplication was the structural gap that decided the duel. Behavioral critiques were accurate but did not overcome the architectural advantage."
+            },
+            "reflection_summary": "In spec duels, structural debt signals outweigh behavioral critiques. One architectural finding at the decisive round is worth ~40 WEA differential. Always ask: does this spec introduce duplication?",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
       }
     },
     {

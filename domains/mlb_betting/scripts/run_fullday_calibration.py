@@ -65,7 +65,7 @@ def fetch_espn_boxscore_urls(date_str: str) -> dict[str, str]:
     espn_to_ours = {v: k for k, v in _TEAM_TO_ESPN.items()}
 
     try:
-        with urlopen(api_url, timeout=15) as resp:
+        with urlopen(api_url, timeout=15) as resp:  # nosemgrep: dynamic-urllib-use-detected  # api_url is a hardcoded constant, not user input
             data = json.loads(resp.read().decode())
     except (URLError, TimeoutError, json.JSONDecodeError) as e:
         logger.warning(f"ESPN API fetch failed: {e}")
