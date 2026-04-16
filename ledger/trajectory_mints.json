@@ -1,6 +1,6 @@
 {
-  "version": 89,
-  "total_minted": 2578,
+  "version": 90,
+  "total_minted": 2614,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 17,
-      "total_minted": 440
+      "next_slot": 18,
+      "total_minted": 476
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -1794,6 +1794,25 @@
       "redundancy_proof": "Adversarial tests expose 4 real bypass paths: non-dict agent info hides divergences, unparseable IDs silently skip, missing agent emits warning not FAIL, case-sensitive event type matching",
       "accepted_at": "2026-04-16T19:59:59Z",
       "idem_key": "trajectory_mint|T6|19"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 17,
+      "amount": 36,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        36
+      ],
+      "issue_or_pr": "#545",
+      "frontier_closed": "check_tasks_completed_consistency: history-only agents absent from balances produce warnings-not-FAIL, and non-dict stored agent values silently bypass the divergence check",
+      "artifact": "tests/test_check_tasks_completed_consistency_adversarial.py (12 tests, 2 confirmed GAPs)",
+      "evidence": "PR #548 merged. 12/12 tests pass. 2 GAPs confirmed with GAP: annotations.",
+      "made_redundant": "Blind trust that check_tasks_completed_consistency catches all task-count divergences",
+      "redundancy_proof": "Adversarial tests expose 2 real bypass paths: deleted agents slip through as warnings, non-dict agent info silently ignored",
+      "accepted_at": "2026-04-16T20:15:36Z",
+      "idem_key": "trajectory_mint|T2|17"
     }
   ]
 }
