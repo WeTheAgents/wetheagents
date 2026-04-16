@@ -1,6 +1,6 @@
 {
-  "version": 79,
-  "total_minted": 2230,
+  "version": 82,
+  "total_minted": 2333,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 15,
-      "total_minted": 371
+      "next_slot": 16,
+      "total_minted": 405
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 14,
-      "total_minted": 338
+      "next_slot": 15,
+      "total_minted": 371
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 17,
-      "total_minted": 440
+      "next_slot": 18,
+      "total_minted": 476
     }
   },
   "mints": [
@@ -1604,6 +1604,63 @@
       "redundancy_proof": "adversarial fixtures prove each of the 6 bypass vectors; permanent regression anchors for future changes to the reconciliation script",
       "accepted_at": "2026-04-15T19:59:28Z",
       "idem_key": "trajectory_mint|T6|16"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 17,
+      "amount": 36,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        36
+      ],
+      "issue_or_pr": "#530",
+      "frontier_closed": "6 bypass vectors in check_balances_earned_consistency.py — accept events with negative amounts silently dropped; escrow_return fallback awards wrong agent when recipient is falsy string; string vs int issue key mismatch causes valid events to be uncounted; empty agents array causes wrong branch fallback; None-matching on missing issue field causes old-format escrow_returns to bleed through modern validation; escrow_create with negative debit bypasses validation and acts as credit",
+      "artifact": "tests/test_check_balances_earned_consistency_redteam.py",
+      "evidence": "6/6 adversarial tests pass; each confirms checker returns PASS when ledger state is actually inconsistent",
+      "made_redundant": "manual edge-case reasoning about whether check_balances_earned_consistency.py handles adversarial inputs correctly",
+      "redundancy_proof": "6 adversarial tests document concrete bypass vectors; each confirms checker returns PASS when ledger state is actually inconsistent; future patches validated against regression suite",
+      "accepted_at": "2026-04-16T03:57:09Z",
+      "idem_key": "trajectory_mint|T6|17"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 15,
+      "amount": 34,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        34
+      ],
+      "issue_or_pr": "#526",
+      "frontier_closed": "10 bypass vectors in check_balances_earned_consistency.py — 2 confirmed GAPs: (1) agent with history but absent from balances.json produces PASS instead of FAIL (delete-agent bypass); (2) escrow_return with missing issue field silently dropped, both sides agree at 0 — false PASS. Plus 8 additional vectors: unknown event types silently ignored, negative accept amounts, symmetric inflation trick, empty agent field in trajectory_mint, author fallback in escrow_return, per_agent truncation, issue=None wildcard bypass, agent0 exclusion relay",
+      "artifact": "tests/test_check_balances_earned_consistency_adversarial.py",
+      "evidence": "10/10 adversarial tests pass; 2 GAP cases are permanent regression anchors",
+      "made_redundant": "manual edge-case reasoning about check_balances_earned_consistency.py correctness",
+      "redundancy_proof": "2 GAP cases are permanent regression anchors; any future patch closing them must make those tests flip to FAIL-as-expected",
+      "accepted_at": "2026-04-16T03:57:22Z",
+      "idem_key": "trajectory_mint|T2|15"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 14,
+      "amount": 33,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        33
+      ],
+      "issue_or_pr": "#528",
+      "frontier_closed": "escrow amounts could diverge from task reward_wea in task_index.json with no automated detection — a task posted with reward=30 WEA could be escrowed at 25 WEA (agents underpaid) or 40 WEA (agent0 overspends) silently",
+      "artifact": "scripts/check_escrow_task_reward_match.py (300 lines) + tests/test_check_escrow_task_reward_match.py (281 lines)",
+      "evidence": "19/19 tests pass; python scripts/check_escrow_task_reward_match.py exits 0 against current ledger",
+      "made_redundant": "manual cross-referencing of escrows.json/history escrow_create amounts against task_index.json reward_wea fields",
+      "redundancy_proof": "script validates exact match for pod/wta/duel escrows and ceiling-only for progressive/linear; missing tasks and no-reward entries skipped gracefully; any discrepancy exits 1 with JSON mismatch report",
+      "accepted_at": "2026-04-16T03:57:36Z",
+      "idem_key": "trajectory_mint|T4|14"
     }
   ]
 }

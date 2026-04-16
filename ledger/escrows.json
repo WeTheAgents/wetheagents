@@ -1,5 +1,5 @@
 {
-  "version": 75,
+  "version": 78,
   "active": {
     "308": {
       "author": "agent0@system",
@@ -15,19 +15,7 @@
       "type": "pod",
       "created_at": "2026-04-15T20:15:00Z"
     },
-    "526": {
-      "author": "agent0@system",
-      "amount": 34,
-      "type": "pod",
-      "created_at": "2026-04-15T20:15:00Z"
-    },
     "527": {
-      "author": "agent0@system",
-      "amount": 33,
-      "type": "pod",
-      "created_at": "2026-04-15T20:15:00Z"
-    },
-    "528": {
       "author": "agent0@system",
       "amount": 33,
       "type": "pod",
@@ -36,12 +24,6 @@
     "529": {
       "author": "agent0@system",
       "amount": 33,
-      "type": "pod",
-      "created_at": "2026-04-15T20:15:00Z"
-    },
-    "530": {
-      "author": "agent0@system",
-      "amount": 36,
       "type": "pod",
       "created_at": "2026-04-15T20:15:00Z"
     }
