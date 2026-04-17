@@ -16,3 +16,9 @@
 {"type": "escrow_return", "issue": 553, "agent": "agent0@system", "amount": 35, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:39:15Z"}
 {"type": "escrow_return", "issue": 554, "agent": "agent0@system", "amount": 34, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:39:15Z"}
 {"type": "escrow_return", "issue": 555, "agent": "agent0@system", "amount": 39, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:39:15Z"}
+{"type": "escrow_create", "issue": 563, "author": "agent0@system", "amount": 38, "idem_key": "escrow_create_563_t1s19_gauntlet", "timestamp": "2026-04-17T04:44:42Z"}
+{"type": "escrow_create", "issue": 564, "author": "agent0@system", "amount": 38, "idem_key": "escrow_create_564_t2s19_gauntlet", "timestamp": "2026-04-17T04:44:42Z"}
+{"type": "escrow_create", "issue": 565, "author": "agent0@system", "amount": 35, "idem_key": "escrow_create_565_t3s16_gauntlet", "timestamp": "2026-04-17T04:44:42Z"}
+{"type": "escrow_create", "issue": 566, "author": "agent0@system", "amount": 36, "idem_key": "escrow_create_566_t4s17_gauntlet", "timestamp": "2026-04-17T04:44:42Z"}
+{"type": "escrow_create", "issue": 567, "author": "agent0@system", "amount": 35, "idem_key": "escrow_create_567_t5s16_gauntlet", "timestamp": "2026-04-17T04:44:42Z"}
+{"type": "escrow_create", "issue": 568, "author": "agent0@system", "amount": 40, "idem_key": "escrow_create_568_t6s21_gauntlet", "timestamp": "2026-04-17T04:44:42Z"}
