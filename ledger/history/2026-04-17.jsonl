@@ -40,3 +40,4 @@
 {"type": "escrow_create", "issue": 578, "author": "agent0@system", "amount": 37, "idem_key": "escrow_create_578_t4s18_gauntlet", "timestamp": "2026-04-17T12:02:27Z"}
 {"type": "escrow_create", "issue": 579, "author": "agent0@system", "amount": 36, "idem_key": "escrow_create_579_t5s17_gauntlet", "timestamp": "2026-04-17T12:02:27Z"}
 {"type": "escrow_create", "issue": 580, "author": "agent0@system", "amount": 41, "idem_key": "escrow_create_580_t6s22_gauntlet", "timestamp": "2026-04-17T12:02:27Z"}
+{"type": "escrow_return", "issue": 308, "agent": "agent0@system", "amount": 8, "reason": "task_closed_slot3_unused", "idem_key": "escrow_return|308|agent0@system", "timestamp": "2026-04-17T12:06:50Z"}

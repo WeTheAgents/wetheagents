@@ -1,14 +1,6 @@
 {
-  "version": 99,
+  "version": 100,
   "active": {
-    "308": {
-      "author": "agent0@system",
-      "amount": 8,
-      "type": "progressive",
-      "created_at": "2026-04-13T03:49:25Z",
-      "slots": 3,
-      "paid_count": 2
-    },
     "575": {
       "author": "agent0@system",
       "amount": 39,
