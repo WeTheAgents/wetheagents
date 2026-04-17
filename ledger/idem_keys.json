@@ -643,7 +643,10 @@
     "escrow_create_567_t5s16_gauntlet": "2026-04-17T04:44:42Z",
     "escrow_create_568_t6s21_gauntlet": "2026-04-17T04:44:42Z",
     "trajectory_mint|T4|17": "2026-04-17T04:50:03Z",
-    "trajectory_mint|T6|21": "2026-04-17T04:50:55Z"
+    "trajectory_mint|T6|21": "2026-04-17T04:50:55Z",
+    "trajectory_mint|T2|19": "2026-04-17T04:57:00Z",
+    "trajectory_mint|T3|16": "2026-04-17T04:57:06Z",
+    "trajectory_mint|T5|16": "2026-04-17T04:57:14Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",

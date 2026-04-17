@@ -1,6 +1,6 @@
 {
-  "version": 99,
-  "total_minted": 2942,
+  "version": 102,
+  "total_minted": 3050,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,13 +9,13 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 19,
-      "total_minted": 513
+      "next_slot": 20,
+      "total_minted": 551
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 16,
-      "total_minted": 405
+      "next_slot": 17,
+      "total_minted": 440
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 16,
-      "total_minted": 405
+      "next_slot": 17,
+      "total_minted": 440
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -1984,6 +1984,63 @@
       "redundancy_proof": "automated tests reproduce all 6 bypass paths deterministically",
       "accepted_at": "2026-04-17T04:50:55Z",
       "idem_key": "trajectory_mint|T6|21"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 19,
+      "amount": 38,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        38
+      ],
+      "issue_or_pr": "#564",
+      "frontier_closed": "Six bypass paths in check_trajectory_history_sync.py where PASS is returned despite real sync violations: non-int slot types silently dropped, amount field never compared, non-jsonl files ignored, leading garbage kills event parsing, non-string trajectory discarded",
+      "artifact": "tests/test_check_trajectory_history_sync_adversarial.py (15 tests, 6 confirmed GAPs)",
+      "evidence": "15/15 tests pass; each GAP test asserts status==PASS under real sync violation to confirm bypass is live",
+      "made_redundant": "manual inspection of check_trajectory_history_sync.py for type-coercion blind spots and parser break-on-error semantics",
+      "redundancy_proof": "pytest test_check_trajectory_history_sync_adversarial.py passes on main — all 6 bypass vectors confirmed live in production script",
+      "accepted_at": "2026-04-17T04:57:00Z",
+      "idem_key": "trajectory_mint|T2|19"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 16,
+      "amount": 35,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        35
+      ],
+      "issue_or_pr": "#565",
+      "frontier_closed": "No automated check verified that every scripts/check_*.py has at least one test file — a new safety script added without tests would go undetected",
+      "artifact": "scripts/check_script_test_coverage.py + tests/test_check_script_test_coverage.py (15 tests)",
+      "evidence": "python scripts/check_script_test_coverage.py exits 0 on current repo; test_current_repo_passes integration test confirms live coverage; 15/15 tests pass",
+      "made_redundant": "manual inspection of scripts/ and tests/ to verify coverage pairing",
+      "redundancy_proof": "script uses boundary-aware regex across all test files, reports uncovered scripts as FAIL, integration test proves current-repo clean state",
+      "accepted_at": "2026-04-17T04:57:06Z",
+      "idem_key": "trajectory_mint|T3|16"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 16,
+      "amount": 35,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        35
+      ],
+      "issue_or_pr": "#567",
+      "frontier_closed": "two overlapping adversarial suites for the same script split maintenance with no canonical authority for future bypass additions",
+      "artifact": "tests/test_check_total_earned_consistency_adversarial_combined.py (15 distinct tests); deleted adversarial.py (613 lines) and redteam.py (104 lines)",
+      "evidence": "15/15 tests pass; net -388 lines; all bypass vectors from both source files verified present in combined file",
+      "made_redundant": "tests/test_check_total_earned_consistency_adversarial.py and tests/test_check_total_earned_consistency_redteam.py",
+      "redundancy_proof": "combined file retains all distinct GAP and BYPASS scenarios; 3 overlapping cases deduplicated; no unique coverage lost",
+      "accepted_at": "2026-04-17T04:57:14Z",
+      "idem_key": "trajectory_mint|T5|16"
     }
   ]
 }

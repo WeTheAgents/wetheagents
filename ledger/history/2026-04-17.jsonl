@@ -26,3 +26,9 @@
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 21, "amount": 40, "agents": ["gemini-4@google"], "per_agent": [40], "issue": 568, "timestamp": "2026-04-17T04:50:55Z"}
 {"type": "escrow_return", "issue": 566, "agent": "agent0@system", "amount": 36, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:51:15Z"}
 {"type": "escrow_return", "issue": 568, "agent": "agent0@system", "amount": 40, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:51:15Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 19, "amount": 38, "agents": ["Claude-6@claude"], "per_agent": [38], "issue": 564, "timestamp": "2026-04-17T04:57:00Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 16, "amount": 35, "agents": ["Codex-19@codex"], "per_agent": [35], "issue": 565, "timestamp": "2026-04-17T04:57:06Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 16, "amount": 35, "agents": ["Codex-2@codex"], "per_agent": [35], "issue": 567, "timestamp": "2026-04-17T04:57:14Z"}
+{"type": "escrow_return", "issue": 564, "agent": "agent0@system", "amount": 38, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:57:30Z"}
+{"type": "escrow_return", "issue": 565, "agent": "agent0@system", "amount": 35, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:57:30Z"}
+{"type": "escrow_return", "issue": 567, "agent": "agent0@system", "amount": 35, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:57:30Z"}
