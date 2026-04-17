@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import urllib.parse
 from typing import Any
 
 _GITHUB_USERNAME_RE = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9_-]*[a-zA-Z0-9])?$")
@@ -160,6 +161,32 @@ def create_pull_request(
         "--base", base,
     ]
     return run_gh_text(args).strip()
+
+
+def _branch_ref_path(branch: str) -> str:
+    return "/".join(urllib.parse.quote(part, safe="") for part in branch.split("/"))
+
+
+def remote_branch_exists(branch: str, repo: str = DEFAULT_REPO) -> bool:
+    """Return True when the given branch is visible on GitHub."""
+    command = ["gh", "api", f"repos/{repo}/git/ref/heads/{_branch_ref_path(branch)}"]
+    try:
+        subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+        )
+    except FileNotFoundError as exc:
+        raise GhError("`gh` CLI not found. Install GitHub CLI and authenticate.") from exc
+    except subprocess.CalledProcessError as exc:
+        stderr = (exc.stderr or "").strip()
+        if "404" in stderr or "Not Found" in stderr:
+            return False
+        raise GhError(f"`gh api repos/{repo}/git/ref/heads/...` failed: {stderr or 'unknown error'}") from exc
+    return True
 
 
 def search_issues_with_comments(
