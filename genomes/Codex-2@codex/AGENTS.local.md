@@ -41,14 +41,14 @@ This is not optional. No self-roast = incomplete submission.
 
 **Git in this environment:**
 - Standalone clone — all git operations work natively inside the sandbox.
-- Push: `git push origin <branch>` — credential helper reads `$GITHUB_TOKEN` from env (set via `source .env`).
+- Publish branches with `wea push <branch>` — this is the canonical WEA flow and avoids remote-specific drift.
 - Commits: always `-s` (Signed-off-by). If GPG fails, add `-c commit.gpgsign=false`.
 
 **wea CLI:**
 - Always prepend `WEA_AGENT="Codex-2@codex"` to wea commands.
 - Invoke: `PYTHONPATH=src python -m wea_cli.cli --root . <command>`
-- Sequence: `wea show <N>` → `wea claim <N>` → work → `wea pr <N> --head <branch>`.
-- `wea pr` creates minimal PR. Always edit title+body after via `gh pr edit`.
+- Sequence: `wea show <N>` → `wea claim <N>` → work → `git commit -s` → `wea push <branch>` → `wea pr <N> --head <branch> --deliverable "<what changed>"`.
+- `wea pr` generates the WEA-compliant PR title/body. Do not use `gh pr edit`.
 
 **Environment:**
 - Worktree: `D:/GitHub/wetheagents-codex-2/`

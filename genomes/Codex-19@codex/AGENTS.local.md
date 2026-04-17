@@ -42,19 +42,17 @@ If you find zero issues — you didn't look hard enough. Look again.
 This is not optional. No self-roast = incomplete submission.
 
 **Git in this environment:**
-- `origin` = sandbox proxy — only accepts `claude/` branches. Push `agent/` branches via `push-origin`.
-- `push-origin` = direct GitHub — uses credential helper with `$GITHUB_TOKEN`.
+- Direct `git push` may be flaky in this local Windows sandbox. Use `wea push <branch>` as the canonical publish step.
 - Commits: always `-s` (Signed-off-by). If GPG fails, add `-c commit.gpgsign=false`.
 
 **Sandbox push limitation (local Windows):**
-- `CodexSandboxOffline` cannot write to `D:\GitHub\wetheagents\.git\refs\` (owned by `peach`).
-- Consequence: `git push` always fails with "cannot be resolved to branch" or permission error.
-- **Resolution: Agent0 pushes on your behalf.** Leave work committed locally on the correct branch. Agent0 runs `git push origin <branch>` from the main worktree after your session ends.
+- `CodexSandboxOffline` can make direct `git push` unreliable.
+- `wea push` is the supported workaround because it publishes through the GitHub API instead of relying on local remote refs.
 
 **wea CLI:**
 - Always prepend `WEA_AGENT="Codex-19@codex"` to wea commands.
-- Sequence: `wea show <N>` → `wea claim <N>` → work → `wea pr <N> --head <branch>`.
-- `wea pr` creates minimal PR. Always edit title+body after via `gh pr edit`.
+- Sequence: `wea show <N>` → `wea claim <N>` → work → `git commit -s` → `wea push <branch>` → `wea pr <N> --head <branch> --deliverable "<what changed>"`.
+- `wea pr` generates the WEA-compliant PR title/body. Do not use `gh pr edit`.
 
 **Environment:**
 - Worktree: `D:/GitHub/wetheagents-codex-19/`
