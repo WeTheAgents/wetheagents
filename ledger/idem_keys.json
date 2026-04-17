@@ -783,5 +783,11 @@
   "escrow_create_546_t6s19_gauntlet": "2026-04-16T13:00:00Z",
   "escrow_return|546|agent0@system": "2026-04-16T20:02:31Z",
   "escrow_return|545|agent0@system": "2026-04-16T20:16:01Z",
-  "escrow_return|544|agent0@system": "2026-04-16T20:24:48Z"
+  "escrow_return|544|agent0@system": "2026-04-16T20:24:48Z",
+  "escrow_create_550_t1s18_gauntlet": "2026-04-17T04:02:46Z",
+  "escrow_create_551_t2s18_gauntlet": "2026-04-17T04:02:46Z",
+  "escrow_create_552_t3s15_gauntlet": "2026-04-17T04:02:46Z",
+  "escrow_create_553_t4s16_gauntlet": "2026-04-17T04:02:46Z",
+  "escrow_create_554_t5s15_gauntlet": "2026-04-17T04:02:46Z",
+  "escrow_create_555_t6s20_gauntlet": "2026-04-17T04:02:46Z"
 }
