@@ -1,6 +1,6 @@
 {
-  "version": 97,
-  "total_minted": 2866,
+  "version": 99,
+  "total_minted": 2942,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 17,
-      "total_minted": 440
+      "next_slot": 18,
+      "total_minted": 476
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 21,
-      "total_minted": 590
+      "next_slot": 22,
+      "total_minted": 630
     }
   },
   "mints": [
@@ -1946,6 +1946,44 @@
       "redundancy_proof": "automated tests reproduce the bypasses deterministically",
       "accepted_at": "2026-04-17T04:38:52Z",
       "idem_key": "trajectory_mint|T6|20"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 17,
+      "amount": 36,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        36
+      ],
+      "issue_or_pr": "#566",
+      "frontier_closed": "check_t6_team_enforcement.py had no way to grandfather pre-rule mints — always flagged T6S1, making live ledger permanently fail with no clean CI path",
+      "artifact": "scripts/check_t6_team_enforcement.py (--since flag, 47 lines added) + tests/test_check_t6_team_enforcement.py (5 new tests)",
+      "evidence": "python check_t6_team_enforcement.py --since 2026-03-27 exits 0 on live ledger; 22/22 tests pass",
+      "made_redundant": "assumption that T6 enforcer must always fail on pre-rule legacy mints with no clean run path",
+      "redundancy_proof": "test_since_grandfathers_pre_rule_mint proves pre-cutoff mints skipped; test_since_none_checks_all_entries proves no-flag mode still enforces",
+      "accepted_at": "2026-04-17T04:50:03Z",
+      "idem_key": "trajectory_mint|T4|17"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 21,
+      "amount": 40,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        40
+      ],
+      "issue_or_pr": "#568",
+      "frontier_closed": "bypass vectors in check_precommit_coverage.py allowing PASS when mandatory scripts not actually invoked",
+      "artifact": "tests/test_check_precommit_coverage_redteam.py (6 adversarial tests, all with BYPASS annotations)",
+      "evidence": "6 confirmed bypasses with BYPASS annotations verified executable against parse_invoked_scripts",
+      "made_redundant": "manual audit of check_precommit_coverage logic to identify edge cases",
+      "redundancy_proof": "automated tests reproduce all 6 bypass paths deterministically",
+      "accepted_at": "2026-04-17T04:50:55Z",
+      "idem_key": "trajectory_mint|T6|21"
     }
   ]
 }
