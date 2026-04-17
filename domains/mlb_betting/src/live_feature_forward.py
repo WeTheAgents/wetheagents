@@ -364,6 +364,26 @@ def forward_project_features(
     for feature, n in parquet_fills.items():
         filled_summary[feature] = filled_summary.get(feature, 0) + n
 
+    # Re-derive bullpen-no-starter flags for target-date overlay rows.
+    # merge_retrosheet_pitchers() does LEFT JOIN + .fillna(False) on unmatched
+    # rows — overlay games have no entry in game_id_bridge (bridge only contains
+    # completed games), so flags are forced to False even when no starter is listed.
+    # For pregame overlays, an empty pitcher code IS the bullpen-game signal:
+    # ESPN shows no probable starter when a team goes to the bullpen.
+    _target_date_mask = out["date"].dt.date == target_date
+    for _side in ("home", "away"):
+        _pitcher_col = f"{_side}_pitcher"
+        _flag_col = f"{_side}_is_bullpen_no_starter"
+        if _pitcher_col not in out.columns or _flag_col not in out.columns:
+            continue
+        _is_empty = out[_pitcher_col].isna() | (
+            out[_pitcher_col].astype(str).str.strip() == ""
+        )
+        out.loc[_target_date_mask, _flag_col] = _is_empty[_target_date_mask]
+        _n = int(_is_empty[_target_date_mask].sum())
+        if _n:
+            filled_summary[_flag_col] = _n
+
     _recompute_lineup_interactions(out)
 
     try:
