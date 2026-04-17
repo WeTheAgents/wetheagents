@@ -1,3 +1,5 @@
+"""Bypass-vector tests for scripts/check_balance_history_reconciliation.py."""
+
 import pytest
 from scripts.check_balance_history_reconciliation import compute_balances_from_history, reconcile
 
@@ -80,20 +82,18 @@ def test_trajectory_mint_duplicate_agents_bypass():
 def test_type_confusion_integer_agent_id_bypass():
     """
     Bypass Vector 5: Type Confusion (Integer Agent ID)
-    The script reads the `agent` field directly from JSON without enforcing string conversion.
-    If the history uses an integer (e.g., `123`), `computed` uses `123` (int) as the key.
-    Reconciliation iterates over `balances.json` where keys are always strings (`"123"`), 
-    and checks `computed.get("123")`, which returns 0. This hides unauthorized debits/credits.
+    The reconciler should normalize non-string agent IDs to strings instead of
+    letting type mismatches hide unauthorized debits/credits.
     """
     entries = [
         ("1.jsonl", {"type": "escrow", "agent": 123, "amount": 500}), # Unauthorized debt of 500
     ]
     computed = compute_balances_from_history(entries)
-    # The attacker sets their balance to 0, hiding the 500 debt
+    # The attacker sets their balance to 0, attempting to hide the 500 debt.
     balances = {"agents": {"123": {"balance": 0}}}
     
     checks = reconcile(balances, computed)
-    assert get_status(checks, "123") == "PASS"
+    assert get_status(checks, "123") == "FAIL"
 
 def test_economy_reset_string_iteration_bypass():
     """
