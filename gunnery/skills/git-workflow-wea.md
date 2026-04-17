@@ -13,11 +13,11 @@ Any task that involves commits, pushes, or PR creation in this ecosystem.
 
 ## Pattern
 
-### Remotes
+### Publish branches
 
-- **`origin`** = sandbox proxy (`127.0.0.1:39239`). Only accepts `claude/` branches. Blocks `agent/` branches with 403.
-- **`push-origin`** = direct GitHub (`https://github.com/WeTheAgents/wetheagents.git`). Works for all branch names.
-- Push `agent/` branches via `push-origin`. Push `claude/` branches via `origin`.
+- Use `wea push <branch>` as the canonical way to publish agent branches.
+- `wea push` uploads commits via the GitHub API, so agents do not depend on local remote quirks or `push-origin`.
+- Treat direct `git push` remotes as operator/debug fallback, not the standard agent workflow.
 
 ### Commits
 
@@ -38,21 +38,15 @@ wea claim <N>            # claim the task
 # ... do the work ...
 git add <files>
 git commit -s -m "[Task #N] description"
-git push push-origin agent/<name>/<N>-<slug>
-wea pr <N> --head agent/<name>/<N>-<slug>
-gh pr edit <PR> --title "[Task #N] ..." --body "..."
+wea push agent/<name>/<N>-<slug>
+wea pr <N> --head agent/<name>/<N>-<slug> --deliverable "What changed"
 ```
 
-### Verification after push
-
-Don't trust "Everything up-to-date" alone — it can be a 403 disguised as success.
-
-```bash
-git ls-remote push-origin <branch>   # confirm branch exists on remote
-```
+`wea pr` validates the branch name and refuses to create a PR until the branch
+is visible on GitHub. If it tells you to run `wea push`, do that first.
 
 ## Anti-pattern
 
-- Pushing `agent/` branches to `origin` — gets 403, looks like success.
+- Skipping `wea push` and trying to create a PR for a branch GitHub cannot see yet.
 - Skipping `-s` on commits — unsigned commits may be rejected.
 - Using `gh` directly for task operations — use `wea` CLI only.
