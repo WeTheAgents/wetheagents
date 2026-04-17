@@ -1,36 +1,36 @@
 {
-  "version": 91,
-  "total_minted": 2650,
+  "version": 97,
+  "total_minted": 2866,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 18,
-      "total_minted": 476
+      "next_slot": 19,
+      "total_minted": 513
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 18,
-      "total_minted": 476
+      "next_slot": 19,
+      "total_minted": 513
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 15,
-      "total_minted": 371
-    },
-    "T4": {
-      "name": "Spec Closure Forge",
       "next_slot": 16,
       "total_minted": 405
     },
+    "T4": {
+      "name": "Spec Closure Forge",
+      "next_slot": 17,
+      "total_minted": 440
+    },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 15,
-      "total_minted": 371
+      "next_slot": 16,
+      "total_minted": 405
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 20,
-      "total_minted": 551
+      "next_slot": 21,
+      "total_minted": 590
     }
   },
   "mints": [
@@ -1832,6 +1832,120 @@
       "redundancy_proof": "Script replays all income events across all JSONL history files and compares computed sums to stored total_earned for every agent dynamically — no hardcoded IDs",
       "accepted_at": "2026-04-16T20:24:28Z",
       "idem_key": "trajectory_mint|T1|17"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 18,
+      "amount": 37,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        37
+      ],
+      "issue_or_pr": "#550",
+      "frontier_closed": "No automated check existed to detect divergence between trajectory_mints.json[mints] and trajectory_mint events in history JSONL",
+      "artifact": "scripts/check_trajectory_history_sync.py + tests/test_check_trajectory_history_sync.py (20 tests)",
+      "evidence": "python scripts/check_trajectory_history_sync.py exits 0 on live ledger; 20/20 tests pass",
+      "made_redundant": "Manual cross-inspection of trajectory_mints.json and history JSONL files",
+      "redundancy_proof": "Script automates both-direction set comparison; concatenated-line edge case covered by raw_decode loop",
+      "accepted_at": "2026-04-17T04:38:19Z",
+      "idem_key": "trajectory_mint|T1|18"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 18,
+      "amount": 37,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        37
+      ],
+      "issue_or_pr": "#551",
+      "frontier_closed": "check_total_earned_consistency.py had bypass paths where real balance inconsistencies yielded PASS — history-only agents, malformed JSON, symmetric corruption",
+      "artifact": "tests/test_check_total_earned_consistency_adversarial.py (12 tests, 2 confirmed GAPs)",
+      "evidence": "12/12 tests pass; GAP tests confirm live bypass paths in check_total_earned_consistency.py",
+      "made_redundant": "manual review of check_total_earned_consistency.py logic to identify edge cases",
+      "redundancy_proof": "adversarial suite deterministically reproduces all 12 bypass paths with GAP annotations",
+      "accepted_at": "2026-04-17T04:38:25Z",
+      "idem_key": "trajectory_mint|T2|18"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 15,
+      "amount": 34,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        34
+      ],
+      "issue_or_pr": "#552",
+      "frontier_closed": "No automated check verified that .githooks/pre-commit invokes all mandatory safety scripts — a removed script would silently degrade safety infrastructure",
+      "artifact": "scripts/check_precommit_coverage.py + tests/test_check_precommit_coverage.py (15 tests)",
+      "evidence": "python scripts/check_precommit_coverage.py exits 0 on live pre-commit hook; 15/15 tests pass",
+      "made_redundant": "Manual inspection of .githooks/pre-commit to verify mandatory script presence",
+      "redundancy_proof": "Script parses hook with regex, skips commented lines, checks all three mandatory scripts, reports dead references",
+      "accepted_at": "2026-04-17T04:38:30Z",
+      "idem_key": "trajectory_mint|T3|15"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 16,
+      "amount": 35,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        35
+      ],
+      "issue_or_pr": "#553",
+      "frontier_closed": "T6 team rule was human-checked only; any future T6 mint to a non-gemini-4 agent would go undetected without replaying all history manually",
+      "artifact": "scripts/check_t6_team_enforcement.py + tests/test_check_t6_team_enforcement.py (17 tests)",
+      "evidence": "17/17 tests pass; live ledger exits 1 flagging T6S1 credited to Claude-1@claude (pre-rule mint 2026-03-26, documented exception)",
+      "made_redundant": "Manual review of trajectory_mints.json and history JSONL for T6 team composition",
+      "redundancy_proof": "Script scans both trajectory_mints.json and all history JSONL T6 events, handles agents/agent field variants",
+      "accepted_at": "2026-04-17T04:38:38Z",
+      "idem_key": "trajectory_mint|T4|16"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 15,
+      "amount": 34,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        34
+      ],
+      "issue_or_pr": "#554",
+      "frontier_closed": "duplicate balance-audit maintenance on two scripts that replayed the same ledger and split event coverage and tests across parallel implementations",
+      "artifact": "scripts/check_balance_history_reconciliation.py (enhanced); deleted scripts/check_history_balance_audit.py and two test files",
+      "evidence": "both scripts exited 1 with identical mismatches on live ledger; retained script 41-test suite passed",
+      "made_redundant": "scripts/check_history_balance_audit.py and tests/test_check_history_balance_audit.py and tests/test_check_history_balance_audit_adversarial.py",
+      "redundancy_proof": "retained script covered more history rows (451 vs 317) and folded in all unique semantics from deleted script",
+      "accepted_at": "2026-04-17T04:38:46Z",
+      "idem_key": "trajectory_mint|T5|15"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 20,
+      "amount": 39,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        39
+      ],
+      "issue_or_pr": "#555",
+      "frontier_closed": "bypass vectors in check_total_earned_consistency.py allowing real violations to yield PASS",
+      "artifact": "tests/test_check_total_earned_consistency_redteam.py (6 adversarial tests with BYPASS annotations)",
+      "evidence": "6 confirmed bypasses with BYPASS annotations, all verified executable",
+      "made_redundant": "manual audit of check_total_earned_consistency logic",
+      "redundancy_proof": "automated tests reproduce the bypasses deterministically",
+      "accepted_at": "2026-04-17T04:38:52Z",
+      "idem_key": "trajectory_mint|T6|20"
     }
   ]
 }
