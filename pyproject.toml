@@ -42,6 +42,7 @@ python_functions = ["test_*"]
 [tool.pyright]
 pythonVersion = "3.10"
 include = ["scripts", "src"]
+exclude = ["scripts/check_idem_key_completeness.py"]
 reportArgumentType = "warning"
 reportOptionalOperand = "warning"
 reportPossiblyUnbound = "warning"
