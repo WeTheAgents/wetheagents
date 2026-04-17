@@ -38,6 +38,8 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import pandas as pd
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -71,6 +73,10 @@ TIER_PRIORITY = [
     "tier3_pitcher_advantage",
     "tier2_fatigue_gap",
     "fav_rl",
+    # OVER market is orthogonal to ML/RL (different market key on the same
+    # game), so these never collide via dedup; listed last for completeness.
+    "over_bullpen_mismatch_power",
+    "over_bullpen_mismatch",
 ]
 
 
@@ -509,8 +515,8 @@ def main() -> int:
     parser.add_argument(
         "--tiers",
         type=str,
-        default="tier1_bullpen_day,tier2_fatigue_gap,tier3_pitcher_advantage,fav_rl",
-        help="Comma-separated tier names (default: all 4)",
+        default="tier1_bullpen_day,tier2_fatigue_gap,tier3_pitcher_advantage,fav_rl,over_bullpen_mismatch",
+        help="Comma-separated tier names (default: all 5)",
     )
     parser.add_argument(
         "--no-poly",
@@ -529,6 +535,12 @@ def main() -> int:
         help="Kelly fraction multiplier (default 0.25 for W2-W3 ramp)",
     )
     parser.add_argument(
+        "--kelly-protocol",
+        action="store_true",
+        help="Auto-select Kelly by season-week (CLAUDE.md ramp): W1=0.0 no bets, "
+             "W2/W3=0.25, W4+=0.5. Overrides --kelly.",
+    )
+    parser.add_argument(
         "--target-edge",
         type=float,
         default=0.20,
@@ -539,9 +551,36 @@ def main() -> int:
     target = date.fromisoformat(args.date) if args.date else date.today()
     requested_tiers = [t.strip() for t in args.tiers.split(",") if t.strip()]
 
+    # CLAUDE.md season ramp: W1 no bets, W2/W3 ¼ Kelly, W4+ ½ Kelly. Seasons
+    # start late March; for simplicity we key off April and compute the
+    # week-of-April (1-based).
+    kelly_cap = args.kelly
+    if args.kelly_protocol:
+        april_start = date(target.year, 4, 1)
+        if target < april_start:
+            week = 0
+        else:
+            week = ((target - april_start).days // 7) + 1
+        if week <= 1:
+            kelly_cap = 0.0
+            logger.warning(
+                "--kelly-protocol: W%d (pre-W2) → Kelly=0.0 (no bets). "
+                "Script will still compute signals for monitoring.",
+                week,
+            )
+        elif week <= 3:
+            kelly_cap = 0.25
+        else:
+            kelly_cap = 0.5
+        logger.info(
+            "--kelly-protocol: week %d of April → Kelly cap = %.2f",
+            week,
+            kelly_cap,
+        )
+
     logger.info("=== generate_picks_2026 — %s ===", target)
     logger.info("Tiers: %s", requested_tiers)
-    logger.info("Kelly cap: %.2f", args.kelly)
+    logger.info("Kelly cap: %.2f", kelly_cap)
 
     # 1. Build features.
     from src.data_loader import (  # noqa: PLC0415
@@ -557,6 +596,27 @@ def main() -> int:
 
     logger.info("Loading + enriching games...")
     games = load_all_seasons()
+
+    # Pregame overlay — for today/future dates, pull the most recent pregame
+    # JSON snapshot and concat BEFORE filters so the new rows pass through
+    # the same pitcher/odds gates as historical data. The data pipeline never
+    # sees these rows (parquet stays canonical = played games).
+    if target >= date.today():
+        from src.live_pregame import load_pregame_overlay  # noqa: PLC0415
+        overlay = load_pregame_overlay(target)
+        if not overlay.empty:
+            # Guard against dupes if the date was somehow already merged.
+            mask_existing = (games["date"].dt.date == target) if len(games) else pd.Series([], dtype=bool)
+            if mask_existing.any():
+                logger.info(
+                    "Overlay: dropping %d pre-existing rows for %s before concat",
+                    int(mask_existing.sum()),
+                    target,
+                )
+                games = games.loc[~mask_existing].copy()
+            games = pd.concat([games, overlay], ignore_index=True, sort=False)
+            logger.info("Pregame overlay: +%d games for %s", len(overlay), target)
+
     games = apply_data_filters(games)
     games = add_derived_odds(games)
 
@@ -564,8 +624,30 @@ def main() -> int:
     games = games[games["season"].isin([2024, 2025, 2026])]
 
     enriched = build_all_features(games)
+
+    # If we ran with a pregame overlay, the bullpen & starter-entering parquets
+    # only contain dates < target. Forward-project team/pitcher features onto
+    # today's rows so strategies have the inputs they need (small bias vs.
+    # total absence of signal — see src/live_feature_forward.py).
+    if target >= date.today():
+        from src.live_feature_forward import forward_project_features  # noqa: PLC0415
+        enriched = forward_project_features(enriched, target)
+
     enriched = add_derived_for_strategies(enriched)
     logger.info("Enriched: %d rows, %d cols", len(enriched), len(enriched.columns))
+    if target >= date.today() and not enriched.empty:
+        day = enriched[enriched["date"].dt.date == target].copy()
+        for col in [
+            "starter_feature_source_missing",
+            "insufficient_starter_history",
+            "lineup_feature_source_missing",
+            "insufficient_lineup_history",
+            "unsupported_live_yrfi_features",
+        ]:
+            if col in day.columns:
+                count = int(day[col].fillna(False).astype(bool).sum())
+                if count:
+                    logger.warning("Target-date flag %s: %d/%d games", col, count, len(day))
 
     # 2. Run each strategy.
     raw_picks = []
@@ -599,7 +681,7 @@ def main() -> int:
     for p in deduped:
         poly_data = poly_lookup.get((p.away, p.home))
         enriched_picks.append(
-            enrich_pick(p, poly_data, args.kelly, target_edge=args.target_edge)
+            enrich_pick(p, poly_data, kelly_cap, target_edge=args.target_edge)
         )
 
     # 6. Filter unprofitable picks.

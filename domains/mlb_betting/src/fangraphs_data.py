@@ -28,10 +28,12 @@ DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent / "data" / "processed" / "fang
 _RETRO_ENV = os.environ.get("RETROSHEET_DIR")
 RETROSHEET_DIR = Path(_RETRO_ENV) if _RETRO_ENV else Path(__file__).parent.parent / "retrosheets"
 
-# Seasons to pull: 2009 (prior for 2010) through 2021
-PULL_SEASONS = list(range(2009, 2022))
+# Seasons to pull: 2010 through 2025. Earlier priors are not available in the
+# checked-in Retrosheet bundle, and the Y-1 join only needs 2022-2025 to cover
+# the live 2023-2026 seasons we care about.
+PULL_SEASONS = list(range(2010, 2026))
 
-# Era-average wOBA linear weights (2009-2021).
+# Era-average wOBA linear weights (2010-2025).
 # Since wRC+ is relative to league average, small year-to-year weight
 # variations introduce at most ~1-2 points of error at team level.
 WOBA_WEIGHTS = {
@@ -163,8 +165,15 @@ def build_team_batting_all_seasons(
 
     for season in seasons:
         logger.info(f"  Computing team batting for {season} from Retrosheet...")
-        team_df = _compute_team_batting_season(season)
+        try:
+            team_df = _compute_team_batting_season(season)
+        except FileNotFoundError as exc:
+            logger.warning("  Skipping %s: %s", season, exc)
+            continue
         all_seasons.append(team_df)
+
+    if not all_seasons:
+        raise FileNotFoundError("No Retrosheet teamstats seasons available for Fangraphs build")
 
     result = pd.concat(all_seasons, ignore_index=True)
     logger.info(

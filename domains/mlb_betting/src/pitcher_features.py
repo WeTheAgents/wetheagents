@@ -312,10 +312,12 @@ def merge_pitcher_features_to_games(
         enriched["home_sp_starts"] - enriched["away_sp_starts"]
     )
 
-    # Matchup quality: both pitchers experienced + low RA
-    enriched["sp_quality_floor"] = enriched[
+    # Worst long-window RA of the two starters. Keep this explicitly named as
+    # RA-long so downstream OVER logic cannot confuse it with a short-window
+    # FIP floor.
+    enriched["sp_ra_floor_long"] = enriched[
         ["home_sp_ra_long", "away_sp_ra_long"]
-    ].max(axis=1)  # worst of the two (lower is better for quality matchup)
+    ].max(axis=1)
 
     n_pitcher_cols = len([
         c for c in enriched.columns

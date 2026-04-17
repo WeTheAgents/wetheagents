@@ -123,6 +123,23 @@ def add_derived_for_strategies(df: pd.DataFrame) -> pd.DataFrame:
         raw_pr = df["power_rate_home"] - df["power_rate_away"]
         df["fav_power_rate_diff"] = raw_pr * flip
 
+    # Decisive-margin rate diffs (Sess 38 fav margin model).  Positive
+    # ``fav_decisive_win_rate_diff`` = fav blows opponents out more often
+    # than dog does.  Negative ``fav_decisive_loss_rate_diff`` = fav gets
+    # blown out less often than dog (good for fav -1.5).
+    if (
+        "decisive_win_rate_home" in df.columns
+        and "decisive_win_rate_away" in df.columns
+    ):
+        raw_dw = df["decisive_win_rate_home"] - df["decisive_win_rate_away"]
+        df["fav_decisive_win_rate_diff"] = raw_dw * flip
+    if (
+        "decisive_loss_rate_home" in df.columns
+        and "decisive_loss_rate_away" in df.columns
+    ):
+        raw_dl = df["decisive_loss_rate_home"] - df["decisive_loss_rate_away"]
+        df["fav_decisive_loss_rate_diff"] = raw_dl * flip
+
     # Bullpen workload gap (Tier 2 trigger).
     if "bp_ip_3d_home" in df.columns and "bp_ip_3d_away" in df.columns:
         df["bp_workload_gap"] = df["bp_ip_3d_home"] - df["bp_ip_3d_away"]
@@ -144,6 +161,41 @@ def add_derived_for_strategies(df: pd.DataFrame) -> pd.DataFrame:
         df["starter_depth_diff"] = (
             df["home_sp_ip_per_start_long"] - df["away_sp_ip_per_start_long"]
         )
+
+    # OVER strategy (Sess 33b) derived fields. build_all_features only
+    # materialises these in niche paths; we compute them here for live.
+    if "combined_rpg" not in df.columns and (
+        "rpg_home" in df.columns and "rpg_away" in df.columns
+    ):
+        df["combined_rpg"] = df["rpg_home"] + df["rpg_away"]
+    if "rpg_vs_line" not in df.columns and (
+        "combined_rpg" in df.columns and "close_ou" in df.columns
+    ):
+        df["rpg_vs_line"] = df["combined_rpg"] - df["close_ou"]
+    if "bullpen_fip_7g_combined" not in df.columns and (
+        "bp_fip_7g_home" in df.columns and "bp_fip_7g_away" in df.columns
+    ):
+        df["bullpen_fip_7g_combined"] = (
+            df["bp_fip_7g_home"] + df["bp_fip_7g_away"]
+        )
+    if "sp_ra_floor_long" not in df.columns and (
+        "home_sp_ra_long" in df.columns and "away_sp_ra_long" in df.columns
+    ):
+        df["sp_ra_floor_long"] = df[
+            ["home_sp_ra_long", "away_sp_ra_long"]
+        ].max(axis=1, skipna=False)
+    if (
+        "home_sp_fip_short" in df.columns and "away_sp_fip_short" in df.columns
+    ):
+        # "Floor" = the worse (higher) of the two short-window FIPs.
+        # Require BOTH starters to have values (skipna=False) — matches the
+        # backtest where historical data is complete. Skipping NaN inflates
+        # coverage in W3 and leaks picks that the backtest never had.
+        df["sp_fip_floor_short"] = df[
+            ["home_sp_fip_short", "away_sp_fip_short"]
+        ].max(axis=1, skipna=False)
+    elif "sp_fip_floor_short" not in df.columns:
+        df["sp_fip_floor_short"] = np.nan
 
     return df
 

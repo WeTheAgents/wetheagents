@@ -280,11 +280,11 @@ def main():
     m = bankroll_metrics_ou(filt, "+ 2nd half only")
     combo_metrics.append(m)
 
-    # 8) Quality floor high (both starters have high RA)
-    if "sp_quality_floor" in base_df.columns:
-        med = base_df["sp_quality_floor"].median()
-        filt = base_df[base_df["sp_quality_floor"] > med].copy()
-        m = bankroll_metrics_ou(filt, f"+ sp_quality_floor>{med:.1f}")
+    # 8) Quality floor high (worst starter has high long-window RA)
+    if "sp_ra_floor_long" in base_df.columns:
+        med = base_df["sp_ra_floor_long"].median()
+        filt = base_df[base_df["sp_ra_floor_long"] > med].copy()
+        m = bankroll_metrics_ou(filt, f"+ sp_ra_floor_long>{med:.1f}")
         combo_metrics.append(m)
 
     # Print filter combo results
