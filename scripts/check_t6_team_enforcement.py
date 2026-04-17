@@ -32,6 +32,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -58,15 +59,28 @@ def _extract_agents(record: dict[str, Any]) -> list[str]:
     return []
 
 
+def _parse_date_prefix(ts: str) -> date | None:
+    """Parse the date portion of an ISO-8601 timestamp string (YYYY-MM-DD...)."""
+    try:
+        return date.fromisoformat(ts[:10])
+    except (ValueError, TypeError):
+        return None
+
+
 def _check_mints(
     mints: list[dict[str, Any]],
     authorized_agent: str,
     violations: list[dict[str, Any]],
+    since: date | None = None,
 ) -> None:
     """Check trajectory_mints.json entries for T6 team violations."""
     for record in mints:
         if record.get("trajectory") != "T6":
             continue
+        if since is not None:
+            accepted_at = _parse_date_prefix(record.get("accepted_at", ""))
+            if accepted_at is None or accepted_at < since:
+                continue
         agents = _extract_agents(record)
         bad = [a for a in agents if a != authorized_agent]
         if bad:
@@ -119,6 +133,7 @@ def _check_history(
     events,
     authorized_agent: str,
     violations: list[dict[str, Any]],
+    since: date | None = None,
 ) -> None:
     """Check history event stream for T6 trajectory_mint violations."""
     for event in events:
@@ -126,6 +141,10 @@ def _check_history(
             continue
         if event.get("trajectory") != "T6":
             continue
+        if since is not None:
+            ts = _parse_date_prefix(event.get("timestamp", ""))
+            if ts is None or ts < since:
+                continue
         agents = _extract_agents(event)
         bad = [a for a in agents if a != authorized_agent]
         if bad:
@@ -161,6 +180,7 @@ def run_check(
     mints: list[dict[str, Any]] | None = None,
     events: list[dict[str, Any]] | None = None,
     authorized_agent: str = DEFAULT_T6_AGENT,
+    since: date | None = None,
 ) -> dict[str, Any]:
     """Run the T6 team-enforcement check and return the report.
 
@@ -176,6 +196,10 @@ def run_check(
         data without touching the filesystem).
     authorized_agent:
         The only agent allowed to receive T6 mints.
+    since:
+        If provided, only enforce for T6 entries on or after this date.
+        Entries with ``accepted_at`` / ``timestamp`` before this date are
+        silently skipped (grandfathered).
 
     Returns
     -------
@@ -203,7 +227,7 @@ def run_check(
             sys.exit(1)
         mints = data.get("mints", [])
 
-    _check_mints(mints, authorized_agent, violations)
+    _check_mints(mints, authorized_agent, violations, since=since)
 
     # --- ledger/history/*.jsonl ---
     if events is None:
@@ -218,7 +242,7 @@ def run_check(
     else:
         event_stream = iter(events)
 
-    _check_history(event_stream, authorized_agent, violations)
+    _check_history(event_stream, authorized_agent, violations, since=since)
 
     status = "FAIL" if violations else "PASS"
     summary = (
@@ -254,10 +278,30 @@ def main(argv: list[str] | None = None) -> int:
             f"(default: {DEFAULT_T6_AGENT})"
         ),
     )
+    parser.add_argument(
+        "--since",
+        default=None,
+        metavar="YYYY-MM-DD",
+        help=(
+            "Only enforce T6 team rules for mints on or after this date "
+            "(ISO format). Entries before this date are grandfathered and skipped."
+        ),
+    )
     args = parser.parse_args(argv)
 
+    since: date | None = None
+    if args.since is not None:
+        try:
+            since = date.fromisoformat(args.since)
+        except ValueError:
+            print(
+                f"ERROR: --since value '{args.since}' is not a valid YYYY-MM-DD date.",
+                file=sys.stderr,
+            )
+            return 1
+
     root = _repo_root_from(args.root)
-    result = run_check(root, authorized_agent=args.authorized_agent)
+    result = run_check(root, authorized_agent=args.authorized_agent, since=since)
     print(json.dumps(result, indent=2))
     return 1 if result["status"] == "FAIL" else 0
 
