@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -86,3 +87,112 @@ def test_future_yrfi_rows_keep_live_babip_or_raise_explicit_history_flags(
     assert (babip_ok | explicit_gap).all()
     assert not yrfi["unsupported_live_babip_features"].all()
     assert not yrfi["unsupported_live_yrfi_features"].all()
+
+
+def test_forward_projection_carries_savant_team_features_and_recomputes_diffs(monkeypatch: pytest.MonkeyPatch):
+    target = date(2026, 4, 17)
+    frame = pd.DataFrame(
+        [
+            {
+                "date": pd.Timestamp("2026-04-16"),
+                "home_team": "BOS",
+                "away_team": "DET",
+                "bp_sc_xwoba_std_home": 0.312,
+                "bp_sc_xwoba_std_away": 0.287,
+                "bp_sc_xwoba_std_diff": 0.025,
+            },
+            {
+                "date": pd.Timestamp("2026-04-17"),
+                "home_team": "BOS",
+                "away_team": "DET",
+                "bp_sc_xwoba_std_home": np.nan,
+                "bp_sc_xwoba_std_away": np.nan,
+                "bp_sc_xwoba_std_diff": np.nan,
+            },
+        ]
+    )
+
+    monkeypatch.setattr(
+        "src.live_feature_forward._fill_pitcher_features_from_parquet",
+        lambda df, dt: {},
+    )
+
+    projected = forward_project_features(frame, target)
+    day = projected.loc[projected["date"].dt.date == target].iloc[0]
+    assert day["bp_sc_xwoba_std_home"] == pytest.approx(0.312)
+    assert day["bp_sc_xwoba_std_away"] == pytest.approx(0.287)
+    assert day["bp_sc_xwoba_std_diff"] == pytest.approx(0.025)
+
+
+def test_forward_projection_uses_cross_side_savant_history_for_team_metrics(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    target = date(2026, 4, 17)
+    frame = pd.DataFrame(
+        [
+            {
+                "date": pd.Timestamp("2026-04-16"),
+                "home_team": "DET",
+                "away_team": "BOS",
+                "bp_sc_barrel_std_home": 0.041,
+                "bp_sc_barrel_std_away": 0.018,
+                "bp_sc_barrel_std_diff": 0.023,
+            },
+            {
+                "date": pd.Timestamp("2026-04-17"),
+                "home_team": "BOS",
+                "away_team": "DET",
+                "bp_sc_barrel_std_home": np.nan,
+                "bp_sc_barrel_std_away": np.nan,
+                "bp_sc_barrel_std_diff": np.nan,
+            },
+        ]
+    )
+
+    monkeypatch.setattr(
+        "src.live_feature_forward._fill_pitcher_features_from_parquet",
+        lambda df, dt: {},
+    )
+
+    projected = forward_project_features(frame, target)
+    day = projected.loc[projected["date"].dt.date == target].iloc[0]
+    assert day["bp_sc_barrel_std_home"] == pytest.approx(0.018)
+    assert day["bp_sc_barrel_std_away"] == pytest.approx(0.041)
+    assert day["bp_sc_barrel_std_diff"] == pytest.approx(-0.023)
+
+
+def test_forward_projection_carries_late_game_metrics_from_latest_non_null_history(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    target = date(2026, 4, 17)
+    frame = pd.DataFrame(
+        [
+            {
+                "date": pd.Timestamp("2026-04-15"),
+                "home_team": "DET",
+                "away_team": "BOS",
+                "deficit_recovery_rate_home": 0.2,
+                "deficit_recovery_rate_away": 0.125,
+                "deficit_recovery_diff": 0.075,
+            },
+            {
+                "date": pd.Timestamp("2026-04-17"),
+                "home_team": "BOS",
+                "away_team": "DET",
+                "deficit_recovery_rate_home": np.nan,
+                "deficit_recovery_rate_away": np.nan,
+                "deficit_recovery_diff": np.nan,
+            },
+        ]
+    )
+
+    monkeypatch.setattr(
+        "src.live_feature_forward._fill_pitcher_features_from_parquet",
+        lambda df, dt: {},
+    )
+
+    projected = forward_project_features(frame, target)
+    day = projected.loc[projected["date"].dt.date == target].iloc[0]
+    assert day["deficit_recovery_rate_home"] == pytest.approx(0.125)
+    assert day["deficit_recovery_rate_away"] == pytest.approx(0.2)
+    assert day["deficit_recovery_diff"] == pytest.approx(-0.075)

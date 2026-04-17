@@ -122,6 +122,23 @@ STARTER_META_COLUMNS = {
     "opponent",
 }
 
+SAVANT_DIFF_METRICS = {
+    "bp_sc_xwoba_std",
+    "bp_sc_xwoba_15g",
+    "bp_sc_barrel_std",
+    "bp_sc_barrel_15g",
+    "bp_sc_whiff_3d",
+    "bp_sc_barrel_3d",
+    "bp_sc_whiff_delta_3d",
+    "bp_sc_barrel_delta_3d",
+}
+
+LATE_GAME_DIFF_FEATURES = {
+    "hold_rate": "hold_rate_diff",
+    "close_game_wp": "close_game_wp_diff",
+    "deficit_recovery_rate": "deficit_recovery_diff",
+}
+
 
 def _fill_team_feature(
     df: pd.DataFrame,
@@ -151,6 +168,58 @@ def _fill_team_feature(
     rows_to_fill = target_mask & df[feature].isna()
     if not rows_to_fill.any():
         return 0
+
+    df.loc[rows_to_fill, feature] = df.loc[rows_to_fill, team_col].map(latest)
+    return int((rows_to_fill & df[feature].notna()).sum())
+
+
+def _fill_team_feature_from_history(
+    df: pd.DataFrame,
+    team_col: str,
+    feature: str,
+    target_date: date,
+    history_sources: list[tuple[str, str]],
+) -> int:
+    """Fill a target-date team feature from the latest prior team history.
+
+    Unlike `_fill_team_feature`, this can combine prior home/away columns into
+    one team-level history. That matters for side-specific columns such as
+    Savant bullpen metrics, which are team features but get merged into the
+    frame as separate `_home` / `_away` columns.
+    """
+    if feature not in df.columns or team_col not in df.columns:
+        return 0
+
+    target_mask = df["date"].dt.date == target_date
+    if not target_mask.any():
+        return 0
+
+    rows_to_fill = target_mask & df[feature].isna()
+    if not rows_to_fill.any():
+        return 0
+
+    history_frames: list[pd.DataFrame] = []
+    pre_mask = df["date"].dt.date < target_date
+    for source_team_col, source_feature in history_sources:
+        if source_team_col not in df.columns or source_feature not in df.columns:
+            continue
+        source_mask = pre_mask & df[source_feature].notna()
+        if not source_mask.any():
+            continue
+        history_frames.append(
+            df.loc[source_mask, [source_team_col, "date", source_feature]]
+            .rename(columns={source_team_col: "team", source_feature: "value"})
+        )
+
+    if not history_frames:
+        return 0
+
+    latest = (
+        pd.concat(history_frames, ignore_index=True)
+        .sort_values("date")
+        .groupby("team")["value"]
+        .last()
+    )
 
     df.loc[rows_to_fill, feature] = df.loc[rows_to_fill, team_col].map(latest)
     return int((rows_to_fill & df[feature].notna()).sum())
@@ -187,6 +256,128 @@ def _fill_pitcher_feature(
 
     df.loc[rows_to_fill, feature] = df.loc[rows_to_fill, pitcher_col].map(latest)
     return int((rows_to_fill & df[feature].notna()).sum())
+
+
+def _discover_savant_base_metrics(df: pd.DataFrame) -> list[str]:
+    """Return Savant team metrics present as side-specific columns."""
+    metrics = set()
+    for col in df.columns:
+        if not col.startswith("bp_sc_"):
+            continue
+        if col.endswith("_home"):
+            metrics.add(col[:-5])
+        elif col.endswith("_away"):
+            metrics.add(col[:-5])
+    return sorted(metrics)
+
+
+def _discover_savant_diff_metrics(df: pd.DataFrame) -> list[str]:
+    """Return diff metrics to recompute after Savant forward-projection."""
+    metrics = set(SAVANT_DIFF_METRICS)
+    for col in df.columns:
+        if col.startswith("bp_sc_") and col.endswith("_diff"):
+            metrics.add(col[:-5])
+    return sorted(metrics)
+
+
+def _fill_savant_team_features(
+    df: pd.DataFrame,
+    target_date: date,
+) -> dict[str, int]:
+    """Carry forward Savant bullpen team features onto target-date rows."""
+    filled: dict[str, int] = {}
+    target_mask = df["date"].dt.date == target_date
+    if not target_mask.any():
+        return filled
+
+    base_metrics = _discover_savant_base_metrics(df)
+    if not base_metrics:
+        return filled
+
+    for base in base_metrics:
+        home_feature = f"{base}_home"
+        away_feature = f"{base}_away"
+        history_sources = [
+            ("home_team", home_feature),
+            ("away_team", away_feature),
+        ]
+        n_home = _fill_team_feature_from_history(
+            df,
+            "home_team",
+            home_feature,
+            target_date,
+            history_sources,
+        )
+        if n_home:
+            filled[home_feature] = n_home
+        n_away = _fill_team_feature_from_history(
+            df,
+            "away_team",
+            away_feature,
+            target_date,
+            history_sources,
+        )
+        if n_away:
+            filled[away_feature] = n_away
+
+    for base in _discover_savant_diff_metrics(df):
+        home_feature = f"{base}_home"
+        away_feature = f"{base}_away"
+        diff_feature = f"{base}_diff"
+        if home_feature not in df.columns or away_feature not in df.columns:
+            continue
+        df[diff_feature] = df[home_feature] - df[away_feature]
+        n_diff = int((target_mask & df[diff_feature].notna()).sum())
+        if n_diff:
+            filled[diff_feature] = n_diff
+
+    return filled
+
+
+def _fill_late_game_team_features(
+    df: pd.DataFrame,
+    target_date: date,
+) -> dict[str, int]:
+    """Carry forward latest prior late-game team metrics onto target-date rows."""
+    filled: dict[str, int] = {}
+    target_mask = df["date"].dt.date == target_date
+    if not target_mask.any():
+        return filled
+
+    for base, diff_feature in sorted(LATE_GAME_DIFF_FEATURES.items()):
+        home_feature = f"{base}_home"
+        away_feature = f"{base}_away"
+        history_sources = [
+            ("home_team", home_feature),
+            ("away_team", away_feature),
+        ]
+        n_home = _fill_team_feature_from_history(
+            df,
+            "home_team",
+            home_feature,
+            target_date,
+            history_sources,
+        )
+        if n_home:
+            filled[home_feature] = n_home
+        n_away = _fill_team_feature_from_history(
+            df,
+            "away_team",
+            away_feature,
+            target_date,
+            history_sources,
+        )
+        if n_away:
+            filled[away_feature] = n_away
+
+        if home_feature not in df.columns or away_feature not in df.columns:
+            continue
+        df[diff_feature] = df[home_feature] - df[away_feature]
+        n_diff = int((target_mask & df[diff_feature].notna()).sum())
+        if n_diff:
+            filled[diff_feature] = n_diff
+
+    return filled
 
 
 def _load_pitcher_code_lookup() -> dict[str, str]:
@@ -362,6 +553,14 @@ def forward_project_features(
 
     parquet_fills = _fill_pitcher_features_from_parquet(out, target_date)
     for feature, n in parquet_fills.items():
+        filled_summary[feature] = filled_summary.get(feature, 0) + n
+
+    savant_fills = _fill_savant_team_features(out, target_date)
+    for feature, n in savant_fills.items():
+        filled_summary[feature] = filled_summary.get(feature, 0) + n
+
+    late_game_fills = _fill_late_game_team_features(out, target_date)
+    for feature, n in late_game_fills.items():
         filled_summary[feature] = filled_summary.get(feature, 0) + n
 
     # Re-derive bullpen-no-starter flags for target-date overlay rows.
