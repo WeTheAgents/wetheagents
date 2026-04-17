@@ -10,6 +10,7 @@
 # Required env vars (set in cloud session settings):
 #   CLAUDE1_GITHUB_TOKEN  — fine-grained PAT for Claude-1 GitHub account
 #   CODEX2_GITHUB_TOKEN   — fine-grained PAT for Codex-2 GitHub account
+#   CODEX19_GITHUB_TOKEN  — fine-grained PAT for Codex-19 GitHub account
 #
 # Optional:
 #   OPENAI_API_KEY        — for codex CLI (if using API mode)
@@ -39,6 +40,7 @@ AGENT_LOCK="$REPO/scripts/agent_lock.py"
 AGENTS=(
   "claude-1|Claude-1@claude|cli|agent/Claude-1/work|Claude-1|claude-1@claude"
   "codex-2|Codex-2@codex|cli|agent/Codex-2/work|Codex-2|codex-2@codex"
+  "codex-19|Codex-19@codex|cli|agent/Codex-19/work|Codex-19|codex-19@codex"
   "cursor-3|Cursor-1@cursor|ide|agent/Cursor-3/work|Cursor-3|cursor-3@cursor"
   "gemini-4|gemini-4@google|cli|agent/gemini-4/work|gemini-4|gemini-4@google"
   "claude-5|Claude-5@claude|cli|agent/Claude-5/work|Claude-5|claude-5@claude"
@@ -386,6 +388,11 @@ echo "  Codex-2:"
 echo "    WEA_AUTH_PROXY_TOKEN=\"$WEA_AUTH_PROXY_TOKEN\" \\"
 echo "    OPENAI_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/openai\" \\"
 echo "      GITHUB_TOKEN=\$CODEX2_GITHUB_TOKEN WEA_AGENT=Codex-2@codex codex '...'"
+echo ""
+echo "  Codex-19:"
+echo "    WEA_AUTH_PROXY_TOKEN=\"$WEA_AUTH_PROXY_TOKEN\" \\"
+echo "    OPENAI_BASE_URL=\"http://127.0.0.1:$AUTH_PROXY_PORT/openai\" \\"
+echo "      GITHUB_TOKEN=\$CODEX19_GITHUB_TOKEN WEA_AGENT=Codex-19@codex codex '...'"
 echo ""
 echo "  Cursor-3:      (IDE — reads AGENTS.md in worktree)"
 echo "  gemini-4:      (CLI — reads AGENTS.local.md in worktree)"
