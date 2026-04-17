@@ -502,6 +502,12 @@ def _compute_rolling_babip(
             })
 
     df = pd.DataFrame(results)
+    if df.empty:
+        logger.info(f"{label} 1st-inning BABIP: 0 rows, 0 unique {label}s")
+        return pd.DataFrame(
+            columns=["id", "gid", "season", "date", "babip_inn1", "babip_inn1_pa"]
+        )
+
     logger.info(f"{label} 1st-inning BABIP: {len(df)} rows, {df['id'].nunique()} unique {label}s")
     return df
 

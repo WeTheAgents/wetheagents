@@ -9,7 +9,7 @@ abbreviations for a handful of teams.
 # Most are identity; only mismatches listed explicitly.
 ESPN_TO_CODE = {
     "ARI": "ARI", "ATL": "ATL", "BAL": "BAL", "BOS": "BOS",
-    "CHC": "CHC", "CHW": "CHW", "CIN": "CIN", "CLE": "CLE",
+    "CHC": "CHC", "CHW": "CHW", "CWS": "CHW", "CIN": "CIN", "CLE": "CLE",
     "COL": "COL", "DET": "DET", "HOU": "HOU", "LAA": "LAA",
     "LAD": "LAD", "MIA": "MIA", "MIL": "MIL", "MIN": "MIN",
     "NYM": "NYM", "NYY": "NYY", "OAK": "OAK", "PHI": "PHI",

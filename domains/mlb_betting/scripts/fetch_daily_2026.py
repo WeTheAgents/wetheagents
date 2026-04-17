@@ -10,7 +10,10 @@ Usage:
     # Fetch pitcher boxscores (run after games complete, ~midnight ET)
     python scripts/fetch_daily_2026.py --phase boxscore
 
-    # Run full postgame pipeline (results + boxscores in one command)
+    # Fetch live lineup / inning-1 BABIP history after games complete
+    python scripts/fetch_daily_2026.py --phase lineups
+
+    # Run full postgame pipeline (results + pitchers + lineups in one command)
     python scripts/fetch_daily_2026.py --phase postgame-full
 
     # Backfill results for a date range (odds will be NaN for days without snapshots)
@@ -19,6 +22,9 @@ Usage:
     # Backfill boxscores for a date range
     python scripts/fetch_daily_2026.py --backfill-boxscore 2026-03-27 2026-04-01
 
+    # Backfill lineup / inning-1 BABIP history for a date range
+    python scripts/fetch_daily_2026.py --backfill-lineups 2026-03-27 2026-04-01
+
     # Specific date instead of today
     python scripts/fetch_daily_2026.py --phase pregame --date 2026-03-28
 """
@@ -26,12 +32,14 @@ Usage:
 import argparse
 import logging
 import sys
+from datetime import date
 
 # Add project root to path
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from data.fetch_2026.mlb_lineups import run_lineup_backfill, run_lineup_fetch
 from data.fetch_2026.orchestrator import run_backfill, run_postgame, run_pregame
 from data.fetch_2026.mlb_boxscore import run_boxscore_backfill, run_boxscore_fetch
 
@@ -40,7 +48,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Fetch 2026 MLB season data")
     parser.add_argument(
         "--phase",
-        choices=["pregame", "postgame", "boxscore", "postgame-full"],
+        choices=["pregame", "postgame", "boxscore", "lineups", "postgame-full"],
         help="Which phase to run",
     )
     parser.add_argument(
@@ -60,6 +68,12 @@ def main() -> None:
         nargs=2,
         metavar=("START", "END"),
         help="Backfill pitcher boxscores for a date range: START END (YYYY-MM-DD)",
+    )
+    parser.add_argument(
+        "--backfill-lineups",
+        nargs=2,
+        metavar=("START", "END"),
+        help="Backfill lineup / inning-1 BABIP history for a date range: START END (YYYY-MM-DD)",
     )
     parser.add_argument(
         "-v", "--verbose",
@@ -91,8 +105,15 @@ def main() -> None:
         print(f"\nBoxscore backfill complete: {total} pitcher lines ({start} -> {end})")
         return
 
+    if args.backfill_lineups:
+        start = date.fromisoformat(args.backfill_lineups[0])
+        end = date.fromisoformat(args.backfill_lineups[1])
+        total = run_lineup_backfill(start, end)
+        print(f"\nLineup backfill complete: {total} starter batter rows ({start} -> {end})")
+        return
+
     if not args.phase:
-        parser.error("Either --phase, --backfill, or --backfill-boxscore is required")
+        parser.error("Either --phase, --backfill, --backfill-boxscore, or --backfill-lineups is required")
 
     dt = date.fromisoformat(args.date) if args.date else date.today()
 
@@ -105,13 +126,18 @@ def main() -> None:
     elif args.phase == "boxscore":
         count = run_boxscore_fetch(dt)
         print(f"\nBoxscore: fetched {count} pitcher lines for {dt}")
+    elif args.phase == "lineups":
+        count = run_lineup_fetch(dt)
+        print(f"\nLineups: fetched {count} starter batter rows for {dt}")
     elif args.phase == "postgame-full":
         count1 = run_postgame(dt)
         count2 = run_boxscore_fetch(dt)
-        print(f"\nPostgame-full: {count1} game rows + {count2} pitcher lines for {dt}")
+        count3 = run_lineup_fetch(dt)
+        print(
+            f"\nPostgame-full: {count1} game rows + {count2} pitcher lines + "
+            f"{count3} starter batter rows for {dt}"
+        )
 
 
 if __name__ == "__main__":
-    from datetime import date
-
     main()

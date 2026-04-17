@@ -11,6 +11,7 @@ Data sources:
 2020 excluded — COVID season (60 games, 7-inning DH, runner on 2nd in extras).
 """
 
+import json as _json
 import logging
 from pathlib import Path
 
@@ -23,6 +24,14 @@ RAW_ODDS_DIR = Path(__file__).parent.parent / "data" / "raw" / "odds"
 PROCESSED_DIR = Path(__file__).parent.parent / "data" / "processed"
 RETROSHEET_PROCESSED_DIR = PROCESSED_DIR / "retrosheet"
 
+# SBR-style JSON dumps that may carry run-line odds for 2022-2025.  Either or
+# both may be present.  Session 37 found the xlsx files for 2022-2025 ship
+# with 100% NaN run_line even though one of these JSON files has the data.
+SBR_JSON_CANDIDATES = [
+    Path(__file__).parent.parent / "data" / "raw" / "sbr_odds_full.json",
+    Path(__file__).parent.parent / "data" / "raw" / "external" / "mlb_odds_dataset.json",
+]
+
 # ── Dual-path layout for pitcher/bullpen features ────────────────────────
 # Historical (2014-2025) is owned by build_retrosheet_pitchers.py +
 # build_bullpen_features.py and lives under pitchers/ and retrosheet/.
@@ -31,8 +40,13 @@ RETROSHEET_PROCESSED_DIR = PROCESSED_DIR / "retrosheet"
 # load_combined_* helpers below — neither writer can clobber the other.
 HISTORICAL_PITCHERS_DIR = PROCESSED_DIR / "pitchers"
 HISTORICAL_BULLPEN_PATH = RETROSHEET_PROCESSED_DIR / "bullpen_features.parquet"
+HISTORICAL_LINEUP_PATH = RETROSHEET_PROCESSED_DIR / "game_lineup_features.parquet"
+HISTORICAL_BABIP_PATH = RETROSHEET_PROCESSED_DIR / "first_inning_babip.parquet"
 LIVE_2026_DIR = PROCESSED_DIR / "pitchers_2026"
 LIVE_2026_BULLPEN_PATH = LIVE_2026_DIR / "bullpen_features.parquet"
+LIVE_2026_LINEUP_DIR = PROCESSED_DIR / "lineups_2026"
+LIVE_2026_LINEUP_PATH = LIVE_2026_LINEUP_DIR / "game_lineup_features.parquet"
+LIVE_2026_BABIP_PATH = LIVE_2026_LINEUP_DIR / "first_inning_babip.parquet"
 
 # Column names as they appear in the xlsx files
 XLSX_COLUMNS = [
@@ -199,15 +213,33 @@ def pair_games(df: pd.DataFrame) -> pd.DataFrame:
 def load_all_seasons(
     data_dir: Path | None = None,
     seasons: list[int] | None = None,
+    *,
+    enrich_innings: bool = True,
+    enrich_run_line: bool = True,
 ) -> pd.DataFrame:
     """Load and combine all seasons into a single game-level DataFrame.
 
     Args:
         data_dir: Path to raw odds xlsx files. Defaults to data/raw/odds/.
         seasons: List of seasons to load. Defaults to all available (excl. 2020).
+        enrich_innings: If True (default), backfill 2022-2025 inning-by-inning
+            scores from Retrosheet teamstats. Required for any feature that
+            depends on per-inning run counts (e.g. ``power_rate_*``). Safe
+            no-op if Retrosheet zips are missing.
+        enrich_run_line: If True (default), backfill NaN run_line / run_line_odds
+            columns for 2022-2025 from SBR JSON. Safe no-op if the JSON file
+            is missing.
 
     Returns:
         DataFrame with one row per game, all innings, odds, and pitchers.
+
+    Notes:
+        - ``enrich_innings`` and ``enrich_run_line`` exist because the xlsx
+          files for 2022-2025 (built from SDQL + ArnavSaraogi JSON) lack real
+          inning data (all zeros) and run_line (all NaN). Without the
+          enrichments, features like ``power_rate_home/away`` and strategies
+          that filter on ``home_run_line ∈ {-1.5, +1.5}`` silently drop
+          2022-2025 entirely. See ``knowledge/session_report_37_data_gaps.md``.
     """
     data_dir = data_dir or RAW_ODDS_DIR
     seasons = seasons or SEASONS
@@ -232,6 +264,21 @@ def load_all_seasons(
     # Pair into game-level records
     games = pair_games(raw_combined)
     logger.info(f"Paired into {len(games)} games")
+
+    # Backfill xlsx-level data gaps for SDQL/JSON seasons. Both helpers are
+    # safe no-ops when their source files are absent, so this is fine to run
+    # unconditionally by default.
+    if enrich_run_line:
+        try:
+            games = enrich_run_line_from_sbr(games)
+        except Exception as e:  # noqa: BLE001 - never fail the loader on backfill
+            logger.warning("run_line enrichment failed (non-fatal): %s", e)
+
+    if enrich_innings:
+        try:
+            games = enrich_innings_from_retrosheet(games)
+        except Exception as e:  # noqa: BLE001 - never fail the loader on backfill
+            logger.warning("inning enrichment failed (non-fatal): %s", e)
 
     return games
 
@@ -473,6 +520,26 @@ def load_combined_bullpen_features() -> pd.DataFrame:
         HISTORICAL_BULLPEN_PATH,
         LIVE_2026_BULLPEN_PATH,
         label="bullpen_features",
+        dedup_keys=["team", "date"],
+    )
+
+
+def load_combined_lineup_features() -> pd.DataFrame:
+    """Load historical + 2026 team-level lineup features as a single frame."""
+    return _concat_dual_source(
+        HISTORICAL_LINEUP_PATH,
+        LIVE_2026_LINEUP_PATH,
+        label="game_lineup_features",
+        dedup_keys=["team", "date"],
+    )
+
+
+def load_combined_first_inning_babip() -> pd.DataFrame:
+    """Load historical + 2026 first-inning BABIP features as a single frame."""
+    return _concat_dual_source(
+        HISTORICAL_BABIP_PATH,
+        LIVE_2026_BABIP_PATH,
+        label="first_inning_babip",
         dedup_keys=["team", "date"],
     )
 
@@ -740,6 +807,283 @@ def enrich_innings_from_retrosheet(games: pd.DataFrame) -> pd.DataFrame:
     logger.info(
         f"Inning enrichment: {n_enriched}/{n_target} games enriched "
         f"({n_enriched / n_target * 100:.1f}%) for seasons {seasons_to_enrich}"
+    )
+    return out
+
+
+# ── Session 37: run_line backfill from SBR JSON ──────────────────────────
+#
+# The 2022-2025 xlsx files ship with 100% NaN run_line/run_line_odds because
+# the SDQL-only fallback path in ``data/download_historical.py`` doesn't carry
+# point spreads, and the JSON path that does carry them was not always wired
+# up when the historical xlsx files were built.  Rather than re-running the
+# historical xlsx build (which would also re-touch 2004-2009 SDQL files), we
+# backfill run_line values at load time by reading the raw SBR JSON dump(s).
+#
+# This is purely additive: we only fill rows where the current run_line is
+# NaN; any row that already has a run_line value is left untouched.
+
+
+# Team-code variants observed across the different xlsx generators and SBR
+# dumps.  Used when joining SBR JSON (keyed on shortName) into the xlsx-derived
+# games frame (keyed on whatever abbreviation the generator produced).
+_TEAM_VARIANTS: dict[str, set[str]] = {
+    "KC":   {"KC", "KCR", "KAN", "KCA"},
+    "KCR":  {"KC", "KCR", "KAN", "KCA"},
+    "KAN":  {"KC", "KCR", "KAN", "KCA"},
+    "SD":   {"SD", "SDP", "SDG", "SDN"},
+    "SDP":  {"SD", "SDP", "SDG", "SDN"},
+    "SDG":  {"SD", "SDP", "SDG", "SDN"},
+    "SF":   {"SF", "SFG", "SFO", "SFN"},
+    "SFG":  {"SF", "SFG", "SFO", "SFN"},
+    "SFO":  {"SF", "SFG", "SFO", "SFN"},
+    "TB":   {"TB", "TBR", "TAM", "TBA"},
+    "TBR":  {"TB", "TBR", "TAM", "TBA"},
+    "TAM":  {"TB", "TBR", "TAM", "TBA"},
+    "WSH":  {"WSH", "WSN", "WAS"},
+    "WSN":  {"WSH", "WSN", "WAS"},
+    "WAS":  {"WSH", "WSN", "WAS"},
+    "LAA":  {"LAA", "ANA"},
+    "ANA":  {"LAA", "ANA"},
+    "LAD":  {"LAD", "LAN", "LOS"},
+    "LAN":  {"LAD", "LAN", "LOS"},
+    "CHW":  {"CHW", "CWS", "CHA"},
+    "CWS":  {"CHW", "CWS", "CHA"},
+    "CHA":  {"CHW", "CWS", "CHA"},
+    "CHC":  {"CHC", "CUB", "CHN"},
+    "CUB":  {"CHC", "CUB", "CHN"},
+    "CHN":  {"CHC", "CUB", "CHN"},
+    "NYY":  {"NYY", "NYA"},
+    "NYA":  {"NYY", "NYA"},
+    "NYM":  {"NYM", "NYN"},
+    "NYN":  {"NYM", "NYN"},
+    "STL":  {"STL", "SLN"},
+    "SLN":  {"STL", "SLN"},
+    "MIA":  {"MIA", "FLA", "FLO"},
+    "FLA":  {"MIA", "FLA", "FLO"},
+    "FLO":  {"MIA", "FLA", "FLO"},
+    "OAK":  {"OAK", "ATH"},
+    "ATH":  {"OAK", "ATH"},
+    "ARI":  {"ARI", "AZ"},
+    "AZ":   {"ARI", "AZ"},
+}
+
+_SBR_BOOK_PRIORITY = [
+    "draftkings", "fanduel", "bet365", "caesars", "betmgm",
+    "bet_rivers_ny", "betrivers",
+]
+
+
+def _variants_of(code: str) -> set[str]:
+    """Return the set of abbreviations that may represent the same franchise."""
+    c = (code or "").strip().upper()
+    return _TEAM_VARIANTS.get(c, {c})
+
+
+def _load_sbr_run_line_lookup(json_paths: list[Path]) -> pd.DataFrame:
+    """Read SBR-style JSON dumps and return a (date, teams) → run_line frame.
+
+    Columns: date, away_team_short, home_team_short, home_run_line,
+    home_run_line_odds, away_run_line, away_run_line_odds.
+
+    Team codes are the raw SBR ``shortName`` values; the caller is expected to
+    normalize against xlsx team codes via ``_variants_of`` before joining.
+    """
+    frames: list[pd.DataFrame] = []
+    for path in json_paths:
+        if not path.exists():
+            continue
+        try:
+            with open(path) as f:
+                data = _json.load(f)
+        except (OSError, ValueError) as e:
+            logger.warning("Failed to read SBR JSON %s: %s", path, e)
+            continue
+        if not isinstance(data, dict):
+            logger.warning("Unexpected SBR JSON shape in %s (not a dict)", path)
+            continue
+
+        rows: list[dict] = []
+        for date_str, games in data.items():
+            if not isinstance(games, list):
+                continue
+            try:
+                dt = pd.Timestamp(date_str).normalize()
+            except (ValueError, TypeError):
+                continue
+            for game in games:
+                if not isinstance(game, dict):
+                    continue
+                gv = game.get("gameView") or {}
+                if gv.get("gameType") and gv.get("gameType") != "R":
+                    continue
+                away_short = (gv.get("awayTeam") or {}).get("shortName", "")
+                home_short = (gv.get("homeTeam") or {}).get("shortName", "")
+                if not away_short or not home_short:
+                    continue
+                spread_books = (game.get("odds") or {}).get("pointspread") or []
+                if not spread_books:
+                    continue
+                home_rl = home_rl_odds = away_rl = away_rl_odds = np.nan
+                # Try a preferred book, then fall back to any book with a spread.
+                search_order = list(_SBR_BOOK_PRIORITY)
+                seen = set(search_order)
+                for entry in spread_books:
+                    name = entry.get("sportsbook", "")
+                    if name and name not in seen:
+                        search_order.append(name)
+                        seen.add(name)
+                for book_name in search_order:
+                    for entry in spread_books:
+                        if entry.get("sportsbook") != book_name:
+                            continue
+                        cl = entry.get("currentLine") or entry.get("openingLine") or {}
+                        hs = cl.get("homeSpread")
+                        if hs is None:
+                            continue
+                        home_rl = hs
+                        home_rl_odds = cl.get("homeOdds", np.nan)
+                        raw_as = cl.get("awaySpread")
+                        away_rl = raw_as if raw_as is not None else -hs
+                        away_rl_odds = cl.get("awayOdds", np.nan)
+                        break
+                    if pd.notna(home_rl):
+                        break
+                if pd.isna(home_rl):
+                    continue
+                rows.append({
+                    "date": dt,
+                    "away_team_short": str(away_short).upper(),
+                    "home_team_short": str(home_short).upper(),
+                    "home_run_line": float(home_rl),
+                    "home_run_line_odds": (
+                        float(home_rl_odds) if pd.notna(home_rl_odds) else np.nan
+                    ),
+                    "away_run_line": float(away_rl),
+                    "away_run_line_odds": (
+                        float(away_rl_odds) if pd.notna(away_rl_odds) else np.nan
+                    ),
+                })
+
+        if rows:
+            frames.append(pd.DataFrame(rows))
+            logger.info(
+                "Loaded %d run-line rows from SBR JSON: %s",
+                len(rows), path.name,
+            )
+
+    if not frames:
+        return pd.DataFrame()
+
+    combined = pd.concat(frames, ignore_index=True)
+    combined = combined.drop_duplicates(
+        subset=["date", "away_team_short", "home_team_short"], keep="first"
+    )
+    return combined
+
+
+def enrich_run_line_from_sbr(
+    games: pd.DataFrame,
+    *,
+    json_paths: list[Path] | None = None,
+    seasons: list[int] | None = None,
+) -> pd.DataFrame:
+    """Backfill NaN ``home_run_line`` / ``away_run_line`` (+ odds) from SBR JSON.
+
+    Non-destructive: rows that already have a run_line value are preserved.
+    Safe no-op if no JSON source file is present.
+
+    By default only 2022-2025 are considered because those are the seasons
+    where the xlsx-level gap was identified.  Pass ``seasons=None`` to limit;
+    an explicit list can widen (or narrow) the scope.
+    """
+    paths = json_paths or SBR_JSON_CANDIDATES
+    existing = [p for p in paths if Path(p).exists()]
+    if not existing:
+        logger.info(
+            "SBR JSON not found at %s; skipping run_line enrichment.",
+            [str(p) for p in paths],
+        )
+        return games
+
+    rl_cols = [
+        "home_run_line", "home_run_line_odds",
+        "away_run_line", "away_run_line_odds",
+    ]
+    missing_cols = [c for c in rl_cols if c not in games.columns]
+    if missing_cols:
+        logger.warning(
+            "games missing %s; skipping run_line enrichment", missing_cols
+        )
+        return games
+
+    target_seasons = seasons if seasons is not None else [2022, 2023, 2024, 2025]
+    scope = games[games["season"].isin(target_seasons)]
+    n_nan = int(scope["home_run_line"].isna().sum())
+    if n_nan == 0:
+        logger.info(
+            "run_line already populated for seasons %s; nothing to enrich.",
+            target_seasons,
+        )
+        return games
+
+    logger.info(
+        "Enriching run_line from SBR JSON for seasons %s "
+        "(%d/%d rows currently NaN)",
+        target_seasons, n_nan, len(scope),
+    )
+
+    lookup = _load_sbr_run_line_lookup(existing)
+    if lookup.empty:
+        logger.warning(
+            "SBR JSON had no usable run_line rows; nothing enriched."
+        )
+        return games
+
+    idx: dict[tuple, dict] = {}
+    for _, r in lookup.iterrows():
+        dt = r["date"]
+        home_vars = _variants_of(r["home_team_short"])
+        away_vars = _variants_of(r["away_team_short"])
+        payload = {
+            "home_run_line": r["home_run_line"],
+            "home_run_line_odds": r["home_run_line_odds"],
+            "away_run_line": r["away_run_line"],
+            "away_run_line_odds": r["away_run_line_odds"],
+        }
+        for h in home_vars:
+            for a in away_vars:
+                # First writer wins so that preferred books (checked first in
+                # _load_sbr_run_line_lookup) are not clobbered by later entries.
+                idx.setdefault((dt, h, a), payload)
+
+    out = games.copy()
+    out["date"] = pd.to_datetime(out["date"], errors="coerce").dt.normalize()
+
+    mask = (
+        out["season"].isin(target_seasons)
+        & out["home_run_line"].isna()
+    )
+
+    filled = 0
+    fill_cols = list(rl_cols)
+    for i in out.index[mask]:
+        key = (
+            out.at[i, "date"],
+            str(out.at[i, "home_team"]).strip().upper(),
+            str(out.at[i, "away_team"]).strip().upper(),
+        )
+        match = idx.get(key)
+        if match is None:
+            continue
+        for col in fill_cols:
+            out.at[i, col] = match[col]
+        filled += 1
+
+    denom = max(int(mask.sum()), 1)
+    logger.info(
+        "Run-line enrichment: %d/%d NaN rows filled in seasons %s (%.1f%%)",
+        filled, int(mask.sum()), target_seasons, 100.0 * filled / denom,
     )
     return out
 

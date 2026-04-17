@@ -17,6 +17,7 @@ from src.strategies import (
     Pick,
     add_derived_for_strategies,
     find_fav_rl_picks,
+    find_over_picks,
     find_tier1_picks,
     find_tier2_picks,
     find_tier3_picks,
@@ -37,6 +38,8 @@ def _row(**kwargs) -> dict:
         "home_team": "BBB",
         "home_close_ml": -150,
         "away_close_ml": 130,
+        "home_run_line": -1.5,
+        "away_run_line": 1.5,
         "home_implied_prob": 0.60,
         "away_implied_prob": 0.43,
         "home_is_bullpen_no_starter": False,
@@ -45,6 +48,8 @@ def _row(**kwargs) -> dict:
         "bp_ip_3d_away": 5.0,
         "home_sp_fip_short": 4.00,
         "away_sp_fip_short": 4.00,
+        "home_sp_ra_long": 4.20,
+        "away_sp_ra_long": 4.40,
         "home_sp_ip_per_start_short": 5.5,
         "away_sp_ip_per_start_short": 5.5,
         "home_sp_ip_per_start_long": 5.5,
@@ -81,6 +86,8 @@ def test_derived_columns_present():
         "bp_workload_gap",
         "starter_depth_diff_short",
         "starter_depth_diff",
+        "sp_ra_floor_long",
+        "sp_fip_floor_short",
     ]:
         assert col in df.columns, f"missing derived col: {col}"
 
@@ -121,6 +128,20 @@ def test_fip_diff_signed_for_away_fav():
     )
     # raw = home - away = +0.80; flip = -1 (fav is away); fav_diff = -0.80
     assert df["fav_starter_fip_diff"].iloc[0] == pytest.approx(-0.80)
+
+
+def test_sp_fip_floor_short_does_not_fall_back_to_ra_long_floor():
+    df = _frame(
+        _row(
+            home_sp_fip_short=3.20,
+            away_sp_fip_short=4.80,
+            home_sp_ra_long=6.10,
+            away_sp_ra_long=5.70,
+            sp_quality_floor=9.99,  # legacy wrong semantic should be ignored
+        )
+    )
+    assert df["sp_ra_floor_long"].iloc[0] == pytest.approx(6.10)
+    assert df["sp_fip_floor_short"].iloc[0] == pytest.approx(4.80)
 
 
 # ---------------------------------------------------------------------------
@@ -332,7 +353,7 @@ def test_tier3_skipped_when_home_bp_fresh():
 # ---------------------------------------------------------------------------
 
 
-def test_fav_rl_fires_for_home_fav_with_pitching_and_attack_edge():
+def test_fav_rl_disabled_for_home_fav_case():
     df = _frame(
         _row(
             home_implied_prob=0.68,
@@ -344,13 +365,10 @@ def test_fav_rl_fires_for_home_fav_with_pitching_and_attack_edge():
         )
     )
     picks = find_fav_rl_picks(df, TODAY)
-    assert len(picks) == 1
-    assert picks[0].market == "RL_-1.5"
-    assert picks[0].side == "home"
-    assert picks[0].historical_p == pytest.approx(0.498)
+    assert picks == []
 
 
-def test_fav_rl_fires_for_away_fav():
+def test_fav_rl_disabled_for_away_fav_case():
     df = _frame(
         _row(
             home_implied_prob=0.36,
@@ -362,8 +380,7 @@ def test_fav_rl_fires_for_away_fav():
         )
     )
     picks = find_fav_rl_picks(df, TODAY)
-    assert len(picks) == 1
-    assert picks[0].side == "away"
+    assert picks == []
 
 
 def test_fav_rl_skipped_below_impl_band():
@@ -416,6 +433,50 @@ def test_fav_rl_skipped_when_fav_lacks_attack():
         )
     )
     assert find_fav_rl_picks(df, TODAY) == []
+
+
+# ---------------------------------------------------------------------------
+# OVER bullpen mismatch
+# ---------------------------------------------------------------------------
+
+
+def test_over_bullpen_mismatch_uses_short_fip_floor():
+    df = _frame(
+        _row(
+            close_ou=8.0,
+            rpg_home=5.8,
+            rpg_away=5.0,
+            combined_rpg=10.8,
+            bp_fip_7g_home=4.1,
+            bp_fip_7g_away=3.7,
+            home_sp_fip_short=4.7,
+            away_sp_fip_short=4.2,
+            home_sp_ra_long=2.8,
+            away_sp_ra_long=3.0,
+        )
+    )
+    picks = find_over_picks(df, TODAY)
+    assert len(picks) >= 1
+    assert picks[0].market == "O/U"
+    assert picks[0].side == "over"
+
+
+def test_over_bullpen_mismatch_not_triggered_by_ra_long_only():
+    df = _frame(
+        _row(
+            close_ou=8.0,
+            rpg_home=5.8,
+            rpg_away=5.0,
+            combined_rpg=10.8,
+            bp_fip_7g_home=4.1,
+            bp_fip_7g_away=3.7,
+            home_sp_fip_short=4.1,
+            away_sp_fip_short=4.2,
+            home_sp_ra_long=5.8,
+            away_sp_ra_long=6.0,
+        )
+    )
+    assert find_over_picks(df, TODAY) == []
 
 
 # ---------------------------------------------------------------------------

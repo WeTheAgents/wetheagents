@@ -2,7 +2,7 @@
 
 Usage:
     python scripts/build_fangraphs_data.py
-    python scripts/build_fangraphs_data.py --start 2009 --end 2021
+    python scripts/build_fangraphs_data.py --start 2010 --end 2025
 """
 
 from __future__ import annotations
@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--start", type=int, default=2009, help="First season (inclusive)")
-    p.add_argument("--end", type=int, default=2021, help="Last season (inclusive)")
+    p.add_argument("--start", type=int, default=2010, help="First season (inclusive)")
+    p.add_argument("--end", type=int, default=2025, help="Last season (inclusive)")
     p.add_argument(
         "--out",
         type=Path,

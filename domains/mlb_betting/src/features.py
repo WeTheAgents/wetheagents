@@ -76,6 +76,18 @@ def build_team_game_log(games: pd.DataFrame) -> pd.DataFrame:
     home_margin = (games["home_final"] - games["away_final"]).values.astype(float)
     away_margin = (games["away_final"] - games["home_final"]).values.astype(float)
 
+    # Decisive win/loss (Sess 38): ≥2-run margin in regulation (no extras).
+    # If ``is_extra_innings`` is missing (raw games without apply_data_filters)
+    # default to False so the guard is a no-op and we use plain margin only.
+    if "is_extra_innings" in games.columns:
+        is_extra = games["is_extra_innings"].fillna(False).astype(bool).values
+    else:
+        is_extra = np.zeros(len(games), dtype=bool)
+    home_decisive_win = ((home_margin >= 2) & (~is_extra)).astype(float)
+    home_decisive_loss = ((home_margin <= -2) & (~is_extra)).astype(float)
+    away_decisive_win = ((away_margin >= 2) & (~is_extra)).astype(float)
+    away_decisive_loss = ((away_margin <= -2) & (~is_extra)).astype(float)
+
     home = pd.DataFrame(
         {
             "season": games["season"].values,
@@ -105,6 +117,8 @@ def build_team_game_log(games: pd.DataFrame) -> pd.DataFrame:
             "margin": home_margin,
             "scoring_innings": home_scoring_inns,
             "multi_run_innings": home_multi_run_inns,
+            "decisive_win": home_decisive_win,
+            "decisive_loss": home_decisive_loss,
         }
     )
     away = pd.DataFrame(
@@ -136,6 +150,8 @@ def build_team_game_log(games: pd.DataFrame) -> pd.DataFrame:
             "margin": away_margin,
             "scoring_innings": away_scoring_inns,
             "multi_run_innings": away_multi_run_inns,
+            "decisive_win": away_decisive_win,
+            "decisive_loss": away_decisive_loss,
         }
     )
     log = pd.concat([home, away], ignore_index=True)
@@ -757,6 +773,96 @@ def calc_inning_power(
     return pd.DataFrame(results)
 
 
+# ── Decisive-margin skill (Sess 38) ──────────────────────────────────────
+
+
+def calc_rolling_decisive(
+    log: pd.DataFrame,
+    window: int = 25,
+    min_qualifying: int = 5,
+) -> pd.DataFrame:
+    """Rolling rate of decisive wins / losses over the last ``window`` games.
+
+    A game counts as a decisive **win** for a team if its final margin is
+    ≥ +2 runs in regulation (extras excluded via ``decisive_win`` pre-flag in
+    the team log). Decisive **loss** mirrors for margin ≤ -2.
+
+    These are team-skill signals for the Sess 38 fav-margin model: "teams
+    that reliably blow others out" and "teams that reliably get blown out".
+    Rolling window is strictly prior games (no look-ahead).
+
+    Returns NaN until at least ``min_qualifying`` valid prior games — matches
+    the guard used in ``calc_inning_power``.
+    """
+    results = []
+
+    for (team, season), grp in log.groupby(["team", "season"]):
+        grp = grp.sort_values("date").reset_index(drop=True)
+        n = len(grp)
+
+        dw = grp["decisive_win"].values.astype(float)
+        dl = grp["decisive_loss"].values.astype(float)
+
+        for i in range(n):
+            start = max(0, i - window)
+            window_slice = slice(start, i)  # prior games only — no lookahead
+
+            dw_w = dw[window_slice]
+            dl_w = dl[window_slice]
+
+            dw_valid = ~np.isnan(dw_w)
+            if dw_valid.sum() < min_qualifying:
+                dw_rate = np.nan
+                dl_rate = np.nan
+            else:
+                dw_rate = float(dw_w[dw_valid].mean())
+                dl_valid = ~np.isnan(dl_w)
+                dl_rate = (
+                    float(dl_w[dl_valid].mean()) if dl_valid.sum() > 0 else np.nan
+                )
+
+            results.append({
+                "team": team,
+                "season": season,
+                "date": grp.iloc[i]["date"],
+                "decisive_win_rate": dw_rate,
+                "decisive_loss_rate": dl_rate,
+            })
+
+    out = pd.DataFrame(results)
+    if out.empty:
+        return out
+
+    # League-relative: for each (season, date), mean across all teams of that
+    # day's rolling rates, then subtract.  This matches the standard
+    # "offense_vs_league" pattern already used in calc_league_relative.
+    league = (
+        out.groupby(["season", "date"])[["decisive_win_rate", "decisive_loss_rate"]]
+        .mean()
+        .reset_index()
+        .rename(
+            columns={
+                "decisive_win_rate": "decisive_win_rate_league",
+                "decisive_loss_rate": "decisive_loss_rate_league",
+            }
+        )
+    )
+    out = out.merge(league, on=["season", "date"], how="left")
+    out["decisive_win_rate_vs_league"] = (
+        out["decisive_win_rate"] - out["decisive_win_rate_league"]
+    )
+    out["decisive_loss_rate_vs_league"] = (
+        out["decisive_loss_rate"] - out["decisive_loss_rate_league"]
+    )
+
+    # Drop the league intermediates — we only need the vs_league deltas and
+    # the raw rates on the team rows.
+    out = out.drop(
+        columns=["decisive_win_rate_league", "decisive_loss_rate_league"]
+    )
+    return out
+
+
 # ── Master Feature Builder ───────────────────────────────────────────────
 
 
@@ -802,6 +908,9 @@ def build_all_features(
     logger.info("Computing offensive power (multi-run inning rate)...")
     power_df = calc_inning_power(log)
 
+    logger.info("Computing decisive-margin rates (25g win/loss by ≥2)...")
+    decisive_df = calc_rolling_decisive(log)
+
     logger.info("Computing RPI (this may take a while)...")
     rpi_df = calc_rolling_rpi(log)
 
@@ -824,6 +933,8 @@ def build_all_features(
         late_game_df, on=["team", "season", "date"], how="left",
     ).merge(
         power_df, on=["team", "season", "date"], how="left",
+    ).merge(
+        decisive_df, on=["team", "season", "date"], how="left",
     )
 
     # Merge features for HOME team
@@ -853,6 +964,10 @@ def build_all_features(
             "close_game_wp": "close_game_wp_home",
             "deficit_recovery_rate": "deficit_recovery_rate_home",
             "power_rate": "power_rate_home",
+            "decisive_win_rate": "decisive_win_rate_home",
+            "decisive_loss_rate": "decisive_loss_rate_home",
+            "decisive_win_rate_vs_league": "decisive_win_rate_vs_league_home",
+            "decisive_loss_rate_vs_league": "decisive_loss_rate_vs_league_home",
         }
     )
     home_features = home_features.rename(columns={"team": "home_team"})
@@ -885,6 +1000,10 @@ def build_all_features(
             "close_game_wp": "close_game_wp_away",
             "deficit_recovery_rate": "deficit_recovery_rate_away",
             "power_rate": "power_rate_away",
+            "decisive_win_rate": "decisive_win_rate_away",
+            "decisive_loss_rate": "decisive_loss_rate_away",
+            "decisive_win_rate_vs_league": "decisive_win_rate_vs_league_away",
+            "decisive_loss_rate_vs_league": "decisive_loss_rate_vs_league_away",
         }
     )
     away_features = away_features.rename(columns={"team": "away_team"})
@@ -935,6 +1054,15 @@ def build_all_features(
     enriched["power_rate_diff"] = (
         enriched["power_rate_home"] - enriched["power_rate_away"]
     )
+    # Decisive-margin diffs (Sess 38). vs_league_diff == plain diff because
+    # both sides subtract the same league constant, but we compute both so
+    # downstream consumers can pick whichever form they prefer without math.
+    enriched["decisive_win_rate_diff"] = (
+        enriched["decisive_win_rate_home"] - enriched["decisive_win_rate_away"]
+    )
+    enriched["decisive_loss_rate_diff"] = (
+        enriched["decisive_loss_rate_home"] - enriched["decisive_loss_rate_away"]
+    )
 
     # Pitcher proxy features
     if include_pitcher:
@@ -961,6 +1089,7 @@ def build_all_features(
             _map_team_code_to_retrosheet,
             load_combined_bullpen_features,
             load_combined_game_id_bridge,
+            load_combined_lineup_features,
             load_combined_starter_entering_features,
             merge_retrosheet_pitchers,
             merge_retrosheet_starter_entering_features,
@@ -1063,10 +1192,9 @@ def build_all_features(
             logger.warning("Bullpen features not found in either historical or 2026 paths")
 
         # ── Batting lineup vs-hand features ──────────────────────────────
-        lineup_path = PROCESSED_DIR / "retrosheet" / "game_lineup_features.parquet"
-        if lineup_path.exists():
+        lineup = load_combined_lineup_features()
+        if not lineup.empty:
             logger.info("Merging batting lineup vs-hand features...")
-            lineup = pd.read_parquet(lineup_path)
             lineup["date"] = pd.to_datetime(lineup["date"]).dt.normalize()
             enriched["date"] = pd.to_datetime(enriched["date"]).dt.normalize()
 
@@ -1104,7 +1232,7 @@ def build_all_features(
                     enriched["top3_obp_vs_lhp_away"],
                 )
         else:
-            logger.warning(f"Lineup features not found at {lineup_path}")
+            logger.warning("Lineup features not found in either historical or 2026 paths")
 
     # effective_obp_diff (must be after lineup + pitcher hand merge)
     if "effective_obp_home" in enriched.columns and "effective_obp_away" in enriched.columns:
@@ -1156,10 +1284,157 @@ def build_all_features(
     else:
         logger.info("Savant bullpen features not found (optional), skipping")
 
+    enriched = refresh_feature_consistency_flags(enriched)
+
     n_features = len([c for c in enriched.columns if c not in games.columns])
     logger.info(f"Added {n_features} features to {len(enriched)} games")
 
     return enriched
+
+
+# ── Consistency / Availability Flags ─────────────────────────────────────
+
+
+def _missing_bool_series(df: pd.DataFrame) -> pd.Series:
+    return pd.Series(False, index=df.index, dtype=bool)
+
+
+def _col_has_value(df: pd.DataFrame, col: str) -> pd.Series:
+    if col not in df.columns:
+        return _missing_bool_series(df)
+    s = df[col]
+    if pd.api.types.is_object_dtype(s) or pd.api.types.is_string_dtype(s):
+        return s.notna() & s.astype(str).str.strip().ne("") & s.astype(str).ne("nan")
+    return s.notna()
+
+
+def _col_numeric(df: pd.DataFrame, col: str) -> pd.Series:
+    if col not in df.columns:
+        return pd.Series(np.nan, index=df.index, dtype=float)
+    return pd.to_numeric(df[col], errors="coerce")
+
+
+def _asof_team_feature_lookup(
+    row_dates: pd.Series,
+    row_teams: pd.Series,
+    source: pd.DataFrame,
+    source_col: str,
+    *,
+    allow_exact_matches: bool = False,
+) -> pd.Series:
+    """Return the latest prior team-level source value for each row.
+
+    Used for future overlays where the target game date has no exact-match row
+    in the live feature parquet yet, but we still want the latest pre-game
+    2026 value for that team.
+    """
+    out = pd.Series(np.nan, index=row_dates.index, dtype=float)
+    if source.empty or source_col not in source.columns:
+        return out
+
+    right = source[["team", "date", source_col]].copy()
+    right["team"] = right["team"].astype(str)
+    right["date"] = pd.to_datetime(right["date"]).dt.normalize()
+    right = right.dropna(subset=[source_col]).sort_values(["date", "team"])
+    if right.empty:
+        return out
+
+    left = pd.DataFrame(
+        {
+            "_row_idx": row_dates.index,
+            "team": row_teams.astype(str),
+            "date": pd.to_datetime(row_dates).dt.normalize(),
+        }
+    ).sort_values(["date", "team"])
+
+    merged = pd.merge_asof(
+        left,
+        right,
+        on="date",
+        by="team",
+        direction="backward",
+        allow_exact_matches=allow_exact_matches,
+    )
+    return merged.set_index("_row_idx")[source_col].reindex(row_dates.index)
+
+
+def refresh_feature_consistency_flags(df: pd.DataFrame) -> pd.DataFrame:
+    """Recompute shared availability/consistency flags on the current frame."""
+    out = df.copy()
+
+    if all(c in out.columns for c in ["home_sp_ra_long", "away_sp_ra_long"]):
+        out["sp_ra_floor_long"] = out[["home_sp_ra_long", "away_sp_ra_long"]].max(
+            axis=1,
+            skipna=False,
+        )
+    elif "sp_ra_floor_long" not in out.columns:
+        out["sp_ra_floor_long"] = np.nan
+
+    if all(c in out.columns for c in ["home_sp_fip_short", "away_sp_fip_short"]):
+        out["sp_fip_floor_short"] = out[["home_sp_fip_short", "away_sp_fip_short"]].max(
+            axis=1,
+            skipna=False,
+        )
+    elif "sp_fip_floor_short" not in out.columns:
+        out["sp_fip_floor_short"] = np.nan
+
+    if "effective_obp_home" in out.columns and "effective_obp_away" in out.columns:
+        out["effective_obp_combined"] = out["effective_obp_home"] + out["effective_obp_away"]
+        out["effective_obp_diff"] = out["effective_obp_home"] - out["effective_obp_away"]
+
+    for side in ["home", "away"]:
+        starter_source_cols = [
+            f"{side}_starter_id",
+            f"{side}_sp_starts_prior",
+            f"{side}_sp_starts_short",
+            f"{side}_sp_fip_short",
+            f"{side}_sp_ip_per_start_short",
+        ]
+        starter_source_available = _missing_bool_series(out)
+        for col in starter_source_cols:
+            starter_source_available = starter_source_available | _col_has_value(out, col)
+        starts_short = _col_numeric(out, f"{side}_sp_starts_short")
+        insufficient_history = (
+            starter_source_available & starts_short.notna() & (starts_short < 3)
+        )
+        fip_short_missing = _col_numeric(out, f"{side}_sp_fip_short").isna()
+        source_gap = starter_source_available & fip_short_missing & ~insufficient_history
+        out[f"starter_feature_source_missing_{side}"] = (~starter_source_available) | source_gap
+        out[f"insufficient_starter_history_{side}"] = insufficient_history
+
+        lineup_source_cols = [
+            f"top3_obp_short_{side}",
+            f"top3_obp_vs_rhp_{side}",
+            f"top3_obp_vs_lhp_{side}",
+            f"n_batters_{side}",
+        ]
+        lineup_source_available = _missing_bool_series(out)
+        for col in lineup_source_cols:
+            lineup_source_available = lineup_source_available | _col_has_value(out, col)
+        n_batters = _col_numeric(out, f"n_batters_{side}")
+        missing_vs_hand = (
+            _col_numeric(out, f"top3_obp_vs_rhp_{side}").isna()
+            & _col_numeric(out, f"top3_obp_vs_lhp_{side}").isna()
+        )
+        out[f"lineup_feature_source_missing_{side}"] = ~lineup_source_available
+        out[f"insufficient_lineup_history_{side}"] = (
+            lineup_source_available & ((n_batters.notna() & (n_batters < 3)) | missing_vs_hand)
+        )
+
+    out["starter_feature_source_missing"] = (
+        out["starter_feature_source_missing_home"] | out["starter_feature_source_missing_away"]
+    )
+    out["insufficient_starter_history"] = (
+        out["insufficient_starter_history_home"] | out["insufficient_starter_history_away"]
+    )
+    out["lineup_feature_source_missing"] = (
+        out["lineup_feature_source_missing_home"] | out["lineup_feature_source_missing_away"]
+    )
+    out["insufficient_lineup_history"] = (
+        out["insufficient_lineup_history_home"] | out["insufficient_lineup_history_away"]
+    )
+
+    return out
 
 
 # ── Spec Feature Columns ────────────────────────────────────────────────
@@ -1234,7 +1509,7 @@ def build_spec_features(
         logger.info("Building all features (team + pitcher + Retrosheet)...")
         enriched = build_all_features(games)
 
-    df = enriched.copy()
+    df = refresh_feature_consistency_flags(enriched.copy())
 
     # ── Starter pitcher diffs (from Retrosheet entering features) ────────
     # These columns are merged by build_all_features() with home_sp_ / away_sp_ prefixes
@@ -1500,7 +1775,7 @@ OU_FEATURES = [
     # Starting pitching (combined quality)
     "sp_ra_combined_short",       # home_sp_ra_short + away_sp_ra_short
     "sp_ra_combined_long",        # home_sp_ra_long + away_sp_ra_long
-    "sp_quality_floor",           # max(home_sp_ra_long, away_sp_ra_long) — worst starter
+    "sp_ra_floor_long",           # max(home_sp_ra_long, away_sp_ra_long) — worst starter
     "sp_fip_combined",            # home_sp_fip_short + away_sp_fip_short
     "sp_whip_combined",           # home_sp_whip_short + away_sp_whip_short
     "sp_kbb_combined",            # home_sp_kbb_short + away_sp_kbb_short (higher=better)
@@ -1543,13 +1818,13 @@ OU_FEATURES_V2 = [
     "away_rpg_x_home_bp_workload",  # mirror
     # Tier 2: Pitching quality interactions
     "sp_quality_gap",               # abs(home_sp_ra_long - away_sp_ra_long)
-    "max_offense_x_worst_sp",       # max(rpg_home, rpg_away) × sp_quality_floor
+    "max_offense_x_worst_sp",       # max(rpg_home, rpg_away) × sp_ra_floor_long
     "effective_obp_x_sp_fip",       # handedness-matched OBP × opposing FIP
     "bp_fip_osc_x_rpg",            # deteriorating bullpen × opponent offense
     # Tier 3: Environment context (retained from V1)
     "combined_rpg",
     "combined_rpg_last10",
-    "sp_quality_floor",
+    "sp_ra_floor_long",
     "sp_ip_per_start_combined",
     "pyth_wp_combined",
     "fi_score_rate_combined",
@@ -1633,7 +1908,7 @@ def build_ou_features(
         logger.info("Building all features for O/U...")
         enriched = build_all_features(games)
 
-    df = enriched.copy()
+    df = refresh_feature_consistency_flags(enriched.copy())
 
     # ── Targets ───────────────────────────────────────────────────────────
     df["total_runs"] = df["home_final"] + df["away_final"]
@@ -1653,7 +1928,7 @@ def build_ou_features(
     # ── Combined pitcher features ─────────────────────────────────────────
     _safe_sum(df, "sp_ra_combined_short", "home_sp_ra_short", "away_sp_ra_short")
     _safe_sum(df, "sp_ra_combined_long", "home_sp_ra_long", "away_sp_ra_long")
-    # sp_quality_floor already computed by pitcher_features.py
+    # Worst long-window RA and worst short-window FIP are tracked separately.
     _safe_sum(df, "sp_fip_combined", "home_sp_fip_short", "away_sp_fip_short")
     _safe_sum(df, "sp_whip_combined", "home_sp_whip_short", "away_sp_whip_short")
     _safe_sum(df, "sp_kbb_combined", "home_sp_kbb_short", "away_sp_kbb_short")
@@ -1798,7 +2073,7 @@ OU_FEATURES_OVER = [
     "rpg_home",                     # runs per game (season rolling)
     "rpg_away",
     # Tier 2: Pitching vulnerability (individual oscillators)
-    "sp_quality_floor",             # max(home_sp_ra_long, away_sp_ra_long) — worst starter
+    "sp_ra_floor_long",             # max(home_sp_ra_long, away_sp_ra_long) — worst starter
     "bp_fip_osc_home",              # bp_fip_7g - bp_fip_long (positive = deteriorating)
     "bp_fip_osc_away",
     "bp_ip_3d_home",                # recent bullpen workload (raw, individual)
@@ -1808,7 +2083,7 @@ OU_FEATURES_OVER = [
     "away_offense_x_home_bp_fatigue",   # rpg_away * bp_fip_osc_home
     "effective_obp_x_sp_ra_home",       # effective_obp_home * away_sp_ra_long
     "effective_obp_x_sp_ra_away",       # effective_obp_away * home_sp_ra_long
-    "power_rate_max_x_sp_floor",        # max(power_rate_h, power_rate_a) * sp_quality_floor
+    "power_rate_max_x_sp_floor",        # max(power_rate_h, power_rate_a) * sp_ra_floor_long
     # Tier 4: Environment context (combined, proven features)
     "combined_rpg",                 # total scoring environment
     "rpg_vs_line",                  # combined_rpg - close_ou (market inefficiency)
@@ -1824,7 +2099,7 @@ OU_FEATURES_OVER_MINIMAL = [f for f in OU_FEATURES_OVER
                                          "fi_score_rate_combined",
                                          "offense_vs_league_combined",
                                          "sp_quality_gap", "wrc_plus_combined",
-                                         "sp_quality_floor", "bp_fip_osc_home",
+                                         "sp_ra_floor_long", "bp_fip_osc_home",
                                          "bp_fip_osc_away", "bp_ip_3d_home",
                                          "bp_ip_3d_away"}]
 
@@ -1879,9 +2154,9 @@ def build_ou_features_over(
         df["effective_obp_x_sp_ra_away"] = np.nan
 
     # max(power_rate) × worst starter RA (explosive offense vs weakest pitcher)
-    if all(c in df.columns for c in ["power_rate_home", "power_rate_away", "sp_quality_floor"]):
+    if all(c in df.columns for c in ["power_rate_home", "power_rate_away", "sp_ra_floor_long"]):
         power_max = df[["power_rate_home", "power_rate_away"]].max(axis=1)
-        df["power_rate_max_x_sp_floor"] = power_max * df["sp_quality_floor"]
+        df["power_rate_max_x_sp_floor"] = power_max * df["sp_ra_floor_long"]
     else:
         df["power_rate_max_x_sp_floor"] = np.nan
 
@@ -2018,9 +2293,9 @@ def build_ou_features_v2(
         df["sp_quality_gap"] = np.nan
 
     # Best offense × worst starter
-    if "sp_quality_floor" in df.columns:
+    if "sp_ra_floor_long" in df.columns:
         max_rpg = df[["rpg_home", "rpg_away"]].max(axis=1)
-        df["max_offense_x_worst_sp"] = max_rpg * df["sp_quality_floor"]
+        df["max_offense_x_worst_sp"] = max_rpg * df["sp_ra_floor_long"]
     else:
         df["max_offense_x_worst_sp"] = np.nan
 
@@ -2044,7 +2319,7 @@ def build_ou_features_v2(
     if "rpg_last10_home" in df.columns:
         df["combined_rpg_last10"] = df["rpg_last10_home"] + df["rpg_last10_away"]
 
-    # sp_quality_floor already computed by pitcher_features.py
+    # sp_ra_floor_long / sp_fip_floor_short already refreshed above.
     _safe_sum(df, "sp_ip_per_start_combined", "home_sp_ip_per_start_short", "away_sp_ip_per_start_short")
     _safe_sum(df, "pyth_wp_combined", "pyth_wp_home", "pyth_wp_away")
     _safe_sum(df, "fi_score_rate_combined", "fi_score_rate_home", "fi_score_rate_away")
@@ -2107,8 +2382,9 @@ def build_yrfi_features(
         Only includes games with real inning-by-inning data.
     """
     from src.data_loader import (
-        PROCESSED_DIR,
+        LIVE_2026_BABIP_PATH,
         _map_team_code_to_retrosheet,
+        load_combined_first_inning_babip,
     )
 
     if enriched is None:
@@ -2120,28 +2396,50 @@ def build_yrfi_features(
         games = add_derived_odds(games)
         enriched = build_all_features(games)
 
-    df = enriched.copy()
+    df = refresh_feature_consistency_flags(enriched.copy())
+    df["date"] = pd.to_datetime(df["date"]).dt.normalize()
 
-    # Filter to real inning data (exclude seasons with fake zeros)
+    # Historical training rows need real inning outcomes; future overlays should
+    # remain in the frame with explicit unsupported flags instead of being dropped.
     inn_cols_away = [f"away_inn_{i}" for i in range(1, 10) if f"away_inn_{i}" in df.columns]
     inn_cols_home = [f"home_inn_{i}" for i in range(1, 10) if f"home_inn_{i}" in df.columns]
     if inn_cols_away and inn_cols_home:
         away_inn_sum = df[inn_cols_away].sum(axis=1)
         home_inn_sum = df[inn_cols_home].sum(axis=1)
         has_inning_data = (away_inn_sum + home_inn_sum) > 0
-        df = df[has_inning_data].copy()
+    else:
+        has_inning_data = pd.Series(False, index=df.index)
 
-    # YRFI target
+    latest_frame_date = df["date"].max() if not df.empty else pd.NaT
+    has_live_market_context = (
+        _col_numeric(df, "home_close_ml").notna()
+        | _col_numeric(df, "away_close_ml").notna()
+        | _col_has_value(df, "home_pitcher")
+        | _col_has_value(df, "away_pitcher")
+    )
+    zero_score_future = (
+        df["home_final"].fillna(0).eq(0)
+        & df["away_final"].fillna(0).eq(0)
+        & has_live_market_context
+        & (
+            df["date"].ge(pd.Timestamp.today().normalize())
+            | (df["date"].eq(latest_frame_date) if pd.notna(latest_frame_date) else False)
+        )
+    )
+    future_overlay = (~has_inning_data) & zero_score_future
+    df["has_inning_data"] = has_inning_data
+    df["is_future_overlay"] = future_overlay
+    df = df[has_inning_data | future_overlay].copy()
+
+    # YRFI target exists only for rows with actual first-inning results.
     if "away_inn_1" in df.columns and "home_inn_1" in df.columns:
         df["inn1_runs"] = df["away_inn_1"] + df["home_inn_1"]
-        df["yrfi"] = (df["inn1_runs"] > 0).astype(int)
+        df["yrfi"] = np.where(df["has_inning_data"], (df["inn1_runs"] > 0).astype(float), np.nan)
 
     # ── Merge 1st-inning BABIP ─────────────────────────────────────────
-    babip_path = PROCESSED_DIR / "retrosheet" / "first_inning_babip.parquet"
-    if babip_path.exists():
-        babip = pd.read_parquet(babip_path)
+    babip = load_combined_first_inning_babip()
+    if not babip.empty:
         babip["date"] = pd.to_datetime(babip["date"]).dt.normalize()
-        df["date"] = pd.to_datetime(df["date"]).dt.normalize()
 
         for side, team_col in [("home", "home_team"), ("away", "away_team")]:
             df[f"_bb_{side}_team"] = df.apply(
@@ -2153,19 +2451,55 @@ def build_yrfi_features(
                 "top3_babip_inn1": f"top3_babip_inn1_{side}",
                 "sp_babip_inn1": f"sp_babip_inn1_{side}",
             }
-            side_bb = babip[
-                ["team", "date", "top3_babip_inn1", "sp_babip_inn1"]
-            ].rename(columns=bb_rename)
+            bb_cols = ["team", "date", "top3_babip_inn1", "sp_babip_inn1"]
+            if "top3_babip_inn1_pa" in babip.columns:
+                bb_cols.append("top3_babip_inn1_pa")
+                bb_rename["top3_babip_inn1_pa"] = f"top3_babip_inn1_pa_{side}"
+            if "sp_babip_inn1_pa" in babip.columns:
+                bb_cols.append("sp_babip_inn1_pa")
+                bb_rename["sp_babip_inn1_pa"] = f"sp_babip_inn1_pa_{side}"
+            side_bb = babip[bb_cols].rename(columns=bb_rename)
             side_bb = side_bb.drop_duplicates(
-                subset=[f"_bb_{side}_team", "date"], keep="first"
+                subset=[f"_bb_{side}_team", "date"], keep="last"
             )
             df = df.merge(side_bb, on=[f"_bb_{side}_team", "date"], how="left")
             df = df.drop(columns=[f"_bb_{side}_team"])
 
+        future_mask = (
+            df["is_future_overlay"].fillna(False)
+            if "is_future_overlay" in df.columns
+            else pd.Series(False, index=df.index)
+        )
+        if future_mask.any():
+            for side, team_col in [("home", "home_team"), ("away", "away_team")]:
+                mapped_team = df.apply(
+                    lambda r, _tc=team_col: _map_team_code_to_retrosheet(r[_tc], r["season"]),
+                    axis=1,
+                )
+                for source_col in [
+                    "top3_babip_inn1",
+                    "sp_babip_inn1",
+                    "top3_babip_inn1_pa",
+                    "sp_babip_inn1_pa",
+                ]:
+                    target_col = f"{source_col}_{side}"
+                    if target_col not in df.columns:
+                        df[target_col] = np.nan
+                    prior = _asof_team_feature_lookup(
+                        df["date"],
+                        mapped_team,
+                        babip,
+                        source_col,
+                        allow_exact_matches=False,
+                    )
+                    fill_mask = future_mask & df[target_col].isna()
+                    if fill_mask.any():
+                        df.loc[fill_mask, target_col] = prior.loc[fill_mask]
+
         _safe_sum(df, "top3_babip_inn1_combined", "top3_babip_inn1_home", "top3_babip_inn1_away")
         _safe_sum(df, "sp_babip_inn1_combined", "sp_babip_inn1_home", "sp_babip_inn1_away")
     else:
-        logger.warning(f"BABIP features not found at {babip_path}")
+        logger.warning("BABIP features not found in either historical or 2026 paths")
 
     # ── Pitcher SUM composites ─────────────────────────────────────────
     _safe_sum(df, "sp_fi_ra_combined", "home_sp_fi_ra_short", "away_sp_fi_ra_short")
@@ -2204,11 +2538,42 @@ def build_yrfi_features(
         )
         _safe_sum(df, "effective_obp_combined", "effective_obp_home", "effective_obp_away")
 
+    live_babip_available = LIVE_2026_BABIP_PATH.exists()
+    future_mask = (
+        df["is_future_overlay"].fillna(False)
+        if "is_future_overlay" in df.columns
+        else pd.Series(False, index=df.index)
+    )
+    df["unsupported_live_babip_features"] = False
+    df["insufficient_babip_history"] = False
+    if future_mask.any():
+        missing_future_babip = (
+            _col_numeric(df, "top3_babip_inn1_home").isna()
+            | _col_numeric(df, "top3_babip_inn1_away").isna()
+            | _col_numeric(df, "sp_babip_inn1_home").isna()
+            | _col_numeric(df, "sp_babip_inn1_away").isna()
+        )
+        low_future_babip_history = (
+            (_col_numeric(df, "top3_babip_inn1_pa_home").notna() & (_col_numeric(df, "top3_babip_inn1_pa_home") < 20))
+            | (_col_numeric(df, "top3_babip_inn1_pa_away").notna() & (_col_numeric(df, "top3_babip_inn1_pa_away") < 20))
+            | (_col_numeric(df, "sp_babip_inn1_pa_home").notna() & (_col_numeric(df, "sp_babip_inn1_pa_home") < 20))
+            | (_col_numeric(df, "sp_babip_inn1_pa_away").notna() & (_col_numeric(df, "sp_babip_inn1_pa_away") < 20))
+        )
+        df["unsupported_live_babip_features"] = future_mask & (not live_babip_available)
+        df["insufficient_babip_history"] = (
+            future_mask & live_babip_available & (missing_future_babip | low_future_babip_history)
+        )
+    df["unsupported_live_yrfi_features"] = df["unsupported_live_babip_features"]
+
+    df = refresh_feature_consistency_flags(df)
+
     n_yrfi = len(df)
     n_babip = df["top3_babip_inn1_home"].notna().sum() if "top3_babip_inn1_home" in df.columns else 0
+    n_future = int(df["is_future_overlay"].sum()) if "is_future_overlay" in df.columns else 0
+    n_unsupported = int(df["unsupported_live_yrfi_features"].sum()) if "unsupported_live_yrfi_features" in df.columns else 0
     logger.info(
-        f"YRFI features: {n_yrfi} games with inning data, "
-        f"BABIP coverage: {n_babip}/{n_yrfi}"
+        f"YRFI features: {n_yrfi} rows, BABIP coverage: {n_babip}/{n_yrfi}, "
+        f"future rows kept: {n_future}, unsupported_live_yrfi: {n_unsupported}"
     )
     return df
 
