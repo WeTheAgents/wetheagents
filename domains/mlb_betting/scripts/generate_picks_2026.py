@@ -2,9 +2,10 @@
 
 Implements the audit plan §10 contract. Loads the unfiltered feature
 pipeline (build_all_features — NOT build_spec_features which drops
-April), runs the four production strategies, deduplicates overlap,
+April), runs the live production strategies, deduplicates overlap,
 optionally fetches live Polymarket prices, computes Kelly stake
-fractions, and writes the picks to disk for manual operator review.
+fractions, applies overlap-aware stake bonuses, and writes the picks
+to disk for manual operator review.
 
 Decision matrix from audit plan §9:
   - Tier 3 uses ip_per_start_short (Decision §9.1)
@@ -66,10 +67,11 @@ MIN_STAKE_FRACTION = 0.005
 
 
 # Tier priority for overlap dedup (lower index = higher priority).
-# Tier 1's bullpen-day signal is the strongest and wins all conflicts.
 TIER_PRIORITY = [
     "tier1_bullpen_day",
     "tier1_bullpen_day_flipped",
+    "tier4_ml_depth_load",
+    "tier5_ml_obp_recovery",
     "tier3_pitcher_advantage",
     "tier2_fatigue_gap",
     "fav_rl",
@@ -78,6 +80,10 @@ TIER_PRIORITY = [
     "over_bullpen_mismatch_power",
     "over_bullpen_mismatch",
 ]
+
+OVERLAP_STAKE_PAIR = frozenset({"tier4_ml_depth_load", "tier5_ml_obp_recovery"})
+OVERLAP_STAKE_MULTIPLIER = 1.5
+OVERLAP_STAKE_REASON = "double_confirmed_ml_baskets"
 
 
 # ---------------------------------------------------------------------------
@@ -89,8 +95,8 @@ TIER_PRIORITY = [
 class EnrichedPick:
     """A Pick after Polymarket lookup, edge calculation, and Kelly sizing.
 
-    This is the JSON shape that lands in picks_YYYY-MM-DD.json. The schema
-    is locked at v1 — see audit plan §10.
+    This is the JSON shape that lands in picks_YYYY-MM-DD.json.
+    Schema v3 adds overlap-aware staking fields for the Sess 41 ML baskets.
     """
 
     pick_id: str
@@ -109,6 +115,9 @@ class EnrichedPick:
     status: str  # "ok" | "poly_unavailable" | "not_on_polymarket" | "no_ref_odds"
     live_edge_pct: float | None
     kelly_fraction: float | None
+    stake_fraction_base: float | None
+    stake_multiplier: float
+    stake_multiplier_reason: str | None
     stake_fraction: float | None
     # Target pricing — what odds to wait for (L1 sweet-spot targeting).
     # target_min: breakeven odds (edge=0); below this, DON'T bet.
@@ -120,7 +129,7 @@ class EnrichedPick:
     reason: str
     feature_snapshot: dict[str, Any]
     generated_at: str
-    schema_version: int = 2
+    schema_version: int = 3
 
 
 def kelly(p: float, decimal_odds: float) -> float:
@@ -358,6 +367,14 @@ def _target_prices(shrunk_p: float, target_edge: float) -> tuple[float | None, f
     return target_min, target_sweet
 
 
+def overlap_stake_bonus(pick) -> tuple[float, str | None]:
+    """Return stake multiplier for post-dedup overlap-confirmed picks."""
+    qualified = {pick.tier, *pick.also_qualified}
+    if OVERLAP_STAKE_PAIR.issubset(qualified):
+        return OVERLAP_STAKE_MULTIPLIER, OVERLAP_STAKE_REASON
+    return 1.0, None
+
+
 def enrich_pick(
     pick,
     poly_data: dict | None,
@@ -389,10 +406,16 @@ def enrich_pick(
         ref_implied = 1.0 / ref_decimal
         live_edge_pct = shrunk_p - ref_implied
         kelly_full = kelly(shrunk_p, ref_decimal)
-        stake_fraction = kelly_fraction_cap * kelly_full
+        stake_fraction_base = kelly_fraction_cap * kelly_full
     else:
         live_edge_pct = None
         kelly_full = None
+        stake_fraction_base = None
+
+    stake_multiplier, stake_multiplier_reason = overlap_stake_bonus(pick)
+    if stake_fraction_base is not None:
+        stake_fraction = min(stake_fraction_base * stake_multiplier, 1.0)
+    else:
         stake_fraction = None
 
     # Target pricing (L1 sweet-spot targeting).
@@ -416,6 +439,9 @@ def enrich_pick(
         status=status,
         live_edge_pct=live_edge_pct,
         kelly_fraction=kelly_full,
+        stake_fraction_base=stake_fraction_base,
+        stake_multiplier=stake_multiplier,
+        stake_multiplier_reason=stake_multiplier_reason,
         stake_fraction=stake_fraction,
         target_min_decimal=target_min,
         target_sweet_decimal=target_sweet,
@@ -480,27 +506,28 @@ def print_summary(picks: list[EnrichedPick]) -> None:
         return
     print()
     print(
-        f"  {'TIER':<22} {'AWAY':>4} @ {'HOME':<4} {'MKT':<8} {'SIDE':<5}"
+        f"  {'TIER':<34} {'AWAY':>4} @ {'HOME':<4} {'MKT':<8} {'SIDE':<5}"
         f" {'P':>6} {'REF':>6} {'POLY':>6} {'EDGE':>6}"
-        f" {'STAKE':>6}  {'MIN':>5} {'SWEET':>5} {'K@SW':>5}  STATUS"
+        f" {'STAKE':>6} {'MULT':>5}  {'MIN':>5} {'SWEET':>5} {'K@SW':>5}  STATUS"
     )
-    print("  " + "-" * 115)
+    print("  " + "-" * 132)
     for p in picks:
         ref = f"{p.ref_odds_espn:.2f}" if p.ref_odds_espn else "  -"
         poly = f"{p.polymarket_decimal:.2f}" if p.polymarket_decimal else "  -"
         edge = f"{p.live_edge_pct * 100:+.0f}%" if p.live_edge_pct is not None else "   -"
         stake = f"{p.stake_fraction * 100:.1f}%" if p.stake_fraction is not None else "  -"
+        mult = f"x{p.stake_multiplier:.1f}" if p.stake_multiplier != 1.0 else "  -"
         tmin = f"{p.target_min_decimal:.2f}" if p.target_min_decimal else "  -"
         tsweet = f"{p.target_sweet_decimal:.2f}" if p.target_sweet_decimal else "  -"
         ksw = f"{p.kelly_at_sweet * 100:.0f}%" if p.kelly_at_sweet else "  -"
         also = f" (+{','.join(p.also_qualified)})" if p.also_qualified else ""
         print(
-            f"  {p.tier + also:<22} {p.away:>4} @ {p.home:<4} {p.market:<8} {p.side:<5}"
+            f"  {p.tier + also:<34} {p.away:>4} @ {p.home:<4} {p.market:<8} {p.side:<5}"
             f" {p.shrunk_p:>6.3f} {ref:>6} {poly:>6} {edge:>6}"
-            f" {stake:>6}  {tmin:>5} {tsweet:>5} {ksw:>5}  {p.status}"
+            f" {stake:>6} {mult:>5}  {tmin:>5} {tsweet:>5} {ksw:>5}  {p.status}"
         )
     print()
-    print("  MIN = don't bet below this | SWEET = wait-for price (+20% edge) | K@SW = Kelly at sweet")
+    print("  MULT = overlap bonus | MIN = don't bet below this | SWEET = wait-for price (+20% edge) | K@SW = Kelly at sweet")
     print()
 
 
@@ -515,8 +542,8 @@ def main() -> int:
     parser.add_argument(
         "--tiers",
         type=str,
-        default="tier1_bullpen_day,tier2_fatigue_gap,tier3_pitcher_advantage,fav_rl,over_bullpen_mismatch",
-        help="Comma-separated tier names (default: all 5)",
+        default="tier1_bullpen_day,tier4_ml_depth_load,tier5_ml_obp_recovery,tier3_pitcher_advantage,tier2_fatigue_gap,fav_rl,over_bullpen_mismatch",
+        help="Comma-separated tier names (default: live strategy set)",
     )
     parser.add_argument(
         "--no-poly",
@@ -589,6 +616,7 @@ def main() -> int:
         load_all_seasons,
     )
     from src.features import build_all_features  # noqa: PLC0415
+    from src.live_strategy_audit import AUDIT_CONFIGS, evaluate_strategy_day, target_day_frame  # noqa: PLC0415
     from src.strategies import (  # noqa: PLC0415
         ACTIVE_STRATEGIES,
         add_derived_for_strategies,
@@ -648,6 +676,27 @@ def main() -> int:
                 count = int(day[col].fillna(False).astype(bool).sum())
                 if count:
                     logger.warning("Target-date flag %s: %d/%d games", col, count, len(day))
+    else:
+        day = target_day_frame(enriched, target)
+
+    live_audit_tiers = [tier for tier in requested_tiers if tier in AUDIT_CONFIGS]
+    if live_audit_tiers:
+        for tier in live_audit_tiers:
+            audit = evaluate_strategy_day(day, tier)
+            logger.info(
+                "%s readiness: games=%d usable=%d raw_pass=%d verdict=%s (%s)",
+                tier,
+                audit["games"],
+                audit["usable_rows"],
+                audit["raw_pass"],
+                audit["verdict"],
+                audit["verdict_detail"],
+            )
+            if audit["raw_pass"] == 0:
+                if audit["verdict"] == "strict_but_ready":
+                    logger.info("%s: 0 picks due to strict filters", tier)
+                elif audit["verdict"] in {"source_blocked", "warmup_sparse"}:
+                    logger.info("%s: 0 picks due to missing/insufficient live data", tier)
 
     # 2. Run each strategy.
     raw_picks = []

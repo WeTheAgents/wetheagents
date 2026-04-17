@@ -36,6 +36,17 @@ TEAM_LEVEL_FEATURES = {
         "bp_fip_7g_home",
         "bp_fip_long_home",
         "bp_ip_3d_home",
+        "bp_sc_whiff_3d_home",
+        "bp_sc_barrel_3d_home",
+        "bp_sc_hard_hit_3d_home",
+        "bp_sc_exit_velo_3d_home",
+        "bp_sc_xwoba_3d_home",
+        "bp_sc_whiff_delta_3d_home",
+        "bp_sc_barrel_delta_3d_home",
+        "bp_sc_xwoba_std_home",
+        "bp_sc_barrel_std_home",
+        "bp_sc_xwoba_15g_home",
+        "bp_sc_barrel_15g_home",
         "top3_obp_short_home",
         "top3_obp_long_home",
         "top3_k_rate_short_home",
@@ -52,6 +63,17 @@ TEAM_LEVEL_FEATURES = {
         "bp_fip_7g_away",
         "bp_fip_long_away",
         "bp_ip_3d_away",
+        "bp_sc_whiff_3d_away",
+        "bp_sc_barrel_3d_away",
+        "bp_sc_hard_hit_3d_away",
+        "bp_sc_exit_velo_3d_away",
+        "bp_sc_xwoba_3d_away",
+        "bp_sc_whiff_delta_3d_away",
+        "bp_sc_barrel_delta_3d_away",
+        "bp_sc_xwoba_std_away",
+        "bp_sc_barrel_std_away",
+        "bp_sc_xwoba_15g_away",
+        "bp_sc_barrel_15g_away",
         "top3_obp_short_away",
         "top3_obp_long_away",
         "top3_k_rate_short_away",
@@ -272,10 +294,13 @@ def _fill_pitcher_features_from_parquet(
     for side, cfg in side_config.items():
         pitcher_col = cfg["pitcher_col"]
         starter_id_col = cfg["starter_id_col"]
+        bridge_flag_col = f"starter_history_bridge_missing_{side}"
         if pitcher_col not in df.columns:
             continue
         if starter_id_col not in df.columns:
             df[starter_id_col] = pd.NA
+        if bridge_flag_col not in df.columns:
+            df[bridge_flag_col] = False
 
         renamed = {
             col: f"{side}_sp_{col}"
@@ -295,9 +320,12 @@ def _fill_pitcher_features_from_parquet(
                 continue
             starter_key = str(starter_id)
             if starter_key not in latest.index:
+                df.at[idx, bridge_flag_col] = True
                 continue
 
             source = latest.loc[starter_key]
+            bridge_missing = bool(source.get("starter_history_bridge_missing", False))
+            df.at[idx, bridge_flag_col] = bridge_missing
             for raw_col, target_col in renamed.items():
                 if target_col not in df.columns:
                     df[target_col] = np.nan
@@ -335,6 +363,25 @@ def _recompute_lineup_interactions(df: pd.DataFrame) -> None:
     )
     df["effective_obp_combined"] = df["effective_obp_home"] + df["effective_obp_away"]
     df["effective_obp_diff"] = df["effective_obp_home"] - df["effective_obp_away"]
+
+
+def _recompute_savant_diffs(df: pd.DataFrame) -> None:
+    """Recompute home-away Savant mismatch columns after team-value projection."""
+    for metric in [
+        "xwoba_std",
+        "xwoba_15g",
+        "barrel_std",
+        "barrel_15g",
+        "whiff_3d",
+        "barrel_3d",
+        "whiff_delta_3d",
+        "barrel_delta_3d",
+    ]:
+        home_col = f"bp_sc_{metric}_home"
+        away_col = f"bp_sc_{metric}_away"
+        diff_col = f"bp_sc_{metric}_diff"
+        if home_col in df.columns and away_col in df.columns:
+            df[diff_col] = df[home_col] - df[away_col]
 
 
 def forward_project_features(
@@ -385,6 +432,7 @@ def forward_project_features(
             filled_summary[_flag_col] = _n
 
     _recompute_lineup_interactions(out)
+    _recompute_savant_diffs(out)
 
     try:
         from src.features import refresh_feature_consistency_flags  # noqa: PLC0415

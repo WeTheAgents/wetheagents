@@ -46,6 +46,11 @@ PITCHER_LOGS_PARQUET = DATA_DIR / "processed" / "pitchers_2026" / "pitcher_game_
 # Dual-path bullpen layout (Bug A architectural fix):
 HISTORICAL_BULLPEN_PARQUET = DATA_DIR / "processed" / "retrosheet" / "bullpen_features.parquet"
 LIVE_BULLPEN_PARQUET = DATA_DIR / "processed" / "pitchers_2026" / "bullpen_features.parquet"
+LINEUP_FEATURES_PARQUET = DATA_DIR / "processed" / "lineups_2026" / "game_lineup_features.parquet"
+SAVANT_PITCHER_GAMES_PARQUET = DATA_DIR / "processed" / "savant" / "pitcher_games_2026.parquet"
+SAVANT_BULLPEN_FEATURES_PARQUET = DATA_DIR / "processed" / "savant" / "savant_bullpen_features.parquet"
+STARTER_ENTERING_PARQUET = DATA_DIR / "processed" / "pitchers_2026" / "starter_entering_features.parquet"
+STARTER_ID_BRIDGE_PARQUET = DATA_DIR / "processed" / "savant" / "id_bridge.parquet"
 ALERTS_PATH = BASE_DIR / "picks" / "ALERTS.md"
 
 # How many days behind today the last postgame date may be before we fail.
@@ -318,6 +323,63 @@ def check_audit_log_recent(today: date, max_days_behind: int) -> CheckResult:
     return CheckResult("audit_log", True, f"last entry within {max_days_behind}d")
 
 
+def check_recent_feature_parquet(
+    *,
+    name: str,
+    path: Path,
+    date_col: str,
+    today: date,
+    max_days_behind: int,
+) -> CheckResult:
+    if not path.exists():
+        return CheckResult(name, False, f"missing: {path}")
+
+    df = pd.read_parquet(path)
+    if df.empty:
+        return CheckResult(name, False, "empty parquet")
+    if date_col not in df.columns:
+        return CheckResult(name, False, f"missing date column {date_col!r}")
+
+    dates = pd.to_datetime(df[date_col], errors="coerce").dropna()
+    if dates.empty:
+        return CheckResult(name, False, "no valid dates")
+    date_max = dates.max().date()
+    lag = (today - date_max).days
+    if lag > max_days_behind:
+        return CheckResult(name, False, f"stale: max={date_max} is {lag}d behind")
+    return CheckResult(name, True, f"{len(df)} rows (max={date_max})")
+
+
+def check_starter_bridge_input() -> CheckResult:
+    if not STARTER_ID_BRIDGE_PARQUET.exists():
+        return CheckResult("starter_bridge_input", False, f"missing: {STARTER_ID_BRIDGE_PARQUET}")
+    if not STARTER_ENTERING_PARQUET.exists():
+        return CheckResult("starter_bridge_input", False, f"missing: {STARTER_ENTERING_PARQUET}")
+
+    bridge = pd.read_parquet(STARTER_ID_BRIDGE_PARQUET)
+    entering = pd.read_parquet(STARTER_ENTERING_PARQUET)
+    required_bridge = {"key_retro", "key_mlbam"}
+    missing_bridge = required_bridge - set(bridge.columns)
+    if missing_bridge:
+        return CheckResult("starter_bridge_input", False, f"bridge missing columns: {sorted(missing_bridge)}")
+    if "starter_history_bridge_missing" not in entering.columns:
+        return CheckResult(
+            "starter_bridge_input",
+            False,
+            "starter_entering_features missing carry-over diagnostic column",
+        )
+
+    mapped = bridge.dropna(subset=["key_retro", "key_mlbam"])
+    if mapped.empty:
+        return CheckResult("starter_bridge_input", False, "id bridge has zero mapped rows")
+
+    return CheckResult(
+        "starter_bridge_input",
+        True,
+        f"bridge_rows={len(mapped)}, starter_entering_rows={len(entering)}",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
@@ -355,6 +417,35 @@ def main() -> int:
         check_games_parquet(),
         check_pitcher_logs_monotonic(),
         check_bullpen_dual_version(today, max_days_behind),
+        check_recent_feature_parquet(
+            name="lineup_features_freshness",
+            path=LINEUP_FEATURES_PARQUET,
+            date_col="date",
+            today=today,
+            max_days_behind=max_days_behind,
+        ),
+        check_recent_feature_parquet(
+            name="savant_pitcher_games_freshness",
+            path=SAVANT_PITCHER_GAMES_PARQUET,
+            date_col="game_date",
+            today=today,
+            max_days_behind=max_days_behind,
+        ),
+        check_recent_feature_parquet(
+            name="savant_bullpen_features_freshness",
+            path=SAVANT_BULLPEN_FEATURES_PARQUET,
+            date_col="game_date",
+            today=today,
+            max_days_behind=max_days_behind,
+        ),
+        check_recent_feature_parquet(
+            name="starter_entering_freshness",
+            path=STARTER_ENTERING_PARQUET,
+            date_col="date",
+            today=today,
+            max_days_behind=max_days_behind,
+        ),
+        check_starter_bridge_input(),
         check_audit_log_recent(today, max_days_behind=2),
     ]
 

@@ -35,6 +35,15 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 
+from src.live_strategy_audit import AUDIT_CONFIGS, evaluate_strategy_day, target_day_frame
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+PROCESSED_DIR = BASE_DIR / "data" / "processed"
+LINEUP_FEATURES_PATH = PROCESSED_DIR / "lineups_2026" / "game_lineup_features.parquet"
+SAVANT_PITCHER_GAMES_PATH = PROCESSED_DIR / "savant" / "pitcher_games_2026.parquet"
+SAVANT_FEATURES_PATH = PROCESSED_DIR / "savant" / "savant_bullpen_features.parquet"
+STARTER_ENTERING_PATH = PROCESSED_DIR / "pitchers_2026" / "starter_entering_features.parquet"
+ID_BRIDGE_PATH = PROCESSED_DIR / "savant" / "id_bridge.parquet"
 
 # The fields every strategy reads. Covers Tier1/2/3, fav_rl, and the new
 # OVER strategy.
@@ -50,6 +59,8 @@ COVERAGE_FIELDS = [
     "away_sp_fip_short",
     "home_sp_fip_short",
     "starter_depth_diff_short",
+    "bp_sc_xwoba_std_home",
+    "deficit_recovery_diff",
     # fav_rl
     "fav_implied_prob",
     "fav_starter_fip_diff",
@@ -66,6 +77,9 @@ COVERAGE_FIELDS = [
     "effective_obp_away",
     "insufficient_starter_history",
     "starter_feature_source_missing",
+    "starter_history_bridge_missing",
+    "starter_history_bridge_missing_home",
+    "starter_history_bridge_missing_away",
     "insufficient_lineup_history",
     "lineup_feature_source_missing",
 ]
@@ -136,12 +150,7 @@ def build_enriched(target: date) -> pd.DataFrame:
 
 def slice_day(enriched: pd.DataFrame, target: date) -> pd.DataFrame:
     """Return rows whose date equals target (handles Timestamp vs date)."""
-    if enriched.empty:
-        return enriched
-    first = enriched["date"].iloc[0]
-    if hasattr(first, "date"):
-        return enriched[enriched["date"].dt.date == target]
-    return enriched[enriched["date"] == target]
+    return target_day_frame(enriched, target)
 
 
 def coverage_pct(df: pd.DataFrame, col: str) -> float:
@@ -258,7 +267,119 @@ CASCADES = [
 ]
 
 
-def report_day(enriched: pd.DataFrame, target: date) -> dict:
+def _freshness_for_parquet(path: Path, date_col: str) -> dict[str, object]:
+    report = {
+        "path": str(path),
+        "exists": path.exists(),
+        "rows": 0,
+        "date_col": date_col,
+        "date_min": None,
+        "date_max": None,
+        "lag_days": None,
+        "ok": False,
+    }
+    if not path.exists():
+        return report
+
+    try:
+        df = pd.read_parquet(path)
+    except Exception as exc:  # noqa: BLE001
+        report["error"] = str(exc)
+        return report
+    report["rows"] = int(len(df))
+    if df.empty or date_col not in df.columns:
+        return report
+
+    dates = pd.to_datetime(df[date_col], errors="coerce").dropna()
+    if dates.empty:
+        return report
+
+    date_min = dates.min().date()
+    date_max = dates.max().date()
+    lag = (date.today() - date_max).days
+    report.update(
+        {
+            "date_min": date_min.isoformat(),
+            "date_max": date_max.isoformat(),
+            "lag_days": int(lag),
+            "ok": lag <= 2,
+        }
+    )
+    return report
+
+
+def pipeline_freshness() -> dict[str, dict[str, object]]:
+    out = {
+        "lineups_2026": _freshness_for_parquet(LINEUP_FEATURES_PATH, "date"),
+        "savant_pitcher_games_2026": _freshness_for_parquet(SAVANT_PITCHER_GAMES_PATH, "game_date"),
+        "savant_bullpen_features": _freshness_for_parquet(SAVANT_FEATURES_PATH, "game_date"),
+        "starter_entering_2026": _freshness_for_parquet(STARTER_ENTERING_PATH, "date"),
+        "starter_id_bridge": {
+            "path": str(ID_BRIDGE_PATH),
+            "exists": ID_BRIDGE_PATH.exists(),
+            "ok": False,
+        },
+    }
+    if ID_BRIDGE_PATH.exists():
+        try:
+            bridge = pd.read_parquet(ID_BRIDGE_PATH, columns=["key_retro", "key_mlbam"])
+            rows = int(len(bridge))
+            mapped = int(bridge.dropna(subset=["key_retro", "key_mlbam"]).shape[0])
+            out["starter_id_bridge"].update({"rows": rows, "mapped_rows": mapped, "ok": mapped > 0})
+        except Exception as exc:  # noqa: BLE001
+            out["starter_id_bridge"]["error"] = str(exc)
+    return out
+
+
+def stale_sources_for_live_ml(freshness: dict[str, dict[str, object]]) -> tuple[str, ...]:
+    needed = [
+        ("lineups_2026", "lineups"),
+        ("savant_pitcher_games_2026", "savant_pitcher_games"),
+        ("savant_bullpen_features", "savant_features"),
+        ("starter_entering_2026", "starter_entering"),
+        ("starter_id_bridge", "starter_id_bridge"),
+    ]
+    stale = []
+    for key, label in needed:
+        info = freshness.get(key, {})
+        if not info.get("ok", False):
+            stale.append(label)
+    return tuple(stale)
+
+
+def aggregate_live_strategy_reports(reports: list[dict]) -> dict[str, dict[str, object]]:
+    out: dict[str, dict[str, object]] = {}
+    if not reports:
+        return out
+    for tier in AUDIT_CONFIGS:
+        per_day = [r["strategy_fillability"][tier] for r in reports if tier in r.get("strategy_fillability", {})]
+        if not per_day:
+            continue
+        games = sum(int(x["games"]) for x in per_day)
+        usable = sum(int(x["usable_rows"]) for x in per_day)
+        raw_pass = sum(int(x["raw_pass"]) for x in per_day)
+        verdict_counts: dict[str, int] = {}
+        for row in per_day:
+            verdict_counts[row["verdict"]] = verdict_counts.get(row["verdict"], 0) + 1
+        out[tier] = {
+            "days": len(per_day),
+            "games": games,
+            "usable_rows": usable,
+            "usable_pct": (usable / games) if games else 0.0,
+            "raw_pass": raw_pass,
+            "avg_games_per_day": (games / len(per_day)) if per_day else 0.0,
+            "avg_usable_rows_per_day": (usable / len(per_day)) if per_day else 0.0,
+            "verdict_counts": verdict_counts,
+        }
+    return out
+
+
+def report_day(
+    enriched: pd.DataFrame,
+    target: date,
+    *,
+    freshness: dict[str, dict[str, object]],
+) -> dict:
     day = slice_day(enriched, target)
     print(f"\n{'=' * 90}")
     print(f"  DATE: {target}  |  games: {len(day)}")
@@ -294,11 +415,51 @@ def report_day(enriched: pd.DataFrame, target: date) -> dict:
             print(f"    {label:<38} {n:>4}")
         cascade_report[tier_name] = steps
 
+    stale_sources = stale_sources_for_live_ml(freshness)
+    strategy_fillability = {}
+    print(f"\n  LIVE ML READINESS")
+    for tier_name in AUDIT_CONFIGS:
+        info = evaluate_strategy_day(day, tier_name, stale_sources=stale_sources)
+        strategy_fillability[tier_name] = info
+        print(
+            f"\n  [{tier_name}] verdict={info['verdict']} | usable={info['usable_rows']}/{info['games']}"
+            f" ({info['usable_pct'] * 100:.1f}%) | raw_pass={info['raw_pass']}"
+        )
+        print(f"    detail: {info['verdict_detail']}")
+        if info["missing_columns"]:
+            print(f"    missing_columns: {info['missing_columns']}")
+        print(f"    missing_by_field: {info['missing_by_field']}")
+        print(f"    source_flags: {info['source_missing_flags']}")
+        print(f"    insufficient_flags: {info['insufficient_history_flags']}")
+        print(f"    bridge_flags: {info['bridge_missing_flags']}")
+        for diag in info["filter_diagnostics"]:
+            print(
+                "    "
+                f"{diag['label']:<42} standalone={int(diag['standalone_pass_count']):>3} "
+                f"chained={int(diag['chained_pass_count']):>3}"
+            )
+
     return {
         "date": target.isoformat(),
         "games": len(day),
         "coverage": cov_report,
         "cascades": {k: [(lbl, n) for lbl, n in v] for k, v in cascade_report.items()},
+        "strategy_fillability": strategy_fillability,
+        "filter_diagnostics": {
+            tier: info["filter_diagnostics"]
+            for tier, info in strategy_fillability.items()
+        },
+        "threshold_context": {
+            tier: info["threshold_context"]
+            for tier, info in strategy_fillability.items()
+        },
+        "verdicts": {
+            tier: {
+                "verdict": info["verdict"],
+                "detail": info["verdict_detail"],
+            }
+            for tier, info in strategy_fillability.items()
+        },
     }
 
 
@@ -331,16 +492,32 @@ def main() -> int:
         else:
             targets = [date(2026, 4, 14)]
 
-    print("Building enriched frame (this takes ~30s)...")
+    freshness = pipeline_freshness()
+    print("Pipeline freshness:")
+    for name, info in freshness.items():
+        marker = "OK" if info.get("ok", False) else "FAIL"
+        if "date_max" in info and info.get("date_max"):
+            detail = f"rows={info.get('rows', 0)}, max={info.get('date_max')}, lag={info.get('lag_days')}"
+        else:
+            detail = f"rows={info.get('rows', 0)}"
+        print(f"  [{marker}] {name:<26} {detail}")
+
+    print("\nBuilding enriched frame (this takes ~30s)...")
     enriched = build_enriched(targets[0])
     print(f"Enriched rows: {len(enriched)}, cols: {len(enriched.columns)}")
 
     reports = []
     for t in targets:
-        reports.append(report_day(enriched, t))
+        reports.append(report_day(enriched, t, freshness=freshness))
+
+    payload = {
+        "pipeline_freshness": freshness,
+        "reports": reports,
+        "window_strategy_fillability": aggregate_live_strategy_reports(reports),
+    }
 
     if args.out:
-        Path(args.out).write_text(json.dumps(reports, indent=2, default=str))
+        Path(args.out).write_text(json.dumps(payload, indent=2, default=str))
         print(f"\nWrote {args.out}")
 
     return 0

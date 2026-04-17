@@ -45,6 +45,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent  # data/
 # `src/data_loader.load_combined_*` helpers, so neither code path can clobber
 # the other (this is the architectural cure for Bug A — see plans/§11.2 #6).
 OUTPUT_DIR = BASE_DIR / "processed" / "pitchers_2026"
+HISTORICAL_STARTER_LOGS_PATH = BASE_DIR / "processed" / "pitchers" / "starter_game_logs.parquet"
+ID_BRIDGE_PATH = BASE_DIR / "processed" / "savant" / "id_bridge.parquet"
 STATE_PATH = Path(__file__).parent / "state.json"
 
 
@@ -322,6 +324,182 @@ def _safe_div(n: pd.Series, d: pd.Series, *, eps: float = 1e-9) -> pd.Series:
     return n / (d.replace(0, np.nan) + eps)
 
 
+def _normalize_pitcher_id(value) -> str | None:
+    """Normalize MLBAM ids to a stable string; pass through non-numeric ids."""
+    if pd.isna(value):
+        return None
+    if isinstance(value, (int, np.integer)):
+        return str(int(value))
+    if isinstance(value, (float, np.floating)):
+        if np.isnan(value):
+            return None
+        return str(int(value))
+
+    text = str(value).strip()
+    if not text or text.lower() == "nan":
+        return None
+
+    try:
+        return str(int(float(text)))
+    except ValueError:
+        return text
+
+
+def _map_historical_starter_logs_to_mlbam(
+    historical_starter_logs: pd.DataFrame,
+    id_bridge: pd.DataFrame,
+) -> tuple[pd.DataFrame, set[str]]:
+    """Map Retrosheet starter logs onto MLBAM pitcher ids for live carry-over."""
+    if historical_starter_logs.empty or id_bridge.empty:
+        return pd.DataFrame(), set()
+
+    required = {"pitcher_id", "date", "game_num", "outs", "h", "bb", "so", "hr", "er"}
+    missing = required - set(historical_starter_logs.columns)
+    if missing:
+        logger.warning(
+            "Historical starter logs missing required columns for carry-over: %s",
+            sorted(missing),
+        )
+        return pd.DataFrame(), set()
+
+    bridge = id_bridge.copy()
+    bridge = bridge.dropna(subset=["key_retro", "key_mlbam"])
+    if bridge.empty:
+        return pd.DataFrame(), set()
+
+    bridge["key_retro"] = bridge["key_retro"].astype(str).str.strip()
+    bridge["key_mlbam"] = bridge["key_mlbam"].map(_normalize_pitcher_id)
+    bridge = bridge.dropna(subset=["key_mlbam"]).drop_duplicates(subset=["key_retro"], keep="first")
+    lookup = bridge.set_index("key_retro")["key_mlbam"]
+
+    mapped = historical_starter_logs.copy()
+    mapped["pitcher_id"] = (
+        mapped["pitcher_id"].astype(str).str.strip().map(lookup)
+    )
+    mapped = mapped.dropna(subset=["pitcher_id"]).copy()
+    if mapped.empty:
+        return pd.DataFrame(), set()
+
+    mapped["pitcher_id"] = mapped["pitcher_id"].astype(str)
+    mapped["date"] = pd.to_datetime(mapped["date"]).dt.normalize()
+    return mapped, set(mapped["pitcher_id"].unique())
+
+
+def _build_carryover_seed_rows(
+    mapped_historical_logs: pd.DataFrame,
+    live_season: int,
+) -> pd.DataFrame:
+    """Create one synthetic preseason seed row per pitcher with historical context."""
+    if mapped_historical_logs.empty:
+        return pd.DataFrame()
+
+    seed_date = pd.Timestamp(f"{live_season}-01-01")
+    last_rows = (
+        mapped_historical_logs.sort_values(["pitcher_id", "date", "game_num"])
+        .groupby("pitcher_id", as_index=False)
+        .last()
+    )
+    if last_rows.empty:
+        return pd.DataFrame()
+
+    seed = last_rows.copy()
+    seed["gid"] = seed["pitcher_id"].map(lambda pid: f"SEED{live_season}_{pid}")
+    seed["season"] = live_season
+    seed["date"] = seed_date
+    seed["game_num"] = -1
+    seed["is_home"] = False
+    seed["opponent"] = ""
+    for col in ["outs", "h", "bb", "so", "er", "hr"]:
+        if col in seed.columns:
+            seed[col] = 0
+    if "ip" in seed.columns:
+        seed["ip"] = 0.0
+    return seed
+
+
+def build_live_starter_entering_features(
+    starter_logs: pd.DataFrame,
+    *,
+    historical_starter_logs: pd.DataFrame | None = None,
+    id_bridge: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Build live starter entering features with bridged historical carry-over.
+
+    The saved 2026 parquet contains:
+      * preseason seed rows (one per pitcher with historical starter context)
+      * actual 2026 entering-game rows, computed on historical+live logs
+
+    This lets future overlay rows fetch starter features even on a pitcher's
+    first 2026 start, while keeping actual 2026 rollups free of seed-row bias.
+    """
+    if starter_logs.empty:
+        return pd.DataFrame()
+
+    live_logs = starter_logs.copy()
+    live_logs["pitcher_id"] = live_logs["pitcher_id"].map(_normalize_pitcher_id)
+    live_logs = live_logs.dropna(subset=["pitcher_id"]).copy()
+    if live_logs.empty:
+        return pd.DataFrame()
+
+    live_logs["date"] = pd.to_datetime(live_logs["date"]).dt.normalize()
+    live_seasons = sorted(pd.to_numeric(live_logs["season"], errors="coerce").dropna().astype(int).unique())
+    if not live_seasons:
+        return build_entering_features(live_logs)
+    live_season = live_seasons[0]
+
+    if historical_starter_logs is None:
+        historical_starter_logs = (
+            pd.read_parquet(HISTORICAL_STARTER_LOGS_PATH)
+            if HISTORICAL_STARTER_LOGS_PATH.exists()
+            else pd.DataFrame()
+        )
+    if id_bridge is None:
+        id_bridge = (
+            pd.read_parquet(ID_BRIDGE_PATH)
+            if ID_BRIDGE_PATH.exists()
+            else pd.DataFrame()
+        )
+
+    mapped_hist, carryover_pitchers = _map_historical_starter_logs_to_mlbam(
+        historical_starter_logs,
+        id_bridge,
+    )
+    if mapped_hist.empty:
+        logger.warning(
+            "No bridged historical starter context found; live starter entering features "
+            "will fall back to 2026-only history."
+        )
+        entering = build_entering_features(live_logs)
+        entering["starter_history_bridge_missing"] = True
+        return entering
+
+    live_cols = list(live_logs.columns)
+    hist_for_concat = mapped_hist.reindex(columns=live_cols)
+    combined_logs = pd.concat([hist_for_concat, live_logs], ignore_index=True, sort=False)
+    entering_live = build_entering_features(combined_logs)
+    entering_live = entering_live[entering_live["season"].isin(live_seasons)].copy()
+
+    seed_rows = _build_carryover_seed_rows(mapped_hist, live_season)
+    seed_entering = pd.DataFrame()
+    if not seed_rows.empty:
+        hist_for_seed = mapped_hist.reindex(columns=seed_rows.columns)
+        seed_source = pd.concat([hist_for_seed, seed_rows], ignore_index=True, sort=False)
+        seed_entering = build_entering_features(seed_source)
+        seed_entering = seed_entering[
+            seed_entering["gid"].astype(str).str.startswith(f"SEED{live_season}_")
+        ].copy()
+
+    entering = pd.concat([seed_entering, entering_live], ignore_index=True, sort=False)
+    entering["pitcher_id"] = entering["pitcher_id"].astype(str)
+    entering["starter_history_bridge_missing"] = ~entering["pitcher_id"].isin(carryover_pitchers)
+    entering = (
+        entering.sort_values(["pitcher_id", "date", "game_num"])
+        .drop_duplicates(subset=["date", "pitcher_id", "is_home"], keep="last")
+        .reset_index(drop=True)
+    )
+    return entering
+
+
 def build_entering_features(
     starter_logs: pd.DataFrame,
     *,
@@ -336,11 +514,11 @@ def build_entering_features(
     df = df.sort_values(["pitcher_id", "date", "game_num"]).reset_index(drop=True)
     grp = df.groupby("pitcher_id", sort=False)
 
-    FIP_CONSTANT = 3.10
     sum_cols = ["h", "bb", "so", "hr", "er", "outs"]
 
     for c in sum_cols:
         shifted = grp[c].shift(1)
+        df[f"{c}_prior_sum"] = shifted.groupby(df["pitcher_id"]).cumsum()
         df[f"{c}_short_sum"] = (
             shifted.groupby(df["pitcher_id"])
             .rolling(short_window, min_periods=1)
@@ -372,15 +550,17 @@ def build_entering_features(
         .astype(int)
     )
 
-    for prefix in ["short", "long"]:
+    for prefix in ["prior", "short", "long"]:
         outs_sum = df[f"outs_{prefix}_sum"]
-        ip = outs_sum / 3.0
+        df[f"ip_{prefix}"] = outs_sum / 3.0
+
+    for prefix in ["short", "long"]:
+        ip = df[f"ip_{prefix}"]
         h_sum = df[f"h_{prefix}_sum"]
         bb_sum = df[f"bb_{prefix}_sum"]
         so_sum = df[f"so_{prefix}_sum"]
         hr_sum = df[f"hr_{prefix}_sum"]
 
-        df[f"ip_{prefix}"] = ip
         df[f"whip_{prefix}"] = _safe_div(h_sum + bb_sum, ip)
         df[f"kbb_{prefix}"] = (so_sum + 1.0) / (bb_sum + 1.0)
         df[f"k9_{prefix}"] = _safe_div(9.0 * so_sum, ip)
@@ -388,7 +568,7 @@ def build_entering_features(
         df[f"hr9_{prefix}"] = _safe_div(9.0 * hr_sum, ip)
         df[f"fip_{prefix}"] = _safe_div(
             13.0 * hr_sum + 3.0 * bb_sum - 2.0 * so_sum, ip
-        ) + FIP_CONSTANT
+        ) + 3.10
         df[f"ip_per_start_{prefix}"] = _safe_div(
             ip, df[f"starts_{prefix}"].clip(lower=1).astype(float)
         )
@@ -396,12 +576,12 @@ def build_entering_features(
     keep = [
         "gid", "season", "date", "game_num", "home_team", "away_team",
         "team", "is_home", "opponent", "pitcher_id",
-        "starts_prior", "starts_short", "starts_long",
+        "starts_prior", "ip_prior", "starts_short", "starts_long",
         "ip_short", "ip_long",
         "whip_short", "whip_long", "kbb_short", "kbb_long",
         "k9_short", "k9_long", "bb9_short", "bb9_long",
         "hr9_short", "hr9_long", "fip_short", "fip_long",
-        "ip_per_start_short", "ip_per_start_long",
+        "ip_per_start_short", "ip_per_start_long", "starter_history_bridge_missing",
     ]
     keep = [c for c in keep if c in df.columns]
     return df[keep].copy()
@@ -591,8 +771,8 @@ def _rebuild_features(pitcher_logs: pd.DataFrame) -> None:
         date_col="date",
     )
 
-    # 2. Entering features (2026 only)
-    entering = build_entering_features(starter_logs)
+    # 2. Entering features (2026 only, with bridged historical carry-over)
+    entering = build_live_starter_entering_features(starter_logs)
     safe_write_parquet(
         entering,
         OUTPUT_DIR / "starter_entering_features.parquet",

@@ -1399,8 +1399,24 @@ def refresh_feature_consistency_flags(df: pd.DataFrame) -> pd.DataFrame:
         )
         fip_short_missing = _col_numeric(out, f"{side}_sp_fip_short").isna()
         source_gap = starter_source_available & fip_short_missing & ~insufficient_history
+        bridge_missing = _missing_bool_series(out)
+        prefixed_bridge_col = f"{side}_sp_starter_history_bridge_missing"
+        direct_bridge_col = f"starter_history_bridge_missing_{side}"
+        if prefixed_bridge_col in out.columns:
+            bridge_missing = bridge_missing | pd.Series(
+                out[prefixed_bridge_col],
+                index=out.index,
+                dtype="boolean",
+            ).fillna(False).astype(bool)
+        if direct_bridge_col in out.columns:
+            bridge_missing = bridge_missing | pd.Series(
+                out[direct_bridge_col],
+                index=out.index,
+                dtype="boolean",
+            ).fillna(False).astype(bool)
         out[f"starter_feature_source_missing_{side}"] = (~starter_source_available) | source_gap
         out[f"insufficient_starter_history_{side}"] = insufficient_history
+        out[f"starter_history_bridge_missing_{side}"] = bridge_missing
 
         lineup_source_cols = [
             f"top3_obp_short_{side}",
@@ -1426,6 +1442,9 @@ def refresh_feature_consistency_flags(df: pd.DataFrame) -> pd.DataFrame:
     )
     out["insufficient_starter_history"] = (
         out["insufficient_starter_history_home"] | out["insufficient_starter_history_away"]
+    )
+    out["starter_history_bridge_missing"] = (
+        out["starter_history_bridge_missing_home"] | out["starter_history_bridge_missing_away"]
     )
     out["lineup_feature_source_missing"] = (
         out["lineup_feature_source_missing_home"] | out["lineup_feature_source_missing_away"]
