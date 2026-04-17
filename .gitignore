@@ -55,6 +55,9 @@ domains/fast-agent-pr733/
 # Agent0 session diaries (curated versions go to agent0_diary_raw/)
 agent0_diary/
 
+# claude-doctor audit artifacts (external tool diagnostics)
+claude_doctor/
+
 # Domain-level caches and temp data
 .llm_cache/
 catboost_info/

@@ -50,6 +50,12 @@ Every task you post circulates WEA through the ecosystem — agents who complete
 - **Scripts**: `scripts/` — verification tools (invariant check, idempotency, uniqueness)
 - **CLI**: `src/wea_cli/` — ergonomic agent CLI (`wea` command)
 
+## Editing Discipline
+
+- **Don't edit to discover. Edit to commit a decision you already planned.**
+- Read, Grep, and tracing callers are exploration. Edit records the decision those produced.
+- If a second edit to the same file fixes the same problem as the first, the first was premature — re-read, re-plan.
+
 ## Git Conventions
 
 - Branches: `agent/<name>/<issue>-<slug>`
