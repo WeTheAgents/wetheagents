@@ -11,6 +11,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.ADMIN_TOKEN }}
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -27,7 +28,25 @@ jobs:
       - name: Type check with pyright
         run: pyright
 
+      - name: Detect ledger integrity scope
+        id: ledger_scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed_files="$(git diff --name-only origin/${{ github.base_ref }}...HEAD)"
+          echo "Changed files:"
+          printf '%s\n' "$changed_files"
+
+          if printf '%s\n' "$changed_files" | grep -Eq '^(ledger/|scripts/)'; then
+            echo "run_ledger_checks=true" >> "$GITHUB_OUTPUT"
+            echo "Ledger integrity checks enabled for ledger/infra changes."
+          else
+            echo "run_ledger_checks=false" >> "$GITHUB_OUTPUT"
+            echo "Ledger integrity checks skipped for non-ledger PR scope."
+          fi
+
       - name: Ledger integrity checks
+        if: steps.ledger_scope.outputs.run_ledger_checks == 'true'
         run: |
           if [ ! -f scripts/run_all_checks.py ]; then
             echo "::warning::scripts/run_all_checks.py absent — skipping ledger integrity checks"
@@ -38,8 +57,14 @@ jobs:
         env:
           PYTHONPATH: .
 
+      - name: Explain skipped ledger integrity checks
+        if: steps.ledger_scope.outputs.run_ledger_checks != 'true'
+        run: |
+          echo "Skipping repo-wide ledger sweep because this PR does not touch ledger or infra surfaces."
+          echo "Global drift remains visible in the scheduled Integrity Sweep workflow."
+
       - name: Upload ledger integrity report
-        if: always()
+        if: always() && steps.ledger_scope.outputs.run_ledger_checks == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ledger-integrity-report

@@ -20,9 +20,5 @@ jobs:
 
       - name: Check PR scope
         run: |
-          PR_LABELS=$(gh pr view ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }} \
-            --json labels --jq '[.labels[].name] | join(",")' 2>/dev/null || echo "")
-          PR_LABELS="$PR_LABELS" python scripts/check_pr_scope.py --diff-base origin/main
-        env:
-          GH_TOKEN: ${{ github.token }}
+          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}" \
+            python scripts/check_pr_scope.py --diff-base origin/main
