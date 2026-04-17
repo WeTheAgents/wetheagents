@@ -44,6 +44,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, DefaultDict, TypedDict
 
 
 # ---------------------------------------------------------------------------
@@ -62,6 +63,24 @@ FINANCIAL_HASH_ACTIONS: frozenset[str] = frozenset({"payment"})
 TARGET_HISTORY_TYPES: frozenset[str] = frozenset(
     {"payment", "escrow", "escrow_create", "trajectory_mint", "escrow_return"}
 )
+
+IssueActorKey = tuple[str, str]
+TrajectorySlotKey = tuple[str, str]
+
+
+class ClassifiedIdemKeys(TypedDict):
+    escrow: DefaultDict[str, list[str]]
+    escrow_return: DefaultDict[str, list[str]]
+    payment_string: DefaultDict[IssueActorKey, list[str]]
+    payment_hash: DefaultDict[IssueActorKey, list[str]]
+    trajectory_mint: DefaultDict[TrajectorySlotKey, list[str]]
+
+
+class HistoryIndex(TypedDict):
+    escrow_issues: set[str]
+    escrow_return_issues: set[str]
+    payments: set[IssueActorKey]
+    trajectory_mints: set[TrajectorySlotKey]
 
 
 # ---------------------------------------------------------------------------
@@ -127,9 +146,9 @@ def load_idem_keys(path: Path) -> dict[str, object]:
     return merged
 
 
-def load_history_events(history_dir: Path) -> list[dict]:
+def load_history_events(history_dir: Path) -> list[dict[str, Any]]:
     """Load all history events from history/*.jsonl, in filename (date) order."""
-    events: list[dict] = []
+    events: list[dict[str, Any]] = []
     if not history_dir.is_dir():
         return events
     for jsonl_file in sorted(history_dir.glob("*.jsonl")):
@@ -156,7 +175,7 @@ def load_history_events(history_dir: Path) -> list[dict]:
 def classify_idem_keys(
     all_keys: dict[str, object],
     aliases: dict[str, str],
-) -> dict[str, object]:
+) -> ClassifiedIdemKeys:
     """Break idem keys into lookup structures for fast matching.
 
     Returns a dict with keys:
@@ -167,7 +186,7 @@ def classify_idem_keys(
       "trajectory_mint": {(trajectory, slot_str): [raw_key, ...]}
     Actors are normalised via aliases.
     """
-    classified: dict[str, object] = {
+    classified: ClassifiedIdemKeys = {
         "escrow": defaultdict(list),
         "escrow_return": defaultdict(list),
         "payment_string": defaultdict(list),
@@ -217,9 +236,9 @@ def classify_idem_keys(
 
 
 def build_history_index(
-    events: list[dict],
+    events: list[dict[str, Any]],
     aliases: dict[str, str],
-) -> dict[str, object]:
+) -> HistoryIndex:
     """Index history events for fast lookup.
 
     Returns a dict with keys:
@@ -229,7 +248,7 @@ def build_history_index(
       "trajectory_mints"     : {(trajectory, slot_str)}  (trajectory_mint events)
     Actors are normalised via aliases.
     """
-    index: dict[str, object] = {
+    index: HistoryIndex = {
         "escrow_issues": set(),
         "escrow_return_issues": set(),
         "payments": set(),
@@ -276,7 +295,7 @@ def build_history_index(
 
 def run_completeness_check(
     all_idem_keys: dict[str, object],
-    events: list[dict],
+    events: list[dict[str, Any]],
     aliases: dict[str, str],
 ) -> tuple[list[dict], list[dict]]:
     """Return (violations, warnings).

@@ -57,7 +57,7 @@ class Pick:
     ) -> "Pick":
         # Stable id so a re-run on the same day produces the same pick_id.
         raw = f"{target_date}|{away}|{home}|{market}|{side}|{tier}"
-        pid = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
+        pid = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
         return cls(
             pick_id=pid,
             date=target_date,

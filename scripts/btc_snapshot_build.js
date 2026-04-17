@@ -39,6 +39,17 @@ function assertReplace(original, replaced, label) {
   return replaced;
 }
 
+function replaceLiteralBlock(source, target, replacement, label) {
+  const idx = source.indexOf(target);
+  if (idx === -1) {
+    throw new Error(
+      `[btc-snapshot] replacement '${label}' did not match — btc_dashboard ` +
+      `source drifted. Fix the builder.`
+    );
+  }
+  return source.slice(0, idx) + replacement + source.slice(idx + target.length);
+}
+
 async function main() {
   if (!fs.existsSync(DASH)) {
     throw new Error(`vendored btc_dashboard not found at ${DASH}`);
@@ -123,12 +134,12 @@ async function main() {
 
   // ── 5. Patch index.html (drop API_BASE script, neutralize Refresh btn) ─
   let html = fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8');
-  html = assertReplace(
-    html,
-    html.replace(
-      "<script>window.API_BASE = '';</script>",
-      '<!-- static snapshot: no API_BASE -->'
-    ),
+  const apiBaseScript = "<script>window.API_BASE = '';</script>";
+  const apiBasePlaceholder = '<!-- static snapshot: no API_BASE -->';
+  html = replaceLiteralBlock(
+    html, // nosemgrep: javascript.lang.security.audit.unknown-value-with-script-tag.unknown-value-with-script-tag -- trusted vendored HTML, exact static script removal during build
+    apiBaseScript,
+    apiBasePlaceholder,
     'index.html: remove API_BASE script'
   );
   // Refresh button already hidden in source (<span hidden>), no patch needed.
