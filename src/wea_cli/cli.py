@@ -54,6 +54,7 @@ from wea_cli.gh import (
     create_pull_request,
     list_open_tasks,
     post_issue_comment,
+    remote_branch_exists,
     safe_issue_label_edit,
     view_issue,
     view_issue_comments,
@@ -102,6 +103,8 @@ EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
 EXIT_RUNTIME_ERROR = 2
 EXIT_HALT = 3
+
+PR_HEAD_PATTERN = re.compile(r"^agent/(?P<agent>[^/]+)/(?P<issue>\d+)-(?P<slug>[^/]+)$")
 
 # ---------------------------------------------------------------------------
 # Halt guard — block mutations when Tide has halted the system
@@ -707,6 +710,121 @@ def preview_issue_comment(issue: int, comment_path: Path, content: str) -> None:
     emit(content)
 
 
+def _emit_validation_errors(header: str, errors: list[str]) -> None:
+    emit(header)
+    for error in errors:
+        emit(f"- {error}")
+
+
+def _looks_like_agent_id(agent_id: str) -> bool:
+    chunks = agent_id.strip().split("@")
+    if len(chunks) != 2:
+        return False
+    return all(chunk.strip() and " " not in chunk for chunk in chunks)
+
+
+def _extract_markdown_section(text: str, section: str) -> str | None:
+    pattern = re.compile(
+        rf"^##\s+{re.escape(section)}\s*$\n+(.*?)(?=^##\s+[^\n]+\s*$|\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(text)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
+def _validate_pr_head(head: str, issue: int) -> tuple[str | None, list[str]]:
+    match = PR_HEAD_PATTERN.fullmatch(head.strip())
+    if not match:
+        return None, ["Head branch must match `agent/<name>/<issue>-<short-slug>`."]
+
+    branch_issue = int(match.group("issue"))
+    if branch_issue != issue:
+        return None, [f"Head branch issue #{branch_issue} does not match requested issue #{issue}."]
+
+    slug = match.group("slug").strip()
+    if not slug:
+        return None, ["Head branch must end with a non-empty slug after `<issue>-`."]
+    return slug, []
+
+
+def _slug_to_title(slug: str) -> str:
+    words = [word for word in re.split(r"[-_]+", slug.strip()) if word]
+    if not words:
+        return "Submission"
+    title = " ".join(words)
+    return title[:1].upper() + title[1:]
+
+
+def _build_pr_title(issue: int, raw_title: str | None, slug: str) -> str:
+    title = (raw_title or "").strip()
+    if title.startswith(f"[Task #{issue}]"):
+        return title
+    if not title:
+        title = _slug_to_title(slug)
+    return f"[Task #{issue}] {title}".strip()
+
+
+def build_pr_body(issue: int, deliverable: str, agent_id: str) -> str:
+    return (
+        f"## Task\n"
+        f"Closes #{issue}\n\n"
+        f"## Deliverable\n"
+        f"{deliverable.strip()}\n\n"
+        f"## Agent\n"
+        f"{agent_id.strip()}\n"
+    )
+
+
+def validate_pr_body_text(text: str, *, issue: int, expected_agent: str) -> list[str]:
+    errors: list[str] = []
+
+    task_section = _extract_markdown_section(text, "Task")
+    if task_section is None:
+        errors.append("Missing `## Task` section.")
+    elif not re.search(rf"(?mi)^Closes\s+#\s*{issue}\s*$", task_section):
+        errors.append(f"`## Task` section must contain `Closes #{issue}`.")
+
+    deliverable_section = _extract_markdown_section(text, "Deliverable")
+    if deliverable_section is None:
+        errors.append("Missing `## Deliverable` section.")
+    elif not deliverable_section.strip():
+        errors.append("`## Deliverable` section is empty.")
+
+    agent_section = _extract_markdown_section(text, "Agent")
+    if agent_section is None:
+        errors.append("Missing `## Agent` section.")
+    else:
+        agent_value = agent_section.splitlines()[0].strip()
+        if not agent_value:
+            errors.append("`## Agent` section exists but agent value is empty.")
+        elif not _looks_like_agent_id(agent_value):
+            errors.append("Agent value must be in `<name>@<platform>` format.")
+        elif agent_value != expected_agent:
+            errors.append(
+                f"`## Agent` section must match the resolved agent `{expected_agent}`."
+            )
+
+    return errors
+
+
+def _load_text_arg(path_value: str | None, *, missing_label: str) -> tuple[str | None, int | None]:
+    if not path_value:
+        return None, None
+
+    path = Path(path_value).resolve()
+    if not path.exists():
+        emit(f"{missing_label} not found: {path}")
+        return None, EXIT_RUNTIME_ERROR
+
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        emit(f"{missing_label} is empty: {path}")
+        return None, EXIT_DOMAIN_ERROR
+    return text, None
+
+
 def _criteria_source_label(source: str) -> str:
     if source == "legacy":
         return "legacy-compatible"
@@ -1020,21 +1138,93 @@ def cmd_comment(args: argparse.Namespace) -> int:
 def cmd_pr(args: argparse.Namespace) -> int:
     """Create a pull request for a task."""
     issue = args.issue
-    head = args.head
-    base = args.base
+    head = args.head.strip()
+    base = args.base.strip()
 
-    title = f"[Task #{issue}] {args.title}" if args.title else f"[Task #{issue}]"
-    body = args.body or ""
+    agent_id = resolve_agent(getattr(args, "agent", None))
+    if not agent_id:
+        emit("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
+        return EXIT_RUNTIME_ERROR
+    if not _looks_like_agent_id(agent_id):
+        emit(f"Invalid agent ID: {agent_id}")
+        return EXIT_DOMAIN_ERROR
+
+    slug, branch_errors = _validate_pr_head(head, issue)
+    if branch_errors:
+        _emit_validation_errors("PR validation failed:", branch_errors)
+        return EXIT_DOMAIN_ERROR
+    assert slug is not None
+
+    body_text = getattr(args, "body", None)
+    body_file_text, error_code = _load_text_arg(
+        getattr(args, "body_file", None),
+        missing_label="PR body file",
+    )
+    if error_code is not None:
+        return error_code
+    if body_text and body_file_text is not None:
+        _emit_validation_errors(
+            "PR validation failed:",
+            ["Use only one of `--body` or `--body-file`."],
+        )
+        return EXIT_DOMAIN_ERROR
+    if body_file_text is not None:
+        body_text = body_file_text
+
+    if body_text is not None:
+        body = body_text.strip()
+        body_errors = validate_pr_body_text(body, issue=issue, expected_agent=agent_id)
+        if body_errors:
+            _emit_validation_errors("PR validation failed:", body_errors)
+            return EXIT_DOMAIN_ERROR
+    else:
+        deliverable_text = getattr(args, "deliverable", None)
+        deliverable_file_text, error_code = _load_text_arg(
+            getattr(args, "deliverable_file", None),
+            missing_label="Deliverable file",
+        )
+        if error_code is not None:
+            return error_code
+        if deliverable_text and deliverable_file_text is not None:
+            _emit_validation_errors(
+                "PR validation failed:",
+                ["Use only one of `--deliverable` or `--deliverable-file`."],
+            )
+            return EXIT_DOMAIN_ERROR
+        if deliverable_file_text is not None:
+            deliverable_text = deliverable_file_text
+        if not deliverable_text or not deliverable_text.strip():
+            _emit_validation_errors(
+                "PR validation failed:",
+                ["Provide `--deliverable`, `--deliverable-file`, `--body`, or `--body-file`."],
+            )
+            return EXIT_DOMAIN_ERROR
+        body = build_pr_body(issue, deliverable_text, agent_id)
+
+    title = _build_pr_title(issue, getattr(args, "title", None), slug)
 
     if args.dry_run:
         print(format_kv("Title", title))
         print(format_kv("Head", head))
         print(format_kv("Base", base))
+        print(format_kv("Agent", agent_id))
         print(format_kv("Repo", args.repo))
-        if body:
-            print("Body:")
-            print(body)
+        print("Body:")
+        print(body)
         return EXIT_OK
+
+    try:
+        branch_visible = remote_branch_exists(head, repo=args.repo)
+    except GhError as exc:
+        emit(f"Failed to verify head branch `{head}` on GitHub: {exc}")
+        emit(f"Run `wea push {head}` first if the branch has not been published yet.")
+        return EXIT_RUNTIME_ERROR
+    if not branch_visible:
+        _emit_validation_errors(
+            "PR validation failed:",
+            [f"Head branch `{head}` is not visible on GitHub yet. Run `wea push {head}` and retry."],
+        )
+        return EXIT_DOMAIN_ERROR
 
     try:
         url = create_pull_request(
@@ -3032,7 +3222,28 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--head", required=True, help="Source branch")
     pr.add_argument("--base", default="main", help="Target branch (default: main)")
     pr.add_argument("--title", default=None, help="PR title (auto-prefixed with [Task #N])")
-    pr.add_argument("--body", default=None, help="PR body text")
+    pr.add_argument("--agent", help="Your agent ID (overrides env/config)")
+    pr_content = pr.add_mutually_exclusive_group(required=True)
+    pr_content.add_argument(
+        "--deliverable",
+        default=None,
+        help="Deliverable summary used to generate the canonical WEA PR body",
+    )
+    pr_content.add_argument(
+        "--deliverable-file",
+        default=None,
+        help="Path to markdown/text used as the `## Deliverable` section",
+    )
+    pr_content.add_argument(
+        "--body",
+        default=None,
+        help="Full PR body text (escape hatch; must already match the WEA PR template)",
+    )
+    pr_content.add_argument(
+        "--body-file",
+        default=None,
+        help="Path to a full PR body file (escape hatch; must already match the WEA PR template)",
+    )
     pr.add_argument("--dry-run", action="store_true", help="Preview without creating")
 
     push = subparsers.add_parser("push", help="Push a local branch via the GitHub REST API")
