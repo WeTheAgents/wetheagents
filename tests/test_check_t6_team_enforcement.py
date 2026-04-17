@@ -6,6 +6,7 @@ Covers the 12+ required scenarios using in-memory fixture injection only
 
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 
 from scripts import check_t6_team_enforcement as checker
@@ -23,6 +24,7 @@ def _run(
     mints: list[dict] | None = None,
     events: list[dict] | None = None,
     authorized_agent: str = AUTHORIZED,
+    since: date | None = None,
 ) -> dict:
     """Run check with synthetic in-memory data."""
     return checker.run_check(
@@ -30,23 +32,39 @@ def _run(
         mints=mints if mints is not None else [],
         events=events if events is not None else [],
         authorized_agent=authorized_agent,
+        since=since,
     )
 
 
-def _mint(trajectory: str, slot: int, agents: list[str], issue: str = "#100") -> dict:
+def _mint(
+    trajectory: str,
+    slot: int,
+    agents: list[str],
+    issue: str = "#100",
+    accepted_at: str | None = None,
+) -> dict:
     """Build a trajectory_mints.json-style mint record."""
-    return {
+    record: dict = {
         "trajectory": trajectory,
         "slot": slot,
         "amount": 20,
         "agents": agents,
         "issue_or_pr": issue,
     }
+    if accepted_at is not None:
+        record["accepted_at"] = accepted_at
+    return record
 
 
-def _event(trajectory: str, slot: int, agents: list[str], issue: int = 100) -> dict:
+def _event(
+    trajectory: str,
+    slot: int,
+    agents: list[str],
+    issue: int = 100,
+    timestamp: str | None = None,
+) -> dict:
     """Build a history trajectory_mint event (list-agents form)."""
-    return {
+    record: dict = {
         "type": "trajectory_mint",
         "trajectory": trajectory,
         "slot": slot,
@@ -54,6 +72,9 @@ def _event(trajectory: str, slot: int, agents: list[str], issue: int = 100) -> d
         "agents": agents,
         "issue": issue,
     }
+    if timestamp is not None:
+        record["timestamp"] = timestamp
+    return record
 
 
 def _event_singular(trajectory: str, slot: int, agent: str, issue: int = 100) -> dict:
@@ -264,3 +285,62 @@ def test_empty_agents_list_in_mint_fails() -> None:
     assert len(result["violations"]) == 1
     assert result["violations"][0]["actual_agents"] == []
     assert "no agents credited" in result["violations"][0].get("detail", "")
+
+
+# ---------------------------------------------------------------------------
+# --since flag
+# ---------------------------------------------------------------------------
+
+def test_since_grandfathers_pre_rule_mint() -> None:
+    """T6 mint before --since date is skipped (grandfathered) → PASS."""
+    mints = [
+        _mint("T6", 1, [WRONG], "#301", accepted_at="2026-03-26T06:48:23Z"),
+    ]
+    result = _run(mints=mints, since=date(2026, 3, 27))
+    assert result["status"] == "PASS"
+    assert result["violations"] == []
+
+
+def test_since_enforces_on_or_after_cutoff() -> None:
+    """T6 mint on/after --since date is still enforced → FAIL."""
+    mints = [
+        _mint("T6", 1, [WRONG], "#301", accepted_at="2026-03-26T06:48:23Z"),  # grandfathered
+        _mint("T6", 2, [WRONG], "#335", accepted_at="2026-03-28T17:56:15Z"),  # enforced
+    ]
+    result = _run(mints=mints, since=date(2026, 3, 27))
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+    assert result["violations"][0]["slot"] == 2
+
+
+def test_since_filters_history_events() -> None:
+    """History events before --since are skipped; events on/after are enforced."""
+    events = [
+        _event("T6", 1, [WRONG], 301, timestamp="2026-03-26T06:48:23Z"),  # grandfathered
+        _event("T6", 2, [WRONG], 335, timestamp="2026-03-28T00:00:00Z"),   # enforced
+        _event("T6", 3, [AUTHORIZED], 355, timestamp="2026-04-01T00:00:00Z"),  # ok
+    ]
+    result = _run(events=events, since=date(2026, 3, 27))
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+    assert result["violations"][0]["slot"] == 2
+
+
+def test_since_none_checks_all_entries() -> None:
+    """Without --since, all T6 entries are checked (no grandfathering)."""
+    mints = [
+        _mint("T6", 1, [WRONG], "#301", accepted_at="2026-03-26T06:48:23Z"),
+    ]
+    result = _run(mints=mints, since=None)
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+
+
+def test_since_boundary_same_day_is_enforced() -> None:
+    """A mint exactly on the --since date is enforced (inclusive boundary)."""
+    mints = [
+        _mint("T6", 1, [WRONG], "#301", accepted_at="2026-03-27T00:00:00Z"),
+    ]
+    result = _run(mints=mints, since=date(2026, 3, 27))
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
