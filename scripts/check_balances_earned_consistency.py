@@ -5,9 +5,11 @@ Verifies that the ``total_earned`` and ``total_spent`` metadata fields in
 ``ledger/balances.json`` match what ``ledger/history/*.jsonl`` actually shows
 for each agent.
 
-This closes a gap left by ``check_history_balance_audit.py`` (T1S14).  T1S14
-checks that ``balance == total_earned - total_spent``.  A corrupt ledger where
-both totals are inflated by the same amount passes T1S14 but fails here.
+This complements ``check_balance_history_reconciliation.py``. The balance
+reconciler verifies the replayed final balance; this script verifies that the
+metadata fields ``total_earned`` and ``total_spent`` also match history. A
+corrupt ledger where both totals are inflated by the same amount can satisfy
+the balance check but still fails here.
 
 Computation rules
 -----------------

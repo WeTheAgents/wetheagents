@@ -194,18 +194,15 @@ def test_fresh_agent_zero_balance_zero_history_passes(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 6: Agent in history but not in balances → FAIL or warning
+# Test 6: Agent in history but not in balances → FAIL
 # ---------------------------------------------------------------------------
 
 
 def test_ghost_agent_in_history_not_in_balances(tmp_path: Path) -> None:
     """ghost@test has payment events in history but no entry in balances.json.
 
-    ADVERSARIAL FINDING: reconcile() only iterates agents listed in
-    balances.json — agents present only in history are silently ignored.
-    Current behavior: PASS overall, ghost not included in checks output.
-    This is a known gap: unregistered agents can accumulate history without
-    appearing as a balance discrepancy."""
+    The reconciler must fail closed here: non-zero history for an agent with no
+    stored balance entry is a real discrepancy, not a warning-only condition."""
     _write_balances(
         tmp_path / "ledger" / "balances.json",
         {"alice@claude": {"balance": 50}},
@@ -222,11 +219,11 @@ def test_ghost_agent_in_history_not_in_balances(tmp_path: Path) -> None:
 
     result, passed = run(tmp_path)
 
-    # Checker validates only agents listed in balances.json.
-    # ghost@test's untracked credits are silently ignored.
-    assert passed is True  # gap: ghost agent goes undetected
-    agent_ids = {c["agent"] for c in result["checks"]}
-    assert "ghost@test" not in agent_ids  # confirms gap: not present in output
+    assert passed is False
+    checks = {c["agent"]: c for c in result["checks"]}
+    assert checks["ghost@test"]["status"] == "FAIL"
+    assert checks["ghost@test"]["computed"] == 100
+    assert checks["ghost@test"]["stored"] == 0
 
 
 # ---------------------------------------------------------------------------

@@ -1,8 +1,8 @@
-"""Tests for scripts/check_balance_history_reconciliation.py
+"""Tests for scripts/check_balance_history_reconciliation.py.
 
-Covers: happy path, drift detection, missing files, parse errors,
-        economy_reset, deduplicated escrow_return, trajectory_mint formats,
-        accept events, and agent-only debit semantics.
+Covers happy path, drift detection, missing files, parse errors, history-only
+agents, identity migration/removal handling, escrow-return field variants, and
+the main replayed balance event types used by the live ledger.
 """
 
 import json
@@ -317,7 +317,61 @@ def test_escrow_author_not_counted_as_debit(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 11: economy_reset — zeroes agents and adds wea_returned_to_agent0
+# Test 11: escrow_create with author field IS counted as debit
+# ---------------------------------------------------------------------------
+
+def test_escrow_create_author_counted_as_debit(tmp_path: Path) -> None:
+    history_dir = tmp_path / "ledger" / "history"
+    _write_balances(
+        tmp_path / "ledger" / "balances.json",
+        {"alice@claude": {"balance": 30}},
+    )
+    _write_history(
+        history_dir,
+        "2026-01-01.jsonl",
+        [
+            {"type": "payment", "agent": "alice@claude", "amount": 50},
+            {"type": "escrow_create", "author": "alice@claude", "issue": 7, "amount": 20},
+        ],
+    )
+
+    result, passed = run(tmp_path)
+
+    assert passed is True
+    checks = {c["agent"]: c for c in result["checks"]}
+    assert checks["alice@claude"]["computed"] == 30
+    assert checks["alice@claude"]["status"] == "PASS"
+
+
+# ---------------------------------------------------------------------------
+# Test 12: escrow_return recipient field credits the recipient
+# ---------------------------------------------------------------------------
+
+def test_escrow_return_recipient_field(tmp_path: Path) -> None:
+    history_dir = tmp_path / "ledger" / "history"
+    _write_balances(
+        tmp_path / "ledger" / "balances.json",
+        {"alice@claude": {"balance": 70}},
+    )
+    _write_history(
+        history_dir,
+        "2026-01-01.jsonl",
+        [
+            {"type": "payment", "agent": "alice@claude", "amount": 50},
+            {"type": "escrow_return", "recipient": "alice@claude", "issue": 7, "amount": 20},
+        ],
+    )
+
+    result, passed = run(tmp_path)
+
+    assert passed is True
+    checks = {c["agent"]: c for c in result["checks"]}
+    assert checks["alice@claude"]["computed"] == 70
+    assert checks["alice@claude"]["status"] == "PASS"
+
+
+# ---------------------------------------------------------------------------
+# Test 13: economy_reset — zeroes agents and adds wea_returned_to_agent0
 # ---------------------------------------------------------------------------
 
 def test_economy_reset_handling(tmp_path: Path) -> None:
@@ -354,7 +408,7 @@ def test_economy_reset_handling(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 12: overall status is PASS when only SKIPs (no FAIL)
+# Test 14: overall status is PASS when only SKIPs (no FAIL)
 # ---------------------------------------------------------------------------
 
 def test_skip_does_not_cause_fail(tmp_path: Path) -> None:
@@ -383,7 +437,7 @@ def test_skip_does_not_cause_fail(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 13: escrow with agent field IS counted as debit
+# Test 15: escrow with agent field IS counted as debit
 # ---------------------------------------------------------------------------
 
 def test_escrow_agent_field_debit(tmp_path: Path) -> None:
@@ -411,7 +465,7 @@ def test_escrow_agent_field_debit(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 14: reversal with negative amount reduces balance
+# Test 16: reversal with negative amount reduces balance
 # ---------------------------------------------------------------------------
 
 def test_reversal_reduces_balance(tmp_path: Path) -> None:
@@ -439,7 +493,7 @@ def test_reversal_reduces_balance(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 15: multi-file history — events across multiple .jsonl files
+# Test 17: multi-file history — events across multiple .jsonl files
 # ---------------------------------------------------------------------------
 
 def test_multi_file_history(tmp_path: Path) -> None:
@@ -465,6 +519,94 @@ def test_multi_file_history(tmp_path: Path) -> None:
     checks = {c["agent"]: c for c in result["checks"]}
     assert checks["alice@claude"]["computed"] == 80
     assert checks["alice@claude"]["status"] == "PASS"
+
+
+# ---------------------------------------------------------------------------
+# Test 18: non-zero history-only agent is reported as FAIL
+# ---------------------------------------------------------------------------
+
+def test_history_only_agent_fails(tmp_path: Path) -> None:
+    history_dir = tmp_path / "ledger" / "history"
+    _write_balances(
+        tmp_path / "ledger" / "balances.json",
+        {"alice@claude": {"balance": 50}},
+    )
+    _write_history(
+        history_dir,
+        "2026-01-01.jsonl",
+        [
+            {"type": "payment", "agent": "alice@claude", "amount": 50},
+            {"type": "payment", "agent": "ghost@test", "amount": 100},
+        ],
+    )
+
+    result, passed = run(tmp_path)
+
+    assert passed is False
+    checks = {c["agent"]: c for c in result["checks"]}
+    assert checks["ghost@test"]["status"] == "FAIL"
+    assert checks["ghost@test"]["stored"] == 0
+    assert checks["ghost@test"]["computed"] == 100
+    assert checks["ghost@test"]["delta"] == 100
+
+
+# ---------------------------------------------------------------------------
+# Test 19: registration_confirmed moves balance to the canonical agent id
+# ---------------------------------------------------------------------------
+
+def test_registration_confirmed_moves_balance(tmp_path: Path) -> None:
+    history_dir = tmp_path / "ledger" / "history"
+    _write_balances(
+        tmp_path / "ledger" / "balances.json",
+        {"alice@claude": {"balance": 50}},
+    )
+    _write_history(
+        history_dir,
+        "2026-01-01.jsonl",
+        [
+            {"type": "payment", "agent": "alice@unknown", "amount": 50},
+            {
+                "type": "registration_confirmed",
+                "agent": "alice@claude",
+                "previous_id": "alice@unknown",
+            },
+        ],
+    )
+
+    result, passed = run(tmp_path)
+
+    assert passed is True
+    checks = {c["agent"]: c for c in result["checks"]}
+    assert checks["alice@claude"]["computed"] == 50
+    assert checks["alice@claude"]["status"] == "PASS"
+    assert "alice@unknown" not in checks
+
+
+# ---------------------------------------------------------------------------
+# Test 20: agent_removal zeroes removed agents
+# ---------------------------------------------------------------------------
+
+def test_agent_removal_zeroes_removed_agent(tmp_path: Path) -> None:
+    history_dir = tmp_path / "ledger" / "history"
+    _write_balances(
+        tmp_path / "ledger" / "balances.json",
+        {"retired@claude": {"balance": 0}},
+    )
+    _write_history(
+        history_dir,
+        "2026-01-01.jsonl",
+        [
+            {"type": "hello_world_mint", "agent": "retired@claude", "amount": 100},
+            {"type": "agent_removal", "agent": "retired@claude"},
+        ],
+    )
+
+    result, passed = run(tmp_path)
+
+    assert passed is True
+    checks = {c["agent"]: c for c in result["checks"]}
+    assert checks["retired@claude"]["computed"] == 0
+    assert checks["retired@claude"]["status"] == "PASS"
 
 
 # ---------------------------------------------------------------------------
