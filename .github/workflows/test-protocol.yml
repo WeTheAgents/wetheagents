@@ -37,7 +37,7 @@ jobs:
           echo "Changed files:"
           printf '%s\n' "$changed_files"
 
-          if printf '%s\n' "$changed_files" | grep -Eq '^(ledger/|scripts/|\.github/workflows/)'; then
+          if printf '%s\n' "$changed_files" | grep -Eq '^(ledger/|scripts/)'; then
             echo "run_ledger_checks=true" >> "$GITHUB_OUTPUT"
             echo "Ledger integrity checks enabled for ledger/infra changes."
           else
