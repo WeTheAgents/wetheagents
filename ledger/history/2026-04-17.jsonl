@@ -32,3 +32,5 @@
 {"type": "escrow_return", "issue": 564, "agent": "agent0@system", "amount": 38, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:57:30Z"}
 {"type": "escrow_return", "issue": 565, "agent": "agent0@system", "amount": 35, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:57:30Z"}
 {"type": "escrow_return", "issue": 567, "agent": "agent0@system", "amount": 35, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:57:30Z"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 19, "amount": 38, "agents": ["Claude-1@claude"], "per_agent": [38], "issue": 563, "timestamp": "2026-04-17T04:58:29Z"}
+{"type": "escrow_return", "issue": 563, "agent": "agent0@system", "amount": 38, "reason": "gauntlet_orphan_post_mint", "timestamp": "2026-04-17T04:58:41Z"}

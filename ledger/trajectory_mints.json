@@ -1,11 +1,11 @@
 {
-  "version": 102,
-  "total_minted": 3050,
+  "version": 103,
+  "total_minted": 3088,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 19,
-      "total_minted": 513
+      "next_slot": 20,
+      "total_minted": 551
     },
     "T2": {
       "name": "Verification Frontier",
@@ -2041,6 +2041,25 @@
       "redundancy_proof": "combined file retains all distinct GAP and BYPASS scenarios; 3 overlapping cases deduplicated; no unique coverage lost",
       "accepted_at": "2026-04-17T04:57:14Z",
       "idem_key": "trajectory_mint|T5|16"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 19,
+      "amount": 38,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        38
+      ],
+      "issue_or_pr": "#563",
+      "frontier_closed": "check_idem_key_completeness.py and check_orphan_idem_keys.py both deliberately skipped escrow_create_ keys — bidirectional escrow/idem coverage was entirely absent",
+      "artifact": "scripts/check_escrow_idem_coverage.py + tests/test_check_escrow_idem_coverage.py (15 tests)",
+      "evidence": "python check_escrow_idem_coverage.py exits 0 on live ledger (42 events, 39 keys, 0 violations); 15/15 tests pass",
+      "made_redundant": "nothing — the two closest scripts explicitly excluded escrow_create_ keys; this closes a frontier that was previously acknowledged and deferred",
+      "redundancy_proof": "grep check_idem_key_completeness.py shows only comment refs to escrow_create_; check_orphan_idem_keys.py line 113 has return None on escrow_create_ prefix",
+      "accepted_at": "2026-04-17T04:58:29Z",
+      "idem_key": "trajectory_mint|T1|19"
     }
   ]
 }
