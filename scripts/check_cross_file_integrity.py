@@ -135,8 +135,11 @@ def _payment_history_indexes(
     )
 
     for record in payments:
+        issue_raw = record.get("issue")
+        if issue_raw is None:
+            continue
         try:
-            issue = int(record.get("issue"))
+            issue = int(issue_raw)
         except (TypeError, ValueError):
             continue
         agent = str(record.get("agent", "")).strip()

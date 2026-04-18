@@ -242,7 +242,7 @@ def process(root: Path, dry_run: bool) -> int:
         # --- Pre-compute slot for progressive/linear idem key ---
         if mechanic in {"progressive", "linear"}:
             esc = escrows.get("active", {}).get(issue, {})
-            entry["_slot"] = simulated_paid_counts.get(issue, esc.get("paid_count", 0)) + 1
+            entry["_slot"] = simulated_paid_counts.get(issue, int(esc.get("paid_count") or 0)) + 1
 
         # --- Check idem key (ledger + current batch) ---
         raw_key = build_idem_key(mechanic, issue, agent, entry)
@@ -294,7 +294,7 @@ def process(root: Path, dry_run: bool) -> int:
 
         # --- Amount validation by mechanic ---
         if mechanic in {"progressive", "linear"}:
-            paid_count = simulated_paid_counts.get(issue, escrow.get("paid_count", 0))
+            paid_count = simulated_paid_counts.get(issue, int(escrow.get("paid_count") or 0))
             slots = escrow.get("slots", 0)
             if paid_count >= slots:
                 errors.append(f"Entry {i}: issue #{issue} -- all {slots} slots already filled")

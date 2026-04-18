@@ -259,6 +259,7 @@ def update_genome_fitness(
     fitness_after = _extract_fitness_snapshot(meta)
 
     if record_mutation:
+        assert commit is not None  # validated at top of this function
         lines_added, lines_removed, sections_changed = _git_diff_stats(commit, root)
 
         mutation_entry: dict[str, Any] = {

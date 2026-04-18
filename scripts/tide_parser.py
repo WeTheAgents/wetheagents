@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from typing import TypedDict
 
 
 @dataclass
@@ -42,6 +43,15 @@ class TideEvent:
     body_hash_semantic: str | None = None
     # Verification criteria (from issue body template)
     verification_criteria: list[str] | None = None
+
+
+class _CommentBase(TypedDict):
+    """Typed keyword-args shared by all parse_comment TideEvent constructors."""
+    issue: int
+    created_at: str
+    author_github: str
+    source: str
+    comment_id: int
 
 
 # ---------------------------------------------------------------------------
@@ -89,13 +99,13 @@ def parse_comment(
     if not text:
         return None
 
-    base = dict(
-        issue=issue,
-        created_at=created_at,
-        author_github=author_github,
-        source="comment",
-        comment_id=comment_id,
-    )
+    base: _CommentBase = {
+        "issue": issue,
+        "created_at": created_at,
+        "author_github": author_github,
+        "source": "comment",
+        "comment_id": comment_id,
+    }
 
     # transform commands (check early — they start with ! so won't conflict)
     if _ACCEPT_TRANSFORM.search(text):

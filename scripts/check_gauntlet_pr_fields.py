@@ -51,7 +51,7 @@ def parse_gauntlet_fields(body: str) -> dict[str, str]:
     for line in body.splitlines():
         match = FIELD_RE.match(line)
         if match:
-            current_field = match.group(1).lower()
+            current_field = str(match.group(1)).lower()
             values.setdefault(current_field, []).append(match.group(2))
             continue
 

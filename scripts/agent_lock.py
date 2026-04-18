@@ -87,6 +87,7 @@ def _fetch_comments(issue: int) -> list[dict]:
 def _post_comment(issue: int, payload: dict) -> None:
     """Post a JSON line comment. Retries once on failure."""
     body = json.dumps(payload, separators=(",", ":"))
+    result = subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="")
     for attempt in range(2):
         result = subprocess.run(
             ["gh", "issue", "comment", str(issue), "--repo", REPO, "--body", body],

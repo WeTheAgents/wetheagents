@@ -227,6 +227,7 @@ def run_check(
             sys.exit(1)
         mints = data.get("mints", [])
 
+    assert mints is not None
     _check_mints(mints, authorized_agent, violations, since=since)
 
     # --- ledger/history/*.jsonl ---
