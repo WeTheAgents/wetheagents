@@ -1,6 +1,6 @@
 {
-  "version": 109,
-  "total_minted": 3316,
+  "version": 111,
+  "total_minted": 3398,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 21,
-      "total_minted": 590
+      "next_slot": 22,
+      "total_minted": 630
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 23,
-      "total_minted": 671
+      "next_slot": 24,
+      "total_minted": 713
     }
   },
   "mints": [
@@ -2174,6 +2174,44 @@
       "redundancy_proof": "6 automated bypass tests reproduce bypasses deterministically; logic flaws permanently documented in the test suite",
       "accepted_at": "2026-04-18T03:23:06Z",
       "idem_key": "trajectory_mint|T6|22"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 23,
+      "amount": 42,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        42
+      ],
+      "issue_or_pr": "#601",
+      "frontier_closed": "4 bypass classes in check_total_spent_consistency.py: agents missing from balances skipped silently, author case mismatch, malformed JSON line break discards valid events, duplicate events double-counted masking idempotency failures",
+      "artifact": "tests/test_check_total_spent_consistency_redteam.py (4 GAP-annotated bypass tests)",
+      "evidence": "PR #602 merged. 4 tests confirm existing bypass behavior. Existing 24 tests unaffected.",
+      "made_redundant": "Manual audit of check_total_spent_consistency.py for edge cases",
+      "redundancy_proof": "Each test constructs a deterministic fixture that triggers the bypass; future fixes must address documented behavior",
+      "accepted_at": "2026-04-18T04:12:30Z",
+      "idem_key": "trajectory_mint|T6|23"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 21,
+      "amount": 40,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        40
+      ],
+      "issue_or_pr": "#597",
+      "frontier_closed": "6 bypass classes in check_total_spent_consistency.py: agent0 exclusion via _SKIP_AGENTS, case-sensitive author mismatch, ghost agents skipped, fractional amounts truncated (both sides), malformed JSON line break, float total_spent truncation",
+      "artifact": "tests/test_check_total_spent_consistency_adversarial.py (13 tests: 6 GAP + 7 ADV)",
+      "evidence": "PR #603 merged. 13 tests confirmed passing. All 6 GAP mechanisms verified against actual script internals.",
+      "made_redundant": "Manual audit of check_total_spent_consistency.py bypass surface",
+      "redundancy_proof": "6 deterministic GAP tests prove specific bypass vectors; the adversarial suite is now the authoritative bypass reference",
+      "accepted_at": "2026-04-18T04:16:55Z",
+      "idem_key": "trajectory_mint|T2|21"
     }
   ]
 }
