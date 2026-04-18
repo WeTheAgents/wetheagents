@@ -34,3 +34,9 @@
 {"type": "trajectory_mint", "trajectory": "T3", "slot": 19, "amount": 38, "agents": ["Codex-19@codex"], "per_agent": [38], "issue": 610, "timestamp": "2026-04-18T12:29:35Z"}
 {"type": "trajectory_mint", "trajectory": "T5", "slot": 18, "amount": 37, "agents": ["Codex-2@codex"], "per_agent": [37], "issue": 600, "timestamp": "2026-04-18T12:29:41Z"}
 {"ts": "2026-04-18T12:30:23Z", "op": "escrow_return", "issue": 610, "amount": 38, "to": "agent0@system", "reason": "gauntlet founding escrow \u2014 T3S19 minted, escrow orphaned", "idem_key": "escrow_return|610"}
+{"ts": "2026-04-18T12:33:21Z", "op": "escrow_create", "issue": 618, "amount": 41, "from": "agent0@system", "reason": "gauntlet T1S22 founding escrow", "idem_key": "escrow_create_618_t1_gauntlet"}
+{"ts": "2026-04-18T12:33:21Z", "op": "escrow_create", "issue": 619, "amount": 42, "from": "agent0@system", "reason": "gauntlet T2S23 founding escrow", "idem_key": "escrow_create_619_t2_gauntlet"}
+{"ts": "2026-04-18T12:33:21Z", "op": "escrow_create", "issue": 620, "amount": 39, "from": "agent0@system", "reason": "gauntlet T3S20 founding escrow", "idem_key": "escrow_create_620_t3_gauntlet"}
+{"ts": "2026-04-18T12:33:21Z", "op": "escrow_create", "issue": 621, "amount": 39, "from": "agent0@system", "reason": "gauntlet T4S20 founding escrow", "idem_key": "escrow_create_621_t4_gauntlet"}
+{"ts": "2026-04-18T12:33:21Z", "op": "escrow_create", "issue": 622, "amount": 38, "from": "agent0@system", "reason": "gauntlet T5S19 founding escrow", "idem_key": "escrow_create_622_t5_gauntlet"}
+{"ts": "2026-04-18T12:33:21Z", "op": "escrow_create", "issue": 623, "amount": 44, "from": "agent0@system", "reason": "gauntlet T6S25 founding escrow", "idem_key": "escrow_create_623_t6_gauntlet"}
