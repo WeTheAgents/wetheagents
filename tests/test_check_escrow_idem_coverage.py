@@ -17,12 +17,23 @@ Covers:
  13.  Multiple missing active escrows reported individually
  14.  Multiple orphaned idem keys reported individually
  15.  Event with idem_key but issue already returned by escrow_return_bulk
+
+--since flag tests:
+ 16.  --since filters out pre-date events (direction 1); no false positives
+ 17.  --since after all events gives PASS even if history has coverage gaps
+ 18.  No --since flag still checks all events (unchanged behavior)
+ 19.  --since boundary: event exactly on since date is included
+ 20.  --since with future date gives PASS (no events in scope)
+ 21.  --since filters direction 2 idem keys by timestamp value
+ 22.  --since: event before since exempts that issue; post-since event still checked
+ 23.  --since: idem key with no parseable timestamp is always checked (not filtered)
 """
 
 from __future__ import annotations
 
 import json
 import sys
+from datetime import date
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
@@ -287,3 +298,160 @@ def test_return_bulk_covers_missing_key():
     # Issue 150 was returned via bulk → exempt
     assert missing == []
     assert orphaned == []
+
+
+# ===========================================================================
+# --since flag tests (Tests 16–23)
+# ===========================================================================
+
+# Helper: create an escrow_create event with an explicit timestamp field.
+
+def _create_ts(issue: int, idem_key: str, created_at: str) -> dict:
+    """Like _create() but with a created_at timestamp field."""
+    return {
+        "type": "escrow_create",
+        "issue": issue,
+        "amount": 30,
+        "idem_key": idem_key,
+        "created_at": created_at,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Test 16: --since filters pre-date events in direction 1; no false positives
+# ---------------------------------------------------------------------------
+
+
+def test_since_filters_pre_date_events_direction1():
+    # Issue 160: event dated 2026-03-01 (before since=2026-04-01)
+    # No key registered — would be direction-1 FAIL without --since
+    idem = _idem()
+    events = [_create_ts(160, "escrow_create_160_t16s1_gauntlet", "2026-03-01T12:00:00Z")]
+    since = date(2026, 4, 1)
+    missing, orphaned = run_coverage_check(idem, events, since=since)
+    # Event is before since → skipped → no violation
+    assert missing == []
+    assert orphaned == []
+
+
+# ---------------------------------------------------------------------------
+# Test 17: --since after all events gives PASS even if gaps would exist
+# ---------------------------------------------------------------------------
+
+
+def test_since_after_all_events_gives_pass():
+    # Issue 170: key in idem_keys but NO history event → direction-2 gap
+    # Key's value is dated 2026-03-15, well before since=2026-05-01
+    idem = _idem({"escrow_create_170_t17s1_gauntlet": "2026-03-15T00:00:00Z"})
+    events = []  # no history events at all
+    since = date(2026, 5, 1)
+    missing, orphaned = run_coverage_check(idem, events, since=since)
+    # Key's value predate since → key skipped in direction 2 → PASS
+    assert missing == []
+    assert orphaned == []
+
+
+# ---------------------------------------------------------------------------
+# Test 18: no --since flag still checks all events (unchanged behavior)
+# ---------------------------------------------------------------------------
+
+
+def test_no_since_checks_all_events():
+    # Issue 180: old event (2026-01-01) with key absent — would be violation
+    idem = _idem()  # no key registered
+    events = [_create_ts(180, "escrow_create_180_t18s1_gauntlet", "2026-01-01T00:00:00Z")]
+    # No since → must detect the missing key
+    missing, orphaned = run_coverage_check(idem, events)
+    assert len(missing) == 1
+    assert missing[0]["issue"] == "180"
+    assert orphaned == []
+
+
+# ---------------------------------------------------------------------------
+# Test 19: --since boundary — event exactly on since date is included
+# ---------------------------------------------------------------------------
+
+
+def test_since_boundary_event_on_date_included():
+    # Issue 190: event exactly on 2026-04-01 — should be CHECKED (>= since)
+    # No key registered → direction-1 violation expected
+    idem = _idem()
+    events = [_create_ts(190, "escrow_create_190_t19s1_gauntlet", "2026-04-01T00:00:00Z")]
+    since = date(2026, 4, 1)
+    missing, orphaned = run_coverage_check(idem, events, since=since)
+    # Event is exactly on since date → included → missing key detected
+    assert len(missing) == 1
+    assert missing[0]["issue"] == "190"
+    assert orphaned == []
+
+
+# ---------------------------------------------------------------------------
+# Test 20: --since with future date gives PASS (no events in scope)
+# ---------------------------------------------------------------------------
+
+
+def test_since_future_date_gives_pass():
+    # Issue 200: recent event with missing key
+    idem = _idem()
+    events = [_create_ts(200, "escrow_create_200_t20s1_gauntlet", "2026-04-17T00:00:00Z")]
+    since = date(2099, 1, 1)  # far future
+    missing, orphaned = run_coverage_check(idem, events, since=since)
+    # All events are before since → nothing checked → PASS
+    assert missing == []
+    assert orphaned == []
+
+
+# ---------------------------------------------------------------------------
+# Test 21: --since filters direction 2 idem keys by timestamp value
+# ---------------------------------------------------------------------------
+
+
+def test_since_filters_direction2_by_key_timestamp():
+    # Key for issue 210 registered on 2026-03-01 (before since=2026-04-01)
+    # No history event for issue 210 → would be direction-2 FAIL without since
+    idem = _idem({"escrow_create_210_t21s1_gauntlet": "2026-03-01T00:00:00Z"})
+    events = []  # no history
+    since = date(2026, 4, 1)
+    missing, orphaned = run_coverage_check(idem, events, since=since)
+    # Key predate since → skipped in direction 2 → PASS
+    assert missing == []
+    assert orphaned == []
+
+
+# ---------------------------------------------------------------------------
+# Test 22: returned escrow before since still exempts direction-1 post-since
+# ---------------------------------------------------------------------------
+
+
+def test_since_returned_before_since_exempts_post_since_event():
+    # Issue 220: return event (no timestamp on return) happened in history.
+    # A new escrow_create on 2026-04-05 with missing key should be exempt
+    # because the issue was already returned.
+    idem = _idem()  # no key registered
+    events = [
+        _create_ts(220, "escrow_create_220_t22s1_gauntlet", "2026-04-05T00:00:00Z"),
+        _return(220),  # returned — no date needed for lookup structures
+    ]
+    since = date(2026, 4, 1)
+    missing, orphaned = run_coverage_check(idem, events, since=since)
+    # Event is on/after since → checked; but issue was returned → exempt
+    assert missing == []
+    assert orphaned == []
+
+
+# ---------------------------------------------------------------------------
+# Test 23: idem key with no parseable timestamp value is always checked
+# ---------------------------------------------------------------------------
+
+
+def test_since_key_without_timestamp_always_checked():
+    # Key for issue 230 has a non-timestamp value (e.g. boolean True)
+    # No history event → would be orphaned → must still be reported even with --since
+    idem = _idem({"escrow_create_230_t23s1_gauntlet": True})  # type: ignore[arg-type]
+    events = []  # no history event
+    since = date(2026, 4, 1)
+    missing, orphaned = run_coverage_check(idem, events, since=since)
+    # Key value is not a string → cannot filter by date → check unconditionally
+    assert len(orphaned) == 1
+    assert orphaned[0]["issue"] == "230"
+    assert missing == []
