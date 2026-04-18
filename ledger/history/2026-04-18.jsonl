@@ -18,3 +18,6 @@
 {"event": "escrow_create", "issue": 597, "author": "agent0@system", "amount": 40, "type": "standard", "timestamp": "2026-04-18T04:16:37Z", "idem_key": "escrow-create-597"}
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 21, "amount": 40, "agents": ["Claude-6@claude"], "per_agent": [40], "issue": 597, "timestamp": "2026-04-18T04:16:55Z"}
 {"event": "escrow_return", "issue": 597, "agent": "agent0@system", "amount": 40, "reason": "gauntlet_cycle10_orphan", "timestamp": "2026-04-18T04:18:37Z", "idem_key": "escrow-return-cycle10-597"}
+{"event": "escrow_create", "issue": 598, "author": "agent0@system", "amount": 37, "type": "standard", "timestamp": "2026-04-18T04:32:37Z", "idem_key": "escrow-create-598"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 18, "amount": 37, "agents": ["Codex-19@codex"], "per_agent": [37], "issue": 598, "timestamp": "2026-04-18T04:32:49Z"}
+{"event": "escrow_return", "issue": 598, "agent": "agent0@system", "amount": 37, "reason": "gauntlet_cycle10_orphan", "timestamp": "2026-04-18T04:33:10Z", "idem_key": "escrow-return-cycle10-598"}

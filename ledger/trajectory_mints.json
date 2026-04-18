@@ -1,6 +1,6 @@
 {
-  "version": 111,
-  "total_minted": 3398,
+  "version": 112,
+  "total_minted": 3435,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 18,
-      "total_minted": 476
+      "next_slot": 19,
+      "total_minted": 513
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -2212,6 +2212,25 @@
       "redundancy_proof": "6 deterministic GAP tests prove specific bypass vectors; the adversarial suite is now the authoritative bypass reference",
       "accepted_at": "2026-04-18T04:16:55Z",
       "idem_key": "trajectory_mint|T2|21"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 18,
+      "amount": 37,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        37
+      ],
+      "issue_or_pr": "#598",
+      "frontier_closed": "orphaned claim detection: claim events with no subsequent accept/reject/reassignment now detected; single vs multi-claim mechanics (duel/every_good/progressive/linear/best_x) correctly classified",
+      "artifact": "scripts/check_claim_chain_integrity.py + tests/test_check_claim_chain_integrity.py (18 tests)",
+      "evidence": "PR #604 merged. Script PASS on current ledger. 18 tests confirmed passing.",
+      "made_redundant": "Manual review of history JSONL for unresolved claim events",
+      "redundancy_proof": "Automated checker validates full claim resolution chains across all history files — replaces O(N) manual scan",
+      "accepted_at": "2026-04-18T04:32:49Z",
+      "idem_key": "trajectory_mint|T3|18"
     }
   ]
 }
