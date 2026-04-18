@@ -41,8 +41,12 @@ from typing import Any
 
 import pandas as pd
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Add script dir + project root to path
+SCRIPT_DIR = Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent
+for _path in (SCRIPT_DIR, BASE_DIR):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 warnings.filterwarnings("ignore")
 logging.basicConfig(
@@ -52,7 +56,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).resolve().parent.parent
 PICKS_DIR = BASE_DIR / "picks"
 PICK_LOG = PICKS_DIR / "pick_log.jsonl"
 ALERTS_PATH = PICKS_DIR / "ALERTS.md"
@@ -84,6 +87,11 @@ TIER_PRIORITY = [
 OVERLAP_STAKE_PAIR = frozenset({"tier4_ml_depth_load", "tier5_ml_obp_recovery"})
 OVERLAP_STAKE_MULTIPLIER = 1.5
 OVERLAP_STAKE_REASON = "double_confirmed_ml_baskets"
+
+TIER5_FIELDING_OAA_Q10_THRESHOLD = -42.7
+TIER5_FIELDING_FLAG_PASS = "tier5_oaa_q10_pass"
+TIER5_FIELDING_FLAG_MISS = "tier5_oaa_q10_miss"
+TIER5_FIELDING_FLAG_UNKNOWN = "tier5_oaa_q10_unknown"
 
 
 # ---------------------------------------------------------------------------
@@ -126,10 +134,11 @@ class EnrichedPick:
     target_min_decimal: float | None
     target_sweet_decimal: float | None
     kelly_at_sweet: float | None
+    operator_flags: list[str]
     reason: str
     feature_snapshot: dict[str, Any]
     generated_at: str
-    schema_version: int = 3
+    schema_version: int = 4
 
 
 def kelly(p: float, decimal_odds: float) -> float:
@@ -375,11 +384,132 @@ def overlap_stake_bonus(pick) -> tuple[float, str | None]:
     return 1.0, None
 
 
+def add_tier5_operator_fielding_signal(enriched: pd.DataFrame) -> pd.DataFrame:
+    """Attach prior-season OAA edge support for the tier5 operator flag.
+
+    This is advisory only: it does not change strategy selection or stake.
+    It mirrors the research signal that improved tier5 in the prior-season
+    scan: away_oaa_edge_prev >= q10 threshold (-42.7).
+    """
+    from _fielding_scan_common import load_fielding_snapshots  # noqa: PLC0415
+
+    fielding = load_fielding_snapshots()
+    home = fielding.rename(
+        columns={
+            "season_target": "season",
+            "team": "home_team",
+            "oaa_prev": "home_oaa_prev",
+        }
+    )[["season", "home_team", "home_oaa_prev"]]
+    away = fielding.rename(
+        columns={
+            "season_target": "season",
+            "team": "away_team",
+            "oaa_prev": "away_oaa_prev",
+        }
+    )[["season", "away_team", "away_oaa_prev"]]
+    out = enriched.merge(home, on=["season", "home_team"], how="left").merge(
+        away,
+        on=["season", "away_team"],
+        how="left",
+    )
+    out["tier5_fielding_oaa_edge_prev"] = (
+        out["away_oaa_prev"] - out["home_oaa_prev"]
+    )
+    out["tier5_fielding_oaa_q10_pass"] = pd.Series(
+        pd.NA,
+        index=out.index,
+        dtype="boolean",
+    )
+    valid = out["tier5_fielding_oaa_edge_prev"].notna()
+    out.loc[valid, "tier5_fielding_oaa_q10_pass"] = (
+        out.loc[valid, "tier5_fielding_oaa_edge_prev"]
+        >= TIER5_FIELDING_OAA_Q10_THRESHOLD
+    )
+    return out
+
+
+def build_tier5_operator_lookup(
+    enriched: pd.DataFrame,
+    target: date,
+) -> dict[tuple[str, str], dict[str, Any]]:
+    """Return target-day tier5 fielding support keyed by (away, home)."""
+    day = enriched[enriched["date"].dt.date == target].copy()
+    if day.empty:
+        return {}
+    cols = [
+        "away_team",
+        "home_team",
+        "tier5_fielding_oaa_edge_prev",
+        "tier5_fielding_oaa_q10_pass",
+    ]
+    rows = day[cols].drop_duplicates(subset=["away_team", "home_team"])
+    lookup: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in rows.itertuples(index=False):
+        flag = row.tier5_fielding_oaa_q10_pass
+        if pd.isna(flag):
+            flag_value = None
+        else:
+            flag_value = bool(flag)
+        lookup[(row.away_team, row.home_team)] = {
+            "tier5_fielding_oaa_edge_prev": (
+                None
+                if pd.isna(row.tier5_fielding_oaa_edge_prev)
+                else float(row.tier5_fielding_oaa_edge_prev)
+            ),
+            "tier5_fielding_oaa_q10_threshold": TIER5_FIELDING_OAA_Q10_THRESHOLD,
+            "tier5_fielding_oaa_q10_pass": flag_value,
+        }
+    return lookup
+
+
+def pick_has_tier5_context(pick) -> bool:
+    qualified = {pick.tier, *pick.also_qualified}
+    return "tier5_ml_obp_recovery" in qualified
+
+
+def tier5_operator_payload(
+    pick,
+    operator_context: dict[str, Any] | None,
+) -> tuple[list[str], dict[str, Any]]:
+    if not pick_has_tier5_context(pick):
+        return [], {}
+    if operator_context is None:
+        return (
+            [TIER5_FIELDING_FLAG_UNKNOWN],
+            {
+                "tier5_fielding_oaa_edge_prev": None,
+                "tier5_fielding_oaa_q10_threshold": TIER5_FIELDING_OAA_Q10_THRESHOLD,
+                "tier5_fielding_oaa_q10_pass": None,
+            },
+        )
+
+    pass_value = operator_context.get("tier5_fielding_oaa_q10_pass")
+    if pass_value is True:
+        operator_flag = TIER5_FIELDING_FLAG_PASS
+    elif pass_value is False:
+        operator_flag = TIER5_FIELDING_FLAG_MISS
+    else:
+        operator_flag = TIER5_FIELDING_FLAG_UNKNOWN
+    payload = {
+        "tier5_fielding_oaa_edge_prev": operator_context.get(
+            "tier5_fielding_oaa_edge_prev"
+        ),
+        "tier5_fielding_oaa_q10_threshold": operator_context.get(
+            "tier5_fielding_oaa_q10_threshold",
+            TIER5_FIELDING_OAA_Q10_THRESHOLD,
+        ),
+        "tier5_fielding_oaa_q10_pass": pass_value,
+    }
+    return [operator_flag], payload
+
+
 def enrich_pick(
     pick,
     poly_data: dict | None,
     kelly_fraction_cap: float,
     target_edge: float = 0.20,
+    operator_context: dict[str, Any] | None = None,
 ) -> EnrichedPick:
     """Add Polymarket price, edge, Kelly stake, and target prices to a raw Pick."""
     poly_price = _polymarket_price_for(
@@ -421,6 +551,9 @@ def enrich_pick(
     # Target pricing (L1 sweet-spot targeting).
     target_min, target_sweet = _target_prices(shrunk_p, target_edge)
     kelly_at_sweet = kelly(shrunk_p, target_sweet) if target_sweet else None
+    operator_flags, operator_payload = tier5_operator_payload(pick, operator_context)
+    feature_snapshot = dict(pick.feature_snapshot)
+    feature_snapshot.update(operator_payload)
 
     return EnrichedPick(
         pick_id=pick.pick_id,
@@ -446,8 +579,9 @@ def enrich_pick(
         target_min_decimal=target_min,
         target_sweet_decimal=target_sweet,
         kelly_at_sweet=kelly_at_sweet,
+        operator_flags=operator_flags,
         reason=pick.reason,
-        feature_snapshot=pick.feature_snapshot,
+        feature_snapshot=feature_snapshot,
         generated_at=_now_iso(),
     )
 
@@ -508,9 +642,9 @@ def print_summary(picks: list[EnrichedPick]) -> None:
     print(
         f"  {'TIER':<34} {'AWAY':>4} @ {'HOME':<4} {'MKT':<8} {'SIDE':<5}"
         f" {'P':>6} {'REF':>6} {'POLY':>6} {'EDGE':>6}"
-        f" {'STAKE':>6} {'MULT':>5}  {'MIN':>5} {'SWEET':>5} {'K@SW':>5}  STATUS"
+        f" {'STAKE':>6} {'MULT':>5}  {'MIN':>5} {'SWEET':>5} {'K@SW':>5}  {'FLAGS':<24} STATUS"
     )
-    print("  " + "-" * 132)
+    print("  " + "-" * 159)
     for p in picks:
         ref = f"{p.ref_odds_espn:.2f}" if p.ref_odds_espn else "  -"
         poly = f"{p.polymarket_decimal:.2f}" if p.polymarket_decimal else "  -"
@@ -520,11 +654,12 @@ def print_summary(picks: list[EnrichedPick]) -> None:
         tmin = f"{p.target_min_decimal:.2f}" if p.target_min_decimal else "  -"
         tsweet = f"{p.target_sweet_decimal:.2f}" if p.target_sweet_decimal else "  -"
         ksw = f"{p.kelly_at_sweet * 100:.0f}%" if p.kelly_at_sweet else "  -"
+        flags = ",".join(p.operator_flags) if p.operator_flags else "-"
         also = f" (+{','.join(p.also_qualified)})" if p.also_qualified else ""
         print(
             f"  {p.tier + also:<34} {p.away:>4} @ {p.home:<4} {p.market:<8} {p.side:<5}"
             f" {p.shrunk_p:>6.3f} {ref:>6} {poly:>6} {edge:>6}"
-            f" {stake:>6} {mult:>5}  {tmin:>5} {tsweet:>5} {ksw:>5}  {p.status}"
+            f" {stake:>6} {mult:>5}  {tmin:>5} {tsweet:>5} {ksw:>5}  {flags:<24} {p.status}"
         )
     print()
     print("  MULT = overlap bonus | MIN = don't bet below this | SWEET = wait-for price (+20% edge) | K@SW = Kelly at sweet")
@@ -662,6 +797,7 @@ def main() -> int:
         enriched = forward_project_features(enriched, target)
 
     enriched = add_derived_for_strategies(enriched)
+    enriched = add_tier5_operator_fielding_signal(enriched)
     logger.info("Enriched: %d rows, %d cols", len(enriched), len(enriched.columns))
     if target >= date.today() and not enriched.empty:
         day = enriched[enriched["date"].dt.date == target].copy()
@@ -676,8 +812,17 @@ def main() -> int:
                 count = int(day[col].fillna(False).astype(bool).sum())
                 if count:
                     logger.warning("Target-date flag %s: %d/%d games", col, count, len(day))
+        support_count = int(day["tier5_fielding_oaa_q10_pass"].notna().sum())
+        if support_count:
+            logger.info(
+                "Target-date tier5 fielding support available: %d/%d games",
+                support_count,
+                len(day),
+            )
     else:
         day = target_day_frame(enriched, target)
+
+    tier5_operator_lookup = build_tier5_operator_lookup(enriched, target)
 
     live_audit_tiers = [tier for tier in requested_tiers if tier in AUDIT_CONFIGS]
     if live_audit_tiers:
@@ -730,7 +875,13 @@ def main() -> int:
     for p in deduped:
         poly_data = poly_lookup.get((p.away, p.home))
         enriched_picks.append(
-            enrich_pick(p, poly_data, kelly_cap, target_edge=args.target_edge)
+            enrich_pick(
+                p,
+                poly_data,
+                kelly_cap,
+                target_edge=args.target_edge,
+                operator_context=tier5_operator_lookup.get((p.away, p.home)),
+            )
         )
 
     # 6. Filter unprofitable picks.
