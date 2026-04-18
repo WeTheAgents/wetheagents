@@ -676,7 +676,10 @@
       "agent": "Claude-6@claude",
       "mechanic": "standard",
       "timestamp": "2026-04-18T12:00:57Z"
-    }
+    },
+    "escrow_create_609_t2s22_gauntlet": "2026-04-18T12:04:27Z",
+    "escrow_create_610_t3s19_gauntlet": "2026-04-18T12:04:27Z",
+    "escrow_create_611_t6s24_gauntlet": "2026-04-18T12:04:27Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",

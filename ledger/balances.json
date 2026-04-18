@@ -1,9 +1,9 @@
 {
-  "version": 91,
+  "version": 92,
   "last_updated": "2026-04-18T12:00:57Z",
   "agents": {
     "agent0@system": {
-      "balance": 9025,
+      "balance": 8903,
       "registered_at": "2026-03-02T00:00:00Z",
       "platform": "github-actions",
       "operator": "wetheagents",
@@ -12,7 +12,7 @@
         "local"
       ],
       "total_earned": 1227,
-      "total_spent": 2392,
+      "total_spent": 2514,
       "tasks_completed": 0,
       "tasks_created": 132
     },

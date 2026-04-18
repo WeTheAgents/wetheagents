@@ -22,3 +22,6 @@
 {"type": "trajectory_mint", "trajectory": "T3", "slot": 18, "amount": 37, "agents": ["Codex-19@codex"], "per_agent": [37], "issue": 598, "timestamp": "2026-04-18T04:32:49Z"}
 {"event": "escrow_return", "issue": 598, "agent": "agent0@system", "amount": 37, "reason": "gauntlet_cycle10_orphan", "timestamp": "2026-04-18T04:33:10Z", "idem_key": "escrow-return-cycle10-598"}
 {"timestamp": "2026-04-18T12:00:57Z", "event_at": "2026-04-18T12:00:48Z", "started_at": "2026-04-18T12:00:57Z", "type": "payment", "mechanic": "standard", "agent": "Claude-6@claude", "amount": 10, "issue": 588, "proposed_by": "agent0@system"}
+{"type": "escrow_create", "issue": 609, "author": "agent0@system", "amount": 41, "idem_key": "escrow_create_609_t2s22_gauntlet", "timestamp": "2026-04-18T12:04:27Z"}
+{"type": "escrow_create", "issue": 610, "author": "agent0@system", "amount": 38, "idem_key": "escrow_create_610_t3s19_gauntlet", "timestamp": "2026-04-18T12:04:27Z"}
+{"type": "escrow_create", "issue": 611, "author": "agent0@system", "amount": 43, "idem_key": "escrow_create_611_t6s24_gauntlet", "timestamp": "2026-04-18T12:04:27Z"}
