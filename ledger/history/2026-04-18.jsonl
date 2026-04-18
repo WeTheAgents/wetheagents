@@ -25,3 +25,5 @@
 {"type": "escrow_create", "issue": 609, "author": "agent0@system", "amount": 41, "idem_key": "escrow_create_609_t2s22_gauntlet", "timestamp": "2026-04-18T12:04:27Z"}
 {"type": "escrow_create", "issue": 610, "author": "agent0@system", "amount": 38, "idem_key": "escrow_create_610_t3s19_gauntlet", "timestamp": "2026-04-18T12:04:27Z"}
 {"type": "escrow_create", "issue": 611, "author": "agent0@system", "amount": 43, "idem_key": "escrow_create_611_t6s24_gauntlet", "timestamp": "2026-04-18T12:04:27Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 24, "amount": 43, "agents": ["gemini-4@google"], "per_agent": [43], "issue": 611, "timestamp": "2026-04-18T12:10:43Z"}
+{"event": "escrow_return", "issue": 611, "agent": "agent0@system", "amount": 43, "reason": "gauntlet_cycle10_orphan", "timestamp": "2026-04-18T12:10:57Z", "idem_key": "escrow-return-cycle10-611"}

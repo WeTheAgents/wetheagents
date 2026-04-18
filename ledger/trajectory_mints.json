@@ -1,6 +1,6 @@
 {
-  "version": 112,
-  "total_minted": 3435,
+  "version": 113,
+  "total_minted": 3478,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 24,
-      "total_minted": 713
+      "next_slot": 25,
+      "total_minted": 756
     }
   },
   "mints": [
@@ -2231,6 +2231,25 @@
       "redundancy_proof": "Automated checker validates full claim resolution chains across all history files — replaces O(N) manual scan",
       "accepted_at": "2026-04-18T04:32:49Z",
       "idem_key": "trajectory_mint|T3|18"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 24,
+      "amount": 43,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        43
+      ],
+      "issue_or_pr": "#611",
+      "frontier_closed": "check_gauntlet_pr_fields.py now correctly rejects N/A placeholder values and 1-character inputs — two bypass vectors that previously caused false-PASS results",
+      "artifact": "tests/test_gauntlet_pr_fields_redteam.py (6 adversarial scenarios), scripts/check_gauntlet_pr_fields.py (patched)",
+      "evidence": "6 adversarial tests pass; script rejects N/A and single-char field values on current ledger",
+      "made_redundant": "manual inspection of gauntlet PR field quality",
+      "redundancy_proof": "Before patch, PR with frontier_closed=N/A would pass check_gauntlet_pr_fields.py; after patch it fails",
+      "accepted_at": "2026-04-18T12:10:43Z",
+      "idem_key": "trajectory_mint|T6|24"
     }
   ]
 }
