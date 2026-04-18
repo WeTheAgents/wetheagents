@@ -610,3 +610,412 @@ def test_case_mismatched_author_field_alias_does_not_resolve_claim(
 
     assert report["status"] == "FAIL"
     assert report["broken_claims"][0]["reason"] == "mismatched_terminal"
+
+
+# ===========================================================================
+# Escrow state transition tests (T2S23)
+# ===========================================================================
+# Each test constructs an escrow lifecycle scenario and verifies that the
+# claim-chain checker handles it correctly.  The inline "Bypass technique"
+# comment names the specific evasion a naive checker might fall for.
+# ===========================================================================
+
+
+# ---------------------------------------------------------------------------
+# Test 15: escrow_create → escrow_return with no payment — claim on cancelled issue
+# ---------------------------------------------------------------------------
+
+
+def test_escrow_create_return_no_payment_claim_on_cancelled_issue_fails(
+    temp_repo: Path,
+) -> None:
+    # Bypass technique: the escrow lifecycle ends with a return (task cancelled)
+    # rather than a payment.  A checker that only treats "paid" as a closed status
+    # would see the "cancelled" task status as still-open and report the
+    # unresolved claim as "pending" (PASS) instead of broken (FAIL).
+    root = _make_repo(temp_repo)
+    _write_task_index(root, {"42": {"status": "cancelled"}})
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            # escrow_create is not a claim-chain event — checker must ignore it
+            {
+                "type": "escrow_create",
+                "issue": 42,
+                "agent": "agent0@system",
+                "amount": 20,
+                "timestamp": "2026-04-01T08:00:00Z",
+            },
+            {
+                "type": "claim",
+                "issue": 42,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T09:00:00Z",
+            },
+            # escrow_return is not a claim-chain event — must NOT count as resolution
+            {
+                "type": "escrow_return",
+                "issue": 42,
+                "agent": "agent0@system",
+                "amount": 20,
+                "timestamp": "2026-04-01T10:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    broken = report["broken_claims"]
+    assert len(broken) == 1
+    assert broken[0]["issue"] == 42
+    assert broken[0]["reason"] == "closed_without_resolution"
+
+
+# ---------------------------------------------------------------------------
+# Test 16: escrow_create twice for same issue — mechanic conflict via double entry
+# ---------------------------------------------------------------------------
+
+
+def test_double_escrow_create_conflicting_mechanic_claim_still_detected(
+    temp_repo: Path,
+) -> None:
+    # Bypass technique: an accidental second escrow_create for the same issue uses
+    # a different mechanic type ("every_good" overwriting "standard" in
+    # escrows.json).  A checker that lets escrows.json override task_index for
+    # mechanics AND treats every_good claims as "pending" on a nominally-open issue
+    # would silently miss alice's broken chain.  The checker must use task_index as
+    # the authoritative mechanic source and correctly mark the claim as broken.
+    root = _make_repo(temp_repo)
+    _write_task_index(root, {"500": {"status": "paid", "mechanic": "standard"}})
+    # escrows.json reflects the second (overwriting) create — conflicting mechanic
+    _write_escrows(root, {"500": {"type": "every_good", "amount": 30}})
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            {
+                "type": "claim",
+                "issue": 500,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T09:00:00Z",
+            },
+            # Payment goes to bob — alice's claim is never resolved
+            {
+                "type": "payment",
+                "issue": 500,
+                "agent": "bob@test",
+                "amount": 30,
+                "timestamp": "2026-04-01T10:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    # Under standard (task_index wins): alice's chain ends with bob's payment →
+    # mismatched_terminal.  Under every_good (if escrows.json incorrectly won):
+    # alice has no same-agent resolution on a paid issue → also FAIL.
+    # Either way the checker must return FAIL.
+    assert report["status"] == "FAIL"
+    assert len(report["broken_claims"]) == 1
+    assert report["broken_claims"][0]["agent"] == "alice@test"
+
+
+# ---------------------------------------------------------------------------
+# Test 17: escrow_return with no prior escrow_create — stray return event
+# ---------------------------------------------------------------------------
+
+
+def test_escrow_return_without_prior_create_does_not_resolve_claim(
+    temp_repo: Path,
+) -> None:
+    # Bypass technique: a stray escrow_return event (no matching escrow_create) is
+    # present in the history for the same issue and agent as the unresolved claim.
+    # A lenient checker that pattern-matches on event type and counts any "return"
+    # as a terminal resolution would falsely treat this as resolving alice's claim
+    # and return PASS.  The checker must only recognise the canonical terminal types
+    # (accept / payment / reject) and ignore escrow_return entirely.
+    root = _make_repo(temp_repo)
+    _write_task_index(root, {"600": {"status": "paid"}})
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            # Stray escrow_return with no prior create — not a valid resolution event
+            {
+                "type": "escrow_return",
+                "issue": 600,
+                "agent": "alice@test",
+                "amount": 15,
+                "timestamp": "2026-04-01T08:30:00Z",
+            },
+            {
+                "type": "claim",
+                "issue": 600,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T09:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    broken = report["broken_claims"]
+    assert len(broken) == 1
+    assert broken[0]["issue"] == 600
+    assert broken[0]["reason"] == "closed_without_resolution"
+
+
+# ---------------------------------------------------------------------------
+# Test 18: payment recorded for issue with no escrow_create — no escrow needed
+# ---------------------------------------------------------------------------
+
+
+def test_payment_without_prior_escrow_create_still_resolves_claim(
+    temp_repo: Path,
+) -> None:
+    # Bypass technique (inverse — gap documentation): a checker that requires a
+    # preceding escrow_create before it will accept a payment as a valid resolution
+    # would incorrectly FAIL this clean claim→payment chain.  Escrow state is
+    # orthogonal to claim-chain validity; a payment resolves a claim regardless of
+    # whether an escrow was ever opened.
+    root = _make_repo(temp_repo)
+    _write_escrows(root, {})  # explicitly empty — no escrow was ever created
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            {
+                "type": "claim",
+                "issue": 700,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T09:00:00Z",
+            },
+            {
+                "type": "payment",
+                "issue": 700,
+                "agent": "alice@test",
+                "amount": 10,
+                "timestamp": "2026-04-01T10:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["resolved_by_payment"] == 1
+    assert report["summary"]["broken"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Test 19: escrow amount != payment amount — financial mismatch undetected
+# ---------------------------------------------------------------------------
+
+
+def test_escrow_amount_payment_amount_mismatch_passes_claim_chain_check(
+    temp_repo: Path,
+) -> None:
+    # Gap documentation: the escrow was created for 50 WEA but alice is only paid
+    # 25 WEA.  The claim-chain checker validates resolution *type* and *identity*,
+    # not financial amounts — this mismatch passes undetected.  Any checker that
+    # added amount validation would correctly flag this, but the current checker's
+    # scope is chain integrity, not ledger arithmetic.  This test locks in that
+    # scope boundary: PASS here does not mean the ledger is correct.
+    root = _make_repo(temp_repo)
+    _write_task_index(root, {"800": {"status": "paid"}})
+    _write_escrows(root, {"800": {"type": "standard", "amount": 50}})
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            {
+                "type": "claim",
+                "issue": 800,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T09:00:00Z",
+            },
+            {
+                "type": "payment",
+                "issue": 800,
+                "agent": "alice@test",
+                "amount": 25,  # half the escrowed amount — mismatch
+                "timestamp": "2026-04-01T10:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    # Chain resolves correctly (same-agent payment) — amount mismatch is out of scope
+    assert report["status"] == "PASS"
+    assert report["summary"]["resolved_by_payment"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Test 20: escrow_return AFTER payment — stale escrow survives payment
+# ---------------------------------------------------------------------------
+
+
+def test_escrow_return_after_payment_stale_escrow_does_not_mask_broken_chain(
+    temp_repo: Path,
+) -> None:
+    # Bypass technique: payment was made (task closed) but the escrow was never
+    # cleaned up — escrows.json still contains an active entry for the issue.
+    # A checker that reads the active escrow to infer "issue is still open" would
+    # treat alice's unresolved claim as "pending" (PASS) rather than broken (FAIL).
+    # task_index must win as the authoritative status source.
+    root = _make_repo(temp_repo)
+    _write_task_index(root, {"900": {"status": "paid", "mechanic": "standard"}})
+    # Stale escrow left in active after payment — should not influence status inference
+    _write_escrows(root, {"900": {"type": "standard", "amount": 20}})
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            {
+                "type": "claim",
+                "issue": 900,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T09:00:00Z",
+            },
+            # Payment goes to bob — alice never resolved
+            {
+                "type": "payment",
+                "issue": 900,
+                "agent": "bob@test",
+                "amount": 20,
+                "timestamp": "2026-04-01T10:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    broken = report["broken_claims"]
+    assert len(broken) == 1
+    assert broken[0]["agent"] == "alice@test"
+    assert broken[0]["reason"] == "mismatched_terminal"
+
+
+# ---------------------------------------------------------------------------
+# Test 21: chain create → return → create → pay (resurrection chain)
+# ---------------------------------------------------------------------------
+
+
+def test_escrow_resurrection_chain_claim_resolves_correctly(temp_repo: Path) -> None:
+    # Bypass technique: the escrow goes through a full lifecycle — create, return,
+    # re-create — before the payment is made.  Alice's claim was placed between the
+    # first create and the return; the task is eventually re-escrowed and she is
+    # paid.  A checker that tracks escrow lifecycle and refuses to accept a payment
+    # as resolving a claim placed before the original return (treating it as
+    # "from a different escrow epoch") would incorrectly FAIL this clean chain.
+    # The checker must evaluate the claim chain on temporal order alone, not escrow
+    # epochs.
+    root = _make_repo(temp_repo)
+    _write_task_index(root, {"1000": {"status": "paid"}})
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            {
+                "type": "escrow_create",
+                "issue": 1000,
+                "agent": "agent0@system",
+                "amount": 15,
+                "timestamp": "2026-04-01T08:00:00Z",
+            },
+            {
+                "type": "claim",
+                "issue": 1000,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T09:00:00Z",
+            },
+            {
+                "type": "escrow_return",
+                "issue": 1000,
+                "agent": "agent0@system",
+                "amount": 15,
+                "timestamp": "2026-04-01T10:00:00Z",
+            },
+            {
+                "type": "escrow_create",
+                "issue": 1000,
+                "agent": "agent0@system",
+                "amount": 15,
+                "timestamp": "2026-04-01T11:00:00Z",
+            },
+            {
+                "type": "payment",
+                "issue": 1000,
+                "agent": "alice@test",
+                "amount": 15,
+                "timestamp": "2026-04-01T12:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["resolved_by_payment"] == 1
+    assert report["summary"]["broken"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Test 22: multiple escrow_creates same issue at same timestamp — dedup collision
+# ---------------------------------------------------------------------------
+
+
+def test_multiple_escrow_creates_same_timestamp_broken_claim_still_detected(
+    temp_repo: Path,
+) -> None:
+    # Bypass technique: two escrow_create events for the same issue arrive with
+    # identical timestamps (race condition / double-submit).  A checker whose sort
+    # is unstable on equal timestamps might reorder the subsequent claim event
+    # relative to non-relevant events in unpredictable ways.  If this causes the
+    # claim to be processed before the issue is registered as closed, the checker
+    # could report it as "pending" (PASS) instead of broken (FAIL).  Sorting must
+    # be stable and non-relevant event types must not affect claim ordering.
+    root = _make_repo(temp_repo)
+    _write_task_index(root, {"1100": {"status": "paid"}})
+    collision_ts = "2026-04-01T10:00:00Z"
+    _write_history(
+        root,
+        "2026-04-01.jsonl",
+        [
+            # Two escrow_creates at identical timestamp — not relevant to claim checker
+            {
+                "type": "escrow_create",
+                "issue": 1100,
+                "agent": "agent0@system",
+                "amount": 10,
+                "timestamp": collision_ts,
+            },
+            {
+                "type": "escrow_create",
+                "issue": 1100,
+                "agent": "agent0@system",
+                "amount": 10,
+                "timestamp": collision_ts,
+            },
+            {
+                "type": "claim",
+                "issue": 1100,
+                "agent": "alice@test",
+                "timestamp": "2026-04-01T11:00:00Z",
+            },
+        ],
+    )
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    broken = report["broken_claims"]
+    assert len(broken) == 1
+    assert broken[0]["issue"] == 1100
+    assert broken[0]["reason"] == "closed_without_resolution"
