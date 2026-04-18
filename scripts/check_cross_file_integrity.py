@@ -136,7 +136,7 @@ def _payment_history_indexes(
 
     for record in payments:
         try:
-            issue = int(record.get("issue"))
+            issue = int(record.get("issue", 0))
         except (TypeError, ValueError):
             continue
         agent = str(record.get("agent", "")).strip()

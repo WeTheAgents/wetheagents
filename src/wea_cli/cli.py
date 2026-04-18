@@ -403,6 +403,7 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
         slots, error = _ensure_positive_arg(args.slots, "--slots")
         if error is not None:
             return error
+        assert slots is not None
         payload.update(
             {
                 "slots": slots,
@@ -414,6 +415,7 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
         slots, error = _ensure_positive_arg(args.slots, "--slots")
         if error is not None:
             return error
+        assert slots is not None
         payload.update(
             {
                 "slots": slots,
@@ -430,6 +432,7 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
         budget, error = _ensure_positive_arg(args.budget, "--budget")
         if error is not None:
             return error
+        assert budget is not None
         winners, error = _ensure_positive_arg(args.winners, "--winners")
         if error is not None:
             return error
@@ -456,6 +459,7 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
         budget, error = _ensure_positive_arg(args.budget, "--budget")
         if error is not None:
             return error
+        assert budget is not None
         winner_amount, runner_up_amount = calculate_duel_split(budget)
         payload.update(
             {
@@ -2880,8 +2884,12 @@ def cmd_pipeline_request_refinement(args: argparse.Namespace) -> int:
         return EXIT_RUNTIME_ERROR
 
     try:
-        from jsonschema import ValidationError as _VE
-        from jsonschema import validate
+        from jsonschema import ValidationError as _VE  # type: ignore[import-untyped]
+        from jsonschema import validate  # type: ignore[import-untyped]
+    except ImportError as exc:
+        emit(f"Error: jsonschema is required for schema validation: {exc}")
+        return EXIT_RUNTIME_ERROR
+    try:
         validate(instance=payload, schema=schema)
     except _VE as exc:
         emit(f"Error: {exc.message}")
