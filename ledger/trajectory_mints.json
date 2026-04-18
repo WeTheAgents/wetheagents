@@ -1,11 +1,11 @@
 {
-  "version": 113,
-  "total_minted": 3478,
+  "version": 114,
+  "total_minted": 3518,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 21,
-      "total_minted": 590
+      "next_slot": 22,
+      "total_minted": 630
     },
     "T2": {
       "name": "Verification Frontier",
@@ -2250,6 +2250,25 @@
       "redundancy_proof": "Before patch, PR with frontier_closed=N/A would pass check_gauntlet_pr_fields.py; after patch it fails",
       "accepted_at": "2026-04-18T12:10:43Z",
       "idem_key": "trajectory_mint|T6|24"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 21,
+      "amount": 40,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        40
+      ],
+      "issue_or_pr": "#596",
+      "frontier_closed": "double-mints and next_slot drift were detectable only by manual inspection of history JSONL — a minting bug could pay the same slot twice or leave next_slot pointing at an already-minted slot silently",
+      "artifact": "scripts/check_trajectory_slot_uniqueness.py + tests/test_check_trajectory_slot_uniqueness.py",
+      "evidence": "15/15 tests pass; script exits 0 on real ledger",
+      "made_redundant": "manual grep of history/*.jsonl for duplicate (trajectory,slot) pairs and manual comparison of trajectory_mints.json next_slot",
+      "redundancy_proof": "script indexes all history mint events by (trajectory,slot) in one pass then compares max(slot)+1 against each trajectory's declared next_slot; runnable as CI step",
+      "accepted_at": "2026-04-18T12:12:30Z",
+      "idem_key": "trajectory_mint|T1|21"
     }
   ]
 }
