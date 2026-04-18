@@ -10,7 +10,7 @@ only.  No real ledger files are read.
 Bypass vectors covered:
   1.  [GAP] History-only agent absent from stored → WARNING, not FAIL
   2.  [GAP] Non-dict stored agent info silently skipped → divergence missed
-  3.  Malformed issue field (non-numeric string) silently dropped → false PASS
+  3.  Unparseable issue values silently dropped → false PASS
   4.  issue=None silently dropped → false PASS when stored agrees
   5.  Wrong event type (trajectory_mint) not counted → both sides 0 → PASS
   6.  accept + payment for same issue — deduped to 1 → PASS (design)
@@ -18,13 +18,18 @@ Bypass vectors covered:
   8.  agent0@system excluded → its tasks_completed never checked
   9.  Zero-amount payment skipped → boundary check, both sides 0 → PASS
   10. Float issue truncated by int() — deduplication across float/int → PASS
-  11. String-float issue (\"42.9\") raises ValueError → silently skipped
-  12. Empty agent field skipped → completion invisible to both sides
+  11. Missing/empty/null agent fields skipped → completion invisible
+  12. Event type matching is case-sensitive → false PASS when stored agrees
+  13. Invalid JSON lines in history are silently dropped → false PASS
 """
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from scripts.check_tasks_completed_consistency import (
+    _iter_events,
     check_consistency,
     compute_tasks_completed,
 )
@@ -136,31 +141,35 @@ def test_non_dict_stored_agent_info_silently_skipped_false_pass() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 3 — Malformed issue field (non-numeric string) silently dropped
+# Test 3 — Unparseable issue values silently dropped
 # ---------------------------------------------------------------------------
 
 
-def test_malformed_issue_string_silently_dropped_false_pass() -> None:
-    """Bypass vector: payment event with a non-numeric issue field is silently
-    skipped, causing an under-count that matches a correspondingly low stored
+def test_unparseable_issue_values_silently_dropped_false_pass() -> None:
+    """Bypass vector: issue values that ``int()`` cannot parse are silently
+    dropped, causing an under-count that matches a correspondingly low stored
     value.
 
-    compute_tasks_completed() converts issue via int(issue).  For non-numeric
-    strings such as "task-abc" or "GH-99", the conversion raises ValueError and
-    the event is silently dropped.
+    compute_tasks_completed() converts issue via ``int(issue)``.  Non-numeric
+    strings, string-floats, and container types all raise ``ValueError`` or
+    ``TypeError`` and are silently dropped.
 
-    Real violation: Carol@claude completed two tasks.  One task has a normal
-    integer issue (issue 7) and one has a malformed string issue ("task-xyz").
-    The real tasks_completed should be 2.  The script computes 1 (drops the
-    malformed event).  An operator who processed the same events the same way
+    Real violation: Carol@claude completed four tasks.  One task has a normal
+    integer issue (issue 7) and three have malformed issue encodings.  The
+    real tasks_completed should be 4.  The script computes 1 (drops the
+    malformed events).  An operator who processed the same events the same way
     stores tasks_completed=1 too — both sides agree → PASS.
 
-    The genuine second task completion is entirely invisible to the checker.
+    The genuine extra task completions are entirely invisible to the checker.
     """
     events = [
         {"type": "payment", "agent": "Carol@claude", "amount": 40, "issue": 7},
-        # Non-numeric issue field: int("task-xyz") → ValueError → skipped
+        # Non-numeric string: int("task-xyz") → ValueError → skipped
         {"type": "payment", "agent": "Carol@claude", "amount": 25, "issue": "task-xyz"},
+        # String-float: int("42.5") → ValueError → skipped
+        {"type": "payment", "agent": "Carol@claude", "amount": 25, "issue": "42.5"},
+        # Non-scalar: int([8]) → TypeError → skipped
+        {"type": "accept", "agent": "Carol@claude", "amount": 10, "issue": [8]},
     ]
     stored_agents = {
         "Carol@claude": {"tasks_completed": 1},  # operator also skipped malformed
@@ -169,14 +178,14 @@ def test_malformed_issue_string_silently_dropped_false_pass() -> None:
     computed = compute_tasks_completed(events)
 
     assert computed.get("Carol@claude", 0) == 1, (
-        "Malformed issue 'task-xyz' is dropped; only issue 7 is counted."
+        "Unsupported issue encodings are dropped; only issue 7 is counted."
     )
 
     status, divergences, _, _ = check_consistency(stored_agents, computed)
 
     assert status == "PASS", (
-        "Checker reports PASS.  Carol actually completed 2 tasks but the "
-        "malformed issue field makes the second one invisible to both sides."
+        "Checker reports PASS.  Carol actually completed 4 tasks but the "
+        "unparseable issue values make three invisible to both sides."
     )
     assert divergences == []
 
@@ -481,71 +490,32 @@ def test_float_issue_truncated_deduped_with_int_issue_false_pass() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Test 11 — String-float issue raises ValueError → silently skipped
+# Test 11 — Missing/empty/null agent fields skipped → invisible completion
 # ---------------------------------------------------------------------------
 
 
-def test_string_float_issue_valueerror_silently_skipped() -> None:
-    """Bypass vector: a string issue that looks like a float (e.g., "100.5")
-    raises ValueError when passed to int(), so the event is silently dropped.
+def test_missing_or_empty_agent_field_silently_skipped() -> None:
+    """Bypass vector: payment events with missing, empty, or null agent fields
+    are silently skipped.
 
-    int("100.5") raises ValueError — caught by the except clause → continue.
-    Contrast with int(100.5) = 100, which succeeds.  This inconsistency means
-    that the same underlying issue number behaves differently depending on how
-    it was serialised.
+    compute_tasks_completed() checks ``if not agent: continue`` before
+    processing an event.  Missing, empty-string, and null agent values are all
+    falsy — each event is dropped.
 
-    If stored tasks_completed=1 (only issue 7 counted) and history has one
-    clean event (issue 7) plus one string-float event ("42.5"), both sides
-    agree on 1 → PASS.  The string-float task completion is invisible.
-    """
-    events = [
-        {"type": "payment", "agent": "Jack@claude", "amount": 30, "issue": 7},
-        # String-float: int("42.5") → ValueError → skipped (unlike int(42.5) = 42)
-        {"type": "payment", "agent": "Jack@claude", "amount": 25, "issue": "42.5"},
-    ]
-    stored_agents = {
-        "Jack@claude": {"tasks_completed": 1},  # operator also skipped string-float
-    }
-
-    computed = compute_tasks_completed(events)
-
-    assert computed.get("Jack@claude", 0) == 1, (
-        "int('42.5') raises ValueError → event skipped; only issue 7 counted."
-    )
-
-    status, divergences, _, _ = check_consistency(stored_agents, computed)
-
-    assert status == "PASS"
-    assert divergences == [], (
-        "Checker says PASS.  The string-float issue silently drops a task "
-        "completion event; stored and computed both agree on the under-count."
-    )
-
-
-# ---------------------------------------------------------------------------
-# Test 12 — Empty agent field skipped → completion invisible to both sides
-# ---------------------------------------------------------------------------
-
-
-def test_empty_agent_field_silently_skipped_invisible_completion() -> None:
-    """Bypass vector: payment event with agent="" is silently skipped.
-
-    compute_tasks_completed() checks `if not agent: continue` before
-    processing an event.  An empty string is falsy — the event is dropped.
-
-    If a task was completed and the payment event was written with agent=""
-    (e.g., due to a serialisation bug or deliberate omission), the completion
-    is invisible to the checker.  As long as the stored tasks_completed ALSO
-    doesn't reflect this ghost completion, both sides agree → PASS.
-
-    The intended beneficiary (whoever completed the task) has no recorded
-    credit in the computed view, and any stored=0 for them matches → PASS.
+    If tasks were completed and the payment events were written without a
+    usable agent field, the completions are invisible to the checker.  As long
+    as stored tasks_completed also omits those ghost completions, both sides
+    agree → PASS.
     """
     events = [
         # Legitimate event for Kay
         {"type": "payment", "agent": "Kay@codex", "amount": 30, "issue": 9},
-        # Ghost event: agent="" → skipped entirely
+        # Missing agent field → skipped entirely
+        {"type": "payment", "amount": 40, "issue": 10},
+        # Empty agent field → skipped entirely
         {"type": "payment", "agent": "", "amount": 40, "issue": 11},
+        # Null agent field → skipped entirely
+        {"type": "payment", "agent": None, "amount": 40, "issue": 12},
     ]
     stored_agents = {
         "Kay@codex": {"tasks_completed": 1},
@@ -553,9 +523,9 @@ def test_empty_agent_field_silently_skipped_invisible_completion() -> None:
 
     computed = compute_tasks_completed(events)
 
-    # Kay is correctly counted; the ghost event contributes nothing
+    # Kay is correctly counted; malformed agent fields contribute nothing.
     assert computed.get("Kay@codex", 0) == 1
-    # No entry for "" in computed — it was silently dropped
+    assert None not in computed
     assert "" not in computed, (
         "Empty-agent events are skipped; no entry is created for agent=''."
     )
@@ -564,6 +534,70 @@ def test_empty_agent_field_silently_skipped_invisible_completion() -> None:
 
     assert status == "PASS"
     assert divergences == [], (
-        "Checker says PASS.  The ghost payment (agent='') is completely "
-        "invisible — no agent receives credit, and the completion is lost."
+        "Checker says PASS.  Payments with missing, empty, or null agent "
+        "fields are completely invisible — no agent receives credit, and the "
+        "completions are lost."
     )
+
+
+# ---------------------------------------------------------------------------
+# Test 12 — Event type matching is case-sensitive
+# ---------------------------------------------------------------------------
+
+
+def test_event_type_case_sensitivity_silently_drops_events() -> None:
+    """Bypass vector: event type matching is strict and case-sensitive."""
+    events = [
+        {"type": "Payment", "agent": "Mallory@claude", "amount": 10, "issue": 1},
+        {"type": "ACCEPT", "agent": "Mallory@claude", "amount": 10, "issue": 2},
+    ]
+    stored_agents = {
+        "Mallory@claude": {"tasks_completed": 0},
+    }
+
+    computed = compute_tasks_completed(events)
+
+    assert computed.get("Mallory@claude", 0) == 0, (
+        "Only lowercase payment/accept are counted; wrong-case variants are ignored."
+    )
+
+    status, divergences, _, _ = check_consistency(stored_agents, computed)
+
+    assert status == "PASS"
+    assert divergences == []
+
+
+# ---------------------------------------------------------------------------
+# Test 13 — Invalid JSON lines are silently dropped
+# ---------------------------------------------------------------------------
+
+
+def test_invalid_json_lines_silently_dropped_false_pass(tmp_path: Path) -> None:
+    """Bypass vector: malformed JSON lines in history are skipped entirely."""
+    history_file = tmp_path / "2026-01-01.jsonl"
+    history_file.write_text(
+        "\n".join(
+            [
+                json.dumps(
+                    {"type": "payment", "agent": "Eve@claude", "amount": 10, "issue": 1}
+                ),
+                '{"type": "payment", "agent": "Eve@claude", "amount": 10, "issue": 2',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    events = _iter_events(tmp_path)
+    computed = compute_tasks_completed(events)
+    stored_agents = {
+        "Eve@claude": {"tasks_completed": 1},
+    }
+
+    assert len(events) == 1, "Malformed JSON lines are skipped instead of failing."
+    assert computed.get("Eve@claude", 0) == 1
+
+    status, divergences, _, _ = check_consistency(stored_agents, computed)
+
+    assert status == "PASS"
+    assert divergences == []
