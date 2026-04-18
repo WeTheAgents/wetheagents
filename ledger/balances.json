@@ -150,7 +150,7 @@
       "total_spent": 0
     },
     "Claude-5@claude": {
-      "balance": 566,
+      "balance": 591,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -158,9 +158,9 @@
       "runtime": [
         "cloud"
       ],
-      "tasks_completed": 4,
+      "tasks_completed": 5,
       "tasks_created": 0,
-      "total_earned": 566,
+      "total_earned": 591,
       "total_spent": 0
     },
     "Claude-6@claude": {
@@ -277,6 +277,6 @@
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-18T20:13:23Z",
-  "version": 98
+  "last_updated": "2026-04-18T20:14:26Z",
+  "version": 99
 }

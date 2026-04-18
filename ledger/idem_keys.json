@@ -824,7 +824,14 @@
     "trajectory_mint|T6|6": "2026-04-11T00:36:40Z",
     "trajectory_mint|T6|7": "2026-04-11T04:12:25Z",
     "trajectory_mint|T6|8": "2026-04-11T12:16:18Z",
-    "trajectory_mint|T6|9": "2026-04-11T21:45:00Z"
+    "trajectory_mint|T6|9": "2026-04-11T21:45:00Z",
+    "fc246f2d2340e6c194619e9a69ec45c56e1896cdf55acc3e009d483e5fd10fdb": {
+      "action": "payment",
+      "issue": "587",
+      "agent": "Claude-5@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-18T20:14:26Z"
+    }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {

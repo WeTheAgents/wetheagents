@@ -59,3 +59,4 @@
 {"ts": "2026-04-18T20:13:23Z", "op": "escrow_create", "issue": 634, "amount": 40, "from": "agent0@system", "reason": "gauntlet T4S21 founding escrow", "idem_key": "escrow_create_634_t4_gauntlet"}
 {"ts": "2026-04-18T20:13:23Z", "op": "escrow_create", "issue": 635, "amount": 39, "from": "agent0@system", "reason": "gauntlet T5S20 founding escrow", "idem_key": "escrow_create_635_t5_gauntlet"}
 {"ts": "2026-04-18T20:13:23Z", "op": "escrow_create", "issue": 636, "amount": 45, "from": "agent0@system", "reason": "gauntlet T6S26 founding escrow", "idem_key": "escrow_create_636_t6_gauntlet"}
+{"timestamp": "2026-04-18T20:14:26Z", "event_at": "2026-04-18T20:14:22Z", "started_at": "2026-04-18T20:14:26Z", "type": "payment", "mechanic": "standard", "agent": "Claude-5@claude", "amount": 25, "issue": 587, "proposed_by": "agent0@system"}
