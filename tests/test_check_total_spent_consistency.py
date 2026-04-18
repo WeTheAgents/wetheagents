@@ -555,3 +555,195 @@ def test_since_null_when_not_provided(
 
     assert exit_code == 0
     assert result["since"] is None
+
+
+# ---------------------------------------------------------------------------
+# New tests: --since boundary and edge cases (Task #621 / T4S20)
+# ---------------------------------------------------------------------------
+
+
+def test_since_exact_boundary_end_of_day_included() -> None:
+    """Event at end of the boundary date (23:59:59) is still included.
+
+    _parse_date truncates to date, so '2026-04-01T23:59:59Z' resolves to
+    date(2026, 4, 1) which equals since — must be counted.
+    """
+    from datetime import date
+
+    since = date(2026, 4, 1)
+    events = [_escrow_create_ts("alice@x", 40, "2026-04-01T23:59:59Z", issue=1)]
+    computed = compute_total_spent(events, since=since)
+    assert computed.get("alice@x") == 40
+    stored = {"alice@x": _agent(total_spent=40)}
+    status, divergences, _ = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+
+
+def test_since_previous_day_last_second_excluded() -> None:
+    """Event at 23:59:59 on the day before --since is excluded.
+
+    '2026-03-31T23:59:59Z' → date(2026, 3, 31) < date(2026, 4, 1) → excluded.
+    The agent is absent from computed and therefore skipped → PASS.
+    """
+    from datetime import date
+
+    since = date(2026, 4, 1)
+    events = [_escrow_create_ts("alice@x", 50, "2026-03-31T23:59:59Z", issue=1)]
+    computed = compute_total_spent(events, since=since)
+    assert "alice@x" not in computed
+    stored = {"alice@x": _agent(total_spent=50)}
+    status, divergences, _ = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+
+
+def test_since_zero_spent_no_history_skipped_pass() -> None:
+    """Agent with total_spent=0 and no history events is skipped when --since active.
+
+    With --since, only agents present in *computed* (i.e. with qualifying
+    events) are candidates. An agent with zero events is absent from computed
+    and therefore never checked → PASS.
+    """
+    from datetime import date
+
+    since = date(2026, 4, 1)
+    computed: dict[str, int] = {}  # no events at all
+    stored = {"alice@x": _agent(total_spent=0)}
+    status, divergences, summary = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+    assert "0 agents checked" in summary
+
+
+def test_zero_recorded_nonzero_history_fail() -> None:
+    """Agent with total_spent=0 but non-zero escrow_create history → FAIL.
+
+    computed[agent] > 0 while recorded = 0 → divergence reported.
+    """
+    events = [_escrow_create("alice@x", 75, issue=1)]
+    computed = compute_total_spent(events)
+    assert computed.get("alice@x") == 75
+    stored = {"alice@x": _agent(total_spent=0)}
+    status, divergences, _ = check_consistency(stored, computed)
+    assert status == "FAIL"
+    assert len(divergences) == 1
+    div = divergences[0]
+    assert div["agent"] == "alice@x"
+    assert div["recorded"] == 0
+    assert div["computed"] == 75
+    assert div["delta"] == 75
+
+
+def test_since_over_reported_total_spent_fail() -> None:
+    """With --since, total_spent > history sum in window → FAIL (over-reported).
+
+    recorded=100, only 60 WEA of escrow_create events fall after --since →
+    delta = 60 - 100 = -20  (negative → over-recorded).
+    """
+    from datetime import date
+
+    since = date(2026, 4, 1)
+    events = [
+        _escrow_create_ts("alice@x", 40, "2026-01-01T00:00:00Z", issue=1),  # excluded
+        _escrow_create_ts("alice@x", 60, "2026-04-10T00:00:00Z", issue=2),  # included
+    ]
+    computed = compute_total_spent(events, since=since)
+    assert computed.get("alice@x") == 60
+    stored = {"alice@x": _agent(total_spent=100)}
+    status, divergences, _ = check_consistency(stored, computed, since=since)
+    assert status == "FAIL"
+    assert len(divergences) == 1
+    div = divergences[0]
+    assert div["recorded"] == 100
+    assert div["computed"] == 60
+    assert div["delta"] == -40  # computed - recorded
+
+
+def test_since_timezone_naive_and_aware_both_included() -> None:
+    """Timezone-naive and timezone-aware timestamps on the boundary date are both included.
+
+    _parse_date uses s[:10], so '2026-04-01' (naive) and
+    '2026-04-01T00:00:00+05:30' (aware, different UTC offset) both yield
+    date(2026, 4, 1) and qualify when since=2026-04-01.
+    """
+    from datetime import date
+
+    since = date(2026, 4, 1)
+    events = [
+        _escrow_create_ts("alice@x", 10, "2026-04-01", issue=1),              # naive date
+        _escrow_create_ts("bob@x", 20, "2026-04-01T00:00:00+05:30", issue=2), # aware tz
+        _escrow_create_ts("charlie@x", 30, "2026-04-01T12:00:00-07:00", issue=3),  # negative offset
+    ]
+    computed = compute_total_spent(events, since=since)
+    assert computed.get("alice@x") == 10
+    assert computed.get("bob@x") == 20
+    assert computed.get("charlie@x") == 30
+
+
+def test_main_empty_history_file_nonzero_spent_fail(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """Empty history .jsonl file + agent with total_spent > 0 → FAIL.
+
+    The file exists so _iter_events finds it, but yields no events.
+    computed is empty, recorded is non-zero → divergence.
+    """
+    import check_total_spent_consistency as mod
+
+    ledger_dir = tmp_path / "ledger"
+    ledger_dir.mkdir()
+    history_dir = ledger_dir / "history"
+    history_dir.mkdir()
+
+    balances = {
+        "version": 1,
+        "agents": {
+            "alice@x": {"balance": 0, "total_spent": 50},
+        },
+    }
+    (ledger_dir / "balances.json").write_text(json.dumps(balances), encoding="utf-8")
+    # History file exists but is completely empty.
+    (history_dir / "2026-01-01.jsonl").write_text("", encoding="utf-8")
+
+    monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
+
+    exit_code = main(argv=[])
+    captured = capsys.readouterr()
+    result = json.loads(captured.out)
+
+    assert exit_code == 1
+    assert result["status"] == "FAIL"
+    assert any(d["agent"] == "alice@x" for d in result["divergences"])
+
+
+def test_since_all_agent_payments_excluded_agent_skipped_pass() -> None:
+    """--since excludes all payments for one agent; that agent is skipped entirely.
+
+    agent_old has only pre-since events → absent from computed → skipped.
+    agent_new has a post-since event → present in computed → checked and passes.
+    Overall result is PASS even though agent_old's stored total_spent would
+    diverge from its historical total if checked without --since.
+    """
+    from datetime import date
+
+    since = date(2026, 4, 1)
+    events = [
+        _escrow_create_ts("agent_old@x", 100, "2026-01-01T00:00:00Z", issue=1),
+        _escrow_create_ts("agent_new@x", 30, "2026-04-15T00:00:00Z", issue=2),
+    ]
+    computed = compute_total_spent(events, since=since)
+    assert "agent_old@x" not in computed
+    assert computed.get("agent_new@x") == 30
+
+    stored = {
+        "agent_old@x": _agent(total_spent=100),  # would diverge if checked
+        "agent_new@x": _agent(total_spent=30),   # matches in-window
+    }
+    status, divergences, summary = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+    # Only agent_new was in scope
+    assert "1 agents checked" in summary
