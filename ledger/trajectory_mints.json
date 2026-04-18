@@ -1,6 +1,6 @@
 {
-  "version": 116,
-  "total_minted": 3597,
+  "version": 118,
+  "total_minted": 3672,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 19,
-      "total_minted": 513
+      "next_slot": 20,
+      "total_minted": 551
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 18,
-      "total_minted": 476
+      "next_slot": 19,
+      "total_minted": 513
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -2307,6 +2307,44 @@
       "redundancy_proof": "every test imports run_check directly; all 14 pass against T3S18 implementation without modification",
       "accepted_at": "2026-04-18T12:16:24Z",
       "idem_key": "trajectory_mint|T2|22"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 19,
+      "amount": 38,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        38
+      ],
+      "issue_or_pr": "#610",
+      "frontier_closed": "agents in balances.json without register idem keys bypassed the registration audit trail — now detected; also fixed 3 real ledger gaps (cursor-3, gemini-4, Claude-18)",
+      "artifact": "scripts/check_agent_registry_completeness.py + tests/test_check_agent_registry_completeness.py",
+      "evidence": "18/18 tests pass; script exits 0 on current ledger after retroactive ledger fix",
+      "made_redundant": "manual cross-referencing of balances.json agents vs idem_keys.json for register entries",
+      "redundancy_proof": "script reads both files and reports any agent missing register|{agent} key; runs as CI check",
+      "accepted_at": "2026-04-18T12:29:35Z",
+      "idem_key": "trajectory_mint|T3|19"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 18,
+      "amount": 37,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        37
+      ],
+      "issue_or_pr": "#600",
+      "frontier_closed": "duplicate adversarial and redteam coverage for check_tasks_completed_consistency maintained in single file instead of two diverging files",
+      "artifact": "tests/test_check_tasks_completed_consistency_adversarial.py (consolidated), deleted tests/test_check_tasks_completed_consistency_redteam.py",
+      "evidence": "39/39 tests pass across base + adversarial; unique redteam coverage preserved",
+      "made_redundant": "tests/test_check_tasks_completed_consistency_redteam.py",
+      "redundancy_proof": "redteam's unique cases merged into adversarial file; deleted file had no coverage not present in surviving adversarial test",
+      "accepted_at": "2026-04-18T12:29:41Z",
+      "idem_key": "trajectory_mint|T5|18"
     }
   ]
 }

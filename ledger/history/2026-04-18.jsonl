@@ -31,3 +31,6 @@
 {"type": "trajectory_mint", "trajectory": "T4", "slot": 19, "amount": 38, "agents": ["Claude-5@claude"], "per_agent": [38], "issue": 599, "timestamp": "2026-04-18T12:14:58Z"}
 {"type": "trajectory_mint", "trajectory": "T2", "slot": 22, "amount": 41, "agents": ["Claude-6@claude"], "per_agent": [41], "issue": 609, "timestamp": "2026-04-18T12:16:24Z"}
 {"event": "escrow_return", "issue": 609, "agent": "agent0@system", "amount": 41, "reason": "gauntlet_cycle10_orphan", "timestamp": "2026-04-18T12:16:37Z", "idem_key": "escrow-return-cycle10-609"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 19, "amount": 38, "agents": ["Codex-19@codex"], "per_agent": [38], "issue": 610, "timestamp": "2026-04-18T12:29:35Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 18, "amount": 37, "agents": ["Codex-2@codex"], "per_agent": [37], "issue": 600, "timestamp": "2026-04-18T12:29:41Z"}
+{"ts": "2026-04-18T12:30:23Z", "op": "escrow_return", "issue": 610, "amount": 38, "to": "agent0@system", "reason": "gauntlet founding escrow \u2014 T3S19 minted, escrow orphaned", "idem_key": "escrow_return|610"}
