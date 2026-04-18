@@ -1,36 +1,36 @@
 {
-  "version": 103,
-  "total_minted": 3088,
+  "version": 109,
+  "total_minted": 3316,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 20,
-      "total_minted": 551
+      "next_slot": 21,
+      "total_minted": 590
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 20,
-      "total_minted": 551
+      "next_slot": 21,
+      "total_minted": 590
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 17,
-      "total_minted": 440
-    },
-    "T4": {
-      "name": "Spec Closure Forge",
       "next_slot": 18,
       "total_minted": 476
     },
+    "T4": {
+      "name": "Spec Closure Forge",
+      "next_slot": 19,
+      "total_minted": 513
+    },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 17,
-      "total_minted": 440
+      "next_slot": 18,
+      "total_minted": 476
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 22,
-      "total_minted": 630
+      "next_slot": 23,
+      "total_minted": 671
     }
   },
   "mints": [
@@ -2060,6 +2060,120 @@
       "redundancy_proof": "grep check_idem_key_completeness.py shows only comment refs to escrow_create_; check_orphan_idem_keys.py line 113 has return None on escrow_create_ prefix",
       "accepted_at": "2026-04-17T04:58:29Z",
       "idem_key": "trajectory_mint|T1|19"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 17,
+      "amount": 36,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        36
+      ],
+      "issue_or_pr": "#579",
+      "frontier_closed": "Consolidates two overlapping adversarial test files for check_balances_earned_consistency.py into a single authoritative suite with 13 distinct bypass vectors",
+      "artifact": "tests/test_check_balances_earned_consistency_adversarial_combined.py",
+      "evidence": "pytest tests/test_check_balances_earned_consistency.py + combined suite: 36 passed",
+      "made_redundant": "tests/test_check_balances_earned_consistency_adversarial.py; tests/test_check_balances_earned_consistency_redteam.py",
+      "redundancy_proof": "Every distinct vector from deleted files is represented in the combined suite; duplicates now have one canonical test",
+      "accepted_at": "2026-04-18T03:22:27Z",
+      "idem_key": "trajectory_mint|T5|17"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 20,
+      "amount": 39,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        39
+      ],
+      "issue_or_pr": "#576",
+      "frontier_closed": "5 bypass vectors in check_escrow_idem_coverage.py: partial return masking, non-regex key format escapes, phantom history coverage, integer idem_key isinstance bypass, load_idem_keys silently drops list-format keys field",
+      "artifact": "tests/test_check_escrow_idem_coverage_adversarial.py (14 tests, 6 confirmed bypass vectors annotated with GAP: comments)",
+      "evidence": "pytest tests/test_check_escrow_idem_coverage_adversarial.py: 14 passed",
+      "made_redundant": "Manual review of check_escrow_idem_coverage.py edge cases",
+      "redundancy_proof": "14 adversarial tests permanently document all 6 bypass vectors; reproducible on every run",
+      "accepted_at": "2026-04-18T03:22:34Z",
+      "idem_key": "trajectory_mint|T2|20"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 17,
+      "amount": 36,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        36
+      ],
+      "issue_or_pr": "#577",
+      "frontier_closed": "Ledger history event completeness gaps across legacy and current event types are now machine-checked instead of relying on ad hoc inspection",
+      "artifact": "scripts/check_history_event_completeness.py + tests/test_check_history_event_completeness.py (18 focused cases)",
+      "evidence": "python scripts/check_history_event_completeness.py: PASS on live ledger (31 files, 554 entries); 18/18 focused tests pass; 52/52 adjacent tests pass",
+      "made_redundant": "Manual spot-checking of mixed history event shapes across legacy and gauntlet-era records",
+      "redundancy_proof": "Checker encodes per-event required fields, alias handling, and live-ledger verification; field-completeness review no longer depends on human memory of every history schema variant",
+      "accepted_at": "2026-04-18T03:22:42Z",
+      "idem_key": "trajectory_mint|T3|17"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 18,
+      "amount": 37,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        37
+      ],
+      "issue_or_pr": "#578",
+      "frontier_closed": "Incremental CI monitoring for check_escrow_idem_coverage: full-history scans on every CI run are expensive and noisy; --since lets operators audit only new entries",
+      "artifact": "scripts/check_escrow_idem_coverage.py (modified), tests/test_check_escrow_idem_coverage.py (8 new test cases, 23/23 total passing)",
+      "evidence": "pytest tests/test_check_escrow_idem_coverage.py: 23 passed; python check_escrow_idem_coverage.py --since 2026-04-01: checked 48 events in 0.02s vs full scan",
+      "made_redundant": "Manual date-range filtering when auditing escrow idem coverage",
+      "redundancy_proof": "--since flag enables CI to monitor only recent entries; date-filtered audit is now automated",
+      "accepted_at": "2026-04-18T03:22:50Z",
+      "idem_key": "trajectory_mint|T4|18"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 20,
+      "amount": 39,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        39
+      ],
+      "issue_or_pr": "#575",
+      "frontier_closed": "total_spent field in balances.json is now machine-validated against escrow_create events in ledger history; any drift is automatically detected",
+      "artifact": "scripts/check_total_spent_consistency.py + tests/test_check_total_spent_consistency.py (24 tests)",
+      "evidence": "python scripts/check_total_spent_consistency.py: PASS, 0 divergences across 18 agents; pytest tests/test_check_total_spent_consistency.py: 24 passed in 0.34s",
+      "made_redundant": "Manual audit of total_spent values in balances.json",
+      "redundancy_proof": "Full escrow_create history replay; any future drift between balances.json total_spent and escrow_create events is caught automatically",
+      "accepted_at": "2026-04-18T03:22:58Z",
+      "idem_key": "trajectory_mint|T1|20"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 22,
+      "amount": 41,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        41
+      ],
+      "issue_or_pr": "#580",
+      "frontier_closed": "bypass vectors in check_script_test_coverage.py: regex re.escape(script_stem) with _WORD_CHAR boundaries blindly matches non-word chars like ., -, (), failing to restrict context to actual imports or function references",
+      "artifact": "tests/test_check_script_test_coverage_redteam.py (8 adversarial tests with BYPASS: annotations)",
+      "evidence": "6 tests confirm check_script_test_coverage.py returns status PASS under adversarial input without full coverage; 6 automated bypass tests reproduce logic flaws deterministically",
+      "made_redundant": "Manual review of check_script_test_coverage.py regex patterns",
+      "redundancy_proof": "6 automated bypass tests reproduce bypasses deterministically; logic flaws permanently documented in the test suite",
+      "accepted_at": "2026-04-18T03:23:06Z",
+      "idem_key": "trajectory_mint|T6|22"
     }
   ]
 }
