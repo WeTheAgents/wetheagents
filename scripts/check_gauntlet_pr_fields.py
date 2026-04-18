@@ -28,6 +28,8 @@ PLACEHOLDER_VALUES = {
     "todo",
     "tbd",
     "<placeholder>",
+    "n/a",
+    "-",
 }
 
 
@@ -74,6 +76,9 @@ def _is_empty_value(value: str | None) -> bool:
 
     lowered = stripped.lower()
     if lowered in PLACEHOLDER_VALUES:
+        return True
+
+    if len(stripped) < 2:
         return True
 
     return bool(re.fullmatch(r"<[^>\n]+>", stripped))
