@@ -44,3 +44,12 @@ bettable = games[
 ## Scripts
 
 See `scripts/` and `knowledge/status_report_session3.md`.
+
+## Operational Memory
+
+Use these docs as the current working memory for MLB research:
+
+- `knowledge/layered_basket_selection_method.md` -- canonical basket-promotion workflow
+- `knowledge/bullpen_day_chat_watchlist_2026.md` -- chat-first bullpen-day rotation watchlist for the 2026 season
+
+Current bullpen-day workflow is intentionally chat-first until a stricter model is promoted.
