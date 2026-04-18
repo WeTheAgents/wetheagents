@@ -1,6 +1,6 @@
 {
-  "version": 115,
-  "total_minted": 3556,
+  "version": 116,
+  "total_minted": 3597,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 22,
-      "total_minted": 630
+      "next_slot": 23,
+      "total_minted": 671
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -2288,6 +2288,25 @@
       "redundancy_proof": "--since filters events by timestamp field; backward compat preserved (no --since = existing behavior)",
       "accepted_at": "2026-04-18T12:14:58Z",
       "idem_key": "trajectory_mint|T4|19"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 22,
+      "amount": 41,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        41
+      ],
+      "issue_or_pr": "#609",
+      "frontier_closed": "claim-chain orphan bypass vectors — 14 distinct techniques that could fool check_claim_chain_integrity.py into returning false-PASS documented and verified",
+      "artifact": "tests/test_check_claim_chain_integrity_adversarial.py (14 adversarial tests)",
+      "evidence": "pytest 14/14 pass; each test asserts FAIL on a real orphaned claim using a distinct bypass technique",
+      "made_redundant": "manual inspection of claim chain logic for edge cases",
+      "redundancy_proof": "every test imports run_check directly; all 14 pass against T3S18 implementation without modification",
+      "accepted_at": "2026-04-18T12:16:24Z",
+      "idem_key": "trajectory_mint|T2|22"
     }
   ]
 }
