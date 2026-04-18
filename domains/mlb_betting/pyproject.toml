@@ -10,6 +10,7 @@ dependencies = [
     "openpyxl",
     "pybaseball",
     "numpy",
+    "beautifulsoup4",
     # ML
     "catboost",
     "scikit-learn",

@@ -15,10 +15,12 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import httpx
 import pandas as pd
@@ -27,8 +29,20 @@ logger = logging.getLogger(__name__)
 
 GAMMA_BASE = "https://gamma-api.polymarket.com"
 CLOB_BASE = "https://clob.polymarket.com"
+WEB_BASE = "https://polymarket.com"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "raw" / "polymarket"
 MLB_SERIES_ID = "3"
+MARKET_OPENED_RE = re.compile(
+    r"Market Opened[:\s]+([A-Z][a-z]{2} \d{1,2}, \d{4}, \d{1,2}:\d{2} [AP]M ET)"
+)
+WEB_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 # Rate limit: 200ms between requests (Gamma allows 300 req/10s)
 RATE_LIMIT_SECONDS = 0.2
@@ -84,6 +98,8 @@ class MLBGameEvent:
     markets: list[MLBMarket] = field(default_factory=list)
     volume: float = 0.0
     liquidity: float = 0.0
+    market_opened_at: datetime | None = None
+    is_active: bool = True
 
 
 @dataclass
@@ -179,10 +195,85 @@ def _safe_float(val, default=None) -> float | None:
         return default
 
 
+def parse_market_opened_text(raw: str | None) -> datetime | None:
+    """Parse 'Apr 13, 2026, 9:00 AM ET' into UTC datetime."""
+    if not raw:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+
+    try:
+        dt = datetime.strptime(text, "%b %d, %Y, %I:%M %p ET")
+        return dt.replace(tzinfo=ZoneInfo("America/New_York")).astimezone(UTC)
+    except ValueError:
+        pass
+
+    try:
+        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return dt.astimezone(UTC)
+    except ValueError:
+        return None
+
+
+def parse_market_opened_from_html(html: str) -> datetime | None:
+    """Extract 'Market Opened' from a Polymarket event page HTML blob."""
+    if not html:
+        return None
+    match = MARKET_OPENED_RE.search(html)
+    if not match:
+        return None
+    return parse_market_opened_text(match.group(1))
+
+
+def _market_opened_from_api_payload(event_data: dict) -> datetime | None:
+    """Best-effort parse from raw API payload before any HTML fallback."""
+    candidate_paths = [
+        event_data.get("marketOpenedAt"),
+        event_data.get("market_opened_at"),
+        event_data.get("createdAt"),
+        event_data.get("created_at"),
+        event_data.get("publishedAt"),
+        event_data.get("published_at"),
+    ]
+    for candidate in candidate_paths:
+        parsed = parse_market_opened_text(candidate)
+        if parsed is not None:
+            return parsed
+
+    for market in event_data.get("markets", []):
+        for key in ("marketOpenedAt", "market_opened_at", "createdAt", "created_at"):
+            parsed = parse_market_opened_text(market.get(key))
+            if parsed is not None:
+                return parsed
+    return None
+
+
+def fetch_market_opened_from_slug(slug: str) -> datetime | None:
+    """Fetch a Polymarket event page and parse its 'Market Opened' timestamp."""
+    if not slug:
+        return None
+    _rate_limit()
+    try:
+        r = httpx.get(f"{WEB_BASE}/sports/mlb/{slug}", headers=WEB_HEADERS, timeout=15)
+        r.raise_for_status()
+    except httpx.HTTPError as e:
+        logger.warning("Failed to fetch market page for %s: %s", slug, e)
+        return None
+    return parse_market_opened_from_html(r.text)
+
+
 # --- API Fetching ---
 
 
-def fetch_mlb_events(active_only: bool = True, limit: int = 100) -> list[MLBGameEvent]:
+def fetch_mlb_events(
+    active_only: bool = True,
+    limit: int = 100,
+    *,
+    include_market_opened: bool = False,
+) -> list[MLBGameEvent]:
     """Fetch all MLB game events from Gamma API.
 
     Uses series_id=3 for MLB. Handles pagination.
@@ -212,7 +303,7 @@ def fetch_mlb_events(active_only: bool = True, limit: int = 100) -> list[MLBGame
             break
 
         for event_data in data:
-            event = _parse_event(event_data)
+            event = _parse_event(event_data, include_market_opened=include_market_opened)
             if event is not None:
                 events.append(event)
 
@@ -224,7 +315,7 @@ def fetch_mlb_events(active_only: bool = True, limit: int = 100) -> list[MLBGame
     return events
 
 
-def _parse_event(event_data: dict) -> MLBGameEvent | None:
+def _parse_event(event_data: dict, *, include_market_opened: bool = False) -> MLBGameEvent | None:
     """Parse a single event from Gamma API response."""
     title = event_data.get("title", "")
     away, home = _parse_teams_from_title(title)
@@ -261,6 +352,10 @@ def _parse_event(event_data: dict) -> MLBGameEvent | None:
 
     game_id_raw = event_data.get("gameId")
     game_id = int(game_id_raw) if game_id_raw is not None else None
+    market_opened_at = _market_opened_from_api_payload(event_data)
+    if market_opened_at is None and include_market_opened:
+        market_opened_at = fetch_market_opened_from_slug(event_data.get("slug", ""))
+    is_active = not bool(event_data.get("closed", False))
 
     return MLBGameEvent(
         event_id=str(event_data.get("id", "")),
@@ -276,21 +371,27 @@ def _parse_event(event_data: dict) -> MLBGameEvent | None:
         markets=markets,
         volume=float(event_data.get("volume", 0)),
         liquidity=float(event_data.get("liquidity", 0)),
+        market_opened_at=market_opened_at,
+        is_active=is_active,
     )
 
 
-def fetch_todays_games() -> list[MLBGameEvent]:
+def fetch_todays_games(*, include_market_opened: bool = False) -> list[MLBGameEvent]:
     """Fetch only today's MLB games."""
     today = date.today()
-    events = fetch_mlb_events(active_only=True)
+    events = fetch_mlb_events(active_only=True, include_market_opened=include_market_opened)
     return [e for e in events if e.event_date == today]
 
 
-def fetch_upcoming_games(days: int = 3) -> list[MLBGameEvent]:
+def fetch_upcoming_games(
+    days: int = 3,
+    *,
+    include_market_opened: bool = False,
+) -> list[MLBGameEvent]:
     """Fetch MLB games within the next N days."""
     today = date.today()
     cutoff = today + timedelta(days=days)
-    events = fetch_mlb_events(active_only=True)
+    events = fetch_mlb_events(active_only=True, include_market_opened=include_market_opened)
     return [e for e in events if e.event_date and today <= e.event_date <= cutoff]
 
 
@@ -406,6 +507,7 @@ def build_games_df(events: list[MLBGameEvent]) -> pd.DataFrame:
                 "home_team": e.home_team,
                 "game_time": e.game_time,
                 "event_date": e.event_date,
+                "market_opened_at": e.market_opened_at,
                 "market_type": m.market_type,
                 "question": m.question,
                 "outcome_1": m.outcomes[0] if m.outcomes else "",
@@ -424,7 +526,38 @@ def build_games_df(events: list[MLBGameEvent]) -> pd.DataFrame:
                 "volume": e.volume,
                 "accepting_orders": m.accepting_orders,
                 "closed": m.closed,
+                "is_active": e.is_active,
             })
+    return pd.DataFrame(rows)
+
+
+def build_event_openings_df(
+    events: list[MLBGameEvent],
+    *,
+    reference_date: date | None = None,
+) -> pd.DataFrame:
+    """Build one row per event with market-opened metadata."""
+    reference_date = reference_date or date.today()
+    tomorrow = reference_date + timedelta(days=1)
+    has_today_market = any(e.event_date == reference_date for e in events)
+    has_tomorrow_market = any(e.event_date == tomorrow for e in events)
+
+    rows = []
+    for e in events:
+        rows.append(
+            {
+                "event_date": e.event_date,
+                "away_team": e.away_team,
+                "home_team": e.home_team,
+                "market_opened_at": e.market_opened_at,
+                "game_time": e.game_time,
+                "slug": e.slug,
+                "market_count": len(e.markets),
+                "is_active": e.is_active,
+                "has_today_market": has_today_market,
+                "has_tomorrow_market": has_tomorrow_market,
+            }
+        )
     return pd.DataFrame(rows)
 
 
