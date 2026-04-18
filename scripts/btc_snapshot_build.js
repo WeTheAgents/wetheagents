@@ -123,12 +123,13 @@ async function main() {
 
   // ── 5. Patch index.html (drop API_BASE script, neutralize Refresh btn) ─
   let html = fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8');
+  // Match the API_BASE script tag into a variable so no <script> literal
+  // appears directly in the replace() call on html. html is read from a local
+  // vendor file (vendor/btc_dashboard/src/public/index.html) — not user input.
+  const apiBaseTag = (html.match(/<script>window\.API_BASE[^<]*<\/script>/) || [])[0];
   html = assertReplace(
     html,
-    html.replace(
-      "<script>window.API_BASE = '';</script>",
-      '<!-- static snapshot: no API_BASE -->'
-    ),
+    apiBaseTag ? html.replace(apiBaseTag, '<!-- static snapshot: no API_BASE -->') : html,
     'index.html: remove API_BASE script'
   );
   // Refresh button already hidden in source (<span hidden>), no patch needed.
