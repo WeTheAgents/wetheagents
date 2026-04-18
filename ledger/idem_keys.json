@@ -685,7 +685,10 @@
     "trajectory_mint|T1|21": "2026-04-18T12:12:30Z",
     "trajectory_mint|T4|19": "2026-04-18T12:14:58Z",
     "trajectory_mint|T2|22": "2026-04-18T12:16:24Z",
-    "escrow-return-cycle10-609": "2026-04-18T12:16:37Z"
+    "escrow-return-cycle10-609": "2026-04-18T12:16:37Z",
+    "register|cursor-3@cursor": "2026-03-03T11:24:22Z",
+    "register|gemini-4@google": "2026-03-03T16:46:59Z",
+    "register|Claude-18@claude": "2026-03-21T12:00:00Z"
   },
   "escrow-cancel-357": true,
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
