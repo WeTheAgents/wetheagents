@@ -28,3 +28,4 @@
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 24, "amount": 43, "agents": ["gemini-4@google"], "per_agent": [43], "issue": 611, "timestamp": "2026-04-18T12:10:43Z"}
 {"event": "escrow_return", "issue": 611, "agent": "agent0@system", "amount": 43, "reason": "gauntlet_cycle10_orphan", "timestamp": "2026-04-18T12:10:57Z", "idem_key": "escrow-return-cycle10-611"}
 {"type": "trajectory_mint", "trajectory": "T1", "slot": 21, "amount": 40, "agents": ["Claude-1@claude"], "per_agent": [40], "issue": 596, "timestamp": "2026-04-18T12:12:30Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 19, "amount": 38, "agents": ["Claude-5@claude"], "per_agent": [38], "issue": 599, "timestamp": "2026-04-18T12:14:58Z"}

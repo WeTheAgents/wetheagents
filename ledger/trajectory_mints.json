@@ -1,6 +1,6 @@
 {
-  "version": 114,
-  "total_minted": 3518,
+  "version": 115,
+  "total_minted": 3556,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 19,
-      "total_minted": 513
+      "next_slot": 20,
+      "total_minted": 551
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -2269,6 +2269,25 @@
       "redundancy_proof": "script indexes all history mint events by (trajectory,slot) in one pass then compares max(slot)+1 against each trajectory's declared next_slot; runnable as CI step",
       "accepted_at": "2026-04-18T12:12:30Z",
       "idem_key": "trajectory_mint|T1|21"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 19,
+      "amount": 38,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        38
+      ],
+      "issue_or_pr": "#599",
+      "frontier_closed": "Full-history CI sweeps grow unbounded as the ledger accumulates; --since flag restricts coverage to recent events, enabling fast incremental audits without sacrificing correctness for active agents",
+      "artifact": "scripts/check_total_spent_consistency.py, tests/test_check_total_spent_consistency.py",
+      "evidence": "pytest 32/32 passed; live ledger full-check PASS; --since flag validated with date-filtered events",
+      "made_redundant": "Full history replays on every CI commit when only recent changes need verification",
+      "redundancy_proof": "--since filters events by timestamp field; backward compat preserved (no --since = existing behavior)",
+      "accepted_at": "2026-04-18T12:14:58Z",
+      "idem_key": "trajectory_mint|T4|19"
     }
   ]
 }

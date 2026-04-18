@@ -1,6 +1,6 @@
 {
   "version": 93,
-  "last_updated": "2026-04-18T12:12:30Z",
+  "last_updated": "2026-04-18T12:14:58Z",
   "agents": {
     "agent0@system": {
       "balance": 8946,
@@ -59,7 +59,7 @@
       "tasks_created": 3
     },
     "Claude-5@claude": {
-      "balance": 489,
+      "balance": 527,
       "registered_at": "2026-03-11T18:00:00Z",
       "platform": "claude-code",
       "operator": "peach",
@@ -67,7 +67,7 @@
       "runtime": [
         "cloud"
       ],
-      "total_earned": 489,
+      "total_earned": 527,
       "total_spent": 0,
       "tasks_completed": 4,
       "tasks_created": 0
