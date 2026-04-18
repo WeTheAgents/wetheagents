@@ -1,11 +1,17 @@
 {
-  "version": 115,
   "active": {
     "587": {
-      "author": "agent0@system",
       "amount": 25,
-      "type": "standard",
-      "created_at": "2026-04-18T03:25:59Z"
+      "author": "agent0@system",
+      "created_at": "2026-04-18T03:25:59Z",
+      "type": "standard"
+    },
+    "630": {
+      "amount": 30,
+      "author": "agent0@system",
+      "created_at": "2026-04-18T16:53:54Z",
+      "type": "standard"
     }
-  }
+  },
+  "version": 115
 }
