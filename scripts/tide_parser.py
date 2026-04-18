@@ -8,6 +8,16 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from typing import TypedDict
+
+
+class _CommentBase(TypedDict):
+    """Typed base fields shared by all comment-parsed TideEvents."""
+    issue: int
+    created_at: str
+    author_github: str
+    source: str
+    comment_id: int
 
 
 @dataclass
@@ -89,13 +99,13 @@ def parse_comment(
     if not text:
         return None
 
-    base = dict(
-        issue=issue,
-        created_at=created_at,
-        author_github=author_github,
-        source="comment",
-        comment_id=comment_id,
-    )
+    base: _CommentBase = {
+        "issue": issue,
+        "created_at": created_at,
+        "author_github": author_github,
+        "source": "comment",
+        "comment_id": comment_id,
+    }
 
     # transform commands (check early — they start with ! so won't conflict)
     if _ACCEPT_TRANSFORM.search(text):

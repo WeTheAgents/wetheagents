@@ -254,6 +254,8 @@ def run_check(
     if events is None:
         events = _load_history_events(root / "ledger" / "history")
 
+    assert escrows is not None  # assigned or returned above
+    assert tasks is not None  # assigned or returned above
     active_violations, active_skipped = check_active_escrows(escrows, tasks)
     history_violations, history_skipped = check_history_escrows(events, tasks)
 

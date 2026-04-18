@@ -87,6 +87,7 @@ def _fetch_comments(issue: int) -> list[dict]:
 def _post_comment(issue: int, payload: dict) -> None:
     """Post a JSON line comment. Retries once on failure."""
     body = json.dumps(payload, separators=(",", ":"))
+    last_stderr = ""
     for attempt in range(2):
         result = subprocess.run(
             ["gh", "issue", "comment", str(issue), "--repo", REPO, "--body", body],
@@ -94,9 +95,10 @@ def _post_comment(issue: int, payload: dict) -> None:
         )
         if result.returncode == 0:
             return
+        last_stderr = result.stderr.strip()
         if attempt == 0:
             time.sleep(2)
-    raise RuntimeError(f"failed to post comment: {result.stderr.strip()}")
+    raise RuntimeError(f"failed to post comment: {last_stderr}")
 
 
 # ── Lock state ───────────────────────────────────────────────

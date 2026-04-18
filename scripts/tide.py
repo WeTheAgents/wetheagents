@@ -479,6 +479,7 @@ class TideProcessor:
         msg = f"Task validated. {reward} WEA escrowed from `{agent}`."
         if rtype == "progressive":
             n = ev.slots
+            assert n is not None  # slots required for progressive tasks
             msg += (
                 f"\nFibonacci schedule: {n} slots, "
                 f"slot 1 = 1 WEA → slot {n} = {fib(n)} WEA."
@@ -897,6 +898,8 @@ class TideProcessor:
             return False
 
         winner = ev.agent
+        if winner is None:
+            return False
         participants = escrow.get("participants", [])
         pro = escrow.get("pro")
         con = escrow.get("con")
