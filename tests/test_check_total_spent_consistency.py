@@ -1,7 +1,7 @@
 """Tests for scripts/check_total_spent_consistency.py.
 
 All tests are fully in-memory; no real ledger files are accessed.
-Minimum 12 test cases covering all spec-required scenarios.
+Minimum 18 test cases: 12 original + 6+ covering the --since flag.
 """
 
 from __future__ import annotations
@@ -285,7 +285,7 @@ def test_main_pass_clean_ledger(
 
     monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
 
-    exit_code = main()
+    exit_code = main(argv=[])
     captured = capsys.readouterr()
     result = json.loads(captured.out)
 
@@ -320,7 +320,7 @@ def test_main_fail_diverging_ledger(
 
     monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
 
-    exit_code = main()
+    exit_code = main(argv=[])
     captured = capsys.readouterr()
     result = json.loads(captured.out)
 
@@ -339,7 +339,7 @@ def test_main_missing_balances_json(
 
     monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
 
-    exit_code = main()
+    exit_code = main(argv=[])
     captured = capsys.readouterr()
     result = json.loads(captured.out)
 
@@ -376,9 +376,182 @@ def test_main_concatenated_objects_on_one_line(
 
     monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
 
-    exit_code = main()
+    exit_code = main(argv=[])
     captured = capsys.readouterr()
     result = json.loads(captured.out)
 
     assert exit_code == 0
     assert result["status"] == "PASS"
+
+
+# ---------------------------------------------------------------------------
+# --since flag tests (6 required + 2 bonus)
+# ---------------------------------------------------------------------------
+
+
+def _escrow_create_ts(
+    author: str,
+    amount: int,
+    timestamp: str,
+    issue: int = 1,
+) -> dict[str, Any]:
+    """Build an escrow_create event with an explicit timestamp."""
+    return {
+        "type": "escrow_create",
+        "author": author,
+        "amount": amount,
+        "timestamp": timestamp,
+        "issue": issue,
+    }
+
+
+def test_since_filters_older_events() -> None:
+    """Agent with only pre-since events is skipped; result is PASS with 0 agents."""
+    events = [_escrow_create_ts("alice@x", 50, "2026-01-15T00:00:00Z", issue=1)]
+    from datetime import date
+    since = date(2026, 4, 1)
+    computed = compute_total_spent(events, since=since)
+    # alice has no qualifying events — must not appear in computed
+    assert "alice@x" not in computed
+    stored = {"alice@x": _agent(total_spent=50)}
+    status, divergences, summary = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+    assert "0 agents checked" in summary
+
+
+def test_since_includes_boundary_date() -> None:
+    """Event whose timestamp exactly equals the since date IS included."""
+    since_str = "2026-04-01"
+    events = [_escrow_create_ts("alice@x", 20, f"{since_str}T00:00:00Z", issue=1)]
+    from datetime import date
+    since = date.fromisoformat(since_str)
+    computed = compute_total_spent(events, since=since)
+    assert computed.get("alice@x") == 20
+    stored = {"alice@x": _agent(total_spent=20)}
+    status, divergences, _ = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+
+
+def test_since_no_matching_events_empty_pass() -> None:
+    """No events on or after --since → all agents skipped → trivial PASS."""
+    events = [
+        _escrow_create_ts("alice@x", 50, "2026-01-01T00:00:00Z"),
+        _escrow_create_ts("bob@x", 30, "2026-02-01T00:00:00Z"),
+    ]
+    from datetime import date
+    since = date(2099, 1, 1)  # far future — nothing qualifies
+    computed = compute_total_spent(events, since=since)
+    assert computed == {}
+    stored = {
+        "alice@x": _agent(total_spent=50),
+        "bob@x": _agent(total_spent=30),
+    }
+    status, divergences, summary = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+    assert "0 agents checked" in summary
+
+
+def test_since_omitted_full_check_backward_compat() -> None:
+    """Omitting --since runs the full history check (backward compat)."""
+    events = [
+        _escrow_create_ts("alice@x", 100, "2025-06-01T00:00:00Z"),
+        _escrow_create_ts("alice@x", 50, "2026-04-01T00:00:00Z"),
+    ]
+    computed = compute_total_spent(events)  # no since
+    assert computed.get("alice@x") == 150
+    stored = {"alice@x": _agent(total_spent=150)}
+    status, divergences, _ = check_consistency(stored, computed)  # no since
+    assert status == "PASS"
+    assert divergences == []
+
+
+def test_since_mix_old_and_new_only_new_counted() -> None:
+    """Agent with both old and new events: only new events contribute to computed."""
+    events = [
+        _escrow_create_ts("alice@x", 50, "2026-01-01T00:00:00Z", issue=1),  # old
+        _escrow_create_ts("alice@x", 30, "2026-04-15T00:00:00Z", issue=2),  # new
+    ]
+    from datetime import date
+    since = date(2026, 4, 1)
+    computed = compute_total_spent(events, since=since)
+    # Only the new (30) event is counted; old (50) is excluded
+    assert computed.get("alice@x") == 30
+    # Stored reflects only what the new event contributes
+    stored = {"alice@x": _agent(total_spent=30)}
+    status, divergences, _ = check_consistency(stored, computed, since=since)
+    assert status == "PASS"
+    assert divergences == []
+
+
+def test_since_divergence_detected_in_new_events() -> None:
+    """Divergence from a post-since event is detected even if old events matched."""
+    events = [
+        _escrow_create_ts("alice@x", 50, "2026-01-01T00:00:00Z", issue=1),  # old
+        _escrow_create_ts("alice@x", 30, "2026-04-15T00:00:00Z", issue=2),  # new
+    ]
+    from datetime import date
+    since = date(2026, 4, 1)
+    computed = compute_total_spent(events, since=since)
+    assert computed.get("alice@x") == 30
+    # Stored does not reflect the new 30 (inconsistency introduced by new event)
+    stored = {"alice@x": _agent(total_spent=50)}
+    status, divergences, _ = check_consistency(stored, computed, since=since)
+    assert status == "FAIL"
+    assert len(divergences) == 1
+    assert divergences[0]["agent"] == "alice@x"
+    assert divergences[0]["computed"] == 30
+    assert divergences[0]["recorded"] == 50
+
+
+def test_since_output_has_since_field(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """JSON output includes a 'since' field showing the applied filter date."""
+    import check_total_spent_consistency as mod
+
+    ledger_dir = tmp_path / "ledger"
+    ledger_dir.mkdir()
+    history_dir = ledger_dir / "history"
+    history_dir.mkdir()
+
+    balances = {"version": 1, "agents": {}}
+    (ledger_dir / "balances.json").write_text(json.dumps(balances), encoding="utf-8")
+    monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
+
+    exit_code = main(argv=["--since", "2026-04-01"])
+    captured = capsys.readouterr()
+    result = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert result["status"] == "PASS"
+    assert result["since"] == "2026-04-01"
+
+
+def test_since_null_when_not_provided(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture,
+) -> None:
+    """JSON output has 'since': null when --since is not provided."""
+    import check_total_spent_consistency as mod
+
+    ledger_dir = tmp_path / "ledger"
+    ledger_dir.mkdir()
+    history_dir = ledger_dir / "history"
+    history_dir.mkdir()
+
+    balances = {"version": 1, "agents": {}}
+    (ledger_dir / "balances.json").write_text(json.dumps(balances), encoding="utf-8")
+    monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
+
+    exit_code = main(argv=[])
+    captured = capsys.readouterr()
+    result = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert result["since"] is None
