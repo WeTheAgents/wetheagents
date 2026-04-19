@@ -24,68 +24,48 @@ def _epoch(year: int, month: int, day: int, hour: int, minute: int = 0) -> int:
     return int(dt.timestamp())
 
 
-def _patch_repo(
+def _patch_balances(
     monkeypatch: pytest.MonkeyPatch,
     *,
-    current_files: dict[str, dict[str, object]],
-    history_by_path: dict[str, list[tuple[str, int]]],
-    committed_files: dict[tuple[str, str], dict[str, object]],
+    current: dict[str, object] | None,
+    history: list[tuple[str, int]],
+    previous: dict[str, object] | None = None,
 ) -> None:
-    def fake_list_versioned(_root: Path) -> list[str]:
-        return sorted(
-            rel_path
-            for rel_path, data in current_files.items()
-            if isinstance(data, dict) and "version" in data
-        )
-
-    def fake_load_worktree_json(path: Path) -> dict[str, object]:
-        rel_path = path.relative_to(ROOT).as_posix()
-        return current_files[rel_path]
-
-    def fake_git_log(_root: str, rel_path: str) -> tuple[tuple[str, int], ...]:
-        return tuple(history_by_path.get(rel_path, []))
-
-    def fake_git_show_json(_root: str, commit: str, rel_path: str) -> dict[str, object]:
-        return committed_files[(rel_path, commit)]
-
     original_exists = Path.exists
 
     def fake_exists(path: Path) -> bool:
         if path == ROOT / check_version_drift.BALANCES_PATH:
-            return check_version_drift.BALANCES_PATH in current_files
+            return current is not None
         return original_exists(path)
 
-    monkeypatch.setattr(check_version_drift, "list_versioned_ledger_files", fake_list_versioned)
+    def fake_load_worktree_json(path: Path) -> dict[str, object]:
+        rel_path = path.relative_to(ROOT).as_posix()
+        assert rel_path == check_version_drift.BALANCES_PATH
+        assert current is not None
+        return current
+
+    def fake_git_log(_root: str, rel_path: str) -> tuple[tuple[str, int], ...]:
+        assert rel_path == check_version_drift.BALANCES_PATH
+        return tuple(history)
+
+    def fake_git_show_json(_root: str, commit: str, rel_path: str) -> dict[str, object]:
+        assert rel_path == check_version_drift.BALANCES_PATH
+        assert previous is not None
+        assert commit == history[-2][0]
+        return previous
+
+    monkeypatch.setattr(Path, "exists", fake_exists)
     monkeypatch.setattr(check_version_drift, "_load_worktree_json", fake_load_worktree_json)
     monkeypatch.setattr(check_version_drift, "_git_log", fake_git_log)
     monkeypatch.setattr(check_version_drift, "_git_show_json", fake_git_show_json)
-    monkeypatch.setattr(Path, "exists", fake_exists)
 
 
 def test_clean_monotonic_versions_pass(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={
-            "ledger/balances.json": {
-                "version": 3,
-                "last_updated": _iso(2026, 1, 1, 12),
-                "agents": {},
-            }
-        },
-        history_by_path={
-            "ledger/balances.json": [
-                ("c1", _epoch(2026, 1, 1, 10)),
-                ("c2", _epoch(2026, 1, 1, 11)),
-                ("c3", _epoch(2026, 1, 1, 12)),
-            ]
-        },
-        committed_files={
-            ("ledger/balances.json", "c2"): {
-                "version": 2,
-                "last_updated": _iso(2026, 1, 1, 11),
-                "agents": {},
-            }
-        },
+        current={"version": 3, "last_updated": _iso(2026, 1, 1, 12), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11)), ("c3", _epoch(2026, 1, 1, 12))],
+        previous={"version": 2, "last_updated": _iso(2026, 1, 1, 11), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -97,28 +77,11 @@ def test_clean_monotonic_versions_pass(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_version_reuse_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={
-            "ledger/balances.json": {
-                "version": 1,
-                "last_updated": _iso(2026, 1, 1, 11),
-                "agents": {},
-            }
-        },
-        history_by_path={
-            "ledger/balances.json": [
-                ("c1", _epoch(2026, 1, 1, 10)),
-                ("c2", _epoch(2026, 1, 1, 11)),
-            ]
-        },
-        committed_files={
-            ("ledger/balances.json", "c1"): {
-                "version": 1,
-                "last_updated": _iso(2026, 1, 1, 10),
-                "agents": {},
-            }
-        },
+        current={"version": 1, "last_updated": _iso(2026, 1, 1, 11), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"version": 1, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -128,28 +91,11 @@ def test_version_reuse_fails(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_version_skip_greater_than_one_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={
-            "ledger/balances.json": {
-                "version": 3,
-                "last_updated": _iso(2026, 1, 1, 11),
-                "agents": {},
-            }
-        },
-        history_by_path={
-            "ledger/balances.json": [
-                ("c1", _epoch(2026, 1, 1, 10)),
-                ("c2", _epoch(2026, 1, 1, 11)),
-            ]
-        },
-        committed_files={
-            ("ledger/balances.json", "c1"): {
-                "version": 1,
-                "last_updated": _iso(2026, 1, 1, 10),
-                "agents": {},
-            }
-        },
+        current={"version": 3, "last_updated": _iso(2026, 1, 1, 11), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"version": 1, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -160,28 +106,11 @@ def test_version_skip_greater_than_one_fails(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_backdated_last_updated_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={
-            "ledger/balances.json": {
-                "version": 2,
-                "last_updated": _iso(2026, 1, 1, 9, 59),
-                "agents": {},
-            }
-        },
-        history_by_path={
-            "ledger/balances.json": [
-                ("c1", _epoch(2026, 1, 1, 10)),
-                ("c2", _epoch(2026, 1, 1, 11)),
-            ]
-        },
-        committed_files={
-            ("ledger/balances.json", "c1"): {
-                "version": 1,
-                "last_updated": _iso(2026, 1, 1, 10),
-                "agents": {},
-            }
-        },
+        current={"version": 2, "last_updated": _iso(2026, 1, 1, 9, 59), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"version": 1, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -193,17 +122,10 @@ def test_backdated_last_updated_fails(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_first_commit_passes(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={
-            "ledger/balances.json": {
-                "version": 1,
-                "last_updated": _iso(2026, 1, 1, 10),
-                "agents": {},
-            }
-        },
-        history_by_path={"ledger/balances.json": [("c1", _epoch(2026, 1, 1, 10))]},
-        committed_files={},
+        current={"version": 1, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10))],
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -214,51 +136,28 @@ def test_first_commit_passes(monkeypatch: pytest.MonkeyPatch) -> None:
     assert payload["timestamp_drift"] == []
 
 
-def test_pre_version_history_is_tolerated_until_versioning_begins(
+def test_previous_snapshot_without_version_is_treated_as_baseline(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={"ledger/idem_keys.json": {"version": 1, "keys": []}},
-        history_by_path={
-            "ledger/idem_keys.json": [
-                ("c1", _epoch(2026, 1, 1, 10)),
-                ("c2", _epoch(2026, 1, 1, 11)),
-            ]
-        },
-        committed_files={("ledger/idem_keys.json", "c1"): {"keys": []}},
+        current={"version": 1, "last_updated": _iso(2026, 1, 1, 11), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"last_updated": _iso(2026, 1, 1, 10), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
 
     assert passed is True
-    assert payload["status"] == "PASS"
     assert payload["files_checked"][0]["previous_version"] is None
 
 
 def test_version_decrease_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={
-            "ledger/balances.json": {
-                "version": 2,
-                "last_updated": _iso(2026, 1, 1, 11),
-                "agents": {},
-            }
-        },
-        history_by_path={
-            "ledger/balances.json": [
-                ("c1", _epoch(2026, 1, 1, 10)),
-                ("c2", _epoch(2026, 1, 1, 11)),
-            ]
-        },
-        committed_files={
-            ("ledger/balances.json", "c1"): {
-                "version": 3,
-                "last_updated": _iso(2026, 1, 1, 10),
-                "agents": {},
-            }
-        },
+        current={"version": 2, "last_updated": _iso(2026, 1, 1, 11), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"version": 3, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -271,22 +170,11 @@ def test_version_decrease_fails(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_missing_last_updated_after_first_commit_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={"ledger/balances.json": {"version": 2, "agents": {}}},
-        history_by_path={
-            "ledger/balances.json": [
-                ("c1", _epoch(2026, 1, 1, 10)),
-                ("c2", _epoch(2026, 1, 1, 11)),
-            ]
-        },
-        committed_files={
-            ("ledger/balances.json", "c1"): {
-                "version": 1,
-                "last_updated": _iso(2026, 1, 1, 10),
-                "agents": {},
-            }
-        },
+        current={"version": 2, "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"version": 1, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -297,58 +185,12 @@ def test_missing_last_updated_after_first_commit_fails(monkeypatch: pytest.Monke
     )
 
 
-def test_multiple_files_aggregate_failures(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
-        monkeypatch,
-        current_files={
-            "ledger/balances.json": {
-                "version": 2,
-                "last_updated": _iso(2026, 1, 1, 11),
-                "agents": {},
-            },
-            "ledger/task_index.json": {"version": 1, "tasks": {}},
-        },
-        history_by_path={
-            "ledger/balances.json": [
-                ("b1", _epoch(2026, 1, 1, 10)),
-                ("b2", _epoch(2026, 1, 1, 11)),
-            ],
-            "ledger/task_index.json": [
-                ("t1", _epoch(2026, 1, 1, 10)),
-                ("t2", _epoch(2026, 1, 1, 11)),
-            ],
-        },
-        committed_files={
-            ("ledger/balances.json", "b1"): {
-                "version": 1,
-                "last_updated": _iso(2026, 1, 1, 10),
-                "agents": {},
-            },
-            ("ledger/task_index.json", "t1"): {"version": 1, "tasks": {}},
-        },
-    )
-
-    payload, passed = check_version_drift.run(ROOT)
-
-    assert passed is False
-    assert {row["path"] for row in payload["files_checked"]} == {
-        "ledger/balances.json",
-        "ledger/task_index.json",
-    }
-    assert any(issue["file"] == "ledger/task_index.json" for issue in payload["version_drift"])
-
-
 def test_current_non_integer_version_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_repo(
+    _patch_balances(
         monkeypatch,
-        current_files={"ledger/task_index.json": {"version": "2", "tasks": {}}},
-        history_by_path={
-            "ledger/task_index.json": [
-                ("t1", _epoch(2026, 1, 1, 10)),
-                ("t2", _epoch(2026, 1, 1, 11)),
-            ]
-        },
-        committed_files={("ledger/task_index.json", "t1"): {"version": 1, "tasks": {}}},
+        current={"version": "2", "last_updated": _iso(2026, 1, 1, 11), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"version": 1, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
     )
 
     payload, passed = check_version_drift.run(ROOT)
@@ -378,13 +220,10 @@ def test_main_emits_json_and_exit_code(
 
 
 def test_run_returns_fail_payload_on_git_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    def boom(_root: Path) -> list[str]:
-        raise RuntimeError("git log failed for ledger/balances.json: boom")
-
-    monkeypatch.setattr(check_version_drift, "list_versioned_ledger_files", boom)
+    monkeypatch.setattr(check_version_drift, "inspect_balances", lambda root: (_ for _ in ()).throw(RuntimeError("git log failed")))
 
     payload, passed = check_version_drift.run(ROOT)
 
     assert passed is False
     assert payload["status"] == "FAIL"
-    assert payload["error"] == "git log failed for ledger/balances.json: boom"
+    assert payload["error"] == "git log failed"
