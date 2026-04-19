@@ -1,6 +1,6 @@
 {
   "version": 126,
-  "total_minted": 4082,
+  "total_minted": 4125,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 24,
-      "total_minted": 713
+      "next_slot": 25,
+      "total_minted": 756
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -2535,6 +2535,25 @@
       "redundancy_proof": "A write that crashed after idem_keys update but before history flush is invisible to check_invariant.py; this script detects it",
       "accepted_at": "2026-04-19T03:14:09Z",
       "idem_key": "trajectory_mint|T3|21"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 24,
+      "amount": 43,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        43
+      ],
+      "issue_or_pr": "#632",
+      "frontier_closed": "Multi-agent race conditions in claim chain: overlapping timestamps, post-close submissions, payment-before-claim temporal violations",
+      "artifact": "tests/test_check_claim_chain_integrity_race_conditions.py",
+      "evidence": "PR #644 merged. 3/3 race condition tests pass.",
+      "made_redundant": "Manual audit of concurrent claim timestamps in history/*.jsonl",
+      "redundancy_proof": "Payment before escrow_create passes point-in-time check but fails temporal ordering test",
+      "accepted_at": "2026-04-19T03:28:15Z",
+      "idem_key": "trajectory_mint|T2|24"
     }
   ]
 }
