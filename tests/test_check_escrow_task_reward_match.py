@@ -279,3 +279,134 @@ def test_real_ledger_passes(tmp_path: Path) -> None:
     assert result["status"] == "PASS", (
         f"Real ledger check failed:\n{result}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Edge-case regression tests (T4S21)
+# ---------------------------------------------------------------------------
+
+def test_active_progressive_paid_count_exceeds_slots_fail() -> None:
+    """Progressive escrow: paid_count(3) > slots(2) — overpay scenario → FAIL.
+
+    When paid_count exceeds slots the escrow amount can exceed the task reward
+    ceiling (e.g. re-escrowed after a bug). The checker catches this via the
+    progressive ceiling check (amount > task_reward).
+
+    Note: the checker does not inspect paid_count or slots directly; the
+    detectable signal is escrow_amount > task_reward. This test documents
+    that the ceiling violation is correctly reported in the overpay scenario.
+    """
+    result = _run(
+        active={"308": {"amount": 12, "type": "progressive", "slots": 2, "paid_count": 3}},
+        task_entries={"308": {"reward": 10, "mechanic": "progressive"}},
+    )
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+    v = result["violations"][0]
+    assert v["source"] == "active"
+    assert v["issue"] == "308"
+    assert v["escrow_amount"] == 12
+    assert v["expected_reward"] == 10
+    assert "progressive" in v["detail"]
+
+
+def test_active_duel_participants_non_list_fail() -> None:
+    """Duel escrow with participants stored as string (not a list) → FAIL.
+
+    The checker does not validate the participants field format, but it still
+    evaluates the amount against the task reward. A malformed participants
+    value must not cause a silent skip or crash — the amount mismatch is
+    correctly reported as a violation.
+    frontier_closed: malformed duel metadata does not suppress amount checks.
+    """
+    result = _run(
+        active={"150": {"amount": 40, "type": "duel", "participants": "agent1,agent2"}},
+        task_entries={"150": {"reward_wea": 30}},
+    )
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+    v = result["violations"][0]
+    assert v["source"] == "active"
+    assert v["issue"] == "150"
+    assert v["escrow_amount"] == 40
+    assert v["expected_reward"] == 30
+
+
+def test_active_duel_participants_empty_list_fail() -> None:
+    """Duel escrow with empty participants list → FAIL.
+
+    An empty participants list is semantically invalid for a duel (no
+    competitors). The checker does not validate participants but still reports
+    the amount mismatch. Regression: empty list must not cause a skip.
+    frontier_closed: empty duel participants list does not suppress amount checks.
+    """
+    result = _run(
+        active={"151": {"amount": 50, "type": "duel", "participants": []}},
+        task_entries={"151": {"reward_wea": 30}},
+    )
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+    v = result["violations"][0]
+    assert v["source"] == "active"
+    assert v["issue"] == "151"
+    assert v["escrow_amount"] == 50
+    assert v["expected_reward"] == 30
+
+
+def test_active_wta_amount_mismatch_fail() -> None:
+    """WTA escrow amount != task reward in task_index → FAIL.
+
+    winner_take_all (type='wta') is not in _PARTIAL_ESCROW_TYPES, so an
+    exact match is required. An under-escrowed WTA task must be flagged.
+    frontier_closed: WTA escrow underpay is a spec violation, not a skip.
+    """
+    result = _run(
+        active={"200": {"amount": 25, "type": "wta"}},
+        task_entries={"200": {"reward_wea": 50}},
+    )
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+    v = result["violations"][0]
+    assert v["source"] == "active"
+    assert v["issue"] == "200"
+    assert v["escrow_amount"] == 25
+    assert v["expected_reward"] == 50
+
+
+def test_active_unknown_mechanic_mismatch_fail() -> None:
+    """Escrow for task with unknown/unrecognized mechanic type, amount mismatch → FAIL.
+
+    Unknown types are not in _PARTIAL_ESCROW_TYPES, so they fall through to
+    the exact-match branch. Amount mismatch is reported as a violation.
+    frontier_closed: unknown mechanic does not yield a graceful skip —
+    it is treated as exact-match and can still FAIL.
+    """
+    result = _run(
+        active={"777": {"amount": 30, "type": "mystery_mechanic"}},
+        task_entries={"777": {"reward_wea": 25}},
+    )
+    assert result["status"] == "FAIL"
+    assert len(result["violations"]) == 1
+    v = result["violations"][0]
+    assert v["source"] == "active"
+    assert v["issue"] == "777"
+    assert v["escrow_amount"] == 30
+    assert v["expected_reward"] == 25
+
+
+def test_active_unknown_mechanic_exact_match_pass() -> None:
+    """Escrow for unknown/unrecognized mechanic type, amount matches → PASS (graceful).
+
+    Documents the other side of unknown-mechanic behavior: when the amount
+    happens to match, the checker passes without error or skip. Unknown types
+    are not distinguished from standard exact-match types.
+    frontier_closed: unknown mechanic with correct amount is a graceful pass,
+    not an error — the spec does not require recognition of all mechanic names.
+    """
+    result = _run(
+        active={"778": {"amount": 25, "type": "mystery_mechanic"}},
+        task_entries={"778": {"reward_wea": 25}},
+    )
+    assert result["status"] == "PASS"
+    assert result["violations"] == []
+    assert result["skipped"] == []
