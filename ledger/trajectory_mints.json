@@ -1,6 +1,6 @@
 {
-  "version": 125,
-  "total_minted": 3955,
+  "version": 126,
+  "total_minted": 4000,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 26,
-      "total_minted": 800
+      "next_slot": 27,
+      "total_minted": 845
     }
   },
   "mints": [
@@ -2478,6 +2478,25 @@
       "redundancy_proof": "6 new tests inject structurally corrupt escrows and verify checker catches violations or documents graceful pass",
       "accepted_at": "2026-04-19T02:54:14Z",
       "idem_key": "trajectory_mint|T4|21"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 26,
+      "amount": 45,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        45
+      ],
+      "issue_or_pr": "#636",
+      "frontier_closed": "6 silent-write bypass vectors against history completeness scanning: multi-line JSON, wrong extension (.json vs .jsonl), case/space evasion in op field, array batch wrappers, partial escrow writes, future timestamp evasion",
+      "artifact": "tests/test_check_history_completeness_redteam.py (227 lines, 6 adversarial tests)",
+      "evidence": "6 adversarial tests written; skip pending T3S21 implementation; no bypasses succeeded against spec",
+      "made_redundant": "trust-without-verify posture on history completeness",
+      "redundancy_proof": "adversarial tests activate on T3S21 merge and fail if checker is absent or naive against each of 6 bypass classes",
+      "accepted_at": "2026-04-19T02:55:55Z",
+      "idem_key": "trajectory_mint|T6|26"
     }
   ]
 }
