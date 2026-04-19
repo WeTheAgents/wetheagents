@@ -36,23 +36,24 @@ def run_checker(ledger_dir: Path) -> subprocess.CompletedProcess:
         text=True
     )
 
-def setup_synthetic_ledger(tmp_path: Path, balances: dict, escrows: dict, history_lines: list, history_filename: str = "2026-03-01.jsonl"):
+def setup_synthetic_ledger(tmp_path: Path, balances: dict, escrows: dict, history_lines: list, history_filename: str = "2026-03-01.jsonl", idem_keys: dict | None = None):
     """Set up a synthetic ledger directory structure."""
     ledger_dir = tmp_path / "ledger"
     ledger_dir.mkdir()
     history_dir = ledger_dir / "history"
     history_dir.mkdir()
-    
+
     (ledger_dir / "balances.json").write_text(json.dumps(balances))
-    (ledger_dir / "escrows.json").write_text(json.dumps(escrows))
-    (ledger_dir / "trajectory_mints.json").write_text("[]")
-    
+    (ledger_dir / "escrows.json").write_text(json.dumps({"active": escrows, "version": 1}))
+    (ledger_dir / "trajectory_mints.json").write_text(json.dumps({"mints": [], "trajectories": {}, "total_minted": 0}))
+    (ledger_dir / "idem_keys.json").write_text(json.dumps(idem_keys or {}))
+
     if history_lines:
         hist_file = history_dir / history_filename
         with open(hist_file, "w", encoding="utf-8") as f:
             for line in history_lines:
                 f.write(line + "\n")
-                
+
     return ledger_dir
 
 def test_bypass_multiline_json(tmp_path: Path):
@@ -76,12 +77,13 @@ def test_bypass_multiline_json(tmp_path: Path):
     bad_history = '{\n"type": "payment",\n"agent": "Agent1@test",\n"amount": 100\n}'
     
     ledger_dir = setup_synthetic_ledger(
-        tmp_path, 
-        balances=balances, 
-        escrows={}, 
-        history_lines=[bad_history]
+        tmp_path,
+        balances=balances,
+        escrows={},
+        history_lines=[bad_history],
+        idem_keys={"accept|1|Agent1@test": "2026-01-01T00:00:00Z"},
     )
-    
+
     result = run_checker(ledger_dir)
     assert result.returncode != 0, "Checker failed to detect multi-line JSON bypass"
 
@@ -104,13 +106,14 @@ def test_bypass_wrong_file_extension(tmp_path: Path):
     valid_history = '{"type": "payment", "agent": "Agent1@test", "amount": 100}'
     
     ledger_dir = setup_synthetic_ledger(
-        tmp_path, 
-        balances=balances, 
-        escrows={}, 
+        tmp_path,
+        balances=balances,
+        escrows={},
         history_lines=[valid_history],
-        history_filename="2026-03-01.json" # wrong extension!
+        history_filename="2026-03-01.json",  # wrong extension!
+        idem_keys={"accept|1|Agent1@test": "2026-01-01T00:00:00Z"},
     )
-    
+
     result = run_checker(ledger_dir)
     assert result.returncode != 0, "Checker failed to detect wrong file extension bypass"
 
@@ -132,12 +135,13 @@ def test_bypass_case_sensitivity(tmp_path: Path):
     tricky_history = '{"type": "payment ", "agent": "Agent1@test", "amount": 100}'
     
     ledger_dir = setup_synthetic_ledger(
-        tmp_path, 
-        balances=balances, 
-        escrows={}, 
-        history_lines=[tricky_history]
+        tmp_path,
+        balances=balances,
+        escrows={},
+        history_lines=[tricky_history],
+        idem_keys={"accept|1|Agent1@test": "2026-01-01T00:00:00Z"},
     )
-    
+
     result = run_checker(ledger_dir)
     assert result.returncode != 0, "Checker failed to detect case/space bypass"
 
@@ -163,12 +167,16 @@ def test_bypass_shared_history_entry(tmp_path: Path):
     batch_history = '{"type": "batch", "events": [{"type": "payment", "agent": "Agent1@test", "amount": 100}, {"type": "payment", "agent": "Agent2@test", "amount": 100}]}'
     
     ledger_dir = setup_synthetic_ledger(
-        tmp_path, 
-        balances=balances, 
-        escrows={}, 
-        history_lines=[batch_history]
+        tmp_path,
+        balances=balances,
+        escrows={},
+        history_lines=[batch_history],
+        idem_keys={
+            "accept|1|Agent1@test": "2026-01-01T00:00:00Z",
+            "accept|2|Agent2@test": "2026-01-01T00:00:00Z",
+        },
     )
-    
+
     result = run_checker(ledger_dir)
     assert result.returncode != 0, "Checker failed to detect batch entry bypass"
 
@@ -186,12 +194,13 @@ def test_bypass_partial_escrow_write(tmp_path: Path):
     }
     # History has NO entry for this escrow
     ledger_dir = setup_synthetic_ledger(
-        tmp_path, 
-        balances={}, 
-        escrows=escrows, 
-        history_lines=[]
+        tmp_path,
+        balances={},
+        escrows=escrows,
+        history_lines=[],
+        idem_keys={"escrow_create_1_standard": "2026-01-01T00:00:00Z"},
     )
-    
+
     result = run_checker(ledger_dir)
     assert result.returncode != 0, "Checker failed to detect missing escrow history entry"
 
@@ -213,13 +222,14 @@ def test_bypass_future_timestamp(tmp_path: Path):
     valid_history = '{"type": "payment", "agent": "Agent1@test", "amount": 100}'
     
     ledger_dir = setup_synthetic_ledger(
-        tmp_path, 
-        balances=balances, 
-        escrows={}, 
+        tmp_path,
+        balances=balances,
+        escrows={},
         history_lines=[valid_history],
-        history_filename="2099-01-01.jsonl" # Future date
+        history_filename="2099-01-01.jsonl",  # Future date
+        idem_keys={"accept|1|Agent1@test": "2026-01-01T00:00:00Z"},
     )
-    
+
     result = run_checker(ledger_dir)
     # The checker should either fail because it refuses future dates,
     # or if it accepts it, another check must ensure strict chronological ordering.
