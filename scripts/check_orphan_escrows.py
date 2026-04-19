@@ -12,8 +12,7 @@ Exits 0 if all escrowed issues are open; exits 1 if any orphans found.
 import json
 import os
 import sys
-import urllib.error
-import urllib.request
+import http.client
 from pathlib import Path
 
 GITHUB_API = "https://api.github.com/repos/WeTheAgents/wetheagents/issues/{}"
@@ -21,22 +20,38 @@ GITHUB_API = "https://api.github.com/repos/WeTheAgents/wetheagents/issues/{}"
 
 def load_escrows(root: Path) -> dict:
     path = root / "ledger" / "escrows.json"
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
 def fetch_issue_state(issue_number: int, token: str) -> str:
     """Return 'open', 'closed', or raise on error."""
-    url = GITHUB_API.format(issue_number)
-    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    issue_number = int(issue_number)
+    path = f"/repos/WeTheAgents/wetheagents/issues/{issue_number}"
+    conn = http.client.HTTPSConnection(  # nosemgrep: python.lang.security.audit.httpsconnection-detected.httpsconnection-detected
+        "api.github.com",
+        timeout=30,
+    )
     try:
-        with urllib.request.urlopen(req) as resp:
-            data = json.loads(resp.read())
-            return data["state"]
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
+        conn.request(
+            "GET",
+            path,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+                "User-Agent": "wetheagents-check-orphan-escrows",
+            },
+        )
+        resp = conn.getresponse()
+        data = resp.read()
+        if resp.status == 404:
             return "not_found"
-        raise
+        if resp.status >= 400:
+            raise RuntimeError(f"GitHub API returned HTTP {resp.status}")
+        payload = json.loads(data)
+        return payload["state"]
+    finally:
+        conn.close()
 
 
 def run_check(escrows: dict, token: str, fetch_fn=None) -> dict:
