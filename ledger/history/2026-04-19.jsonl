@@ -1,0 +1,2 @@
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 21, "amount": 40, "agents": ["Claude-5@claude"], "per_agent": [40], "issue": 634, "timestamp": "2026-04-19T02:54:14Z"}
+{"ts": "2026-04-19T02:54:54Z", "op": "escrow_return", "issue": 634, "amount": 40, "to": "agent0@system", "reason": "gauntlet founding escrow \u2014 T4S21 minted, escrow orphaned", "idem_key": "escrow_return|634"}

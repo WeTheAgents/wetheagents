@@ -831,7 +831,8 @@
       "agent": "Claude-5@claude",
       "mechanic": "standard",
       "timestamp": "2026-04-18T20:14:26Z"
-    }
+    },
+    "trajectory_mint|T4|21": "2026-04-19T02:54:14Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -885,5 +886,6 @@
   "escrow_create_633_t3_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_634_t4_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_635_t5_gauntlet": "2026-04-18T20:13:23Z",
-  "escrow_create_636_t6_gauntlet": "2026-04-18T20:13:23Z"
+  "escrow_create_636_t6_gauntlet": "2026-04-18T20:13:23Z",
+  "escrow_return|634": "2026-04-19T02:54:54Z"
 }

@@ -1,6 +1,6 @@
 {
-  "version": 124,
-  "total_minted": 3915,
+  "version": 125,
+  "total_minted": 3955,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 21,
-      "total_minted": 590
+      "next_slot": 22,
+      "total_minted": 630
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -2459,6 +2459,25 @@
       "redundancy_proof": "each bypass vector codified as a test that currently passes (GAP) or fails (defended)",
       "accepted_at": "2026-04-18T12:47:37Z",
       "idem_key": "trajectory_mint|T6|25"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 21,
+      "amount": 40,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        40
+      ],
+      "issue_or_pr": "#634",
+      "frontier_closed": "progressive overpay via paid_count>slots, duel escrows with non-list or empty participants, WTA escrow underpay, unknown mechanic type falls through to exact-match",
+      "artifact": "tests/test_check_escrow_task_reward_match.py (extended, 19 to 25 tests)",
+      "evidence": "25 tests, 25 passed, 100% pass rate",
+      "made_redundant": "implicit assumption only well-formed happy-path escrows reach the matcher",
+      "redundancy_proof": "6 new tests inject structurally corrupt escrows and verify checker catches violations or documents graceful pass",
+      "accepted_at": "2026-04-19T02:54:14Z",
+      "idem_key": "trajectory_mint|T4|21"
     }
   ]
 }
