@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from datetime import date
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -21,6 +22,7 @@ from src.strategies import (
     find_tier1_picks,
     find_tier2_picks,
     find_tier3_picks,
+    find_under_picks,
 )
 
 
@@ -477,6 +479,146 @@ def test_over_bullpen_mismatch_not_triggered_by_ra_long_only():
         )
     )
     assert find_over_picks(df, TODAY) == []
+
+
+# ---------------------------------------------------------------------------
+# UNDER totals live bundle
+# ---------------------------------------------------------------------------
+
+
+def test_under_totals_base_band_emits_single_pick(monkeypatch):
+    from src.strategies import under_totals as under_module
+
+    under_frame = pd.DataFrame(
+        [
+            {
+                "date": pd.Timestamp("2026-04-12"),
+                "away_team": "AAA",
+                "home_team": "BBB",
+                "close_ou": 8.5,
+                "combined_rpg": 8.2,
+                "combined_rpg_last10": 7.9,
+                "rpg_vs_line": -0.3,
+                "bullpen_fip_7g_combined": 7.0,
+                "bullpen_ip_3d_combined": 8.0,
+                "sp_ra_floor_long": 3.8,
+                "sp_fip_combined": 7.1,
+                "hold_rate_combined": 1.04,
+            }
+        ]
+    )
+
+    class _Bundle:
+        fallback_ref_odds = 1.909
+        thresholds = {"under_totals": 0.53, "under_totals_power": 0.55}
+        modifier = {}
+
+    monkeypatch.setattr(under_module, "build_ou_features", lambda *, enriched: under_frame.copy())
+    monkeypatch.setattr(under_module, "load_under_live_bundle", lambda: _Bundle())
+    monkeypatch.setattr(
+        under_module,
+        "predict_under_bundle_proba",
+        lambda frame, bundle: np.array([0.54]),
+    )
+
+    picks = find_under_picks(_frame(_row()), TODAY)
+
+    assert len(picks) == 1
+    assert picks[0].tier == "under_totals"
+    assert picks[0].market == "O/U"
+    assert picks[0].side == "under"
+    assert picks[0].market_line == pytest.approx(8.5)
+
+
+def test_under_totals_power_band_survives_live_veto_gate(monkeypatch):
+    from src.strategies import under_totals as under_module
+
+    under_frame = pd.DataFrame(
+        [
+            {
+                "date": pd.Timestamp("2026-04-12"),
+                "away_team": "AAA",
+                "home_team": "BBB",
+                "close_ou": 7.5,
+                "combined_rpg": 7.0,
+                "combined_rpg_last10": 6.8,
+                "rpg_vs_line": -0.5,
+                "bullpen_fip_7g_combined": 9.5,
+                "bullpen_ip_3d_combined": 12.0,
+                "sp_ra_floor_long": 3.4,
+                "sp_fip_combined": 6.6,
+                "hold_rate_combined": 1.10,
+            }
+        ]
+    )
+
+    class _Bundle:
+        fallback_ref_odds = 1.909
+        thresholds = {"under_totals": 0.53, "under_totals_power": 0.55}
+        modifier = {
+            "apply_live": True,
+            "selected_thresholds_live": {
+                "bullpen_ip_3d_combined": 10.0,
+                "bullpen_fip_7g_combined": 8.0,
+            },
+        }
+
+    monkeypatch.setattr(under_module, "build_ou_features", lambda *, enriched: under_frame.copy())
+    monkeypatch.setattr(under_module, "load_under_live_bundle", lambda: _Bundle())
+    monkeypatch.setattr(
+        under_module,
+        "predict_under_bundle_proba",
+        lambda frame, bundle: np.array([0.56]),
+    )
+
+    picks = find_under_picks(_frame(_row()), TODAY)
+
+    assert len(picks) == 1
+    assert picks[0].tier == "under_totals_power"
+
+
+def test_under_totals_live_veto_only_blocks_marginal_band(monkeypatch):
+    from src.strategies import under_totals as under_module
+
+    under_frame = pd.DataFrame(
+        [
+            {
+                "date": pd.Timestamp("2026-04-12"),
+                "away_team": "AAA",
+                "home_team": "BBB",
+                "close_ou": 8.0,
+                "combined_rpg": 8.4,
+                "combined_rpg_last10": 8.1,
+                "rpg_vs_line": 0.1,
+                "bullpen_fip_7g_combined": 9.2,
+                "bullpen_ip_3d_combined": 12.4,
+                "sp_ra_floor_long": 4.2,
+                "sp_fip_combined": 8.0,
+                "hold_rate_combined": 1.00,
+            }
+        ]
+    )
+
+    class _Bundle:
+        fallback_ref_odds = 1.909
+        thresholds = {"under_totals": 0.53, "under_totals_power": 0.55}
+        modifier = {
+            "apply_live": True,
+            "selected_thresholds_live": {
+                "bullpen_ip_3d_combined": 10.0,
+                "bullpen_fip_7g_combined": 8.0,
+            },
+        }
+
+    monkeypatch.setattr(under_module, "build_ou_features", lambda *, enriched: under_frame.copy())
+    monkeypatch.setattr(under_module, "load_under_live_bundle", lambda: _Bundle())
+    monkeypatch.setattr(
+        under_module,
+        "predict_under_bundle_proba",
+        lambda frame, bundle: np.array([0.54]),
+    )
+
+    assert find_under_picks(_frame(_row()), TODAY) == []
 
 
 # ---------------------------------------------------------------------------

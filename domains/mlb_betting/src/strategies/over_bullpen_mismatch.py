@@ -105,6 +105,7 @@ def find_picks(games: pd.DataFrame, target_date: date) -> list[Pick]:
                 tier=TIER_BASE,
                 historical_p=P_BASE,
                 ref_odds_espn=REF_ODDS_OVER,
+                market_line=float(row["close_ou"]),
                 reason=base_reason,
                 feature_snapshot=snap,
             )
@@ -134,6 +135,7 @@ def find_picks(games: pd.DataFrame, target_date: date) -> list[Pick]:
                     tier=TIER_POWER,
                     historical_p=P_POWER,
                     ref_odds_espn=REF_ODDS_OVER,
+                    market_line=float(row["close_ou"]),
                     reason=power_reason,
                     feature_snapshot=snap,
                 )
