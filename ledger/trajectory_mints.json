@@ -1,6 +1,6 @@
 {
   "version": 126,
-  "total_minted": 4042,
+  "total_minted": 4082,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 21,
-      "total_minted": 590
+      "next_slot": 22,
+      "total_minted": 630
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -2516,6 +2516,25 @@
       "redundancy_proof": "check_invariant.py only checks current snapshot; check_history_balance_flow.py catches a retroactive correction that masks a prior negative balance",
       "accepted_at": "2026-04-19T03:02:44Z",
       "idem_key": "trajectory_mint|T1|23"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 21,
+      "amount": 40,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        40
+      ],
+      "issue_or_pr": "#633",
+      "frontier_closed": "Silent ledger writes \u2014 idem_key present but no history entry after crash between write and history flush",
+      "artifact": "scripts/check_history_completeness.py + tests/test_check_history_completeness.py",
+      "evidence": "PR #640 merged. 4/4 unit tests + 6/6 T6S26 redteam bypass tests pass. Real ledger PASS (132/51/61 records).",
+      "made_redundant": "Manual audit of idem_keys vs history/*.jsonl",
+      "redundancy_proof": "A write that crashed after idem_keys update but before history flush is invisible to check_invariant.py; this script detects it",
+      "accepted_at": "2026-04-19T03:14:09Z",
+      "idem_key": "trajectory_mint|T3|21"
     }
   ]
 }
