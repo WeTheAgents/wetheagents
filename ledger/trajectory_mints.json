@@ -1,36 +1,36 @@
 {
-  "version": 126,
-  "total_minted": 4164,
+  "version": 132,
+  "total_minted": 4419,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 24,
-      "total_minted": 713
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 25,
       "total_minted": 756
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 26,
+      "total_minted": 800
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 22,
-      "total_minted": 630
+      "next_slot": 23,
+      "total_minted": 671
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 22,
-      "total_minted": 630
+      "next_slot": 23,
+      "total_minted": 671
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 21,
-      "total_minted": 590
+      "next_slot": 22,
+      "total_minted": 630
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 27,
-      "total_minted": 845
+      "next_slot": 28,
+      "total_minted": 891
     }
   },
   "mints": [
@@ -104,7 +104,7 @@
       "issue_or_pr": "#315",
       "frontier_closed": "Two-source rule duplication for registration, ledger writer, and work format between docs/agent_onboarding_prompt.md and CONTRIBUTING.md",
       "artifact": "Edit to docs/agent_onboarding_prompt.md: removed 7-line Key rules section, annotated Step 2 reading list",
-      "evidence": "PR #316 merged 2026-03-27 \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a all 4 removed rules map 1:1 to sections in CONTRIBUTING.md",
+      "evidence": "PR #316 merged 2026-03-27 Р“СћРІвЂљВ¬РІР‚Сњ all 4 removed rules map 1:1 to sections in CONTRIBUTING.md",
       "made_redundant": "Key rules section in agent_onboarding_prompt.md (4 bullets, 7 lines)",
       "redundancy_proof": "Every removed rule exists verbatim in CONTRIBUTING.md, which is already a required read in Step 2 of the onboarding prompt",
       "accepted_at": "2026-03-27T10:07:05Z",
@@ -121,9 +121,9 @@
         20
       ],
       "issue_or_pr": "#314",
-      "frontier_closed": "Tasks could be posted without machine-verifiable acceptance criteria \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a evaluation defaulted to evaluator judgment with no contractual floor",
+      "frontier_closed": "Tasks could be posted without machine-verifiable acceptance criteria Р“СћРІвЂљВ¬РІР‚Сњ evaluation defaulted to evaluator judgment with no contractual floor",
       "artifact": ".github/ISSUE_TEMPLATE/task.yml: required: false to required: true on Verification Criteria field",
-      "evidence": "PR #317 merged 2026-03-27 \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a GitHub form validation blocks task submission without the field",
+      "evidence": "PR #317 merged 2026-03-27 Р“СћРІвЂљВ¬РІР‚Сњ GitHub form validation blocks task submission without the field",
       "made_redundant": "Informal hint 'Required for tasks >= 10 WEA' in field description (unenforced)",
       "redundancy_proof": "required: true enforced by GitHub form validation engine; informal hint added no safety beyond what validation now provides",
       "accepted_at": "2026-03-27T10:10:46Z",
@@ -144,8 +144,8 @@
       "issue_or_pr": "#313",
       "frontier_closed": "When check_invariant.py detected an anomaly it silently failed the CI job with no structured record, no operator-visible alert, and no documented recovery path",
       "artifact": "scripts/circuit_breaker.py (new, 205 lines) + one-line change to .github/workflows/tide.yml",
-      "evidence": "PR #318 merged 2026-03-27 \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a python scripts/circuit_breaker.py --test-fire exits 0",
-      "made_redundant": "The implicit 'job fails, operator notices' path \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a raw exit-code failure was the only signal",
+      "evidence": "PR #318 merged 2026-03-27 Р“СћРІвЂљВ¬РІР‚Сњ python scripts/circuit_breaker.py --test-fire exits 0",
+      "made_redundant": "The implicit 'job fails, operator notices' path Р“СћРІвЂљВ¬РІР‚Сњ raw exit-code failure was the only signal",
       "redundancy_proof": "Remediation steps in the incident record cover every recovery action; no longer requires operator memory of recovery procedure",
       "accepted_at": "2026-03-27T10:11:00Z",
       "idem_key": "trajectory_mint|T3|1"
@@ -163,7 +163,7 @@
       "issue_or_pr": "#300",
       "frontier_closed": "Dead and redundant check scripts eliminated from scripts/: 3 fully obsolete scripts deleted, pre-commit hook crash on file deletion fixed",
       "artifact": "Deleted check_deadline.py, check_post_close_audit.py, check_provisional.py + their tests; fixed .githooks/pre-commit --diff-filter=ACM; produced audit_map.md covering all 14 scripts",
-      "evidence": "PR #310 merged 2026-03-27 \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a check_task_escrow_sync.py retained after coverage proof (distinct invariants from check_cross_file_integrity.py)",
+      "evidence": "PR #310 merged 2026-03-27 Р“СћРІвЂљВ¬РІР‚Сњ check_task_escrow_sync.py retained after coverage proof (distinct invariants from check_cross_file_integrity.py)",
       "made_redundant": "3 dead scripts (deadline tracking, post-close audit, provisional status) with zero callers in CI or hooks",
       "redundancy_proof": "All 3 scripts had zero references in CI, hooks, or other scripts; audit_map.md documents each script's purpose, callers, and redundancy status",
       "accepted_at": "2026-03-27T10:41:37Z",
@@ -182,7 +182,7 @@
       "issue_or_pr": "#299",
       "frontier_closed": "Tasks could be submitted without any machine-verifiable acceptance criteria check; wea submit had no preflight gate and could not parse MUST:/MUST NOT:/Manual: structured criteria",
       "artifact": "src/wea_cli/parsers.py (inspect_acceptance_criteria, AcceptanceCriterion dataclasses); wea task check-criteria command; wea submit preflight gate blocking on machine-check failures; tests/test_task_criteria.py (10 tests)",
-      "evidence": "PR #311 merged 2026-03-27 \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a 10/10 tests pass; submit gate blocks malformed criteria; backward compat preserved for legacy task bodies",
+      "evidence": "PR #311 merged 2026-03-27 Р“СћРІвЂљВ¬РІР‚Сњ 10/10 tests pass; submit gate blocks malformed criteria; backward compat preserved for legacy task bodies",
       "made_redundant": "Informal MUST:/MUST NOT: guidance in task.yml description with no enforcement mechanism",
       "redundancy_proof": "wea submit now parses and enforces structured criteria before allowing submission; legacy tasks pass with warning; malformed criteria block submit",
       "accepted_at": "2026-03-27T10:41:45Z",
@@ -237,7 +237,7 @@
         21
       ],
       "issue_or_pr": "#335",
-      "frontier_closed": "wea submit accepted any valid PR URL with no authorship check \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a an agent could fabricate evidence by submitting a PR authored by someone else",
+      "frontier_closed": "wea submit accepted any valid PR URL with no authorship check Р“СћРІвЂљВ¬РІР‚Сњ an agent could fabricate evidence by submitting a PR authored by someone else",
       "artifact": "src/wea_cli/gh.py view_pr() + src/wea_cli/cli.py PR authorship/repo/state gate + tests/test_submit_redteam.py (adversarial suite)",
       "evidence": "PR #335 merged. test_submit_redteam.py passes with explicit PoC proving pre-fix gap was open, then proving fabricated submissions are rejected.",
       "made_redundant": "Implicit trust that a submitted PR URL was authored by the submitting agent",
@@ -294,7 +294,7 @@
         22
       ],
       "issue_or_pr": "#323",
-      "frontier_closed": "Genome directories and local git worktrees had accumulated drift \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a no tooling existed to detect stale genome dirs, agent mismatches, or unregistered worktrees",
+      "frontier_closed": "Genome directories and local git worktrees had accumulated drift Р“СћРІвЂљВ¬РІР‚Сњ no tooling existed to detect stale genome dirs, agent mismatches, or unregistered worktrees",
       "artifact": "scripts/audit_entropy.py (259 lines, 6 finding types) + tests/test_audit_entropy.py (4 tests) + deleted genomes/code-stylist/ stale alias",
       "evidence": "PR #340 merged. 4/4 tests pass. Live audit confirmed: 0 genome findings after cleanup.",
       "made_redundant": "Manual drift inspection across genomes/ and git worktree list",
@@ -313,7 +313,7 @@
         22
       ],
       "issue_or_pr": "#354",
-      "frontier_closed": "ledger/idem_keys.json could drift from ledger/history/*.jsonl without detection \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a orphan keys (recorded but no payment) and keyless events (payment without idem_key) were invisible",
+      "frontier_closed": "ledger/idem_keys.json could drift from ledger/history/*.jsonl without detection Р“СћРІвЂљВ¬РІР‚Сњ orphan keys (recorded but no payment) and keyless events (payment without idem_key) were invisible",
       "artifact": "scripts/check_idem_consistency.py (341 lines) + tests/test_check_idem_consistency.py (26 tests, 25 pass, 1 xfail for known cursor-3 rename residue)",
       "evidence": "PR #354 merged. 25/26 tests pass. Orphan key escrow_return|22|cursor-3@cursor detected and documented as pre-existing. Both audit directions verified with synthetic fixtures.",
       "made_redundant": "Manual operator cross-checking of idem_keys.json against history/*.jsonl",
@@ -351,7 +351,7 @@
         22
       ],
       "issue_or_pr": "#363",
-      "frontier_closed": "check_task_format.py had only 7 tests covering a small fraction of code paths \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a blank-line requirements, field validation, companion fields, and file I/O were untested",
+      "frontier_closed": "check_task_format.py had only 7 tests covering a small fraction of code paths Р“СћРІвЂљВ¬РІР‚Сњ blank-line requirements, field validation, companion fields, and file I/O were untested",
       "artifact": "tests/test_check_task_format.py rewrite (34 test cases covering all validation paths including parametrized edge cases)",
       "evidence": "PR #363 merged. 34/34 tests pass. Regression coverage for blank-line bug and all field validators.",
       "made_redundant": "Manual reading of check_task_format.py to verify validation behavior; trust that format checks catch malformed task bodies",
@@ -370,7 +370,7 @@
         22
       ],
       "issue_or_pr": "#365",
-      "frontier_closed": "Stale escrows could silently freeze WEA indefinitely with no automated detection or operator alert \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a escrow age was invisible without manual JSON inspection",
+      "frontier_closed": "Stale escrows could silently freeze WEA indefinitely with no automated detection or operator alert Р“СћРІвЂљВ¬РІР‚Сњ escrow age was invisible without manual JSON inspection",
       "artifact": "scripts/check_stale_escrows.py (224 lines, 3-tier classification: WARNING/STALE/FROZEN) + wea escrow check CLI command + tests/test_check_stale_escrows.py (21 tests)",
       "evidence": "PR #365 merged. 21/21 tests pass. Self-roast fix: claim detection reads idem_keys.json instead of accepted_agents.",
       "made_redundant": "Manual inspection of escrows.json creation dates and cross-referencing with task activity",
@@ -389,7 +389,7 @@
         23
       ],
       "issue_or_pr": "#364",
-      "frontier_closed": "Tasks could be created with malformed bodies and no pre-submission quality gate \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a format errors discovered only at review time after escrow was locked",
+      "frontier_closed": "Tasks could be created with malformed bodies and no pre-submission quality gate Р“СћРІвЂљВ¬РІР‚Сњ format errors discovered only at review time after escrow was locked",
       "artifact": "wea task lint CLI command + wea task template command + check_task_format.py line-number tracking refactor + tests/test_wea_task_lint.py (5+ tests)",
       "evidence": "PR #364 merged. Self-validation: wea task template | wea task lint /dev/stdin exits 0. Line-number error reporting enables precise feedback.",
       "made_redundant": "Post-hoc format validation only at review time; no pre-creation quality gate for task specs",
@@ -408,7 +408,7 @@
         23
       ],
       "issue_or_pr": "#362",
-      "frontier_closed": "Merged agent branches accumulated as stale refs with no tooling to detect or recommend cleanup \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a branch namespace entropy grew unbounded",
+      "frontier_closed": "Merged agent branches accumulated as stale refs with no tooling to detect or recommend cleanup Р“СћРІвЂљВ¬РІР‚Сњ branch namespace entropy grew unbounded",
       "artifact": "scripts/audit_branch_entropy.py (92 lines) + tests/test_audit_branch_entropy.py (71 lines, 5+ tests)",
       "evidence": "PR #362 merged after contamination cleanup (test_check_task_format.py artifact removed via rebase). Open-issue protection prevents premature cleanup.",
       "made_redundant": "Manual git branch -r inspection to find stale merged branches",
@@ -427,7 +427,7 @@
         23
       ],
       "issue_or_pr": "#359",
-      "frontier_closed": "Three hardened CLI gates (claim preflight, submit authorship, task lint) adversarially tested: obfuscated rewards, API URLs, relative links, HTML spaces, keyword spoofing \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a 88 adversarial test cases",
+      "frontier_closed": "Three hardened CLI gates (claim preflight, submit authorship, task lint) adversarially tested: obfuscated rewards, API URLs, relative links, HTML spaces, keyword spoofing Р“СћРІвЂљВ¬РІР‚Сњ 88 adversarial test cases",
       "artifact": "tests/test_cli_gates_redteam.py (88 tests) + adversarial fixes in src/wea_cli/cli.py, parsers.py, gh.py",
       "evidence": "PR #369 merged. 88 adversarial tests pass.",
       "made_redundant": "Implicit trust that new CLI gates handle adversarial inputs correctly",
@@ -446,11 +446,11 @@
         23
       ],
       "issue_or_pr": "#368",
-      "frontier_closed": "GitHub issue labels (paid, claimed, open) could drift from ledger payment events (accept, escrow) without detection \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a cross-boundary consistency was unaudited",
+      "frontier_closed": "GitHub issue labels (paid, claimed, open) could drift from ledger payment events (accept, escrow) without detection Р“СћРІвЂљВ¬РІР‚Сњ cross-boundary consistency was unaudited",
       "artifact": "scripts/check_issue_ledger_sync.py (212 lines) + tests/test_check_issue_ledger_sync.py (199 lines, 11 tests)",
       "evidence": "PR #370 merged. 11/11 sync checker tests pass.",
       "made_redundant": "Manual operator cross-referencing of GitHub issue labels against ledger/history/*.jsonl payment events",
-      "redundancy_proof": "Script automates bidirectional cross-validation: orphan paid labels, orphan accept events, claimed-without-escrow \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a catches all drift classes automatically",
+      "redundancy_proof": "Script automates bidirectional cross-validation: orphan paid labels, orphan accept events, claimed-without-escrow Р“СћРІвЂљВ¬РІР‚Сњ catches all drift classes automatically",
       "accepted_at": "2026-04-07T12:26:10Z",
       "idem_key": "trajectory_mint|T1|4"
     },
@@ -465,7 +465,7 @@
         23
       ],
       "issue_or_pr": "#372",
-      "frontier_closed": "TideProcessor composition regressions were invisible \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a no test validated complete task lifecycles end-to-end through all state transitions",
+      "frontier_closed": "TideProcessor composition regressions were invisible Р“СћРІвЂљВ¬РІР‚Сњ no test validated complete task lifecycles end-to-end through all state transitions",
       "artifact": "tests/test_task_lifecycle.py (standard + every_good lifecycle scenarios with intermediate state assertions at each transition)",
       "evidence": "PR #384 merged. 8+ tests covering 2 complete lifecycle scenarios; all pass.",
       "made_redundant": "Manual verification that TideProcessor stages compose correctly under realistic sequences",
@@ -484,7 +484,7 @@
         23
       ],
       "issue_or_pr": "#373",
-      "frontier_closed": "Concurrent check-script failures had no correlation layer \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a operator had to manually cross-reference 5+ script outputs to identify root cause vs downstream symptoms",
+      "frontier_closed": "Concurrent check-script failures had no correlation layer Р“СћРІвЂљВ¬РІР‚Сњ operator had to manually cross-reference 5+ script outputs to identify root cause vs downstream symptoms",
       "artifact": "scripts/check_incident_correlator.py + tests/test_incident_correlator.py (3+ correlation rules, root-cause ordering, 8+ tests)",
       "evidence": "PR #387 merged. 8+ tests pass. Runs all check scripts, correlates multi-failure events, produces unified incident report.",
       "made_redundant": "Manual operator cross-referencing of multiple check-script outputs during concurrent failure events",
@@ -503,7 +503,7 @@
         24
       ],
       "issue_or_pr": "#386",
-      "frontier_closed": "check_incident_correlator.py adversarially untested after T3S4 delivery \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a correlation logic and subprocess dispatch had no adversarial coverage",
+      "frontier_closed": "check_incident_correlator.py adversarially untested after T3S4 delivery Р“СћРІвЂљВ¬РІР‚Сњ correlation logic and subprocess dispatch had no adversarial coverage",
       "artifact": "tests/test_incident_correlator_redteam.py (adversarial test suite)",
       "evidence": "PR #388 merged. Adversarial tests pass; each test documents pre-fix attack vector and proves rejection.",
       "made_redundant": "Implicit trust that check_incident_correlator.py handles adversarial inputs correctly",
@@ -598,7 +598,7 @@
         24
       ],
       "issue_or_pr": "#398",
-      "frontier_closed": "Payment completeness was unverified \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a an agent could be verified but never paid without any automated detection.",
+      "frontier_closed": "Payment completeness was unverified Р“СћРІвЂљВ¬РІР‚Сњ an agent could be verified but never paid without any automated detection.",
       "artifact": "scripts/check_payment_completeness.py (150 lines) + tests/test_check_payment_completeness.py (282 lines)",
       "evidence": "PR #405 merged. 11/11 tests pass. Script exits 0 on current repo history.",
       "made_redundant": "Manual auditing of verification-payment correspondence in ledger history",
@@ -636,7 +636,7 @@
         25
       ],
       "issue_or_pr": "#404",
-      "frontier_closed": "task_index.json could drift from escrows.json and history without detection \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a paid/claimed/accepted status could diverge from actual payment events invisibly.",
+      "frontier_closed": "task_index.json could drift from escrows.json and history without detection Р“СћРІвЂљВ¬РІР‚Сњ paid/claimed/accepted status could diverge from actual payment events invisibly.",
       "artifact": "scripts/check_task_index_consistency.py (246 lines) + tests/test_check_task_index_consistency.py (257 lines, 19 tests)",
       "evidence": "PR #408 merged. 19/19 tests pass. All 5 checks PASS on current repo.",
       "made_redundant": "Manual operator cross-referencing of task_index.json status against ledger/history payment events and escrows.json",
@@ -678,7 +678,7 @@
       "artifact": "scripts/run_all_checks.py + tests/test_run_all_checks.py",
       "evidence": "PR #418 merged. 10/10 tests pass. Runner discovers 21 check_*.py scripts, correctly skips 5 CI-only checks (exit 2), and surfaced 5 pre-existing integrity violations on main (check_history_reconciliation, check_idem_consistency, check_incident_correlator, check_issue_ledger_sync, check_task_escrow_sync).",
       "made_redundant": "Manual per-check invocation of all scripts/check_*.py scripts.",
-      "redundancy_proof": "Runner uses glob('check_*.py') at runtime \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a any new check added to scripts/ is automatically included in the next sweep without updating any list.",
+      "redundancy_proof": "Runner uses glob('check_*.py') at runtime Р“СћРІвЂљВ¬РІР‚Сњ any new check added to scripts/ is automatically included in the next sweep without updating any list.",
       "accepted_at": "2026-04-11T04:21:21Z",
       "idem_key": "trajectory_mint|T1|7"
     },
@@ -712,7 +712,7 @@
         25
       ],
       "issue_or_pr": "#411",
-      "frontier_closed": "Adversarial coverage of check_task_index_consistency.py \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a 4 false-negative blind spots documented including wrong-agent payment bypass, null-reward bypass, and open-task missing escrow",
+      "frontier_closed": "Adversarial coverage of check_task_index_consistency.py Р“СћРІвЂљВ¬РІР‚Сњ 4 false-negative blind spots documented including wrong-agent payment bypass, null-reward bypass, and open-task missing escrow",
       "artifact": "tests/test_check_task_index_adversarial.py (12 adversarial cases: 5 FAIL, 3 PASS, 4 GAP)",
       "evidence": "PR #425 merged. 12/12 tests pass. 4 real gaps found and documented in GAP-category tests.",
       "made_redundant": "Manual adversarial analysis of check_task_index_consistency.py for missed attack vectors",
@@ -750,7 +750,7 @@
         27
       ],
       "issue_or_pr": "#422",
-      "frontier_closed": "T1S7 delivered run_all_checks.py but CI never called it \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a ledger integrity violations could be introduced by any merged PR without automated detection.",
+      "frontier_closed": "T1S7 delivered run_all_checks.py but CI never called it Р“СћРІвЂљВ¬РІР‚Сњ ledger integrity violations could be introduced by any merged PR without automated detection.",
       "artifact": ".github/workflows/test-protocol.yml (one new step added)",
       "evidence": "PR #428 merged. CI step runs python scripts/run_all_checks.py on every PR/push to main. Uploads --json report as artifact. Step warns but does not fail when run_all_checks.py absent.",
       "made_redundant": "Operator manually running python scripts/run_all_checks.py before approving PRs to check ledger integrity.",
@@ -769,7 +769,7 @@
         25
       ],
       "issue_or_pr": "#412",
-      "frontier_closed": "No automated persistent record of ecosystem health \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a check scripts only produced output when manually invoked, with no machine-readable JSON log, no trend tracking, and no unified pass/fail.",
+      "frontier_closed": "No automated persistent record of ecosystem health Р“СћРІвЂљВ¬РІР‚Сњ check scripts only produced output when manually invoked, with no machine-readable JSON log, no trend tracking, and no unified pass/fail.",
       "artifact": "scripts/ledger_health_report.py (new) + tests/test_ledger_health_report.py (new, 9 tests)",
       "evidence": "PR #430 merged. 9/9 tests pass. Script exits 0 on current repo and writes valid ledger/health_report.json with overall: PASS, per-check status, duration, and ISO-8601 timestamp.",
       "made_redundant": "Running individual check_*.py scripts one by one to get an ecosystem health picture; no persistent log existed.",
@@ -788,11 +788,11 @@
         25
       ],
       "issue_or_pr": "#413",
-      "frontier_closed": "Tasks in task_index.json could reach claimed/accepted/paid state with missing required fields \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a no machine validation existed, so payment errors were latent.",
+      "frontier_closed": "Tasks in task_index.json could reach claimed/accepted/paid state with missing required fields Р“СћРІвЂљВ¬РІР‚Сњ no machine validation existed, so payment errors were latent.",
       "artifact": "scripts/check_task_spec_completeness.py (new) + tests/test_check_task_spec_completeness.py (new, 20 tests)",
       "evidence": "PR #429 merged. 20/20 tests pass. Script exits 0 on current real task_index.json. Validates field completeness by status tier.",
       "made_redundant": "Manual review of task_index.json entries to verify field completeness before processing payments.",
-      "redundancy_proof": "Script auto-validates all tasks by status tier \u0420\u201c\u0421\u045b\u0420\u0406\u0432\u0402\u0459\u0412\u00ac\u0420\u0406\u0420\u201a\u0421\u045a missing reward_type, escrow_idem_key, or paid_at fields are flagged automatically before they cause payment errors downstream.",
+      "redundancy_proof": "Script auto-validates all tasks by status tier Р“СћРІвЂљВ¬РІР‚Сњ missing reward_type, escrow_idem_key, or paid_at fields are flagged automatically before they cause payment errors downstream.",
       "accepted_at": "2026-04-11T21:00:00Z",
       "idem_key": "trajectory_mint|T4|6"
     },
@@ -807,11 +807,11 @@
         26
       ],
       "issue_or_pr": "#426",
-      "frontier_closed": "check_genome_naming.py had no adversarial coverage \u0420\u0406\u0420\u201a\u0432\u0402\u045c phantom agents, dir/meta case mismatches, ghost lineage refs, and malformed JSON could all produce false negatives without detection.",
-      "artifact": "tests/test_check_genome_naming_adversarial.py \u0420\u0406\u0420\u201a\u0432\u0402\u045c 15 adversarial cases (9 FAIL, 4 PASS, 2 GAP)",
+      "frontier_closed": "check_genome_naming.py had no adversarial coverage РІР‚вЂќ phantom agents, dir/meta case mismatches, ghost lineage refs, and malformed JSON could all produce false negatives without detection.",
+      "artifact": "tests/test_check_genome_naming_adversarial.py РІР‚вЂќ 15 adversarial cases (9 FAIL, 4 PASS, 2 GAP)",
       "evidence": "PR #432 merged. 15/15 tests pass locally. Integration test confirmed real-repo passes. Two documented GAP cases (string lineage, nested donor_lineage lists) encode known false negatives as permanent regression tests.",
       "made_redundant": "Manual analysis of check_genome_naming.py attack surfaces; no test coverage existed for phantom agents or ghost lineage refs.",
-      "redundancy_proof": "test_adv13_integration_real_repo_passes runs check_genome_naming.py against live genomes/ directory on every CI run \u0420\u0406\u0420\u201a\u0432\u0402\u045c any rogue genome or dir/meta mismatch breaks the suite automatically.",
+      "redundancy_proof": "test_adv13_integration_real_repo_passes runs check_genome_naming.py against live genomes/ directory on every CI run РІР‚вЂќ any rogue genome or dir/meta mismatch breaks the suite automatically.",
       "accepted_at": "2026-04-11T21:30:00Z",
       "idem_key": "trajectory_mint|T2|7"
     },
@@ -826,8 +826,8 @@
         28
       ],
       "issue_or_pr": "#431",
-      "frontier_closed": "ledger_health_report.py had no adversarial coverage \u0420\u0406\u0420\u201a\u0432\u0402\u045c exit-0-with-fail-output, exit-2 SKIP masking, subdirectory check blind spots, and empty-scripts vacuous PASS were all undocumented.",
-      "artifact": "tests/test_ledger_health_report_redteam.py \u0420\u0406\u0420\u201a\u0432\u0402\u045c 9 adversarial test cases",
+      "frontier_closed": "ledger_health_report.py had no adversarial coverage РІР‚вЂќ exit-0-with-fail-output, exit-2 SKIP masking, subdirectory check blind spots, and empty-scripts vacuous PASS were all undocumented.",
+      "artifact": "tests/test_ledger_health_report_redteam.py РІР‚вЂќ 9 adversarial test cases",
       "evidence": "PR #433 merged. 9/9 tests pass. Confirmed real blind spots: reporter trusts exit code over JSON output, exit-2 treated as SKIP regardless of output, checks in subdirs silently ignored.",
       "made_redundant": "Manual review of ledger_health_report.py for silent false-positive edge cases.",
       "redundancy_proof": "Each adversarial case is a permanent regression test; any future change that re-opens a confirmed attack vector breaks CI automatically.",
@@ -883,10 +883,10 @@
         28
       ],
       "issue_or_pr": "#434",
-      "frontier_closed": "No checker verified that each agent's balance in balances.json actually equals the sum of their credit/debit history events \u0420\u0406\u0420\u201a\u0432\u0402\u045c the ledger had no end-to-end reconciliation between the canonical JSON state and the append-only history log",
+      "frontier_closed": "No checker verified that each agent's balance in balances.json actually equals the sum of their credit/debit history events РІР‚вЂќ the ledger had no end-to-end reconciliation between the canonical JSON state and the append-only history log",
       "artifact": "scripts/check_balance_history_reconciliation.py + tests/test_check_balance_history_reconciliation.py",
       "evidence": "18/18 tests PASS, live repo 18 PASS 1 SKIP exit 0, PR #442 merged",
-      "made_redundant": "Nothing formally \u0420\u0406\u0420\u201a\u0432\u0402\u045c this is a new integrity dimension not previously covered by any existing script",
+      "made_redundant": "Nothing formally РІР‚вЂќ this is a new integrity dimension not previously covered by any existing script",
       "redundancy_proof": "N/A (new dimension)",
       "accepted_at": "2026-04-11T23:06:58Z",
       "idem_key": "trajectory_mint|T1|9"
@@ -902,10 +902,10 @@
         26
       ],
       "issue_or_pr": "#436",
-      "frontier_closed": "No script verified that every registered agent has a complete genome directory with valid JSON genome_meta.json and non-empty AGENTS.local.md \u0420\u0406\u0420\u201a\u0432\u0402\u045c genome corruption and missing files passed undetected",
+      "frontier_closed": "No script verified that every registered agent has a complete genome directory with valid JSON genome_meta.json and non-empty AGENTS.local.md РІР‚вЂќ genome corruption and missing files passed undetected",
       "artifact": "scripts/check_genome_completeness.py + tests/test_check_genome_completeness.py",
       "evidence": "12/12 tests pass, live repo 108 PASS 1 WARN exit 0",
-      "made_redundant": "Nothing \u0420\u0406\u0420\u201a\u0432\u0402\u045c new genome integrity dimension",
+      "made_redundant": "Nothing РІР‚вЂќ new genome integrity dimension",
       "redundancy_proof": "N/A",
       "accepted_at": "2026-04-11T23:23:10Z",
       "idem_key": "trajectory_mint|T3|7"
@@ -921,7 +921,7 @@
         26
       ],
       "issue_or_pr": "#437",
-      "frontier_closed": "Gauntlet PR bodies had no machine check for the 5 mandatory mint fields \u0420\u0406\u0420\u201a\u0432\u0402\u045c reviewer memory was the only gate. A PR missing fields could be merged and minted without detection",
+      "frontier_closed": "Gauntlet PR bodies had no machine check for the 5 mandatory mint fields РІР‚вЂќ reviewer memory was the only gate. A PR missing fields could be merged and minted without detection",
       "artifact": "scripts/check_gauntlet_pr_fields.py + tests/test_check_gauntlet_pr_fields.py",
       "evidence": "15/15 tests pass, CLI invocation returns PASS on valid body",
       "made_redundant": "Manual PR-body eyeballing for gauntlet field completeness",
@@ -940,10 +940,10 @@
         26
       ],
       "issue_or_pr": "#438",
-      "frontier_closed": "No automated way to detect remote branches whose GitHub issue is CLOSED \u0420\u0406\u0420\u201a\u0432\u0402\u045c 35+ dead branches accumulated, detectable only by manual cross-referencing",
+      "frontier_closed": "No automated way to detect remote branches whose GitHub issue is CLOSED РІР‚вЂќ 35+ dead branches accumulated, detectable only by manual cross-referencing",
       "artifact": "scripts/check_dead_branch_links.py + tests/test_check_dead_branch_links.py",
       "evidence": "15/15 tests pass, live repo: 73 dead branches detected across 77 agent branches scanned",
-      "made_redundant": "Nothing \u0420\u0406\u0420\u201a\u0432\u0402\u045c new automation",
+      "made_redundant": "Nothing РІР‚вЂќ new automation",
       "redundancy_proof": "N/A",
       "accepted_at": "2026-04-11T23:27:06Z",
       "idem_key": "trajectory_mint|T5|7"
@@ -963,7 +963,7 @@
       "artifact": "scripts/check_escrow_lifecycle_integrity.py + tests/test_check_escrow_lifecycle_integrity.py",
       "evidence": "Script exits 0 on real repo (109 resolved, 5 pre-history WARN, 0 orphans). 10/10 unit tests pass.",
       "made_redundant": "Manual orphan detection during heartbeat reviews (issues #411, #423, #436, #437, #438 all required manual escrow_return calls)",
-      "redundancy_proof": "Script would have flagged issues #411/#423 before they were manually returned \u0420\u0406\u0420\u201a\u0432\u0402\u045c trajectory_mint + no escrow_return = FAIL",
+      "redundancy_proof": "Script would have flagged issues #411/#423 before they were manually returned РІР‚вЂќ trajectory_mint + no escrow_return = FAIL",
       "accepted_at": "2026-04-12T11:57:32Z",
       "idem_key": "trajectory_mint|T1|10"
     },
@@ -997,7 +997,7 @@
         27
       ],
       "issue_or_pr": "#450",
-      "frontier_closed": "PR-time field enforcement (T4S7) did not cover stored mint records \u0420\u0406\u0420\u201a\u0432\u0402\u045c gap in integrity guarantee at rest",
+      "frontier_closed": "PR-time field enforcement (T4S7) did not cover stored mint records РІР‚вЂќ gap in integrity guarantee at rest",
       "artifact": "scripts/check_mint_record_completeness.py + tests/test_check_mint_record_completeness.py",
       "evidence": "Script exits 0 on real repo. 14/14 unit tests pass covering all edge cases.",
       "made_redundant": "Manual inspection of trajectory_mints.json to verify 5-field completeness after each gauntlet mint",
@@ -1018,8 +1018,8 @@
       "issue_or_pr": "#452",
       "frontier_closed": "Fixed 10 structural evasion paths where incomplete/malformed genome directories falsely passed the completeness checker (wrong agent_id in meta, directory instead of file, path traversals).",
       "artifact": "tests/test_check_genome_completeness_T6.py + strict validation in scripts/check_genome_completeness.py",
-      "evidence": "pytest tests/test_check_genome_completeness_T6.py -q \u0420\u0406\u0420\u201a\u0432\u0402\u045c 10/10 tests pass. Existing test_check_genome_completeness.py 12/12 still pass.",
-      "made_redundant": "Blind trust that check_genome_completeness.py catches all malformed genomes \u0420\u0406\u0420\u201a\u0432\u0402\u045c it did not, it now does.",
+      "evidence": "pytest tests/test_check_genome_completeness_T6.py -q РІР‚вЂќ 10/10 tests pass. Existing test_check_genome_completeness.py 12/12 still pass.",
+      "made_redundant": "Blind trust that check_genome_completeness.py catches all malformed genomes РІР‚вЂќ it did not, it now does.",
       "redundancy_proof": "Each adversarial test demonstrates a scenario that the pre-fix checker would have silently passed. Post-fix, all 10 fail correctly.",
       "accepted_at": "2026-04-12T11:58:05Z",
       "idem_key": "trajectory_mint|T6|11"
@@ -1035,7 +1035,7 @@
         27
       ],
       "issue_or_pr": "#451",
-      "frontier_closed": "No automated detection of check_*.py scripts built and accepted but never wired into run_all_checks.py or CI \u0420\u0406\u0420\u201a\u0432\u0402\u045c creating false confidence that all checks run automatically",
+      "frontier_closed": "No automated detection of check_*.py scripts built and accepted but never wired into run_all_checks.py or CI РІР‚вЂќ creating false confidence that all checks run automatically",
       "artifact": "scripts/check_orphan_scripts.py + tests/test_check_orphan_scripts.py",
       "evidence": "Script exits 0 (PASS) on real repo (30 scripts checked, all wired via wildcard glob). 8/8 unit tests pass.",
       "made_redundant": "Manual audit of run_all_checks.py and CI workflows to verify each check_*.py is included",
@@ -1054,7 +1054,7 @@
         28
       ],
       "issue_or_pr": "#448",
-      "frontier_closed": "check_balance_history_reconciliation.py (T1S9) lacked adversarial test coverage \u0420\u0406\u0420\u201a\u0432\u0402\u045c edge cases including direct tamper, duplicate events, and wrong event type counting were untested",
+      "frontier_closed": "check_balance_history_reconciliation.py (T1S9) lacked adversarial test coverage РІР‚вЂќ edge cases including direct tamper, duplicate events, and wrong event type counting were untested",
       "artifact": "tests/test_check_balance_history_reconciliation_redteam.py",
       "evidence": "12/12 adversarial tests pass. Tests use temp file fixtures; do not touch real ledger/.",
       "made_redundant": "Manual edge-case reasoning about whether check_balance_history_reconciliation.py handles tampered balances, duplicate entries, and float drift",
@@ -1073,7 +1073,7 @@
         28
       ],
       "issue_or_pr": "#463",
-      "frontier_closed": "Undetected drift between trajectory_mints.json running counters and ground-truth mint sums \u0420\u0406\u0420\u201a\u0432\u0402\u045c total_minted could diverge silently from the actual mints[] data",
+      "frontier_closed": "Undetected drift between trajectory_mints.json running counters and ground-truth mint sums РІР‚вЂќ total_minted could diverge silently from the actual mints[] data",
       "artifact": "scripts/check_trajectory_total_consistency.py + tests/test_check_trajectory_total_consistency.py (9 tests)",
       "evidence": "PR #466 merged. 9/9 tests pass. Real repo PASS (1300 WEA, 54 mints, 0 mismatches).",
       "made_redundant": "Manual cross-checking of total_minted counters against the mints[] array in trajectory_mints.json",
@@ -1092,7 +1092,7 @@
         29
       ],
       "issue_or_pr": "#461",
-      "frontier_closed": "Double-escrow per issue was invisible in check_escrow_lifecycle_integrity.py \u0420\u0406\u0420\u201a\u0432\u0402\u045c set-based tracking swallowed second escrow silently",
+      "frontier_closed": "Double-escrow per issue was invisible in check_escrow_lifecycle_integrity.py РІР‚вЂќ set-based tracking swallowed second escrow silently",
       "artifact": "tests/test_check_escrow_lifecycle_integrity_redteam.py (13 adversarial tests) + fix to scripts/check_escrow_lifecycle_integrity.py",
       "evidence": "PR #467 merged. 13/13 tests pass. Real repo PASS (122 events, 0 orphans).",
       "made_redundant": "Manual edge-case review of check_escrow_lifecycle_integrity.py behavior",
@@ -1111,7 +1111,7 @@
         28
       ],
       "issue_or_pr": "#464",
-      "frontier_closed": "Orphan script accumulation \u0420\u0406\u0420\u201a\u0432\u0402\u045c scripts wired into run_all_checks.py was unverified; the regression guard now locks this behavior",
+      "frontier_closed": "Orphan script accumulation РІР‚вЂќ scripts wired into run_all_checks.py was unverified; the regression guard now locks this behavior",
       "artifact": "tests/test_run_all_checks.py (updated count + new regression test for T5S9)",
       "evidence": "19/19 tests pass. check_orphan_scripts.py PASS (31 scripts, 0 orphans). PR #468 merged.",
       "made_redundant": "Manual inspection of run_all_checks.py to verify all check scripts are included",
@@ -1130,7 +1130,7 @@
         30
       ],
       "issue_or_pr": "#460",
-      "frontier_closed": "Temporal gap \u0420\u0406\u0420\u201a\u0432\u0402\u045c invariant verified only at current snapshot, not at every historical step",
+      "frontier_closed": "Temporal gap РІР‚вЂќ invariant verified only at current snapshot, not at every historical step",
       "artifact": "scripts/check_invariant_history_replay.py + tests/test_check_invariant_history_replay.py",
       "evidence": "16/16 tests pass. Real-repo replay: 0 hard violations across all history. PR #472 merged.",
       "made_redundant": "Manual spot-checks of ledger history for invariant consistency",
@@ -1149,7 +1149,7 @@
         28
       ],
       "issue_or_pr": "#462",
-      "frontier_closed": "Escrow-first ordering enforcement \u0420\u0406\u0420\u201a\u0432\u0402\u045c every payment must have a prior escrow. No prior check validated temporal ordering of escrow\u0420\u0406\u0432\u0402\u00a0\u0432\u0402\u2122payment events in ledger history.",
+      "frontier_closed": "Escrow-first ordering enforcement РІР‚вЂќ every payment must have a prior escrow. No prior check validated temporal ordering of escrowРІвЂ вЂ™payment events in ledger history.",
       "artifact": "scripts/check_payment_has_prior_escrow.py + tests/test_check_payment_has_prior_escrow.py",
       "evidence": "PR #483 merged. 13 tests pass. Script exits 0 on current real repo. Covers 8+ scenarios including payment-before-escrow, payment-without-escrow, trajectory mints, double-payment.",
       "made_redundant": "Manual review of payment ordering in ledger history / trusted escrow-first discipline without automated verification.",
@@ -1187,7 +1187,7 @@
         29
       ],
       "issue_or_pr": "#477",
-      "frontier_closed": "Missing schema validation for agent records in balances.json \u0420\u0406\u0420\u201a\u0432\u0402\u045c required fields could be absent, wrong type, or negative without detection.",
+      "frontier_closed": "Missing schema validation for agent records in balances.json РІР‚вЂќ required fields could be absent, wrong type, or negative without detection.",
       "artifact": "scripts/check_agent_balances_schema.py + tests/test_check_agent_balances_schema.py",
       "evidence": "PR #488 merged. Tests pass. Script exits 0 PASS on current real repo. Validates all 9 required fields per agent with type and value constraints.",
       "made_redundant": "Manual inspection of balances.json / trusting CLI always writes valid records.",
@@ -1206,7 +1206,7 @@
         29
       ],
       "issue_or_pr": "#481",
-      "frontier_closed": "No automated detection of escrows aging toward frozen state \u0420\u0406\u0420\u201a\u0432\u0402\u045c stale escrows silently lock WEA without heartbeat visibility.",
+      "frontier_closed": "No automated detection of escrows aging toward frozen state РІР‚вЂќ stale escrows silently lock WEA without heartbeat visibility.",
       "artifact": "scripts/check_escrow_age_report.py + tests/test_check_escrow_age_report.py",
       "evidence": "PR #489 merged. 10 tests pass. Script exits 0 PASS on real repo. Classifies escrows as FRESH/AGING/STALE/FROZEN with age_days.",
       "made_redundant": "Manual monitoring of escrow ages during heartbeat / trusting agents complete tasks before 14-day threshold.",
@@ -1225,7 +1225,7 @@
         30
       ],
       "issue_or_pr": "#476",
-      "frontier_closed": "check_invariant_history_replay.py had no adversarial test coverage \u0420\u0406\u0420\u201a\u0432\u0402\u045c its correctness against malformed histories was unproven.",
+      "frontier_closed": "check_invariant_history_replay.py had no adversarial test coverage РІР‚вЂќ its correctness against malformed histories was unproven.",
       "artifact": "tests/test_check_invariant_history_replay_adversarial.py",
       "evidence": "PR #490 merged. 8+ adversarial tests pass covering mid-history violations, off-by-one mints, duplicate payments, missing registrations, escrow over-release, out-of-order timestamps, phantom escrow, accumulated rounding.",
       "made_redundant": "Manual review of check_invariant_history_replay.py logic / trusting the checker handles edge cases correctly.",
@@ -1244,9 +1244,9 @@
         31
       ],
       "issue_or_pr": "#479",
-      "frontier_closed": "No verification that every ledger mutation has a registered idem key \u0420\u0406\u0420\u201a\u0432\u0402\u045c payments could bypass deduplication guards undetected.",
+      "frontier_closed": "No verification that every ledger mutation has a registered idem key РІР‚вЂќ payments could bypass deduplication guards undetected.",
       "artifact": "scripts/check_idem_key_completeness.py + tests/test_check_idem_key_completeness.py",
-      "evidence": "PR #491 merged. Tests pass. Script verifies completeness of idem key coverage \u0420\u0406\u0420\u201a\u0432\u0402\u045c the complement to check_idem_keys.py uniqueness check.",
+      "evidence": "PR #491 merged. Tests pass. Script verifies completeness of idem key coverage РІР‚вЂќ the complement to check_idem_keys.py uniqueness check.",
       "made_redundant": "Trusting every ledger write correctly registered its idem key / spot-checking idem_keys.json manually.",
       "redundancy_proof": "Script scans all history/*.jsonl events and cross-references against idem_keys.json, flagging any mutation without a registered key at scale.",
       "accepted_at": "2026-04-13T12:25:54Z",
@@ -1502,7 +1502,7 @@
         34
       ],
       "issue_or_pr": "#513",
-      "frontier_closed": "total_earned and total_spent could be inflated by equal amounts while balance looked correct \u0432\u0402\u201d T1S14 only checks balance = earned \u0432\u20ac\u2019 spent, not the individual totals",
+      "frontier_closed": "total_earned and total_spent could be inflated by equal amounts while balance looked correct вЂ” T1S14 only checks balance = earned в€’ spent, not the individual totals",
       "artifact": "scripts/check_balances_earned_consistency.py + tests/test_check_balances_earned_consistency.py",
       "evidence": "23/23 tests pass; exits 0 (PASS, 0 divergences) on current ledger",
       "made_redundant": "manual inspection of total_earned/total_spent metadata fields in balances.json",
@@ -1521,7 +1521,7 @@
         33
       ],
       "issue_or_pr": "#514",
-      "frontier_closed": "gaps in check_history_balance_audit.py adversarial coverage \u0432\u0402\u201d 10 bypass vectors identified including unknown event types, duplicate payments, net-zero agent skip, negative payment bypass, case mismatch, wrong-cased trajectory_mint, phantom escrow_return credit, per_agent truncation, offsetting fabricated events, agent0 relay injection",
+      "frontier_closed": "gaps in check_history_balance_audit.py adversarial coverage вЂ” 10 bypass vectors identified including unknown event types, duplicate payments, net-zero agent skip, negative payment bypass, case mismatch, wrong-cased trajectory_mint, phantom escrow_return credit, per_agent truncation, offsetting fabricated events, agent0 relay injection",
       "artifact": "tests/test_check_history_balance_audit_adversarial.py",
       "evidence": "10/10 adversarial tests pass",
       "made_redundant": "manual inspection of history_balance_audit edge cases",
@@ -1540,7 +1540,7 @@
         32
       ],
       "issue_or_pr": "#515",
-      "frontier_closed": "payments could exceed explicit per-issue escrow with no automated detection \u0432\u0402\u201d a history could have prior escrows and non-duplicate payments yet still overrun the issue budget",
+      "frontier_closed": "payments could exceed explicit per-issue escrow with no automated detection вЂ” a history could have prior escrows and non-duplicate payments yet still overrun the issue budget",
       "artifact": "scripts/check_payment_escrow_amount_match.py + tests/test_check_payment_escrow_amount_match.py",
       "evidence": "12/12 tests pass; exits 0 (PASS, 0 violations, 10 legacy-batch warnings correctly skipped) against current ledger",
       "made_redundant": "manual cross-referencing of escrow_create amounts vs payment totals per issue",
@@ -1559,7 +1559,7 @@
         32
       ],
       "issue_or_pr": "#516",
-      "frontier_closed": "task_index.json had no schema enforcement \u0432\u0402\u201d field types, enum values, and required fields were unchecked, allowing malformed entries to enter the ledger silently",
+      "frontier_closed": "task_index.json had no schema enforcement вЂ” field types, enum values, and required fields were unchecked, allowing malformed entries to enter the ledger silently",
       "artifact": "scripts/check_task_index_schema.py + tests/test_check_task_index_schema.py",
       "evidence": "49/49 tests pass; exits 0 against current ledger (93 legacy entries grandfathered, 0 violations)",
       "made_redundant": "manual task_index.json inspection for schema correctness",
@@ -1578,7 +1578,7 @@
         32
       ],
       "issue_or_pr": "#517",
-      "frontier_closed": "claimed tasks with no activity for >7 days were invisible \u0432\u0402\u201d stale claims silently lock slots and freeze escrow WEA with no automated alert",
+      "frontier_closed": "claimed tasks with no activity for >7 days were invisible вЂ” stale claims silently lock slots and freeze escrow WEA with no automated alert",
       "artifact": "scripts/check_stale_task_claims.py + tests/test_check_stale_task_claims.py",
       "evidence": "22/22 tests pass; exits 0 against current ledger (no stale claimed tasks found)",
       "made_redundant": "manual monitoring of claimed tasks for inactivity",
@@ -1616,7 +1616,7 @@
         36
       ],
       "issue_or_pr": "#530",
-      "frontier_closed": "6 bypass vectors in check_balances_earned_consistency.py \u0432\u0402\u201d accept events with negative amounts silently dropped; escrow_return fallback awards wrong agent when recipient is falsy string; string vs int issue key mismatch causes valid events to be uncounted; empty agents array causes wrong branch fallback; None-matching on missing issue field causes old-format escrow_returns to bleed through modern validation; escrow_create with negative debit bypasses validation and acts as credit",
+      "frontier_closed": "6 bypass vectors in check_balances_earned_consistency.py вЂ” accept events with negative amounts silently dropped; escrow_return fallback awards wrong agent when recipient is falsy string; string vs int issue key mismatch causes valid events to be uncounted; empty agents array causes wrong branch fallback; None-matching on missing issue field causes old-format escrow_returns to bleed through modern validation; escrow_create with negative debit bypasses validation and acts as credit",
       "artifact": "tests/test_check_balances_earned_consistency_redteam.py",
       "evidence": "6/6 adversarial tests pass; each confirms checker returns PASS when ledger state is actually inconsistent",
       "made_redundant": "manual edge-case reasoning about whether check_balances_earned_consistency.py handles adversarial inputs correctly",
@@ -1635,7 +1635,7 @@
         34
       ],
       "issue_or_pr": "#526",
-      "frontier_closed": "10 bypass vectors in check_balances_earned_consistency.py \u0432\u0402\u201d 2 confirmed GAPs: (1) agent with history but absent from balances.json produces PASS instead of FAIL (delete-agent bypass); (2) escrow_return with missing issue field silently dropped, both sides agree at 0 \u0432\u0402\u201d false PASS. Plus 8 additional vectors: unknown event types silently ignored, negative accept amounts, symmetric inflation trick, empty agent field in trajectory_mint, author fallback in escrow_return, per_agent truncation, issue=None wildcard bypass, agent0 exclusion relay",
+      "frontier_closed": "10 bypass vectors in check_balances_earned_consistency.py вЂ” 2 confirmed GAPs: (1) agent with history but absent from balances.json produces PASS instead of FAIL (delete-agent bypass); (2) escrow_return with missing issue field silently dropped, both sides agree at 0 вЂ” false PASS. Plus 8 additional vectors: unknown event types silently ignored, negative accept amounts, symmetric inflation trick, empty agent field in trajectory_mint, author fallback in escrow_return, per_agent truncation, issue=None wildcard bypass, agent0 exclusion relay",
       "artifact": "tests/test_check_balances_earned_consistency_adversarial.py",
       "evidence": "10/10 adversarial tests pass; 2 GAP cases are permanent regression anchors",
       "made_redundant": "manual edge-case reasoning about check_balances_earned_consistency.py correctness",
@@ -1654,7 +1654,7 @@
         33
       ],
       "issue_or_pr": "#528",
-      "frontier_closed": "escrow amounts could diverge from task reward_wea in task_index.json with no automated detection \u0432\u0402\u201d a task posted with reward=30 WEA could be escrowed at 25 WEA (agents underpaid) or 40 WEA (agent0 overspends) silently",
+      "frontier_closed": "escrow amounts could diverge from task reward_wea in task_index.json with no automated detection вЂ” a task posted with reward=30 WEA could be escrowed at 25 WEA (agents underpaid) or 40 WEA (agent0 overspends) silently",
       "artifact": "scripts/check_escrow_task_reward_match.py (300 lines) + tests/test_check_escrow_task_reward_match.py (281 lines)",
       "evidence": "19/19 tests pass; python scripts/check_escrow_task_reward_match.py exits 0 against current ledger",
       "made_redundant": "manual cross-referencing of escrows.json/history escrow_create amounts against task_index.json reward_wea fields",
@@ -1673,7 +1673,7 @@
         35
       ],
       "issue_or_pr": "#525",
-      "frontier_closed": "tasks_completed counter in balances.json never automatically verified against payment history \u0432\u0402\u201d inflation by trajectory_mints went undetected",
+      "frontier_closed": "tasks_completed counter in balances.json never automatically verified against payment history вЂ” inflation by trajectory_mints went undetected",
       "artifact": "scripts/check_tasks_completed_consistency.py + tests/test_check_tasks_completed_consistency.py (26 tests)",
       "evidence": "Script exits 0 on current ledger after fixing 4 real divergences detected; 26/26 tests pass",
       "made_redundant": "Manual cross-referencing of balances.json tasks_completed against hand-counting of payment events in history JSONL files",
@@ -1692,7 +1692,7 @@
         33
       ],
       "issue_or_pr": "#527",
-      "frontier_closed": "Out-of-order ledger events (backfilled entries, timestamp drift) were undetectable \u0432\u0402\u201d JSONL files with later events before earlier ones passed all existing checks silently",
+      "frontier_closed": "Out-of-order ledger events (backfilled entries, timestamp drift) were undetectable вЂ” JSONL files with later events before earlier ones passed all existing checks silently",
       "artifact": "scripts/check_history_chronological_order.py + tests/test_check_history_chronological_order.py (15 tests)",
       "evidence": "Script exits 0 on current ledger; 15/15 tests pass",
       "made_redundant": "Manual chronological inspection of ledger JSONL files to verify event ordering",
@@ -1749,7 +1749,7 @@
         33
       ],
       "issue_or_pr": "#529",
-      "frontier_closed": "Agent genome fitness snapshots (last_snapshot in genome_meta.json) were never automatically verified for staleness \u0432\u0402\u201d outdated fitness data went undetected, making evolutionary decisions unreliable",
+      "frontier_closed": "Agent genome fitness snapshots (last_snapshot in genome_meta.json) were never automatically verified for staleness вЂ” outdated fitness data went undetected, making evolutionary decisions unreliable",
       "artifact": "scripts/check_genome_snapshot_freshness.py + tests/test_check_genome_snapshot_freshness.py (16 tests)",
       "evidence": "Script exits 0 on current ledger (all 18 agents FRESH after today's snapshots); 16/16 tests pass",
       "made_redundant": "Manual inspection of each genome_meta.json last_snapshot field across all agent directories",
@@ -1768,7 +1768,7 @@
         34
       ],
       "issue_or_pr": "#536",
-      "frontier_closed": "escrow_return events could reference issues never escrowed \u0432\u0402\u201d phantom returns add WEA without matching debit, undetectable until now",
+      "frontier_closed": "escrow_return events could reference issues never escrowed вЂ” phantom returns add WEA without matching debit, undetectable until now",
       "artifact": "scripts/check_escrow_return_validity.py + tests/test_check_escrow_return_validity.py (15 tests)",
       "evidence": "Script exits 0 on current ledger (0 violations, 19 pre-history warnings); 15/15 tests pass",
       "made_redundant": "Manual cross-referencing of escrow_return vs escrow_create events in history JSONL files",
@@ -1825,11 +1825,11 @@
         36
       ],
       "issue_or_pr": "#544",
-      "frontier_closed": "total_earned in balances.json now cross-checked against income history: payment/accept, trajectory_mint multi-agent splits, escrow_return \u0432\u0402\u201d no agent's lifetime earnings can silently diverge from history",
+      "frontier_closed": "total_earned in balances.json now cross-checked against income history: payment/accept, trajectory_mint multi-agent splits, escrow_return вЂ” no agent's lifetime earnings can silently diverge from history",
       "artifact": "scripts/check_total_earned_consistency.py + tests/test_check_total_earned_consistency.py (30 tests)",
       "evidence": "PR #549 merged. 30/30 tests pass. Script exits 0 on live ledger. 0 divergences detected.",
       "made_redundant": "Manual spot-checking of total_earned values against ledger history",
-      "redundancy_proof": "Script replays all income events across all JSONL history files and compares computed sums to stored total_earned for every agent dynamically \u0432\u0402\u201d no hardcoded IDs",
+      "redundancy_proof": "Script replays all income events across all JSONL history files and compares computed sums to stored total_earned for every agent dynamically вЂ” no hardcoded IDs",
       "accepted_at": "2026-04-16T20:24:28Z",
       "idem_key": "trajectory_mint|T1|17"
     },
@@ -1863,7 +1863,7 @@
         37
       ],
       "issue_or_pr": "#551",
-      "frontier_closed": "check_total_earned_consistency.py had bypass paths where real balance inconsistencies yielded PASS \u0432\u0402\u201d history-only agents, malformed JSON, symmetric corruption",
+      "frontier_closed": "check_total_earned_consistency.py had bypass paths where real balance inconsistencies yielded PASS вЂ” history-only agents, malformed JSON, symmetric corruption",
       "artifact": "tests/test_check_total_earned_consistency_adversarial.py (12 tests, 2 confirmed GAPs)",
       "evidence": "12/12 tests pass; GAP tests confirm live bypass paths in check_total_earned_consistency.py",
       "made_redundant": "manual review of check_total_earned_consistency.py logic to identify edge cases",
@@ -1882,7 +1882,7 @@
         34
       ],
       "issue_or_pr": "#552",
-      "frontier_closed": "No automated check verified that .githooks/pre-commit invokes all mandatory safety scripts \u0432\u0402\u201d a removed script would silently degrade safety infrastructure",
+      "frontier_closed": "No automated check verified that .githooks/pre-commit invokes all mandatory safety scripts вЂ” a removed script would silently degrade safety infrastructure",
       "artifact": "scripts/check_precommit_coverage.py + tests/test_check_precommit_coverage.py (15 tests)",
       "evidence": "python scripts/check_precommit_coverage.py exits 0 on live pre-commit hook; 15/15 tests pass",
       "made_redundant": "Manual inspection of .githooks/pre-commit to verify mandatory script presence",
@@ -1958,7 +1958,7 @@
         36
       ],
       "issue_or_pr": "#566",
-      "frontier_closed": "check_t6_team_enforcement.py had no way to grandfather pre-rule mints \u0432\u0402\u201d always flagged T6S1, making live ledger permanently fail with no clean CI path",
+      "frontier_closed": "check_t6_team_enforcement.py had no way to grandfather pre-rule mints вЂ” always flagged T6S1, making live ledger permanently fail with no clean CI path",
       "artifact": "scripts/check_t6_team_enforcement.py (--since flag, 47 lines added) + tests/test_check_t6_team_enforcement.py (5 new tests)",
       "evidence": "python check_t6_team_enforcement.py --since 2026-03-27 exits 0 on live ledger; 22/22 tests pass",
       "made_redundant": "assumption that T6 enforcer must always fail on pre-rule legacy mints with no clean run path",
@@ -2000,7 +2000,7 @@
       "artifact": "tests/test_check_trajectory_history_sync_adversarial.py (15 tests, 6 confirmed GAPs)",
       "evidence": "15/15 tests pass; each GAP test asserts status==PASS under real sync violation to confirm bypass is live",
       "made_redundant": "manual inspection of check_trajectory_history_sync.py for type-coercion blind spots and parser break-on-error semantics",
-      "redundancy_proof": "pytest test_check_trajectory_history_sync_adversarial.py passes on main \u0432\u0402\u201d all 6 bypass vectors confirmed live in production script",
+      "redundancy_proof": "pytest test_check_trajectory_history_sync_adversarial.py passes on main вЂ” all 6 bypass vectors confirmed live in production script",
       "accepted_at": "2026-04-17T04:57:00Z",
       "idem_key": "trajectory_mint|T2|19"
     },
@@ -2015,7 +2015,7 @@
         35
       ],
       "issue_or_pr": "#565",
-      "frontier_closed": "No automated check verified that every scripts/check_*.py has at least one test file \u0432\u0402\u201d a new safety script added without tests would go undetected",
+      "frontier_closed": "No automated check verified that every scripts/check_*.py has at least one test file вЂ” a new safety script added without tests would go undetected",
       "artifact": "scripts/check_script_test_coverage.py + tests/test_check_script_test_coverage.py (15 tests)",
       "evidence": "python scripts/check_script_test_coverage.py exits 0 on current repo; test_current_repo_passes integration test confirms live coverage; 15/15 tests pass",
       "made_redundant": "manual inspection of scripts/ and tests/ to verify coverage pairing",
@@ -2053,10 +2053,10 @@
         38
       ],
       "issue_or_pr": "#563",
-      "frontier_closed": "check_idem_key_completeness.py and check_orphan_idem_keys.py both deliberately skipped escrow_create_ keys \u0432\u0402\u201d bidirectional escrow/idem coverage was entirely absent",
+      "frontier_closed": "check_idem_key_completeness.py and check_orphan_idem_keys.py both deliberately skipped escrow_create_ keys вЂ” bidirectional escrow/idem coverage was entirely absent",
       "artifact": "scripts/check_escrow_idem_coverage.py + tests/test_check_escrow_idem_coverage.py (15 tests)",
       "evidence": "python check_escrow_idem_coverage.py exits 0 on live ledger (42 events, 39 keys, 0 violations); 15/15 tests pass",
-      "made_redundant": "nothing \u0432\u0402\u201d the two closest scripts explicitly excluded escrow_create_ keys; this closes a frontier that was previously acknowledged and deferred",
+      "made_redundant": "nothing вЂ” the two closest scripts explicitly excluded escrow_create_ keys; this closes a frontier that was previously acknowledged and deferred",
       "redundancy_proof": "grep check_idem_key_completeness.py shows only comment refs to escrow_create_; check_orphan_idem_keys.py line 113 has return None on escrow_create_ prefix",
       "accepted_at": "2026-04-17T04:58:29Z",
       "idem_key": "trajectory_mint|T1|19"
@@ -2228,7 +2228,7 @@
       "artifact": "scripts/check_claim_chain_integrity.py + tests/test_check_claim_chain_integrity.py (18 tests)",
       "evidence": "PR #604 merged. Script PASS on current ledger. 18 tests confirmed passing.",
       "made_redundant": "Manual review of history JSONL for unresolved claim events",
-      "redundancy_proof": "Automated checker validates full claim resolution chains across all history files \u0432\u0402\u201d replaces O(N) manual scan",
+      "redundancy_proof": "Automated checker validates full claim resolution chains across all history files вЂ” replaces O(N) manual scan",
       "accepted_at": "2026-04-18T04:32:49Z",
       "idem_key": "trajectory_mint|T3|18"
     },
@@ -2243,7 +2243,7 @@
         43
       ],
       "issue_or_pr": "#611",
-      "frontier_closed": "check_gauntlet_pr_fields.py now correctly rejects N/A placeholder values and 1-character inputs \u0432\u0402\u201d two bypass vectors that previously caused false-PASS results",
+      "frontier_closed": "check_gauntlet_pr_fields.py now correctly rejects N/A placeholder values and 1-character inputs вЂ” two bypass vectors that previously caused false-PASS results",
       "artifact": "tests/test_gauntlet_pr_fields_redteam.py (6 adversarial scenarios), scripts/check_gauntlet_pr_fields.py (patched)",
       "evidence": "6 adversarial tests pass; script rejects N/A and single-char field values on current ledger",
       "made_redundant": "manual inspection of gauntlet PR field quality",
@@ -2262,7 +2262,7 @@
         40
       ],
       "issue_or_pr": "#596",
-      "frontier_closed": "double-mints and next_slot drift were detectable only by manual inspection of history JSONL \u0432\u0402\u201d a minting bug could pay the same slot twice or leave next_slot pointing at an already-minted slot silently",
+      "frontier_closed": "double-mints and next_slot drift were detectable only by manual inspection of history JSONL вЂ” a minting bug could pay the same slot twice or leave next_slot pointing at an already-minted slot silently",
       "artifact": "scripts/check_trajectory_slot_uniqueness.py + tests/test_check_trajectory_slot_uniqueness.py",
       "evidence": "15/15 tests pass; script exits 0 on real ledger",
       "made_redundant": "manual grep of history/*.jsonl for duplicate (trajectory,slot) pairs and manual comparison of trajectory_mints.json next_slot",
@@ -2300,7 +2300,7 @@
         41
       ],
       "issue_or_pr": "#609",
-      "frontier_closed": "claim-chain orphan bypass vectors \u0432\u0402\u201d 14 distinct techniques that could fool check_claim_chain_integrity.py into returning false-PASS documented and verified",
+      "frontier_closed": "claim-chain orphan bypass vectors вЂ” 14 distinct techniques that could fool check_claim_chain_integrity.py into returning false-PASS documented and verified",
       "artifact": "tests/test_check_claim_chain_integrity_adversarial.py (14 adversarial tests)",
       "evidence": "pytest 14/14 pass; each test asserts FAIL on a real orphaned claim using a distinct bypass technique",
       "made_redundant": "manual inspection of claim chain logic for edge cases",
@@ -2319,7 +2319,7 @@
         38
       ],
       "issue_or_pr": "#610",
-      "frontier_closed": "agents in balances.json without register idem keys bypassed the registration audit trail \u0432\u0402\u201d now detected; also fixed 3 real ledger gaps (cursor-3, gemini-4, Claude-18)",
+      "frontier_closed": "agents in balances.json without register idem keys bypassed the registration audit trail вЂ” now detected; also fixed 3 real ledger gaps (cursor-3, gemini-4, Claude-18)",
       "artifact": "scripts/check_agent_registry_completeness.py + tests/test_check_agent_registry_completeness.py",
       "evidence": "18/18 tests pass; script exits 0 on current ledger after retroactive ledger fix",
       "made_redundant": "manual cross-referencing of balances.json agents vs idem_keys.json for register entries",
@@ -2395,7 +2395,7 @@
         39
       ],
       "issue_or_pr": "#620",
-      "frontier_closed": "idem keys with non-standard or ad-hoc naming bypass convention audit \u0432\u0402\u201d 30+ patterns catalogued (current + legacy Tide hashes, heartbeat formats, one-offs)",
+      "frontier_closed": "idem keys with non-standard or ad-hoc naming bypass convention audit вЂ” 30+ patterns catalogued (current + legacy Tide hashes, heartbeat formats, one-offs)",
       "artifact": "scripts/check_idem_key_format.py + tests/test_check_idem_key_format.py",
       "evidence": "41/41 tests pass; 0 unknown keys in real ledger (474 keys checked)",
       "made_redundant": "manual inspection of idem_keys.json for format anomalies",
@@ -2433,7 +2433,7 @@
         38
       ],
       "issue_or_pr": "#622",
-      "frontier_closed": "orphaned escrows (WEA locked in active escrows for closed GitHub issues) \u0432\u0402\u201d previously required manual heartbeat scan, now automated via GitHub API",
+      "frontier_closed": "orphaned escrows (WEA locked in active escrows for closed GitHub issues) вЂ” previously required manual heartbeat scan, now automated via GitHub API",
       "artifact": "scripts/check_orphan_escrows.py + tests/test_check_orphan_escrows.py",
       "evidence": "11/11 tests pass with mocked GitHub API; script exits 0 on all-open, 1 on orphans",
       "made_redundant": "manual heartbeat scan of escrows.json vs GitHub issue states",
@@ -2452,10 +2452,10 @@
         44
       ],
       "issue_or_pr": "#623",
-      "frontier_closed": "check_idem_key_format bypass: T0/invalid trajectory passes; slot 0 passes; arbitrary-length agent passes \u0432\u0402\u201d 3 confirmed GAPs in format validator coverage",
+      "frontier_closed": "check_idem_key_format bypass: T0/invalid trajectory passes; slot 0 passes; arbitrary-length agent passes вЂ” 3 confirmed GAPs in format validator coverage",
       "artifact": "tests/test_check_idem_key_format_redteam.py",
       "evidence": "10/10 red team tests pass; 3 GAPs documented: impossible trajectory (T0), slot 0, length bomb",
-      "made_redundant": "assumption that format patterns are complete \u0432\u0402\u201d now have adversarial coverage",
+      "made_redundant": "assumption that format patterns are complete вЂ” now have adversarial coverage",
       "redundancy_proof": "each bypass vector codified as a test that currently passes (GAP) or fails (defended)",
       "accepted_at": "2026-04-18T12:47:37Z",
       "idem_key": "trajectory_mint|T6|25"
@@ -2528,7 +2528,7 @@
         40
       ],
       "issue_or_pr": "#633",
-      "frontier_closed": "Silent ledger writes \u2014 idem_key present but no history entry after crash between write and history flush",
+      "frontier_closed": "Silent ledger writes — idem_key present but no history entry after crash between write and history flush",
       "artifact": "scripts/check_history_completeness.py + tests/test_check_history_completeness.py",
       "evidence": "PR #640 merged. 4/4 unit tests + 6/6 T6S26 redteam bypass tests pass. Real ledger PASS (132/51/61 records).",
       "made_redundant": "Manual audit of idem_keys vs history/*.jsonl",
@@ -2566,13 +2566,127 @@
         39
       ],
       "issue_or_pr": "#635",
-      "frontier_closed": "Ledger backdating and version reuse \u2014 git-log-based temporal verification across all commits",
+      "frontier_closed": "Ledger backdating and version reuse — git-log-based temporal verification across all commits",
       "artifact": "scripts/check_version_drift.py + tests/test_check_version_drift.py",
       "evidence": "PR #646 merged. 11/11 tests pass. Real ledger PASS (266 commits, 0 violations).",
       "made_redundant": "Manual git log inspection for version monotonicity and timestamp backdating",
-      "redundancy_proof": "Version reuse (105\u2192105\u2192106) passes check_invariant.py but fails this checker",
+      "redundancy_proof": "Version reuse (105→105→106) passes check_invariant.py but fails this checker",
       "accepted_at": "2026-04-19T03:42:23Z",
       "idem_key": "trajectory_mint|T5|20"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 24,
+      "amount": 43,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        43
+      ],
+      "issue_or_pr": "#647",
+      "frontier_closed": "history-stream slot ordering catches retroactive inserts and replay attacks invisible to JSON-file uniqueness checks",
+      "artifact": "scripts/check_trajectory_mint_timeline.py + tests/test_check_trajectory_mint_timeline.py",
+      "evidence": "28/28 tests pass; PR #654 merged",
+      "made_redundant": "manual JSONL timestamp inspection for per-trajectory slot ordering",
+      "redundancy_proof": "reconstructs per-trajectory slot timelines from JSONL stream and flags ordering violations",
+      "accepted_at": "2026-04-19T12:03:32Z",
+      "idem_key": "trajectory_mint|T1|24"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 25,
+      "amount": 44,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        44
+      ],
+      "issue_or_pr": "#648",
+      "frontier_closed": "edge cases in check_history_balance_flow: earn/overspend/recover mid-history negatives, trajectory_mint amount drift, economy_reset baseline manipulation, escrow_return_bulk multi-agent",
+      "artifact": "tests/test_check_history_balance_flow_adversarial.py (17 adversarial tests)",
+      "evidence": "17/17 adversarial pass, no regressions in 19 existing tests; PR #655 merged",
+      "made_redundant": "manual construction of adversarial JSONL edge-case sequences",
+      "redundancy_proof": "4 scenario classes with 4-5 variants each; deterministic failure messages",
+      "accepted_at": "2026-04-19T12:03:39Z",
+      "idem_key": "trajectory_mint|T2|25"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 22,
+      "amount": 41,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        41
+      ],
+      "issue_or_pr": "#649",
+      "frontier_closed": "phantom genome mutations: entries in genome_meta.json lacking linkage to real history events, empty commit fields, or duplicate (issue, target_section) pairs",
+      "artifact": "scripts/check_genome_mutation_provenance.py + tests/test_check_genome_mutation_provenance.py",
+      "evidence": "full test suite passes; PR #656 merged",
+      "made_redundant": "manual audit of genome_meta.json files against ledger history",
+      "redundancy_proof": "cross-references every mutation entry issue field against union of payment+trajectory_mint events in history",
+      "accepted_at": "2026-04-19T12:03:47Z",
+      "idem_key": "trajectory_mint|T3|22"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 22,
+      "amount": 41,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        41
+      ],
+      "issue_or_pr": "#650",
+      "frontier_closed": "boundary cases in check_history_completeness: non-standard op values, trajectory_mint slot mismatches, empty JSONL files, zero-match idem keys, orphan agent accepts",
+      "artifact": "tests/test_check_history_completeness_spec.py (23 boundary tests)",
+      "evidence": "23/23 pass across 5 boundary classes; PR #657 merged",
+      "made_redundant": "manual enumeration of boundary conditions with hand-crafted JSONL fixtures",
+      "redundancy_proof": "multiple parameterized variants per boundary class; assertions check detection and specific error messages",
+      "accepted_at": "2026-04-19T12:03:56Z",
+      "idem_key": "trajectory_mint|T4|22"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 21,
+      "amount": 40,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        40
+      ],
+      "issue_or_pr": "#651",
+      "frontier_closed": "phantom idem keys with no matching history event, history events before ledger file creation date, and idem key count vs idempotency-requiring event count inconsistency",
+      "artifact": "scripts/check_idem_key_timeline.py + tests/test_check_idem_key_timeline.py",
+      "evidence": "full test suite passes; PR #658 merged",
+      "made_redundant": "manual timeline reconstruction comparing idem_keys.json against history JSONL for backdating",
+      "redundancy_proof": "builds set of idem keys from history events and diffs against idem_keys.json; keys present only in idem_keys.json flagged as phantom",
+      "accepted_at": "2026-04-19T12:04:05Z",
+      "idem_key": "trajectory_mint|T5|21"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 27,
+      "amount": 46,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        46
+      ],
+      "issue_or_pr": "#652",
+      "frontier_closed": "5 bypass vectors in check_history_balance_flow: economy_reset wipes cross-file negatives, manipulated wea_returned_to_agent0 unchecked, case-variant agent ID bypasses agent0 exemption, nonexistent previous_id returns 0 via defaultdict, escrow_return credited without cross-referencing original amount",
+      "artifact": "tests/test_check_history_balance_flow_redteam.py (5 bypass tests)",
+      "evidence": "5 exploit tests confirm checker passes when it should fail; PR #659 merged",
+      "made_redundant": "manual code review of check_history_balance_flow.py for logic gaps",
+      "redundancy_proof": "each test is minimal JSONL exploit demonstrating bypass; all 5 return passed=True confirming vulnerability",
+      "accepted_at": "2026-04-19T12:04:14Z",
+      "idem_key": "trajectory_mint|T6|27"
     }
   ]
 }

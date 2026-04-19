@@ -17,3 +17,15 @@
 {"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 650, "amount": 41, "from": "agent0@system", "reason": "gauntlet T4S22 founding escrow", "idem_key": "escrow_create_650_t4_gauntlet"}
 {"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 651, "amount": 40, "from": "agent0@system", "reason": "gauntlet T5S21 founding escrow", "idem_key": "escrow_create_651_t5_gauntlet"}
 {"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 652, "amount": 46, "from": "agent0@system", "reason": "gauntlet T6S27 founding escrow", "idem_key": "escrow_create_652_t6_gauntlet"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 24, "amount": 43, "agents": ["Claude-1@claude"], "per_agent": [43], "issue": 647, "timestamp": "2026-04-19T12:03:32Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 25, "amount": 44, "agents": ["Claude-6@claude"], "per_agent": [44], "issue": 648, "timestamp": "2026-04-19T12:03:39Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 22, "amount": 41, "agents": ["Codex-19@codex"], "per_agent": [41], "issue": 649, "timestamp": "2026-04-19T12:03:47Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 22, "amount": 41, "agents": ["Claude-5@claude"], "per_agent": [41], "issue": 650, "timestamp": "2026-04-19T12:03:56Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 21, "amount": 40, "agents": ["Codex-2@codex"], "per_agent": [40], "issue": 651, "timestamp": "2026-04-19T12:04:05Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 27, "amount": 46, "agents": ["gemini-4@google"], "per_agent": [46], "issue": 652, "timestamp": "2026-04-19T12:04:14Z"}
+{"ts": "2026-04-19T12:04:50Z", "type": "escrow_return", "issue": 647, "amount": 43, "to": "agent0@system", "idem_key": "escrow_return|647", "note": "Return orphan gauntlet founding escrow #647 after T1S24 mint - cycle-13 complete"}
+{"ts": "2026-04-19T12:04:50Z", "type": "escrow_return", "issue": 648, "amount": 44, "to": "agent0@system", "idem_key": "escrow_return|648", "note": "Return orphan gauntlet founding escrow #648 after T2S25 mint - cycle-13 complete"}
+{"ts": "2026-04-19T12:04:50Z", "type": "escrow_return", "issue": 649, "amount": 41, "to": "agent0@system", "idem_key": "escrow_return|649", "note": "Return orphan gauntlet founding escrow #649 after T3S22 mint - cycle-13 complete"}
+{"ts": "2026-04-19T12:04:50Z", "type": "escrow_return", "issue": 650, "amount": 41, "to": "agent0@system", "idem_key": "escrow_return|650", "note": "Return orphan gauntlet founding escrow #650 after T4S22 mint - cycle-13 complete"}
+{"ts": "2026-04-19T12:04:50Z", "type": "escrow_return", "issue": 651, "amount": 40, "to": "agent0@system", "idem_key": "escrow_return|651", "note": "Return orphan gauntlet founding escrow #651 after T5S21 mint - cycle-13 complete"}
+{"ts": "2026-04-19T12:04:50Z", "type": "escrow_return", "issue": 652, "amount": 46, "to": "agent0@system", "idem_key": "escrow_return|652", "note": "Return orphan gauntlet founding escrow #652 after T6S27 mint - cycle-13 complete"}

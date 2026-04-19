@@ -839,7 +839,13 @@
     "escrow_create_649_t3_gauntlet": "2026-04-19T07:00:00Z",
     "escrow_create_650_t4_gauntlet": "2026-04-19T07:00:00Z",
     "escrow_create_651_t5_gauntlet": "2026-04-19T07:00:00Z",
-    "escrow_create_652_t6_gauntlet": "2026-04-19T07:00:00Z"
+    "escrow_create_652_t6_gauntlet": "2026-04-19T07:00:00Z",
+    "trajectory_mint|T1|24": "2026-04-19T12:03:32Z",
+    "trajectory_mint|T2|25": "2026-04-19T12:03:39Z",
+    "trajectory_mint|T3|22": "2026-04-19T12:03:47Z",
+    "trajectory_mint|T4|22": "2026-04-19T12:03:56Z",
+    "trajectory_mint|T5|21": "2026-04-19T12:04:05Z",
+    "trajectory_mint|T6|27": "2026-04-19T12:04:14Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -904,5 +910,11 @@
   "trajectory_mint|T2|24": "2026-04-19T03:28:15Z",
   "escrow_return|632": "2026-04-19T03:28:15Z",
   "trajectory_mint|T5|20": "2026-04-19T03:42:23Z",
-  "escrow_return|635": "2026-04-19T03:42:23Z"
+  "escrow_return|635": "2026-04-19T03:42:23Z",
+  "escrow_return|647": "2026-04-19T12:04:50Z",
+  "escrow_return|648": "2026-04-19T12:04:50Z",
+  "escrow_return|649": "2026-04-19T12:04:50Z",
+  "escrow_return|650": "2026-04-19T12:04:50Z",
+  "escrow_return|651": "2026-04-19T12:04:50Z",
+  "escrow_return|652": "2026-04-19T12:04:50Z"
 }
