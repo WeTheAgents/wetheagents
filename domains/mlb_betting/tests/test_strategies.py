@@ -370,7 +370,7 @@ def test_fav_rl_disabled_for_home_fav_case():
     assert picks == []
 
 
-def test_fav_rl_disabled_for_away_fav_case():
+def test_fav_rl_shadow_mode_emits_for_away_fav_case():
     df = _frame(
         _row(
             home_implied_prob=0.36,
@@ -382,7 +382,15 @@ def test_fav_rl_disabled_for_away_fav_case():
         )
     )
     picks = find_fav_rl_picks(df, TODAY)
-    assert picks == []
+    assert len(picks) == 1
+    assert picks[0].market == "RL_-1.5"
+    assert picks[0].side == "away"
+    assert picks[0].tier == "fav_rl"
+    assert picks[0].historical_p == pytest.approx(0.512)
+    assert "shadow-only away-fav lane" in picks[0].reason
+    assert picks[0].feature_snapshot["shadow_only_mode"] is True
+    assert picks[0].feature_snapshot["shadow_filter_label"] == "away_fav_only_current_filter"
+    assert picks[0].ref_odds_espn == pytest.approx(2.5)
 
 
 def test_fav_rl_skipped_below_impl_band():
@@ -435,6 +443,26 @@ def test_fav_rl_skipped_when_fav_lacks_attack():
         )
     )
     assert find_fav_rl_picks(df, TODAY) == []
+
+
+def test_fav_rl_uses_estimated_ref_odds_when_away_side_missing():
+    df = _frame(
+        _row(
+            home_implied_prob=0.36,
+            away_implied_prob=0.68,
+            home_sp_fip_short=4.00,
+            away_sp_fip_short=3.30,
+            power_rate_home=0.40,
+            power_rate_away=0.45,
+            away_run_line_odds=np.nan,
+            home_run_line_odds=-180,
+        )
+    )
+
+    picks = find_fav_rl_picks(df, TODAY)
+
+    assert len(picks) == 1
+    assert picks[0].ref_odds_espn == pytest.approx(2.4866785079928952)
 
 
 # ---------------------------------------------------------------------------

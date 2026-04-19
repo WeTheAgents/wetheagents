@@ -8,7 +8,7 @@ Active strategies (per audit plan §3, sessions 25-27):
   - tier1_bullpen_day      — Sess 26 — ~24 games/season, 74.2% / 83.7% — bullpen-day rule
   - tier2_fatigue_gap      — Sess 26 — ~25-35 games/season, ~72% — bullpen workload gap
   - tier3_pitcher_advantage — Sess 27 — ~8 games/season, 79% — short-window swap (Decision §9.1)
-  - fav_rl                 — Sess 25 — ~137 games/season, 49.8% — Fav -1.5 RL filter
+  - fav_rl                 — manual/shadow only — away-fav current filter after 2026-04-19 re-audit
   - over_bullpen_mismatch  — Sess 33b — ~20 games/season, 61.7% — OVER on RPG+bullpen+SP
   - under_totals           — Sess 30 + live bundle — model-driven UNDER totals bands
 

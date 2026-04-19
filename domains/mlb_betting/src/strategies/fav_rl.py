@@ -1,23 +1,15 @@
-"""Fav -1.5 Run Line (Sess 25).
+"""Fav -1.5 Run Line shadow strategy.
 
-Pattern: moderate-to-strong favorite (62-75% implied) with a clear
-pitching edge (low FIP) and offensive explosiveness (positive power
-rate diff). Sess 25 found this is the most robust filter combination
-across 2014-2025: market underprices -1.5 coverage when both
-ingredients line up.
+Re-audited on 2026-04-19. The away-favorite / home-underdog lane did not
+clear the resurrection bar on official 2021-2025 actual odds, so ``fav_rl``
+is no longer part of the default live tier set.
 
-Per Sess 25:
+We keep the strategy callable for manual/shadow logging only, restricted to
+the current away-favorite shadow basket:
   fav_implied ∈ [0.62, 0.75)
-  fav_starter_fip_diff <= -0.2     (fav SP has lower FIP)
-  fav_power_rate_diff >= 0          (fav at least as explosive)
-
-  → 548 train + 121 test games (2021-2024 / 2025)
-  → 49.8% / 47.9% cover at est. odds 2.40
-  → +19.6% TRAIN / +15.0% TEST 2025 OOS
-
-This is the highest-volume strategy in the portfolio (~137 games/season).
-The bottleneck is feature readiness: fav_starter_fip_diff needs ≥5 starts
-per starter, so picks won't fire reliably until ~May 1-5 (audit plan §4).
+  fav_starter_fip_diff <= -0.2
+  fav_power_rate_diff >= 0
+  fav_is_home == False
 """
 
 from __future__ import annotations
@@ -26,22 +18,30 @@ from datetime import date
 
 import pandas as pd
 
+from src.fav_rl_audit import (
+    CURRENT_SHADOW_FILTER,
+    CURRENT_SHADOW_HISTORICAL_P,
+    estimate_away_fav_rl_decimal,
+)
+
 from .base import Pick, feature_snapshot
 
 TIER = "fav_rl"
-P_COVER = 0.498  # Sess 25 cover rate (TRAIN average)
+P_COVER = CURRENT_SHADOW_HISTORICAL_P
 
-# Filter thresholds — exact reproduction of Sess 25 production filter.
-IMPL_MIN = 0.62
-IMPL_MAX = 0.75   # exclusive upper bound
-FIP_DIFF_MAX = -0.2
-POWER_RATE_DIFF_MIN = 0.0
+# Shadow-only filter thresholds from the 2026-04-19 canonical re-audit.
+IMPL_MIN = CURRENT_SHADOW_FILTER["impl_min"]
+IMPL_MAX = CURRENT_SHADOW_FILTER["impl_max"]  # exclusive upper bound
+FIP_DIFF_MAX = CURRENT_SHADOW_FILTER["fav_starter_fip_diff_max"]
+POWER_RATE_DIFF_MIN = CURRENT_SHADOW_FILTER["fav_power_rate_diff_min"]
 
 SNAPSHOT_COLS = [
     "fav_implied_prob",
     "fav_is_home",
     "fav_starter_fip_diff",
     "fav_power_rate_diff",
+    "away_run_line_odds",
+    "home_run_line_odds",
     "home_sp_fip_short",
     "away_sp_fip_short",
     "power_rate_home",
@@ -67,6 +67,8 @@ def find_picks(games: pd.DataFrame, target_date: date) -> list[Pick]:
         return []
 
     mask = (
+        (~df["fav_is_home"].fillna(False))
+        &
         (df["fav_implied_prob"] >= IMPL_MIN)
         & (df["fav_implied_prob"] < IMPL_MAX)
         & (df["fav_starter_fip_diff"] <= FIP_DIFF_MAX)
@@ -77,22 +79,16 @@ def find_picks(games: pd.DataFrame, target_date: date) -> list[Pick]:
     picks: list[Pick] = []
     for _, row in qualified.iterrows():
         snap = feature_snapshot(row, SNAPSHOT_COLS)
-        fav_is_home = bool(row["fav_is_home"])
-        side = "home" if fav_is_home else "away"
+        snap["shadow_only_mode"] = True
+        snap["shadow_filter_label"] = "away_fav_only_current_filter"
+        side = "away"
         reason = (
+            "shadow-only away-fav lane: "
             f"fav_implied={row['fav_implied_prob']:.3f} ∈ [{IMPL_MIN}, {IMPL_MAX})"
             f" & fav_fip_diff={row['fav_starter_fip_diff']:.2f} ≤ {FIP_DIFF_MAX}"
             f" & fav_power_diff={row['fav_power_rate_diff']:.3f} ≥ {POWER_RATE_DIFF_MIN}"
         )
-        # Reference RL odds: fav side is the -1.5 line. The xlsx run_line column
-        # is the home spread (-1.5 if home is fav, +1.5 if away is fav). For
-        # the favorite's -1.5 we want the home_run_line_odds when fav is home,
-        # and away_run_line_odds when fav is away (and the spread is -1.5).
-        ref_odds = None
-        if fav_is_home and "home_run_line_odds" in row:
-            ref_odds = _decimal_or_none(row.get("home_run_line_odds"))
-        elif not fav_is_home and "away_run_line_odds" in row:
-            ref_odds = _decimal_or_none(row.get("away_run_line_odds"))
+        ref_odds = _favorite_rl_reference_odds(row)
 
         picks.append(
             Pick.make(
@@ -110,6 +106,16 @@ def find_picks(games: pd.DataFrame, target_date: date) -> list[Pick]:
         )
 
     return picks
+
+
+def _favorite_rl_reference_odds(row: pd.Series) -> float | None:
+    away_actual = _decimal_or_none(row.get("away_run_line_odds"))
+    if away_actual is not None:
+        return away_actual
+    estimated = estimate_away_fav_rl_decimal(row.get("home_run_line_odds"))
+    if estimated is None:
+        return None
+    return float(estimated)
 
 
 def _decimal_or_none(american_odds) -> float | None:
