@@ -126,7 +126,16 @@ def load_single_season(filepath: Path, season: int) -> pd.DataFrame:
     df["final"] = pd.to_numeric(df["final"], errors="coerce")
 
     # Clean odds columns
-    for col in ["open_ml", "close_ml", "run_line", "run_line_odds", "open_ou", "close_ou"]:
+    for col in [
+        "open_ml",
+        "close_ml",
+        "run_line",
+        "run_line_odds",
+        "open_ou",
+        "open_ou_odds",
+        "close_ou",
+        "close_ou_odds",
+    ]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
@@ -199,6 +208,11 @@ def pair_games(df: pd.DataFrame) -> pd.DataFrame:
     # Over/Under
     games["open_ou"] = homes["open_ou"].values
     games["close_ou"] = homes["close_ou"].values
+    # Team-row convention: away/V row stores under odds, home/H row stores
+    # over odds. Keep explicit game-level aliases for the under side instead
+    # of overloading any legacy game-level ``open_ou_odds`` semantics.
+    games["open_ou_odds_under"] = visitors["open_ou_odds"].values
+    games["close_ou_odds_under"] = visitors["close_ou_odds"].values
 
     # Derived: inning sums
     away_inn_cols = [f"away_inn_{i}" for i in range(1, 10)]
@@ -216,6 +230,7 @@ def load_all_seasons(
     *,
     enrich_innings: bool = True,
     enrich_run_line: bool = True,
+    enrich_totals: bool = True,
 ) -> pd.DataFrame:
     """Load and combine all seasons into a single game-level DataFrame.
 
@@ -229,6 +244,10 @@ def load_all_seasons(
         enrich_run_line: If True (default), backfill NaN run_line / run_line_odds
             columns for 2022-2025 from SBR JSON. Safe no-op if the JSON file
             is missing.
+        enrich_totals: If True (default), backfill missing totals lines and
+            under-side odds (``open_ou_odds_under`` / ``close_ou_odds_under``)
+            for 2022-2025 from SBR JSON. Safe no-op if the JSON file is
+            missing.
 
     Returns:
         DataFrame with one row per game, all innings, odds, and pitchers.
@@ -273,6 +292,12 @@ def load_all_seasons(
             games = enrich_run_line_from_sbr(games)
         except Exception as e:  # noqa: BLE001 - never fail the loader on backfill
             logger.warning("run_line enrichment failed (non-fatal): %s", e)
+
+    if enrich_totals:
+        try:
+            games = enrich_totals_from_sbr(games)
+        except Exception as e:  # noqa: BLE001 - never fail the loader on backfill
+            logger.warning("totals enrichment failed (non-fatal): %s", e)
 
     if enrich_innings:
         try:
@@ -982,6 +1007,118 @@ def _load_sbr_run_line_lookup(json_paths: list[Path]) -> pd.DataFrame:
     return combined
 
 
+def _load_sbr_totals_lookup(json_paths: list[Path]) -> pd.DataFrame:
+    """Read SBR-style JSON dumps and return a (date, teams) → totals frame.
+
+    Columns:
+      - date, away_team_short, home_team_short
+      - open_ou, close_ou
+      - open_ou_odds_under, close_ou_odds_under
+    """
+    frames: list[pd.DataFrame] = []
+    for path in json_paths:
+        if not path.exists():
+            continue
+        try:
+            with open(path) as f:
+                data = _json.load(f)
+        except (OSError, ValueError) as e:
+            logger.warning("Failed to read SBR JSON %s: %s", path, e)
+            continue
+        if not isinstance(data, dict):
+            logger.warning("Unexpected SBR JSON shape in %s (not a dict)", path)
+            continue
+
+        rows: list[dict] = []
+        for date_str, games in data.items():
+            if not isinstance(games, list):
+                continue
+            try:
+                dt = pd.Timestamp(date_str).normalize()
+            except (ValueError, TypeError):
+                continue
+            for game in games:
+                if not isinstance(game, dict):
+                    continue
+                gv = game.get("gameView") or {}
+                if gv.get("gameType") and gv.get("gameType") != "R":
+                    continue
+                away_short = (gv.get("awayTeam") or {}).get("shortName", "")
+                home_short = (gv.get("homeTeam") or {}).get("shortName", "")
+                if not away_short or not home_short:
+                    continue
+                totals_books = (
+                    (game.get("odds") or {}).get("totals")
+                    or (game.get("odds") or {}).get("total")
+                    or []
+                )
+                if not totals_books:
+                    continue
+
+                open_total = close_total = None
+                open_under = close_under = np.nan
+                search_order = list(_SBR_BOOK_PRIORITY)
+                seen = set(search_order)
+                for entry in totals_books:
+                    name = entry.get("sportsbook", "")
+                    if name and name not in seen:
+                        search_order.append(name)
+                        seen.add(name)
+                for book_name in search_order:
+                    match = None
+                    for entry in totals_books:
+                        if entry.get("sportsbook") == book_name:
+                            match = entry
+                            break
+                    if match is None:
+                        continue
+                    current = match.get("currentLine") or {}
+                    opening = match.get("openingLine") or {}
+                    if close_total is None and current.get("total") is not None:
+                        close_total = current.get("total")
+                        close_under = current.get("underOdds", np.nan)
+                    if open_total is None and opening.get("total") is not None:
+                        open_total = opening.get("total")
+                        open_under = opening.get("underOdds", np.nan)
+                    if close_total is not None and open_total is not None:
+                        break
+
+                if close_total is None and open_total is None:
+                    continue
+                rows.append(
+                    {
+                        "date": dt,
+                        "away_team_short": str(away_short).upper(),
+                        "home_team_short": str(home_short).upper(),
+                        "open_ou": float(open_total) if open_total is not None else np.nan,
+                        "close_ou": float(close_total) if close_total is not None else np.nan,
+                        "open_ou_odds_under": (
+                            float(open_under) if pd.notna(open_under) else np.nan
+                        ),
+                        "close_ou_odds_under": (
+                            float(close_under) if pd.notna(close_under) else np.nan
+                        ),
+                    }
+                )
+
+        if rows:
+            frames.append(pd.DataFrame(rows))
+            logger.info(
+                "Loaded %d totals rows from SBR JSON: %s",
+                len(rows),
+                path.name,
+            )
+
+    if not frames:
+        return pd.DataFrame()
+
+    combined = pd.concat(frames, ignore_index=True)
+    combined = combined.drop_duplicates(
+        subset=["date", "away_team_short", "home_team_short"], keep="first"
+    )
+    return combined
+
+
 def enrich_run_line_from_sbr(
     games: pd.DataFrame,
     *,
@@ -1084,6 +1221,105 @@ def enrich_run_line_from_sbr(
     logger.info(
         "Run-line enrichment: %d/%d NaN rows filled in seasons %s (%.1f%%)",
         filled, int(mask.sum()), target_seasons, 100.0 * filled / denom,
+    )
+    return out
+
+
+def enrich_totals_from_sbr(
+    games: pd.DataFrame,
+    *,
+    json_paths: list[Path] | None = None,
+    seasons: list[int] | None = None,
+) -> pd.DataFrame:
+    """Backfill totals line + under-side odds from SBR JSON.
+
+    Non-destructive: existing values are preserved and only NaNs are filled.
+    Safe no-op if no JSON source file is present.
+    """
+    paths = json_paths or SBR_JSON_CANDIDATES
+    existing = [p for p in paths if Path(p).exists()]
+    if not existing:
+        logger.info(
+            "SBR JSON not found at %s; skipping totals enrichment.",
+            [str(p) for p in paths],
+        )
+        return games
+
+    totals_cols = [
+        "open_ou",
+        "close_ou",
+        "open_ou_odds_under",
+        "close_ou_odds_under",
+    ]
+    missing_cols = [c for c in totals_cols if c not in games.columns]
+    if missing_cols:
+        logger.warning(
+            "games missing %s; skipping totals enrichment",
+            missing_cols,
+        )
+        return games
+
+    target_seasons = seasons if seasons is not None else [2022, 2023, 2024, 2025]
+    scope = games[games["season"].isin(target_seasons)]
+    needs_fill = scope[totals_cols].isna().any(axis=1)
+    if int(needs_fill.sum()) == 0:
+        logger.info(
+            "Totals under-odds already populated for seasons %s; nothing to enrich.",
+            target_seasons,
+        )
+        return games
+
+    logger.info(
+        "Enriching totals from SBR JSON for seasons %s (%d/%d rows need fill)",
+        target_seasons,
+        int(needs_fill.sum()),
+        len(scope),
+    )
+
+    lookup = _load_sbr_totals_lookup(existing)
+    if lookup.empty:
+        logger.warning("SBR JSON had no usable totals rows; nothing enriched.")
+        return games
+
+    idx: dict[tuple, dict] = {}
+    for _, r in lookup.iterrows():
+        dt = r["date"]
+        home_vars = _variants_of(r["home_team_short"])
+        away_vars = _variants_of(r["away_team_short"])
+        payload = {col: r[col] for col in totals_cols}
+        for h in home_vars:
+            for a in away_vars:
+                idx.setdefault((dt, h, a), payload)
+
+    out = games.copy()
+    out["date"] = pd.to_datetime(out["date"], errors="coerce").dt.normalize()
+
+    mask = out["season"].isin(target_seasons) & out[totals_cols].isna().any(axis=1)
+    filled = 0
+    for i in out.index[mask]:
+        key = (
+            out.at[i, "date"],
+            str(out.at[i, "home_team"]).strip().upper(),
+            str(out.at[i, "away_team"]).strip().upper(),
+        )
+        match = idx.get(key)
+        if match is None:
+            continue
+        row_filled = False
+        for col in totals_cols:
+            if pd.isna(out.at[i, col]) and pd.notna(match[col]):
+                out.at[i, col] = match[col]
+                row_filled = True
+        if row_filled:
+            filled += 1
+
+    denom = max(int(mask.sum()), 1)
+    logger.info(
+        "Totals enrichment: %d/%d rows filled in seasons %s (%.1f%%)",
+        filled,
+        int(mask.sum()),
+        target_seasons,
+        100.0 * filled / denom,
     )
     return out
 

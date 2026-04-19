@@ -70,7 +70,7 @@ def test_overlap_pair_gets_x15_stake_bonus_after_dedup():
     assert enriched.feature_snapshot["tier5_fielding_oaa_edge_prev"] == pytest.approx(-12.0)
     assert enriched.feature_snapshot["tier5_fielding_oaa_q10_threshold"] == pytest.approx(-42.7)
     assert enriched.feature_snapshot["tier5_fielding_oaa_q10_pass"] is True
-    assert enriched.schema_version == 4
+    assert enriched.schema_version == 5
 
 
 def test_non_pair_overlap_keeps_base_stake():
@@ -126,3 +126,70 @@ def test_build_tier5_operator_lookup_reads_target_day_signal():
     assert lookup[("DET", "BOS")]["tier5_fielding_oaa_edge_prev"] == pytest.approx(-11.5)
     assert lookup[("DET", "BOS")]["tier5_fielding_oaa_q10_threshold"] == pytest.approx(-42.7)
     assert lookup[("DET", "BOS")]["tier5_fielding_oaa_q10_pass"] is True
+
+
+def test_enrich_under_pick_matches_total_line_and_logs_clv_metadata():
+    pick = Pick.make(
+        target_date=TODAY,
+        away="DET",
+        home="BOS",
+        market="O/U",
+        side="under",
+        tier="under_totals",
+        historical_p=0.54,
+        ref_odds_espn=1.909,
+        market_line=8.5,
+        reason="under",
+        feature_snapshot={"close_ou": 8.5},
+    )
+    poly_data = {
+        "event_id": "event-123",
+        "markets": {
+            "total": [
+                {
+                    "event_id": "event-123",
+                    "slug": "det-vs-bos",
+                    "market_id": "total-75",
+                    "condition_id": "cond-75",
+                    "token_ids": ["over75", "under75"],
+                    "question": "DET @ BOS total 7.5",
+                    "outcomes": ["Over", "Under"],
+                    "outcome_prices": [0.60, 0.40],
+                    "line": 7.5,
+                    "best_bid": 0.39,
+                    "best_ask": 0.41,
+                    "liquidity": 1000,
+                    "accepting_orders": True,
+                },
+                {
+                    "event_id": "event-123",
+                    "slug": "det-vs-bos",
+                    "market_id": "total-85",
+                    "condition_id": "cond-85",
+                    "token_ids": ["over85", "under85"],
+                    "question": "DET @ BOS total 8.5",
+                    "outcomes": ["Over", "Under"],
+                    "outcome_prices": [0.52, 0.48],
+                    "line": 8.5,
+                    "best_bid": 0.47,
+                    "best_ask": 0.49,
+                    "liquidity": 2000,
+                    "accepting_orders": True,
+                },
+            ]
+        },
+    }
+
+    enriched = generate_picks_2026.enrich_pick(pick, poly_data, 0.25)
+
+    assert enriched.status == "ok"
+    assert enriched.polymarket_price == pytest.approx(0.48)
+    assert enriched.polymarket_decimal == pytest.approx(1 / 0.48)
+    assert enriched.pick_line == pytest.approx(8.5)
+    assert enriched.polymarket_line == pytest.approx(8.5)
+    assert enriched.polymarket_event_id == "event-123"
+    assert enriched.polymarket_market_id == "total-85"
+    assert enriched.polymarket_condition_id == "cond-85"
+    assert enriched.polymarket_token_id == "under85"
+    assert enriched.polymarket_best_bid == pytest.approx(0.47)
+    assert enriched.polymarket_best_ask == pytest.approx(0.49)

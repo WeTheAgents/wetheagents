@@ -10,6 +10,7 @@ Active strategies (per audit plan §3, sessions 25-27):
   - tier3_pitcher_advantage — Sess 27 — ~8 games/season, 79% — short-window swap (Decision §9.1)
   - fav_rl                 — Sess 25 — ~137 games/season, 49.8% — Fav -1.5 RL filter
   - over_bullpen_mismatch  — Sess 33b — ~20 games/season, 61.7% — OVER on RPG+bullpen+SP
+  - under_totals           — Sess 30 + live bundle — model-driven UNDER totals bands
 
 Deferred (no production model yet, per audit §9.3):
   - yrfi   — research only, no saved CatBoost model. Defer to in-season research.
@@ -21,6 +22,7 @@ from .over_bullpen_mismatch import find_picks as find_over_picks
 from .tier1_bullpen_day import find_picks as find_tier1_picks
 from .tier2_fatigue_gap import find_picks as find_tier2_picks
 from .tier3_pitcher_advantage import find_picks as find_tier3_picks
+from .under_totals import find_picks as find_under_picks
 
 ACTIVE_STRATEGIES = {
     "tier1_bullpen_day": find_tier1_picks,
@@ -28,6 +30,7 @@ ACTIVE_STRATEGIES = {
     "tier3_pitcher_advantage": find_tier3_picks,
     "fav_rl": find_fav_rl_picks,
     "over_bullpen_mismatch": find_over_picks,
+    "under_totals": find_under_picks,
 }
 
 __all__ = [
@@ -39,4 +42,5 @@ __all__ = [
     "find_tier3_picks",
     "find_fav_rl_picks",
     "find_over_picks",
+    "find_under_picks",
 ]

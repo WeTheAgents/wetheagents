@@ -31,13 +31,14 @@ class Pick:
     date: date
     away: str
     home: str
-    market: str          # "ML_dog" | "RL_+1.5" | "RL_-1.5"
-    side: str            # "away" | "home"
+    market: str          # "ML_dog" | "RL_+1.5" | "RL_-1.5" | "O/U"
+    side: str            # "away" | "home" | "over" | "under"
     tier: str
     historical_p: float
     ref_odds_espn: float | None
     reason: str
     feature_snapshot: dict[str, Any]
+    market_line: float | None = None
     also_qualified: list[str] = field(default_factory=list)
 
     @classmethod
@@ -52,6 +53,7 @@ class Pick:
         tier: str,
         historical_p: float,
         ref_odds_espn: float | None,
+        market_line: float | None = None,
         reason: str,
         feature_snapshot: dict[str, Any],
     ) -> "Pick":
@@ -68,6 +70,7 @@ class Pick:
             tier=tier,
             historical_p=historical_p,
             ref_odds_espn=ref_odds_espn,
+            market_line=market_line,
             reason=reason,
             feature_snapshot=feature_snapshot,
         )

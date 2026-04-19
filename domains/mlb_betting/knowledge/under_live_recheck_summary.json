@@ -1,0 +1,361 @@
+{
+  "official_real_odds_2021_2025": {
+    "calibration": {
+      "n_predictions": 10677,
+      "auc": 0.5107355457471777,
+      "brier": 0.24947432370197975,
+      "logloss": 0.6920791282282791,
+      "ece_10": 0.008131031413453367
+    },
+    "reliability_table": [
+      {
+        "bin_index": 4,
+        "bin_lo": 0.4,
+        "bin_hi": 0.5,
+        "bin_center": 0.45,
+        "n_games": 5000,
+        "mean_predicted": 0.4897548534935446,
+        "actual_rate": 0.5006,
+        "gap": 0.01084514650645546,
+        "abs_gap_weighted": 54.225732532277306
+      },
+      {
+        "bin_index": 5,
+        "bin_lo": 0.5,
+        "bin_hi": 0.6000000000000001,
+        "bin_center": 0.55,
+        "n_games": 5627,
+        "mean_predicted": 0.5134843780677446,
+        "actual_rate": 0.5102185889461525,
+        "gap": -0.003265789121592144,
+        "abs_gap_weighted": 18.376595387198996
+      },
+      {
+        "bin_index": 6,
+        "bin_lo": 0.6000000000000001,
+        "bin_hi": 0.7000000000000001,
+        "bin_center": 0.6500000000000001,
+        "n_games": 50,
+        "mean_predicted": 0.6157461103606938,
+        "actual_rate": 0.9,
+        "gap": 0.2842538896393062,
+        "abs_gap_weighted": 14.21269448196531
+      }
+    ],
+    "thresholds": {
+      "under_totals": {
+        "label": "under_totals",
+        "bets": 463,
+        "hit_rate": 0.6025917926565875,
+        "roi_pct": 14.627350694470618,
+        "avg_decimal_odds": 1.9008682580932175,
+        "cumulative_units": 67.72463371539892,
+        "max_drawdown_units": 12.264201016374926,
+        "max_drawdown_pct": 10.538674980332887,
+        "longest_loss_streak": 5,
+        "longest_win_streak": 9,
+        "season_roi_pct": {
+          "2021": 9.409427147028195,
+          "2022": 18.32527829944963,
+          "2023": 3.9262754577485515,
+          "2024": 35.24214612611415,
+          "2025": 51.54233171238697
+        }
+      },
+      "under_totals_power": {
+        "label": "under_totals_power",
+        "bets": 159,
+        "hit_rate": 0.7547169811320755,
+        "roi_pct": 43.84484194107024,
+        "avg_decimal_odds": 1.9072421197610148,
+        "cumulative_units": 69.71329868630168,
+        "max_drawdown_units": 7.257575757575757,
+        "max_drawdown_pct": 7.121617603330353,
+        "longest_loss_streak": 5,
+        "longest_win_streak": 14,
+        "season_roi_pct": {
+          "2021": 26.312119914068937,
+          "2022": 43.352643445811154,
+          "2023": 68.49341995629615,
+          "2024": 58.56532121329317,
+          "2025": -100.0
+        }
+      }
+    }
+  },
+  "bridge_flat_110_2010_2025": {
+    "calibration": {
+      "n_predictions": 32005,
+      "auc": 0.5119137605005067,
+      "brier": 0.24950842305379198,
+      "logloss": 0.6921500148240165,
+      "ece_10": 0.006961063629464615
+    },
+    "thresholds": {
+      "under_totals": {
+        "label": "under_totals",
+        "bets": 1610,
+        "hit_rate": 0.5900621118012422,
+        "roi_pct": 12.642857142857139,
+        "avg_decimal_odds": 1.9089999999999998,
+        "cumulative_units": 203.54999999999893,
+        "max_drawdown_units": 27.733999999999998,
+        "max_drawdown_pct": 26.57480692205975,
+        "longest_loss_streak": 10,
+        "longest_win_streak": 14,
+        "season_roi_pct": {
+          "2010": -6.997435897435898,
+          "2012": -10.913333333333336,
+          "2013": -4.549999999999999,
+          "2014": 90.9,
+          "2015": 12.19046153846154,
+          "2016": 10.928378378378378,
+          "2017": 13.94031413612565,
+          "2018": 15.308724832214768,
+          "2019": 22.46415094339622,
+          "2021": 8.400502512562813,
+          "2022": 20.96633663366336,
+          "2023": 4.127272727272724,
+          "2024": 35.751111111111115,
+          "2025": 63.62857142857143
+        }
+      },
+      "under_totals_power": {
+        "label": "under_totals_power",
+        "bets": 554,
+        "hit_rate": 0.7418772563176895,
+        "roi_pct": 41.62436823104693,
+        "avg_decimal_odds": 1.909,
+        "cumulative_units": 230.59899999999922,
+        "max_drawdown_units": 7.7280000000000015,
+        "max_drawdown_pct": 7.522851830580089,
+        "longest_loss_streak": 5,
+        "longest_win_streak": 14,
+        "season_roi_pct": {
+          "2010": -4.549999999999995,
+          "2012": -36.36666666666667,
+          "2013": -100.0,
+          "2015": 34.067175572519076,
+          "2016": 44.820689655172416,
+          "2017": 36.35714285714285,
+          "2018": 53.40178571428572,
+          "2019": 56.81071428571428,
+          "2021": 25.072413793103447,
+          "2022": 45.44761904761905,
+          "2023": 67.76060606060607,
+          "2024": 60.35600000000001,
+          "2025": -100.0
+        }
+      }
+    }
+  },
+  "modifier_scan": {
+    "baseline_metrics": {
+      "label": "P>= 0.53",
+      "bets": 463,
+      "hit_rate": 0.6025917926565875,
+      "roi_pct": 14.627350694470618,
+      "avg_decimal_odds": 1.9008682580932175,
+      "cumulative_units": 67.72463371539892,
+      "max_drawdown_units": 12.264201016374926,
+      "max_drawdown_pct": 10.538674980332887,
+      "longest_loss_streak": 5,
+      "longest_win_streak": 9,
+      "season_roi_pct": {
+        "2021": 9.409427147028195,
+        "2022": 18.32527829944963,
+        "2023": 3.9262754577485515,
+        "2024": 35.24214612611415,
+        "2025": 51.54233171238697
+      }
+    },
+    "marginal_metrics": {
+      "label": "0.53 <= P < 0.55",
+      "bets": 304,
+      "hit_rate": 0.5230263157894737,
+      "roi_pct": -0.6541661088495833,
+      "avg_decimal_odds": 1.8975345607077572,
+      "cumulative_units": -1.9886649709027204,
+      "max_drawdown_units": 26.510757664499643,
+      "max_drawdown_pct": 24.204507059443273,
+      "longest_loss_streak": 6,
+      "longest_win_streak": 6,
+      "season_roi_pct": {
+        "2021": 2.456546434344769,
+        "2022": 0.5091878562770255,
+        "2023": -29.366158424315046,
+        "2024": 6.088177267140378,
+        "2025": 59.11944829800632
+      }
+    },
+    "candidates": [
+      {
+        "quantile_label": "q60",
+        "threshold": 0.6,
+        "baseline_roi_pct": 14.627350694470618,
+        "candidate_roi_pct": 14.711329044574978,
+        "roi_delta_pct_points": 0.08397835010435983,
+        "baseline_max_drawdown_pct": 10.538674980332887,
+        "candidate_max_drawdown_pct": 11.446477788652317,
+        "drawdown_delta_pct_points": 0.9078028083194294,
+        "marginal_bets": 313,
+        "marginal_kept": 301,
+        "volume_retained": 0.9616613418530351,
+        "positive_season_flip": false,
+        "pass_live": false,
+        "candidate_metrics": {
+          "label": "modifier_q60",
+          "bets": 451,
+          "hit_rate": 0.6031042128603105,
+          "roi_pct": 14.711329044574978,
+          "avg_decimal_odds": 1.9003952940700835,
+          "cumulative_units": 66.34809399103312,
+          "max_drawdown_units": 13.21658196875588,
+          "max_drawdown_pct": 11.446477788652317,
+          "longest_loss_streak": 5,
+          "longest_win_streak": 9,
+          "season_roi_pct": {
+            "2021": 9.041778327492613,
+            "2022": 18.32527829944963,
+            "2023": 4.281838371868792,
+            "2024": 35.24214612611415,
+            "2025": 51.54233171238697
+          }
+        }
+      },
+      {
+        "quantile_label": "q70",
+        "threshold": 0.7,
+        "baseline_roi_pct": 14.627350694470618,
+        "candidate_roi_pct": 14.765196680396079,
+        "roi_delta_pct_points": 0.13784598592546082,
+        "baseline_max_drawdown_pct": 10.538674980332887,
+        "candidate_max_drawdown_pct": 10.538674980332887,
+        "drawdown_delta_pct_points": 0.0,
+        "marginal_bets": 313,
+        "marginal_kept": 309,
+        "volume_retained": 0.987220447284345,
+        "positive_season_flip": false,
+        "pass_live": false,
+        "candidate_metrics": {
+          "label": "modifier_q70",
+          "bets": 459,
+          "hit_rate": 0.6034858387799564,
+          "roi_pct": 14.765196680396079,
+          "avg_decimal_odds": 1.9005749635273734,
+          "cumulative_units": 67.77225276301797,
+          "max_drawdown_units": 12.264201016374926,
+          "max_drawdown_pct": 10.538674980332887,
+          "longest_loss_streak": 5,
+          "longest_win_streak": 9,
+          "season_roi_pct": {
+            "2021": 9.626861061643671,
+            "2022": 18.32527829944963,
+            "2023": 3.9262754577485515,
+            "2024": 35.24214612611415,
+            "2025": 51.54233171238697
+          }
+        }
+      },
+      {
+        "quantile_label": "q75",
+        "threshold": 0.75,
+        "baseline_roi_pct": 14.627350694470618,
+        "candidate_roi_pct": 14.627350694470618,
+        "roi_delta_pct_points": 0.0,
+        "baseline_max_drawdown_pct": 10.538674980332887,
+        "candidate_max_drawdown_pct": 10.538674980332887,
+        "drawdown_delta_pct_points": 0.0,
+        "marginal_bets": 313,
+        "marginal_kept": 313,
+        "volume_retained": 1.0,
+        "positive_season_flip": false,
+        "pass_live": false,
+        "candidate_metrics": {
+          "label": "modifier_q75",
+          "bets": 463,
+          "hit_rate": 0.6025917926565875,
+          "roi_pct": 14.627350694470618,
+          "avg_decimal_odds": 1.9008682580932175,
+          "cumulative_units": 67.72463371539892,
+          "max_drawdown_units": 12.264201016374926,
+          "max_drawdown_pct": 10.538674980332887,
+          "longest_loss_streak": 5,
+          "longest_win_streak": 9,
+          "season_roi_pct": {
+            "2021": 9.409427147028195,
+            "2022": 18.32527829944963,
+            "2023": 3.9262754577485515,
+            "2024": 35.24214612611415,
+            "2025": 51.54233171238697
+          }
+        }
+      },
+      {
+        "quantile_label": "q80",
+        "threshold": 0.8,
+        "baseline_roi_pct": 14.627350694470618,
+        "candidate_roi_pct": 14.627350694470618,
+        "roi_delta_pct_points": 0.0,
+        "baseline_max_drawdown_pct": 10.538674980332887,
+        "candidate_max_drawdown_pct": 10.538674980332887,
+        "drawdown_delta_pct_points": 0.0,
+        "marginal_bets": 313,
+        "marginal_kept": 313,
+        "volume_retained": 1.0,
+        "positive_season_flip": false,
+        "pass_live": false,
+        "candidate_metrics": {
+          "label": "modifier_q80",
+          "bets": 463,
+          "hit_rate": 0.6025917926565875,
+          "roi_pct": 14.627350694470618,
+          "avg_decimal_odds": 1.9008682580932175,
+          "cumulative_units": 67.72463371539892,
+          "max_drawdown_units": 12.264201016374926,
+          "max_drawdown_pct": 10.538674980332887,
+          "longest_loss_streak": 5,
+          "longest_win_streak": 9,
+          "season_roi_pct": {
+            "2021": 9.409427147028195,
+            "2022": 18.32527829944963,
+            "2023": 3.9262754577485515,
+            "2024": 35.24214612611415,
+            "2025": 51.54233171238697
+          }
+        }
+      }
+    ],
+    "selected": null,
+    "apply_live": false
+  },
+  "features": [
+    "combined_rpg",
+    "combined_rapg",
+    "combined_rpg_last10",
+    "combined_rapg_last10",
+    "sp_ra_combined_short",
+    "sp_ra_combined_long",
+    "sp_ra_floor_long",
+    "sp_fip_combined",
+    "sp_whip_combined",
+    "sp_kbb_combined",
+    "sp_ip_per_start_combined",
+    "bullpen_fip_combined",
+    "bullpen_fip_7g_combined",
+    "bp_fip_osc_combined",
+    "bullpen_ip_3d_combined",
+    "offense_vs_league_combined",
+    "defense_vs_league_combined",
+    "pyth_wp_combined",
+    "fi_score_rate_combined",
+    "close_ou",
+    "rpg_vs_line",
+    "rpg_last10_vs_line",
+    "hold_rate_combined"
+  ],
+  "prediction_counts": {
+    "official_real_odds_2021_2025": 10677,
+    "bridge_flat_110_2010_2025": 32005
+  }
+}

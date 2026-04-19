@@ -58,18 +58,23 @@ SPORTSBOOK_PRIORITY = ["draftkings", "fanduel", "bet365", "caesars", "betmgm", "
 SEASONS = [2022, 2023, 2024, 2025]
 
 
-def _pick_odds(books: list[dict], line_type: str = "currentLine") -> dict | None:
+def _pick_odds(
+    books: list[dict],
+    line_type: str = "currentLine",
+    *,
+    required_keys: tuple[str, ...] = ("homeOdds",),
+) -> dict | None:
     """Pick odds from the highest-priority available sportsbook."""
     book_map = {b["sportsbook"]: b for b in books}
     for name in SPORTSBOOK_PRIORITY:
         if name in book_map:
             line = book_map[name].get(line_type)
-            if line and line.get("homeOdds") is not None:
+            if line and all(line.get(key) is not None for key in required_keys):
                 return line
     # Fallback: any book with data
     for b in books:
         line = b.get(line_type)
-        if line and line.get("homeOdds") is not None:
+        if line and all(line.get(key) is not None for key in required_keys):
             return line
     return None
 
@@ -137,12 +142,36 @@ def parse_sbr(data: dict, season: int) -> pd.DataFrame:
                 home_rl = away_rl = home_rl_odds = away_rl_odds = np.nan
 
             # --- Totals (O/U) ---
-            total_books = game.get("odds", {}).get("total", [])
-            close_ou_line = _pick_odds(total_books, "currentLine")
-            open_ou_line = _pick_odds(total_books, "openingLine")
+            total_books = (
+                game.get("odds", {}).get("totals")
+                or game.get("odds", {}).get("total")
+                or []
+            )
+            close_ou_line = _pick_odds(
+                total_books,
+                "currentLine",
+                required_keys=("total",),
+            )
+            open_ou_line = _pick_odds(
+                total_books,
+                "openingLine",
+                required_keys=("total",),
+            )
 
             close_ou = close_ou_line.get("total", np.nan) if close_ou_line else np.nan
             open_ou = open_ou_line.get("total", np.nan) if open_ou_line else np.nan
+            close_ou_under_odds = (
+                close_ou_line.get("underOdds", np.nan) if close_ou_line else np.nan
+            )
+            open_ou_under_odds = (
+                open_ou_line.get("underOdds", np.nan) if open_ou_line else np.nan
+            )
+            close_ou_over_odds = (
+                close_ou_line.get("overOdds", np.nan) if close_ou_line else np.nan
+            )
+            open_ou_over_odds = (
+                open_ou_line.get("overOdds", np.nan) if open_ou_line else np.nan
+            )
 
             rows.append({
                 "date": dt,
@@ -162,6 +191,10 @@ def parse_sbr(data: dict, season: int) -> pd.DataFrame:
                 "away_rl_odds": away_rl_odds,
                 "open_ou": open_ou,
                 "close_ou": close_ou,
+                "open_ou_under_odds": open_ou_under_odds,
+                "close_ou_under_odds": close_ou_under_odds,
+                "open_ou_over_odds": open_ou_over_odds,
+                "close_ou_over_odds": close_ou_over_odds,
                 "venue": gv.get("venueName", ""),
                 "status": status,
             })
@@ -317,9 +350,9 @@ def merge_and_format(sbr: pd.DataFrame, rs: pd.DataFrame, season: int) -> pd.Dat
         v_row["run_line"] = g["away_rl"]
         v_row["run_line_odds"] = g["away_rl_odds"]
         v_row["open_ou"] = g["open_ou"]
-        v_row["open_ou_odds"] = np.nan
+        v_row["open_ou_odds"] = g.get("open_ou_under_odds", np.nan)
         v_row["close_ou"] = g["close_ou"]
-        v_row["close_ou_odds"] = np.nan
+        v_row["close_ou_odds"] = g.get("close_ou_under_odds", np.nan)
         xlsx_rows.append(v_row)
 
         # Home row
@@ -338,9 +371,9 @@ def merge_and_format(sbr: pd.DataFrame, rs: pd.DataFrame, season: int) -> pd.Dat
         h_row["run_line"] = g["home_rl"]
         h_row["run_line_odds"] = g["home_rl_odds"]
         h_row["open_ou"] = g["open_ou"]
-        h_row["open_ou_odds"] = np.nan
+        h_row["open_ou_odds"] = g.get("open_ou_over_odds", np.nan)
         h_row["close_ou"] = g["close_ou"]
-        h_row["close_ou_odds"] = np.nan
+        h_row["close_ou_odds"] = g.get("close_ou_over_odds", np.nan)
         xlsx_rows.append(h_row)
 
         rot += 2
@@ -376,9 +409,17 @@ def _format_from_sbr_only(sbr: pd.DataFrame, season: int) -> pd.DataFrame:
             row["run_line"] = rl
             row["run_line_odds"] = rl_odds
             row["open_ou"] = g["open_ou"]
-            row["open_ou_odds"] = np.nan
+            row["open_ou_odds"] = (
+                g.get("open_ou_under_odds", np.nan)
+                if vh == "V"
+                else g.get("open_ou_over_odds", np.nan)
+            )
             row["close_ou"] = g["close_ou"]
-            row["close_ou_odds"] = np.nan
+            row["close_ou_odds"] = (
+                g.get("close_ou_under_odds", np.nan)
+                if vh == "V"
+                else g.get("close_ou_over_odds", np.nan)
+            )
             xlsx_rows.append(row)
             rot += 1
 

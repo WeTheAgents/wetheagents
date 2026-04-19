@@ -78,6 +78,8 @@ TIER_PRIORITY = [
     "tier3_pitcher_advantage",
     "tier2_fatigue_gap",
     "fav_rl",
+    "under_totals_power",
+    "under_totals",
     # OVER market is orthogonal to ML/RL (different market key on the same
     # game), so these never collide via dedup; listed last for completeness.
     "over_bullpen_mismatch_power",
@@ -118,8 +120,18 @@ class EnrichedPick:
     historical_p: float
     shrunk_p: float
     ref_odds_espn: float | None
+    pick_line: float | None
     polymarket_price: float | None
     polymarket_decimal: float | None
+    polymarket_event_id: str | None
+    polymarket_market_id: str | None
+    polymarket_condition_id: str | None
+    polymarket_token_id: str | None
+    polymarket_slug: str | None
+    polymarket_line: float | None
+    polymarket_best_bid: float | None
+    polymarket_best_ask: float | None
+    polymarket_accepting_orders: bool | None
     status: str  # "ok" | "poly_unavailable" | "not_on_polymarket" | "no_ref_odds"
     live_edge_pct: float | None
     kelly_fraction: float | None
@@ -138,7 +150,7 @@ class EnrichedPick:
     reason: str
     feature_snapshot: dict[str, Any]
     generated_at: str
-    schema_version: int = 4
+    schema_version: int = 5
 
 
 def kelly(p: float, decimal_odds: float) -> float:
@@ -234,6 +246,11 @@ def fetch_polymarket_prices(target_date: date) -> dict[tuple[str, str], dict]:
         for m in ev.markets:
             markets.setdefault(m.market_type, []).append(
                 {
+                    "event_id": ev.event_id,
+                    "slug": ev.slug,
+                    "market_id": m.market_id,
+                    "condition_id": m.condition_id,
+                    "token_ids": list(m.clob_token_ids),
                     "question": m.question,
                     "outcomes": list(m.outcomes),
                     "outcome_prices": list(m.outcome_prices),
@@ -248,21 +265,54 @@ def fetch_polymarket_prices(target_date: date) -> dict[tuple[str, str], dict]:
     return out
 
 
-def _polymarket_price_for(
+def _market_quote_payload(
+    market: dict,
+    *,
+    outcome_index: int,
+) -> dict | None:
+    outcomes = market.get("outcomes", [])
+    prices = market.get("outcome_prices", [])
+    token_ids = market.get("token_ids", [])
+    if outcome_index < 0 or outcome_index >= len(outcomes) or outcome_index >= len(prices):
+        return None
+    try:
+        price = float(prices[outcome_index])
+    except (TypeError, ValueError):
+        price = None
+    token_id = None
+    if outcome_index < len(token_ids):
+        token_id = str(token_ids[outcome_index]) or None
+    return {
+        "price": price,
+        "event_id": market.get("event_id"),
+        "market_id": market.get("market_id"),
+        "condition_id": market.get("condition_id"),
+        "token_id": token_id,
+        "slug": market.get("slug"),
+        "line": market.get("line"),
+        "best_bid": market.get("best_bid"),
+        "best_ask": market.get("best_ask"),
+        "accepting_orders": market.get("accepting_orders"),
+        "outcome_name": outcomes[outcome_index],
+    }
+
+
+def _polymarket_quote_for(
     poly_data: dict | None,
     market: str,
     side: str,
     away: str,
     home: str,
-) -> float | None:
-    """Return the Polymarket implied price (0..1) for our pick side, or None.
+    market_line: float | None = None,
+) -> dict | None:
+    """Return matched Polymarket quote metadata for our pick side, or None.
 
     market is one of: "ML_dog", "RL_+1.5", "RL_-1.5".
-    side is "away" or "home".
+    side is "away" or "home" or totals side "over"/"under".
 
     Polymarket lists outcomes as full team names. We match by mapping each
-    outcome name back to a 3-letter code. For totals (not used here) the
-    outcomes are "Over" / "Under".
+    outcome name back to a 3-letter code. For totals, the outcomes are
+    "Over" / "Under" (or a text variant containing those labels).
     """
     if poly_data is None:
         return None
@@ -273,7 +323,7 @@ def _polymarket_price_for(
         if not ml_list:
             return None
         m = ml_list[0]  # any one moneyline market is fine
-        return _outcome_price_for_side(m, side, away, home)
+        return _outcome_quote_for_side(m, side, away, home)
 
     if market.startswith("RL"):
         # Spread markets — pick the one matching the line we want.
@@ -287,30 +337,59 @@ def _polymarket_price_for(
             # Polymarket may quote the line from either team's perspective.
             # We match by absolute value (1.5) and let the side resolve direction.
             if abs(float(line) - 1.5) < 0.01 or abs(float(line) - (-1.5)) < 0.01:
-                price = _outcome_price_for_side(m, side, away, home)
-                if price is not None:
-                    return price
+                quote = _outcome_quote_for_side(m, side, away, home)
+                if quote is not None:
+                    return quote
         return None
+
+    if market == "O/U":
+        totals_list = markets.get("total") or []
+        if not totals_list:
+            return None
+        return _outcome_quote_for_total(totals_list, side, market_line=market_line)
 
     return None
 
 
-def _outcome_price_for_side(
+def _outcome_quote_for_side(
     market: dict, side: str, away: str, home: str
-) -> float | None:
-    """Match a Polymarket outcome to our away/home side and return its price."""
+) -> dict | None:
+    """Match a Polymarket outcome to our away/home side and return quote metadata."""
     outcomes = market.get("outcomes", [])
     prices = market.get("outcome_prices", [])
     if len(outcomes) != len(prices):
         return None
     target_code = away if side == "away" else home
-    for name, price in zip(outcomes, prices):
+    for idx, name in enumerate(outcomes):
         code = _normalize_poly_team(name)
         if code == target_code:
+            return _market_quote_payload(market, outcome_index=idx)
+    return None
+
+
+def _outcome_quote_for_total(
+    markets: list[dict],
+    side: str,
+    *,
+    market_line: float | None,
+) -> dict | None:
+    """Match a totals market by line and side."""
+    normalized_side = side.strip().lower()
+    for market in markets:
+        line = market.get("line")
+        if market_line is not None:
+            if line is None:
+                continue
             try:
-                return float(price)
+                if abs(float(line) - float(market_line)) > 0.01:
+                    continue
             except (TypeError, ValueError):
-                return None
+                continue
+        outcomes = market.get("outcomes", [])
+        for idx, name in enumerate(outcomes):
+            label = str(name).strip().lower()
+            if label == normalized_side or label.startswith(normalized_side):
+                return _market_quote_payload(market, outcome_index=idx)
     return None
 
 
@@ -512,9 +591,15 @@ def enrich_pick(
     operator_context: dict[str, Any] | None = None,
 ) -> EnrichedPick:
     """Add Polymarket price, edge, Kelly stake, and target prices to a raw Pick."""
-    poly_price = _polymarket_price_for(
-        poly_data, pick.market, pick.side, pick.away, pick.home
+    poly_quote = _polymarket_quote_for(
+        poly_data,
+        pick.market,
+        pick.side,
+        pick.away,
+        pick.home,
+        market_line=pick.market_line,
     )
+    poly_price = poly_quote.get("price") if poly_quote is not None else None
 
     # Decide which odds source to use for live edge calc.
     if poly_price is not None and poly_price > 0:
@@ -567,8 +652,20 @@ def enrich_pick(
         historical_p=pick.historical_p,
         shrunk_p=shrunk_p,
         ref_odds_espn=pick.ref_odds_espn,
+        pick_line=pick.market_line,
         polymarket_price=poly_price,
         polymarket_decimal=poly_decimal,
+        polymarket_event_id=poly_quote.get("event_id") if poly_quote else None,
+        polymarket_market_id=poly_quote.get("market_id") if poly_quote else None,
+        polymarket_condition_id=poly_quote.get("condition_id") if poly_quote else None,
+        polymarket_token_id=poly_quote.get("token_id") if poly_quote else None,
+        polymarket_slug=poly_quote.get("slug") if poly_quote else None,
+        polymarket_line=poly_quote.get("line") if poly_quote else None,
+        polymarket_best_bid=poly_quote.get("best_bid") if poly_quote else None,
+        polymarket_best_ask=poly_quote.get("best_ask") if poly_quote else None,
+        polymarket_accepting_orders=(
+            poly_quote.get("accepting_orders") if poly_quote else None
+        ),
         status=status,
         live_edge_pct=live_edge_pct,
         kelly_fraction=kelly_full,
@@ -646,6 +743,9 @@ def print_summary(picks: list[EnrichedPick]) -> None:
     )
     print("  " + "-" * 159)
     for p in picks:
+        market_label = (
+            f"{p.market}@{p.pick_line:g}" if p.pick_line is not None else p.market
+        )
         ref = f"{p.ref_odds_espn:.2f}" if p.ref_odds_espn else "  -"
         poly = f"{p.polymarket_decimal:.2f}" if p.polymarket_decimal else "  -"
         edge = f"{p.live_edge_pct * 100:+.0f}%" if p.live_edge_pct is not None else "   -"
@@ -657,7 +757,7 @@ def print_summary(picks: list[EnrichedPick]) -> None:
         flags = ",".join(p.operator_flags) if p.operator_flags else "-"
         also = f" (+{','.join(p.also_qualified)})" if p.also_qualified else ""
         print(
-            f"  {p.tier + also:<34} {p.away:>4} @ {p.home:<4} {p.market:<8} {p.side:<5}"
+            f"  {p.tier + also:<34} {p.away:>4} @ {p.home:<4} {market_label:<8} {p.side:<5}"
             f" {p.shrunk_p:>6.3f} {ref:>6} {poly:>6} {edge:>6}"
             f" {stake:>6} {mult:>5}  {tmin:>5} {tsweet:>5} {ksw:>5}  {flags:<24} {p.status}"
         )
@@ -677,7 +777,7 @@ def main() -> int:
     parser.add_argument(
         "--tiers",
         type=str,
-        default="tier1_bullpen_day,tier4_ml_depth_load,tier5_ml_obp_recovery,tier3_pitcher_advantage,tier2_fatigue_gap,fav_rl,over_bullpen_mismatch",
+        default="tier1_bullpen_day,tier4_ml_depth_load,tier5_ml_obp_recovery,tier3_pitcher_advantage,tier2_fatigue_gap,fav_rl,under_totals,over_bullpen_mismatch",
         help="Comma-separated tier names (default: live strategy set)",
     )
     parser.add_argument(
@@ -751,11 +851,37 @@ def main() -> int:
         load_all_seasons,
     )
     from src.features import build_all_features  # noqa: PLC0415
-    from src.live_strategy_audit import AUDIT_CONFIGS, evaluate_strategy_day, target_day_frame  # noqa: PLC0415
     from src.strategies import (  # noqa: PLC0415
         ACTIVE_STRATEGIES,
         add_derived_for_strategies,
     )
+    try:
+        from src.live_strategy_audit import (  # noqa: PLC0415
+            AUDIT_CONFIGS,
+            evaluate_strategy_day,
+            target_day_frame,
+        )
+    except ImportError as exc:  # noqa: BLE001
+        logger.warning("Live strategy audit unavailable: %s", exc)
+        AUDIT_CONFIGS = {}
+
+        def target_day_frame(enriched_frame: pd.DataFrame, target_date: date) -> pd.DataFrame:
+            if enriched_frame.empty:
+                return enriched_frame.copy()
+            first = enriched_frame["date"].iloc[0]
+            if hasattr(first, "date"):
+                return enriched_frame[enriched_frame["date"].dt.date == target_date].copy()
+            return enriched_frame[enriched_frame["date"] == target_date].copy()
+
+        def evaluate_strategy_day(day_frame: pd.DataFrame, tier: str) -> dict[str, Any]:
+            return {
+                "tier": tier,
+                "games": int(len(day_frame)),
+                "usable_rows": int(len(day_frame)),
+                "raw_pass": 0,
+                "verdict": "audit_unavailable",
+                "verdict_detail": "live_strategy_audit import failed",
+            }
 
     logger.info("Loading + enriching games...")
     games = load_all_seasons()
