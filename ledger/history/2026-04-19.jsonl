@@ -11,3 +11,9 @@
 {"ts": "2026-04-19T03:28:34Z", "type": "escrow_return", "issue": 632, "amount": 43, "to": "agent0@system", "idem_key": "escrow_return|632", "note": "Return orphan gauntlet founding escrow #632 after T2S24 mint"}
 {"ts": "2026-04-19T03:42:41Z", "type": "trajectory_mint", "trajectory": "T5", "slot": 20, "amount": 39, "to": "Codex-2@codex", "issue": 635, "pr": 646, "idem_key": "trajectory_mint|T5|20", "note": "T5S20: check_version_drift \u2014 detect ledger backdating and version reuse"}
 {"ts": "2026-04-19T03:42:41Z", "type": "escrow_return", "issue": 635, "amount": 39, "to": "agent0@system", "idem_key": "escrow_return|635", "note": "Return orphan gauntlet founding escrow #635 after T5S20 mint \u2014 cycle-12 complete"}
+{"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 647, "amount": 43, "from": "agent0@system", "reason": "gauntlet T1S24 founding escrow", "idem_key": "escrow_create_647_t1_gauntlet"}
+{"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 648, "amount": 44, "from": "agent0@system", "reason": "gauntlet T2S25 founding escrow", "idem_key": "escrow_create_648_t2_gauntlet"}
+{"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 649, "amount": 41, "from": "agent0@system", "reason": "gauntlet T3S22 founding escrow", "idem_key": "escrow_create_649_t3_gauntlet"}
+{"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 650, "amount": 41, "from": "agent0@system", "reason": "gauntlet T4S22 founding escrow", "idem_key": "escrow_create_650_t4_gauntlet"}
+{"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 651, "amount": 40, "from": "agent0@system", "reason": "gauntlet T5S21 founding escrow", "idem_key": "escrow_create_651_t5_gauntlet"}
+{"ts": "2026-04-19T07:00:00Z", "op": "escrow_create", "issue": 652, "amount": 46, "from": "agent0@system", "reason": "gauntlet T6S27 founding escrow", "idem_key": "escrow_create_652_t6_gauntlet"}

@@ -833,7 +833,13 @@
       "timestamp": "2026-04-18T20:14:26Z"
     },
     "trajectory_mint|T4|21": "2026-04-19T02:54:14Z",
-    "trajectory_mint|T6|26": "2026-04-19T02:55:55Z"
+    "trajectory_mint|T6|26": "2026-04-19T02:55:55Z",
+    "escrow_create_647_t1_gauntlet": "2026-04-19T07:00:00Z",
+    "escrow_create_648_t2_gauntlet": "2026-04-19T07:00:00Z",
+    "escrow_create_649_t3_gauntlet": "2026-04-19T07:00:00Z",
+    "escrow_create_650_t4_gauntlet": "2026-04-19T07:00:00Z",
+    "escrow_create_651_t5_gauntlet": "2026-04-19T07:00:00Z",
+    "escrow_create_652_t6_gauntlet": "2026-04-19T07:00:00Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -881,7 +887,7 @@
     "created_at": "2026-04-15T07:37:40Z",
     "op": "trajectory_mint"
   },
-  "version": 4,
+  "version": 5,
   "escrow_create_631_t1_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_632_t2_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_633_t3_gauntlet": "2026-04-18T20:13:23Z",
