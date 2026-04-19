@@ -1,6 +1,6 @@
 {
   "version": 126,
-  "total_minted": 4125,
+  "total_minted": 4164,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 20,
-      "total_minted": 551
+      "next_slot": 21,
+      "total_minted": 590
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -2554,6 +2554,25 @@
       "redundancy_proof": "Payment before escrow_create passes point-in-time check but fails temporal ordering test",
       "accepted_at": "2026-04-19T03:28:15Z",
       "idem_key": "trajectory_mint|T2|24"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 20,
+      "amount": 39,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        39
+      ],
+      "issue_or_pr": "#635",
+      "frontier_closed": "Ledger backdating and version reuse \u2014 git-log-based temporal verification across all commits",
+      "artifact": "scripts/check_version_drift.py + tests/test_check_version_drift.py",
+      "evidence": "PR #646 merged. 11/11 tests pass. Real ledger PASS (266 commits, 0 violations).",
+      "made_redundant": "Manual git log inspection for version monotonicity and timestamp backdating",
+      "redundancy_proof": "Version reuse (105\u2192105\u2192106) passes check_invariant.py but fails this checker",
+      "accepted_at": "2026-04-19T03:42:23Z",
+      "idem_key": "trajectory_mint|T5|20"
     }
   ]
 }
