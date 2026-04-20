@@ -6,9 +6,12 @@ on:
     paths:
       - 'agent0_diary/**'
 
+defaults:
+  run:
+    shell: bash
 jobs:
   incident-check:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     steps:
       - uses: actions/checkout@v4
         with:

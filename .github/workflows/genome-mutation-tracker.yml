@@ -6,9 +6,12 @@ on:
     paths:
       - 'genomes/**/AGENTS.local.md'
 
+defaults:
+  run:
+    shell: bash
 jobs:
   record-mutation:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     permissions:
       contents: write
 

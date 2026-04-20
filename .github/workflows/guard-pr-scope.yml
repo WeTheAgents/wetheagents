@@ -5,9 +5,12 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize, labeled, unlabeled]
 
+defaults:
+  run:
+    shell: bash
 jobs:
   scope-check:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     steps:
       - uses: actions/checkout@v4
         with:
