@@ -1,36 +1,36 @@
 {
-  "version": 132,
-  "total_minted": 4419,
+  "version": 138,
+  "total_minted": 4680,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 25,
-      "total_minted": 756
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 26,
       "total_minted": 800
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 27,
+      "total_minted": 845
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 23,
-      "total_minted": 671
+      "next_slot": 24,
+      "total_minted": 713
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 23,
-      "total_minted": 671
+      "next_slot": 24,
+      "total_minted": 713
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 22,
-      "total_minted": 630
+      "next_slot": 23,
+      "total_minted": 671
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 28,
-      "total_minted": 891
+      "next_slot": 29,
+      "total_minted": 938
     }
   },
   "mints": [
@@ -2687,6 +2687,120 @@
       "redundancy_proof": "each test is minimal JSONL exploit demonstrating bypass; all 5 return passed=True confirming vulnerability",
       "accepted_at": "2026-04-19T12:04:14Z",
       "idem_key": "trajectory_mint|T6|27"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 25,
+      "amount": 44,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        44
+      ],
+      "issue_or_pr": "#661",
+      "frontier_closed": "Silent manual edits to task_index.json that diverge from the ledger history trail",
+      "artifact": "scripts/check_task_status_history_sync.py + tests/test_check_task_status_history_sync.py",
+      "evidence": "33 tests pass; exits 0/1; PR #668 merged",
+      "made_redundant": "Manual task_index.json status manipulation that bypasses the ledger history trail",
+      "redundancy_proof": "Checker flags every divergence case; targeted test suite validates each violation scenario",
+      "accepted_at": "2026-04-20T12:03:27Z",
+      "idem_key": "trajectory_mint|T1|25"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 26,
+      "amount": 45,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        45
+      ],
+      "issue_or_pr": "#662",
+      "frontier_closed": "Slot ordering edge cases in check_trajectory_mint_timeline — gap-filling injection, rollback attacks, inter-trajectory bleed",
+      "artifact": "tests/test_check_trajectory_mint_timeline_adversarial.py",
+      "evidence": "11 tests across 4 adversarial scenarios, all pass; PR #669 merged",
+      "made_redundant": "Gap-filling slot injection, next_slot rollback attacks, and false cross-trajectory violation propagation",
+      "redundancy_proof": "Adversarial tests fail against a checker lacking per-trajectory isolation and high-water-mark anchoring",
+      "accepted_at": "2026-04-20T12:04:11Z",
+      "idem_key": "trajectory_mint|T2|26"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 23,
+      "amount": 42,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        42
+      ],
+      "issue_or_pr": "#663",
+      "frontier_closed": "Orphaned escrows — escrow_create events without corresponding accept/escrow_return/payment close events in history",
+      "artifact": "scripts/check_escrow_lifecycle_integrity.py + tests/test_check_escrow_lifecycle_integrity.py",
+      "evidence": "Tests pass; detects open escrows and validates lifecycle pairing across all history JSONL; PR #670 merged",
+      "made_redundant": "Silent orphaned escrows with no path to release going undetected",
+      "redundancy_proof": "Checker systematically scans all history files for unpaired lifecycle events",
+      "accepted_at": "2026-04-20T12:04:38Z",
+      "idem_key": "trajectory_mint|T3|23"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 23,
+      "amount": 42,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        42
+      ],
+      "issue_or_pr": "#664",
+      "frontier_closed": "Boundary conditions in genome mutation provenance — orphan genome dirs, non-payment trigger events, bare-list genome_meta.json",
+      "artifact": "tests/test_check_genome_mutation_provenance_spec.py + extended scripts/check_genome_mutation_provenance.py",
+      "evidence": "13/13 boundary tests pass; 19/19 existing tests preserved; PR #671 merged",
+      "made_redundant": "Orphan genome dirs evading provenance checks, escrow_return events accepted as valid triggers, bare-list genome_meta.json crashes",
+      "redundancy_proof": "13 boundary conditions fully tested; checker extended with orphan detection and bare-list handling",
+      "accepted_at": "2026-04-20T12:05:11Z",
+      "idem_key": "trajectory_mint|T4|23"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 22,
+      "amount": 41,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        41
+      ],
+      "issue_or_pr": "#665",
+      "frontier_closed": "Undetected orphan genome directories — genomes/ entries without a registered agent in balances.json accumulating silently",
+      "artifact": "scripts/check_orphan_genome_dirs.py + tests/test_check_orphan_genome_dirs.py",
+      "evidence": "New script and full test suite; cross-references genomes/ vs balances.json; PR #672 merged",
+      "made_redundant": "Silent accumulation of stale genome directories from deregistered or renamed agents",
+      "redundancy_proof": "Checker enumerates genomes/, validates each against balances.json, fails on any unregistered entry",
+      "accepted_at": "2026-04-20T12:06:17Z",
+      "idem_key": "trajectory_mint|T5|22"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 28,
+      "amount": 47,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        47
+      ],
+      "issue_or_pr": "#666",
+      "frontier_closed": "check_genome_mutation_provenance bypass vectors — lookalike agent IDs, fake commit hashes, non-positive issue IDs accepted without validation",
+      "artifact": "tests/test_check_genome_mutation_provenance_redteam.py",
+      "evidence": "5 tests; 3 critical bypasses confirmed; PR #673 merged",
+      "made_redundant": "Trust-without-verify posture on mutation provenance integrity",
+      "redundancy_proof": "Adversarial tests fail if provenance checker is absent or naive; each bypass is independently reproducible",
+      "accepted_at": "2026-04-20T12:06:30Z",
+      "idem_key": "trajectory_mint|T6|28"
     }
   ]
 }
