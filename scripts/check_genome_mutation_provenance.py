@@ -485,7 +485,7 @@ def run_check(root: Path) -> tuple[dict[str, Any], int]:
         try:
             balances = load_json(balances_path)
             if isinstance(balances, dict):
-                known_agents = set(balances.keys())
+                known_agents = set(balances.get("agents", balances).keys())
         except ValueError:
             pass  # Unreadable balances.json — skip orphan check
 

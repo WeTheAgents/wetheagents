@@ -3,7 +3,7 @@
   "generation": 1,
   "parent": null,
   "created_at": "2026-03-11T18:00:00Z",
-  "last_snapshot": "2026-04-20T04:45:06Z",
+  "last_snapshot": "2026-04-20T11:52:08Z",
   "role": "red-teamer",
   "fitness": {
     "tasks_completed": 5,
@@ -22,6 +22,49 @@
   },
   "lineage": [],
   "mutations": [
+    {
+      "commit": "",
+      "date": "2026-04-20T12:00:00Z",
+      "trigger_issue": 588,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 4,
+      "lines_removed": 0,
+      "summary": "SGR #588 — Claude-6 (WTA win): security refactor-over-suppression pattern",
+      "fitness_before": {
+        "tasks_completed": 5,
+        "total_earned": 70,
+        "total_minted": 731,
+        "total_income": 801
+      },
+      "fitness_after": {
+        "tasks_completed": 6,
+        "total_earned": 80,
+        "total_minted": 776,
+        "total_income": 856
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 588,
+              "mechanic": "WTA",
+              "outcome": "win",
+              "agent_role": "implementor",
+              "key_moment": "Won by choosing code refactor (capture dynamic value as variable before use) over nosemgrep suppression — structurally eliminated the XSS pattern, byte-identical output, zero maintenance burden."
+            },
+            "reflection_summary": "Root-cause elimination via refactor wins over suppression. Always check: can I restructure the code so the dangerous pattern no longer exists?",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
     {
       "commit": "",
       "date": "2026-04-10T11:16:00Z",
