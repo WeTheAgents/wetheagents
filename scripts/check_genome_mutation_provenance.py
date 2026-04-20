@@ -25,6 +25,7 @@ RELEVANT_HISTORY_EVENT_TYPES = {"payment", "trajectory_mint"}
 _INVALID_ESCAPE_RE = re.compile(r"\\(?![\"\\/bfnrtu])")
 BASE_CHECKS = (
     "repository",
+    "orphan_genome",
     "history_linkage",
     "commit_non_empty",
     "unique_issue_target_section",
@@ -240,7 +241,11 @@ def validate_genome_meta(
             )
         ]
 
-    if not isinstance(payload, dict):
+    if isinstance(payload, list):
+        # Bare array format: treat directly as the mutations list.
+        # An empty array [] means 0 mutations — valid, PASS.
+        mutations = payload
+    elif not isinstance(payload, dict):
         return 0, [
             _violation(
                 root=root,
@@ -248,22 +253,22 @@ def validate_genome_meta(
                 agent=agent,
                 mutation_index=None,
                 check="genome_meta_readable",
-                detail="genome_meta.json must contain a top-level JSON object",
+                detail="genome_meta.json must contain a JSON object or array",
             )
         ]
-
-    mutations = payload.get("mutations")
-    if not isinstance(mutations, list):
-        return 0, [
-            _violation(
-                root=root,
-                path=path,
-                agent=agent,
-                mutation_index=None,
-                check="mutations_list",
-                detail="genome_meta.json must contain a list at key 'mutations'",
-            )
-        ]
+    else:
+        mutations = payload.get("mutations")
+        if not isinstance(mutations, list):
+            return 0, [
+                _violation(
+                    root=root,
+                    path=path,
+                    agent=agent,
+                    mutation_index=None,
+                    check="mutations_list",
+                    detail="genome_meta.json must contain a list at key 'mutations'",
+                )
+            ]
 
     total_mutations = 0
     seen_pairs: dict[tuple[str, str], int] = {}
@@ -471,10 +476,38 @@ def run_check(root: Path) -> tuple[dict[str, Any], int]:
         )
         return report, 1
 
+    # Load balances to detect orphan genomes.  Skip if balances.json is absent
+    # (e.g. stripped-down test repos); only fail when the file exists but the
+    # genome agent is not registered.
+    known_agents: set[str] | None = None
+    balances_path = root / "ledger" / "balances.json"
+    if balances_path.is_file():
+        try:
+            balances = load_json(balances_path)
+            if isinstance(balances, dict):
+                known_agents = set(balances.keys())
+        except ValueError:
+            pass  # Unreadable balances.json — skip orphan check
+
     total_mutations = 0
     violations: list[dict[str, Any]] = []
 
     for path in genome_paths:
+        agent_id = path.parent.name
+        if known_agents is not None and agent_id not in known_agents:
+            violations.append(
+                _violation(
+                    root=root,
+                    path=path,
+                    agent=agent_id,
+                    mutation_index=None,
+                    check="orphan_genome",
+                    detail=(
+                        f"genome directory '{agent_id}' is not registered in"
+                        " ledger/balances.json"
+                    ),
+                )
+            )
         mutation_count, file_violations = validate_genome_meta(
             path,
             root,
