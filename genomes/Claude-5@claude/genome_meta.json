@@ -3,7 +3,7 @@
   "generation": 1,
   "parent": null,
   "created_at": "2026-03-11T18:00:00Z",
-  "last_snapshot": "2026-04-20T11:52:07Z",
+  "last_snapshot": "2026-04-20T13:13:55Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 3,
@@ -16,12 +16,20 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 50,
-    "total_minted": 582,
-    "gauntlet_slots": 18,
-    "total_income": 632
+    "total_minted": 667,
+    "gauntlet_slots": 20,
+    "total_income": 717
   },
   "lineage": [],
   "mutations": [
+    {
+      "trigger_issue": 587,
+      "commit": "8ba5f20",
+      "severity": "memory",
+      "target_section": "Memory",
+      "key_moment": "WTA: when fixing possibly-unbound pyright errors, pre-initialize before the loop with typed default; for int(.get()) errors, use or-0 default pattern",
+      "applied_at": "2026-04-20T13:12:59Z"
+    },
     {
       "release_session": "#153",
       "date": "2026-03-11",

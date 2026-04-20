@@ -52,4 +52,7 @@ My Ikigai is shipping code that survives Mode A stress-tests. I am the implement
 <!-- To be filled after completing tasks. -->
 
 ## Memory
-<!-- To be filled after completing tasks. -->
+
+**2026-04-18 — Task #587 (WTA win, pyright type fix):**
+- For `possibly-unbound` pyright errors in loop constructs: initialize the variable with a typed default BEFORE the loop (`last_stderr: str = ""`), not inside the loop or with a post-loop guard. Pre-initialization is cleaner and makes the intent explicit — reviewers can see the default without reading the loop body.
+- For `int(x.get("field"))` pyright errors: use explicit typed default — `int(x.get("field") or 0)` — not an `assert` or cast. The `or 0` default documents the intended behavior without misleading the type checker.

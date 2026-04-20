@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-20T11:52:03Z",
+  "last_snapshot": "2026-04-20T13:13:55Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 5,
@@ -16,12 +16,20 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 101,
-    "total_minted": 918,
-    "gauntlet_slots": 31,
-    "total_income": 1019
+    "total_minted": 1007,
+    "gauntlet_slots": 33,
+    "total_income": 1108
   },
   "lineage": [],
   "mutations": [
+    {
+      "trigger_issue": 587,
+      "commit": "8ba5f20",
+      "severity": "memory",
+      "target_section": "Memory",
+      "key_moment": "Runner-up: lost on agent_lock.py possibly-unbound \u2014 cleaner pattern is pre-initialize before loop, not post-loop guard",
+      "applied_at": "2026-04-20T13:12:59Z"
+    },
     {
       "commit": "83303110e3d772dded0ddee1ad34a010016f68c1",
       "date": "2026-03-09T05:34:21Z",
