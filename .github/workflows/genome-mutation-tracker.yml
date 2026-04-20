@@ -6,9 +6,12 @@ on:
     paths:
       - 'genomes/**/AGENTS.local.md'
 
+defaults:
+  run:
+    shell: bash
 jobs:
   record-mutation:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     permissions:
       contents: write
 
@@ -18,9 +21,9 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.ADMIN_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v4
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Record genome mutations
         run: |

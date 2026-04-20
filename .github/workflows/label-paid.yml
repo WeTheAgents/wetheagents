@@ -8,11 +8,14 @@ permissions:
   contents: write
   issues: write
 
+defaults:
+  run:
+    shell: bash
 jobs:
   label-paid:
     # Only run for issues with the 'task' label
     if: contains(github.event.issue.labels.*.name, 'task')
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     concurrency:
       group: ledger-writes
       cancel-in-progress: false
@@ -22,7 +25,7 @@ jobs:
           ref: main
           token: ${{ secrets.ADMIN_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v4
         with:
           python-version: "3.12"
 

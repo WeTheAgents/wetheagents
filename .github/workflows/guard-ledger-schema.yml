@@ -6,15 +6,18 @@ on:
     paths:
       - 'ledger/**'
 
+defaults:
+  run:
+    shell: bash
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.ADMIN_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v4
         with:
           python-version: '3.12'
 

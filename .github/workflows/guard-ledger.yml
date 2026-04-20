@@ -5,10 +5,14 @@ on:
     branches: [main]
     paths:
       - 'ledger/**'
+  workflow_dispatch:
 
+defaults:
+  run:
+    shell: bash
 jobs:
   guard:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     steps:
       - name: Block non-Agent0 ledger changes
         run: |
