@@ -5,12 +5,14 @@ on:
     branches: [main]
     paths:
       - 'ledger/**'
+  workflow_dispatch:
 
 jobs:
   guard:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, x64, wea-laptop]
     steps:
       - name: Block non-Agent0 ledger changes
+        shell: bash
         run: |
           echo "PR #${{ github.event.pull_request.number }} by ${{ github.actor }} touches ledger/"
           echo ""
