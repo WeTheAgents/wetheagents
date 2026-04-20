@@ -1,19 +1,3 @@
-#!/usr/bin/env python3
-"""Tests for scripts/check_escrow_lifecycle_integrity.py.
-
-Covers:
-  1. Happy path — all escrows resolved via payment → PASS
-  2. Resolved via escrow_return → PASS
-  3. Orphan detected — trajectory_mint but no escrow_return → FAIL
-  4. Payment for wrong issue does not resolve escrow → FAIL
-  5. Empty history → PASS
-  6. Multi-agent scenario — multiple escrows, all resolved → PASS
-  7. JSONL parse error — malformed line skipped, valid events processed → PASS
-  8. Cross-check mismatch — trajectory_mint orphan not in active → FAIL
-  9. Bulk escrow_return covers issue → PASS
- 10. Pending escrow (active in escrows.json, no history resolution) → PASS
-"""
-
 from __future__ import annotations
 
 import json
@@ -23,241 +7,218 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from check_escrow_lifecycle_integrity import run_check  # noqa: E402
+from check_escrow_lifecycle_integrity import main, run_check  # noqa: E402
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+def _write_jsonl(path: Path, events: list[dict | str]) -> None:
+    lines: list[str] = []
+    for event in events:
+        if isinstance(event, str):
+            lines.append(event)
+        else:
+            lines.append(json.dumps(event))
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def _make_repo(
-    tmp_path: Path,
-    events_by_file: dict[str, list[dict]],
-    active_escrows: dict | None = None,
-) -> Path:
-    """Write history events and escrows.json; return repo root."""
-    history_dir = tmp_path / "ledger" / "history"
-    history_dir.mkdir(parents=True)
+def _make_root(root: Path, events_by_file: dict[str, list[dict | str]]) -> Path:
+    history_dir = root / "ledger" / "history"
+    history_dir.mkdir(parents=True, exist_ok=True)
     for filename, events in events_by_file.items():
-        content = "\n".join(json.dumps(e) for e in events) + "\n"
-        (history_dir / filename).write_text(content, encoding="utf-8")
-
-    escrows = {"version": 1, "active": active_escrows or {}}
-    (tmp_path / "ledger" / "escrows.json").write_text(
-        json.dumps(escrows), encoding="utf-8"
-    )
-    return tmp_path
+        _write_jsonl(history_dir / filename, events)
+    return root
 
 
-# ---------------------------------------------------------------------------
-# Test 1: happy path — all escrows resolved via payment → PASS
-# ---------------------------------------------------------------------------
+def _issues(report: dict) -> list[dict]:
+    return report["issues"]
 
 
-def test_all_resolved_via_payment(tmp_path):
-    root = _make_repo(tmp_path, {
-        "history.jsonl": [
-            {"type": "escrow", "issue": 10, "agent": "agent0@system", "amount": 20},
-            {"type": "payment", "issue": 10, "agent": "claude-1@claude", "amount": 20},
+def test_accept_closes_escrow_create_pass(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 42, "amount": 30, "timestamp": "2026-04-01T00:00:00Z"},
+            {"type": "accept", "issue": 42, "amount": 30, "agent": "alice@test", "timestamp": "2026-04-01T01:00:00Z"},
         ]
     })
-    result = run_check(root)
-    assert result["status"] == "PASS"
-    assert result["summary"]["resolved"] == 1
-    assert result["summary"]["orphan_escrows"] == 0
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["passes"] == 1
+    assert report["summary"]["failures"] == 0
+    assert _issues(report) == [{
+        "issue": 42,
+        "status": "PASS",
+        "reason": None,
+        "create_kind": "escrow_create",
+        "close_kind": "accept",
+        "create_amount": 30,
+        "close_amount": 30,
+        "create_file": "2026-04-01.jsonl",
+        "create_line": 1,
+        "close_file": "2026-04-01.jsonl",
+        "close_line": 2,
+    }]
 
 
-# ---------------------------------------------------------------------------
-# Test 2: resolved via escrow_return → PASS
-# ---------------------------------------------------------------------------
-
-
-def test_resolved_via_escrow_return(tmp_path):
-    root = _make_repo(tmp_path, {
-        "history.jsonl": [
-            {"type": "escrow", "issue": 20, "agent": "agent0@system", "amount": 15},
-            {"type": "escrow_return", "issue": 20, "amount": 15},
+def test_payment_is_valid_equivalent_close_pass(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 77, "amount": 12, "timestamp": "2026-04-01T00:00:00Z"},
+            {"type": "payment", "issue": 77, "amount": 12, "agent": "alice@test", "timestamp": "2026-04-01T02:00:00Z"},
         ]
     })
-    result = run_check(root)
-    assert result["status"] == "PASS"
-    assert result["summary"]["resolved"] == 1
-    assert result["summary"]["orphan_escrows"] == 0
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["passes"] == 1
+    assert report["summary"]["close_events_scanned"] == 1
+    assert _issues(report)[0]["close_kind"] == "payment"
 
 
-# ---------------------------------------------------------------------------
-# Test 3: orphan detected — trajectory_mint but no escrow_return → FAIL
-# ---------------------------------------------------------------------------
+def test_mixed_event_and_op_fields_are_normalized(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-02.jsonl": [
+            {"op": "escrow_create", "issue": 90, "amount": 8, "ts": "2026-04-01T00:00:00Z"},
+        ],
+        "2026-04-01.jsonl": [
+            {"event": "escrow_return", "issue": 90, "amount": 8, "timestamp": "2026-04-01T01:00:00Z"},
+        ],
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["passes"] == 1
+    assert _issues(report)[0]["create_kind"] == "escrow_create"
+    assert _issues(report)[0]["close_kind"] == "escrow_return"
 
 
-def test_orphan_detected_trajectory_mint_no_return(tmp_path):
-    root = _make_repo(tmp_path, {
-        "history.jsonl": [
-            {"type": "escrow", "issue": 100, "agent": "agent0@system", "amount": 26},
-            {"type": "trajectory_mint", "issue": 100, "amount": 26, "agents": ["claude-1@claude"]},
-            # No escrow_return for issue 100
+def test_missing_close_fails(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 101, "amount": 20, "timestamp": "2026-04-01T00:00:00Z"},
         ]
     })
-    result = run_check(root)
-    assert result["status"] == "FAIL"
-    orphan_issues = [e["issue"] for e in result["orphan_escrows"]]
-    assert 100 in orphan_issues
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    assert report["summary"]["passes"] == 0
+    assert report["summary"]["failures"] == 1
+    assert _issues(report)[0]["reason"] == "no_close_event"
 
 
-# ---------------------------------------------------------------------------
-# Test 4: payment for wrong issue does not resolve escrow → FAIL (orphan)
-# ---------------------------------------------------------------------------
-
-
-def test_payment_for_wrong_issue_does_not_count(tmp_path):
-    root = _make_repo(tmp_path, {
-        "history.jsonl": [
-            {"type": "escrow", "issue": 30, "agent": "agent0@system", "amount": 10},
-            {"type": "trajectory_mint", "issue": 30, "amount": 10, "agents": ["claude-1@claude"]},
-            # Payment for issue 99 (different issue) — should not resolve issue 30
-            {"type": "payment", "issue": 99, "agent": "claude-1@claude", "amount": 10},
+def test_amount_mismatch_fails(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 102, "amount": 20, "timestamp": "2026-04-01T00:00:00Z"},
+            {"type": "accept", "issue": 102, "amount": 19, "agent": "alice@test", "timestamp": "2026-04-01T01:00:00Z"},
         ]
     })
-    result = run_check(root)
-    assert result["status"] == "FAIL"
-    orphan_issues = [e["issue"] for e in result["orphan_escrows"]]
-    assert 30 in orphan_issues
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    assert report["summary"]["failures"] == 1
+    assert _issues(report)[0]["reason"] == "amount_mismatch"
+    assert _issues(report)[0]["create_amount"] == 20
+    assert _issues(report)[0]["close_amount"] == 19
 
 
-# ---------------------------------------------------------------------------
-# Test 5: empty history → PASS
-# ---------------------------------------------------------------------------
-
-
-def test_empty_history_pass(tmp_path):
-    root = _make_repo(tmp_path, {})
-    result = run_check(root)
-    assert result["status"] == "PASS"
-    assert result["summary"]["total_escrow_events"] == 0
-    assert result["summary"]["orphan_escrows"] == 0
-
-
-# ---------------------------------------------------------------------------
-# Test 6: multi-agent scenario — multiple escrows, all resolved → PASS
-# ---------------------------------------------------------------------------
-
-
-def test_multi_agent_all_resolved(tmp_path):
-    root = _make_repo(tmp_path, {
-        "history.jsonl": [
-            {"type": "escrow", "issue": 50, "agent": "agent0@system", "amount": 30},
-            {"type": "escrow", "issue": 51, "agent": "agent0@system", "amount": 20},
-            {"type": "escrow", "issue": 52, "agent": "agent0@system", "amount": 15},
-            {"type": "payment", "issue": 50, "agent": "claude-1@claude", "amount": 30},
-            {"type": "escrow_return", "issue": 51, "amount": 20},
-            {"type": "trajectory_mint", "issue": 52, "amount": 15, "agents": ["codex-2@codex"]},
-            {"type": "escrow_return", "issue": 52, "amount": 15},
+def test_close_without_prior_create_fails(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "accept", "issue": 103, "amount": 11, "agent": "alice@test", "timestamp": "2026-04-01T01:00:00Z"},
         ]
     })
-    result = run_check(root)
-    assert result["status"] == "PASS"
-    assert result["summary"]["resolved"] == 3
-    assert result["summary"]["orphan_escrows"] == 0
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    assert report["summary"]["failures"] == 1
+    assert _issues(report)[0]["reason"] == "close_without_prior_create"
+    assert _issues(report)[0]["create_kind"] is None
 
 
-# ---------------------------------------------------------------------------
-# Test 7: JSONL parse error — malformed line skipped, valid events processed
-# ---------------------------------------------------------------------------
-
-
-def test_jsonl_parse_error_skipped(tmp_path):
-    history_dir = tmp_path / "ledger" / "history"
-    history_dir.mkdir(parents=True)
-    lines = [
-        json.dumps({"type": "escrow", "issue": 60, "agent": "agent0@system", "amount": 10}),
-        "NOT_VALID_JSON {{{",  # malformed
-        json.dumps({"type": "payment", "issue": 60, "agent": "claude-1@claude", "amount": 10}),
-    ]
-    (history_dir / "events.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    (tmp_path / "ledger" / "escrows.json").write_text(
-        json.dumps({"version": 1, "active": {}}), encoding="utf-8"
-    )
-
-    result = run_check(tmp_path)
-    assert result["status"] == "PASS"
-    assert result["summary"]["resolved"] == 1
-
-
-# ---------------------------------------------------------------------------
-# Test 8: cross-check mismatch — trajectory_mint orphan not in active → FAIL
-# ---------------------------------------------------------------------------
-
-
-def test_cross_check_mismatch_trajectory_mint_orphan(tmp_path):
-    # Escrow was created and issue was gauntlet-paid, but escrow_return is missing.
-    # The issue is also NOT in escrows.json active → silent orphan.
-    root = _make_repo(
-        tmp_path,
-        {
-            "history.jsonl": [
-                {"type": "escrow", "issue": 200, "agent": "agent0@system", "amount": 26},
-                {"type": "trajectory_mint", "issue": 200, "amount": 26, "agents": ["claude-1@claude"]},
-                # No escrow_return — orphan!
-            ]
-        },
-        active_escrows={},  # issue 200 not in active
-    )
-    result = run_check(root)
-    assert result["status"] == "FAIL"
-    orphan_issues = [e["issue"] for e in result["orphan_escrows"]]
-    assert 200 in orphan_issues
-    # Verify JSON output has required fields
-    assert "status" in result
-    assert "checks" in result
-    assert "summary" in result
-
-
-# ---------------------------------------------------------------------------
-# Test 9: bulk escrow_return covers issue → PASS
-# ---------------------------------------------------------------------------
-
-
-def test_bulk_escrow_return_resolves_issue(tmp_path):
-    root = _make_repo(tmp_path, {
-        "history.jsonl": [
-            {"type": "escrow", "issue": 70, "agent": "agent0@system", "amount": 10},
-            {"type": "escrow", "issue": 71, "agent": "agent0@system", "amount": 10},
-            # Bulk return covers both issues
-            {"type": "escrow_return_bulk", "issues": [70, 71], "amount": 20},
+def test_unrelated_payment_without_tracked_create_is_ignored(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "payment", "issue": 200, "amount": 9, "agent": "alice@test", "timestamp": "2026-04-01T01:00:00Z"},
         ]
     })
-    result = run_check(root)
-    assert result["status"] == "PASS"
-    assert result["summary"]["resolved"] == 2
-    assert result["summary"]["orphan_escrows"] == 0
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["passes"] == 0
+    assert report["summary"]["failures"] == 0
+    assert _issues(report) == []
 
 
-# ---------------------------------------------------------------------------
-# Test 10: pending escrow (in escrows.json active, no history resolution) → PASS
-# ---------------------------------------------------------------------------
+def test_multiple_closes_for_single_create_fail_on_extra_close(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 104, "amount": 15, "timestamp": "2026-04-01T00:00:00Z"},
+            {"type": "accept", "issue": 104, "amount": 15, "agent": "alice@test", "timestamp": "2026-04-01T01:00:00Z"},
+            {"type": "payment", "issue": 104, "amount": 15, "agent": "alice@test", "timestamp": "2026-04-01T02:00:00Z"},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    assert report["summary"]["passes"] == 1
+    assert report["summary"]["failures"] == 1
+    assert _issues(report)[0]["status"] == "PASS"
+    assert _issues(report)[1]["reason"] == "close_without_prior_create"
+    assert _issues(report)[1]["close_kind"] == "payment"
 
 
-def test_pending_escrow_in_active_is_not_orphan(tmp_path):
-    # Escrow was created but not yet resolved — legitimately open.
-    root = _make_repo(
-        tmp_path,
-        {
-            "history.jsonl": [
-                {"type": "escrow", "issue": 300, "agent": "agent0@system", "amount": 29},
-                # No payment, no escrow_return, no trajectory_mint
-            ]
-        },
-        active_escrows={
-            "300": {
-                "author": "agent0@system",
-                "amount": 29,
-                "type": "every_good",
-                "created_at": "2026-04-12T00:00:00Z",
-            }
-        },
-    )
-    result = run_check(root)
-    assert result["status"] == "PASS"
-    assert result["summary"]["pending"] == 1
-    assert result["summary"]["orphan_escrows"] == 0
+def test_legacy_escrow_can_absorb_later_payment_after_tracked_close(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 260, "amount": 15, "timestamp": "2026-04-01T00:00:00Z"},
+            {"type": "accept", "issue": 260, "amount": 15, "agent": "alice@test", "timestamp": "2026-04-01T01:00:00Z"},
+            {"type": "escrow", "issue": 260, "amount": 15, "timestamp": "2026-04-01T02:00:00Z"},
+            {"type": "payment", "issue": 260, "amount": 15, "agent": "alice@test", "timestamp": "2026-04-01T03:00:00Z"},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["passes"] == 1
+    assert report["summary"]["failures"] == 0
+    assert len(_issues(report)) == 1
+    assert _issues(report)[0]["close_kind"] == "accept"
+
+
+def test_invalid_escrow_create_fails(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 106, "timestamp": "2026-04-01T00:00:00Z"},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "FAIL"
+    assert report["summary"]["failures"] == 1
+    assert _issues(report)[0]["reason"] == "invalid_escrow_create"
+
+
+def test_main_json_output_and_exit_code_on_fail(temp_repo: Path, capsys) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 105, "amount": 22, "timestamp": "2026-04-01T00:00:00Z"},
+        ]
+    })
+
+    exit_code = main(["--root", str(root), "--json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 1
+    assert payload["status"] == "FAIL"
+    assert payload["summary"]["failures"] == 1
+    assert payload["issues"][0]["reason"] == "no_close_event"
