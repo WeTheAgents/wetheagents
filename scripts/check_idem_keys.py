@@ -38,10 +38,17 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+_META_KEYS = {"keys", "version"}
+
+
 def load_known_keys(ledger_path: Path) -> set[str]:
     """Load known idempotency keys.
 
     Missing file means no keys are recorded yet.
+    Handles two formats:
+    - Flat dict: keys are direct top-level entries (current format)
+    - Nested dict: keys live under a "keys" sub-dict (older format)
+    Both formats may coexist in the same file.
     """
     if not ledger_path.exists():
         return set()
@@ -55,11 +62,15 @@ def load_known_keys(ledger_path: Path) -> set[str]:
     if not isinstance(payload, dict):
         return set()
 
-    keys = payload.get("keys")
-    if not isinstance(keys, dict):
-        return set()
+    # Top-level flat keys (current format), excluding metadata fields
+    known: set[str] = {str(k) for k in payload if k not in _META_KEYS}
 
-    return {str(key) for key in keys.keys()}
+    # Keys nested under "keys" sub-dict (older SHA256-hash format)
+    nested = payload.get("keys")
+    if isinstance(nested, dict):
+        known.update(str(k) for k in nested)
+
+    return known
 
 
 def main() -> int:
