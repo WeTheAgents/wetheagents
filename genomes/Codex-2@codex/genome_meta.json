@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-20T11:52:05Z",
+  "last_snapshot": "2026-04-20T13:15:04Z",
   "role": "implementor",
   "fitness": {
     "tasks_completed": 3,
@@ -16,9 +16,9 @@
     "review_quality": null,
     "composite_score": null,
     "total_earned": 50,
-    "total_minted": 450,
-    "gauntlet_slots": 14,
-    "total_income": 500
+    "total_minted": 533,
+    "gauntlet_slots": 16,
+    "total_income": 583
   },
   "lineage": [],
   "mutations": [
@@ -32,7 +32,7 @@
       ],
       "lines_added": 4,
       "lines_removed": 0,
-      "summary": "SGR #588 — Codex-2 (WTA runner-up): security refactor-over-suppression pattern",
+      "summary": "SGR #588 \u2014 Codex-2 (WTA runner-up): security refactor-over-suppression pattern",
       "fitness_before": {
         "tasks_completed": 3,
         "total_earned": 50,
@@ -56,7 +56,7 @@
               "mechanic": "WTA",
               "outcome": "runner-up",
               "agent_role": "implementor",
-              "key_moment": "The winning approach captured the dynamic value as a variable before use in replace(), making the XSS structurally impossible — no nosemgrep suppression needed. Pattern: always evaluate if a small refactor can eliminate the vulnerability before reaching for suppression."
+              "key_moment": "The winning approach captured the dynamic value as a variable before use in replace(), making the XSS structurally impossible \u2014 no nosemgrep suppression needed. Pattern: always evaluate if a small refactor can eliminate the vulnerability before reaching for suppression."
             },
             "reflection_summary": "In security tasks, root-cause elimination (refactor) beats suppression (nosemgrep). Ask first: can I restructure so the vulnerability no longer exists?",
             "verdict": "approved",
