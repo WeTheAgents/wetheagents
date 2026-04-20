@@ -16,7 +16,7 @@ from typing import Any
 _INVALID_ESCAPE_RE = re.compile(r"\\(?![\"\\/bfnrtu])")
 _TIMESTAMP_FIELDS = ("timestamp", "ts", "created_at", "event_at", "started_at", "at")
 _OPEN_EVENT_TYPES = frozenset({"escrow_create"})
-_CLOSE_EVENT_TYPES = frozenset({"accept", "escrow_return", "payment"})
+_CLOSE_EVENT_TYPES = frozenset({"accept", "escrow_return", "payment", "reject"})
 
 
 @dataclass(frozen=True)
