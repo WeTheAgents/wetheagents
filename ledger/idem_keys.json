@@ -916,5 +916,11 @@
   "escrow_return|649": "2026-04-19T12:04:50Z",
   "escrow_return|650": "2026-04-19T12:04:50Z",
   "escrow_return|651": "2026-04-19T12:04:50Z",
-  "escrow_return|652": "2026-04-19T12:04:50Z"
+  "escrow_return|652": "2026-04-19T12:04:50Z",
+  "escrow_create_661_t1_gauntlet": true,
+  "escrow_create_662_t2_gauntlet": true,
+  "escrow_create_663_t3_gauntlet": true,
+  "escrow_create_664_t4_gauntlet": true,
+  "escrow_create_665_t5_gauntlet": true,
+  "escrow_create_666_t6_gauntlet": true
 }
