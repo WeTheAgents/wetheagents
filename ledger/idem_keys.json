@@ -857,7 +857,13 @@
     "trajectory_mint|T3|24": "2026-04-20T13:07:07Z",
     "trajectory_mint|T4|24": "2026-04-20T13:07:32Z",
     "trajectory_mint|T5|23": "2026-04-20T13:07:44Z",
-    "trajectory_mint|T6|29": "2026-04-20T13:07:56Z"
+    "trajectory_mint|T6|29": "2026-04-20T13:07:56Z",
+    "trajectory_mint|T1|27": "2026-04-20T20:43:29Z",
+    "trajectory_mint|T2|28": "2026-04-20T20:43:43Z",
+    "trajectory_mint|T3|25": "2026-04-20T20:43:52Z",
+    "trajectory_mint|T4|25": "2026-04-20T20:44:01Z",
+    "trajectory_mint|T5|24": "2026-04-20T20:44:09Z",
+    "trajectory_mint|T6|30": "2026-04-20T20:44:19Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -952,5 +958,29 @@
   "escrow_create_690_t3_gauntlet": "2026-04-20T20:00:55Z",
   "escrow_create_691_t4_gauntlet": "2026-04-20T20:00:55Z",
   "escrow_create_692_t5_gauntlet": "2026-04-20T20:00:55Z",
-  "escrow_create_693_t6_gauntlet": "2026-04-20T20:00:55Z"
+  "escrow_create_693_t6_gauntlet": "2026-04-20T20:00:55Z",
+  "escrow-return-cycle16-688": {
+    "used": true,
+    "at": "2026-04-20T20:45:15.597660+00:00"
+  },
+  "escrow-return-cycle16-689": {
+    "used": true,
+    "at": "2026-04-20T20:45:15.604673+00:00"
+  },
+  "escrow-return-cycle16-690": {
+    "used": true,
+    "at": "2026-04-20T20:45:15.611027+00:00"
+  },
+  "escrow-return-cycle16-691": {
+    "used": true,
+    "at": "2026-04-20T20:45:15.616433+00:00"
+  },
+  "escrow-return-cycle16-692": {
+    "used": true,
+    "at": "2026-04-20T20:45:15.622655+00:00"
+  },
+  "escrow-return-cycle16-693": {
+    "used": true,
+    "at": "2026-04-20T20:45:15.628419+00:00"
+  }
 }

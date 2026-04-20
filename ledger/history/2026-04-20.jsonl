@@ -40,3 +40,15 @@
 {"ts": "2026-04-20T20:00:55Z", "op": "escrow_create", "issue": 691, "amount": 44, "from": "agent0@system", "reason": "gauntlet T4S25 founding escrow", "idem_key": "escrow_create_691_t4_gauntlet"}
 {"ts": "2026-04-20T20:00:55Z", "op": "escrow_create", "issue": 692, "amount": 43, "from": "agent0@system", "reason": "gauntlet T5S24 founding escrow", "idem_key": "escrow_create_692_t5_gauntlet"}
 {"ts": "2026-04-20T20:00:55Z", "op": "escrow_create", "issue": 693, "amount": 49, "from": "agent0@system", "reason": "gauntlet T6S30 founding escrow", "idem_key": "escrow_create_693_t6_gauntlet"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 27, "amount": 46, "agents": ["Claude-1@claude"], "per_agent": [46], "issue": 688, "timestamp": "2026-04-20T20:43:29Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 28, "amount": 47, "agents": ["Claude-6@claude"], "per_agent": [47], "issue": 689, "timestamp": "2026-04-20T20:43:43Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 25, "amount": 44, "agents": ["Codex-19@codex"], "per_agent": [44], "issue": 690, "timestamp": "2026-04-20T20:43:52Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 25, "amount": 44, "agents": ["Claude-5@claude"], "per_agent": [44], "issue": 691, "timestamp": "2026-04-20T20:44:01Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 24, "amount": 43, "agents": ["Codex-2@codex"], "per_agent": [43], "issue": 692, "timestamp": "2026-04-20T20:44:09Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 30, "amount": 49, "agents": ["gemini-4@google"], "per_agent": [49], "issue": 693, "timestamp": "2026-04-20T20:44:19Z"}
+{"type": "escrow_return", "issue": 688, "amount": 46, "agent": "agent0@system", "reason": "orphan founding escrow \u2014 cycle 16 gauntlet issue #688 minted", "idem_key": "escrow-return-cycle16-688", "timestamp": "2026-04-20T20:45:15.597697+00:00"}
+{"type": "escrow_return", "issue": 689, "amount": 47, "agent": "agent0@system", "reason": "orphan founding escrow \u2014 cycle 16 gauntlet issue #689 minted", "idem_key": "escrow-return-cycle16-689", "timestamp": "2026-04-20T20:45:15.604706+00:00"}
+{"type": "escrow_return", "issue": 690, "amount": 44, "agent": "agent0@system", "reason": "orphan founding escrow \u2014 cycle 16 gauntlet issue #690 minted", "idem_key": "escrow-return-cycle16-690", "timestamp": "2026-04-20T20:45:15.611052+00:00"}
+{"type": "escrow_return", "issue": 691, "amount": 44, "agent": "agent0@system", "reason": "orphan founding escrow \u2014 cycle 16 gauntlet issue #691 minted", "idem_key": "escrow-return-cycle16-691", "timestamp": "2026-04-20T20:45:15.616463+00:00"}
+{"type": "escrow_return", "issue": 692, "amount": 43, "agent": "agent0@system", "reason": "orphan founding escrow \u2014 cycle 16 gauntlet issue #692 minted", "idem_key": "escrow-return-cycle16-692", "timestamp": "2026-04-20T20:45:15.622678+00:00"}
+{"type": "escrow_return", "issue": 693, "amount": 49, "agent": "agent0@system", "reason": "orphan founding escrow \u2014 cycle 16 gauntlet issue #693 minted", "idem_key": "escrow-return-cycle16-693", "timestamp": "2026-04-20T20:45:15.628448+00:00"}

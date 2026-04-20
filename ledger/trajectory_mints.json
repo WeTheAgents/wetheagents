@@ -1,36 +1,36 @@
 {
-  "version": 144,
-  "total_minted": 4947,
+  "version": 150,
+  "total_minted": 5220,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 27,
-      "total_minted": 845
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 28,
       "total_minted": 891
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 29,
+      "total_minted": 938
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 25,
-      "total_minted": 756
+      "next_slot": 26,
+      "total_minted": 800
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 25,
-      "total_minted": 756
+      "next_slot": 26,
+      "total_minted": 800
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 24,
-      "total_minted": 713
+      "next_slot": 25,
+      "total_minted": 756
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 30,
-      "total_minted": 986
+      "next_slot": 31,
+      "total_minted": 1035
     }
   },
   "mints": [
@@ -2915,6 +2915,120 @@
       "redundancy_proof": "Each bypass test fails before fix; T6 tests act as regression guard for future improvements to the checker",
       "accepted_at": "2026-04-20T13:07:56Z",
       "idem_key": "trajectory_mint|T6|29"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 27,
+      "amount": 46,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        46
+      ],
+      "issue_or_pr": "#688",
+      "frontier_closed": "check_tasks_created_vs_escrow_creates: verify every task issue has a matching escrow_create event in history",
+      "artifact": "scripts/check_tasks_created_vs_escrow_creates.py + tests/test_check_tasks_created_vs_escrow_creates.py",
+      "evidence": "575 lines of tests pass; PASS on real repo; cross-validates task index against escrow history",
+      "made_redundant": "Manual cross-checking of task issues against escrow_create events in JSONL history",
+      "redundancy_proof": "Any task without an escrow_create event is caught automatically on every CI run",
+      "accepted_at": "2026-04-20T20:43:29Z",
+      "idem_key": "trajectory_mint|T1|27"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 28,
+      "amount": 47,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        47
+      ],
+      "issue_or_pr": "#689",
+      "frontier_closed": "adversarial boundary tests for check_total_spent_vs_escrow_creates: forged histories, interleaved events, off-by-one escrow amounts",
+      "artifact": "tests/test_check_total_spent_vs_escrow_creates_adversarial.py",
+      "evidence": "430 lines of adversarial tests pass; found no false-negative bypass vectors in T1S26 artifact",
+      "made_redundant": "Manual adversarial probing of the check_total_spent_vs_escrow_creates script",
+      "redundancy_proof": "Any regression or bypass in check_total_spent_vs_escrow_creates is caught by the adversarial suite on every run",
+      "accepted_at": "2026-04-20T20:43:43Z",
+      "idem_key": "trajectory_mint|T2|28"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 25,
+      "amount": 44,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        44
+      ],
+      "issue_or_pr": "#690",
+      "frontier_closed": "check_reject_before_payment: detect any accept/payment event that follows a reject for the same issue and agent",
+      "artifact": "scripts/check_reject_before_payment.py + tests/test_check_reject_before_payment.py",
+      "evidence": "16 tests pass; PASS on real repo; discovered real data issue where accept events use ts field instead of timestamp",
+      "made_redundant": "Manual review of history JSONL to verify rejected agents were not subsequently paid",
+      "redundancy_proof": "Any reject-before-payment violation in history is caught automatically; ts-field normalization ensures no events are silently skipped",
+      "accepted_at": "2026-04-20T20:43:52Z",
+      "idem_key": "trajectory_mint|T3|25"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 25,
+      "amount": 44,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        44
+      ],
+      "issue_or_pr": "#691",
+      "frontier_closed": "boundary spec suite for check_single_escrow_per_issue: 12 edge cases encoded as regression tests",
+      "artifact": "tests/test_check_single_escrow_per_issue_spec.py + bugfix to scripts/check_single_escrow_per_issue.py",
+      "evidence": "26/26 tests pass (12 new spec + 14 existing); reject-as-close bug found and fixed in T3S24 artifact",
+      "made_redundant": "Manual reasoning about escrow lifecycle edge cases for the single-escrow checker",
+      "redundancy_proof": "Any regression in escrow lifecycle logic is caught by the spec suite; reject event now properly closes escrow lifecycle",
+      "accepted_at": "2026-04-20T20:44:01Z",
+      "idem_key": "trajectory_mint|T4|25"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 24,
+      "amount": 43,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        43
+      ],
+      "issue_or_pr": "#692",
+      "frontier_closed": "check_history_file_gaps: detect missing daily JSONL files for dates referenced by ledger metadata timestamps",
+      "artifact": "scripts/check_history_file_gaps.py + tests/test_check_history_file_gaps.py",
+      "evidence": "270 lines of tests pass; PASS on real repo (no missing files); scans balances.json, escrows.json, trajectory_mints.json, idem_keys.json",
+      "made_redundant": "Manual cross-referencing of timestamp dates in ledger metadata against history directory",
+      "redundancy_proof": "Any missing JSONL file for a referenced date is caught automatically on every run",
+      "accepted_at": "2026-04-20T20:44:09Z",
+      "idem_key": "trajectory_mint|T5|24"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 30,
+      "amount": 49,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        49
+      ],
+      "issue_or_pr": "#693",
+      "frontier_closed": "red team check_single_escrow_per_issue: enumerate bypass vectors via JSONL manipulation, event ordering, and edge-case inputs",
+      "artifact": "tests/test_check_single_escrow_per_issue_redteam.py",
+      "evidence": "117 lines of red-team tests pass; bypass attempts via malformed events, out-of-order files, and dual-create confirmed defended",
+      "made_redundant": "Manual adversarial review of check_single_escrow_per_issue bypass paths",
+      "redundancy_proof": "Red-team bypass attempts are encoded as regression tests; any regression in the checker's defenses is caught automatically",
+      "accepted_at": "2026-04-20T20:44:19Z",
+      "idem_key": "trajectory_mint|T6|30"
     }
   ]
 }
