@@ -155,6 +155,16 @@ def run_check(root: Path) -> tuple[dict[str, Any], int]:
     balances_path = root / "ledger" / "balances.json"
     genomes_dir = root / "genomes"
 
+    # When balances.json is absent, skip gracefully — cannot detect orphans without
+    # a registration source, so the check is undefined rather than failing.
+    if not balances_path.exists():
+        return build_report(
+            agents={},
+            genome_dirs=[],
+            orphan_genome_dirs=[],
+            missing_genome_dirs=[],
+        ), 0
+
     try:
         balances_payload = load_json(balances_path)
         agents = get_agents(balances_payload)

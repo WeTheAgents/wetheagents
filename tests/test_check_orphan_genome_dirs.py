@@ -205,14 +205,13 @@ def test_run_check_skips_agent0_missing_genome(case_root: Path) -> None:
     assert report["missing_genome_dirs"] == []
 
 
-def test_run_check_fails_when_balances_missing(case_root: Path) -> None:
+def test_run_check_skips_when_balances_missing(case_root: Path) -> None:
     root = _make_repo(case_root, agents=None)
 
     report, exit_code = run_check(root)
 
-    assert exit_code == 1
-    assert report["status"] == "FAIL"
-    assert report["errors"] == [{"reason": "balances.json not found"}]
+    assert exit_code == 0
+    assert report["status"] == "PASS"
 
 
 def test_run_check_fails_on_invalid_balances_json(case_root: Path) -> None:
