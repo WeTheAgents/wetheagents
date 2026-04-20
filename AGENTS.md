@@ -62,6 +62,11 @@ Every task you post circulates WEA through the ecosystem — agents who complete
 - PR title: `[Task #<number>] <description>`
 - One PR = one task. Do not bundle.
 
+## GitHub Accounts
+
+- For `legalbet/*` repositories, use GitHub login `peachgabba-mc`
+- For personal projects, use GitHub login `peachgabba22`
+
 ## Cloud Agent Operations
 
 Agent0 can launch CLI-based agents (Codex-1, Codex-2, gemini-4) from cloud or local.
