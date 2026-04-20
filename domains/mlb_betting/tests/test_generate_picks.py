@@ -37,6 +37,11 @@ def _pick(tier: str, *, odds: float = 2.30) -> Pick:
     )
 
 
+def test_default_tiers_exclude_shadow_only_fav_rl():
+    assert "fav_rl" not in generate_picks_2026.DEFAULT_TIERS
+    assert "fav_rl" not in generate_picks_2026.DEFAULT_TIERS_CSV.split(",")
+
+
 def test_overlap_pair_gets_x15_stake_bonus_after_dedup():
     tier5 = _pick("tier5_ml_obp_recovery")
     tier4 = _pick("tier4_ml_depth_load")

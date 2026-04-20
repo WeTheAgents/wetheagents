@@ -95,6 +95,17 @@ TIER5_FIELDING_FLAG_PASS = "tier5_oaa_q10_pass"
 TIER5_FIELDING_FLAG_MISS = "tier5_oaa_q10_miss"
 TIER5_FIELDING_FLAG_UNKNOWN = "tier5_oaa_q10_unknown"
 
+DEFAULT_TIERS = [
+    "tier1_bullpen_day",
+    "tier4_ml_depth_load",
+    "tier5_ml_obp_recovery",
+    "tier3_pitcher_advantage",
+    "tier2_fatigue_gap",
+    "under_totals",
+    "over_bullpen_mismatch",
+]
+DEFAULT_TIERS_CSV = ",".join(DEFAULT_TIERS)
+
 
 # ---------------------------------------------------------------------------
 # Pick → JSON serialization
@@ -777,7 +788,7 @@ def main() -> int:
     parser.add_argument(
         "--tiers",
         type=str,
-        default="tier1_bullpen_day,tier4_ml_depth_load,tier5_ml_obp_recovery,tier3_pitcher_advantage,tier2_fatigue_gap,fav_rl,under_totals,over_bullpen_mismatch",
+        default=DEFAULT_TIERS_CSV,
         help="Comma-separated tier names (default: live strategy set)",
     )
     parser.add_argument(
