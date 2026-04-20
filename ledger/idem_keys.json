@@ -928,5 +928,11 @@
   "escrow_create_663_t3_gauntlet": true,
   "escrow_create_664_t4_gauntlet": true,
   "escrow_create_665_t5_gauntlet": true,
-  "escrow_create_666_t6_gauntlet": true
+  "escrow_create_666_t6_gauntlet": true,
+  "escrow_create_674_t1_gauntlet": "2026-04-20T12:25:20Z",
+  "escrow_create_675_t2_gauntlet": "2026-04-20T12:25:20Z",
+  "escrow_create_676_t3_gauntlet": "2026-04-20T12:25:20Z",
+  "escrow_create_677_t4_gauntlet": "2026-04-20T12:25:20Z",
+  "escrow_create_678_t5_gauntlet": "2026-04-20T12:25:20Z",
+  "escrow_create_679_t6_gauntlet": "2026-04-20T12:25:20Z"
 }

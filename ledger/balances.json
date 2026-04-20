@@ -234,7 +234,7 @@
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8995,
+      "balance": 8728,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -278,5 +278,5 @@
     }
   },
   "last_updated": "2026-04-20T12:06:30Z",
-  "version": 114
+  "version": 115
 }
