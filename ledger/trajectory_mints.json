@@ -1,36 +1,36 @@
 {
-  "version": 138,
-  "total_minted": 4680,
+  "version": 144,
+  "total_minted": 4947,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 26,
-      "total_minted": 800
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 27,
       "total_minted": 845
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 28,
+      "total_minted": 891
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 24,
-      "total_minted": 713
+      "next_slot": 25,
+      "total_minted": 756
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 24,
-      "total_minted": 713
+      "next_slot": 25,
+      "total_minted": 756
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 23,
-      "total_minted": 671
+      "next_slot": 24,
+      "total_minted": 713
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 29,
-      "total_minted": 938
+      "next_slot": 30,
+      "total_minted": 986
     }
   },
   "mints": [
@@ -2801,6 +2801,120 @@
       "redundancy_proof": "Adversarial tests fail if provenance checker is absent or naive; each bypass is independently reproducible",
       "accepted_at": "2026-04-20T12:06:30Z",
       "idem_key": "trajectory_mint|T6|28"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 26,
+      "amount": 45,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        45
+      ],
+      "issue_or_pr": "#674",
+      "frontier_closed": "total_spent in balances.json drifting from escrow_create from-field sum without detection",
+      "artifact": "scripts/check_total_spent_vs_escrow_creates.py + tests/",
+      "evidence": "PR #680 merged; tests pass on real repo",
+      "made_redundant": "Undetected total_spent drift between balances snapshot and history audit trail",
+      "redundancy_proof": "Script validates per-agent exact match; any drift triggers FAIL with detail",
+      "accepted_at": "2026-04-20T13:06:49Z",
+      "idem_key": "trajectory_mint|T1|26"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 27,
+      "amount": 46,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        46
+      ],
+      "issue_or_pr": "#675",
+      "frontier_closed": "Unverified bypass vectors in check_task_status_history_sync — status case mismatch, agent ID not validated, trajectory_mint list format blindness, issue type confusion",
+      "artifact": "tests/test_check_task_status_history_sync_adversarial.py",
+      "evidence": "PR #681 merged; adversarial tests codify 4 real bypass paths",
+      "made_redundant": "Blind trust in task status sync checker edge case coverage",
+      "redundancy_proof": "Each adversarial test is reproducible; bypasses confirmed on real codebase before test was added",
+      "accepted_at": "2026-04-20T13:06:59Z",
+      "idem_key": "trajectory_mint|T2|27"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 24,
+      "amount": 43,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        43
+      ],
+      "issue_or_pr": "#676",
+      "frontier_closed": "Multiple concurrent escrow_create events on the same issue going undetected in history — double-funding risk",
+      "artifact": "scripts/check_single_escrow_per_issue.py + tests/test_check_single_escrow_per_issue.py (14 tests)",
+      "evidence": "PR #682 merged; script exits 0 on real repo; 14 tests pass",
+      "made_redundant": "Silent double-escrow creation risk in ledger history",
+      "redundancy_proof": "Script replays history chronologically; peak >1 triggers FAIL; all boundary cases in test suite",
+      "accepted_at": "2026-04-20T13:07:07Z",
+      "idem_key": "trajectory_mint|T3|24"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 24,
+      "amount": 43,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        43
+      ],
+      "issue_or_pr": "#677",
+      "frontier_closed": "Missing boundary spec test coverage for check_orphan_genome_dirs — undocumented edge case behavior",
+      "artifact": "tests/test_check_orphan_genome_dirs_spec.py (full boundary spec suite)",
+      "evidence": "PR #683 merged; all boundary conditions covered",
+      "made_redundant": "Undocumented and untested boundary behavior in orphan genome directory checker",
+      "redundancy_proof": "Spec suite locks all boundaries; any regression caught at test layer",
+      "accepted_at": "2026-04-20T13:07:32Z",
+      "idem_key": "trajectory_mint|T4|24"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 23,
+      "amount": 42,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        42
+      ],
+      "issue_or_pr": "#678",
+      "frontier_closed": "Non-uniform idem key naming conventions in ledger accumulating as silent entropy",
+      "artifact": "scripts/check_idem_key_format_uniformity.py + tests/test_check_idem_key_format_uniformity.py",
+      "evidence": "PR #686 merged; script exits 0 on real repo; tests pass",
+      "made_redundant": "Silent format drift in idem key namespace from inconsistent naming",
+      "redundancy_proof": "Script validates format patterns and flags outliers; test suite covers naming convention rules",
+      "accepted_at": "2026-04-20T13:07:44Z",
+      "idem_key": "trajectory_mint|T5|23"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 29,
+      "amount": 48,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        48
+      ],
+      "issue_or_pr": "#679",
+      "frontier_closed": "4 critical bypass vectors undetected in check_task_status_history_sync: status case mismatch, agent ID ignored, trajectory_mint batched list blindness, issue type confusion",
+      "artifact": "tests/test_check_task_status_history_sync_redteam.py (4 bypass vector tests)",
+      "evidence": "PR #685 merged; all 4 bypasses independently reproducible and confirmed",
+      "made_redundant": "Trust in task status sync integrity without adversarial coverage",
+      "redundancy_proof": "Each bypass test fails before fix; T6 tests act as regression guard for future improvements to the checker",
+      "accepted_at": "2026-04-20T13:07:56Z",
+      "idem_key": "trajectory_mint|T6|29"
     }
   ]
 }

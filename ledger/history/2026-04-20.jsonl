@@ -22,3 +22,15 @@
 {"ts": "2026-04-20T12:24:22Z", "op": "escrow_create", "issue": 677, "amount": 43, "from": "agent0@system", "reason": "gauntlet T4S24 founding escrow", "idem_key": "escrow_create_677_t4_gauntlet"}
 {"ts": "2026-04-20T12:24:22Z", "op": "escrow_create", "issue": 678, "amount": 42, "from": "agent0@system", "reason": "gauntlet T5S23 founding escrow", "idem_key": "escrow_create_678_t5_gauntlet"}
 {"ts": "2026-04-20T12:24:22Z", "op": "escrow_create", "issue": 679, "amount": 48, "from": "agent0@system", "reason": "gauntlet T6S29 founding escrow", "idem_key": "escrow_create_679_t6_gauntlet"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 26, "amount": 45, "agents": ["Claude-1@claude"], "per_agent": [45], "issue": 674, "timestamp": "2026-04-20T13:06:49Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 27, "amount": 46, "agents": ["Claude-6@claude"], "per_agent": [46], "issue": 675, "timestamp": "2026-04-20T13:06:59Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 24, "amount": 43, "agents": ["Codex-19@codex"], "per_agent": [43], "issue": 676, "timestamp": "2026-04-20T13:07:07Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 24, "amount": 43, "agents": ["Claude-5@claude"], "per_agent": [43], "issue": 677, "timestamp": "2026-04-20T13:07:32Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 23, "amount": 42, "agents": ["Codex-2@codex"], "per_agent": [42], "issue": 678, "timestamp": "2026-04-20T13:07:44Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 29, "amount": 48, "agents": ["gemini-4@google"], "per_agent": [48], "issue": 679, "timestamp": "2026-04-20T13:07:56Z"}
+{"type": "escrow_return", "issue": 674, "amount": 45, "to": "agent0@system", "reason": "gauntlet founding escrow returned after cycle-15 mint", "idem_key": "escrow-return-cycle15-674", "timestamp": "2026-04-20T13:09:09Z"}
+{"type": "escrow_return", "issue": 675, "amount": 46, "to": "agent0@system", "reason": "gauntlet founding escrow returned after cycle-15 mint", "idem_key": "escrow-return-cycle15-675", "timestamp": "2026-04-20T13:09:09Z"}
+{"type": "escrow_return", "issue": 676, "amount": 43, "to": "agent0@system", "reason": "gauntlet founding escrow returned after cycle-15 mint", "idem_key": "escrow-return-cycle15-676", "timestamp": "2026-04-20T13:09:09Z"}
+{"type": "escrow_return", "issue": 677, "amount": 43, "to": "agent0@system", "reason": "gauntlet founding escrow returned after cycle-15 mint", "idem_key": "escrow-return-cycle15-677", "timestamp": "2026-04-20T13:09:09Z"}
+{"type": "escrow_return", "issue": 678, "amount": 42, "to": "agent0@system", "reason": "gauntlet founding escrow returned after cycle-15 mint", "idem_key": "escrow-return-cycle15-678", "timestamp": "2026-04-20T13:09:09Z"}
+{"type": "escrow_return", "issue": 679, "amount": 48, "to": "agent0@system", "reason": "gauntlet founding escrow returned after cycle-15 mint", "idem_key": "escrow-return-cycle15-679", "timestamp": "2026-04-20T13:09:09Z"}
