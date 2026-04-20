@@ -1,36 +1,38 @@
 #!/usr/bin/env python3
-"""Escrow lifecycle integrity checker for WeTheAgents.
-
-Verifies that every `escrow` event in ledger/history/*.jsonl has a
-corresponding resolution: either a `payment` event or an `escrow_return`
-event (including bulk returns) for the same issue.
-
-Escrows paid via trajectory minting (gauntlet) without a matching
-`escrow_return` are flagged as FAIL — these are the "orphan escrows"
-that previously required manual cleanup (issues #411, #423).
-
-Cross-check logic:
-  - resolved   : escrow issue has payment OR escrow_return in history
-  - pending    : escrow issue is active in escrows.json (legitimately open)
-  - orphan     : trajectory_mint exists for the issue but no escrow_return
-                 and the issue is not in escrows.json active — FAIL
-  - unresolved : no resolution, no trajectory_mint, not in active — WARN
-
-Exit codes:
-    0 — PASS (no orphan escrows detected)
-    1 — FAIL (one or more orphan escrows found)
-    2 — ERROR (missing files, malformed JSON)
-
-Output: JSON to stdout with `status`, `checks`, `summary` fields.
-"""
+"""Verify escrow lifecycle integrity in ledger/history/*.jsonl."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import sys
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+
+CHECK_NAME = "escrow_lifecycle_integrity"
+TRACKED_CREATE_KINDS = {"escrow_create"}
+CREATE_EQUIVALENT_KINDS = {"escrow", "escrow_create"}
+CLOSE_KINDS = {"accept", "escrow_return", "payment"}
+
+
+@dataclass(frozen=True)
+class HistoryEvent:
+    path: Path
+    line_number: int
+    event: dict[str, Any]
+    kind: str | None
+    issue: str | None
+    amount: int | float | None
+    timestamp: datetime | None
+
+
+@dataclass
+class OpenCreate:
+    record: HistoryEvent
+    tracked: bool
 
 
 def _repo_root_from(root: str | None) -> Path:
@@ -39,268 +41,319 @@ def _repo_root_from(root: str | None) -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def _iter_events(history_dir: Path):
-    """Yield (filename, event_dict) for every event in all .jsonl files.
-
-    Skips blank lines and logs parse errors to stderr without crashing.
-    """
-    for jsonl_file in sorted(history_dir.glob("*.jsonl")):
-        with open(jsonl_file, encoding="utf-8") as fh:
-            for lineno, line in enumerate(fh, 1):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    yield jsonl_file.name, json.loads(line)
-                except json.JSONDecodeError as exc:
-                    print(
-                        f"WARNING: skipping malformed JSON in "
-                        f"{jsonl_file.name}:{lineno}: {exc}",
-                        file=sys.stderr,
-                    )
+def _parse_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed
 
 
-def collect_events(history_dir: Path) -> dict[str, Any]:
-    """Scan all .jsonl history files and collect lifecycle event sets.
+def _event_timestamp(event: dict[str, Any]) -> datetime | None:
+    for key in ("timestamp", "ts", "created_at", "event_at", "started_at"):
+        parsed = _parse_timestamp(event.get(key))
+        if parsed is not None:
+            return parsed
+    return None
 
-    Returns a dict with keys:
-      escrow_events       : dict[int, dict]  issue → representative escrow event
-      escrow_counts       : dict[int, int]   issue → total escrow event count
-      payment_counts      : dict[int, int]   issue → payment event count
-      return_counts       : dict[int, int]   issue → return event count
-                                             (escrow_return + escrow_return_bulk)
-      trajectory_issues   : set[int]         trajectory_mint
-    """
-    escrow_events: dict[int, dict] = {}
-    escrow_counts: dict[int, int] = {}
-    payment_counts: dict[int, int] = {}
-    return_counts: dict[int, int] = {}
-    trajectory_issues: set[int] = set()
 
-    for _filename, event in _iter_events(history_dir):
-        etype = event.get("type", "")
+def _event_kind(event: dict[str, Any]) -> str | None:
+    for key in ("event", "op", "type"):
+        value = event.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return None
 
-        # Single-issue events
-        raw_issue = event.get("issue")
-        if raw_issue is not None:
-            try:
-                issue_num = int(raw_issue)
-            except (ValueError, TypeError):
+
+def _normalize_issue(value: Any) -> str | None:
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return None
+        try:
+            return str(int(stripped))
+        except ValueError:
+            return None
+    return None
+
+
+def _numeric_amount(value: Any) -> int | float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return value
+
+
+def _issue_display(issue_key: str | None) -> int | str | None:
+    if issue_key is None:
+        return None
+    try:
+        return int(issue_key)
+    except ValueError:
+        return issue_key
+
+
+def load_history_events(history_dir: Path) -> tuple[list[HistoryEvent], int]:
+    """Load history events sorted by timestamp, then file name and line number."""
+    events: list[HistoryEvent] = []
+    malformed_lines = 0
+    if not history_dir.is_dir():
+        return events, malformed_lines
+
+    for path in sorted(history_dir.glob("*.jsonl")):
+        for line_number, raw_line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), start=1):
+            line = raw_line.strip()
+            if not line:
                 continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                malformed_lines += 1
+                continue
+            if not isinstance(payload, dict):
+                continue
+            events.append(
+                HistoryEvent(
+                    path=path,
+                    line_number=line_number,
+                    event=payload,
+                    kind=_event_kind(payload),
+                    issue=_normalize_issue(payload.get("issue")),
+                    amount=_numeric_amount(payload.get("amount")),
+                    timestamp=_event_timestamp(payload),
+                )
+            )
 
-            if etype == "escrow":
-                # Keep first-seen escrow event per issue for reporting
-                if issue_num not in escrow_events:
-                    escrow_events[issue_num] = event
-                escrow_counts[issue_num] = escrow_counts.get(issue_num, 0) + 1
-            elif etype == "payment":
-                payment_counts[issue_num] = payment_counts.get(issue_num, 0) + 1
-            elif etype == "escrow_return":
-                return_counts[issue_num] = return_counts.get(issue_num, 0) + 1
-            elif etype == "trajectory_mint":
-                trajectory_issues.add(issue_num)
-
-        # Multi-issue bulk events (escrow_return_bulk)
-        if etype == "escrow_return_bulk":
-            for raw_i in event.get("issues", []):
-                try:
-                    i = int(raw_i)
-                    return_counts[i] = return_counts.get(i, 0) + 1
-                except (ValueError, TypeError):
-                    pass
-
-    return {
-        "escrow_events": escrow_events,
-        "escrow_counts": escrow_counts,
-        "payment_counts": payment_counts,
-        "return_counts": return_counts,
-        "trajectory_issues": trajectory_issues,
-    }
+    max_dt = datetime.max.replace(tzinfo=timezone.utc)
+    events.sort(key=lambda item: (item.timestamp or max_dt, item.path.name, item.line_number))
+    return events, malformed_lines
 
 
-def classify_escrows(
-    events: dict[str, Any],
-    active_issues: set[int],
+def _report_entry(
+    *,
+    status: str,
+    issue: str | None,
+    reason: str | None,
+    create_record: HistoryEvent | None = None,
+    close_record: HistoryEvent | None = None,
 ) -> dict[str, Any]:
-    """Classify each escrowed issue into lifecycle categories.
-
-    Categories:
-      resolved   — has payment OR escrow_return in history (count-matched)
-      pending    — in escrows.json active (legitimately open)
-      orphan     — trajectory_mint exists but escrow unresolved, not pending
-      unresolved — no resolution, no trajectory_mint, not pending (pre-history gap)
-
-    Resolution is count-aware: if an issue has N escrow events and M resolution
-    events (payment + escrow_return), M escrows are resolved and N-M remain
-    unresolved. This detects the case where a second escrow is created after
-    the first is resolved (previously a false PASS due to first-seen-only logic).
-
-    Returns a dict with category lists and counts.
-    """
-    escrow_events = events["escrow_events"]
-    escrow_counts = events["escrow_counts"]
-    payment_counts = events["payment_counts"]
-    return_counts = events["return_counts"]
-    trajectory_issues = events["trajectory_issues"]
-
-    resolved: list[dict] = []
-    pending: list[dict] = []
-    orphan: list[dict] = []
-    unresolved: list[dict] = []
-
-    for issue_num in sorted(escrow_events):
-        ev = escrow_events[issue_num]
-        entry = {
-            "issue": issue_num,
-            "amount": ev.get("amount"),
-            "agent": ev.get("agent") or ev.get("author"),
-        }
-
-        total_escrows = escrow_counts.get(issue_num, 1)
-        total_resolutions = (
-            payment_counts.get(issue_num, 0) + return_counts.get(issue_num, 0)
-        )
-        resolved_count = min(total_escrows, total_resolutions)
-        unresolved_remaining = total_escrows - resolved_count
-
-        for _ in range(resolved_count):
-            resolved.append(entry)
-
-        is_pending = issue_num in active_issues
-        is_gauntlet_paid = issue_num in trajectory_issues
-        for _ in range(unresolved_remaining):
-            if is_pending:
-                pending.append(entry)
-            elif is_gauntlet_paid:
-                # trajectory_mint happened but escrow not returned — orphan
-                orphan.append(entry)
-            else:
-                # No evidence of resolution in history; likely pre-history era
-                unresolved.append(entry)
-
-    return {
-        "resolved": resolved,
-        "pending": pending,
-        "orphan_escrows": orphan,
-        "unresolved_escrows": unresolved,
+    entry = {
+        "issue": _issue_display(issue),
+        "status": status,
+        "reason": reason,
+        "create_kind": create_record.kind if create_record else None,
+        "close_kind": close_record.kind if close_record else None,
+        "create_amount": create_record.amount if create_record else None,
+        "close_amount": close_record.amount if close_record else None,
+        "create_file": create_record.path.name if create_record else None,
+        "create_line": create_record.line_number if create_record else None,
+        "close_file": close_record.path.name if close_record else None,
+        "close_line": close_record.line_number if close_record else None,
     }
+    return entry
 
 
-def build_result(classified: dict[str, Any]) -> dict[str, Any]:
-    """Build the final JSON report from classified escrow categories."""
-    has_orphans = bool(classified["orphan_escrows"])
-    status = "FAIL" if has_orphans else "PASS"
+def run_check(root: Path) -> dict[str, Any]:
+    """Replay history and verify escrow-create lifecycle integrity."""
+    history_dir = root / "ledger" / "history"
+    history_files = sorted(history_dir.glob("*.jsonl")) if history_dir.is_dir() else []
+    history_events, malformed_lines = load_history_events(history_dir)
 
-    orphan_count = len(classified["orphan_escrows"])
-    unresolved_count = len(classified["unresolved_escrows"])
+    open_creates: dict[str, list[OpenCreate]] = {}
+    issues_with_tracked_create_history: set[str] = set()
+    reports: list[dict[str, Any]] = []
+    escrow_create_events_scanned = 0
+    close_events_scanned = 0
 
-    if has_orphans:
-        check_detail = (
-            f"{orphan_count} gauntlet orphan(s) detected — "
-            "trajectory_mint exists but escrow was not returned"
+    for record in history_events:
+        kind = record.kind
+
+        if kind in CREATE_EQUIVALENT_KINDS:
+            tracked = kind in TRACKED_CREATE_KINDS
+            if tracked:
+                escrow_create_events_scanned += 1
+            if record.issue is None or record.amount is None:
+                if tracked:
+                    reports.append(
+                        _report_entry(
+                            status="FAIL",
+                            issue=record.issue,
+                            reason="invalid_escrow_create",
+                            create_record=record,
+                        )
+                    )
+                continue
+            if tracked:
+                issues_with_tracked_create_history.add(record.issue)
+            open_creates.setdefault(record.issue, []).append(OpenCreate(record=record, tracked=tracked))
+            continue
+
+        if kind not in CLOSE_KINDS:
+            continue
+
+        close_events_scanned += 1
+        if record.issue is None or record.amount is None:
+            if kind != "payment":
+                reports.append(
+                    _report_entry(
+                        status="FAIL",
+                        issue=record.issue,
+                        reason="invalid_close_event",
+                        close_record=record,
+                    )
+                )
+            continue
+
+        pending = open_creates.get(record.issue, [])
+        if not pending:
+            if kind == "payment" and record.issue not in issues_with_tracked_create_history:
+                continue
+            reports.append(
+                _report_entry(
+                    status="FAIL",
+                    issue=record.issue,
+                    reason="close_without_prior_create",
+                    close_record=record,
+                )
+            )
+            continue
+
+        matched_create = pending.pop(0)
+        if not pending:
+            open_creates.pop(record.issue, None)
+
+        if not matched_create.tracked:
+            continue
+
+        reason = None
+        status = "PASS"
+        if matched_create.record.amount != record.amount:
+            status = "FAIL"
+            reason = "amount_mismatch"
+
+        reports.append(
+            _report_entry(
+                status=status,
+                issue=record.issue,
+                reason=reason,
+                create_record=matched_create.record,
+                close_record=record,
+            )
         )
-    elif unresolved_count:
-        check_detail = (
-            f"PASS — {unresolved_count} pre-history unresolved escrow(s) noted (WARN)"
-        )
-    else:
-        check_detail = "all escrow events have a corresponding resolution"
 
-    total = (
-        len(classified["resolved"])
-        + len(classified["pending"])
-        + orphan_count
-        + unresolved_count
+    for issue, pending in sorted(open_creates.items(), key=lambda item: int(item[0]) if item[0].isdigit() else item[0]):
+        for matched_create in pending:
+            if not matched_create.tracked:
+                continue
+            reports.append(
+                _report_entry(
+                    status="FAIL",
+                    issue=issue,
+                    reason="no_close_event",
+                    create_record=matched_create.record,
+                )
+            )
+
+    reports.sort(
+        key=lambda entry: (
+            entry["issue"] if entry["issue"] is not None else -1,
+            entry["create_file"] or entry["close_file"] or "",
+            entry["create_line"] or entry["close_line"] or 0,
+            entry["close_line"] or 0,
+        )
+    )
+
+    failures = [entry for entry in reports if entry["status"] == "FAIL"]
+    passes = [entry for entry in reports if entry["status"] == "PASS"]
+    status = "FAIL" if failures else "PASS"
+    detail = (
+        f"Found {len(failures)} lifecycle violation(s)."
+        if failures
+        else "All escrow_create events have exactly one later matching close event."
     )
 
     return {
         "status": status,
         "checks": [
             {
-                "name": "escrow_lifecycle_integrity",
+                "name": CHECK_NAME,
                 "status": status,
-                "detail": check_detail,
+                "detail": detail,
+                "issues": reports,
             }
         ],
         "summary": {
-            "total_escrow_events": total,
-            "resolved": len(classified["resolved"]),
-            "pending": len(classified["pending"]),
-            "orphan_escrows": orphan_count,
-            "unresolved_escrows": unresolved_count,
+            "history_files_scanned": len(history_files),
+            "malformed_lines_skipped": malformed_lines,
+            "escrow_create_events_scanned": escrow_create_events_scanned,
+            "close_events_scanned": close_events_scanned,
+            "passes": len(passes),
+            "failures": len(failures),
         },
-        "orphan_escrows": classified["orphan_escrows"],
-        "unresolved_escrows": classified["unresolved_escrows"],
+        "issues": reports,
     }
 
 
-def run_check(root: Path) -> dict[str, Any]:
-    """Load ledger files, classify escrows, and return the result dict."""
-    history_dir = root / "ledger" / "history"
-    if not history_dir.is_dir():
-        print(f"ERROR: history directory not found: {history_dir}", file=sys.stderr)
-        sys.exit(2)
-
-    escrows_path = root / "ledger" / "escrows.json"
-    if not escrows_path.exists():
-        print(f"ERROR: escrows.json not found: {escrows_path}", file=sys.stderr)
-        sys.exit(2)
-
-    raw_escrows = json.loads(escrows_path.read_text(encoding="utf-8-sig"))
-    active_issues: set[int] = set()
-    for key in raw_escrows.get("active", {}):
-        try:
-            active_issues.add(int(key))
-        except (ValueError, TypeError):
-            pass
-
-    events = collect_events(history_dir)
-    classified = classify_escrows(events, active_issues)
-    return build_result(classified)
+def _print_human(report: dict[str, Any]) -> None:
+    summary = report["summary"]
+    print(f"{report['status']}: {CHECK_NAME}")
+    print(
+        "  "
+        f"escrow_create_events_scanned={summary['escrow_create_events_scanned']} "
+        f"close_events_scanned={summary['close_events_scanned']} "
+        f"passes={summary['passes']} "
+        f"failures={summary['failures']}"
+    )
+    for entry in report["issues"]:
+        issue = entry["issue"]
+        if issue is None:
+            issue_text = "<missing>"
+        else:
+            issue_text = f"#{issue}"
+        if entry["status"] == "PASS":
+            print(
+                f"  PASS issue {issue_text}: "
+                f"{entry['create_kind']} -> {entry['close_kind']} "
+                f"amount={entry['create_amount']}"
+            )
+            continue
+        print(
+            f"  FAIL issue {issue_text}: reason={entry['reason']} "
+            f"create_kind={entry['create_kind']} close_kind={entry['close_kind']} "
+            f"create_amount={entry['create_amount']} close_amount={entry['close_amount']}"
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Verify every escrow event has a lifecycle resolution"
+        description="Check that escrow_create events have exactly one matching close event"
     )
     parser.add_argument(
         "--root",
         default=None,
-        help="Repository root (auto-detected from script location if omitted)",
+        help="Path to repository root (default: auto-detect from script location)",
     )
     parser.add_argument(
         "--json",
         action="store_true",
         dest="json_output",
-        help="Output machine-readable JSON (default: human-readable)",
+        help="Print JSON instead of the human-readable report",
     )
     args = parser.parse_args(argv)
 
-    root = _repo_root_from(args.root)
-    result = run_check(root)
-
+    report = run_check(_repo_root_from(args.root))
     if args.json_output:
-        print(json.dumps(result, indent=2))
+        print(json.dumps(report, indent=2))
     else:
-        status = result["status"]
-        summary = result["summary"]
-        print(f"{status}: escrow lifecycle integrity")
-        print(
-            f"  total={summary['total_escrow_events']} "
-            f"resolved={summary['resolved']} "
-            f"pending={summary['pending']} "
-            f"orphans={summary['orphan_escrows']} "
-            f"unresolved={summary['unresolved_escrows']}"
-        )
-        for orphan in result.get("orphan_escrows", []):
-            print(f"  ORPHAN issue #{orphan['issue']}: {orphan['amount']} WEA")
-        if result.get("unresolved_escrows"):
-            print(
-                f"  WARN: {len(result['unresolved_escrows'])} pre-history "
-                "escrow(s) have no resolution record"
-            )
-
-    return 1 if result["status"] == "FAIL" else 0
+        _print_human(report)
+    return 1 if report["status"] == "FAIL" else 0
 
 
 if __name__ == "__main__":
