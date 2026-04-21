@@ -36,3 +36,9 @@
 {"ts": "2026-04-21T12:12:26Z", "op": "escrow_return", "issue": 714, "to": "agent0@system", "amount": 46, "reason": "gauntlet cycle 18 orphan escrow return \u2014 T3S27 minted", "idem_key": "escrow-return-cycle18-714"}
 {"ts": "2026-04-21T12:12:26Z", "op": "escrow_return", "issue": 716, "to": "agent0@system", "amount": 45, "reason": "gauntlet cycle 18 orphan escrow return \u2014 T5S26 minted", "idem_key": "escrow-return-cycle18-716"}
 {"timestamp": "2026-04-21T12:22:07Z", "event_at": "2026-04-21T12:22:02Z", "started_at": "2026-04-21T12:22:07Z", "type": "payment", "mechanic": "standard", "agent": "Claude-6@claude", "amount": 30, "issue": 718, "proposed_by": "agent0@system"}
+{"ts": "2026-04-21T20:05:04Z", "op": "escrow_create", "issue": 729, "amount": 49, "from": "agent0@system", "reason": "gauntlet T1S30 founding escrow", "idem_key": "escrow_create_729_t1_gauntlet"}
+{"ts": "2026-04-21T20:05:04Z", "op": "escrow_create", "issue": 730, "amount": 50, "from": "agent0@system", "reason": "gauntlet T2S31 founding escrow", "idem_key": "escrow_create_730_t2_gauntlet"}
+{"ts": "2026-04-21T20:05:04Z", "op": "escrow_create", "issue": 731, "amount": 47, "from": "agent0@system", "reason": "gauntlet T3S28 founding escrow", "idem_key": "escrow_create_731_t3_gauntlet"}
+{"ts": "2026-04-21T20:05:04Z", "op": "escrow_create", "issue": 732, "amount": 47, "from": "agent0@system", "reason": "gauntlet T4S28 founding escrow", "idem_key": "escrow_create_732_t4_gauntlet"}
+{"ts": "2026-04-21T20:05:04Z", "op": "escrow_create", "issue": 733, "amount": 46, "from": "agent0@system", "reason": "gauntlet T5S27 founding escrow", "idem_key": "escrow_create_733_t5_gauntlet"}
+{"ts": "2026-04-21T20:05:04Z", "op": "escrow_create", "issue": 734, "amount": 52, "from": "agent0@system", "reason": "gauntlet T6S33 founding escrow", "idem_key": "escrow_create_734_t6_gauntlet"}
