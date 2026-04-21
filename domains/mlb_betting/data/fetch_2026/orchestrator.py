@@ -37,6 +37,7 @@ from .io_safety import (
 )
 from .mlb_api import fetch_pitcher_hand, load_pitcher_cache, save_pitcher_cache
 from .pitcher_codes import PitcherCodeRegistry
+from .runtime_files import state_path
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,6 @@ RAW_2026_DIR = BASE_DIR / "raw" / "odds_2026"
 RAW_ODDS_DIR = BASE_DIR / "raw" / "odds"
 PARQUET_PATH = RAW_2026_DIR / "games_2026.parquet"
 XLSX_PATH = RAW_ODDS_DIR / "mlb-odds-2026.xlsx"
-STATE_PATH = Path(__file__).parent / "state.json"
-
 XLSX_COLUMNS = [
     "date", "rot", "vh", "team", "pitcher",
     "inn_1", "inn_2", "inn_3", "inn_4", "inn_5",
@@ -63,13 +62,14 @@ XLSX_COLUMNS = [
 
 
 def _load_state() -> dict:
-    if STATE_PATH.exists():
-        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    path = state_path()
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
     return {}
 
 
 def _save_state(state: dict) -> None:
-    atomic_write_text(json.dumps(state, indent=2, default=str), STATE_PATH)
+    atomic_write_text(json.dumps(state, indent=2, default=str), state_path())
 
 
 # ---------------------------------------------------------------------------

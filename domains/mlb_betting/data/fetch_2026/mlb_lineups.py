@@ -26,6 +26,7 @@ import pandas as pd
 
 from .io_safety import append_audit, atomic_write_text, safe_write_parquet
 from .mlb_boxscore import fetch_schedule
+from .runtime_files import state_path
 from .team_mapping import normalize_team
 
 logger = logging.getLogger(__name__)
@@ -36,8 +37,6 @@ _last_request_time = 0.0
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = BASE_DIR / "processed" / "lineups_2026"
-STATE_PATH = Path(__file__).parent / "state.json"
-
 BATTER_LOGS_PATH = OUTPUT_DIR / "batter_game_logs.parquet"
 INNING1_PLAYS_PATH = OUTPUT_DIR / "inning1_play_logs.parquet"
 BATTER_ENTERING_PATH = OUTPUT_DIR / "batter_entering_features.parquet"
@@ -128,13 +127,14 @@ def _rate_limit() -> None:
 
 
 def _load_state() -> dict:
-    if STATE_PATH.exists():
-        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
+    path = state_path()
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
     return {}
 
 
 def _save_state(state: dict) -> None:
-    atomic_write_text(json.dumps(state, indent=2, default=str), STATE_PATH)
+    atomic_write_text(json.dumps(state, indent=2, default=str), state_path())
 
 
 def _to_int(value: object) -> int:

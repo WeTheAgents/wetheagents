@@ -38,8 +38,13 @@ from pathlib import Path
 import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # domains/mlb_betting
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from data.fetch_2026.runtime_files import state_path
+
 DATA_DIR = BASE_DIR / "data"
-STATE_PATH_BOXSCORE = DATA_DIR / "fetch_2026" / "state.json"
+STATE_PATH_BOXSCORE = state_path()
 AUDIT_LOG = DATA_DIR / "fetch_2026" / "audit_log.jsonl"
 GAMES_PARQUET = DATA_DIR / "raw" / "odds_2026" / "games_2026.parquet"
 PITCHER_LOGS_PARQUET = DATA_DIR / "processed" / "pitchers_2026" / "pitcher_game_logs.parquet"

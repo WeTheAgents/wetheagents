@@ -22,10 +22,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from data.fetch_2026.runtime_files import pitcher_cache_path
+
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-PITCHER_CACHE_PATH = BASE_DIR / "data" / "fetch_2026" / "pitcher_cache.json"
 STARTER_ENTERING_PATH = BASE_DIR / "data" / "processed" / "pitchers_2026" / "starter_entering_features.parquet"
 STARTER_GAME_LOGS_PATH = BASE_DIR / "data" / "processed" / "pitchers_2026" / "starter_game_logs.parquet"
 
@@ -409,9 +410,10 @@ def _load_pitcher_code_lookup() -> dict[str, str]:
     registry = PitcherCodeRegistry()
     lookup: dict[str, str] = {}
     hand_cache: dict[str, str] = {}
+    cache_path = pitcher_cache_path()
 
-    if PITCHER_CACHE_PATH.exists():
-        raw = json.loads(PITCHER_CACHE_PATH.read_text(encoding="utf-8"))
+    if cache_path.exists():
+        raw = json.loads(cache_path.read_text(encoding="utf-8"))
         for name, info in raw.items():
             if not isinstance(info, dict):
                 continue

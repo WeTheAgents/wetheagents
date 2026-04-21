@@ -33,11 +33,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from data.fetch_2026.runtime_files import pitcher_cache_path
+
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PREGAME_DIR = BASE_DIR / "data" / "raw" / "odds_2026"
-PITCHER_CACHE_PATH = BASE_DIR / "data" / "fetch_2026" / "pitcher_cache.json"
 
 
 def _find_latest_pregame(target: date) -> Path | None:
@@ -79,9 +80,10 @@ def _find_latest_pregame(target: date) -> Path | None:
 
 def _load_pitcher_hand_cache() -> dict[str, str]:
     """Return {full_name → 'R' | 'L'} from the pitcher cache."""
-    if not PITCHER_CACHE_PATH.exists():
+    cache_path = pitcher_cache_path()
+    if not cache_path.exists():
         return {}
-    raw = json.loads(PITCHER_CACHE_PATH.read_text(encoding="utf-8"))
+    raw = json.loads(cache_path.read_text(encoding="utf-8"))
     return {
         name: info.get("hand", "R")
         for name, info in raw.items()

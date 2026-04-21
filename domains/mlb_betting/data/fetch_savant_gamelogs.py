@@ -14,11 +14,17 @@ from __future__ import annotations
 
 import argparse
 import logging
+from datetime import date, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pybaseball
+
+try:
+    from .fetch_2026.io_safety import safe_write_parquet
+except ImportError:  # pragma: no cover - script-mode fallback
+    from fetch_2026.io_safety import safe_write_parquet
 
 pybaseball.cache.enable()
 
@@ -181,11 +187,79 @@ def fetch_season(year: int) -> pd.DataFrame:
     return pitcher_games
 
 
+def _season_output_path(year: int) -> Path:
+    return OUTPUT_DIR / f"pitcher_games_{year}.parquet"
+
+
+def _season_start(year: int) -> date:
+    return date(year, 3, 20)
+
+
+def refresh_season_to_date(
+    season: int,
+    *,
+    through: date,
+    recent_backfill_days: int = 3,
+) -> pd.DataFrame:
+    """Refresh a live season incrementally through the target date.
+
+    Re-fetches a small recent window, upserts on `(pitcher, game_pk)`, and
+    keeps the cached season parquet stable for the rest of the year.
+    """
+    out_path = _season_output_path(season)
+    existing = pd.read_parquet(out_path) if out_path.exists() else pd.DataFrame()
+
+    start = _season_start(season)
+    if not existing.empty and "game_date" in existing.columns:
+        existing_dates = pd.to_datetime(existing["game_date"], errors="coerce").dropna()
+        if not existing_dates.empty:
+            latest = existing_dates.max().date()
+            start = max(
+                _season_start(season),
+                latest - timedelta(days=max(recent_backfill_days - 1, 0)),
+            )
+
+    if start > through:
+        return existing
+
+    raw = pybaseball.statcast(start.isoformat(), through.isoformat())
+    if raw is None or len(raw) == 0:
+        if not existing.empty:
+            return existing.sort_values(["game_date", "pitcher", "game_pk"]).reset_index(drop=True)
+        return pd.DataFrame()
+
+    pitcher_games = _aggregate_pitcher_game(raw)
+    pitcher_games["season"] = season
+
+    combined = pd.concat([existing, pitcher_games], ignore_index=True)
+    if not combined.empty:
+        combined["game_date"] = pd.to_datetime(combined["game_date"], errors="coerce")
+        combined = combined.sort_values(["game_date", "pitcher", "game_pk"])
+        combined = combined.drop_duplicates(subset=["pitcher", "game_pk"], keep="last")
+        combined = combined.reset_index(drop=True)
+
+    safe_write_parquet(
+        combined,
+        out_path,
+        generator="fetch_savant_gamelogs.refresh_season_to_date",
+        date_col="game_date",
+        audit_action="save_savant_pitcher_games",
+    )
+    logger.info(
+        "Refreshed Savant season %d: %s -> %s (%d rows)",
+        season,
+        start,
+        through,
+        len(combined),
+    )
+    return combined
+
+
 def fetch_all(years: list[int] | None = None) -> None:
     """Fetch and aggregate Statcast data for all specified seasons."""
     years = years or SEASONS
     for year in years:
-        out_path = OUTPUT_DIR / f"pitcher_games_{year}.parquet"
+        out_path = _season_output_path(year)
         if out_path.exists():
             logger.info("Skipping %d — already cached at %s", year, out_path)
             continue

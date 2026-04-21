@@ -16,10 +16,11 @@ from pathlib import Path
 
 import httpx
 
+from .runtime_files import pitcher_cache_path
+
 logger = logging.getLogger(__name__)
 
 MLB_API_BASE = "https://statsapi.mlb.com"
-CACHE_PATH = Path(__file__).parent / "pitcher_cache.json"
 RATE_LIMIT_SECONDS = 1.0
 _last_request_time = 0.0
 
@@ -34,8 +35,9 @@ def _rate_limit() -> None:
 
 def load_pitcher_cache() -> dict[str, dict]:
     """Load pitcher cache from disk. Returns {full_name: {hand, mlb_id}}."""
-    if CACHE_PATH.exists():
-        return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+    cache_path = pitcher_cache_path()
+    if cache_path.exists():
+        return json.loads(cache_path.read_text(encoding="utf-8"))
     return {}
 
 
@@ -44,7 +46,7 @@ def save_pitcher_cache(cache: dict[str, dict]) -> None:
     from .io_safety import atomic_write_text
 
     atomic_write_text(
-        json.dumps(cache, indent=2, ensure_ascii=False), CACHE_PATH
+        json.dumps(cache, indent=2, ensure_ascii=False), pitcher_cache_path()
     )
 
 

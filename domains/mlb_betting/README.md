@@ -1,55 +1,74 @@
 # mlb-betting
 
-MLB baseball betting backtest system. Goal: find sustainably profitable strategies for Polymarket MLB markets (launch: April 2026).
+Standalone MLB betting research and live-operations repository.
 
-## Approaches
+The active production path is intentionally narrow:
 
-- Rules-based -- expert filters (RPI, pitchers, form)
-- LLM estimator -- fair odds estimation via OpenAI Batch API
-- CatBoost ML -- gradient boosting on 35+ features (67 total)
+- rules-based live strategies
+- promoted CatBoost models
+- fail-closed daily capture, health checks, and runtime contracts
+
+Genome-based LLM experiments remain in the repo as archive material, but they
+are not part of the current production contract.
 
 ## Quick Start
 
 ```bash
-# Install (uv or pip)
 python -m venv .venv
 # Windows: .\.venv\Scripts\activate
 pip install -U pip
-pip install -e .
+pip install -e ".[dev]"
 ```
 
-Feature computation example:
+Local operator setup:
 
 ```bash
-python -c "from src.features import build_all_features; from src.data_loader import *; g=load_all_seasons(); g=apply_data_filters(g); g=add_derived_odds(g); e=build_all_features(g)"
+cp .env.example .env
 ```
 
-## Key Betting Filters
+`data/fetch_2026/state.json` and `data/fetch_2026/pitcher_cache.json` are
+local-only runtime files. If they are missing, the repo seeds them from the
+committed `*.example.json` files on first use.
 
-Always apply before selecting bets:
+## Active Operations
 
-```python
-from src.data_loader import apply_data_filters, add_derived_odds
+Canonical scheduled runner:
 
-games = apply_data_filters(games)  # remove 2020, missing odds/pitcher, double-headers
-games = add_derived_odds(games)    # decimal odds, implied probs
-
-bettable = games[
-    ~games["involves_col"]          # never bet Colorado games
-    & ~games["is_extreme_line"]     # skip favorites > 300
-]
-# September now INCLUDED (validated profitable across 5 seasons)
+```bash
+python scripts/mlb_daily_capture.py
 ```
 
-## Scripts
+Strict health/runtime checks:
 
-See `scripts/` and `knowledge/status_report_session3.md`.
+```bash
+python scripts/check_2026_pipeline.py --strict-freshness
+python scripts/check_live_runtime_contract.py --date YYYY-MM-DD
+python scripts/generate_picks_2026.py --date YYYY-MM-DD --dry-run --no-poly
+```
 
-## Operational Memory
+Manual recovery:
 
-Use these docs as the current working memory for MLB research:
+```bash
+python scripts/fetch_daily_2026.py --phase pregame --date YYYY-MM-DD
+python scripts/fetch_daily_2026.py --phase pitchers --date YYYY-MM-DD
+python scripts/fetch_daily_2026.py --phase postgame-full --date YYYY-MM-DD
+python scripts/fetch_daily_2026.py --phase savant --date YYYY-MM-DD
+python scripts/fetch_daily_2026.py --backfill-savant YYYY-MM-DD YYYY-MM-DD
+```
 
-- `knowledge/layered_basket_selection_method.md` -- canonical basket-promotion workflow
-- `knowledge/bullpen_day_chat_watchlist_2026.md` -- chat-first bullpen-day rotation watchlist for the 2026 season
+Runbook: `knowledge/live_ops_runbook.md`
 
-Current bullpen-day workflow is intentionally chat-first until a stricter model is promoted.
+## Repository Layout
+
+- `src/` — core feature, model, strategy, and live-runtime code
+- `scripts/` — operational runners and research scripts
+- `tests/` — regression and runtime-contract coverage
+- `knowledge/` — session docs, reports, and working memory
+- `site/` — static research/archive pages
+- `genomes/`, `src/llm_*` — legacy LLM research archive
+
+## Archive Note
+
+The genome-based expert system is retained for reproducibility and historical
+research only. New production work should assume the repo lives independently
+of WeTheAgents domain routing and independently of genome evolution workflows.

@@ -24,19 +24,37 @@ logger = logging.getLogger(__name__)
 
 SAVANT_DIR = Path(__file__).parent.parent / "data" / "processed" / "savant"
 OUTPUT_DIR = SAVANT_DIR
-SEASONS = [2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025]
 
 
-def load_reliever_games(seasons: list[int] | None = None) -> pd.DataFrame:
+def discover_available_seasons(savant_dir: Path | None = None) -> list[int]:
+    savant_dir = savant_dir or SAVANT_DIR
+    seasons: list[int] = []
+    for path in sorted(savant_dir.glob("pitcher_games_*.parquet")):
+        try:
+            seasons.append(int(path.stem.split("_")[-1]))
+        except ValueError:
+            continue
+    return seasons
+
+
+def load_reliever_games(
+    seasons: list[int] | None = None,
+    *,
+    savant_dir: Path | None = None,
+) -> pd.DataFrame:
     """Load Savant pitcher-game data and filter to relievers only."""
-    seasons = seasons or SEASONS
+    savant_dir = savant_dir or SAVANT_DIR
+    seasons = seasons or discover_available_seasons(savant_dir)
     frames = []
     for year in seasons:
-        path = SAVANT_DIR / f"pitcher_games_{year}.parquet"
+        path = savant_dir / f"pitcher_games_{year}.parquet"
         if not path.exists():
             logger.warning("Missing Savant data for %d — skipping", year)
             continue
         df = pd.read_parquet(path)
+        if "season" not in df.columns:
+            df = df.copy()
+            df["season"] = year
         frames.append(df)
 
     if not frames:
@@ -233,6 +251,7 @@ def build_savant_bullpen_features(
     seasons: list[int] | None = None,
     *,
     fatigue_days: int = 3,
+    savant_dir: Path | None = None,
 ) -> pd.DataFrame:
     """Build all Savant-based bullpen features.
 
@@ -243,7 +262,8 @@ def build_savant_bullpen_features(
     - bp_sc_xwoba_std, bp_sc_barrel_std
     - bp_sc_xwoba_15g, bp_sc_barrel_15g
     """
-    relievers = load_reliever_games(seasons)
+    resolved_seasons = seasons or discover_available_seasons(savant_dir or SAVANT_DIR)
+    relievers = load_reliever_games(resolved_seasons, savant_dir=savant_dir)
     team_game = _aggregate_team_game(relievers)
     logger.info("Team-game aggregates: %d rows", len(team_game))
 
@@ -256,6 +276,14 @@ def build_savant_bullpen_features(
         logger.info("Deduped %d doubleheader rows", dropped)
 
     features = _compute_fatigue_features(team_game, fatigue_days=fatigue_days)
+    input_max = pd.to_datetime(relievers["game_date"], errors="coerce").dropna().max()
+    feature_max = pd.to_datetime(features["game_date"], errors="coerce").dropna().max()
+    if pd.notna(input_max) and pd.notna(feature_max) and feature_max < input_max:
+        raise ValueError(
+            "Savant bullpen feature build dropped the live max date: "
+            f"input_max={input_max.date()} feature_max={feature_max.date()}"
+        )
+    features.attrs["source_seasons"] = list(resolved_seasons)
     logger.info("Savant bullpen features: %d rows", len(features))
     return features
 
@@ -264,12 +292,18 @@ def save_savant_bullpen_features(
     df: pd.DataFrame,
     *,
     output_dir: Path | None = None,
+    source_seasons: list[int] | None = None,
 ) -> Path:
     output_dir = output_dir or OUTPUT_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / "savant_bullpen_features.parquet"
     df.to_parquet(out_path, index=False)
-    logger.info("Saved %s", out_path)
+    logger.info(
+        "Saved %s (rows=%d, source_seasons=%s)",
+        out_path,
+        len(df),
+        source_seasons or discover_available_seasons(output_dir),
+    )
     return out_path
 
 

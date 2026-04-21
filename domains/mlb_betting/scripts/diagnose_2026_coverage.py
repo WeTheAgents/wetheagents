@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 
+from data.fetch_2026.runtime_files import state_path
 from src.live_strategy_audit import AUDIT_CONFIGS, evaluate_strategy_day, target_day_frame
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -476,12 +477,9 @@ def main() -> int:
     # Determine target dates.
     if args.last:
         # Read last postgame date from state.json.
-        state_path = (
-            Path(__file__).resolve().parent.parent
-            / "data" / "fetch_2026" / "state.json"
-        )
-        if state_path.exists():
-            state = json.loads(state_path.read_text())
+        runtime_state_path = state_path()
+        if runtime_state_path.exists():
+            state = json.loads(runtime_state_path.read_text())
             last = date.fromisoformat(state["last_postgame_date"])
         else:
             last = date.today() - timedelta(days=1)

@@ -6,6 +6,8 @@ Questions:
 3. Does Momentum agree with Analyst's winner prediction?
 4. Analyst scenario distribution on Momentum's winning vs losing picks.
 """
+import argparse
+import os
 import sys
 import warnings
 import re
@@ -18,12 +20,25 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import pandas as pd
 
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Analyze a saved analyst-impact LLM output file.")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=os.getenv("MLB_BETTING_LEGACY_OUTPUT_PATH"),
+        help="Path to the saved LLM output file. Can also be set via MLB_BETTING_LEGACY_OUTPUT_PATH.",
+    )
+    return parser.parse_args()
+
+
+ARGS = _parse_args()
+if not ARGS.input:
+    raise SystemExit("Pass --input or set MLB_BETTING_LEGACY_OUTPUT_PATH.")
+
 # 1. Parse LLM output — need analyst scenario + momentum verdict
-output_path = (
-    r"C:\Users\peach\AppData\Local\Temp\claude\D--GitHub-wetheagents-domains-mlb-betting"
-    r"\7ae3feb3-f8af-4b20-a2ec-31ec0baa2ae6\tasks\b7o50j9pn.output"
-)
-lines = open(output_path, encoding="utf-8", errors="replace").readlines()
+output_path = Path(ARGS.input).expanduser()
+lines = output_path.read_text(encoding="utf-8", errors="replace").splitlines(True)
 
 results = []
 i = 0

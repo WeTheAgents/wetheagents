@@ -1,4 +1,6 @@
 """One-shot: parse previous LLM run output and seed the cache file."""
+import argparse
+import os
 import sys
 import re
 import json
@@ -12,11 +14,24 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import pandas as pd
 
-output_path = (
-    r"C:\Users\peach\AppData\Local\Temp\claude\D--GitHub-wetheagents-domains-mlb-betting"
-    r"\7ae3feb3-f8af-4b20-a2ec-31ec0baa2ae6\tasks\bpm8onx3s.output"
-)
-lines = open(output_path, encoding="utf-8", errors="replace").readlines()
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Seed legacy RL cache from a saved LLM output file.")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=os.getenv("MLB_BETTING_LEGACY_OUTPUT_PATH"),
+        help="Path to the saved LLM output file. Can also be set via MLB_BETTING_LEGACY_OUTPUT_PATH.",
+    )
+    return parser.parse_args()
+
+
+ARGS = _parse_args()
+if not ARGS.input:
+    raise SystemExit("Pass --input or set MLB_BETTING_LEGACY_OUTPUT_PATH.")
+
+output_path = Path(ARGS.input).expanduser()
+lines = output_path.read_text(encoding="utf-8", errors="replace").splitlines(True)
 
 # Parse LLM results
 llm_results = []
