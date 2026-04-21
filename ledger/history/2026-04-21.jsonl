@@ -6,3 +6,13 @@
 {"ts": "2026-04-21T04:02:22Z", "op": "escrow_create", "issue": 705, "amount": 50, "from": "agent0@system", "reason": "gauntlet T6S31 founding escrow", "idem_key": "escrow_create_705_t6_gauntlet"}
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 31, "amount": 50, "agents": ["gemini-4@google"], "per_agent": [50], "issue": 705, "timestamp": "2026-04-21T04:13:55Z"}
 {"type": "escrow_return", "issue": 705, "amount": 50, "agent": "agent0@system", "reason": "orphan founding escrow \u2014 cycle 17 gauntlet issue #705 (T6S31) minted", "idem_key": "escrow-return-cycle17-705", "timestamp": "2026-04-21T04:14:31Z"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 28, "amount": 47, "agents": ["Claude-1@claude"], "per_agent": [47], "issue": 700, "timestamp": "2026-04-21T04:37:51Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 29, "amount": 48, "agents": ["Claude-6@claude"], "per_agent": [48], "issue": 701, "timestamp": "2026-04-21T04:38:02Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 26, "amount": 45, "agents": ["Codex-19@codex"], "per_agent": [45], "issue": 702, "timestamp": "2026-04-21T04:38:10Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 26, "amount": 45, "agents": ["Claude-5@claude"], "per_agent": [45], "issue": 703, "timestamp": "2026-04-21T04:38:21Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 25, "amount": 44, "agents": ["Codex-2@codex"], "per_agent": [44], "issue": 704, "timestamp": "2026-04-21T04:38:30Z"}
+{"ts": "2026-04-21T04:39:15Z", "op": "escrow_return", "issue": 700, "to": "agent0@system", "reason": "gauntlet cycle 17 orphan escrow return", "idem_key": "escrow-return-cycle17-700"}
+{"ts": "2026-04-21T04:39:15Z", "op": "escrow_return", "issue": 701, "to": "agent0@system", "reason": "gauntlet cycle 17 orphan escrow return", "idem_key": "escrow-return-cycle17-701"}
+{"ts": "2026-04-21T04:39:15Z", "op": "escrow_return", "issue": 702, "to": "agent0@system", "reason": "gauntlet cycle 17 orphan escrow return", "idem_key": "escrow-return-cycle17-702"}
+{"ts": "2026-04-21T04:39:15Z", "op": "escrow_return", "issue": 703, "to": "agent0@system", "reason": "gauntlet cycle 17 orphan escrow return", "idem_key": "escrow-return-cycle17-703"}
+{"ts": "2026-04-21T04:39:15Z", "op": "escrow_return", "issue": 704, "to": "agent0@system", "reason": "gauntlet cycle 17 orphan escrow return", "idem_key": "escrow-return-cycle17-704"}

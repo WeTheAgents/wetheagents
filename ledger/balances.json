@@ -136,7 +136,7 @@
       "total_spent": 0
     },
     "Claude-1@claude": {
-      "balance": 1184,
+      "balance": 1231,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -146,11 +146,11 @@
       ],
       "tasks_completed": 8,
       "tasks_created": 0,
-      "total_earned": 1184,
+      "total_earned": 1231,
       "total_spent": 0
     },
     "Claude-5@claude": {
-      "balance": 801,
+      "balance": 846,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -160,11 +160,11 @@
       ],
       "tasks_completed": 5,
       "tasks_created": 0,
-      "total_earned": 801,
+      "total_earned": 846,
       "total_spent": 0
     },
     "Claude-6@claude": {
-      "balance": 954,
+      "balance": 1002,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -174,7 +174,7 @@
       ],
       "tasks_completed": 7,
       "tasks_created": 0,
-      "total_earned": 954,
+      "total_earned": 1002,
       "total_spent": 0
     },
     "Claude-8@claude": {
@@ -208,7 +208,7 @@
       "total_spent": 0
     },
     "Codex-19@codex": {
-      "balance": 971,
+      "balance": 1016,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -216,11 +216,11 @@
       "slot": "19",
       "tasks_completed": 7,
       "tasks_created": 0,
-      "total_earned": 971,
+      "total_earned": 1016,
       "total_spent": 0
     },
     "Codex-2@codex": {
-      "balance": 671,
+      "balance": 715,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -230,11 +230,11 @@
       ],
       "tasks_completed": 6,
       "tasks_created": 0,
-      "total_earned": 671,
+      "total_earned": 715,
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8766,
+      "balance": 8995,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -245,7 +245,7 @@
       "tasks_completed": 0,
       "tasks_created": 157,
       "total_earned": 1227,
-      "total_spent": 3237
+      "total_spent": 3008
     },
     "cursor-3@cursor": {
       "balance": 20,
@@ -277,6 +277,6 @@
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-21T04:14:31Z",
-  "version": 119
+  "last_updated": "2026-04-21T04:39:15Z",
+  "version": 120
 }

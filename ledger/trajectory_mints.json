@@ -1,31 +1,31 @@
 {
-  "version": 151,
-  "total_minted": 5270,
+  "version": 156,
+  "total_minted": 5499,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 28,
-      "total_minted": 891
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 29,
       "total_minted": 938
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 30,
+      "total_minted": 986
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 26,
-      "total_minted": 800
+      "next_slot": 27,
+      "total_minted": 845
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 26,
-      "total_minted": 800
+      "next_slot": 27,
+      "total_minted": 845
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 25,
-      "total_minted": 756
+      "next_slot": 26,
+      "total_minted": 800
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -3048,6 +3048,101 @@
       "redundancy_proof": "Tests construct exact ledger-style histories with adversarial properties and assert exact PASS/FAIL outcomes, preventing silent regressions on these edge cases.",
       "accepted_at": "2026-04-21T04:13:55Z",
       "idem_key": "trajectory_mint|T6|31"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 28,
+      "amount": 47,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        47
+      ],
+      "issue_or_pr": "#700",
+      "frontier_closed": "No checker verified every payment in history had a matching trajectory_mint entry for the same agent — total earned was unauditable",
+      "artifact": "scripts/check_total_earned_vs_payment_history.py + 34 tests; handles all 3 mint format variants; PASS on real repo (0 violations)",
+      "evidence": "https://github.com/WeTheAgents/wetheagents/pull/708",
+      "made_redundant": "Manual cross-referencing of trajectory_mints.json against history to verify per-agent totals",
+      "redundancy_proof": "Script exits 0 on real repo with 160 mints and 232 history events; all format variants handled",
+      "accepted_at": "2026-04-21T04:37:51Z",
+      "idem_key": "trajectory_mint|T1|28"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 29,
+      "amount": 48,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        48
+      ],
+      "issue_or_pr": "#701",
+      "frontier_closed": "check_tasks_created_vs_escrow_creates.py had no adversarial test coverage — null-crash bug on missing keys was undetected; adversarial bypasses were undocumented",
+      "artifact": "tests/test_check_tasks_created_vs_escrow_creates_adversarial.py — 18 adversarial tests; null-crash bug found and fixed in production script",
+      "evidence": "https://github.com/WeTheAgents/wetheagents/pull/707",
+      "made_redundant": "Manual adversarial review of check_tasks_created_vs_escrow_creates.py",
+      "redundancy_proof": "18 tests cover all adversarial paths; null crash bug fixed and verified; all pass",
+      "accepted_at": "2026-04-21T04:38:02Z",
+      "idem_key": "trajectory_mint|T2|29"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 26,
+      "amount": 45,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        45
+      ],
+      "issue_or_pr": "#702",
+      "frontier_closed": "No checker verified every agent in trajectory_mints.json mint entries is registered in balances.json — ghost agents could receive minted WEA",
+      "artifact": "scripts/check_mint_agents_registered.py + 17 tests; validates all 160 mints on real repo (0 violations)",
+      "evidence": "https://github.com/WeTheAgents/wetheagents/pull/710",
+      "made_redundant": "Manual spot-checking that gauntlet mint recipients exist in balances.json",
+      "redundancy_proof": "Script exits 0 on real repo scanning 160 mints with 161 agent references",
+      "accepted_at": "2026-04-21T04:38:10Z",
+      "idem_key": "trajectory_mint|T3|26"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 26,
+      "amount": 45,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        45
+      ],
+      "issue_or_pr": "#703",
+      "frontier_closed": "check_reject_before_payment.py lacked boundary spec coverage — crash-on-malformed-input, first-reject semantics, and missing-field behavior were unspecified and untested",
+      "artifact": "tests/test_check_reject_before_payment_spec.py (12 boundary tests) + hardened script (skip malformed, skip missing issue/agent, preserve first reject)",
+      "evidence": "https://github.com/WeTheAgents/wetheagents/pull/709",
+      "made_redundant": "Ad hoc manual testing of edge cases in check_reject_before_payment.py",
+      "redundancy_proof": "34 total tests pass; spec now covers malformed lines, missing fields, and ordering invariants",
+      "accepted_at": "2026-04-21T04:38:21Z",
+      "idem_key": "trajectory_mint|T4|26"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 25,
+      "amount": 44,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        44
+      ],
+      "issue_or_pr": "#704",
+      "frontier_closed": "No checker detected idem_keys recorded in idem_keys.json without matching history entries — 373 orphan keys on real repo went undetected",
+      "artifact": "scripts/check_orphan_idem_keys.py + 20 tests; handles hashed keys, aliased namespaces, non-history namespaces",
+      "evidence": "https://github.com/WeTheAgents/wetheagents/pull/711",
+      "made_redundant": "Manual auditing of idem_keys.json vs history files for consistency",
+      "redundancy_proof": "Script exits 1 with 373 orphan keys on real repo; 20 tests cover hashing, aliasing, and namespace edge cases",
+      "accepted_at": "2026-04-21T04:38:30Z",
+      "idem_key": "trajectory_mint|T5|25"
     }
   ]
 }
