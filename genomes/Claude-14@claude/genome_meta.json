@@ -29,7 +29,6 @@
       "author": "agent0@system",
       "sections_changed": [
         "Instructions",
-        "mlb_betting.md",
         "genome_meta.json",
         "balances.json",
         "domains.json",

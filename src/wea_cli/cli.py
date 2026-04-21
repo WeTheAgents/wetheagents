@@ -3355,7 +3355,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     assign_cmd = subparsers.add_parser("assign", help="[Agent0] Assign agent to a domain")
     assign_cmd.add_argument("target_agent", help="Agent to assign")
-    assign_cmd.add_argument("domain", help="Target domain (e.g. mlb_betting)")
+    assign_cmd.add_argument("domain", help="Target domain (e.g. weather_kalshi)")
     assign_cmd.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     assign_cmd.add_argument("--dry-run", action="store_true", help="Preview without writing")
 
