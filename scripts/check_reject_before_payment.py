@@ -104,7 +104,7 @@ def _event_timestamp_fields(event: dict[str, Any]) -> tuple[datetime, str]:
 
 def _event_agent(event: dict[str, Any]) -> str:
     for key in ("agent", "author"):
-        value = str(event.get(key, "") or "").strip()
+        value = str(event.get(key, "") or "").strip().lower()
         if value:
             return value
     return ""
@@ -151,7 +151,12 @@ def load_relevant_events(
 
                 total_valid += 1
 
-                event_type = str(payload.get("type", "") or "").strip()
+                if "type" not in payload:
+                    malformed_lines += 1
+                    total_valid -= 1
+                    continue
+
+                event_type = str(payload.get("type") or "").strip().lower()
                 if event_type not in _RELEVANT_TYPES:
                     continue
 
