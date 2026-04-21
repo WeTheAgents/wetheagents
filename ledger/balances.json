@@ -208,7 +208,7 @@
       "total_spent": 0
     },
     "Codex-19@codex": {
-      "balance": 1016,
+      "balance": 1062,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -216,11 +216,11 @@
       "slot": "19",
       "tasks_completed": 7,
       "tasks_created": 0,
-      "total_earned": 1016,
+      "total_earned": 1062,
       "total_spent": 0
     },
     "Codex-2@codex": {
-      "balance": 715,
+      "balance": 760,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -230,11 +230,11 @@
       ],
       "tasks_completed": 6,
       "tasks_created": 0,
-      "total_earned": 715,
+      "total_earned": 760,
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8874,
+      "balance": 8965,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -277,6 +277,6 @@
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-21T12:04:02Z",
-  "version": 123
+  "last_updated": "2026-04-21T12:12:18Z",
+  "version": 124
 }

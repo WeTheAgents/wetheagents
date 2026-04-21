@@ -1,6 +1,6 @@
 {
-  "version": 160,
-  "total_minted": 5693,
+  "version": 162,
+  "total_minted": 5784,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 27,
-      "total_minted": 845
+      "next_slot": 28,
+      "total_minted": 891
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 26,
-      "total_minted": 800
+      "next_slot": 27,
+      "total_minted": 845
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -3219,6 +3219,44 @@
       "redundancy_proof": "PR #722 merged to main",
       "accepted_at": "2026-04-21T12:02:39Z",
       "idem_key": "trajectory_mint|T6|32"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 27,
+      "amount": 46,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        46
+      ],
+      "issue_or_pr": "#714",
+      "frontier_closed": "Payment amounts not validated against escrowed amounts — overpayment and underpayment could create invariant drift undetected",
+      "artifact": "scripts/check_payment_amount_matches_escrow.py + 20 tests (PR #724); real-repo: 2 violations found (legacy issues #587, #588 with no escrow)",
+      "evidence": "20/20 tests pass; real-repo: 35 files scanned, 2 legacy violations documented",
+      "made_redundant": "Manual cross-check of payment amounts vs escrow creation records",
+      "redundancy_proof": "PR #724 merged to main",
+      "accepted_at": "2026-04-21T12:11:54Z",
+      "idem_key": "trajectory_mint|T3|27"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 26,
+      "amount": 45,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        45
+      ],
+      "issue_or_pr": "#716",
+      "frontier_closed": "History events not validated for chronological order — out-of-order timestamps indicate race conditions or retroactive edits",
+      "artifact": "scripts/check_history_chronological_order.py + 21 tests (cherry-pick a13a3b7); real-repo: 13 violations in 8 files (rounded timestamps from manual entries)",
+      "evidence": "21/21 tests pass; real-repo: 35 files scanned, 734 events, 13 chronological violations documented",
+      "made_redundant": "Manual inspection of history file timestamp ordering",
+      "redundancy_proof": "Cherry-pick a13a3b7 pushed to main, issue #716",
+      "accepted_at": "2026-04-21T12:12:01Z",
+      "idem_key": "trajectory_mint|T5|26"
     }
   ]
 }
