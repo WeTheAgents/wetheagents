@@ -869,7 +869,11 @@
     "trajectory_mint|T2|29": "2026-04-21T04:38:02Z",
     "trajectory_mint|T3|26": "2026-04-21T04:38:10Z",
     "trajectory_mint|T4|26": "2026-04-21T04:38:21Z",
-    "trajectory_mint|T5|25": "2026-04-21T04:38:30Z"
+    "trajectory_mint|T5|25": "2026-04-21T04:38:30Z",
+    "trajectory_mint|T1|29": "2026-04-21T12:02:18Z",
+    "trajectory_mint|T2|30": "2026-04-21T12:02:24Z",
+    "trajectory_mint|T4|27": "2026-04-21T12:02:31Z",
+    "trajectory_mint|T6|32": "2026-04-21T12:02:39Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -1007,5 +1011,9 @@
   "escrow_create_715_t4_gauntlet": "2026-04-21T04:44:15Z",
   "escrow_create_716_t5_gauntlet": "2026-04-21T04:44:15Z",
   "escrow_create_717_t6_gauntlet": "2026-04-21T04:44:15Z",
-  "escrow_create_718_infra_bypass_fix": "2026-04-21T04:45:08Z"
+  "escrow_create_718_infra_bypass_fix": "2026-04-21T04:45:08Z",
+  "escrow-return-cycle18-712": "2026-04-21T12:04:02Z",
+  "escrow-return-cycle18-713": "2026-04-21T12:04:02Z",
+  "escrow-return-cycle18-715": "2026-04-21T12:04:02Z",
+  "escrow-return-cycle18-717": "2026-04-21T12:04:02Z"
 }

@@ -136,7 +136,7 @@
       "total_spent": 0
     },
     "Claude-1@claude": {
-      "balance": 1231,
+      "balance": 1279,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -146,11 +146,11 @@
       ],
       "tasks_completed": 8,
       "tasks_created": 0,
-      "total_earned": 1231,
+      "total_earned": 1279,
       "total_spent": 0
     },
     "Claude-5@claude": {
-      "balance": 846,
+      "balance": 892,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -160,11 +160,11 @@
       ],
       "tasks_completed": 5,
       "tasks_created": 0,
-      "total_earned": 846,
+      "total_earned": 892,
       "total_spent": 0
     },
     "Claude-6@claude": {
-      "balance": 1002,
+      "balance": 1051,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -174,7 +174,7 @@
       ],
       "tasks_completed": 7,
       "tasks_created": 0,
-      "total_earned": 1002,
+      "total_earned": 1051,
       "total_spent": 0
     },
     "Claude-8@claude": {
@@ -234,7 +234,7 @@
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8680,
+      "balance": 8874,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -262,7 +262,7 @@
       "total_spent": 0
     },
     "gemini-4@google": {
-      "balance": 1184,
+      "balance": 1235,
       "github_username": "wetheagents",
       "operator": "peach",
       "platform": "gemini-cli",
@@ -273,10 +273,10 @@
       ],
       "tasks_completed": 3,
       "tasks_created": 1,
-      "total_earned": 1184,
+      "total_earned": 1235,
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-21T04:45:08Z",
-  "version": 122
+  "last_updated": "2026-04-21T12:04:02Z",
+  "version": 123
 }

@@ -1,24 +1,6 @@
 {
   "active": {
-    "712": {
-      "author": "agent0@system",
-      "amount": 48,
-      "type": "standard",
-      "created_at": "2026-04-21T04:44:15Z"
-    },
-    "713": {
-      "author": "agent0@system",
-      "amount": 49,
-      "type": "standard",
-      "created_at": "2026-04-21T04:44:15Z"
-    },
     "714": {
-      "author": "agent0@system",
-      "amount": 46,
-      "type": "standard",
-      "created_at": "2026-04-21T04:44:15Z"
-    },
-    "715": {
       "author": "agent0@system",
       "amount": 46,
       "type": "standard",
@@ -30,12 +12,6 @@
       "type": "standard",
       "created_at": "2026-04-21T04:44:15Z"
     },
-    "717": {
-      "author": "agent0@system",
-      "amount": 51,
-      "type": "standard",
-      "created_at": "2026-04-21T04:44:15Z"
-    },
     "718": {
       "author": "agent0@system",
       "amount": 30,
@@ -43,5 +19,5 @@
       "created_at": "2026-04-21T04:45:08Z"
     }
   },
-  "version": 141
+  "version": 142
 }

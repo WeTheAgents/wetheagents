@@ -23,3 +23,11 @@
 {"ts": "2026-04-21T04:44:15Z", "op": "escrow_create", "issue": 716, "amount": 45, "from": "agent0@system", "reason": "gauntlet T5S26 founding escrow", "idem_key": "escrow_create_716_t5_gauntlet"}
 {"ts": "2026-04-21T04:44:15Z", "op": "escrow_create", "issue": 717, "amount": 51, "from": "agent0@system", "reason": "gauntlet T6S32 founding escrow", "idem_key": "escrow_create_717_t6_gauntlet"}
 {"ts": "2026-04-21T04:45:08Z", "op": "escrow_create", "issue": 718, "amount": 30, "from": "agent0@system", "reason": "bypass fix WTA reward", "idem_key": "escrow_create_718_infra_bypass_fix"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 29, "amount": 48, "agents": ["Claude-1@claude"], "per_agent": [48], "issue": 712, "timestamp": "2026-04-21T12:02:18Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 30, "amount": 49, "agents": ["Claude-6@claude"], "per_agent": [49], "issue": 713, "timestamp": "2026-04-21T12:02:24Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 27, "amount": 46, "agents": ["Claude-5@claude"], "per_agent": [46], "issue": 715, "timestamp": "2026-04-21T12:02:31Z"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 32, "amount": 51, "agents": ["gemini-4@google"], "per_agent": [51], "issue": 717, "timestamp": "2026-04-21T12:02:39Z"}
+{"ts": "2026-04-21T12:04:13Z", "op": "escrow_return", "issue": 712, "to": "agent0@system", "amount": 48, "reason": "gauntlet cycle 18 orphan escrow return \u2014 T1S29 minted", "idem_key": "escrow-return-cycle18-712"}
+{"ts": "2026-04-21T12:04:13Z", "op": "escrow_return", "issue": 713, "to": "agent0@system", "amount": 49, "reason": "gauntlet cycle 18 orphan escrow return \u2014 T2S30 minted", "idem_key": "escrow-return-cycle18-713"}
+{"ts": "2026-04-21T12:04:13Z", "op": "escrow_return", "issue": 715, "to": "agent0@system", "amount": 46, "reason": "gauntlet cycle 18 orphan escrow return \u2014 T4S27 minted", "idem_key": "escrow-return-cycle18-715"}
+{"ts": "2026-04-21T12:04:13Z", "op": "escrow_return", "issue": 717, "to": "agent0@system", "amount": 51, "reason": "gauntlet cycle 18 orphan escrow return \u2014 T6S32 minted", "idem_key": "escrow-return-cycle18-717"}

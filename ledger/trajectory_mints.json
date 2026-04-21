@@ -1,16 +1,16 @@
 {
-  "version": 156,
-  "total_minted": 5499,
+  "version": 160,
+  "total_minted": 5693,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 29,
-      "total_minted": 938
+      "next_slot": 30,
+      "total_minted": 986
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 30,
-      "total_minted": 986
+      "next_slot": 31,
+      "total_minted": 1035
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 27,
-      "total_minted": 845
+      "next_slot": 28,
+      "total_minted": 891
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 32,
-      "total_minted": 1085
+      "next_slot": 33,
+      "total_minted": 1136
     }
   },
   "mints": [
@@ -3143,6 +3143,82 @@
       "redundancy_proof": "Script exits 1 with 373 orphan keys on real repo; 20 tests cover hashing, aliasing, and namespace edge cases",
       "accepted_at": "2026-04-21T04:38:30Z",
       "idem_key": "trajectory_mint|T5|25"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 29,
+      "amount": 48,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        48
+      ],
+      "issue_or_pr": "#712",
+      "frontier_closed": "History events carrying idem_key fields absent from idem_keys.json — orphan history events that could be replayed without the guard",
+      "artifact": "scripts/check_history_event_idem_keys.py + 21 tests; real-repo found 22 violations",
+      "evidence": "21/21 tests pass; real-repo run: 726 events scanned, 22 violations found (orphan legacy and cycle keys)",
+      "made_redundant": "Manual audit of history events for missing idem_key registrations",
+      "redundancy_proof": "PR #719 merged to main",
+      "accepted_at": "2026-04-21T12:02:18Z",
+      "idem_key": "trajectory_mint|T1|29"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 30,
+      "amount": 49,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        49
+      ],
+      "issue_or_pr": "#713",
+      "frontier_closed": "Adversarial gaps in check_total_earned_vs_payment_history: phantom mint bypass, agent0 exclusion design, empty-string agent credited silently, float truncation",
+      "artifact": "tests/test_check_total_earned_vs_payment_history_adversarial.py (25 tests, 4 documented bypass categories)",
+      "evidence": "25/25 tests pass; 4 bypass vectors documented with test coverage",
+      "made_redundant": "Manual review of total_earned vs payment history cross-checks",
+      "redundancy_proof": "PR #721 merged to main",
+      "accepted_at": "2026-04-21T12:02:24Z",
+      "idem_key": "trajectory_mint|T2|30"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 27,
+      "amount": 46,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        46
+      ],
+      "issue_or_pr": "#715",
+      "frontier_closed": "Full boundary spec for check_orphan_idem_keys with 3 undocumented gaps: SHA256 old-format unresolvable, alias not applied to prefixed keys, nested keys dict silently wins over duplicate top-level",
+      "artifact": "tests/test_check_orphan_idem_keys_spec.py (23 tests, 3 gaps in file docstring)",
+      "evidence": "23/23 tests pass; 3 specification gaps documented",
+      "made_redundant": "Undocumented edge-case behavior of check_orphan_idem_keys.py",
+      "redundancy_proof": "PR #720 merged to main",
+      "accepted_at": "2026-04-21T12:02:31Z",
+      "idem_key": "trajectory_mint|T4|27"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 32,
+      "amount": 51,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        51
+      ],
+      "issue_or_pr": "#717",
+      "frontier_closed": "Bypass vectors in check_total_earned_vs_payment_history: format ambiguity with per_agent empty, agent string normalization missing (case/whitespace), event type matching case-sensitive, zero-amount mints",
+      "artifact": "tests/test_check_total_earned_vs_payment_history_redteam.py (6 tests, bypass findings classified by severity)",
+      "evidence": "6/6 tests pass; bypass vectors found in multi-agent format, normalization, and event type matching",
+      "made_redundant": "Manual verification that total_earned checker handles all edge cases",
+      "redundancy_proof": "PR #722 merged to main",
+      "accepted_at": "2026-04-21T12:02:39Z",
+      "idem_key": "trajectory_mint|T6|32"
     }
   ]
 }
