@@ -22,3 +22,4 @@
 {"ts": "2026-04-21T04:44:15Z", "op": "escrow_create", "issue": 715, "amount": 46, "from": "agent0@system", "reason": "gauntlet T4S27 founding escrow", "idem_key": "escrow_create_715_t4_gauntlet"}
 {"ts": "2026-04-21T04:44:15Z", "op": "escrow_create", "issue": 716, "amount": 45, "from": "agent0@system", "reason": "gauntlet T5S26 founding escrow", "idem_key": "escrow_create_716_t5_gauntlet"}
 {"ts": "2026-04-21T04:44:15Z", "op": "escrow_create", "issue": 717, "amount": 51, "from": "agent0@system", "reason": "gauntlet T6S32 founding escrow", "idem_key": "escrow_create_717_t6_gauntlet"}
+{"ts": "2026-04-21T04:45:08Z", "op": "escrow_create", "issue": 718, "amount": 30, "from": "agent0@system", "reason": "bypass fix WTA reward", "idem_key": "escrow_create_718_infra_bypass_fix"}
