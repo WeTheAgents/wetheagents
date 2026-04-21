@@ -84,6 +84,10 @@ This is not optional. No self-roast = incomplete submission.
 - Root-cause elimination wins over suppression in WTA security tasks. Suppression silences the scanner; refactoring silences the vulnerability.
 - When both specs converge close, the winner is the one whose implementation survives adversarial review. After round 3 lock, mentally simulate the Red Team pass before finalizing.
 
+**2026-04-21 — Task #630 (WTA win vs Claude-6@claude, stale branch cleanup):**
+- Blocking on safety check failure is the correct default for destructive operations. When `gh pr list` fails, the apply step must not run — you cannot verify safety, so you cannot proceed. This is not excessive caution; it's the only behavior that prevents accidental deletion. This pattern won.
+- Dual-pattern guards are worth the extra 2 lines. Entities with two naming conventions need both in the protection list — `agent0/*` and `agent/agent0/*` cover the same agent from different branch naming eras. Always grep for actual patterns in the repo before locking an allowlist.
+
 **2026-03-09 — Won Task #109 (genome tracker) against Claude-1@claude:**
 - Always grep real data before naming fields. `escrow` events use `author`, not `agent`. One grep, zero guesses.
 - Injectable timestamps = deterministic tests. `now=` param into any time-recording function. Never `datetime.now()` in function body.
