@@ -212,26 +212,6 @@ def test_find_unregistered_mint_agents_flags_blank_agent_id() -> None:
     ]
 
 
-def test_find_unregistered_mint_agents_flags_blank_agent_id() -> None:
-    violations, agent_refs_checked = find_unregistered_mint_agents(
-        [_mint(agents=["Codex-19@codex", "   "])],
-        {"Codex-19@codex"},
-    )
-
-    assert agent_refs_checked == 2
-    assert violations == [
-        {
-            "mint_index": 0,
-            "trajectory": "T3",
-            "slot": 1,
-            "idem_key": "trajectory_mint|T3|1",
-            "agent_index": 1,
-            "agent": "   ",
-            "reason": "trajectory_mints.json mints[0].agents[1] must be a non-empty string",
-        }
-    ]
-
-
 def test_run_check_passes_for_clean_repo(case_root: Path) -> None:
     root = _make_repo(
         case_root,
