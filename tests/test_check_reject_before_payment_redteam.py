@@ -72,13 +72,16 @@ def test_bypass_missing_op_field(tmp_path: Path):
 def test_defended_empty_agent_field(tmp_path: Path):
     """
     Investigate: Empty agent field
-    Finding: DEFENDED (Crash). The checker raises ValueError on an empty agent field.
-    The main wrapper catches this and fails the build.
+    Finding: DEFENDED (Skip). Events with an empty agent field are silently skipped;
+    they cannot form a valid (issue, agent) pair. The payment is also skipped, so
+    no violation is recorded and the check returns PASS — both sides invisible.
+    Note: original behavior was ValueError (crash → FAIL); changed to skip by T4S26 spec closure.
     """
     events = [
         {"type": "reject", "issue": 42, "agent": "", "timestamp": "2026-03-01T12:00:00Z"},
         {"type": "payment", "issue": 42, "agent": "", "timestamp": "2026-03-02T12:00:00Z"},
     ]
     create_history_file(tmp_path, "1.jsonl", events)
-    with pytest.raises(ValueError, match="missing agent/author"):
-        run_check(tmp_path)
+    report = run_check(tmp_path)
+    assert report["status"] == "PASS"
+    assert report["violations"] == []
