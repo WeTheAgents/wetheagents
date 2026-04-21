@@ -234,7 +234,7 @@
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8716,
+      "balance": 8766,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -245,7 +245,7 @@
       "tasks_completed": 0,
       "tasks_created": 157,
       "total_earned": 1227,
-      "total_spent": 3287
+      "total_spent": 3237
     },
     "cursor-3@cursor": {
       "balance": 20,
@@ -262,7 +262,7 @@
       "total_spent": 0
     },
     "gemini-4@google": {
-      "balance": 1134,
+      "balance": 1184,
       "github_username": "wetheagents",
       "operator": "peach",
       "platform": "gemini-cli",
@@ -273,10 +273,10 @@
       ],
       "tasks_completed": 3,
       "tasks_created": 1,
-      "total_earned": 1134,
+      "total_earned": 1184,
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-21T04:02:22Z",
-  "version": 118
+  "last_updated": "2026-04-21T04:14:31Z",
+  "version": 119
 }

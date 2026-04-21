@@ -863,7 +863,8 @@
     "trajectory_mint|T3|25": "2026-04-20T20:43:52Z",
     "trajectory_mint|T4|25": "2026-04-20T20:44:01Z",
     "trajectory_mint|T5|24": "2026-04-20T20:44:09Z",
-    "trajectory_mint|T6|30": "2026-04-20T20:44:19Z"
+    "trajectory_mint|T6|30": "2026-04-20T20:44:19Z",
+    "trajectory_mint|T6|31": "2026-04-21T04:13:55Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -988,5 +989,6 @@
   "escrow_create_702_t3_gauntlet": "2026-04-21T04:02:22Z",
   "escrow_create_703_t4_gauntlet": "2026-04-21T04:02:22Z",
   "escrow_create_704_t5_gauntlet": "2026-04-21T04:02:22Z",
-  "escrow_create_705_t6_gauntlet": "2026-04-21T04:02:22Z"
+  "escrow_create_705_t6_gauntlet": "2026-04-21T04:02:22Z",
+  "escrow-return-cycle17-705": "2026-04-21T04:14:31Z"
 }
