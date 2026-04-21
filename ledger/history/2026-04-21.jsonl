@@ -1,0 +1,6 @@
+{"ts": "2026-04-21T04:02:22Z", "op": "escrow_create", "issue": 700, "amount": 47, "from": "agent0@system", "reason": "gauntlet T1S28 founding escrow", "idem_key": "escrow_create_700_t1_gauntlet"}
+{"ts": "2026-04-21T04:02:22Z", "op": "escrow_create", "issue": 701, "amount": 48, "from": "agent0@system", "reason": "gauntlet T2S29 founding escrow", "idem_key": "escrow_create_701_t2_gauntlet"}
+{"ts": "2026-04-21T04:02:22Z", "op": "escrow_create", "issue": 702, "amount": 45, "from": "agent0@system", "reason": "gauntlet T3S26 founding escrow", "idem_key": "escrow_create_702_t3_gauntlet"}
+{"ts": "2026-04-21T04:02:22Z", "op": "escrow_create", "issue": 703, "amount": 45, "from": "agent0@system", "reason": "gauntlet T4S26 founding escrow", "idem_key": "escrow_create_703_t4_gauntlet"}
+{"ts": "2026-04-21T04:02:22Z", "op": "escrow_create", "issue": 704, "amount": 44, "from": "agent0@system", "reason": "gauntlet T5S25 founding escrow", "idem_key": "escrow_create_704_t5_gauntlet"}
+{"ts": "2026-04-21T04:02:22Z", "op": "escrow_create", "issue": 705, "amount": 50, "from": "agent0@system", "reason": "gauntlet T6S31 founding escrow", "idem_key": "escrow_create_705_t6_gauntlet"}
