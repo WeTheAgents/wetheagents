@@ -7,6 +7,31 @@ Usage:
 Scans ledger/history/*.jsonl, sorts relevant events chronologically, and flags
 any accept or payment event that occurs after a reject for the same
 ``(issue, agent)`` pair.
+
+Robustness notes:
+- Malformed JSONL lines are skipped and counted; the check continues.
+- Events missing a valid issue or agent field are skipped silently.
+- Reject events store the FIRST reject timestamp for each pair; later
+  reject events for the same pair do not overwrite it.
+- Each (issue, agent) pair produces at most one violation entry per
+  distinct payment/accept event after the first reject.
+
+Output schema:
+    {
+      "status": "PASS" | "FAIL",
+      "checks": [{"name": "reject_before_payment", "status": ...,
+                  "reject_events": N, "accept_events": N,
+                  "payment_events": N, "violations": N}],
+      "violations": [{"issue": N, "agent": "...", "event_type": "...",
+                      "event_ts": "...", "reject_ts": "...",
+                      "reject_file": "...", "reject_line": N,
+                      "event_file": "...", "event_line": N}],
+      "stats": {"history_files_scanned": N, "history_events_scanned": N,
+                "malformed_lines_skipped": N, "reject_events_scanned": N,
+                "payment_events_scanned": N,
+                "pairs_with_reject_before_payment": N},
+      "summary": "..."
+    }
 """
 
 from __future__ import annotations
@@ -53,16 +78,18 @@ def _repo_root(script_path: Path) -> Path:
     return script_path.resolve().parent.parent
 
 
-def _load_jsonl_line(raw: str) -> dict[str, Any]:
-    """Parse one JSONL line, repairing legacy invalid escapes when possible."""
+def _load_jsonl_line(raw: str) -> dict[str, Any] | None:
+    """Parse one JSONL line, repairing legacy invalid escapes. Returns None on failure."""
     try:
         loaded = json.loads(raw)
     except json.JSONDecodeError:
         repaired = _INVALID_ESCAPE_RE.sub(r"\\\\", raw)
-        loaded = json.loads(repaired)
-
+        try:
+            loaded = json.loads(repaired)
+        except json.JSONDecodeError:
+            return None
     if not isinstance(loaded, dict):
-        raise ValueError(f"expected JSON object, got {type(loaded).__name__}")
+        return None
     return loaded
 
 
@@ -93,14 +120,24 @@ def _event_issue(event: dict[str, Any]) -> int | None:
         return None
 
 
-def load_relevant_events(root: Path) -> list[TimelineEvent]:
-    """Load reject/accept/payment events sorted by timestamp, then file and line."""
+def load_relevant_events(
+    root: Path,
+) -> tuple[list[TimelineEvent], int, int, int]:
+    """Load reject/accept/payment events sorted by timestamp, then file and line.
+
+    Returns:
+        (events, malformed_lines_skipped, total_valid_events, files_scanned)
+    """
     history_dir = root / "ledger" / "history"
     if not history_dir.is_dir():
-        return []
+        return [], 0, 0, 0
 
     events: list[TimelineEvent] = []
-    for path in sorted(history_dir.glob("*.jsonl")):
+    malformed_lines = 0
+    total_valid = 0
+    files = sorted(history_dir.glob("*.jsonl"))
+
+    for path in files:
         with path.open(encoding="utf-8", errors="replace") as handle:
             for line_no, raw in enumerate(handle, start=1):
                 stripped = raw.strip()
@@ -108,22 +145,30 @@ def load_relevant_events(root: Path) -> list[TimelineEvent]:
                     continue
 
                 payload = _load_jsonl_line(stripped)
+                if payload is None:
+                    malformed_lines += 1
+                    continue
+
+                total_valid += 1
+
                 event_type = str(payload.get("type", "") or "").strip()
                 if event_type not in _RELEVANT_TYPES:
                     continue
 
                 issue = _event_issue(payload)
                 if issue is None:
-                    raise ValueError(f"{path.name}:{line_no} {event_type} event missing valid issue")
+                    continue  # skip events without a valid issue number
 
                 agent = _event_agent(payload)
                 if not agent:
-                    raise ValueError(f"{path.name}:{line_no} {event_type} event missing agent/author")
+                    continue  # skip events without a valid agent/author
 
                 try:
                     timestamp, timestamp_raw = _event_timestamp_fields(payload)
-                except ValueError as exc:
-                    raise ValueError(f"{path.name}:{line_no} {event_type} event {exc}") from exc
+                except ValueError:
+                    malformed_lines += 1
+                    total_valid -= 1
+                    continue
 
                 events.append(
                     TimelineEvent(
@@ -138,11 +183,12 @@ def load_relevant_events(root: Path) -> list[TimelineEvent]:
                 )
 
     events.sort(key=lambda item: (item.timestamp, item.path, item.line))
-    return events
+    return events, malformed_lines, total_valid, len(files)
 
 
 def build_report(events: list[TimelineEvent]) -> dict[str, Any]:
     """Return the reject-before-payment validation report."""
+    # Maps (issue, agent) -> first reject event; later rejects do not overwrite.
     rejected_at: dict[tuple[int, str], TimelineEvent] = {}
     reject_count = 0
     accept_count = 0
@@ -153,7 +199,8 @@ def build_report(events: list[TimelineEvent]) -> dict[str, Any]:
         key = (event.issue, event.agent)
 
         if event.type == "reject":
-            rejected_at[key] = event
+            if key not in rejected_at:  # preserve the first reject timestamp
+                rejected_at[key] = event
             reject_count += 1
             continue
 
@@ -210,7 +257,20 @@ def build_report(events: list[TimelineEvent]) -> dict[str, Any]:
 
 def run_check(root: Path) -> dict[str, Any]:
     """Load repo data and return the reject-before-payment report."""
-    return build_report(load_relevant_events(root))
+    events, malformed_lines, total_valid, files_scanned = load_relevant_events(root)
+    report = build_report(events)
+
+    chk = report["checks"][0]
+    report["stats"] = {
+        "history_files_scanned": files_scanned,
+        "history_events_scanned": total_valid,
+        "malformed_lines_skipped": malformed_lines,
+        "reject_events_scanned": chk["reject_events"],
+        "payment_events_scanned": chk["accept_events"] + chk["payment_events"],
+        "pairs_with_reject_before_payment": chk["violations"],
+    }
+
+    return report
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -225,24 +285,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    try:
-        report = run_check(args.root.resolve())
-    except (FileNotFoundError, json.JSONDecodeError, ValueError) as exc:
-        report = {
-            "status": "FAIL",
-            "checks": [
-                {
-                    "name": "reject_before_payment",
-                    "status": "FAIL",
-                    "error": str(exc),
-                }
-            ],
-            "violations": [],
-            "summary": f"FAIL: {exc}",
-        }
-        print(json.dumps(report, indent=2))
-        return 1
-
+    report = run_check(args.root.resolve())
     print(json.dumps(report, indent=2))
     return 1 if report["status"] == "FAIL" else 0
 

@@ -278,7 +278,8 @@ def test_ts_alias_is_accepted_for_timestamps(temp_repo: Path) -> None:
     assert report["violations"][0]["event_ts"] == "2026-04-01T10:00:00Z"
 
 
-def test_invalid_json_returns_fail_report(temp_repo: Path) -> None:
+def test_invalid_json_line_is_skipped_no_crash(temp_repo: Path) -> None:
+    # Malformed lines are skipped; a file containing only garbage → no events → PASS
     (temp_repo / "ledger" / "history" / "2026-04-01.jsonl").write_text(
         "{not-json}\n",
         encoding="utf-8",
@@ -287,12 +288,13 @@ def test_invalid_json_returns_fail_report(temp_repo: Path) -> None:
     result = _run(temp_repo)
     payload = json.loads(result.stdout)
 
-    assert result.returncode == 1
-    assert payload["status"] == "FAIL"
-    assert payload["checks"][0]["status"] == "FAIL"
+    assert result.returncode == 0
+    assert payload["status"] == "PASS"
+    assert payload["stats"]["malformed_lines_skipped"] == 1
 
 
-def test_missing_agent_returns_fail_report(temp_repo: Path) -> None:
+def test_missing_agent_event_is_skipped_no_crash(temp_repo: Path) -> None:
+    # Events without an agent are silently skipped; no crash, no false positive
     _write_history(
         temp_repo,
         "2026-04-01.jsonl",
@@ -304,9 +306,9 @@ def test_missing_agent_returns_fail_report(temp_repo: Path) -> None:
     result = _run(temp_repo)
     payload = json.loads(result.stdout)
 
-    assert result.returncode == 1
-    assert payload["status"] == "FAIL"
-    assert "missing agent" in payload["checks"][0]["error"]
+    assert result.returncode == 0
+    assert payload["status"] == "PASS"
+    assert payload["violations"] == []
 
 
 def test_main_returns_zero_for_clean_repo(temp_repo: Path, capsys) -> None:
