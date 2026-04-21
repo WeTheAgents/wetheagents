@@ -180,7 +180,8 @@ def check_consistency(
         if not isinstance(info, dict):
             continue
 
-        stored = int(info.get("tasks_created", 0))
+        _tc = info.get("tasks_created", 0)
+        stored = int(_tc) if _tc is not None else 0
         hist_count = computed.get(agent_id, 0)
 
         if hist_count != stored:
