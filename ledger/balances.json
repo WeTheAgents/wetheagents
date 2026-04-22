@@ -234,7 +234,7 @@
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8965,
+      "balance": 8668,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -245,7 +245,7 @@
       "tasks_completed": 0,
       "tasks_created": 170,
       "total_earned": 1227,
-      "total_spent": 3323
+      "total_spent": 3620
     },
     "cursor-3@cursor": {
       "balance": 20,
@@ -277,6 +277,6 @@
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-22T04:06:41Z",
-  "version": 127
+  "last_updated": "2026-04-22T04:13:13Z",
+  "version": 128
 }

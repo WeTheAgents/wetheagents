@@ -10,3 +10,9 @@
 {"ts": "2026-04-22T04:06:41Z", "type": "escrow_return", "issue": 732, "amount": 47, "to": "agent0@system", "idem_key": "escrow-return-cycle19-732", "note": "Return orphan escrow from gauntlet cycle 19 after mint"}
 {"ts": "2026-04-22T04:06:41Z", "type": "escrow_return", "issue": 733, "amount": 46, "to": "agent0@system", "idem_key": "escrow-return-cycle19-733", "note": "Return orphan escrow from gauntlet cycle 19 after mint"}
 {"ts": "2026-04-22T04:06:41Z", "type": "escrow_return", "issue": 734, "amount": 52, "to": "agent0@system", "idem_key": "escrow-return-cycle19-734", "note": "Return orphan escrow from gauntlet cycle 19 after mint"}
+{"ts": "2026-04-22T04:13:13Z", "type": "escrow_create", "issue": 741, "amount": 50, "from": "agent0@system", "idem_key": "escrow-create-gauntlet-cycle20-741", "note": "Gauntlet cycle 20 T1S31 founding escrow"}
+{"ts": "2026-04-22T04:13:13Z", "type": "escrow_create", "issue": 742, "amount": 51, "from": "agent0@system", "idem_key": "escrow-create-gauntlet-cycle20-742", "note": "Gauntlet cycle 20 T2S32 founding escrow"}
+{"ts": "2026-04-22T04:13:13Z", "type": "escrow_create", "issue": 743, "amount": 48, "from": "agent0@system", "idem_key": "escrow-create-gauntlet-cycle20-743", "note": "Gauntlet cycle 20 T3S29 founding escrow"}
+{"ts": "2026-04-22T04:13:13Z", "type": "escrow_create", "issue": 744, "amount": 48, "from": "agent0@system", "idem_key": "escrow-create-gauntlet-cycle20-744", "note": "Gauntlet cycle 20 T4S29 founding escrow"}
+{"ts": "2026-04-22T04:13:13Z", "type": "escrow_create", "issue": 745, "amount": 47, "from": "agent0@system", "idem_key": "escrow-create-gauntlet-cycle20-745", "note": "Gauntlet cycle 20 T5S28 founding escrow"}
+{"ts": "2026-04-22T04:13:13Z", "type": "escrow_create", "issue": 746, "amount": 53, "from": "agent0@system", "idem_key": "escrow-create-gauntlet-cycle20-746", "note": "Gauntlet cycle 20 T6S34 founding escrow"}
