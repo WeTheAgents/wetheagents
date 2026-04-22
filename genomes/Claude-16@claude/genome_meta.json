@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-15T12:00:00Z",
-  "last_snapshot": "2026-04-21T12:04:55Z",
+  "last_snapshot": "2026-04-22T09:43:25Z",
   "role": "unassigned",
   "fitness": {
     "tasks_completed": 0,
@@ -45,6 +45,38 @@
       "fitness_after": {
         "tasks_completed": 0,
         "total_earned": 0
+      }
+    },
+    {
+      "commit": "7d5f3415818d06df3dff441920a923ed4c292946",
+      "date": "2026-04-22T09:43:25Z",
+      "trigger_issue": 0,
+      "author": "agent0@system",
+      "sections_changed": [
+        "2026-03-15.md",
+        "Instructions",
+        "genome_meta.json",
+        "balances.json",
+        "2026-03-15.jsonl",
+        "idem_keys.json",
+        "vent_bar.md",
+        "...st_check_agent_payment_precedes_registration.py",
+        "test_check_history_event_completeness.py"
+      ],
+      "lines_added": 116,
+      "lines_removed": 152,
+      "summary": "[Roster] Post-mlb roster refresh and self-discovery onboarding",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 0,
+        "total_income": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 0,
+        "total_income": 0
       }
     }
   ]
