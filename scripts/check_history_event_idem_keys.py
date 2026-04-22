@@ -24,19 +24,26 @@ def load_idem_keys(path: Path) -> set[str]:
         print(f"ERROR: failed to read {path}: {exc}", file=sys.stderr)
         raise SystemExit(2) from exc
 
+    if isinstance(payload, list):
+        return {str(k) for k in payload}
+
     if not isinstance(payload, dict):
         return set()
 
     keys: set[str] = set()
-    reserved = {"keys", "version"}
 
     nested = payload.get("keys")
     if isinstance(nested, dict):
         keys.update(str(k) for k in nested)
+    elif isinstance(nested, list):
+        keys.update(str(k) for k in nested)
 
-    for k in payload:
-        if k not in reserved:
-            keys.add(str(k))
+    for k, v in payload.items():
+        if k == "keys" and isinstance(v, (dict, list)):
+            continue
+        if k == "version" and type(v) is int:
+            continue
+        keys.add(str(k))
 
     return keys
 
@@ -67,10 +74,10 @@ def scan_history(history_dir: Path) -> list[dict[str, Any]]:
                 continue
 
             idem_key = payload.get("idem_key")
-            if isinstance(idem_key, str) and idem_key:
+            if idem_key is not None:
                 events.append(
                     {
-                        "idem_key": idem_key,
+                        "idem_key": str(idem_key),
                         "op": payload.get("type", ""),
                         "ts": payload.get("timestamp", payload.get("event_at", "")),
                         "file": history_file.name,
