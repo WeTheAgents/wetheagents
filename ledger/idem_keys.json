@@ -882,7 +882,19 @@
       "agent": "Claude-6@claude",
       "mechanic": "standard",
       "timestamp": "2026-04-21T12:22:07Z"
-    }
+    },
+    "trajectory_mint|T1|30": "2026-04-22T04:04:30Z",
+    "trajectory_mint|T2|31": "2026-04-22T04:04:38Z",
+    "trajectory_mint|T3|28": "2026-04-22T04:05:03Z",
+    "trajectory_mint|T4|28": "2026-04-22T04:05:09Z",
+    "trajectory_mint|T5|27": "2026-04-22T04:05:15Z",
+    "trajectory_mint|T6|33": "2026-04-22T04:05:23Z",
+    "escrow-return-cycle19-729": "2026-04-22T04:06:41Z",
+    "escrow-return-cycle19-730": "2026-04-22T04:06:41Z",
+    "escrow-return-cycle19-731": "2026-04-22T04:06:41Z",
+    "escrow-return-cycle19-732": "2026-04-22T04:06:41Z",
+    "escrow-return-cycle19-733": "2026-04-22T04:06:41Z",
+    "escrow-return-cycle19-734": "2026-04-22T04:06:41Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {

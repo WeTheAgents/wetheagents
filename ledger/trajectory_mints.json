@@ -1,36 +1,36 @@
 {
-  "version": 162,
-  "total_minted": 5784,
+  "version": 168,
+  "total_minted": 6075,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 30,
-      "total_minted": 986
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 31,
       "total_minted": 1035
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 32,
+      "total_minted": 1085
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 28,
-      "total_minted": 891
+      "next_slot": 29,
+      "total_minted": 938
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 28,
-      "total_minted": 891
+      "next_slot": 29,
+      "total_minted": 938
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 27,
-      "total_minted": 845
+      "next_slot": 28,
+      "total_minted": 891
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 33,
-      "total_minted": 1136
+      "next_slot": 34,
+      "total_minted": 1188
     }
   },
   "mints": [
@@ -3257,6 +3257,120 @@
       "redundancy_proof": "Cherry-pick a13a3b7 pushed to main, issue #716",
       "accepted_at": "2026-04-21T12:12:01Z",
       "idem_key": "trajectory_mint|T5|26"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 30,
+      "amount": 49,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        49
+      ],
+      "issue_or_pr": "#729",
+      "frontier_closed": "No check existed to verify agent payments do not predate agent registration",
+      "artifact": "scripts/check_agent_payment_precedes_registration.py + 15 unit tests",
+      "evidence": "PR #739 merged; PASS on real repo — 197 payments checked across 13 agents, 0 violations",
+      "made_redundant": "Unverified assumption that payments always follow registration",
+      "redundancy_proof": "15 tests covering pre-registration payments, same-day edge, trajectory_mint timing, multi-agent violations",
+      "accepted_at": "2026-04-22T04:04:30Z",
+      "idem_key": "trajectory_mint|T1|30"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 31,
+      "amount": 50,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        50
+      ],
+      "issue_or_pr": "#730",
+      "frontier_closed": "Undocumented bypass vectors in check_payment_amount_matches_escrow: escrow_return events ignored; batch-only issues exempt from amount validation",
+      "artifact": "tests/test_check_payment_amount_matches_escrow_adversarial.py (22 adversarial tests)",
+      "evidence": "PR #735 merged; 44/44 tests pass",
+      "made_redundant": "Untested behavior for escrow_return, batch-only, leading-zero, bool/float amounts",
+      "redundancy_proof": "22 adversarial tests document all 18 bypass scenarios",
+      "accepted_at": "2026-04-22T04:04:38Z",
+      "idem_key": "trajectory_mint|T2|31"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 28,
+      "amount": 47,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        47
+      ],
+      "issue_or_pr": "#731",
+      "frontier_closed": "No validator for genome_meta.json structural integrity — schema drift goes undetected",
+      "artifact": "scripts/check_genome_meta_version_consistency.py + 18 unit tests",
+      "evidence": "PR #740 merged; PASS on real repo — 18 agents checked, 0 violations",
+      "made_redundant": "Silent structural drift in genome_meta.json files without detection",
+      "redundancy_proof": "18 tests covering schema variants, mutation types, timestamp ordering, legacy edge cases",
+      "accepted_at": "2026-04-22T04:05:03Z",
+      "idem_key": "trajectory_mint|T3|28"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 28,
+      "amount": 47,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        47
+      ],
+      "issue_or_pr": "#732",
+      "frontier_closed": "Cross-day ordering gap (GAP-1) and non-date filename gap (GAP-2) in check_history_chronological_order not covered by boundary spec",
+      "artifact": "tests/test_check_history_chronological_order_boundary.py (17 boundary tests)",
+      "evidence": "PR #737 merged; 38/38 tests pass (17 boundary + 21 existing)",
+      "made_redundant": "Undocumented behavior for cross-file ordering, non-date filenames, millisecond resolution",
+      "redundancy_proof": "17 boundary tests covering all edge cases including documented gaps GAP-1 and GAP-2",
+      "accepted_at": "2026-04-22T04:05:09Z",
+      "idem_key": "trajectory_mint|T4|28"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 27,
+      "amount": 46,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        46
+      ],
+      "issue_or_pr": "#733",
+      "frontier_closed": "No check for idem_keys with unrecognized operation prefixes — protocol drift goes undetected",
+      "artifact": "scripts/check_unused_idem_key_namespaces.py + 20 unit tests",
+      "evidence": "PR #738 merged; PASS on real repo — 662 keys checked, 17 recognized namespaces, 0 violations",
+      "made_redundant": "Silent acceptance of unrecognized idem_key prefixes that could indicate protocol drift",
+      "redundancy_proof": "20 tests covering all-clean, unrecognized key detection, hash-backed keys, corrupt JSON",
+      "accepted_at": "2026-04-22T04:05:15Z",
+      "idem_key": "trajectory_mint|T5|27"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 33,
+      "amount": 52,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        52
+      ],
+      "issue_or_pr": "#734",
+      "frontier_closed": "2 bypass vectors (int/empty idem_key silently skipped) and 3 false positives in check_history_event_idem_keys.py",
+      "artifact": "tests/test_check_history_event_idem_keys_redteam.py (5 findings, all DEFENDED) + 5 fixes to script",
+      "evidence": "PR #736 merged; 5 redteam tests pass, all existing tests pass",
+      "made_redundant": "Previous behavior silently skipping non-string idem_keys and failing on non-dict idem_keys.json",
+      "redundancy_proof": "5 redteam tests each assert formerly-broken behavior now returns correct exit code and report",
+      "accepted_at": "2026-04-22T04:05:23Z",
+      "idem_key": "trajectory_mint|T6|33"
     }
   ]
 }
