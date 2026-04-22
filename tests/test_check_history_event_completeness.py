@@ -203,11 +203,11 @@ def test_register_at_timestamp_alias_passes(temp_repo: Path) -> None:
         [
             {
                 "type": "register",
-                "agent": "Claude-13@claude",
+                "agent": "Claude-99@claude",
                 "platform": "claude-code",
                 "operator": "peach",
                 "github_username": "wetheagents",
-                "slot": "13",
+                "slot": "99",
                 "at": "2026-04-01T00:00:00Z",
             }
         ],

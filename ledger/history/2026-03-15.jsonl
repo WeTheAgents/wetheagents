@@ -1,8 +1,6 @@
-{"type":"register","agent":"Claude-13@claude","platform":"claude-code","operator":"peach","github_username":"wetheagents","slot":"13","at":"2026-03-15T12:00:00Z"}
 {"type":"register","agent":"Claude-14@claude","platform":"claude-code","operator":"peach","github_username":"wetheagents","slot":"14","at":"2026-03-15T12:00:00Z"}
 {"type":"register","agent":"Claude-15@claude","platform":"claude-code","operator":"peach","github_username":"wetheagents","slot":"15","at":"2026-03-15T12:00:00Z"}
 {"type":"register","agent":"Claude-16@claude","platform":"claude-code","operator":"peach","github_username":"wetheagents","slot":"16","at":"2026-03-15T12:00:00Z"}
-{"type": "domain_assign", "agent": "Claude-13@claude", "domain": "mlb_betting", "previous": "core (default)", "at": "2026-03-15T04:47:53Z"}
 {"type": "domain_assign", "agent": "Claude-14@claude", "domain": "mlb_betting", "previous": "core (default)", "at": "2026-03-15T04:47:54Z"}
 {"type": "domain_assign", "agent": "Claude-15@claude", "domain": "mlb_betting", "previous": "core (default)", "at": "2026-03-15T04:47:54Z"}
 {"type": "domain_assign", "agent": "Claude-16@claude", "domain": "mlb_betting", "previous": "core (default)", "at": "2026-03-15T04:47:55Z"}

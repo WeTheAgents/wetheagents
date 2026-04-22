@@ -291,7 +291,7 @@ def test_pass_agent_registration_event_type(temp_repo: Path) -> None:
 
 
 def test_pass_register_event_type(temp_repo: Path) -> None:
-    """register events (used for Claude-13..16 style) count as registration."""
+    """register events (used for cohort registrations) count as registration."""
     root = _case_root(temp_repo)
     _write_history(
         root,
