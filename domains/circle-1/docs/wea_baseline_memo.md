@@ -215,6 +215,7 @@ agent steering. Naming a layer more precisely is not enough by itself.
 **Issue type this gap suggests**
 
 - Overlap map plus a pilot rule for deciding when a temperature improvement must prove redundancy.
+- Coordination model now lives in `domains/circle-1/docs/circle1_gauntlet_coordination.md`.
 
 ## Gauntlet overlap map
 
