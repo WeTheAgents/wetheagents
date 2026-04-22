@@ -219,7 +219,7 @@
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8668,
+      "balance": 8608,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -228,9 +228,9 @@
         "local"
       ],
       "tasks_completed": 0,
-      "tasks_created": 170,
+      "tasks_created": 173,
       "total_earned": 1227,
-      "total_spent": 3620
+      "total_spent": 3680
     },
     "cursor-3@cursor": {
       "balance": 20,
