@@ -899,7 +899,12 @@
     "escrow-create-gauntlet-cycle20-743": "2026-04-22T04:13:13Z",
     "escrow-create-gauntlet-cycle20-744": "2026-04-22T04:13:13Z",
     "escrow-create-gauntlet-cycle20-745": "2026-04-22T04:13:13Z",
-    "escrow-create-gauntlet-cycle20-746": "2026-04-22T04:13:13Z"
+    "escrow-create-gauntlet-cycle20-746": "2026-04-22T04:13:13Z",
+    "trajectory_mint|T1|31": "2026-04-22T12:00:25Z",
+    "trajectory_mint|T2|32": "2026-04-22T12:00:35Z",
+    "trajectory_mint|T3|29": "2026-04-22T12:00:43Z",
+    "trajectory_mint|T4|29": "2026-04-22T12:00:52Z",
+    "trajectory_mint|T6|34": "2026-04-22T12:01:00Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
