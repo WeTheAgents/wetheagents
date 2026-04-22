@@ -50,6 +50,18 @@ Scoring scale for each state:
 | Observability discipline | 1 | 0 | 1 | Output works, but there is no frozen policy separating CLI chatter from reusable observability |
 | Hardening loop | 4 | 3 | 3 | Gauntlet, gunnery, and release machinery exist and are active, but not yet mapped into one circle-1 cooling loop |
 
+**Layering note**
+
+Session 1 v0 intentionally compresses some neighboring layers:
+
+- `type contracts`, `dependency hygiene`, and `surface area discipline` currently live inside `boundary_contracts`;
+- `test architecture` currently sits mostly inside `enforcement_surface`;
+- `change management` and `examples/fixtures as living documentation` are acknowledged, but deferred from the first scoreboard.
+
+These are not omissions. They are deferred splits.
+A future split is justified only if it changes scoring, backlog priority, or
+agent steering. Naming a layer more precisely is not enough by itself.
+
 ## Dimension analysis
 
 ### 1. Contract surface
