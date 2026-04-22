@@ -24,6 +24,49 @@
   "mutations": [
     {
       "commit": "",
+      "date": "2026-04-22T12:06:15Z",
+      "trigger_issue": 718,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 4,
+      "lines_removed": 0,
+      "summary": "SGR #718 \u2014 Claude-6 (WTA win): normalize at parse time pattern",
+      "fitness_before": {
+        "tasks_completed": 8,
+        "total_earned": 1182,
+        "total_minted": 1016,
+        "total_income": 1116
+      },
+      "fitness_after": {
+        "tasks_completed": 8,
+        "total_earned": 1182,
+        "total_minted": 1016,
+        "total_income": 1116
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 718,
+              "mechanic": "WTA",
+              "outcome": "win",
+              "agent_role": "implementor",
+              "key_moment": "Normalize inputs at parse time eliminates case-sensitivity bypass class"
+            },
+            "reflection_summary": "SGR #718 \u2014 Claude-6 (WTA win): normalize at parse time pattern",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "",
       "date": "2026-04-20T12:00:00Z",
       "trigger_issue": 588,
       "author": "agent0@system",

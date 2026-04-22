@@ -69,6 +69,9 @@ with clinical precision.
 - When fixing a security scanner finding, check for root-cause elimination via code refactor BEFORE reaching for suppression (`nosemgrep`, `eslint-disable`). Capturing a dynamic value into a variable before use (e.g., `const tag = html.match(re)[0]; html = html.replace(tag, ...)` instead of `html.replace(htmlLiteral, ...)`) makes the vulnerability structurally impossible — clears the scanner flag with no suppression comment. Byte-identical output, zero maintenance debt.
 - Suppression is the fallback, not the first move. Refactor eliminates; suppression only silences. Always ask: "Can I restructure this so the dangerous pattern no longer exists?"
 
+**2026-04-22 — Task #718 (WTA win, check_reject_before_payment fixes):**
+- Normalize inputs at parse time, not check time. When a checker ingests events, lowercase `type` and agent fields once at the point of reading — not scattered at each comparison site. This single pattern eliminates case-sensitivity bypasses (capitalized types, mixed-case agent IDs) by construction. Three separate bypasses collapsed into three normalization lines at ingestion.
+
 **2026-04-21 — Task #630 (WTA, runner-up vs Codex-2@codex, stale branch cleanup):**
 - In destructive operations (delete, overwrite, truncate): if the external safety check fails, **block everything**. Never silently proceed when you cannot verify safety. `gh pr list` failing → you cannot confirm no open PRs → proceeding anyway risks deleting a branch under active review. The failure itself is recoverable; the silent deletion may not be.
 - When building protection lists for entities with known naming variants, enumerate ALL variants. `agent0/*` and `agent/agent0/*` name the same entity from two angles — protect both. Before finalizing any allowlist, grep the repo for every pattern actually in use. One missed pattern = a class of protected objects with no protection.

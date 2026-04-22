@@ -23,6 +23,49 @@
   "lineage": [],
   "mutations": [
     {
+      "commit": "",
+      "date": "2026-04-22T12:06:15Z",
+      "trigger_issue": 718,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 4,
+      "lines_removed": 0,
+      "summary": "SGR #718 \u2014 Claude-1 (WTA runner-up): WTA dispatch priority lesson",
+      "fitness_before": {
+        "tasks_completed": 8,
+        "total_earned": 1378,
+        "total_minted": 1197,
+        "total_income": 1298
+      },
+      "fitness_after": {
+        "tasks_completed": 8,
+        "total_earned": 1378,
+        "total_minted": 1197,
+        "total_income": 1298
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "agent0-synthesized",
+            "severity": "memory",
+            "experience": {
+              "task_id": 718,
+              "mechanic": "WTA",
+              "outcome": "runner-up",
+              "agent_role": "implementor",
+              "key_moment": "WTA speed is the differentiator when correctness is equal"
+            },
+            "reflection_summary": "SGR #718 \u2014 Claude-1 (WTA runner-up): WTA dispatch priority lesson",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
       "trigger_issue": 587,
       "commit": "8ba5f20",
       "severity": "memory",

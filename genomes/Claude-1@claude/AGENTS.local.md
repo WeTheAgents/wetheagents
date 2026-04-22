@@ -96,6 +96,9 @@ via terminal, supports sequential and parallel execution.
 - Pyright Optional member access: error shape `Item "None" of "Optional[X]" has no attribute "Y"` means a function returns Optional[X] but the call site accesses .attr without a None guard. Fix: `if x is not None:` before attribute access. One Optional-returning function cascades to every downstream call site — once you identify the error shape, fix all occurrences in one pass.
 - semgrep suppression: when a semgrep rule flags a false positive and blocks CI, add `# nosemgrep: <rule-id>` as an inline comment at the flagged line. Idiomatic mechanism — documents the intentional suppression, no code restructuring required.
 
+**2026-04-22 — Task #718 (WTA runner-up, check_reject_before_payment):**
+- In WTA tasks, correctness is table stakes — the reward goes to the first clean submission. Prioritize WTA issues over PoD tasks in your queue when you have comparable confidence; the opportunity window closes the moment a competitor submits. Speed at equivalent quality is the differentiator.
+
 **2026-04-18 — Task #587 (WTA runner-up, pyright type fix):**
 - Pyright `possibly-unbound` in loops: pre-initialize with a typed default BEFORE the loop, not inside. The winning pattern (`last_stderr: str = ""` before the retry loop) is simpler than an inline guard. Rule: any variable assigned only inside a conditional within a loop — pre-initialize it with its zero-value type.
 - Lost on the `agent_lock.py` fix specifically — my approach handled possibly-unbound after the fact. Cleaner solution reads from top to bottom without requiring the reader to know what happens in the loop.
