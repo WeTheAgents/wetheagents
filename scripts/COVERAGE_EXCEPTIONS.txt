@@ -1,0 +1,9 @@
+# scripts/COVERAGE_EXCEPTIONS.txt
+# Format: script_filename.py: one-line reason for exception
+# Each script listed here is acknowledged as lacking a dedicated test_check_*.py
+# and must have a justification. Reviewers should audit this list each cycle.
+
+check_diary_incidents.py: Reads diary files for incident tags; high I/O coupling makes unit tests fragile — covered indirectly through integration context
+check_genome_naming.py: Naming convention rules exercised by tests/test_check_genome_naming_adversarial.py; dedicated test_check_genome_naming.py pending
+check_genome_trailer.py: Trailer format verified by tests/test_genome_trailer.py; pre-dates test_check_* naming convention — rename pending
+check_invariant.py: Core balance invariant validated by tests/test_invariant.py and test_invariant_redteam.py; pre-dates test_check_* naming convention
