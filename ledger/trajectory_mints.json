@@ -1,31 +1,31 @@
 {
-  "version": 175,
-  "total_minted": 6426,
+  "version": 180,
+  "total_minted": 6675,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 32,
-      "total_minted": 1085
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 33,
       "total_minted": 1136
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 34,
+      "total_minted": 1188
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 30,
-      "total_minted": 986
+      "next_slot": 31,
+      "total_minted": 1035
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 30,
-      "total_minted": 986
+      "next_slot": 31,
+      "total_minted": 1035
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 29,
-      "total_minted": 938
+      "next_slot": 30,
+      "total_minted": 986
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -3504,6 +3504,101 @@
       "redundancy_proof": "Each test asserts main()==0 on inconsistent ledger state — confirmed false negative for all 4 vectors",
       "accepted_at": "2026-04-23T04:23:58Z",
       "idem_key": "trajectory_mint|T6|35"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 32,
+      "amount": 51,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        51
+      ],
+      "issue_or_pr": "#765",
+      "frontier_closed": "Structural validation of all 5 idem key formats in ledger/idem_keys.json — previously no format-level check existed",
+      "artifact": "scripts/check_idem_key_format_integrity.py + tests/test_check_idem_key_format_integrity.py",
+      "evidence": "Exit code 0 on live repo with 4700+ existing keys; pytest 53 passed",
+      "made_redundant": "Malformed idem keys that bypass deduplication were previously invisible",
+      "redundancy_proof": "Script validates all existing keys conform to patterns; no malformed keys found in production",
+      "accepted_at": "2026-04-23T04:30:38Z",
+      "idem_key": "trajectory_mint|T1|32"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 33,
+      "amount": 52,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        52
+      ],
+      "issue_or_pr": "#766",
+      "frontier_closed": "Mapped check_escrow_lifecycle_integrity.py coverage — 4 structural gaps confirmed: phantom escrow, double create, type mismatch, author mismatch",
+      "artifact": "tests/test_check_escrow_lifecycle_integrity_adversarial.py",
+      "evidence": "pytest 6 passed; 4 KNOWN GAP tests show false negatives, 2 DEFENDED tests show real catches",
+      "made_redundant": "Phantom escrow detection: escrows.json is never cross-validated against history; checker only scans events",
+      "redundancy_proof": "test_phantom_escrow: checker returns PASS despite fabricated lock in escrows.json",
+      "accepted_at": "2026-04-23T04:30:46Z",
+      "idem_key": "trajectory_mint|T2|33"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 30,
+      "amount": 49,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        49
+      ],
+      "issue_or_pr": "#767",
+      "frontier_closed": "Solvency check at escrow_create time — no prior check verified agents had sufficient balance when escrowing",
+      "artifact": "scripts/check_history_escrow_solvency.py + tests/test_check_history_escrow_solvency.py",
+      "evidence": "Live PASS: 584 balance events replayed, 69 escrow_create events checked; pytest 5 passed",
+      "made_redundant": "Insolvent escrow_create events that slip past balance checks at runtime",
+      "redundancy_proof": "test_insolvent_escrow_create_fails confirms detection of amount > author balance",
+      "accepted_at": "2026-04-23T04:30:53Z",
+      "idem_key": "trajectory_mint|T3|30"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 30,
+      "amount": 49,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        49
+      ],
+      "issue_or_pr": "#768",
+      "frontier_closed": "Full boundary spec for check_claim_ttl.py — 6 scenarios with decision tables, 3 gaps documented (verify blindness, JSON dedup gap, no issue existence check)",
+      "artifact": "tests/test_check_claim_ttl_boundary.py",
+      "evidence": "pytest passes; 3 gaps listed in ## Gaps section; exact TTL off-by-one behavior documented",
+      "made_redundant": "Verify blindness gap: TTL expires claims even when verification is in progress before expiry",
+      "redundancy_proof": "test_verify_before_ttl_accept_after demonstrates claim expires mid-verification",
+      "accepted_at": "2026-04-23T04:31:01Z",
+      "idem_key": "trajectory_mint|T4|30"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 29,
+      "amount": 48,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        48
+      ],
+      "issue_or_pr": "#769",
+      "frontier_closed": "Confirmed total_earned logic in check_total_earned_consistency.py and check_balances_earned_consistency.py is redundant; check_total_earned_vs_payment_history.py is the only accurate checker (handles legacy trajectory_mint.to format)",
+      "artifact": "scripts/audit_total_earned_redundancy.md",
+      "evidence": "Live 2026-04-23: scripts 1&2 fail same 4 agents with identical deltas (missing legacy mints); script 3 passes",
+      "made_redundant": "total_earned computation in check_total_earned_consistency.py is a subset of check_balances_earned_consistency.py",
+      "redundancy_proof": "Live output table: scripts 1 and 2 compute identical totals for all 18 stored agents",
+      "accepted_at": "2026-04-23T04:31:10Z",
+      "idem_key": "trajectory_mint|T5|29"
     }
   ]
 }

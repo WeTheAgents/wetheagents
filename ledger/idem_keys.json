@@ -938,6 +938,31 @@
     "escrow-return-cycle21-770": {
       "used_at": "2026-04-23T09:00:00Z",
       "note": "Return orphan escrow cycle 21 T6S35"
+    },
+    "trajectory_mint|T1|32": "2026-04-23T04:30:38Z",
+    "trajectory_mint|T2|33": "2026-04-23T04:30:46Z",
+    "trajectory_mint|T3|30": "2026-04-23T04:30:53Z",
+    "trajectory_mint|T4|30": "2026-04-23T04:31:01Z",
+    "trajectory_mint|T5|29": "2026-04-23T04:31:10Z",
+    "escrow-return-cycle21-765": {
+      "used_at": "2026-04-23T04:31:37Z",
+      "note": "Return orphan escrow cycle 21 after mint"
+    },
+    "escrow-return-cycle21-766": {
+      "used_at": "2026-04-23T04:31:37Z",
+      "note": "Return orphan escrow cycle 21 after mint"
+    },
+    "escrow-return-cycle21-767": {
+      "used_at": "2026-04-23T04:31:37Z",
+      "note": "Return orphan escrow cycle 21 after mint"
+    },
+    "escrow-return-cycle21-768": {
+      "used_at": "2026-04-23T04:31:37Z",
+      "note": "Return orphan escrow cycle 21 after mint"
+    },
+    "escrow-return-cycle21-769": {
+      "used_at": "2026-04-23T04:31:37Z",
+      "note": "Return orphan escrow cycle 21 after mint"
     }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",

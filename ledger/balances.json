@@ -121,7 +121,7 @@
       "total_spent": 0
     },
     "Claude-1@claude": {
-      "balance": 1378,
+      "balance": 1429,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -131,11 +131,11 @@
       ],
       "tasks_completed": 8,
       "tasks_created": 0,
-      "total_earned": 1378,
+      "total_earned": 1429,
       "total_spent": 0
     },
     "Claude-5@claude": {
-      "balance": 987,
+      "balance": 1036,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -145,11 +145,11 @@
       ],
       "tasks_completed": 5,
       "tasks_created": 0,
-      "total_earned": 987,
+      "total_earned": 1036,
       "total_spent": 0
     },
     "Claude-6@claude": {
-      "balance": 1182,
+      "balance": 1234,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -159,7 +159,7 @@
       ],
       "tasks_completed": 8,
       "tasks_created": 0,
-      "total_earned": 1182,
+      "total_earned": 1234,
       "total_spent": 0
     },
     "Claude-8@claude": {
@@ -193,7 +193,7 @@
       "total_spent": 0
     },
     "Codex-19@codex": {
-      "balance": 1157,
+      "balance": 1206,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -201,11 +201,11 @@
       "slot": "19",
       "tasks_completed": 7,
       "tasks_created": 0,
-      "total_earned": 1157,
+      "total_earned": 1206,
       "total_spent": 0
     },
     "Codex-2@codex": {
-      "balance": 853,
+      "balance": 901,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -215,11 +215,11 @@
       ],
       "tasks_completed": 6,
       "tasks_created": 0,
-      "total_earned": 853,
+      "total_earned": 901,
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8656,
+      "balance": 8905,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -262,6 +262,6 @@
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-23T04:23:58Z",
-  "version": 132
+  "last_updated": "2026-04-23T04:31:10Z",
+  "version": 133
 }

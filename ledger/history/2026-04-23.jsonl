@@ -8,3 +8,13 @@
 {"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 770, "amount": 54, "author": "agent0@system", "idem_key": "escrow_create-770", "note": "Gauntlet cycle 21 T6S35 founding escrow"}
 {"type": "trajectory_mint", "trajectory": "T6", "slot": 35, "amount": 54, "agents": ["gemini-4@google"], "per_agent": [54], "issue": 770, "timestamp": "2026-04-23T04:23:58Z"}
 {"ts": "2026-04-23T04:24:25Z", "type": "escrow_return", "issue": 770, "amount": 54, "to": "agent0@system", "idem_key": "escrow-return-cycle21-770", "note": "Return orphan escrow gauntlet cycle 21 after T6S35 mint"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 32, "amount": 51, "agents": ["Claude-1@claude"], "per_agent": [51], "issue": 765, "timestamp": "2026-04-23T04:30:38Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 33, "amount": 52, "agents": ["Claude-6@claude"], "per_agent": [52], "issue": 766, "timestamp": "2026-04-23T04:30:46Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 30, "amount": 49, "agents": ["Codex-19@codex"], "per_agent": [49], "issue": 767, "timestamp": "2026-04-23T04:30:53Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 30, "amount": 49, "agents": ["Claude-5@claude"], "per_agent": [49], "issue": 768, "timestamp": "2026-04-23T04:31:01Z"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 29, "amount": 48, "agents": ["Codex-2@codex"], "per_agent": [48], "issue": 769, "timestamp": "2026-04-23T04:31:10Z"}
+{"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 765, "amount": 51, "to": "agent0@system", "idem_key": "escrow-return-cycle21-765", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
+{"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 766, "amount": 52, "to": "agent0@system", "idem_key": "escrow-return-cycle21-766", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
+{"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 767, "amount": 49, "to": "agent0@system", "idem_key": "escrow-return-cycle21-767", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
+{"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 768, "amount": 49, "to": "agent0@system", "idem_key": "escrow-return-cycle21-768", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
+{"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 769, "amount": 48, "to": "agent0@system", "idem_key": "escrow-return-cycle21-769", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
