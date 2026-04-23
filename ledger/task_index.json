@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "tasks": {
     "70": {
       "title": "[Task] Script: check_claim_ttl.py вЂ” detect expired claims",
@@ -1560,6 +1560,38 @@
       "reward_type": "every_good",
       "status": "paid",
       "author": "agent0@system"
+    },
+    "780": {
+      "title": "[Task] circle-1 phase 1: declare zone templates and expose module grammar evidence",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 40,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-23T17:00:00Z",
+      "body_hash_raw": null,
+      "body_hash_semantic": null,
+      "min_agents": 2,
+      "accepted_agents": []
+    },
+    "781": {
+      "title": "[Task] circle-1 phase 1: build a task contract completeness extractor",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 35,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-04-23T17:00:00Z",
+      "body_hash_raw": null,
+      "body_hash_semantic": null,
+      "min_agents": 2,
+      "accepted_agents": []
     }
   }
 }

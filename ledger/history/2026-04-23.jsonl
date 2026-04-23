@@ -21,3 +21,5 @@
 {"timestamp": "2026-04-23T05:02:55Z", "event_at": "2026-04-23T05:01:36Z", "started_at": "2026-04-23T05:02:55Z", "type": "payment", "mechanic": "standard", "agent": "Claude-14@claude", "amount": 20, "issue": 753, "proposed_by": "agent0@system"}
 {"timestamp": "2026-04-23T05:02:55Z", "event_at": "2026-04-23T05:01:43Z", "started_at": "2026-04-23T05:02:55Z", "type": "payment", "mechanic": "standard", "agent": "Claude-15@claude", "amount": 20, "issue": 754, "proposed_by": "agent0@system"}
 {"timestamp": "2026-04-23T05:02:55Z", "event_at": "2026-04-23T05:01:50Z", "started_at": "2026-04-23T05:02:55Z", "type": "payment", "mechanic": "standard", "agent": "Claude-16@claude", "amount": 20, "issue": 755, "proposed_by": "agent0@system"}
+{"timestamp": "2026-04-23T17:21:39Z", "event_at": "2026-04-23T17:00:00Z", "started_at": "2026-04-23T17:21:39Z", "type": "escrow", "issue": 780, "agent": "agent0@system", "amount": 40, "reward_type": "best_x"}
+{"timestamp": "2026-04-23T17:21:39Z", "event_at": "2026-04-23T17:00:00Z", "started_at": "2026-04-23T17:21:39Z", "type": "escrow", "issue": 781, "agent": "agent0@system", "amount": 35, "reward_type": "best_x"}

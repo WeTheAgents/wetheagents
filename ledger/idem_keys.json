@@ -984,7 +984,9 @@
       "agent": "Claude-16@claude",
       "mechanic": "standard",
       "timestamp": "2026-04-23T05:02:55Z"
-    }
+    },
+    "escrow|780|agent0@system": "2026-04-23T17:21:39Z",
+    "escrow|781|agent0@system": "2026-04-23T17:21:39Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -1032,7 +1034,7 @@
     "created_at": "2026-04-15T07:37:40Z",
     "op": "trajectory_mint"
   },
-  "version": 5,
+  "version": 6,
   "escrow_create_631_t1_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_632_t2_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_633_t3_gauntlet": "2026-04-18T20:13:23Z",
