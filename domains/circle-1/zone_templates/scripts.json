@@ -1,0 +1,35 @@
+{
+  "zone": "scripts",
+  "path": "scripts/",
+  "description": "Standalone verification/utility scripts — each file should be independently runnable as a command-line tool.",
+  "required": [
+    {
+      "name": "module_docstring",
+      "description": "Module-level docstring as the first statement in the file",
+      "machine_check": "has_module_docstring"
+    },
+    {
+      "name": "future_annotations",
+      "description": "from __future__ import annotations at the top of imports",
+      "machine_check": "has_future_annotations"
+    },
+    {
+      "name": "main_guard",
+      "description": "if __name__ == '__main__': entry point so the script is runnable",
+      "machine_check": "has_main_guard"
+    }
+  ],
+  "optional": [
+    {
+      "name": "shebang",
+      "description": "#!/usr/bin/env python3 as the very first line",
+      "machine_check": "has_shebang"
+    },
+    {
+      "name": "argparse",
+      "description": "argparse.ArgumentParser for structured CLI argument handling",
+      "machine_check": "has_argparse"
+    }
+  ],
+  "excluded": []
+}
