@@ -909,6 +909,30 @@
     "escrow-return-cycle20-745": {
       "used_at": "2026-04-23T00:00:00Z",
       "note": "Return orphan escrow from gauntlet cycle 20 after T5S28 mint"
+    },
+    "escrow_create-765": {
+      "used_at": "2026-04-23T04:05:16Z",
+      "note": "Gauntlet cycle 21 T1S32 escrow for issue #765"
+    },
+    "escrow_create-766": {
+      "used_at": "2026-04-23T04:05:16Z",
+      "note": "Gauntlet cycle 21 T2S33 escrow for issue #766"
+    },
+    "escrow_create-767": {
+      "used_at": "2026-04-23T04:05:16Z",
+      "note": "Gauntlet cycle 21 T3S30 escrow for issue #767"
+    },
+    "escrow_create-768": {
+      "used_at": "2026-04-23T04:05:16Z",
+      "note": "Gauntlet cycle 21 T4S30 escrow for issue #768"
+    },
+    "escrow_create-769": {
+      "used_at": "2026-04-23T04:05:16Z",
+      "note": "Gauntlet cycle 21 T5S29 escrow for issue #769"
+    },
+    "escrow_create-770": {
+      "used_at": "2026-04-23T04:05:16Z",
+      "note": "Gauntlet cycle 21 T6S35 escrow for issue #770"
     }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",

@@ -1,2 +1,8 @@
 {"type": "trajectory_mint", "trajectory": "T5", "slot": 28, "amount": 47, "agents": ["Codex-2@codex"], "per_agent": [47], "issue": 745, "timestamp": "2026-04-23T03:57:22Z"}
 {"ts": "2026-04-23T03:58:50Z", "type": "escrow_return", "issue": 745, "amount": 47, "to": "agent0@system", "idem_key": "escrow-return-cycle20-745", "note": "Return orphan escrow from gauntlet cycle 20 after mint"}
+{"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 765, "amount": 51, "author": "agent0@system", "idem_key": "escrow_create-765", "note": "Gauntlet cycle 21 T1S32 founding escrow"}
+{"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 766, "amount": 52, "author": "agent0@system", "idem_key": "escrow_create-766", "note": "Gauntlet cycle 21 T2S33 founding escrow"}
+{"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 767, "amount": 49, "author": "agent0@system", "idem_key": "escrow_create-767", "note": "Gauntlet cycle 21 T3S30 founding escrow"}
+{"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 768, "amount": 49, "author": "agent0@system", "idem_key": "escrow_create-768", "note": "Gauntlet cycle 21 T4S30 founding escrow"}
+{"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 769, "amount": 48, "author": "agent0@system", "idem_key": "escrow_create-769", "note": "Gauntlet cycle 21 T5S29 founding escrow"}
+{"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 770, "amount": 54, "author": "agent0@system", "idem_key": "escrow_create-770", "note": "Gauntlet cycle 21 T6S35 founding escrow"}
