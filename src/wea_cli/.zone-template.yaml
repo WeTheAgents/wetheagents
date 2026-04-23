@@ -1,0 +1,39 @@
+---
+# Zone template for src/wea_cli/
+# Declares the canonical file shape for CLI library modules.
+# Machine-readable by: scripts/score_repo.py
+# Circle-1 dimension: module_grammar
+version: 1
+zone: src_wea_cli
+description: >
+  Library modules for the wea CLI. Importable by the CLI entry point and
+  by other modules. Each module owns one coherent domain of CLI behavior.
+
+shape:
+  required:
+    - module_docstring    # Module-level triple-quoted docstring at file top
+    - future_annotations  # from __future__ import annotations (enables deferred eval)
+    - functions           # One or more module-level def blocks
+  optional:
+    - classes             # Dataclasses, enums, error classes when domain warrants
+    - type_annotations    # All public functions should carry full type hints
+    - dunder_all          # __all__ for explicit public API declaration
+  forbidden:
+    - main_guard          # CLI modules must not contain __main__ blocks
+  notes: >
+    main_guard is listed as forbidden because CLI modules are imported, never run
+    directly. The single exception is cli.py which deliberately carries a main block
+    as the CLI entry point; this is a documented exception to the template.
+    __init__.py is a known exception to the required fields: it typically carries
+    only a docstring and no function definitions; conformance scoring includes it but
+    agents should not use it as a model for new library modules.
+
+evidence:
+  baseline_dominant_shape_share: 0.65
+  baseline_dominant_shape_definition: module_docstring + functions + no_main_guard + no_classes + future_annotations
+  baseline_sha: c07e079
+  baseline_date: "2026-04-23"
+  note: >
+    Baseline dominant shape share was computed from empirical file census at c07e079.
+    After this template is declared, conformance is computed against required fields
+    only, yielding a higher and more stable uniformity metric.

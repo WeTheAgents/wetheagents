@@ -1,0 +1,38 @@
+---
+# Zone template for scripts/
+# Declares the canonical file shape for standalone scripts.
+# Machine-readable by: scripts/score_repo.py
+# Circle-1 dimension: module_grammar
+version: 1
+zone: scripts
+description: >
+  Standalone executable scripts. Each file runs a single coherent task and
+  produces output for direct operator use. Not intended for import by other
+  modules except via the portability try/except pattern.
+
+shape:
+  required:
+    - module_docstring    # Module-level triple-quoted docstring at file top
+    - functions           # One or more module-level def blocks
+    - main_guard          # if __name__ == "__main__": block
+  optional:
+    - shebang             # #!/usr/bin/env python3
+    - future_annotations  # from __future__ import annotations
+    - type_annotations    # Parameter and return type hints
+    - portability_import  # try/except import fallback for dual-mode scripts
+    - classes             # Helper classes are acceptable when clearly bounded
+  forbidden: []
+  notes: >
+    "forbidden" is intentionally empty in v0. Classes are listed as optional
+    because some scripts contain bounded helper classes (e.g. LedgerError).
+    Enforcement against classes-as-library is advisory until a CI gate exists.
+
+evidence:
+  baseline_dominant_shape_share: 0.783582
+  baseline_dominant_shape_definition: module_docstring + functions + main_guard + no_classes + no_future_annotations
+  baseline_sha: c07e079
+  baseline_date: "2026-04-23"
+  note: >
+    Baseline dominant shape share was computed from empirical file census at c07e079.
+    After this template is declared, conformance is computed against required fields
+    only, yielding a higher and more stable uniformity metric.

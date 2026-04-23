@@ -1,0 +1,92 @@
+{
+  "scan_date": "2026-04-23",
+  "repo_sha": "c07e079",
+  "target": "wea",
+  "structural": {
+    "contract_surface": {
+      "declared": 4,
+      "enforced": 3,
+      "exercised": 2,
+      "raw": {
+        "note": "Rich task/protocol prose exists; cohort-level compliance not yet measured"
+      }
+    },
+    "enforcement_surface": {
+      "declared": 4,
+      "enforced": 4,
+      "exercised": 3,
+      "raw": {
+        "workflow_count": 17,
+        "scheduled_workflow_count": 4
+      }
+    },
+    "module_grammar": {
+      "declared": 2,
+      "enforced": 1,
+      "exercised": 2,
+      "raw": {
+        "note": "Empirical dominant shapes exist; no declared zone templates at this sha",
+        "zones": {
+          "scripts": {
+            "zone_path": "scripts",
+            "template_declared": false,
+            "template_path": null,
+            "declared_shape": null,
+            "file_count": 119,
+            "dominant_shape_definition": "module_docstring + functions + main_guard + no_classes + no_future_annotations",
+            "dominant_shape_share": 0.783582
+          },
+          "src_wea_cli": {
+            "zone_path": "src/wea_cli",
+            "template_declared": false,
+            "template_path": null,
+            "declared_shape": null,
+            "file_count": 20,
+            "dominant_shape_definition": "module_docstring + functions + no_main_guard + no_classes + future_annotations",
+            "dominant_shape_share": 0.65
+          }
+        }
+      }
+    },
+    "boundary_contracts": {
+      "declared": 2,
+      "enforced": 2,
+      "exercised": 2,
+      "raw": {
+        "note": "Types and schemas exist; error topology and boundary consistency partial"
+      }
+    },
+    "observability_discipline": {
+      "declared": 1,
+      "enforced": 0,
+      "exercised": 1,
+      "raw": {
+        "note": "No frozen logging policy; print() dominant in scripts/"
+      }
+    },
+    "hardening_loop": {
+      "declared": 4,
+      "enforced": 3,
+      "exercised": 3,
+      "raw": {
+        "note": "Gauntlet, gunnery, and release machinery active but not mapped to circle-1"
+      }
+    }
+  },
+  "outcomes": {
+    "first_pass_acceptance_rate": null,
+    "resubmission_depth": null,
+    "scope_drift_rate": null,
+    "protocol_break_rate": null,
+    "post_accept_correction_rate": null,
+    "gauntlet_redundancy_yield": null,
+    "new_file_conformity_rate": null,
+    "task_contract_completeness_rate": null
+  },
+  "notes": [
+    "Baseline checkpoint: no zone templates declared at this sha",
+    "module_grammar scores empirical dominant shapes only",
+    "Outcome metrics deferred: cohort extractor not yet implemented",
+    "First cut selected: declare zone templates for scripts/ and src/wea_cli/ (issue #780)"
+  ]
+}
