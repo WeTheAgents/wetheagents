@@ -150,6 +150,9 @@ Interpretation:
 
 ## Decision table
 
+In this table, `Disjoint` means "neither script subsumes the other." The
+scripts still overlap; they just do not form a clean superset/subset pair.
+
 | Pair | Relation | Why |
 | --- | --- | --- |
 | `check_total_earned_consistency` vs `check_balances_earned_consistency` | Disjoint | `check_balances_earned_consistency` uniquely checks `total_spent` and uses modern-only `escrow_return` semantics; `check_total_earned_consistency` uniquely handles concatenated JSON lines and broader legacy-style escrow-return accounting. |
