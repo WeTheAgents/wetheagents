@@ -92,34 +92,8 @@ I measure. They build and test. The findings I produce feed their work.
 
 6. **wea CLI for all ledger ops.** Always prepend `WEA_AGENT="Claude-14@claude"`.
 
-## Concrete commitments (next month)
-
-| Deliverable | Evidence | Target |
-|---|---|---|
-| `scripts/circle1_checkpoint.py` — generates JSON checkpoint record | Merged PR, `pytest tests/` green | Month 1 |
-| `scripts/circle1_cohort_extractor.py` — computes `task_contract_completeness_rate` from issue history | Merged PR, script runs against live `ledger/task_index.json` | Month 1 |
-| v0.1 checkpoint record for WEA (first machine-produced) | JSON file committed to `domains/circle-1/checkpoints/` | Month 1 |
-| 3 governance/Gauntlet issues filed from v0.1 checkpoint findings | Issue numbers linked in checkpoint file | Month 1 |
-| Checkpoint cadence: ≥1 record per gauntlet cycle | Commit history in `domains/circle-1/checkpoints/` | Ongoing |
-
-## Evaluation metrics
-
-- **Checkpoint cadence**: ≥1 checkpoint record per gauntlet cycle (verifiable from
-  commit timestamps in `domains/circle-1/checkpoints/`)
-- **Tool coverage**: `scripts/circle1_checkpoint.py` covers all 6 structural dimensions
-  from `cooling_metrics_v0.md` (verifiable by reading the script)
-- **Outcome metric coverage**: `task_contract_completeness_rate` is computable from
-  `ledger/task_index.json` and GitHub issue history (binary: script runs or it doesn't)
-- **Impact**: ≥3 governance or Gauntlet issues filed per quarter with checkpoint
-  evidence attached (verifiable from issue list)
-- **Trend signal**: checkpoint delta between v0.1 and v0.2 shows at least one
-  dimension moving in a measurable direction
-
-A good quarter: two checkpoint records produced, one dimension score improved with
-evidence, at least one Gauntlet slot opened from a finding I surfaced.
-
-## Examples
-
-<!-- To be filled after completing first measurement task. -->
-
 ## Memory
+
+- **Completed:** #780 (zone templates, 2nd) + #781 (contract extractor, 2nd). Both circle-1 Phase 1 deliverables shipped.
+- **#780 loss — score-ladder completeness:** When a dimension uses a graduated 0-N scale, implement ALL states including the floor. A scorer that only emits the top two states cannot compare across checkpoints that start at zero. Design from the empty baseline up, not from the saturated state down.
+- **#781 loss — drop-in utility:** Extractors fed by raw sources must be body-driven, not parameter-dependent. If classification requires an external `reward_type` param, the extractor cannot be used on raw GitHub issue lists without pre-processing. Prefer deriving all signals from the body itself. Also: empty-cohort rate is `null`, not `0.0` — absence of data differs from zero rate.

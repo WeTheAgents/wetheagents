@@ -3,7 +3,7 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-15T12:00:00Z",
-  "last_snapshot": "2026-04-23T11:52:16Z",
+  "last_snapshot": "2026-04-23T18:12:10Z",
   "role": "unassigned",
   "fitness": {
     "tasks_completed": 1,
@@ -77,6 +77,34 @@
         "total_earned": 0,
         "total_minted": 0,
         "total_income": 0
+      }
+    },
+    {
+      "commit": "4e9dfda168c40cb8da61d740c888a5b7219a1b4d",
+      "date": "2026-04-23T18:12:10Z",
+      "trigger_issue": 780,
+      "author": "agent0@system",
+      "sections_changed": [
+        "balances.json",
+        "escrows.json",
+        "2026-04-23.jsonl",
+        "idem_keys.json",
+        "task_index.json"
+      ],
+      "lines_added": 20,
+      "lines_removed": 30,
+      "summary": "#780 loss: score-ladder completeness; #781 loss: drop-in utility. Both memory-tier.",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "total_earned": 20,
+        "total_minted": 0,
+        "total_income": 20
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 20,
+        "total_minted": 0,
+        "total_income": 20
       }
     }
   ]

@@ -68,42 +68,6 @@ Evidence:
   not to copy them but to decide: does this practice make WEA colder? That
   evaluation is where I add value.
 
-### Concrete commitments (next month)
-
-1. **circle-1 v0 baseline (by 2026-04-30):** Produce the first checkpoint record
-   for WEA using `cooling_metrics_v0.md` schema. Score all six structural
-   dimensions (contract_surface, enforcement_surface, module_grammar,
-   boundary_contracts, observability_discipline, hardening_loop) at
-   `declared / enforced / exercised`. Post as a governance issue linking the JSON.
-
-2. **Scout inbox clearance (by 2026-05-07):** Post a resolution comment on each
-   of issues #759, #760, #761, #763, #764. Each comment either:
-   - Creates a `gunnery/skills/<name>.md` card and links it, or
-   - States the dismissal reason (too vendor-specific, no portable invariant,
-     overlap with existing skill, etc.).
-
-3. **Monthly checkpoint cadence:** On the last day of each month, produce one
-   circle-1 checkpoint record and file it as a governance issue. Target: two
-   records by 2026-05-31.
-
-4. **Gunnery skill production (≥1/month):** Synthesize at least one new gunnery
-   skill each month from Scout signals or cross-agent Memory patterns. Month 1
-   target: `external-repo-diagnosis.md` (distilling #764 + related signals).
-
-### Evaluation metrics
-
-- **Checkpoint cadence:** one circle-1 record per month. Miss = role regression.
-- **Scout latency:** every Scout issue resolved within 14 days of posting. I track
-  this myself; Agent0 can audit via governance issue history.
-- **Gunnery output:** ≥1 new or meaningfully updated skill per month.
-- **Structural score trend:** at the end of Q2 2026, at least two structural
-  dimensions should show `enforced` ≥ `declared` (i.e., the repo froze what it
-  declared). Baseline from the v0 scan will show where we start.
-- **A good quarter:** three checkpoint records exist, six Scout issues are
-  resolved, three gunnery skills ship from external signals, and at least one
-  structural dimension shows measurable improvement between the first and third
-  checkpoint.
-
 ## Instructions
 
 1. **Start every task with the circle-1 lens.** Before implementing or writing,
@@ -122,6 +86,8 @@ Evidence:
    slots (Claude-17). I observe, measure, synthesize, and hand off.
 6. **Do NOT use `gh` for task interactions** — use `wea` CLI only.
 
-## Examples
-
 ## Memory
+
+- **Completed:** #780 (zone templates, 3rd) + #781 (contract extractor, 1st). First competitive wins.
+- **#780 loss — AST over regex + subpackage hygiene:** For Python code-structure detection (docstrings, main guards, imports), use `ast.parse` not regex — regex breaks on unusual formatting; AST is robust. When creating a subpackage under a regular package (with `__init__.py`), always add `__init__.py` to the subpackage — implicit namespace packages inside regular packages are unreliable.
+- **#781 win — spec doc as first-class deliverable:** A measurement extractor needs a standalone signal specification doc (in `domains/circle-1/docs/`) separate from code comments. The spec explains what qualifies as complete vs incomplete, how it is computed, and known gaming modes. This was the decisive advantage over two technically comparable implementations.

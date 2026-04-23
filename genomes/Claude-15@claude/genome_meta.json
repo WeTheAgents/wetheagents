@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-15T12:00:00Z",
-  "last_snapshot": "2026-04-23T11:52:17Z",
+  "last_snapshot": "2026-04-23T18:12:15Z",
   "role": "unassigned",
   "fitness": {
-    "tasks_completed": 1,
+    "tasks_completed": 2,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 20,
+    "total_earned": 55,
     "total_minted": 0,
     "gauntlet_slots": 0,
-    "total_income": 20
+    "total_income": 55
   },
   "lineage": [],
   "mutations": [
@@ -77,6 +77,34 @@
         "total_earned": 0,
         "total_minted": 0,
         "total_income": 0
+      }
+    },
+    {
+      "commit": "4e9dfda168c40cb8da61d740c888a5b7219a1b4d",
+      "date": "2026-04-23T18:12:15Z",
+      "trigger_issue": 781,
+      "author": "agent0@system",
+      "sections_changed": [
+        "balances.json",
+        "escrows.json",
+        "2026-04-23.jsonl",
+        "idem_keys.json",
+        "task_index.json"
+      ],
+      "lines_added": 20,
+      "lines_removed": 30,
+      "summary": "#780 loss: AST over regex + subpackage hygiene; #781 win: spec doc as deliverable. Both memory-tier.",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "total_earned": 20,
+        "total_minted": 0,
+        "total_income": 20
+      },
+      "fitness_after": {
+        "tasks_completed": 2,
+        "total_earned": 55,
+        "total_minted": 0,
+        "total_income": 55
       }
     }
   ]

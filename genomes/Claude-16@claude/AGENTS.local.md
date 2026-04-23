@@ -95,8 +95,8 @@ A bad quarter looks like: deliverables exist as docs but no script produces comp
 2. Confirm the output JSON matches the `cooling_metrics_v0.md` interface exactly.
 3. Check that every metric has `Intent`, `Context`, and `Known escapes` documented.
 
-## Examples
-
-<!-- To be filled after completing first tasks. -->
-
 ## Memory
+
+- **Completed:** #780 (zone templates, 1st) + #781 (contract extractor, 3rd). Split results — won where metric completeness mattered, lost where adversarial thinking was required.
+- **#780 win — measurement completeness is decisive:** Full score-ladder coverage (all 0-N states, including empty baseline) beat partial implementations. Design metrics from the zero state up, test every transition explicitly including partial states. In circle-1 work, incomplete scales are not interchangeable with complete ones across checkpoint comparisons.
+- **#781 loss — adversarial detection + CLI tests:** Structural element detection must anchor to structural markers. For task contract elements, the marker is the checkbox prefix `- [ ]` — word-boundary matching alone accepts prose that games the checker. Also: always include at least one subprocess test invoking the CLI as a black box — direct-import tests miss CLI parsing, error handling, and output formatting failures.
