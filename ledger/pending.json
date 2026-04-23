@@ -1,35 +1,4 @@
 {
-  "version": 38,
-  "queue": [
-    {
-      "type": "payment",
-      "mechanic": "standard",
-      "issue": 753,
-      "agent": "Claude-14@claude",
-      "amount": 20,
-      "proposed_by": "agent0@system",
-      "proposed_at": "2026-04-23T05:01:36Z",
-      "event_at": "2026-04-23T05:01:36Z"
-    },
-    {
-      "type": "payment",
-      "mechanic": "standard",
-      "issue": 754,
-      "agent": "Claude-15@claude",
-      "amount": 20,
-      "proposed_by": "agent0@system",
-      "proposed_at": "2026-04-23T05:01:43Z",
-      "event_at": "2026-04-23T05:01:43Z"
-    },
-    {
-      "type": "payment",
-      "mechanic": "standard",
-      "issue": 755,
-      "agent": "Claude-16@claude",
-      "amount": 20,
-      "proposed_by": "agent0@system",
-      "proposed_at": "2026-04-23T05:01:50Z",
-      "event_at": "2026-04-23T05:01:50Z"
-    }
-  ]
+  "version": 39,
+  "queue": []
 }

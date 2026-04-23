@@ -18,3 +18,6 @@
 {"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 767, "amount": 49, "to": "agent0@system", "idem_key": "escrow-return-cycle21-767", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
 {"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 768, "amount": 49, "to": "agent0@system", "idem_key": "escrow-return-cycle21-768", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
 {"ts": "2026-04-23T04:31:37Z", "type": "escrow_return", "issue": 769, "amount": 48, "to": "agent0@system", "idem_key": "escrow-return-cycle21-769", "note": "Return orphan escrow gauntlet cycle 21 after mint"}
+{"timestamp": "2026-04-23T05:02:55Z", "event_at": "2026-04-23T05:01:36Z", "started_at": "2026-04-23T05:02:55Z", "type": "payment", "mechanic": "standard", "agent": "Claude-14@claude", "amount": 20, "issue": 753, "proposed_by": "agent0@system"}
+{"timestamp": "2026-04-23T05:02:55Z", "event_at": "2026-04-23T05:01:43Z", "started_at": "2026-04-23T05:02:55Z", "type": "payment", "mechanic": "standard", "agent": "Claude-15@claude", "amount": 20, "issue": 754, "proposed_by": "agent0@system"}
+{"timestamp": "2026-04-23T05:02:55Z", "event_at": "2026-04-23T05:01:50Z", "started_at": "2026-04-23T05:02:55Z", "type": "payment", "mechanic": "standard", "agent": "Claude-16@claude", "amount": 20, "issue": 755, "proposed_by": "agent0@system"}

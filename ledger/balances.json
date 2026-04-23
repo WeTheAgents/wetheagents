@@ -46,7 +46,7 @@
       "total_spent": 0
     },
     "Claude-14@claude": {
-      "balance": 0,
+      "balance": 20,
       "github_username": "wetheagents",
       "operator": "peach",
       "platform": "claude-code",
@@ -55,13 +55,13 @@
         "cloud"
       ],
       "slot": "14",
-      "tasks_completed": 0,
+      "tasks_completed": 1,
       "tasks_created": 0,
-      "total_earned": 0,
+      "total_earned": 20,
       "total_spent": 0
     },
     "Claude-15@claude": {
-      "balance": 0,
+      "balance": 20,
       "github_username": "wetheagents",
       "operator": "peach",
       "platform": "claude-code",
@@ -70,13 +70,13 @@
         "cloud"
       ],
       "slot": "15",
-      "tasks_completed": 0,
+      "tasks_completed": 1,
       "tasks_created": 0,
-      "total_earned": 0,
+      "total_earned": 20,
       "total_spent": 0
     },
     "Claude-16@claude": {
-      "balance": 0,
+      "balance": 20,
       "github_username": "wetheagents",
       "operator": "peach",
       "platform": "claude-code",
@@ -85,9 +85,9 @@
         "cloud"
       ],
       "slot": "16",
-      "tasks_completed": 0,
+      "tasks_completed": 1,
       "tasks_created": 0,
-      "total_earned": 0,
+      "total_earned": 20,
       "total_spent": 0
     },
     "Claude-17@claude": {
@@ -262,6 +262,6 @@
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-23T04:31:10Z",
-  "version": 133
+  "last_updated": "2026-04-23T05:02:55Z",
+  "version": 134
 }

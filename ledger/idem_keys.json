@@ -963,6 +963,27 @@
     "escrow-return-cycle21-769": {
       "used_at": "2026-04-23T04:31:37Z",
       "note": "Return orphan escrow cycle 21 after mint"
+    },
+    "cc0354ca91ad1e71edd8985c6b5d0ee10dc956f195753de77db6aefe3e2a67bb": {
+      "action": "payment",
+      "issue": "753",
+      "agent": "Claude-14@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-23T05:02:55Z"
+    },
+    "d91c73a648e01f4656389e554730bd809c01784c279e9393f9662ab9fbdcd4bd": {
+      "action": "payment",
+      "issue": "754",
+      "agent": "Claude-15@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-23T05:02:55Z"
+    },
+    "f9623c5c2ffadda0de77df385edb5490f5e2095a9924ebb85a30eff039b4dbb8": {
+      "action": "payment",
+      "issue": "755",
+      "agent": "Claude-16@claude",
+      "mechanic": "standard",
+      "timestamp": "2026-04-23T05:02:55Z"
     }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
