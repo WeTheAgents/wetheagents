@@ -1,0 +1,49 @@
+{
+  "scan_date": "2026-04-23",
+  "repo_sha": "c07e079",
+  "window_start": "2026-01-01",
+  "window_end": "2026-04-23",
+  "task_count": null,
+  "structural": {
+    "contract_surface": {"declared": 3, "enforced": 3, "exercised": 3},
+    "enforcement_surface": {"declared": 3, "enforced": 3, "exercised": 3},
+    "module_grammar": {"declared": 1, "enforced": 0, "exercised": 1},
+    "boundary_contracts": {"declared": 2, "enforced": 1, "exercised": 2},
+    "observability_discipline": {"declared": 1, "enforced": 1, "exercised": 2},
+    "hardening_loop": {"declared": 3, "enforced": 3, "exercised": 3}
+  },
+  "raw_signals": {
+    "module_grammar": {
+      "scripts_file_count": 129,
+      "scripts_dominant_shape_share": 0.783582,
+      "scripts_template_declared": false,
+      "src_wea_cli_file_count": 20,
+      "src_wea_cli_dominant_shape_share": 0.65,
+      "src_wea_cli_template_declared": false,
+      "method": "empirical_dominant_shape",
+      "dominant_shape_definition": {
+        "scripts": ["shebang", "module_docstring", "future_annotations", "main_function", "main_guard"],
+        "src_wea_cli": ["module_docstring", "future_annotations", "no_shebang"]
+      }
+    }
+  },
+  "outcomes": {
+    "first_pass_acceptance_rate": null,
+    "resubmission_depth": null,
+    "scope_drift_rate": null,
+    "protocol_break_rate": null,
+    "post_accept_correction_rate": null,
+    "gauntlet_redundancy_yield": null,
+    "new_file_conformity_rate": null,
+    "task_contract_completeness_rate": null
+  },
+  "notes": [
+    "Baseline checkpoint at c07e079 (2026-04-23).",
+    "module_grammar uses empirical dominant shape — no zone templates declared at this SHA.",
+    "contract_surface and enforcement_surface are saturated on Phase 1 checks.",
+    "module_grammar is the clearest remaining gap: strong empirical uniformity in both zones but no declared template surface.",
+    "Outcome metrics not yet populated; cohort extractor not implemented in v0.",
+    "scripts/ dominant shape: shebang + module_docstring + future_annotations + main() + main_guard.",
+    "src/wea_cli/ dominant shape: module_docstring + future_annotations + no shebang."
+  ]
+}

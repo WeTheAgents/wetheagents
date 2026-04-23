@@ -1,0 +1,45 @@
+{
+  "zone": "src_wea_cli",
+  "version": "1",
+  "path_pattern": "src/wea_cli/*.py",
+  "excludes": ["__init__.py"],
+  "required_elements": [
+    {
+      "id": "module_docstring",
+      "description": "Module-level docstring as the first statement",
+      "check": "has_module_docstring"
+    },
+    {
+      "id": "future_annotations",
+      "description": "from __future__ import annotations",
+      "check": "has_future_annotations"
+    }
+  ],
+  "forbidden_elements": [
+    {
+      "id": "shebang",
+      "description": "Shebang lines are not used in library modules",
+      "check": "starts_with_shebang"
+    }
+  ],
+  "optional_elements": [
+    {
+      "id": "module_constants",
+      "description": "Module-level constants in ALL_CAPS"
+    },
+    {
+      "id": "public_all",
+      "description": "__all__ for explicit public surface declaration"
+    },
+    {
+      "id": "type_protocol",
+      "description": "typing.Protocol or TypedDict for interface contracts"
+    }
+  ],
+  "conventions": {
+    "future_import": "from __future__ import annotations",
+    "docstring_style": "One-liner module description, no shebang",
+    "no_main_guard": "Library modules do not use if __name__ == '__main__'"
+  },
+  "notes": "Declared 2026-04-23. Empirical dominant-shape share at baseline SHA c07e079 was 0.65."
+}

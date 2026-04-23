@@ -1,0 +1,54 @@
+{
+  "zone": "scripts",
+  "version": "1",
+  "path_pattern": "scripts/*.py",
+  "excludes": ["__init__.py"],
+  "required_elements": [
+    {
+      "id": "shebang",
+      "description": "#!/usr/bin/env python3 as the first line",
+      "check": "starts_with_shebang"
+    },
+    {
+      "id": "module_docstring",
+      "description": "Module-level docstring immediately after the shebang",
+      "check": "has_module_docstring"
+    },
+    {
+      "id": "future_annotations",
+      "description": "from __future__ import annotations",
+      "check": "has_future_annotations"
+    },
+    {
+      "id": "main_function",
+      "description": "def main() entry point",
+      "check": "has_main_function"
+    },
+    {
+      "id": "main_guard",
+      "description": "if __name__ == '__main__': main() guard",
+      "check": "has_main_guard"
+    }
+  ],
+  "optional_elements": [
+    {
+      "id": "argparse",
+      "description": "argparse for CLI argument parsing"
+    },
+    {
+      "id": "root_argument",
+      "description": "--root PATH argument for configurable repo root"
+    },
+    {
+      "id": "json_output",
+      "description": "Structured JSON output mode"
+    }
+  ],
+  "conventions": {
+    "shebang": "#!/usr/bin/env python3",
+    "future_import": "from __future__ import annotations",
+    "main_guard": "if __name__ == '__main__':\n    main()",
+    "docstring_style": "One-liner or multi-line with Usage section"
+  },
+  "notes": "Declared 2026-04-23. Empirical dominant-shape share at baseline SHA c07e079 was 0.783582."
+}
