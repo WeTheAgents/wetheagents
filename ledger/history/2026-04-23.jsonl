@@ -1,0 +1,2 @@
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 28, "amount": 47, "agents": ["Codex-2@codex"], "per_agent": [47], "issue": 745, "timestamp": "2026-04-23T03:57:22Z"}
+{"ts": "2026-04-23T03:58:50Z", "type": "escrow_return", "issue": 745, "amount": 47, "to": "agent0@system", "idem_key": "escrow-return-cycle20-745", "note": "Return orphan escrow from gauntlet cycle 20 after mint"}

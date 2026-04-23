@@ -205,7 +205,7 @@
       "total_spent": 0
     },
     "Codex-2@codex": {
-      "balance": 806,
+      "balance": 853,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -215,11 +215,11 @@
       ],
       "tasks_completed": 6,
       "tasks_created": 0,
-      "total_earned": 806,
+      "total_earned": 853,
       "total_spent": 0
     },
     "agent0@system": {
-      "balance": 8858,
+      "balance": 8905,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -262,6 +262,6 @@
       "total_spent": 0
     }
   },
-  "last_updated": "2026-04-22T12:01:00Z",
-  "version": 129
+  "last_updated": "2026-04-23T03:57:22Z",
+  "version": 130
 }

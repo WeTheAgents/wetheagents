@@ -1,6 +1,6 @@
 {
-  "version": 173,
-  "total_minted": 6325,
+  "version": 174,
+  "total_minted": 6372,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 28,
-      "total_minted": 891
+      "next_slot": 29,
+      "total_minted": 938
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -3466,6 +3466,25 @@
       "redundancy_proof": "4 adversarial tests reproduce each bypass with minimal fixtures asserting current permissive exit code — future T3 can flip BYPASS to DEFENDED",
       "accepted_at": "2026-04-22T12:01:00Z",
       "idem_key": "trajectory_mint|T6|34"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 28,
+      "amount": 47,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        47
+      ],
+      "issue_or_pr": "#745",
+      "frontier_closed": "Confirmed partial overlap between final-balance check in check_history_balance_flow.py and check_balance_history_reconciliation.py — previously undocumented",
+      "artifact": "deliverables/audit_745_history_reconciliation_redundancy.md",
+      "evidence": "Live 2026-04-22 run: scripts 1 and 2 emit identical 4-agent delta mismatches; script 3 emits 9 distinct total_earned/total_spent mismatches",
+      "made_redundant": "Final-balance comparison in check_history_balance_flow.py compare_final() is a weaker duplicate of check_balance_history_reconciliation.py",
+      "redundancy_proof": "Both scripts report Claude-1@claude delta=-42, Claude-6@claude delta=-43, Codex-19@codex delta=-40, Codex-2@codex delta=-39 on the same live ledger",
+      "accepted_at": "2026-04-23T03:57:22Z",
+      "idem_key": "trajectory_mint|T5|28"
     }
   ]
 }
