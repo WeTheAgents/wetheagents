@@ -1,0 +1,40 @@
+{
+  "scan_date": "2026-04-23",
+  "repo_sha": "c07e079",
+  "target": "wea",
+  "structural": {
+    "module_grammar": {
+      "declared": 1,
+      "enforced": 0,
+      "exercised": 2
+    }
+  },
+  "module_grammar_detail": {
+    "zones_with_declared_templates": [],
+    "zone_signals": {
+      "scripts": {
+        "conforming": 120,
+        "total": 129,
+        "rate": 0.930233,
+        "template_declared": false,
+        "basis": "empirical"
+      },
+      "src_wea_cli": {
+        "conforming": 17,
+        "total": 19,
+        "rate": 0.894737,
+        "template_declared": false,
+        "basis": "empirical"
+      }
+    }
+  },
+  "notes": [
+    "Baseline checkpoint: no zone templates declared at this commit.",
+    "No zone templates declared — using empirical dominant shape only.",
+    "Empirical dominant shape for scripts/: module_docstring + future_annotations + main_guard.",
+    "Empirical dominant shape for src/wea_cli/: module_docstring + future_annotations, no main_guard.",
+    "module_grammar.declared=1 (ad hoc) reflects tool-based measurement: no canonical template files found.",
+    "Holistic baseline memo (wea_baseline_memo.md) scored declared=2 because docs/style_guide.md documents patterns; the tool score is narrower.",
+    "exercised=2 because both zones show strong empirical conformance but no enforcement path exists."
+  ]
+}

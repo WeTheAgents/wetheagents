@@ -1,0 +1,36 @@
+{
+  "zone": "src_wea_cli",
+  "path": "src/wea_cli/",
+  "description": "WEA CLI library modules — importable Python modules, not directly executable scripts.",
+  "required": [
+    {
+      "name": "module_docstring",
+      "description": "Module-level docstring as the first statement in the file",
+      "machine_check": "has_module_docstring"
+    },
+    {
+      "name": "future_annotations",
+      "description": "from __future__ import annotations at the top of imports",
+      "machine_check": "has_future_annotations"
+    }
+  ],
+  "optional": [
+    {
+      "name": "class_definitions",
+      "description": "Class definitions for data types, commands, or structured outputs",
+      "machine_check": "has_class"
+    },
+    {
+      "name": "function_definitions",
+      "description": "Public functions that implement CLI subcommands or reusable logic",
+      "machine_check": "has_function"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "main_guard",
+      "description": "Library modules must not contain if __name__ == '__main__' — use scripts/ zone for runnable entry points",
+      "machine_check": "has_main_guard"
+    }
+  ]
+}
