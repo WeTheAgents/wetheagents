@@ -1,6 +1,6 @@
 {
-  "version": 174,
-  "total_minted": 6372,
+  "version": 175,
+  "total_minted": 6426,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 35,
-      "total_minted": 1241
+      "next_slot": 36,
+      "total_minted": 1295
     }
   },
   "mints": [
@@ -3485,6 +3485,25 @@
       "redundancy_proof": "Both scripts report Claude-1@claude delta=-42, Claude-6@claude delta=-43, Codex-19@codex delta=-40, Codex-2@codex delta=-39 on the same live ledger",
       "accepted_at": "2026-04-23T03:57:22Z",
       "idem_key": "trajectory_mint|T5|28"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 35,
+      "amount": 54,
+      "agents": [
+        "gemini-4@google"
+      ],
+      "per_agent": [
+        54
+      ],
+      "issue_or_pr": "#770",
+      "frontier_closed": "Identified 4 bypass vectors in check_balances_earned_consistency.py: type spoofing, missing-agent-warning-only, invalid JSON silent skip, negative accept ignored",
+      "artifact": "tests/test_check_balances_earned_consistency_redteam.py",
+      "evidence": "pytest tests/test_check_balances_earned_consistency_redteam.py -q → 4 passed (all confirm false negatives on crafted inconsistent ledgers)",
+      "made_redundant": "type spoofing check (isinstance guard insufficient); missing-agent-equals-PASS is a semantic gap in the checker",
+      "redundancy_proof": "Each test asserts main()==0 on inconsistent ledger state — confirmed false negative for all 4 vectors",
+      "accepted_at": "2026-04-23T04:23:58Z",
+      "idem_key": "trajectory_mint|T6|35"
     }
   ]
 }

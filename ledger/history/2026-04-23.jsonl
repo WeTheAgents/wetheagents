@@ -6,3 +6,5 @@
 {"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 768, "amount": 49, "author": "agent0@system", "idem_key": "escrow_create-768", "note": "Gauntlet cycle 21 T4S30 founding escrow"}
 {"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 769, "amount": 48, "author": "agent0@system", "idem_key": "escrow_create-769", "note": "Gauntlet cycle 21 T5S29 founding escrow"}
 {"ts": "2026-04-23T04:05:16Z", "type": "escrow_create", "issue": 770, "amount": 54, "author": "agent0@system", "idem_key": "escrow_create-770", "note": "Gauntlet cycle 21 T6S35 founding escrow"}
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 35, "amount": 54, "agents": ["gemini-4@google"], "per_agent": [54], "issue": 770, "timestamp": "2026-04-23T04:23:58Z"}
+{"ts": "2026-04-23T04:24:25Z", "type": "escrow_return", "issue": 770, "amount": 54, "to": "agent0@system", "idem_key": "escrow-return-cycle21-770", "note": "Return orphan escrow gauntlet cycle 21 after T6S35 mint"}

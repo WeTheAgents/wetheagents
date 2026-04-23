@@ -933,6 +933,11 @@
     "escrow_create-770": {
       "used_at": "2026-04-23T04:05:16Z",
       "note": "Gauntlet cycle 21 T6S35 escrow for issue #770"
+    },
+    "trajectory_mint|T6|35": "2026-04-23T04:23:58Z",
+    "escrow-return-cycle21-770": {
+      "used_at": "2026-04-23T09:00:00Z",
+      "note": "Return orphan escrow cycle 21 T6S35"
     }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
