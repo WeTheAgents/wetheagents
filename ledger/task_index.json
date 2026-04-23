@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "tasks": {
     "70": {
       "title": "[Task] Script: check_claim_ttl.py вЂ” detect expired claims",
@@ -1570,7 +1570,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "paid",
       "created_at": "2026-04-23T17:00:00Z",
       "body_hash_raw": null,
       "body_hash_semantic": null,
@@ -1586,7 +1586,7 @@
       "winners": 1,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "paid",
       "created_at": "2026-04-23T17:00:00Z",
       "body_hash_raw": null,
       "body_hash_semantic": null,

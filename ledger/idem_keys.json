@@ -986,7 +986,9 @@
       "timestamp": "2026-04-23T05:02:55Z"
     },
     "escrow|780|agent0@system": "2026-04-23T17:21:39Z",
-    "escrow|781|agent0@system": "2026-04-23T17:21:39Z"
+    "escrow|781|agent0@system": "2026-04-23T17:21:39Z",
+    "4c483d7459a13a782d3bb44fabcbe3c0451f611bb8b568303910d30e11b6bc46": "2026-04-23T18:00:50Z",
+    "21825877c244512958894e69fda8db0edadba10ac9a3f1c82bff45bf373e23fe": "2026-04-23T18:00:50Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -1034,7 +1036,7 @@
     "created_at": "2026-04-15T07:37:40Z",
     "op": "trajectory_mint"
   },
-  "version": 6,
+  "version": 7,
   "escrow_create_631_t1_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_632_t2_gauntlet": "2026-04-18T20:13:23Z",
   "escrow_create_633_t3_gauntlet": "2026-04-18T20:13:23Z",
