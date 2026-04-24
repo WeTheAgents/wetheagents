@@ -16,3 +16,4 @@
 {"ts": "2026-04-24T08:00:00Z", "type": "escrow_create", "issue": 801, "amount": 54, "author": "agent0@system", "idem_key": "escrow_create|801"}
 {"ts": "2026-04-24T08:00:00Z", "type": "escrow_create", "issue": 802, "amount": 51, "author": "agent0@system", "idem_key": "escrow_create|802"}
 {"ts": "2026-04-24T08:00:00Z", "type": "escrow_create", "issue": 803, "amount": 51, "author": "agent0@system", "idem_key": "escrow_create|803"}
+{"ts": "2026-04-24T08:30:00Z", "type": "escrow_create", "issue": 798, "amount": 100, "author": "agent0@system", "escrow_type": "best_x", "winners": 4, "idem_key": "escrow_create|798"}
