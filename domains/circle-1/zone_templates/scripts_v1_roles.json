@@ -1,0 +1,127 @@
+{
+  "zone": "scripts",
+  "path": "scripts/",
+  "version": "v1",
+  "description": "Role-aware V1 grammar for scripts/ zone. Extends the one-shape template with three role families.",
+  "roles": {
+    "runnable_entrypoint": {
+      "description": "Has __main__ guard; designed to be executed directly from the command line.",
+      "required": [
+        {
+          "name": "has_main_guard",
+          "machine_check": "has_main_guard",
+          "description": "if __name__ == '__main__' entry point so the script is runnable"
+        }
+      ],
+      "optional": [
+        {
+          "name": "has_shebang",
+          "machine_check": "has_shebang",
+          "description": "#!/usr/bin/env python3 as the very first line"
+        },
+        {
+          "name": "has_argparse",
+          "machine_check": "has_argparse",
+          "description": "argparse.ArgumentParser for structured CLI argument handling"
+        }
+      ],
+      "excluded": []
+    },
+    "import_safe_support": {
+      "description": "Importable library code: no __main__ guard, no top-level side effects on import, has functions or classes.",
+      "required": [],
+      "optional": [
+        {
+          "name": "has_module_docstring",
+          "machine_check": "has_module_docstring",
+          "description": "Module-level docstring describing the library"
+        },
+        {
+          "name": "has_future_annotations",
+          "machine_check": "has_future_annotations",
+          "description": "from __future__ import annotations at the top of imports"
+        }
+      ],
+      "excluded": [
+        {
+          "name": "no_main_guard",
+          "machine_check": "has_main_guard",
+          "description": "Must NOT have an __main__ guard (that would be runnable_entrypoint)"
+        },
+        {
+          "name": "no_import_side_effect",
+          "machine_check": "has_import_side_effect",
+          "description": "Must NOT have top-level side effects (sys.path mutations, bare calls)"
+        }
+      ],
+      "constraints": [
+        {
+          "expression": "has_function OR has_class",
+          "description": "Must define at least one function or class (otherwise: declaration_module)"
+        }
+      ]
+    },
+    "declaration_module": {
+      "description": "Primarily constants, tables, or schema-like data. No behavior functions. No __main__ guard.",
+      "required": [],
+      "optional": [
+        {
+          "name": "has_module_docstring",
+          "machine_check": "has_module_docstring",
+          "description": "Module-level docstring describing the data"
+        },
+        {
+          "name": "has_future_annotations",
+          "machine_check": "has_future_annotations",
+          "description": "from __future__ import annotations at the top of imports"
+        }
+      ],
+      "excluded": [
+        {
+          "name": "no_main_guard",
+          "machine_check": "has_main_guard",
+          "description": "Must NOT have an __main__ guard"
+        },
+        {
+          "name": "no_import_side_effect",
+          "machine_check": "has_import_side_effect",
+          "description": "Must NOT have top-level side effects"
+        },
+        {
+          "name": "no_functions",
+          "machine_check": "has_function",
+          "description": "Must NOT define functions (otherwise: import_safe_support)"
+        },
+        {
+          "name": "no_classes",
+          "machine_check": "has_class",
+          "description": "Must NOT define classes (otherwise: import_safe_support)"
+        }
+      ]
+    },
+    "unclassified": {
+      "description": "Does not cleanly fit any role family. Review manually. NOT a catch-all success bucket — only files with genuine ambiguity or import side effects land here.",
+      "trigger_conditions": [
+        "No __main__ guard AND has top-level side effects (sys.path mutation or bare function call)"
+      ]
+    }
+  },
+  "boundaries": [
+    {
+      "name": "main_guard",
+      "predicate": "has_main_guard",
+      "description": "Primary boundary. Separates runnable_entrypoint from all importable families."
+    },
+    {
+      "name": "import_safety",
+      "predicate": "has_import_side_effect",
+      "sub_predicates": ["has_sys_path_mutation", "has_top_level_call"],
+      "description": "Non-trivial boundary. A file that modifies sys.path or executes bare calls at module top level is not safely importable; it cannot be import_safe_support or declaration_module."
+    },
+    {
+      "name": "behavior_vs_data",
+      "predicate": "has_function OR has_class",
+      "description": "Separates import_safe_support (has behavior) from declaration_module (data only)."
+    }
+  ]
+}

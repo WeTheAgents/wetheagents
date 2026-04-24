@@ -1,0 +1,2967 @@
+{
+  "scan_date": "2026-04-24",
+  "root": "D:\\GitHub\\wetheagents-claude-1",
+  "summary": {
+    "total": 135,
+    "by_role": {
+      "runnable_entrypoint": 127,
+      "import_safe_support": 6,
+      "declaration_module": 1,
+      "unclassified": 1
+    }
+  },
+  "files": [
+    {
+      "file": "scripts\\agent_lock.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 15,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\audit_branch_entropy.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": false,
+        "has_future_annotations": false,
+        "has_main_guard": true,
+        "has_shebang": false,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\audit_entropy.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\auth_proxy.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 14,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\auto_triage.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 14,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\censor_diary.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_agent_balances_schema.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_agent_payment_precedes_registration.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_agent_registry_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_agent_slot_integrity.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_balance_history_reconciliation.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_balances_earned_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_branch_entropy.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_claim_before_payment.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_claim_chain_integrity.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 19,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_claim_ttl.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_concurrent_claims.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_cross_file_integrity.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 14,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_dead_branch_links.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_diary_incidents.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_doc_sync.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_escrow_age_report.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_escrow_idem_coverage.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_escrow_lifecycle_integrity.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 12,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_escrow_return_coverage.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_escrow_return_validity.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_escrow_schema.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_escrow_task_reward_match.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_gauntlet_pr_fields.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_gauntlet_script_coverage.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_genome_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_genome_meta_version_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 22,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_genome_mutation_provenance.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 15,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_genome_naming.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_genome_snapshot_freshness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 13,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_genome_trailer.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_balance_flow.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_chronological_order.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 23,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_escrow_solvency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 15,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_event_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_event_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_event_type_schema.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_file_gaps.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_history_reconciliation.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_history_schema.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 12,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_key_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_key_format.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": false,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_key_format_integrity.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_key_format_uniformity.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_key_timeline.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 21,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_idem_keys_schema.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_incident_correlator.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_invariant.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_invariant_history_replay.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_issue_ledger_sync.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_ledger_schema.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_mint_agents_registered.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_mint_record_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_no_duplicate_payments.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_orphan_escrows.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": false,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_orphan_genome_dirs.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 11,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_orphan_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 13,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_orphan_scripts.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_payment_amount_matches_escrow.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_payment_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_payment_escrow_amount_match.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_payment_has_prior_escrow.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_per_agent_balance_floor.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_pr_scope.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_precommit_coverage.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_reject_before_payment.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_script_test_coverage.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_single_escrow_per_issue.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 11,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_stale_escrows.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_stale_task_claims.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_t6_team_enforcement.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_task_escrow_sync.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_task_format.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 15,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_task_index_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_task_index_schema.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_task_spec_completeness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_task_status_history_sync.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_tasks_completed_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_tasks_created_vs_escrow_creates.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_total_earned_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_total_earned_vs_payment_history.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_total_spent_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_total_spent_vs_escrow_creates.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_trajectory_history_sync.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\check_trajectory_mint_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_trajectory_mint_timeline.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_trajectory_slot_uniqueness.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_trajectory_total_consistency.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_unused_idem_key_namespaces.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_version_drift.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 11,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\check_zombie_genomes.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\circle1\\role_grammar.py",
+      "role": "import_safe_support",
+      "matched_predicates": [
+        "no_main_guard",
+        "no_import_side_effect",
+        "has_functions_or_classes"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\circle1\\scripts_inventory.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": false,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\circle1\\task_contract_extractor.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\circle1\\zone_grammar.py",
+      "role": "import_safe_support",
+      "matched_predicates": [
+        "no_main_guard",
+        "no_import_side_effect",
+        "has_functions_or_classes"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\circuit_breaker.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\claim_fast.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\cleanup_branches.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 25,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\cleanup_worktrees.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\code_survival.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": false,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 15,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\create_gauntlet_escrows_cycle16.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": true,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\create_gauntlet_escrows_cycle17.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": true,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\create_gauntlet_escrows_cycle19.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": true,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\duel_randomizer.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 2,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\economy_constants.py",
+      "role": "declaration_module",
+      "matched_predicates": [
+        "no_main_guard",
+        "no_import_side_effect",
+        "no_functions_no_classes"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": false,
+        "function_count": 0,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\economy_report.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 1,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\genome_guard.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\genome_log.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\genome_self_audit.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 9,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\genome_snapshot.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\io_helpers.py",
+      "role": "import_safe_support",
+      "matched_predicates": [
+        "no_main_guard",
+        "no_import_side_effect",
+        "has_functions_or_classes"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\label_paid.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 7,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\ledger_health_report.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\ledger_ops.py",
+      "role": "import_safe_support",
+      "matched_predicates": [
+        "no_main_guard",
+        "no_import_side_effect",
+        "has_functions_or_classes"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 10,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\pipeline_parser.py",
+      "role": "unclassified",
+      "matched_predicates": [
+        "no_main_guard"
+      ],
+      "failure_reasons": [
+        "has_sys_path_mutation: mutates sys.path at module level"
+      ],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 16,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\post_ecosystem_digest.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 12,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\process_pending.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 8,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\reconcile_batch_a.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 12,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\reconcile_counters.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 3,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\run_all_checks.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 4,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\score_repo.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 2,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\seed_economy.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 6,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\tide.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 41,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": true,
+        "has_import_side_effect": true
+      }
+    },
+    {
+      "file": "scripts\\tide_ops.py",
+      "role": "import_safe_support",
+      "matched_predicates": [
+        "no_main_guard",
+        "no_import_side_effect",
+        "has_functions_or_classes"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\tide_parser.py",
+      "role": "import_safe_support",
+      "matched_predicates": [
+        "no_main_guard",
+        "no_import_side_effect",
+        "has_functions_or_classes"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": false,
+        "has_shebang": false,
+        "has_argparse": false,
+        "has_class": true,
+        "has_function": true,
+        "function_count": 5,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\validate_submission.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": false,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 2,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    },
+    {
+      "file": "scripts\\wea_report.py",
+      "role": "runnable_entrypoint",
+      "matched_predicates": [
+        "has_main_guard",
+        "has_argparse"
+      ],
+      "failure_reasons": [],
+      "features": {
+        "has_module_docstring": true,
+        "has_future_annotations": true,
+        "has_main_guard": true,
+        "has_shebang": true,
+        "has_argparse": true,
+        "has_class": false,
+        "has_function": true,
+        "function_count": 12,
+        "has_top_level_call": false,
+        "has_sys_path_mutation": false,
+        "has_import_side_effect": false
+      }
+    }
+  ]
+}
