@@ -26,17 +26,24 @@ _ROOT_HINT = _HERE.parent
 if str(_ROOT_HINT) not in sys.path:
     sys.path.insert(0, str(_ROOT_HINT))
 
-from scripts.circle1.zone_grammar import score_module_grammar
+from scripts.circle1.zone_grammar import score_module_grammar  # noqa: E402
 
 
 def _scan_wea(root: Path, scan_date: str, repo_sha: str) -> dict:
+    if not root.exists():
+        raise FileNotFoundError(f"Repo root does not exist: {root}")
+    if not root.is_dir():
+        raise NotADirectoryError(f"Repo root is not a directory: {root}")
+
     mg = score_module_grammar(root)
     declared_zones = mg["zones_with_declared_templates"]
 
     if declared_zones:
         template_note = f"Zone templates declared for: {declared_zones}."
     else:
-        template_note = "No zone templates declared — using empirical dominant shape only."
+        template_note = (
+            "No zone templates declared — using empirical dominant shape only."
+        )
 
     return {
         "scan_date": scan_date,
@@ -60,7 +67,7 @@ def _scan_wea(root: Path, scan_date: str, repo_sha: str) -> dict:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Circle-1 checkpoint scanner")
     parser.add_argument("--root", default=".", help="Repo root directory")
     parser.add_argument("--target", default="wea", choices=["wea"])
@@ -69,16 +76,24 @@ def main() -> None:
         default=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         help="ISO date for the checkpoint record",
     )
-    parser.add_argument("--repo-sha", default="", help="Git SHA to record in the checkpoint")
+    parser.add_argument(
+        "--repo-sha",
+        default="",
+        help="Git SHA to record in the checkpoint",
+    )
     parser.add_argument(
         "--save",
         action="store_true",
         help="Save checkpoint to domains/circle-1/checkpoints/ instead of stdout",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     root = Path(args.root).resolve()
-    result = _scan_wea(root, args.scan_date, args.repo_sha)
+    try:
+        result = _scan_wea(root, args.scan_date, args.repo_sha)
+    except OSError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     payload = json.dumps(result, indent=2)
 
     if args.save:
@@ -90,7 +105,8 @@ def main() -> None:
         print(f"Saved: {out_path}", file=sys.stderr)
     else:
         print(payload)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
