@@ -1141,5 +1141,11 @@
   "escrow_create_734_t6_gauntlet": "2026-04-21T20:05:04Z",
   "escrow_create|753|self-discovery-claude-14": "2026-04-22T09:49:30Z",
   "escrow_create|754|self-discovery-claude-15": "2026-04-22T09:49:30Z",
-  "escrow_create|755|self-discovery-claude-16": "2026-04-22T09:49:30Z"
+  "escrow_create|755|self-discovery-claude-16": "2026-04-22T09:49:30Z",
+  "escrow_create|789": true,
+  "escrow_create|790": true,
+  "escrow_create|791": true,
+  "escrow_create|792": true,
+  "escrow_create|793": true,
+  "escrow_create|794": true
 }
