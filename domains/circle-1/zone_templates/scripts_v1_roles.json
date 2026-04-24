@@ -1,0 +1,80 @@
+{
+  "zone": "scripts",
+  "version": "v1_roles",
+  "description": "Role-aware grammar for scripts/ with 3 role families + unclassified",
+  "grammar_module": "scripts/circle1/role_grammar.py",
+  "roles": {
+    "runnable_entrypoint": {
+      "description": "Has __main__ guard; callable directly as a CLI script",
+      "canonical_examples": ["check_invariant.py", "score_repo.py", "tide.py"],
+      "required_predicates": ["has_ast_main_guard"],
+      "excluded_predicates": [],
+      "adversarial_note": "Text search for 'if __name__' matches inside string literals and comments. AST restricts detection to actual module-level If nodes — the only robust approach."
+    },
+    "import_safe_support": {
+      "description": "Importable library; no top-level side effects; provides reusable functions or classes",
+      "canonical_examples": ["io_helpers.py", "tide_ops.py", "tide_parser.py", "ledger_ops.py"],
+      "required_predicates": [
+        "no_ast_main_guard",
+        "has_functions_or_classes",
+        "no_toplevel_bare_calls",
+        "no_module_level_sys_path_mutation"
+      ],
+      "excluded_predicates": ["has_ast_main_guard"],
+      "adversarial_notes": [
+        "Bypass closed: sys.path.insert inside an if-guard is not a bare Expr(Call) and would be missed by bare-call detection alone; we scan all module-level control flow for sys.path mutations.",
+        "Known limitation: any 'import X' at module level may execute X's side effects at import time; detecting this requires knowing X's implementation — not statically possible."
+      ]
+    },
+    "declaration_module": {
+      "description": "Primarily data (constants, tables, schemas); no behavior or control flow beyond TYPE_CHECKING imports",
+      "canonical_examples": ["economy_constants.py"],
+      "required_predicates": [
+        "no_ast_main_guard",
+        "has_only_data_body"
+      ],
+      "excluded_predicates": ["has_ast_main_guard"],
+      "adversarial_notes": [
+        "Bypass closed: a file with only named assignments could still contain an if-block with a non-import call body (conditional behavior). We reject any module-level ast.If whose body is not purely imports, except TYPE_CHECKING guards.",
+        "Known limitation: assignments like X = os.getenv('VAR') contain a Call in the RHS but pass the data-body check. Detecting all side-effectful RHS expressions requires dataflow analysis beyond static AST inspection."
+      ]
+    },
+    "unclassified": {
+      "description": "Does not fit cleanly into any role family; always carries an explicit reason",
+      "canonical_examples": ["pipeline_parser.py"],
+      "required_predicates": [],
+      "note": "NOT a catch-all. Every unclassified result has a specific reason string documenting why no role applied."
+    }
+  },
+  "predicates": {
+    "has_ast_main_guard": {
+      "description": "AST-detected if __name__ == '__main__' directly in module.body",
+      "implementation": "ast.If at module.body level where test is ast.Compare(ast.Name('__name__'), ast.Eq(), ast.Constant('__main__'))",
+      "bypass_closed": "Text search matches inside string literals; AST does not."
+    },
+    "has_functions_or_classes": {
+      "description": "File contains at least one FunctionDef, AsyncFunctionDef, or ClassDef",
+      "implementation": "ast.walk finds any of: ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef"
+    },
+    "no_toplevel_bare_calls": {
+      "description": "No ast.Expr(ast.Call) directly in module.body (no calls made purely for side effects)",
+      "implementation": "module.body has no Expr nodes whose value is a Call"
+    },
+    "no_module_level_sys_path_mutation": {
+      "description": "No sys.path.insert/append/remove/pop anywhere in module-level code (excluding function/class bodies)",
+      "implementation": "ast.walk over module.body nodes (skipping FunctionDef/ClassDef bodies) finds no _is_sys_path_mutating_call matches",
+      "bypass_closed": "sys.path mutation inside an if-guard is not a bare call; bare-call check alone would miss it."
+    },
+    "has_only_data_body": {
+      "description": "Module body contains only imports, assignments, string constants, and TYPE_CHECKING-guarded ifs",
+      "implementation": "All module.body nodes are: Import | ImportFrom | Assign | AnnAssign | Expr(Constant) | If(TYPE_CHECKING) | If(imports-only body)",
+      "bypass_closed": "Non-trivial If blocks with non-import bodies are rejected — catches config files with conditional behavior."
+    }
+  },
+  "classification_order": [
+    "runnable_entrypoint",
+    "declaration_module",
+    "import_safe_support",
+    "unclassified"
+  ]
+}
