@@ -1,0 +1,58 @@
+{
+  "zone": "scripts",
+  "path": "scripts/",
+  "version": "1.0.0",
+  "description": "Role grammar v1 for scripts/ zone files.",
+  "roles": [
+    {
+      "name": "runnable_entrypoint",
+      "description": "File exposes a direct executable entrypoint via __main__ guard.",
+      "required": [
+        {
+          "name": "main entrypoint",
+          "machine_check": "has_main_entrypoint"
+        }
+      ],
+      "forbidden": []
+    },
+    {
+      "name": "declaration_module",
+      "description": "Mostly constants, tables, and schema declarations with minimal behavior.",
+      "required": [
+        {
+          "name": "declaration shape",
+          "machine_check": "is_declaration_shape"
+        },
+        {
+          "name": "no main",
+          "machine_check": "has_no_main_guard"
+        }
+      ],
+      "forbidden": []
+    },
+    {
+      "name": "import_safe_support",
+      "description": "Reusable importable support module without import-time side effects.",
+      "required": [
+        {
+          "name": "import-safe",
+          "machine_check": "is_import_safe"
+        },
+        {
+          "name": "has behavior",
+          "machine_check": "has_function_or_class_defs"
+        },
+        {
+          "name": "no main",
+          "machine_check": "has_no_main_guard"
+        }
+      ],
+      "forbidden": [
+        {
+          "name": "main entrypoint",
+          "machine_check": "has_main_entrypoint"
+        }
+      ]
+    }
+  ]
+}
