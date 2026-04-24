@@ -3,14 +3,16 @@
 Verifies that:
 - detect_zone_templates() returns None when no templates exist
 - detect_zone_templates() returns Paths when templates are declared
-- module_grammar declared score is 1 (ad hoc) without templates, 3 (repeatable) with both
-- The actual WEA repo has templates declared for both session-1 zones after task #780
+- module_grammar declared score moves from 1 (ad hoc) to 3 (repeatable)
+- the live WEA repo exposes declared templates for both session-1 zones
 """
 
 from __future__ import annotations
 
 import json
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -22,7 +24,6 @@ from scripts.circle1.zone_grammar import (
     file_features,
     score_module_grammar,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -196,7 +197,10 @@ class TestConformanceFromFixture:
     def test_script_missing_main_guard_fails(self, tmp_path):
         """A script without main guard does not conform to scripts template."""
         repo = _make_fixture_repo(tmp_path)
-        bad_script = '"""Script without main guard."""\n\nfrom __future__ import annotations\n'
+        bad_script = (
+            '"""Script without main guard."""\n\n'
+            "from __future__ import annotations\n"
+        )
         (tmp_path / "scripts" / "bad.py").write_text(bad_script, encoding="utf-8")
         _write_templates(repo)
 
@@ -219,6 +223,23 @@ class TestConformanceFromFixture:
 
         zone_data = compute_zone_conformance(repo, "src_wea_cli", _WEA_CLI_TEMPLATE)
         assert zone_data["conforming"] < zone_data["total"]
+
+    def test_recursive_python_files_are_included_in_zone_census(self, tmp_path):
+        """Nested Python files inside a zone must count toward conformance totals."""
+        repo = _make_fixture_repo(tmp_path)
+        nested_dir = repo / "scripts" / "circle1"
+        nested_dir.mkdir()
+        (nested_dir / "nested.py").write_text(
+            '"""Nested helper without main guard."""\n\n'
+            "from __future__ import annotations\n",
+            encoding="utf-8",
+        )
+        _write_templates(repo)
+
+        zone_data = compute_zone_conformance(repo, "scripts", _SCRIPTS_TEMPLATE)
+        assert zone_data["total"] == 2
+        assert zone_data["conforming"] == 1
+        assert zone_data["rate"] == 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -243,7 +264,11 @@ class TestFileFeatures:
         assert feat["has_shebang"]
 
     def test_library_module_features(self, tmp_path):
-        src = '"""Library module."""\n\nfrom __future__ import annotations\n\ndef fn(): pass\n'
+        src = (
+            '"""Library module."""\n\n'
+            "from __future__ import annotations\n\n"
+            "def fn(): pass\n"
+        )
         p = tmp_path / "lib.py"
         p.write_text(src, encoding="utf-8")
         feat = file_features(p)
@@ -292,8 +317,7 @@ class TestLiveWEARepo:
             )
 
     def test_score_repo_cli_surfaces_template_evidence(self, wea_root):
-        """score_repo._scan_wea output contains declared-template evidence for both zones."""
-        import sys
+        """score_repo._scan_wea surfaces declared-template evidence for both zones."""
         sys.path.insert(0, str(wea_root))
         from scripts.score_repo import _scan_wea
 
@@ -309,3 +333,22 @@ class TestLiveWEARepo:
         notes_text = " ".join(result["notes"])
         assert "scripts" in notes_text
         assert "src_wea_cli" in notes_text
+
+
+class TestScoreRepoCLI:
+    def test_invalid_root_exits_nonzero(self, tmp_path):
+        missing_root = tmp_path / "missing-repo-root"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/score_repo.py",
+                "--root",
+                str(missing_root),
+                "--target",
+                "wea",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert "does not exist" in result.stderr

@@ -83,7 +83,7 @@ def file_features(path: Path) -> dict[str, bool]:
 
 
 def file_conforms(path: Path, template: dict[str, Any]) -> bool:
-    """Return True if a file satisfies all required/excluded constraints in the template."""
+    """Return True when a file satisfies required and excluded template checks."""
     features = file_features(path)
     for item in template.get("required", []):
         check = item.get("machine_check")
@@ -129,7 +129,7 @@ def compute_zone_conformance(
     """
     zone_dir = root / _ZONE_PATHS[zone]
     py_files = [
-        p for p in zone_dir.glob("*.py")
+        p for p in zone_dir.rglob("*.py")
         if p.name != "__init__.py" and p.is_file()
     ]
     total = len(py_files)
