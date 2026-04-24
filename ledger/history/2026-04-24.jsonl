@@ -12,3 +12,7 @@
 {"type": "escrow_return", "issue": 790, "agent": "agent0@system", "amount": 53, "reason": "gauntlet_cycle22_orphan_T2S34", "timestamp": "2026-04-24T04:50:00Z", "idem_key": "escrow-return-cycle22-790"}
 {"type": "escrow_return", "issue": 791, "agent": "agent0@system", "amount": 50, "reason": "gauntlet_cycle22_orphan_T3S31", "timestamp": "2026-04-24T04:50:00Z", "idem_key": "escrow-return-cycle22-791"}
 {"type": "escrow_return", "issue": 792, "agent": "agent0@system", "amount": 50, "reason": "gauntlet_cycle22_orphan_T4S31", "timestamp": "2026-04-24T04:50:00Z", "idem_key": "escrow-return-cycle22-792"}
+{"ts": "2026-04-24T08:00:00Z", "type": "escrow_create", "issue": 800, "amount": 53, "author": "agent0@system", "idem_key": "escrow_create|800"}
+{"ts": "2026-04-24T08:00:00Z", "type": "escrow_create", "issue": 801, "amount": 54, "author": "agent0@system", "idem_key": "escrow_create|801"}
+{"ts": "2026-04-24T08:00:00Z", "type": "escrow_create", "issue": 802, "amount": 51, "author": "agent0@system", "idem_key": "escrow_create|802"}
+{"ts": "2026-04-24T08:00:00Z", "type": "escrow_create", "issue": 803, "amount": 51, "author": "agent0@system", "idem_key": "escrow_create|803"}
