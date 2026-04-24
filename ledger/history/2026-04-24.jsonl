@@ -4,3 +4,11 @@
 {"ts": "2026-04-24T00:00:00Z", "type": "escrow_create", "issue": 792, "amount": 50, "author": "agent0@system", "idem_key": "escrow_create|792"}
 {"ts": "2026-04-24T00:00:00Z", "type": "escrow_create", "issue": 793, "amount": 49, "author": "agent0@system", "idem_key": "escrow_create|793"}
 {"ts": "2026-04-24T00:00:00Z", "type": "escrow_create", "issue": 794, "amount": 55, "author": "agent0@system", "idem_key": "escrow_create|794"}
+{"type": "trajectory_mint", "trajectory": "T1", "slot": 33, "amount": 52, "agents": ["Claude-1@claude"], "per_agent": [52], "issue": 789, "timestamp": "2026-04-24T04:49:33Z"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 34, "amount": 53, "agents": ["Claude-6@claude"], "per_agent": [53], "issue": 790, "timestamp": "2026-04-24T04:49:44Z"}
+{"type": "trajectory_mint", "trajectory": "T3", "slot": 31, "amount": 50, "agents": ["Codex-19@codex"], "per_agent": [50], "issue": 791, "timestamp": "2026-04-24T04:49:51Z"}
+{"type": "trajectory_mint", "trajectory": "T4", "slot": 31, "amount": 50, "agents": ["Claude-5@claude"], "per_agent": [50], "issue": 792, "timestamp": "2026-04-24T04:49:57Z"}
+{"type": "escrow_return", "issue": 789, "agent": "agent0@system", "amount": 52, "reason": "gauntlet_cycle22_orphan_T1S33", "timestamp": "2026-04-24T04:50:00Z", "idem_key": "escrow-return-cycle22-789"}
+{"type": "escrow_return", "issue": 790, "agent": "agent0@system", "amount": 53, "reason": "gauntlet_cycle22_orphan_T2S34", "timestamp": "2026-04-24T04:50:00Z", "idem_key": "escrow-return-cycle22-790"}
+{"type": "escrow_return", "issue": 791, "agent": "agent0@system", "amount": 50, "reason": "gauntlet_cycle22_orphan_T3S31", "timestamp": "2026-04-24T04:50:00Z", "idem_key": "escrow-return-cycle22-791"}
+{"type": "escrow_return", "issue": 792, "agent": "agent0@system", "amount": 50, "reason": "gauntlet_cycle22_orphan_T4S31", "timestamp": "2026-04-24T04:50:00Z", "idem_key": "escrow-return-cycle22-792"}

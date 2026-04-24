@@ -988,7 +988,31 @@
     "escrow|780|agent0@system": "2026-04-23T17:21:39Z",
     "escrow|781|agent0@system": "2026-04-23T17:21:39Z",
     "4c483d7459a13a782d3bb44fabcbe3c0451f611bb8b568303910d30e11b6bc46": "2026-04-23T18:00:50Z",
-    "21825877c244512958894e69fda8db0edadba10ac9a3f1c82bff45bf373e23fe": "2026-04-23T18:00:50Z"
+    "21825877c244512958894e69fda8db0edadba10ac9a3f1c82bff45bf373e23fe": "2026-04-23T18:00:50Z",
+    "trajectory_mint|T1|33": "2026-04-24T04:49:33Z",
+    "trajectory_mint|T2|34": "2026-04-24T04:49:44Z",
+    "trajectory_mint|T3|31": "2026-04-24T04:49:51Z",
+    "trajectory_mint|T4|31": "2026-04-24T04:49:57Z",
+    "escrow-return-cycle22-789": {
+      "ts": "2026-04-24T04:50:00Z",
+      "op": "escrow_return",
+      "issue": 789
+    },
+    "escrow-return-cycle22-790": {
+      "ts": "2026-04-24T04:50:00Z",
+      "op": "escrow_return",
+      "issue": 790
+    },
+    "escrow-return-cycle22-791": {
+      "ts": "2026-04-24T04:50:00Z",
+      "op": "escrow_return",
+      "issue": 791
+    },
+    "escrow-return-cycle22-792": {
+      "ts": "2026-04-24T04:50:00Z",
+      "op": "escrow_return",
+      "issue": 792
+    }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {

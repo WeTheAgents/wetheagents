@@ -1,26 +1,26 @@
 {
-  "version": 180,
-  "total_minted": 6675,
+  "version": 184,
+  "total_minted": 6880,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 33,
-      "total_minted": 1136
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 34,
       "total_minted": 1188
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 35,
+      "total_minted": 1241
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 31,
-      "total_minted": 1035
+      "next_slot": 32,
+      "total_minted": 1085
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 31,
-      "total_minted": 1035
+      "next_slot": 32,
+      "total_minted": 1085
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -3599,6 +3599,82 @@
       "redundancy_proof": "Live output table: scripts 1 and 2 compute identical totals for all 18 stored agents",
       "accepted_at": "2026-04-23T04:31:10Z",
       "idem_key": "trajectory_mint|T5|29"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 33,
+      "amount": 52,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        52
+      ],
+      "issue_or_pr": "#789",
+      "frontier_closed": "Automated slot-uniqueness and slot-13-vacancy invariant enforcement for balances.json",
+      "artifact": "scripts/check_agent_slot_integrity.py (4 checks) + tests/test_check_agent_slot_integrity.py (52 tests)",
+      "evidence": "PR #796 merged; live repo exits 0; script discovered 6 legacy agents with missing slots triggering live balances.json fix",
+      "made_redundant": "Manual balances.json slot audits",
+      "redundancy_proof": "Script caught the live gap (6 missing slots) that was invisible to manual review",
+      "accepted_at": "2026-04-24T04:49:33Z",
+      "idem_key": "trajectory_mint|T1|33"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 34,
+      "amount": 53,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        53
+      ],
+      "issue_or_pr": "#790",
+      "frontier_closed": "Two bypass vectors in check_idem_key_format_integrity.py: unicode homoglyph (Cyrillic U+0430) and whitespace in agent segment pass _has_at() validation",
+      "artifact": "tests/test_check_idem_key_format_integrity_adversarial.py (14 tests, 2 confirmed bypasses)",
+      "evidence": "PR #795 merged; BYPASS-1 (homoglyph) and BYPASS-2 (whitespace) reproducible in test suite",
+      "made_redundant": "Manual inspection for adversarial idem key inputs",
+      "redundancy_proof": "Both bypasses verified via automated tests with exact reproducer inputs",
+      "accepted_at": "2026-04-24T04:49:44Z",
+      "idem_key": "trajectory_mint|T2|34"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 31,
+      "amount": 50,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        50
+      ],
+      "issue_or_pr": "#791",
+      "frontier_closed": "Automated detection of gauntlet founding escrows minted but never returned to agent0; handles 3 history log eras (type/event/op key variants)",
+      "artifact": "scripts/check_escrow_return_coverage.py + tests/test_check_escrow_return_coverage.py (10 tests)",
+      "evidence": "PR #799 merged; live repo PASS (155 with_return, 0 missing); correctly exempts 65 pre-escrow-era mints",
+      "made_redundant": "Manual history scanning for orphan founding escrows post-mint",
+      "redundancy_proof": "Script exits 0 on live repo; pre-era exemption tested; all 3 format eras covered",
+      "accepted_at": "2026-04-24T04:49:51Z",
+      "idem_key": "trajectory_mint|T3|31"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 31,
+      "amount": 50,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        50
+      ],
+      "issue_or_pr": "#792",
+      "frontier_closed": "Six boundary conditions documented for check_history_escrow_solvency.py including 3 genuine spec gaps: zero-amount escrow silently passes, same-timestamp non-determinism, duplicate escrow_return silently ignored",
+      "artifact": "tests/test_check_history_escrow_solvency_boundary.py (16 tests)",
+      "evidence": "PR #797 merged; 3 gaps in Gaps section with reproducible test cases; zero-amount and dedup gaps confirmed",
+      "made_redundant": "Ad-hoc boundary testing of escrow solvency logic",
+      "redundancy_proof": "Zero-amount and dedup gaps reproducible in test suite; same-timestamp ordering confirmed line-order dependent",
+      "accepted_at": "2026-04-24T04:49:57Z",
+      "idem_key": "trajectory_mint|T4|31"
     }
   ]
 }
