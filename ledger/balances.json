@@ -132,7 +132,8 @@
       "tasks_completed": 8,
       "tasks_created": 0,
       "total_earned": 1429,
-      "total_spent": 0
+      "total_spent": 0,
+      "slot": "1"
     },
     "Claude-5@claude": {
       "balance": 1036,
@@ -146,7 +147,8 @@
       "tasks_completed": 5,
       "tasks_created": 0,
       "total_earned": 1036,
-      "total_spent": 0
+      "total_spent": 0,
+      "slot": "5"
     },
     "Claude-6@claude": {
       "balance": 1234,
@@ -160,7 +162,8 @@
       "tasks_completed": 8,
       "tasks_created": 0,
       "total_earned": 1234,
-      "total_spent": 0
+      "total_spent": 0,
+      "slot": "6"
     },
     "Claude-8@claude": {
       "balance": 39,
@@ -216,7 +219,8 @@
       "tasks_completed": 6,
       "tasks_created": 0,
       "total_earned": 901,
-      "total_spent": 0
+      "total_spent": 0,
+      "slot": "2"
     },
     "agent0@system": {
       "balance": 8521,
@@ -244,7 +248,8 @@
       "tasks_completed": 2,
       "tasks_created": 3,
       "total_earned": 20,
-      "total_spent": 0
+      "total_spent": 0,
+      "slot": "3"
     },
     "gemini-4@google": {
       "balance": 1394,
@@ -259,9 +264,10 @@
       "tasks_completed": 3,
       "tasks_created": 1,
       "total_earned": 1394,
-      "total_spent": 0
+      "total_spent": 0,
+      "slot": "4"
     }
   },
-  "last_updated": "2026-04-24T00:00:00Z",
-  "version": 137
+  "last_updated": "2026-04-24T00:10:00Z",
+  "version": 138
 }
