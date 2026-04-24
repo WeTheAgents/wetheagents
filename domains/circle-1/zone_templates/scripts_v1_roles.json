@@ -1,0 +1,142 @@
+{
+  "zone": "scripts",
+  "version": "v1",
+  "description": "Role-aware grammar for scripts/ zone. Each .py file must belong to exactly one role family. Roles are mutually exclusive and exhaustive (via 'unclassified').",
+  "machine_checks": {
+    "has_main_guard": "if __name__ == '__main__' block present anywhere in file",
+    "has_function_or_class": "at least one FunctionDef or ClassDef in the AST",
+    "has_only_data": "no FunctionDef or ClassDef at any level (derived: NOT has_function_or_class)",
+    "has_syspath_mutation_at_top_level": "sys.path.insert or sys.path.append called at module top level, outside any __main__ guard block",
+    "has_sysexit_at_top_level": "sys.exit() or SystemExit() called at module top level, outside any __main__ guard block"
+  },
+  "boundaries": [
+    {
+      "name": "import_safety",
+      "description": "Detect top-level side effects that mutate interpreter state on import",
+      "signals": ["has_syspath_mutation_at_top_level"],
+      "triggers": "unclassified when has_main_guard=False"
+    },
+    {
+      "name": "error_boundary",
+      "description": "Detect top-level sys.exit that terminates the process on import",
+      "signals": ["has_sysexit_at_top_level"],
+      "triggers": "unclassified when has_main_guard=False"
+    },
+    {
+      "name": "data_purity",
+      "description": "Detect modules that are purely declarative (no behavior)",
+      "signals": ["has_only_data"],
+      "triggers": "declaration_module when import-safe and no functions/classes"
+    }
+  ],
+  "classification_order": [
+    "runnable_entrypoint",
+    "unclassified",
+    "declaration_module",
+    "import_safe_support"
+  ],
+  "roles": {
+    "runnable_entrypoint": {
+      "description": "Has __main__ guard; callable directly via `python scripts/foo.py`. May import other modules but is not itself meant to be imported.",
+      "required": [
+        {
+          "name": "main_guard",
+          "machine_check": "has_main_guard",
+          "description": "if __name__ == '__main__' entry point"
+        }
+      ],
+      "excluded": [],
+      "notes": "Import-safety checks do NOT apply to runnable_entrypoint files. sys.path bootstrapping inside a runnable script is acceptable."
+    },
+    "import_safe_support": {
+      "description": "Importable library; no top-level side effects on import. Contains functions and/or classes that callers use. Examples: io_helpers.py, tide_ops.py, ledger_ops.py, tide_parser.py.",
+      "required": [
+        {
+          "name": "function_or_class",
+          "machine_check": "has_function_or_class",
+          "description": "at least one function or class definition (provides reusable behavior)"
+        }
+      ],
+      "excluded": [
+        {
+          "name": "main_guard",
+          "machine_check": "has_main_guard",
+          "description": "no __main__ entry point (would make it runnable_entrypoint instead)"
+        },
+        {
+          "name": "syspath_mutation",
+          "machine_check": "has_syspath_mutation_at_top_level",
+          "description": "no sys.path mutation outside __main__ (import-safety violation)"
+        },
+        {
+          "name": "sysexit_top",
+          "machine_check": "has_sysexit_at_top_level",
+          "description": "no sys.exit outside __main__ (error-boundary violation)"
+        },
+        {
+          "name": "only_data",
+          "machine_check": "has_only_data",
+          "description": "not a pure-data module (would be declaration_module instead)"
+        }
+      ]
+    },
+    "declaration_module": {
+      "description": "Constants, tables, or schema data; primarily data, no behavior. Contains only module-level assignments and import statements. Example: economy_constants.py.",
+      "required": [
+        {
+          "name": "only_data",
+          "machine_check": "has_only_data",
+          "description": "no function or class definitions at any level"
+        }
+      ],
+      "excluded": [
+        {
+          "name": "main_guard",
+          "machine_check": "has_main_guard",
+          "description": "no __main__ entry point"
+        },
+        {
+          "name": "syspath_mutation",
+          "machine_check": "has_syspath_mutation_at_top_level",
+          "description": "no sys.path mutation outside __main__"
+        },
+        {
+          "name": "sysexit_top",
+          "machine_check": "has_sysexit_at_top_level",
+          "description": "no sys.exit outside __main__"
+        },
+        {
+          "name": "function_or_class",
+          "machine_check": "has_function_or_class",
+          "description": "no behavioral code"
+        }
+      ]
+    },
+    "unclassified": {
+      "description": "File doesn't cleanly fit any other role. Explicit reason required. NOT a catch-all — use only when a specific boundary violation is detected. Example: pipeline_parser.py (sys.path mutation at top level, no __main__ guard).",
+      "trigger_conditions": [
+        {
+          "name": "syspath_import_violation",
+          "machine_check": "has_syspath_mutation_at_top_level",
+          "when": "has_main_guard=False",
+          "reason_template": "sys.path mutation at module top level (import-safety violation)"
+        },
+        {
+          "name": "sysexit_error_violation",
+          "machine_check": "has_sysexit_at_top_level",
+          "when": "has_main_guard=False",
+          "reason_template": "sys.exit call at module top level (error-boundary violation)"
+        }
+      ],
+      "notes": "The reason field is mandatory. Files in this role should be refactored: move sys.path bootstrapping behind __main__ guard or convert to a runnable_entrypoint."
+    }
+  },
+  "counterexamples": {
+    "io_helpers.py": "import_safe_support — functions only, no __main__, no side effects",
+    "tide_ops.py": "import_safe_support — functions only, no __main__, no side effects",
+    "tide_parser.py": "import_safe_support — dataclasses + functions, no __main__, no side effects",
+    "ledger_ops.py": "import_safe_support — class + functions, no __main__; try/except import is safe (read-only, no process state mutation)",
+    "economy_constants.py": "declaration_module — only constant assignments, no functions, no __main__",
+    "pipeline_parser.py": "unclassified — sys.path.insert at module top level (line 14-15) without __main__ guard; mutates interpreter state on import"
+  }
+}

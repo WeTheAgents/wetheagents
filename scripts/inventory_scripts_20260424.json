@@ -1,0 +1,1456 @@
+{
+  "scan_date": "2026-04-24",
+  "grammar_version": "v1",
+  "zone": "scripts",
+  "total_files": 131,
+  "role_counts": {
+    "declaration_module": 1,
+    "import_safe_support": 4,
+    "runnable_entrypoint": 125,
+    "unclassified": 1
+  },
+  "files": [
+    {
+      "file": "agent_lock.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "audit_branch_entropy.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "audit_entropy.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "auth_proxy.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "auto_triage.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "censor_diary.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_agent_balances_schema.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_agent_payment_precedes_registration.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_agent_registry_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_agent_slot_integrity.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_balance_history_reconciliation.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_balances_earned_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_branch_entropy.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_claim_before_payment.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_claim_chain_integrity.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_claim_ttl.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_concurrent_claims.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_cross_file_integrity.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_dead_branch_links.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_diary_incidents.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_doc_sync.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_escrow_age_report.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_escrow_idem_coverage.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_escrow_lifecycle_integrity.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_escrow_return_coverage.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_escrow_return_validity.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_escrow_schema.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_escrow_task_reward_match.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_gauntlet_pr_fields.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_gauntlet_script_coverage.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_genome_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_genome_meta_version_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_genome_mutation_provenance.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_genome_naming.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_genome_snapshot_freshness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_genome_trailer.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_balance_flow.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_chronological_order.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_escrow_solvency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_event_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_event_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_event_type_schema.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_file_gaps.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_reconciliation.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_history_schema.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_key_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_key_format.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_key_format_integrity.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_key_format_uniformity.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_key_timeline.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_idem_keys_schema.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_incident_correlator.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_invariant.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_invariant_history_replay.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_issue_ledger_sync.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_ledger_schema.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_mint_agents_registered.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_mint_record_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_no_duplicate_payments.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_orphan_escrows.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_orphan_genome_dirs.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_orphan_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_orphan_scripts.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_payment_amount_matches_escrow.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_payment_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_payment_escrow_amount_match.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_payment_has_prior_escrow.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_per_agent_balance_floor.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_pr_scope.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_precommit_coverage.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_reject_before_payment.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_script_test_coverage.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_single_escrow_per_issue.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_stale_escrows.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_stale_task_claims.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_t6_team_enforcement.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_task_escrow_sync.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_task_format.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_task_index_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_task_index_schema.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_task_spec_completeness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_task_status_history_sync.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_tasks_completed_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_tasks_created_vs_escrow_creates.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_total_earned_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_total_earned_vs_payment_history.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_total_spent_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_total_spent_vs_escrow_creates.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_trajectory_history_sync.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_trajectory_mint_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_trajectory_mint_timeline.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_trajectory_slot_uniqueness.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_trajectory_total_consistency.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_unused_idem_key_namespaces.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_version_drift.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "check_zombie_genomes.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "circuit_breaker.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "claim_fast.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "cleanup_branches.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "cleanup_worktrees.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "code_survival.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "create_gauntlet_escrows_cycle16.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "create_gauntlet_escrows_cycle17.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "create_gauntlet_escrows_cycle19.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "duel_randomizer.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "economy_constants.py",
+      "role": "declaration_module",
+      "signals": {
+        "has_main_guard": false,
+        "has_function_or_class": false,
+        "has_only_data": true,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "economy_report.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "genome_guard.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "genome_log.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "genome_self_audit.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "genome_snapshot.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "io_helpers.py",
+      "role": "import_safe_support",
+      "signals": {
+        "has_main_guard": false,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "label_paid.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "ledger_health_report.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "ledger_ops.py",
+      "role": "import_safe_support",
+      "signals": {
+        "has_main_guard": false,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "pipeline_parser.py",
+      "role": "unclassified",
+      "reason": "sys.path mutation at module top level (import-safety violation)",
+      "signals": {
+        "has_main_guard": false,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "post_ecosystem_digest.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "process_pending.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "reconcile_batch_a.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "reconcile_counters.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "run_all_checks.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "score_repo.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "seed_economy.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "tide.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": true,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "tide_ops.py",
+      "role": "import_safe_support",
+      "signals": {
+        "has_main_guard": false,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "tide_parser.py",
+      "role": "import_safe_support",
+      "signals": {
+        "has_main_guard": false,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "validate_submission.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    },
+    {
+      "file": "wea_report.py",
+      "role": "runnable_entrypoint",
+      "signals": {
+        "has_main_guard": true,
+        "has_function_or_class": true,
+        "has_only_data": false,
+        "has_syspath_mutation_at_top_level": false,
+        "has_sysexit_at_top_level": false
+      }
+    }
+  ]
+}
