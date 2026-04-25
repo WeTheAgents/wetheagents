@@ -12,13 +12,14 @@ from typing import Any
 
 import pytest
 
-# Make the scripts directory importable.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
 from check_tasks_completed_consistency import (  # noqa: E402
     check_consistency,
     compute_tasks_completed,
+    compute_tasks_created,
     main,
+    _TOLERANCE,
 )
 
 # ---------------------------------------------------------------------------
@@ -26,12 +27,13 @@ from check_tasks_completed_consistency import (  # noqa: E402
 # ---------------------------------------------------------------------------
 
 
-def _agent(tasks_completed: int = 0) -> dict[str, Any]:
-    return {"balance": 0, "tasks_completed": tasks_completed}
+def _agent(tasks_completed: int = 0, tasks_created: int = 0) -> dict[str, Any]:
+    return {"balance": 0, "tasks_completed": tasks_completed, "tasks_created": tasks_created}
 
 
-def _agents(**kwargs: dict[str, Any]) -> dict[str, Any]:
-    return kwargs
+def _pass(stored: dict, completed: dict, created: dict | None = None):
+    """Call check_consistency and return (status, divergences, warnings, summary)."""
+    return check_consistency(stored, completed, created or {})
 
 
 # ---------------------------------------------------------------------------
@@ -155,76 +157,159 @@ def test_two_agents_independent_counts():
 
 
 # ---------------------------------------------------------------------------
+# compute_tasks_created tests
+# ---------------------------------------------------------------------------
+
+
+def test_escrow_create_counts_per_author():
+    """escrow_create events counted per author."""
+    events = [
+        {"type": "escrow_create", "author": "alice@x", "amount": 10, "issue": 1},
+        {"type": "escrow_create", "author": "alice@x", "amount": 10, "issue": 2},
+        {"type": "escrow_create", "author": "bob@x", "amount": 10, "issue": 3},
+    ]
+    result = compute_tasks_created(events)
+    assert result.get("alice@x") == 2
+    assert result.get("bob@x") == 1
+
+
+def test_non_escrow_create_not_counted_in_created():
+    """payment and accept events don't count toward tasks_created."""
+    events = [
+        {"type": "payment", "agent": "alice@x", "amount": 10, "issue": 1},
+        {"type": "accept", "agent": "alice@x", "amount": 10, "issue": 2},
+    ]
+    result = compute_tasks_created(events)
+    assert result.get("alice@x", 0) == 0
+
+
+def test_escrow_create_missing_author_skipped():
+    """escrow_create without author field is skipped."""
+    events = [{"type": "escrow_create", "amount": 10, "issue": 1}]
+    result = compute_tasks_created(events)
+    assert result == {}
+
+
+# ---------------------------------------------------------------------------
 # check_consistency tests
 # ---------------------------------------------------------------------------
 
 
 def test_clean_match_returns_pass():
     """Stored tasks_completed matches computed → PASS, no divergences."""
-    stored = _agents(**{"alice@x": _agent(tasks_completed=2)})
-    computed = {"alice@x": 2}
-    status, divergences, warnings, summary = check_consistency(stored, computed)
+    stored = {"alice@x": _agent(tasks_completed=2)}
+    status, divergences, warnings, summary = _pass(stored, {"alice@x": 2})
     assert status == "PASS"
     assert divergences == []
 
 
-def test_stored_higher_than_computed_returns_fail():
-    """Stored tasks_completed > computed → FAIL with divergence entry."""
-    stored = _agents(**{"alice@x": _agent(tasks_completed=5)})
-    computed = {"alice@x": 3}
-    status, divergences, warnings, _ = check_consistency(stored, computed)
+def test_within_tolerance_returns_pass():
+    """Divergence of exactly _TOLERANCE → PASS (boundary, inclusive)."""
+    stored = {"alice@x": _agent(tasks_completed=10)}
+    computed = {"alice@x": 10 - _TOLERANCE}  # diff == 5
+    status, divergences, _, _ = _pass(stored, computed)
+    assert status == "PASS"
+    assert divergences == []
+
+
+def test_just_over_tolerance_returns_fail():
+    """Divergence of _TOLERANCE + 1 → FAIL."""
+    stored = {"alice@x": _agent(tasks_completed=10)}
+    computed = {"alice@x": 10 - (_TOLERANCE + 1)}  # diff == 6
+    status, divergences, _, _ = _pass(stored, computed)
+    assert status == "FAIL"
+    assert len(divergences) == 1
+    assert divergences[0]["field"] == "tasks_completed"
+
+
+def test_tasks_completed_off_by_more_than_5_fails():
+    """tasks_completed stored=12, computed=2 (diff=10) → FAIL."""
+    stored = {"alice@x": _agent(tasks_completed=12)}
+    computed = {"alice@x": 2}
+    status, divergences, _, _ = _pass(stored, computed)
+    assert status == "FAIL"
+    d = divergences[0]
+    assert d["agent"] == "alice@x"
+    assert d["field"] == "tasks_completed"
+    assert d["stored"] == 12
+    assert d["computed"] == 2
+    assert d["diff"] == 10
+
+
+def test_stored_higher_than_computed_by_more_than_tolerance():
+    """Stored tasks_completed > computed + tolerance → FAIL with divergence entry."""
+    stored = {"alice@x": _agent(tasks_completed=9)}
+    computed = {"alice@x": 2}  # diff = 7 > 5
+    status, divergences, warnings, _ = _pass(stored, computed)
     assert status == "FAIL"
     assert len(divergences) == 1
     d = divergences[0]
     assert d["agent"] == "alice@x"
     assert d["field"] == "tasks_completed"
-    assert d["stored"] == 5
-    assert d["computed"] == 3
+    assert d["stored"] == 9
+    assert d["computed"] == 2
 
 
-def test_stored_lower_than_computed_returns_fail():
-    """Stored tasks_completed < computed → FAIL with divergence entry."""
-    stored = _agents(**{"alice@x": _agent(tasks_completed=1)})
-    computed = {"alice@x": 4}
-    status, divergences, _, _ = check_consistency(stored, computed)
+def test_stored_lower_than_computed_by_more_than_tolerance():
+    """Stored tasks_completed < computed - tolerance → FAIL with divergence entry."""
+    stored = {"alice@x": _agent(tasks_completed=1)}
+    computed = {"alice@x": 8}  # diff = 7 > 5
+    status, divergences, _, _ = _pass(stored, computed)
     assert status == "FAIL"
     d = divergences[0]
     assert d["stored"] == 1
-    assert d["computed"] == 4
+    assert d["computed"] == 8
 
 
 def test_agent0_excluded_from_divergences():
     """agent0@system is never reported as a divergence."""
-    stored = _agents(**{"agent0@system": _agent(tasks_completed=99)})
+    stored = {"agent0@system": _agent(tasks_completed=99)}
     computed = {"agent0@system": 0}
-    status, divergences, _, _ = check_consistency(stored, computed)
+    status, divergences, _, _ = _pass(stored, computed)
     assert status == "PASS"
     assert all(d["agent"] != "agent0@system" for d in divergences)
+
+
+def test_zero_history_agent_returns_pass():
+    """Agent in balances with tasks_completed=0 and no history events → PASS."""
+    stored = {"newbie@x": _agent(tasks_completed=0)}
+    computed: dict[str, int] = {}  # agent not in history at all
+    status, divergences, _, _ = _pass(stored, computed)
+    assert status == "PASS"
+    assert divergences == []
+
+
+def test_agent_not_in_history_zero_stored_pass():
+    """Agent absent from history defaults to computed=0; stored=0 → PASS."""
+    stored = {"ghost@x": {"balance": 50, "tasks_completed": 0}}
+    status, divergences, _, _ = _pass(stored, {})
+    assert status == "PASS"
+    assert divergences == []
 
 
 def test_missing_tasks_completed_field_treated_as_zero():
     """Agent entry without tasks_completed defaults to 0."""
     stored = {"alice@x": {"balance": 100}}  # no tasks_completed key
     computed = {"alice@x": 0}
-    status, divergences, _, _ = check_consistency(stored, computed)
+    status, divergences, _, _ = _pass(stored, computed)
     assert status == "PASS"
 
 
-def test_missing_tasks_completed_field_diverges_when_computed_nonzero():
-    """Agent without tasks_completed stored (defaults to 0) diverges when computed > 0."""
+def test_missing_tasks_completed_field_diverges_when_computed_over_tolerance():
+    """Agent without tasks_completed (defaults 0) diverges when computed > tolerance."""
     stored = {"alice@x": {"balance": 100}}
-    computed = {"alice@x": 3}
-    status, divergences, _, _ = check_consistency(stored, computed)
+    computed = {"alice@x": _TOLERANCE + 1}  # diff == 6
+    status, divergences, _, _ = _pass(stored, computed)
     assert status == "FAIL"
     assert divergences[0]["stored"] == 0
-    assert divergences[0]["computed"] == 3
+    assert divergences[0]["computed"] == _TOLERANCE + 1
 
 
 def test_history_only_agent_emits_warning_not_fail():
     """Agent with computed > 0 but absent from stored → warning, status stays PASS."""
     stored: dict[str, Any] = {}
     computed = {"ghost@x": 2}
-    status, divergences, warnings, _ = check_consistency(stored, computed)
+    status, divergences, warnings, _ = _pass(stored, computed)
     assert status == "PASS"
     assert divergences == []
     assert any(w["agent"] == "ghost@x" for w in warnings)
@@ -233,28 +318,45 @@ def test_history_only_agent_emits_warning_not_fail():
 
 def test_empty_stored_and_empty_computed_pass():
     """No agents, no history → PASS."""
-    status, divergences, warnings, summary = check_consistency({}, {})
+    status, divergences, warnings, summary = _pass({}, {})
     assert status == "PASS"
     assert divergences == []
     assert "0 divergence" in summary
 
 
 def test_multiple_diverging_agents_all_reported():
-    """Multiple agents with divergences are all listed."""
-    stored = _agents(
-        **{
-            "alice@x": _agent(tasks_completed=5),
-            "bob@x": _agent(tasks_completed=3),
-            "carol@x": _agent(tasks_completed=2),
-        }
-    )
-    computed = {"alice@x": 4, "bob@x": 3, "carol@x": 1}
-    status, divergences, _, _ = check_consistency(stored, computed)
+    """Multiple agents with large divergences are all listed; non-diverging excluded."""
+    stored = {
+        "alice@x": _agent(tasks_completed=15),
+        "bob@x": _agent(tasks_completed=3),
+        "carol@x": _agent(tasks_completed=12),
+    }
+    computed = {"alice@x": 6, "bob@x": 3, "carol@x": 4}  # alice diff=9, bob=0, carol=8
+    status, divergences, _, _ = _pass(stored, computed)
     assert status == "FAIL"
     agents = {d["agent"] for d in divergences}
     assert "alice@x" in agents
     assert "carol@x" in agents
-    assert "bob@x" not in agents  # matches exactly
+    assert "bob@x" not in agents  # exactly matches
+
+
+def test_tasks_created_divergence_beyond_tolerance_fails():
+    """tasks_created off by more than tolerance → FAIL."""
+    stored = {"alice@x": _agent(tasks_completed=0, tasks_created=20)}
+    status, divergences, _, _ = check_consistency(stored, {}, {"alice@x": 5})
+    assert status == "FAIL"
+    d = next(x for x in divergences if x["field"] == "tasks_created")
+    assert d["stored"] == 20
+    assert d["computed"] == 5
+    assert d["diff"] == 15
+
+
+def test_tasks_created_within_tolerance_passes():
+    """tasks_created diff <= tolerance → PASS."""
+    stored = {"alice@x": _agent(tasks_completed=0, tasks_created=5)}
+    status, divergences, _, _ = check_consistency(stored, {}, {"alice@x": 2})  # diff=3
+    assert status == "PASS"
+    assert all(d["field"] != "tasks_created" for d in divergences)
 
 
 # ---------------------------------------------------------------------------
@@ -278,8 +380,8 @@ def test_main_json_output_pass(
     balances = {
         "version": 1,
         "agents": {
-            "agent0@system": {"balance": 100, "tasks_completed": 0},
-            "alice@x": {"balance": 20, "tasks_completed": 2},
+            "agent0@system": {"balance": 100, "tasks_completed": 0, "tasks_created": 0},
+            "alice@x": {"balance": 20, "tasks_completed": 2, "tasks_created": 0},
         },
     }
     (ledger_dir / "balances.json").write_text(
@@ -294,7 +396,7 @@ def test_main_json_output_pass(
     )
     (history_dir / "2026-01-01.jsonl").write_text(lines + "\n", encoding="utf-8")
 
-    monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(mod, "_repo_root", lambda override=None: tmp_path)
 
     exit_code = main()
     captured = capsys.readouterr()
@@ -311,7 +413,7 @@ def test_main_json_output_fail(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture,
 ) -> None:
-    """main() prints JSON with status FAIL and exits 1 when divergence exists."""
+    """main() prints JSON with status FAIL and exits 1 when divergence > tolerance."""
     import check_tasks_completed_consistency as mod
 
     ledger_dir = tmp_path / "ledger"
@@ -319,11 +421,11 @@ def test_main_json_output_fail(
     history_dir = ledger_dir / "history"
     history_dir.mkdir()
 
-    # Stored says 5 but history only has 2 distinct issues.
+    # Stored says 12 but history only has 2 distinct issues (diff=10 > tolerance).
     balances = {
         "version": 1,
         "agents": {
-            "alice@x": {"balance": 50, "tasks_completed": 5},
+            "alice@x": {"balance": 50, "tasks_completed": 12, "tasks_created": 0},
         },
     }
     (ledger_dir / "balances.json").write_text(
@@ -338,7 +440,7 @@ def test_main_json_output_fail(
     )
     (history_dir / "2026-01-01.jsonl").write_text(lines + "\n", encoding="utf-8")
 
-    monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(mod, "_repo_root", lambda override=None: tmp_path)
 
     exit_code = main()
     captured = capsys.readouterr()
@@ -349,7 +451,7 @@ def test_main_json_output_fail(
     assert len(result["divergences"]) == 1
     div = result["divergences"][0]
     assert div["agent"] == "alice@x"
-    assert div["stored"] == 5
+    assert div["stored"] == 12
     assert div["computed"] == 2
 
 
@@ -362,7 +464,7 @@ def test_main_missing_balances_exits_fail(
     import check_tasks_completed_consistency as mod
 
     (tmp_path / "ledger").mkdir()
-    monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(mod, "_repo_root", lambda override=None: tmp_path)
 
     exit_code = main()
     captured = capsys.readouterr()
@@ -385,7 +487,7 @@ def test_main_malformed_balances_exits_fail(
     ledger_dir.mkdir()
     (ledger_dir / "balances.json").write_text("{not valid json", encoding="utf-8")
 
-    monkeypatch.setattr(mod, "_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(mod, "_repo_root", lambda override=None: tmp_path)
 
     exit_code = main()
     captured = capsys.readouterr()
