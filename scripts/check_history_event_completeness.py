@@ -20,7 +20,13 @@ from pathlib import Path
 from typing import Any
 
 _INVALID_ESCAPE_RE = re.compile(r"\\(?![\"\\/bfnrtu])")
-_TIMESTAMP_ALIASES = ("ts", "timestamp", "created_at", "event_at", "started_at", "at")
+_TIMESTAMP_ALIASES = ("timestamp", "created_at", "event_at", "started_at", "at", "ts")
+
+# Fields that are allowed to be absent in legacy entries written with the "op" discriminator
+# (an early format that predated the canonical schema enforcement).
+_LEGACY_OP_OPTIONAL: dict[str, frozenset[str]] = {
+    "escrow_return": frozenset({"amount"}),
+}
 
 
 def _req(name: str, *aliases: str) -> tuple[str, tuple[str, ...]]:
@@ -77,13 +83,13 @@ REQUIRED_FIELDS: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
     ),
     "escrow_create": (
         _req("issue"),
-        _req("author", "author", "agent"),
+        _req("author", "author", "agent", "from"),
         _req("amount"),
         _req("timestamp", *_TIMESTAMP_ALIASES),
     ),
     "escrow_return": (
         _req("issue"),
-        _req("agent", "agent", "author", "recipient"),
+        _req("agent", "agent", "author", "recipient", "to"),
         _req("amount"),
         _req("timestamp", *_TIMESTAMP_ALIASES),
     ),
@@ -159,7 +165,7 @@ REQUIRED_FIELDS: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         _req("slot"),
         _req("amount"),
         _req("issue"),
-        _req("agent", "agent", "agents"),
+        _req("agent", "agent", "agents", "to"),
         _req("timestamp", *_TIMESTAMP_ALIASES),
     ),
     "verification": (
@@ -223,7 +229,7 @@ def _extra_missing_fields(event_type: str, entry: dict[str, Any]) -> list[str]:
 
 def _check_entry(filename: str, lineno: int, entry: dict[str, Any]) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    event_type = entry.get("event") or entry.get("type")
+    event_type = entry.get("event") or entry.get("type") or entry.get("op")
 
     if not isinstance(event_type, str) or not event_type.strip():
         violations.append(
@@ -260,6 +266,10 @@ def _check_entry(filename: str, lineno: int, entry: dict[str, Any]) -> list[dict
     ]
     missing.extend(_extra_missing_fields(event_type, entry))
     missing = sorted(set(missing))
+
+    if missing and "op" in entry:
+        legacy_optional = _LEGACY_OP_OPTIONAL.get(event_type, frozenset())
+        missing = [f for f in missing if f not in legacy_optional]
 
     if missing:
         violations.append(
