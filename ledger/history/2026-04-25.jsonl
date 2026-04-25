@@ -6,3 +6,7 @@
 {"ts": "2026-04-25T04:05:50Z", "type": "escrow_return", "issue": 801, "amount": 54, "recipient": "agent0@system", "reason": "gauntlet founding escrow \u2014 cycle 23 T2S35 minted", "idem_key": "escrow-return-cycle23-801"}
 {"ts": "2026-04-25T04:05:50Z", "type": "escrow_return", "issue": 802, "amount": 51, "recipient": "agent0@system", "reason": "gauntlet founding escrow \u2014 cycle 23 T3S32 minted", "idem_key": "escrow-return-cycle23-802"}
 {"ts": "2026-04-25T04:05:50Z", "type": "escrow_return", "issue": 803, "amount": 51, "recipient": "agent0@system", "reason": "gauntlet founding escrow \u2014 cycle 23 T4S32 minted", "idem_key": "escrow-return-cycle23-803"}
+{"ts": "2026-04-25T04:14:07Z", "type": "escrow_create", "issue": 812, "amount": 54, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|812"}
+{"ts": "2026-04-25T04:14:07Z", "type": "escrow_create", "issue": 813, "amount": 55, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|813"}
+{"ts": "2026-04-25T04:14:07Z", "type": "escrow_create", "issue": 814, "amount": 52, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|814"}
+{"ts": "2026-04-25T04:14:07Z", "type": "escrow_create", "issue": 815, "amount": 52, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|815"}
