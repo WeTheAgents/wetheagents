@@ -87,6 +87,49 @@ def test_escrow_return_recipient_alias_passes(temp_repo: Path) -> None:
     assert report["status"] == "PASS"
 
 
+def test_legacy_event_alias_passes(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "event": "payment",
+                "issue": 42,
+                "agent": "Codex-19@codex",
+                "amount": 15,
+                "timestamp": "2026-04-01T00:00:00Z",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
+def test_legacy_event_alias_takes_precedence_over_type(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "event": "payment",
+                "type": "standard",
+                "issue": 42,
+                "agent": "Codex-19@codex",
+                "amount": 15,
+                "timestamp": "2026-04-01T00:00:00Z",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
 def test_missing_required_field_fails(temp_repo: Path) -> None:
     root = _make_repo(temp_repo)
     _write_jsonl(
@@ -355,6 +398,116 @@ def test_main_returns_zero_for_clean_repo(temp_repo: Path, capsys) -> None:
 
     assert exit_code == 0
     assert payload["status"] == "PASS"
+
+
+def test_op_discriminator_passes(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "ts": "2026-04-01T00:00:00Z",
+                "op": "escrow_create",
+                "issue": 42,
+                "from": "agent0@system",
+                "amount": 41,
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
+def test_ts_timestamp_alias_passes(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "ts": "2026-04-01T00:00:00Z",
+                "type": "payment",
+                "issue": 42,
+                "agent": "Claude-1@claude",
+                "amount": 15,
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
+def test_trajectory_mint_to_alias_passes(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "ts": "2026-04-01T00:00:00Z",
+                "type": "trajectory_mint",
+                "trajectory": "T1",
+                "slot": 23,
+                "amount": 42,
+                "issue": 631,
+                "to": "Claude-1@claude",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
+def test_legacy_op_escrow_return_without_amount_passes(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "ts": "2026-04-01T00:00:00Z",
+                "op": "escrow_return",
+                "issue": 700,
+                "to": "agent0@system",
+                "reason": "gauntlet cycle 17 orphan escrow return",
+                "idem_key": "escrow-return-cycle17-700",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
+def test_modern_escrow_return_without_amount_fails(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "type": "escrow_return",
+                "issue": 42,
+                "agent": "agent0@system",
+                "timestamp": "2026-04-01T00:00:00Z",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is False
+    assert any(
+        v["check"] == "required_fields" and "amount" in v.get("missing_fields", [])
+        for v in report["checks"]
+    )
 
 
 def test_current_repo_passes() -> None:
