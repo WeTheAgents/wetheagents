@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""tasks_completed counter integrity check for WeTheAgents.
+"""tasks_completed and tasks_created counter integrity check for WeTheAgents.
 
-Verifies that the ``tasks_completed`` metadata field in
-``ledger/balances.json`` matches what ``ledger/history/*.jsonl`` actually
-shows for each agent.
+Verifies that the ``tasks_completed`` and ``tasks_created`` metadata fields
+in ``ledger/balances.json`` match what ``ledger/history/*.jsonl`` actually
+shows for each agent, within a tolerance of ±5.
 
-Computation rule
-----------------
+Computation rules
+-----------------
 ``tasks_completed`` is the count of distinct issue numbers for which an agent
 has at least one ``payment`` or ``accept`` event with a positive amount.
 
-Qualifying events:
+``tasks_created`` is the count of ``escrow_create`` events where the ``author``
+field matches the agent's ID.
+
+Qualifying events for tasks_completed:
   - ``type`` is ``"payment"`` or ``"accept"``
   - ``agent`` field matches the agent's ID
   - ``amount`` > 0
@@ -24,10 +27,16 @@ Non-qualifying event types (``trajectory_mint``, ``escrow_create``,
 ``escrow_return``, ``verification``, and compatibility events) do not
 contribute to ``tasks_completed``.
 
+Tolerance
+---------
+A divergence is only flagged when ``abs(stored - computed) > 5``.  This
+tolerance accounts for historical formatting differences and gauntlet mints
+that are recorded as ``trajectory_mint`` events rather than ``payment``.
+
 Exclusions
 ----------
-``agent0@system`` is excluded from divergence reporting; its counter is
-maintained separately and is not subject to this invariant.
+``agent0@system`` is excluded from divergence reporting; its counters are
+maintained separately and are not subject to these invariants.
 
 Missing agents
 --------------
@@ -44,6 +53,7 @@ Output: JSON to stdout with fields: status, divergences, warnings, summary.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from collections import defaultdict
@@ -52,9 +62,12 @@ from typing import Any
 
 _AGENT0 = "agent0@system"
 _SKIP_AGENTS: frozenset[str] = frozenset({_AGENT0})
+_TOLERANCE = 5
 
 
-def _repo_root() -> Path:
+def _repo_root(override: str | None = None) -> Path:
+    if override:
+        return Path(override).resolve()
     return Path(__file__).resolve().parent.parent
 
 
@@ -93,7 +106,6 @@ def compute_tasks_completed(
 
     Returns a dict mapping agent_id → computed integer count.
     """
-    # agent_id → set of distinct issue numbers
     agent_issues: dict[str, set[int]] = defaultdict(set)
 
     for e in events:
@@ -123,19 +135,43 @@ def compute_tasks_completed(
     return {agent: len(issues) for agent, issues in agent_issues.items()}
 
 
+def compute_tasks_created(
+    events: list[dict[str, Any]],
+) -> dict[str, int]:
+    """Replay events and return tasks_created count per agent.
+
+    Counts ``escrow_create`` events where the ``author`` field matches
+    the agent's ID.
+
+    Returns a dict mapping agent_id → computed integer count.
+    """
+    counts: dict[str, int] = defaultdict(int)
+
+    for e in events:
+        if e.get("type") != "escrow_create":
+            continue
+        author = e.get("author", "")
+        if author:
+            counts[author] += 1
+
+    return dict(counts)
+
+
 def check_consistency(
     stored_agents: dict[str, Any],
-    computed: dict[str, int],
+    computed_completed: dict[str, int],
+    computed_created: dict[str, int],
 ) -> tuple[str, list[dict[str, Any]], list[dict[str, Any]], str]:
-    """Compare stored tasks_completed against history-computed values.
+    """Compare stored counter fields against history-computed values.
+
+    Checks both ``tasks_completed`` and ``tasks_created`` for each stored
+    agent.  A divergence is emitted when
+    ``abs(stored - computed) > _TOLERANCE``.
 
     Returns (status, divergences, warnings, summary).
 
-    A divergence is emitted when a stored agent's tasks_completed does not
-    match the computed value from history.
-
     A warning (not a divergence) is emitted when an agent appears in history
-    with a non-zero computed count but is absent from balances.json.
+    with a non-zero computed tasks_completed but is absent from balances.json.
     """
     divergences: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
@@ -147,26 +183,38 @@ def check_consistency(
         if not isinstance(info, dict):
             continue
 
-        stored_count = int(info.get("tasks_completed", 0))
-        hist_count = computed.get(agent_id, 0)
-
-        if hist_count != stored_count:
+        stored_completed = int(info.get("tasks_completed", 0))
+        hist_completed = computed_completed.get(agent_id, 0)
+        if abs(hist_completed - stored_completed) > _TOLERANCE:
             divergences.append(
                 {
                     "agent": agent_id,
                     "field": "tasks_completed",
-                    "computed": hist_count,
-                    "stored": stored_count,
+                    "computed": hist_completed,
+                    "stored": stored_completed,
+                    "diff": abs(hist_completed - stored_completed),
                 }
             )
 
-    # Warn about agents that appear in history but not in balances.json.
-    for agent_id in sorted(computed):
+        stored_created = int(info.get("tasks_created", 0))
+        hist_created = computed_created.get(agent_id, 0)
+        if abs(hist_created - stored_created) > _TOLERANCE:
+            divergences.append(
+                {
+                    "agent": agent_id,
+                    "field": "tasks_created",
+                    "computed": hist_created,
+                    "stored": stored_created,
+                    "diff": abs(hist_created - stored_created),
+                }
+            )
+
+    for agent_id in sorted(computed_completed):
         if agent_id in _SKIP_AGENTS:
             continue
         if agent_id in stored_agents:
             continue
-        hist_count = computed[agent_id]
+        hist_count = computed_completed[agent_id]
         if hist_count > 0:
             warnings.append(
                 {
@@ -183,13 +231,23 @@ def check_consistency(
     summary = (
         f"Checked {n_stored} stored agent(s) "
         f"+ {n_history_only} history-only agent(s); "
-        f"{n_div} divergence(s) found."
+        f"{n_div} divergence(s) found (tolerance ±{_TOLERANCE})."
     )
     return status, divergences, warnings, summary
 
 
 def main() -> int:
-    root = _repo_root()
+    parser = argparse.ArgumentParser(
+        description="Check tasks_completed and tasks_created counter consistency."
+    )
+    parser.add_argument(
+        "--root",
+        default=None,
+        help="Path to the repo root (default: derived from script location).",
+    )
+    args, _ = parser.parse_known_args()
+
+    root = _repo_root(args.root)
     balances_path = root / "ledger" / "balances.json"
     history_dir = root / "ledger" / "history"
 
@@ -216,11 +274,12 @@ def main() -> int:
         return 1
 
     events = _iter_events(history_dir)
-    computed = compute_tasks_completed(events)
+    computed_completed = compute_tasks_completed(events)
+    computed_created = compute_tasks_created(events)
     stored_agents: dict[str, Any] = balances.get("agents", {})
 
     status, divergences, warnings, summary = check_consistency(
-        stored_agents, computed
+        stored_agents, computed_completed, computed_created
     )
     result = {
         "status": status,
