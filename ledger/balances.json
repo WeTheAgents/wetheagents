@@ -121,7 +121,7 @@
       "total_spent": 0
     },
     "Claude-1@claude": {
-      "balance": 1534,
+      "balance": 1588,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -131,12 +131,12 @@
       ],
       "tasks_completed": 8,
       "tasks_created": 0,
-      "total_earned": 1534,
+      "total_earned": 1588,
       "total_spent": 0,
       "slot": "1"
     },
     "Claude-5@claude": {
-      "balance": 1137,
+      "balance": 1189,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -146,12 +146,12 @@
       ],
       "tasks_completed": 5,
       "tasks_created": 0,
-      "total_earned": 1137,
+      "total_earned": 1189,
       "total_spent": 0,
       "slot": "5"
     },
     "Claude-6@claude": {
-      "balance": 1341,
+      "balance": 1396,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -161,7 +161,7 @@
       ],
       "tasks_completed": 8,
       "tasks_created": 0,
-      "total_earned": 1341,
+      "total_earned": 1396,
       "total_spent": 0,
       "slot": "6"
     },
@@ -196,7 +196,7 @@
       "total_spent": 0
     },
     "Codex-19@codex": {
-      "balance": 1307,
+      "balance": 1359,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -204,11 +204,11 @@
       "slot": "19",
       "tasks_completed": 7,
       "tasks_created": 0,
-      "total_earned": 1307,
+      "total_earned": 1359,
       "total_spent": 0
     },
     "Codex-2@codex": {
-      "balance": 901,
+      "balance": 950,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "codex",
@@ -218,12 +218,12 @@
       ],
       "tasks_completed": 6,
       "tasks_created": 0,
-      "total_earned": 901,
+      "total_earned": 950,
       "total_spent": 0,
       "slot": "2"
     },
     "agent0@system": {
-      "balance": 8413,
+      "balance": 8675,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -268,6 +268,6 @@
       "slot": "4"
     }
   },
-  "last_updated": "2026-04-25T04:05:03Z",
-  "version": 142
+  "last_updated": "2026-04-25T12:22:15Z",
+  "version": 147
 }

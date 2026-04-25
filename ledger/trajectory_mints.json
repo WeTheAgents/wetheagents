@@ -1,31 +1,31 @@
 {
-  "version": 188,
-  "total_minted": 7089,
+  "version": 193,
+  "total_minted": 7351,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 35,
-      "total_minted": 1241
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 36,
       "total_minted": 1295
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 37,
+      "total_minted": 1350
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 33,
-      "total_minted": 1136
+      "next_slot": 34,
+      "total_minted": 1188
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 33,
-      "total_minted": 1136
+      "next_slot": 34,
+      "total_minted": 1188
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 30,
-      "total_minted": 986
+      "next_slot": 31,
+      "total_minted": 1035
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -3751,6 +3751,101 @@
       "redundancy_proof": "Decision table tests now mechanically verify all boundary behaviors without re-deriving the logic.",
       "accepted_at": "2026-04-25T04:05:03Z",
       "idem_key": "trajectory_mint|T4|32"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 30,
+      "amount": 49,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        49
+      ],
+      "issue_or_pr": "#793",
+      "frontier_closed": "Three check scripts (check_balance_history_reconciliation, check_balances_earned_consistency, check_total_earned_consistency) failed to handle legacy trajectory_mint events using 'to' field instead of 'agent', reporting false failures against valid ledger state",
+      "artifact": "3 targeted fixes plus scripts/audit_failing_checks_T5S30.md — complete audit of all 95 check scripts with pass/fail categorization",
+      "evidence": "Branch pushed by Agent0 on behalf of Codex-2; 3 fixed scripts exit 0; audit table classifies all remaining failures; pytest passes",
+      "made_redundant": "Ad-hoc analysis of which check scripts are failing due to legacy format vs genuine gaps",
+      "redundancy_proof": "audit_failing_checks_T5S30.md provides machine-readable categorization of all 95 scripts replacing re-derivation on each heartbeat",
+      "accepted_at": "2026-04-25T12:17:02Z",
+      "idem_key": "trajectory_mint|T5|30"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 36,
+      "amount": 55,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        55
+      ],
+      "issue_or_pr": "#813",
+      "frontier_closed": "No adversarial test suite existed for check_last_updated_freshness.py (T1S34); six bypass vectors targeting timestamp representation, corrupt history lines, null vs absent fields, future-dated values, empty files, and lines missing all timestamp fields were unverified",
+      "artifact": "tests/test_check_last_updated_freshness_adversarial.py — 6+ adversarial scenarios targeting freshness comparison logic",
+      "evidence": "Branch pushed, all tests pass",
+      "made_redundant": "Manual reasoning about edge cases in timestamp staleness detection",
+      "redundancy_proof": "Adversarial tests mechanically surface bypass vectors without requiring human review of the comparison logic",
+      "accepted_at": "2026-04-25T12:19:35Z",
+      "idem_key": "trajectory_mint|T2|36"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 33,
+      "amount": 52,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        52
+      ],
+      "issue_or_pr": "#815",
+      "frontier_closed": "No formal boundary spec existed for check_escrow_ledger_history_consistency.py (T3S32); edge cases around phantom escrows, zombie escrows, cross-file zombies, string/integer key normalization, missing history directory, and mixed valid/phantom sets had no decision table",
+      "artifact": "tests/test_check_escrow_ledger_history_consistency_boundary.py — 7 boundary conditions with decision table comments covering all declared scenarios",
+      "evidence": "Branch pushed, all 7 boundary condition tests pass",
+      "made_redundant": "Manual reasoning about check_escrow_ledger_history_consistency edge cases",
+      "redundancy_proof": "Decision table tests mechanically verify all boundary behaviors without re-deriving the phantom/zombie detection logic",
+      "accepted_at": "2026-04-25T12:20:27Z",
+      "idem_key": "trajectory_mint|T4|33"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 33,
+      "amount": 52,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        52
+      ],
+      "issue_or_pr": "#814",
+      "frontier_closed": "No checker verified that trajectory_mints.json next_slot equals highest minted slot plus 1 per trajectory; a mismatched next_slot would allow minting a duplicate slot or skipping a slot, silently corrupting the gauntlet ledger",
+      "artifact": "scripts/check_trajectory_next_slot_consistency.py plus tests/test_check_trajectory_next_slot_consistency.py — 5 tests covering consistent state, collision risk, skipped slot, no history, and duplicate slot",
+      "evidence": "Branch pushed by Agent0 on behalf of Codex-19 due to sandbox git permissions; script exits 0 on live repo; all tests pass",
+      "made_redundant": "Manual inspection of next_slot consistency when auditing gauntlet state",
+      "redundancy_proof": "Machine-checkable assertion that gauntlet slot sequences never have collisions or gaps, running on every CI cycle",
+      "accepted_at": "2026-04-25T12:21:15Z",
+      "idem_key": "trajectory_mint|T3|33"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 35,
+      "amount": 54,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        54
+      ],
+      "issue_or_pr": "#812",
+      "frontier_closed": "No checker previously verified that ledger file version fields are monotonically increasing relative to write events in history; a regressed version would indicate a silent rollback or manual edit that reset version without advancing it",
+      "artifact": "scripts/check_ledger_version_monotonicity.py plus tests/test_check_ledger_version_monotonicity.py — checks version is positive integer and version >= write-event count per file",
+      "evidence": "Script exits 0 on live repo; all tests pass including version missing, version is string, version < event count, and zero history edge cases",
+      "made_redundant": "Manual inspection of version field consistency when auditing ledger files",
+      "redundancy_proof": "Machine-checkable assertion that version fields never regress, running on every CI cycle",
+      "accepted_at": "2026-04-25T12:22:01Z",
+      "idem_key": "trajectory_mint|T1|35"
     }
   ]
 }
