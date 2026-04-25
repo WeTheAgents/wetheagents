@@ -1,31 +1,31 @@
 {
-  "version": 193,
-  "total_minted": 7351,
+  "version": 198,
+  "total_minted": 7618,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 36,
-      "total_minted": 1295
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 37,
       "total_minted": 1350
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 38,
+      "total_minted": 1406
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 34,
-      "total_minted": 1188
+      "next_slot": 35,
+      "total_minted": 1241
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 34,
-      "total_minted": 1188
+      "next_slot": 35,
+      "total_minted": 1241
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 31,
-      "total_minted": 1035
+      "next_slot": 32,
+      "total_minted": 1085
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -3846,6 +3846,101 @@
       "redundancy_proof": "Machine-checkable assertion that version fields never regress, running on every CI cycle",
       "accepted_at": "2026-04-25T12:22:01Z",
       "idem_key": "trajectory_mint|T1|35"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 31,
+      "amount": 50,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        50
+      ],
+      "issue_or_pr": "#825",
+      "frontier_closed": "Three scripts from T5S30 audit genuine-gap category failed to handle short ts timestamp key; check_claim_before_payment and check_history_event_completeness were missing or broken",
+      "artifact": "scripts/check_claim_before_payment.py, scripts/check_history_event_completeness.py, scripts/audit_t5s31.md, tests/test_check_claim_before_payment.py, tests/test_check_history_event_completeness.py",
+      "evidence": "Both fixed scripts exit 0 on live repo; regression tests for ts-timestamped events added and pass",
+      "made_redundant": "Manual reasoning about which timestamp keys are valid across different history event formats",
+      "redundancy_proof": "Both scripts share same alias chain (ts, timestamp, created_at, event_at, started_at, at) as other passing checks; regression tests catch future alias omissions",
+      "accepted_at": "2026-04-25T20:03:46Z",
+      "idem_key": "trajectory_mint|T5|31"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 34,
+      "amount": 53,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        53
+      ],
+      "issue_or_pr": "#823",
+      "frontier_closed": "Formula verification: every gauntlet_mint event amount must equal 19+slot_number (±1 tolerance for multi-agent split remainder)",
+      "artifact": "scripts/check_trajectory_mint_amount_formula.py, tests/test_check_trajectory_mint_amount_formula.py",
+      "evidence": "Script exits 0 on live repo; formula unit tests pass",
+      "made_redundant": "Manual arithmetic verification of gauntlet mint amounts after each cycle",
+      "redundancy_proof": "Automated formula check catches off-by-one and wrong amounts on every run in CI",
+      "accepted_at": "2026-04-25T20:07:14Z",
+      "idem_key": "trajectory_mint|T3|34"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 34,
+      "amount": 53,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        53
+      ],
+      "issue_or_pr": "#824",
+      "frontier_closed": "Boundary/edge-case spec for check_trajectory_next_slot_consistency: empty mints history, duplicate entries, multi-file edge cases, off-by-two slot, non-integer slot",
+      "artifact": "tests/test_check_trajectory_next_slot_consistency_boundary.py (270 lines, 7 boundary tests)",
+      "evidence": "7 boundary tests pass; pre-existing failures are pre-existing",
+      "made_redundant": "Manual boundary analysis for trajectory next-slot consistency check",
+      "redundancy_proof": "Boundary spec catches off-by-one, missing trajectories, non-integer slots automatically in CI",
+      "accepted_at": "2026-04-25T20:08:29Z",
+      "idem_key": "trajectory_mint|T4|34"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 37,
+      "amount": 56,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        56
+      ],
+      "issue_or_pr": "#822",
+      "frontier_closed": "6 adversarial bypass vectors in version regression detection for check_ledger_version_monotonicity: non-integer version, missing version field, duplicate versions, large jumps, version regression, type coercion",
+      "artifact": "tests/test_check_ledger_version_monotonicity_adversarial.py (468 lines, adversarial test suite)",
+      "evidence": "All adversarial tests pass against the merged check_ledger_version_monotonicity implementation",
+      "made_redundant": "Manual code inspection for bypass vectors in monotonicity check",
+      "redundancy_proof": "Adversarial test suite auto-detects bypass attempts and edge cases in CI",
+      "accepted_at": "2026-04-25T20:09:34Z",
+      "idem_key": "trajectory_mint|T2|37"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 36,
+      "amount": 55,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        55
+      ],
+      "issue_or_pr": "#821",
+      "frontier_closed": "check_tasks_completed_consistency: verifies tasks_completed and tasks_created counters match history events with adversarial test coverage",
+      "artifact": "scripts/check_tasks_completed_consistency.py (updated), tests/test_check_tasks_completed_consistency.py (13 adversarial tests)",
+      "evidence": "All 13 adversarial tests pass; live repo exits 0",
+      "made_redundant": "Manual verification of tasks_completed counter consistency across agents",
+      "redundancy_proof": "Automated check catches counter drift, missing payments, and off-by-one errors on every run",
+      "accepted_at": "2026-04-25T20:10:55Z",
+      "idem_key": "trajectory_mint|T1|36"
     }
   ]
 }
