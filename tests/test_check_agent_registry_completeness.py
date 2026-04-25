@@ -3,20 +3,18 @@
 from __future__ import annotations
 
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
-from uuid import uuid4
 
 import pytest
 
 from scripts.check_agent_registry_completeness import (
-    EXEMPT_AGENT,
-    build_report,
-    find_missing_register_keys,
-    get_agent_ids,
-    get_nested_idem_keys,
+    classify_unregistered,
+    collect_former_ids,
+    collect_payment_recipients,
+    idem_key_implies_rename,
+    iter_events,
     main,
     run_check,
 )
@@ -28,227 +26,473 @@ SCRIPT = (
 )
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _write_jsonl(path: Path, events: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
+    )
+
+
 def _write_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-@pytest.fixture
-def case_root() -> Path:
-    root = Path(".test_runs") / "check_agent_registry_completeness" / uuid4().hex
-    if root.exists():
-        shutil.rmtree(root, ignore_errors=True)
-    root.mkdir(parents=True, exist_ok=True)
-    yield root
-    shutil.rmtree(root, ignore_errors=True)
-
-
 def _make_repo(
-    tmp_path: Path,
+    root: Path,
     *,
-    agents: dict[str, dict] | None = None,
-    idem_keys: dict[str, object] | None = None,
-    top_level_idem: dict[str, object] | None = None,
+    agents: dict | None = None,
+    idem_keys: dict | None = None,
+    history_events: list[dict] | None = None,
 ) -> Path:
-    root = tmp_path
     _write_json(
         root / "ledger" / "balances.json",
         {
             "version": 1,
             "agents": agents
-            or {
-                EXEMPT_AGENT: {"balance": 1000},
-                "Codex-19@codex": {"balance": 10},
-                "Claude-1@claude": {"balance": 20},
+            if agents is not None
+            else {
+                "agent0@system": {"balance": 9000},
+                "Claude-1@claude": {"balance": 100},
             },
         },
     )
-    payload: dict[str, object] = {"version": 1, "keys": idem_keys or {}}
-    if top_level_idem:
-        payload.update(top_level_idem)
-    _write_json(root / "ledger" / "idem_keys.json", payload)
+    _write_json(
+        root / "ledger" / "idem_keys.json",
+        {"version": 1, "keys": idem_keys if idem_keys is not None else {}},
+    )
+    if history_events is not None:
+        _write_jsonl(root / "ledger" / "history" / "2026-01-01.jsonl", history_events)
+    else:
+        (root / "ledger" / "history").mkdir(parents=True, exist_ok=True)
     return root
 
 
-def test_get_agent_ids_returns_sorted_ids() -> None:
-    agent_ids = get_agent_ids(
-        {"agents": {"b@test": {}, EXEMPT_AGENT: {}, "a@test": {}}}
-    )
-
-    assert agent_ids == ["a@test", EXEMPT_AGENT, "b@test"]
+# ---------------------------------------------------------------------------
+# collect_payment_recipients
+# ---------------------------------------------------------------------------
 
 
-def test_get_agent_ids_requires_agents_object() -> None:
-    try:
-        get_agent_ids({"agents": []})
-    except ValueError as exc:
-        assert "balances.json must contain an object at key 'agents'" == str(exc)
-    else:
-        raise AssertionError("Expected ValueError")
+def test_collect_payment_recipients_payment_event() -> None:
+    events = [
+        {"type": "payment", "agent": "Claude-1@claude", "amount": 10, "issue": 5}
+    ]
+    result = collect_payment_recipients(events)
+    assert "Claude-1@claude" in result
+    assert result["Claude-1@claude"][0]["amount"] == 10
+    assert result["Claude-1@claude"][0]["issue"] == 5
 
 
-def test_get_nested_idem_keys_requires_nested_keys_object() -> None:
-    try:
-        get_nested_idem_keys({"keys": []})
-    except ValueError as exc:
-        assert "idem_keys.json must contain an object at key 'keys'" == str(exc)
-    else:
-        raise AssertionError("Expected ValueError")
+def test_collect_payment_recipients_accept_event() -> None:
+    events = [
+        {"type": "accept", "agent": "Claude-1@claude", "amount": 20, "issue": 7}
+    ]
+    result = collect_payment_recipients(events)
+    assert result["Claude-1@claude"][0]["type"] == "accept"
+    assert result["Claude-1@claude"][0]["amount"] == 20
 
 
-def test_find_missing_register_keys_passes_when_all_non_exempt_agents_registered() -> None:
-    missing = find_missing_register_keys(
-        [EXEMPT_AGENT, "Codex-19@codex", "Claude-1@claude"],
+def test_collect_payment_recipients_trajectory_mint() -> None:
+    events = [
         {
-            "register|Codex-19@codex": "2026-03-27T13:05:23Z",
-            "register|Claude-1@claude": "2026-03-07T12:00:04Z",
-        },
-    )
-
-    assert missing == []
-
-
-def test_find_missing_register_keys_exempts_agent0() -> None:
-    missing = find_missing_register_keys([EXEMPT_AGENT], {})
-
-    assert missing == []
-
-
-def test_find_missing_register_keys_reports_single_missing_agent() -> None:
-    missing = find_missing_register_keys(
-        [EXEMPT_AGENT, "Codex-19@codex", "Claude-1@claude"],
-        {"register|Codex-19@codex": "2026-03-27T13:05:23Z"},
-    )
-
-    assert missing == ["Claude-1@claude"]
-
-
-def test_find_missing_register_keys_reports_multiple_missing_agents_sorted() -> None:
-    missing = find_missing_register_keys(
-        [EXEMPT_AGENT, "z@test", "a@test", "m@test"],
-        {"register|m@test": "2026-04-01T00:00:00Z"},
-    )
-
-    assert missing == ["a@test", "z@test"]
-
-
-def test_build_report_formats_missing_keys() -> None:
-    report = build_report(
-        agent_ids=[EXEMPT_AGENT, "Codex-19@codex", "Claude-1@claude"],
-        missing_agents=["Claude-1@claude"],
-    )
-
-    assert report["status"] == "FAIL"
-    assert report["summary"]["agents_checked"] == 2
-    assert report["violations"] == [
-        {
-            "agent": "Claude-1@claude",
-            "missing_key": "register|Claude-1@claude",
+            "type": "trajectory_mint",
+            "agents": ["Claude-1@claude", "Claude-5@claude"],
+            "per_agent": [30, 25],
+            "issue": 99,
         }
     ]
+    result = collect_payment_recipients(events)
+    assert result["Claude-1@claude"][0]["amount"] == 30
+    assert result["Claude-5@claude"][0]["amount"] == 25
+    assert result["Claude-1@claude"][0]["issue"] == 99
 
 
-def test_run_check_passes_for_clean_repo(case_root: Path) -> None:
+def test_collect_payment_recipients_skips_non_payment_events() -> None:
+    events = [
+        {"type": "escrow_create", "author": "agent0@system", "amount": 50, "issue": 1},
+        {"type": "registration", "agent": "Claude-1@claude"},
+    ]
+    result = collect_payment_recipients(events)
+    assert result == {}
+
+
+def test_collect_payment_recipients_skips_empty_agent() -> None:
+    events = [{"type": "payment", "agent": "", "amount": 5, "issue": 1}]
+    result = collect_payment_recipients(events)
+    assert result == {}
+
+
+# ---------------------------------------------------------------------------
+# collect_former_ids
+# ---------------------------------------------------------------------------
+
+
+def test_collect_former_ids_registration_confirmed() -> None:
+    events = [
+        {
+            "type": "registration_confirmed",
+            "agent": "new-id@platform",
+            "previous_id": "old-id@platform",
+        }
+    ]
+    former = collect_former_ids(events)
+    assert "old-id@platform" in former
+    assert "new-id@platform" not in former
+
+
+def test_collect_former_ids_economy_reset() -> None:
+    events = [
+        {
+            "type": "economy_reset",
+            "agents_zeroed": ["OldAgent@X", "AnotherOld@Y"],
+        }
+    ]
+    former = collect_former_ids(events)
+    assert "OldAgent@X" in former
+    assert "AnotherOld@Y" in former
+
+
+def test_collect_former_ids_empty() -> None:
+    events = [{"type": "payment", "agent": "Claude-1@claude", "amount": 5}]
+    former = collect_former_ids(events)
+    assert former == set()
+
+
+# ---------------------------------------------------------------------------
+# idem_key_implies_rename
+# ---------------------------------------------------------------------------
+
+
+def test_idem_key_implies_rename_detects_via_payment_prefix() -> None:
+    events = [
+        {"type": "payment", "agent": "OldAgent@x", "amount": 10, "issue": 70}
+    ]
+    idem_keys = {
+        "payment|70|NewAgent@x|ranking|1": "2026-01-01T00:00:00Z",
+    }
+    assert idem_key_implies_rename(
+        "OldAgent@x", events, {"NewAgent@x"}, idem_keys
+    )
+
+
+def test_idem_key_implies_rename_detects_via_accept_prefix() -> None:
+    events = [
+        {"type": "accept", "agent": "OldAgent@x", "amount": 5, "issue": 42}
+    ]
+    idem_keys = {
+        "accept|42|RegisteredAgent@y": "2026-01-01T00:00:00Z",
+    }
+    assert idem_key_implies_rename(
+        "OldAgent@x", events, {"RegisteredAgent@y"}, idem_keys
+    )
+
+
+def test_idem_key_implies_rename_no_match() -> None:
+    events = [
+        {"type": "payment", "agent": "Ghost@x", "amount": 10, "issue": 100}
+    ]
+    idem_keys = {
+        "payment|100|UnrelatedAgent@y": "2026-01-01T00:00:00Z",
+    }
+    # UnrelatedAgent@y is not in registered_ids
+    assert not idem_key_implies_rename("Ghost@x", events, {"OtherAgent@z"}, idem_keys)
+
+
+def test_idem_key_implies_rename_no_paid_issues() -> None:
+    events: list = []
+    assert not idem_key_implies_rename("Ghost@x", events, {"Agent@y"}, {})
+
+
+# ---------------------------------------------------------------------------
+# classify_unregistered
+# ---------------------------------------------------------------------------
+
+
+def test_classify_unregistered_zero_amount_is_warning() -> None:
+    agent_events = [{"type": "payment", "amount": 0, "issue": 1}]
+    cls, reason = classify_unregistered(
+        "Ghost@x", agent_events, set(), [], set(), {}
+    )
+    assert cls == "warning"
+    assert "zero amount" in reason
+
+
+def test_classify_unregistered_former_id_is_warning() -> None:
+    agent_events = [{"type": "payment", "amount": 50, "issue": 1}]
+    cls, reason = classify_unregistered(
+        "OldId@x", agent_events, {"OldId@x"}, [], set(), {}
+    )
+    assert cls == "warning"
+    assert "former" in reason
+
+
+def test_classify_unregistered_idem_key_match_is_warning() -> None:
+    all_events = [{"type": "payment", "agent": "OldId@x", "amount": 10, "issue": 5}]
+    idem_keys = {"payment|5|NewId@x|suffix": "2026-01-01T00:00:00Z"}
+    agent_events = [{"type": "payment", "amount": 10, "issue": 5}]
+    cls, reason = classify_unregistered(
+        "OldId@x", agent_events, set(), all_events, {"NewId@x"}, idem_keys
+    )
+    assert cls == "warning"
+    assert "idem_keys" in reason
+
+
+def test_classify_unregistered_ghost_payment_is_violation() -> None:
+    agent_events = [{"type": "payment", "amount": 50, "issue": 9}]
+    all_events = [{"type": "payment", "agent": "Ghost@x", "amount": 50, "issue": 9}]
+    cls, reason = classify_unregistered(
+        "Ghost@x", agent_events, set(), all_events, {"Claude-1@claude"}, {}
+    )
+    assert cls == "violation"
+    assert "50 WEA" in reason
+
+
+# ---------------------------------------------------------------------------
+# run_check — integration
+# ---------------------------------------------------------------------------
+
+
+def test_run_check_passes_when_all_recipients_registered(tmp_path: Path) -> None:
     root = _make_repo(
-        case_root,
-        idem_keys={
-            "register|Codex-19@codex": "2026-03-27T13:05:23Z",
-            "register|Claude-1@claude": "2026-03-07T12:00:04Z",
-        },
+        tmp_path,
+        agents={"agent0@system": {"balance": 900}, "Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {"type": "payment", "agent": "Claude-1@claude", "amount": 10, "issue": 1}
+        ],
     )
 
     report, exit_code = run_check(root)
 
     assert exit_code == 0
     assert report["status"] == "PASS"
-    assert report["summary"]["missing_register_keys"] == 0
     assert report["violations"] == []
+    assert report["warnings"] == []
 
 
-def test_run_check_fails_when_register_key_missing(case_root: Path) -> None:
+def test_run_check_fails_on_ghost_payment(tmp_path: Path) -> None:
     root = _make_repo(
-        case_root,
-        idem_keys={"register|Codex-19@codex": "2026-03-27T13:05:23Z"},
+        tmp_path,
+        agents={"agent0@system": {"balance": 900}, "Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {
+                "type": "payment",
+                "agent": "Ghost@unknown",
+                "amount": 30,
+                "issue": 5,
+            }
+        ],
     )
 
     report, exit_code = run_check(root)
 
     assert exit_code == 1
     assert report["status"] == "FAIL"
-    assert report["summary"]["missing_register_keys"] == 1
-    assert report["violations"][0]["agent"] == "Claude-1@claude"
+    assert len(report["violations"]) == 1
+    assert report["violations"][0]["agent"] == "Ghost@unknown"
+    assert report["violations"][0]["total_received"] == 30
 
 
-def test_run_check_ignores_top_level_register_key(case_root: Path) -> None:
+def test_run_check_warns_on_zero_amount_event(tmp_path: Path) -> None:
     root = _make_repo(
-        case_root,
-        idem_keys={"register|Codex-19@codex": "2026-03-27T13:05:23Z"},
-        top_level_idem={"register|Claude-1@claude": "2026-03-07T12:00:04Z"},
+        tmp_path,
+        agents={"agent0@system": {"balance": 1000}},
+        history_events=[
+            {
+                "type": "payment",
+                "agent": "Ghost@unknown",
+                "amount": 0,
+                "issue": 3,
+            }
+        ],
+    )
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["violations"] == []
+    assert len(report["warnings"]) == 1
+    assert report["warnings"][0]["agent"] == "Ghost@unknown"
+    assert "zero amount" in report["warnings"][0]["reason"]
+
+
+def test_run_check_warns_on_renamed_agent_via_registration_confirmed(
+    tmp_path: Path,
+) -> None:
+    root = _make_repo(
+        tmp_path,
+        agents={"NewId@platform": {"balance": 50}},
+        history_events=[
+            {
+                "type": "payment",
+                "agent": "OldId@platform",
+                "amount": 20,
+                "issue": 7,
+            },
+            {
+                "type": "registration_confirmed",
+                "agent": "NewId@platform",
+                "previous_id": "OldId@platform",
+            },
+        ],
+    )
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["violations"] == []
+    assert len(report["warnings"]) == 1
+    assert report["warnings"][0]["agent"] == "OldId@platform"
+    assert "former" in report["warnings"][0]["reason"]
+
+
+def test_run_check_warns_on_economy_reset_agent(tmp_path: Path) -> None:
+    root = _make_repo(
+        tmp_path,
+        agents={"agent0@system": {"balance": 1000}},
+        history_events=[
+            {
+                "type": "payment",
+                "agent": "EarlyAgent@platform",
+                "amount": 100,
+                "issue": 2,
+            },
+            {
+                "type": "economy_reset",
+                "agents_zeroed": ["EarlyAgent@platform"],
+            },
+        ],
+    )
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["violations"] == []
+    assert len(report["warnings"]) == 1
+    assert "former" in report["warnings"][0]["reason"]
+
+
+def test_run_check_warns_on_inferred_rename_via_idem_keys(tmp_path: Path) -> None:
+    root = _make_repo(
+        tmp_path,
+        agents={"RegisteredNew@x": {"balance": 50}},
+        idem_keys={"payment|42|RegisteredNew@x|ranking|1": "2026-01-01T00:00:00Z"},
+        history_events=[
+            {
+                "type": "payment",
+                "agent": "OldName@x",
+                "amount": 15,
+                "issue": 42,
+            }
+        ],
+    )
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["violations"] == []
+    assert len(report["warnings"]) == 1
+    assert "idem_keys" in report["warnings"][0]["reason"]
+
+
+def test_run_check_trajectory_mint_recipients_checked(tmp_path: Path) -> None:
+    root = _make_repo(
+        tmp_path,
+        agents={"agent0@system": {"balance": 900}, "Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {
+                "type": "trajectory_mint",
+                "agents": ["Claude-1@claude", "GhostMint@x"],
+                "per_agent": [30, 25],
+                "issue": 50,
+            }
+        ],
     )
 
     report, exit_code = run_check(root)
 
     assert exit_code == 1
-    assert report["violations"] == [
-        {
-            "agent": "Claude-1@claude",
-            "missing_key": "register|Claude-1@claude",
-        }
-    ]
+    assert report["violations"][0]["agent"] == "GhostMint@x"
+    assert report["violations"][0]["total_received"] == 25
 
 
-def test_run_check_fails_when_balances_missing(case_root: Path) -> None:
-    _write_json(case_root / "ledger" / "idem_keys.json", {"version": 1, "keys": {}})
+def test_run_check_missing_balances_returns_fail(tmp_path: Path) -> None:
+    _write_json(tmp_path / "ledger" / "idem_keys.json", {"version": 1, "keys": {}})
+    (tmp_path / "ledger" / "history").mkdir(parents=True, exist_ok=True)
 
-    report, exit_code = run_check(case_root)
+    report, exit_code = run_check(tmp_path)
 
     assert exit_code == 1
     assert report["status"] == "FAIL"
-    assert report["violations"] == [{"reason": "balances.json not found"}]
+    assert "balances.json not found" in report["summary"]
 
 
-def test_run_check_fails_when_idem_keys_missing(case_root: Path) -> None:
-    _write_json(case_root / "ledger" / "balances.json", {"version": 1, "agents": {}})
+def test_run_check_missing_idem_keys_still_checks_history(tmp_path: Path) -> None:
+    _write_json(
+        tmp_path / "ledger" / "balances.json",
+        {"version": 1, "agents": {"Claude-1@claude": {"balance": 100}}},
+    )
+    _write_jsonl(
+        tmp_path / "ledger" / "history" / "2026-01-01.jsonl",
+        [{"type": "payment", "agent": "Ghost@x", "amount": 5, "issue": 1}],
+    )
 
-    report, exit_code = run_check(case_root)
-
-    assert exit_code == 1
-    assert report["status"] == "FAIL"
-    assert report["violations"] == [{"reason": "idem_keys.json not found"}]
-
-
-def test_run_check_fails_on_invalid_balances_json(case_root: Path) -> None:
-    balances_path = case_root / "ledger" / "balances.json"
-    balances_path.parent.mkdir(parents=True, exist_ok=True)
-    balances_path.write_text("{not-json", encoding="utf-8")
-    _write_json(case_root / "ledger" / "idem_keys.json", {"version": 1, "keys": {}})
-
-    report, exit_code = run_check(case_root)
+    report, exit_code = run_check(tmp_path)
 
     assert exit_code == 1
     assert report["status"] == "FAIL"
-    assert "balances.json contains invalid JSON:" in report["violations"][0]["reason"]
+    assert "idem_keys.json not found" in report["summary"]
 
 
-def test_run_check_fails_when_nested_keys_missing(case_root: Path) -> None:
-    _write_json(case_root / "ledger" / "balances.json", {"version": 1, "agents": {}})
-    _write_json(case_root / "ledger" / "idem_keys.json", {"version": 1})
-
-    report, exit_code = run_check(case_root)
-
-    assert exit_code == 1
-    assert report["violations"] == [
-        {"reason": "idem_keys.json must contain an object at key 'keys'"}
-    ]
-
-
-def test_main_emits_pass_json(case_root: Path, capsys) -> None:
+def test_run_check_empty_history_passes(tmp_path: Path) -> None:
     root = _make_repo(
-        case_root,
-        idem_keys={
-            "register|Codex-19@codex": "2026-03-27T13:05:23Z",
-            "register|Claude-1@claude": "2026-03-07T12:00:04Z",
-        },
+        tmp_path,
+        agents={"Claude-1@claude": {"balance": 100}},
+        history_events=[],
+    )
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+
+
+def test_run_check_summary_counts_are_correct(tmp_path: Path) -> None:
+    root = _make_repo(
+        tmp_path,
+        agents={"agent0@system": {"balance": 900}, "Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {"type": "payment", "agent": "Claude-1@claude", "amount": 10, "issue": 1},
+            {"type": "payment", "agent": "Ghost@x", "amount": 5, "issue": 2},
+        ],
+    )
+
+    report, _ = run_check(root)
+
+    assert "2 history-payment recipient(s)" in report["summary"]
+    assert "1 violation(s)" in report["summary"]
+
+
+# ---------------------------------------------------------------------------
+# main() — CLI interface
+# ---------------------------------------------------------------------------
+
+
+def test_main_emits_pass_json_for_clean_repo(tmp_path: Path, capsys) -> None:
+    root = _make_repo(
+        tmp_path,
+        agents={"Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {"type": "payment", "agent": "Claude-1@claude", "amount": 10, "issue": 1}
+        ],
     )
 
     exit_code = main(["--root", str(root)])
@@ -258,10 +502,13 @@ def test_main_emits_pass_json(case_root: Path, capsys) -> None:
     assert payload["status"] == "PASS"
 
 
-def test_main_emits_fail_json(case_root: Path, capsys) -> None:
+def test_main_emits_fail_json_for_ghost_payment(tmp_path: Path, capsys) -> None:
     root = _make_repo(
-        case_root,
-        idem_keys={"register|Codex-19@codex": "2026-03-27T13:05:23Z"},
+        tmp_path,
+        agents={"Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {"type": "payment", "agent": "Ghost@x", "amount": 99, "issue": 7}
+        ],
     )
 
     exit_code = main(["--root", str(root)])
@@ -269,13 +516,16 @@ def test_main_emits_fail_json(case_root: Path, capsys) -> None:
 
     assert exit_code == 1
     assert payload["status"] == "FAIL"
-    assert payload["summary"]["missing_register_keys"] == 1
+    assert payload["violations"][0]["agent"] == "Ghost@x"
 
 
-def test_cli_returns_exit_code_one_for_missing_registration(case_root: Path) -> None:
+def test_cli_exit_code_one_for_violation(tmp_path: Path) -> None:
     root = _make_repo(
-        case_root,
-        idem_keys={"register|Codex-19@codex": "2026-03-27T13:05:23Z"},
+        tmp_path,
+        agents={"Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {"type": "payment", "agent": "Ghost@x", "amount": 40, "issue": 3}
+        ],
     )
 
     result = subprocess.run(
@@ -287,4 +537,25 @@ def test_cli_returns_exit_code_one_for_missing_registration(case_root: Path) -> 
 
     payload = json.loads(result.stdout)
     assert result.returncode == 1
-    assert payload["violations"][0]["agent"] == "Claude-1@claude"
+    assert payload["violations"][0]["agent"] == "Ghost@x"
+
+
+def test_cli_exit_code_zero_for_clean_repo(tmp_path: Path) -> None:
+    root = _make_repo(
+        tmp_path,
+        agents={"Claude-1@claude": {"balance": 100}},
+        history_events=[
+            {"type": "payment", "agent": "Claude-1@claude", "amount": 10, "issue": 1}
+        ],
+    )
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--root", str(root)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "PASS"
