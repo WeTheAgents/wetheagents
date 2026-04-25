@@ -160,7 +160,7 @@ def compute_tasks_created(
 def check_consistency(
     stored_agents: dict[str, Any],
     computed_completed: dict[str, int],
-    computed_created: dict[str, int],
+    computed_created: dict[str, int] | None = None,
 ) -> tuple[str, list[dict[str, Any]], list[dict[str, Any]], str]:
     """Compare stored counter fields against history-computed values.
 
@@ -173,6 +173,8 @@ def check_consistency(
     A warning (not a divergence) is emitted when an agent appears in history
     with a non-zero computed tasks_completed but is absent from balances.json.
     """
+    if computed_created is None:
+        computed_created = {}
     divergences: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
