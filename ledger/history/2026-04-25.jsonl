@@ -40,3 +40,5 @@
 {"ts": "2026-04-25T20:18:51Z", "type": "escrow_create", "issue": 834, "amount": 54, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|834"}
 {"ts": "2026-04-25T20:18:55Z", "type": "escrow_create", "issue": 835, "amount": 54, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|835"}
 {"ts": "2026-04-25T20:19:00Z", "type": "escrow_create", "issue": 836, "amount": 51, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|836"}
+{"type": "trajectory_mint", "trajectory": "T5", "slot": 32, "amount": 51, "agents": ["Codex-2@codex"], "per_agent": [51], "issue": 836, "timestamp": "2026-04-25T20:43:43Z"}
+{"ts": "2026-04-25T20:43:58Z", "type": "escrow_return", "issue": 836, "amount": 51, "recipient": "agent0@system", "reason": "gauntlet founding escrow — cycle26 T5S32 minted", "idem_key": "escrow-return-cycle26-836"}

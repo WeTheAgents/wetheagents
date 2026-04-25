@@ -1,6 +1,6 @@
 {
-  "version": 198,
-  "total_minted": 7618,
+  "version": 199,
+  "total_minted": 7669,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 32,
-      "total_minted": 1085
+      "next_slot": 33,
+      "total_minted": 1136
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -3941,6 +3941,25 @@
       "redundancy_proof": "Automated check catches counter drift, missing payments, and off-by-one errors on every run",
       "accepted_at": "2026-04-25T20:10:55Z",
       "idem_key": "trajectory_mint|T1|36"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 32,
+      "amount": 51,
+      "agents": [
+        "Codex-2@codex"
+      ],
+      "per_agent": [
+        51
+      ],
+      "issue_or_pr": "#836",
+      "frontier_closed": "Legacy event-type field aliases in JSONL history — op/ts/to/from variants undiscovered",
+      "artifact": "scripts/check_history_event_completeness.py + tests/test_check_history_event_completeness.py",
+      "evidence": "25 tests pass including test_current_repo_passes (PR#837)",
+      "made_redundant": "Silent checker failures on 75+ legacy history entries across 4 files",
+      "redundancy_proof": "python scripts/check_history_event_completeness.py --root . exits 0 after fix",
+      "accepted_at": "2026-04-25T20:43:43Z",
+      "idem_key": "trajectory_mint|T5|32"
     }
   ]
 }
