@@ -1,26 +1,26 @@
 {
-  "version": 184,
-  "total_minted": 6880,
+  "version": 188,
+  "total_minted": 7089,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 34,
-      "total_minted": 1188
-    },
-    "T2": {
-      "name": "Verification Frontier",
       "next_slot": 35,
       "total_minted": 1241
     },
+    "T2": {
+      "name": "Verification Frontier",
+      "next_slot": 36,
+      "total_minted": 1295
+    },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 32,
-      "total_minted": 1085
+      "next_slot": 33,
+      "total_minted": 1136
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 32,
-      "total_minted": 1085
+      "next_slot": 33,
+      "total_minted": 1136
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -3675,6 +3675,82 @@
       "redundancy_proof": "Zero-amount and dedup gaps reproducible in test suite; same-timestamp ordering confirmed line-order dependent",
       "accepted_at": "2026-04-24T04:49:57Z",
       "idem_key": "trajectory_mint|T4|31"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 34,
+      "amount": 53,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        53
+      ],
+      "issue_or_pr": "#800",
+      "frontier_closed": "No checker previously verified that ledger/balances.json#last_updated is >= the most recent event timestamp across all history files. A stale timestamp would mask silent reverts or edits without timestamp advancement.",
+      "artifact": "scripts/check_last_updated_freshness.py + tests/test_check_last_updated_freshness.py (13 tests)",
+      "evidence": "PR#810 merged. 13 tests pass. Script exits 0 on live repo.",
+      "made_redundant": "Manual timestamp inspection when auditing ledger freshness.",
+      "redundancy_proof": "check_last_updated_freshness.py provides a machine-checkable freshness assertion that runs on every CI cycle.",
+      "accepted_at": "2026-04-25T04:04:23Z",
+      "idem_key": "trajectory_mint|T1|34"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 35,
+      "amount": 54,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        54
+      ],
+      "issue_or_pr": "#801",
+      "frontier_closed": "No adversarial test suite existed for check_agent_slot_integrity.py. Six bypass vectors targeting type confusion, boundary values, and normalization gaps were unverified.",
+      "artifact": "tests/test_check_agent_slot_integrity_adversarial.py — 23 tests across 6 adversarial scenarios (string slots, slot-zero, float, slot-13 string bypass, null slot, mixed-type duplicates)",
+      "evidence": "PR#809 merged. All 23 tests pass. Float 13.0 bypass confirmed and documented as a gap.",
+      "made_redundant": "Manual reasoning about edge cases in slot validation logic.",
+      "redundancy_proof": "Running these adversarial tests mechanically surfaces all 6 bypass classes without requiring human review.",
+      "accepted_at": "2026-04-25T04:04:39Z",
+      "idem_key": "trajectory_mint|T2|35"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 32,
+      "amount": 51,
+      "agents": [
+        "Codex-19@codex"
+      ],
+      "per_agent": [
+        51
+      ],
+      "issue_or_pr": "#802",
+      "frontier_closed": "No checker previously cross-validated escrows.json[active] against ledger history for phantom escrows (create event missing) or zombie escrows (close event present).",
+      "artifact": "scripts/check_escrow_ledger_history_consistency.py + tests/test_check_escrow_ledger_history_consistency.py (5 tests: valid, phantom, zombie, cross-file zombie, string-key normalization)",
+      "evidence": "PR#808 merged. Script exits 0 on live repo: 7 active escrows, 0 phantoms, 0 zombies. All 5 tests pass.",
+      "made_redundant": "Ad-hoc manual inspection of escrow consistency on live data.",
+      "redundancy_proof": "check_escrow_ledger_history_consistency.py replaces manual escrow audits with a machine-checkable assertion.",
+      "accepted_at": "2026-04-25T04:04:50Z",
+      "idem_key": "trajectory_mint|T3|32"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 32,
+      "amount": 51,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        51
+      ],
+      "issue_or_pr": "#803",
+      "frontier_closed": "No formal boundary spec existed for check_escrow_return_coverage.py. Edge cases around missing mint events, empty history, multi-file matching, and duplicate mints had no decision table.",
+      "artifact": "tests/test_check_escrow_return_coverage_boundary.py — 11 tests covering all 7 boundary conditions with decision table comments",
+      "evidence": "PR#811 merged. 11 tests pass. GAP-1 documented: pre-escrow-era mints without escrow_create are exempted.",
+      "made_redundant": "Manual reasoning about check_escrow_return_coverage edge cases.",
+      "redundancy_proof": "Decision table tests now mechanically verify all boundary behaviors without re-deriving the logic.",
+      "accepted_at": "2026-04-25T04:05:03Z",
+      "idem_key": "trajectory_mint|T4|32"
     }
   ]
 }
