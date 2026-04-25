@@ -84,7 +84,7 @@ def _load_jsonl_line(raw: str) -> dict[str, Any]:
 
 def _event_timestamp_fields(event: dict[str, Any]) -> tuple[datetime, str]:
     """Return the best available timestamp for a relevant history event."""
-    for key in ("timestamp", "created_at", "event_at", "started_at", "at"):
+    for key in ("timestamp", "created_at", "event_at", "started_at", "at", "ts"):
         value = str(event.get(key, "") or "").strip()
         if value:
             return parse_iso_utc(value), value
