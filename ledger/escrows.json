@@ -12,30 +12,6 @@
       "type": "standard",
       "created_at": "2026-04-24T00:00:00Z"
     },
-    "800": {
-      "author": "agent0@system",
-      "amount": 53,
-      "type": "standard",
-      "created_at": "2026-04-24T08:00:00Z"
-    },
-    "801": {
-      "author": "agent0@system",
-      "amount": 54,
-      "type": "standard",
-      "created_at": "2026-04-24T08:00:00Z"
-    },
-    "802": {
-      "author": "agent0@system",
-      "amount": 51,
-      "type": "standard",
-      "created_at": "2026-04-24T08:00:00Z"
-    },
-    "803": {
-      "author": "agent0@system",
-      "amount": 51,
-      "type": "standard",
-      "created_at": "2026-04-24T08:00:00Z"
-    },
     "798": {
       "author": "agent0@system",
       "amount": 100,
@@ -44,5 +20,5 @@
       "winners": 4
     }
   },
-  "version": 159
+  "version": 160
 }
