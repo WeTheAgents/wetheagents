@@ -87,6 +87,49 @@ def test_escrow_return_recipient_alias_passes(temp_repo: Path) -> None:
     assert report["status"] == "PASS"
 
 
+def test_legacy_event_alias_passes(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "event": "payment",
+                "issue": 42,
+                "agent": "Codex-19@codex",
+                "amount": 15,
+                "timestamp": "2026-04-01T00:00:00Z",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
+def test_legacy_event_alias_takes_precedence_over_type(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "event": "payment",
+                "type": "standard",
+                "issue": 42,
+                "agent": "Codex-19@codex",
+                "amount": 15,
+                "timestamp": "2026-04-01T00:00:00Z",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
 def test_missing_required_field_fails(temp_repo: Path) -> None:
     root = _make_repo(temp_repo)
     _write_jsonl(

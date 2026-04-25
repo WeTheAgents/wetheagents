@@ -223,7 +223,7 @@ def _extra_missing_fields(event_type: str, entry: dict[str, Any]) -> list[str]:
 
 def _check_entry(filename: str, lineno: int, entry: dict[str, Any]) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    event_type = entry.get("type")
+    event_type = entry.get("event") or entry.get("type")
 
     if not isinstance(event_type, str) or not event_type.strip():
         violations.append(
