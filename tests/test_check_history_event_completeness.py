@@ -219,6 +219,27 @@ def test_register_at_timestamp_alias_passes(temp_repo: Path) -> None:
     assert report["status"] == "PASS"
 
 
+def test_ts_alias_passes_for_payment_event(temp_repo: Path) -> None:
+    root = _make_repo(temp_repo)
+    _write_jsonl(
+        root / "ledger" / "history" / "2026-04-01.jsonl",
+        [
+            {
+                "type": "payment",
+                "issue": 42,
+                "agent": "Codex-19@codex",
+                "amount": 15,
+                "ts": "2026-04-01T00:00:00Z",
+            }
+        ],
+    )
+
+    report, passed = run(root)
+
+    assert passed is True
+    assert report["status"] == "PASS"
+
+
 def test_trajectory_mint_single_agent_legacy_variant_passes(temp_repo: Path) -> None:
     root = _make_repo(temp_repo)
     _write_jsonl(

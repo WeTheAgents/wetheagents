@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 _INVALID_ESCAPE_RE = re.compile(r"\\(?![\"\\/bfnrtu])")
-_TIMESTAMP_ALIASES = ("timestamp", "created_at", "event_at", "started_at", "at")
+_TIMESTAMP_ALIASES = ("ts", "timestamp", "created_at", "event_at", "started_at", "at")
 
 
 def _req(name: str, *aliases: str) -> tuple[str, tuple[str, ...]]:

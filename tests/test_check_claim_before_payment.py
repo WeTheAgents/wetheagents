@@ -261,6 +261,25 @@ def test_payment_uses_started_at_when_timestamp_missing(temp_repo: Path) -> None
     assert report["checks"][0]["payments_checked"] == 1
 
 
+def test_payment_uses_ts_when_timestamp_missing(temp_repo: Path) -> None:
+    root = _case_root(temp_repo)
+    _write_history(
+        root,
+        "2026-04-10.jsonl",
+        [
+            {"type": "claim", "issue": 486, "agent": "Codex-2@codex", "ts": "2026-04-10T09:00:00Z"},
+            {"type": "payment", "issue": 486, "agent": "Codex-2@codex", "amount": 29, "ts": "2026-04-10T10:00:00Z"},
+        ],
+    )
+
+    result = _run(root)
+    report = _report(result)
+
+    assert result.returncode == 0
+    assert report["status"] == "PASS"
+    assert report["checks"][0]["payments_checked"] == 1
+
+
 def test_legacy_invalid_escape_in_note_is_repaired(temp_repo: Path) -> None:
     root = _case_root(temp_repo)
     history_dir = root / "ledger" / "history"
