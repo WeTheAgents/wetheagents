@@ -223,7 +223,7 @@
       "slot": "2"
     },
     "agent0@system": {
-      "balance": 8675,
+      "balance": 8408,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -268,6 +268,6 @@
       "slot": "4"
     }
   },
-  "last_updated": "2026-04-25T12:22:15Z",
-  "version": 147
+  "last_updated": "2026-04-25T12:28:05Z",
+  "version": 152
 }
