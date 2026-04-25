@@ -128,7 +128,7 @@ def compute_earned_spent(
                         earned[a] += int(per_agent[i])
             else:
                 # Single-agent format: agent + amount fields.
-                a = e.get("agent", "")
+                a = e.get("agent", "") or e.get("to", "")
                 if a:
                     earned[a] += amount
 

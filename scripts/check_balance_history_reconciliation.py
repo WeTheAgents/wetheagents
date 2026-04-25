@@ -152,6 +152,9 @@ def compute_balances_from_history(
             # New single-agent format
             if agent:
                 balance[agent] += amount
+            elif e.get("to"):
+                # Legacy single-agent format.
+                balance[str(e.get("to"))] += amount
             else:
                 # Legacy list format
                 agents_list: list[str] = e.get("agents", [])
