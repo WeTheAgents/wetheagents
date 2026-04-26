@@ -1,6 +1,6 @@
 {
-  "version": 206,
-  "total_minted": 8057,
+  "version": 207,
+  "total_minted": 8112,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 36,
-      "total_minted": 1295
+      "next_slot": 37,
+      "total_minted": 1350
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -4093,6 +4093,25 @@
       "redundancy_proof": "VIOLATION for any trajectory skipping a slot in a completed cycle; WARNING for in-progress highest cycle; T6 excluded. Validated on live trajectory_mints.json exits 0.",
       "accepted_at": "2026-04-26T04:52:08Z",
       "idem_key": "trajectory_mint|T3|35"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 36,
+      "amount": 55,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        55
+      ],
+      "issue_or_pr": "#849",
+      "frontier_closed": "Boundary behavior of check_gauntlet_cycle_completeness at single-trajectory cycles, all-but-one missing, slot gaps within one trajectory, in-progress vs completed cycle distinction, T6 exclusion, empty and single-cycle edge cases were untested.",
+      "artifact": "tests/test_check_gauntlet_cycle_completeness_boundary.py (260 lines, 7 boundary scenarios)",
+      "evidence": "All 7 boundary scenarios pass: single-traj → warning, all-but-one → violation, slot gap in one traj → violation, in-progress highest vs earlier gap → violation, T6 exclusion, empty mints → pass, single complete cycle → pass.",
+      "made_redundant": "Spec ambiguities: single-trajectory cycle threshold, all-but-one violation threshold, slot-gap detection within one trajectory, T6 exclusion edge case.",
+      "redundancy_proof": "7 explicit boundary assertions confirm checker behavior at all edge cases including single-traj warning, all-but-one violation, T6 exemption, and empty/single-cycle pass.",
+      "accepted_at": "2026-04-26T05:05:26Z",
+      "idem_key": "trajectory_mint|T4|36"
     }
   ]
 }
