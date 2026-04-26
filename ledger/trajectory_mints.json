@@ -1,6 +1,6 @@
 {
-  "version": 215,
-  "total_minted": 8562,
+  "version": 217,
+  "total_minted": 8679,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 41,
-      "total_minted": 1580
+      "next_slot": 42,
+      "total_minted": 1640
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 38,
-      "total_minted": 1406
+      "next_slot": 39,
+      "total_minted": 1463
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -4264,6 +4264,44 @@
       "redundancy_proof": "Automated 3-check lifecycle verification (create→close→amount) for all gauntlet mints above legacy cutoff; PR #868 merged",
       "accepted_at": "2026-04-26T06:17:16Z",
       "idem_key": "trajectory_mint|T1|40"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 41,
+      "amount": 60,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        60
+      ],
+      "issue_or_pr": "#861",
+      "frontier_closed": "check_gauntlet_founding_escrow_consistency.py had no adversarial test coverage — attack vectors (missing escrows, dangling creates, forged events, bulk mixed states) went untested",
+      "artifact": "tests/test_check_gauntlet_founding_escrow_consistency_adversarial.py (7 adversarial categories, merged PR #869)",
+      "evidence": "All 7 adversarial test categories pass; pytest tests/ exits 0 (no regressions)",
+      "made_redundant": "Manual security review of founding-escrow cross-reference logic",
+      "redundancy_proof": "Adversarial tests cover missing/dangling/forged/bulk-mixed attack vectors; PR #869 merged to main",
+      "accepted_at": "2026-04-26T06:39:33Z",
+      "idem_key": "trajectory_mint|T2|41"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 38,
+      "amount": 57,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        57
+      ],
+      "issue_or_pr": "#863",
+      "frontier_closed": "check_history_file_date_consistency.py had no boundary-case tests for leap days, timezone edge cases (event exactly ±1 day), files with only empty lines, and reverse-chronological violations",
+      "artifact": "tests/test_check_history_file_date_consistency_boundary.py (7 boundary scenarios, merged PR #870)",
+      "evidence": "All 7 boundary tests pass; pytest tests/ exits 0 (no regressions)",
+      "made_redundant": "Manual boundary review of history date consistency checker",
+      "redundancy_proof": "Boundary tests cover 7 edge cases; PR #870 merged to main",
+      "accepted_at": "2026-04-26T06:39:41Z",
+      "idem_key": "trajectory_mint|T4|38"
     }
   ]
 }
