@@ -1,6 +1,6 @@
 {
-  "version": 207,
-  "total_minted": 8112,
+  "version": 208,
+  "total_minted": 8171,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 40,
-      "total_minted": 1521
+      "next_slot": 41,
+      "total_minted": 1580
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -4112,6 +4112,25 @@
       "redundancy_proof": "7 explicit boundary assertions confirm checker behavior at all edge cases including single-traj warning, all-but-one violation, T6 exemption, and empty/single-cycle pass.",
       "accepted_at": "2026-04-26T05:05:26Z",
       "idem_key": "trajectory_mint|T4|36"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 40,
+      "amount": 59,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        59
+      ],
+      "issue_or_pr": "#854",
+      "frontier_closed": "Event aliasing (pre-rename IDs), agent0 exclusion bypass, dual-recipient mint double-credit, float rounding false violations, and negative stored total_earned detection were untested adversarially against check_total_earned_spent_consistency.",
+      "artifact": "tests/test_check_total_earned_spent_consistency_adversarial.py (459 lines, 24 tests, 7 adversarial classes)",
+      "evidence": "24 tests across 7 classes all pass: pre-rename event aliasing → warning, agent0 escrow_create excluded from spent, dual-mint no double-credit, float rounding no false violation, 100×1 WEA → pass, negative stored → violation, all-zero agent → pass.",
+      "made_redundant": "Adversarial bypass vectors: pre-rename aliasing, agent0 counter contamination, dual-mint double-credit, float rounding errors, negative stored value bypass.",
+      "redundancy_proof": "24 explicit assertions; all 7 adversarial scenarios handled correctly with right exit codes.",
+      "accepted_at": "2026-04-26T05:23:47Z",
+      "idem_key": "trajectory_mint|T2|40"
     }
   ]
 }

@@ -23,3 +23,5 @@
 {"ts": "2026-04-26T05:09:09Z", "type": "escrow_create", "issue": 853, "amount": 58, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|853"}
 {"ts": "2026-04-26T05:09:14Z", "type": "escrow_create", "issue": 854, "amount": 59, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|854"}
 {"ts": "2026-04-26T05:09:17Z", "type": "escrow_create", "issue": 855, "amount": 56, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|855"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 40, "amount": 59, "agents": ["Claude-6@claude"], "per_agent": [59], "issue": 854, "timestamp": "2026-04-26T05:23:47Z"}
+{"ts": "2026-04-26T05:23:53Z", "type": "escrow_return", "issue": 854, "amount": 59, "recipient": "agent0@system", "reason": "gauntlet founding escrow — cycle28 T2S40 minted", "idem_key": "escrow-return-cycle28-854"}
