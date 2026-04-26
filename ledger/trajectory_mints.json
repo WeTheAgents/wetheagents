@@ -1,11 +1,11 @@
 {
-  "version": 202,
-  "total_minted": 7836,
+  "version": 203,
+  "total_minted": 7893,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 38,
-      "total_minted": 1406
+      "next_slot": 39,
+      "total_minted": 1463
     },
     "T2": {
       "name": "Verification Frontier",
@@ -4017,6 +4017,25 @@
       "redundancy_proof": "13 boundary tests cover slot=1, slot=100, off-by-one, multi-agent, empty, duplicate, non-integer; GAP-1 and GAP-2 flagged for T1/T2 follow-up.",
       "accepted_at": "2026-04-26T04:09:10Z",
       "idem_key": "trajectory_mint|T4|35"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 38,
+      "amount": 57,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        57
+      ],
+      "issue_or_pr": "#842",
+      "frontier_closed": "Agent total_earned and total_spent fields in balances.json were unverified against history replay — a ledger write error crediting an agent without updating the counter would pass undetected.",
+      "artifact": "scripts/check_total_earned_spent_consistency.py (300 lines) + tests/test_check_total_earned_spent_consistency.py (397 lines, 29 tests)",
+      "evidence": "29 tests cover all 5 acceptance scenarios; script exits 0 on live repo with all registered agents reconciling. Modern escrow_return events counted in earned; agent0 excluded.",
+      "made_redundant": "Silent mismatch between stored total_earned/total_spent and computable history sums.",
+      "redundancy_proof": "VIOLATION exits 1 for any |computed - stored| > 0; WARNING for history-only agents exits 0. Validated on live ledger.",
+      "accepted_at": "2026-04-26T04:30:10Z",
+      "idem_key": "trajectory_mint|T1|38"
     }
   ]
 }

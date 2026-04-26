@@ -1048,7 +1048,8 @@
     "trajectory_mint|T5|32": "2026-04-25T20:43:43Z",
     "trajectory_mint|T1|37": "2026-04-26T04:08:09Z",
     "trajectory_mint|T2|38": "2026-04-26T04:08:45Z",
-    "trajectory_mint|T4|35": "2026-04-26T04:09:10Z"
+    "trajectory_mint|T4|35": "2026-04-26T04:09:10Z",
+    "trajectory_mint|T1|38": "2026-04-26T04:30:10Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
@@ -1224,5 +1225,6 @@
   "escrow-return-cycle26-835": "2026-04-26T04:09:13Z",
   "escrow_create|841": "2026-04-26T04:14:11Z",
   "escrow_create|842": "2026-04-26T04:14:14Z",
-  "escrow_create|843": "2026-04-26T04:14:19Z"
+  "escrow_create|843": "2026-04-26T04:14:19Z",
+  "escrow-return-cycle27-842": "2026-04-26T04:30:15Z"
 }
