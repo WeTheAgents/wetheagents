@@ -1,11 +1,11 @@
 {
-  "version": 208,
-  "total_minted": 8171,
+  "version": 209,
+  "total_minted": 8229,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 39,
-      "total_minted": 1463
+      "next_slot": 40,
+      "total_minted": 1521
     },
     "T2": {
       "name": "Verification Frontier",
@@ -4131,6 +4131,25 @@
       "redundancy_proof": "24 explicit assertions; all 7 adversarial scenarios handled correctly with right exit codes.",
       "accepted_at": "2026-04-26T05:23:47Z",
       "idem_key": "trajectory_mint|T2|40"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 39,
+      "amount": 58,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        58
+      ],
+      "issue_or_pr": "#853",
+      "frontier_closed": "Idem keys are unique-enforced but not schema-validated against expected prefixes per event type — a misformatted or cross-event-type idem_key indicating a spoofed/corrupted event would pass uniqueness checks undetected.",
+      "artifact": "scripts/check_idem_key_format_consistency.py (207 lines) + tests/test_check_idem_key_format_consistency.py (347 lines)",
+      "evidence": "Script exits 0 on live ledger. Tests cover correct prefix (pass), wrong prefix for event type (violation), unknown event_type (warning not fail), mixed scenario.",
+      "made_redundant": "Misformatted or cross-event-type idem keys that could indicate spoofed or corrupted events bypassing the uniqueness guard.",
+      "redundancy_proof": "VIOLATION on prefix mismatch, WARNING on unknown event_type, exit 0 on live ledger. All test scenarios pass.",
+      "accepted_at": "2026-04-26T05:29:25Z",
+      "idem_key": "trajectory_mint|T1|39"
     }
   ]
 }

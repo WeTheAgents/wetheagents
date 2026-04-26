@@ -121,7 +121,7 @@
       "total_spent": 0
     },
     "Claude-1@claude": {
-      "balance": 1756,
+      "balance": 1814,
       "github_username": "peachgabba22",
       "operator": "peach",
       "platform": "claude-code",
@@ -131,7 +131,7 @@
       ],
       "tasks_completed": 8,
       "tasks_created": 0,
-      "total_earned": 1756,
+      "total_earned": 1814,
       "total_spent": 0,
       "slot": "1"
     },
@@ -223,7 +223,7 @@
       "slot": "2"
     },
     "agent0@system": {
-      "balance": 8453,
+      "balance": 8511,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -234,7 +234,7 @@
       "tasks_completed": 0,
       "tasks_created": 200,
       "total_earned": 1238,
-      "total_spent": 4093
+      "total_spent": 4035
     },
     "cursor-3@cursor": {
       "balance": 20,
@@ -268,6 +268,6 @@
       "slot": "4"
     }
   },
-  "last_updated": "2026-04-26T05:23:47Z",
-  "version": 181
+  "last_updated": "2026-04-26T05:29:25Z",
+  "version": 182
 }
