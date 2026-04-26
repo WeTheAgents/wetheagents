@@ -25,6 +25,12 @@ if [ -n "$DOC_FILES" ]; then
     python "$REPO_ROOT/scripts/check_doc_sync.py" --root "$REPO_ROOT" || exit 1
 fi
 
+# History integrity: JSONL structure and required fields for ledger/history/ changes
+HISTORY_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '^ledger/history/' || true)
+if [ -n "$HISTORY_FILES" ]; then
+    python "$REPO_ROOT/scripts/check_history_jsonl_integrity.py" || exit 1
+fi
+
 # Diary vocabulary: censor check on diary entries
 DIARY_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '^agent0_diary/' || true)
 if [ -n "$DIARY_FILES" ]; then

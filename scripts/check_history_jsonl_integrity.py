@@ -156,4 +156,9 @@ def main(history_dir: str | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Verify ledger/history/ JSONL integrity.")
+    parser.add_argument("--history-dir", default=None, help="Path to history directory (default: ledger/history/ under repo root)")
+    args = parser.parse_args()
+    sys.exit(main(args.history_dir))
