@@ -1,11 +1,11 @@
 {
-  "version": 220,
-  "total_minted": 8849,
+  "version": 221,
+  "total_minted": 8909,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 41,
-      "total_minted": 1580
+      "next_slot": 42,
+      "total_minted": 1640
     },
     "T2": {
       "name": "Verification Frontier",
@@ -4359,6 +4359,25 @@
       "redundancy_proof": "9 named boundary invariants now encoded as executable tests; any future implementation change that breaks an invariant is caught immediately",
       "accepted_at": "2026-04-26T12:32:54Z",
       "idem_key": "trajectory_mint|T4|39"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 41,
+      "amount": 60,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        60
+      ],
+      "issue_or_pr": "#871",
+      "frontier_closed": "no checker validated that per-agent running balance never went negative at any intermediate point during history replay — only the final sum was verified",
+      "artifact": "scripts/check_history_cumulative_balance_integrity.py (496 lines) + tests/test_check_history_cumulative_balance_integrity.py (405 lines, 13 test cases)",
+      "evidence": "script exits 0 on live repo (823 events replayed, 0 violations); all 13 unit tests pass; all 10 T4 boundary tests pass against this implementation",
+      "made_redundant": "static final-balance checks that cannot detect transient negative balances mid-replay; manual inspection of history ordering",
+      "redundancy_proof": "full chronological replay with per-step floor assertion; any escrow_create that exceeds available balance is caught immediately at the causative event",
+      "accepted_at": "2026-04-26T12:37:01Z",
+      "idem_key": "trajectory_mint|T1|41"
     }
   ]
 }
