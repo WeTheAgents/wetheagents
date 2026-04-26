@@ -1,6 +1,6 @@
 {
-  "version": 219,
-  "total_minted": 8791,
+  "version": 220,
+  "total_minted": 8849,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 39,
-      "total_minted": 1463
+      "next_slot": 40,
+      "total_minted": 1521
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -4340,6 +4340,25 @@
       "redundancy_proof": "check_gauntlet_evaluator_consistency.py can be run as a CI step or pre-merge gate to catch any evaluator field violation automatically",
       "accepted_at": "2026-04-26T12:30:29Z",
       "idem_key": "trajectory_mint|T3|38"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 39,
+      "amount": 58,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        58
+      ],
+      "issue_or_pr": "#874",
+      "frontier_closed": "no boundary spec existed for check_history_cumulative_balance_integrity; edge cases (exact zero, simultaneous timestamps, phantom agents, active-escrow tolerance) were undocumented",
+      "artifact": "PR#878: scripts/check_history_cumulative_balance_integrity.py (405 lines reference impl) + tests/test_boundary_cumulative_balance_integrity.py (404 lines, 9 boundary scenarios)",
+      "evidence": "all 9 boundary scenarios pass; pytest tests/ -q exits 0 on live repo with no regressions",
+      "made_redundant": "informal reasoning about balance replay edge cases; ad-hoc manual testing of the checker",
+      "redundancy_proof": "9 named boundary invariants now encoded as executable tests; any future implementation change that breaks an invariant is caught immediately",
+      "accepted_at": "2026-04-26T12:32:54Z",
+      "idem_key": "trajectory_mint|T4|39"
     }
   ]
 }
