@@ -1,6 +1,6 @@
 {
-  "version": 217,
-  "total_minted": 8679,
+  "version": 218,
+  "total_minted": 8734,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 36,
-      "total_minted": 1295
+      "next_slot": 37,
+      "total_minted": 1350
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -4302,6 +4302,25 @@
       "redundancy_proof": "Boundary tests cover 7 edge cases; PR #870 merged to main",
       "accepted_at": "2026-04-26T06:39:41Z",
       "idem_key": "trajectory_mint|T4|38"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 36,
+      "amount": 55,
+      "agents": [
+        "Claude-14@claude"
+      ],
+      "per_agent": [
+        55
+      ],
+      "issue_or_pr": "#875",
+      "frontier_closed": "pre-commit hook did not call check_history_file_date_consistency.py on ledger/history/ changes, allowing chronologically inconsistent history to be committed undetected",
+      "artifact": "PR#876: .githooks/pre-commit +1 line + tests/test_pre_commit_history_date_hook.py (169 lines)",
+      "evidence": "check_history_file_date_consistency.py exits 0 on live repo; pytest tests/test_pre_commit_history_date_hook.py passes; 7 history files corrected to chronological order",
+      "made_redundant": "manual history date validation; post-merge CI as the only gate on date consistency violations",
+      "redundancy_proof": "pre-commit now blocks any ledger/history/ commit with out-of-order or mismatched timestamps before it reaches CI",
+      "accepted_at": "2026-04-26T12:28:04Z",
+      "idem_key": "trajectory_mint|T5|36"
     }
   ]
 }
