@@ -1,6 +1,6 @@
 {
-  "version": 221,
-  "total_minted": 8909,
+  "version": 222,
+  "total_minted": 8970,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 42,
-      "total_minted": 1640
+      "next_slot": 43,
+      "total_minted": 1701
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -4378,6 +4378,25 @@
       "redundancy_proof": "full chronological replay with per-step floor assertion; any escrow_create that exceeds available balance is caught immediately at the causative event",
       "accepted_at": "2026-04-26T12:37:01Z",
       "idem_key": "trajectory_mint|T1|41"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 42,
+      "amount": 61,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        61
+      ],
+      "issue_or_pr": "#872",
+      "frontier_closed": "check_history_cumulative_balance_integrity had no adversarial test coverage — silent-pass vectors (timestamp reordering, intermediate negatives masked by correct final sum, phantom agents) were untested",
+      "artifact": "PR#879: tests/test_adversarial_cumulative_balance_integrity.py (424 lines, 9 adversarial scenarios)",
+      "evidence": "all 9 adversarial tests pass against the live implementation; pytest tests/ -q exits 0 with no regressions",
+      "made_redundant": "informal reasoning about checker robustness; untested assumptions about replay ordering and agent identity handling",
+      "redundancy_proof": "9 adversarial scenarios now executable as regression tests; any implementation change that opens a bypass vector is caught immediately",
+      "accepted_at": "2026-04-26T12:40:46Z",
+      "idem_key": "trajectory_mint|T2|42"
     }
   ]
 }
