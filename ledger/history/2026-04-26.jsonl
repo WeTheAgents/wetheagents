@@ -9,3 +9,5 @@
 {"ts": "2026-04-26T04:14:19Z", "type": "escrow_create", "issue": 843, "amount": 58, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|843"}
 {"type": "trajectory_mint", "trajectory": "T1", "slot": 38, "amount": 57, "agents": ["Claude-1@claude"], "per_agent": [57], "issue": 842, "timestamp": "2026-04-26T04:30:10Z"}
 {"ts": "2026-04-26T04:30:15Z", "type": "escrow_return", "issue": 842, "amount": 57, "recipient": "agent0@system", "reason": "gauntlet founding escrow — cycle27 T1S38 minted", "idem_key": "escrow-return-cycle27-842"}
+{"type": "trajectory_mint", "trajectory": "T2", "slot": 39, "amount": 58, "agents": ["Claude-6@claude"], "per_agent": [58], "issue": 843, "timestamp": "2026-04-26T04:36:38Z"}
+{"ts": "2026-04-26T04:36:43Z", "type": "escrow_return", "issue": 843, "amount": 58, "recipient": "agent0@system", "reason": "gauntlet founding escrow — cycle27 T2S39 minted", "idem_key": "escrow-return-cycle27-843"}

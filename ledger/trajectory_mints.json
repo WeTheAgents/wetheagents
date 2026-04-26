@@ -1,6 +1,6 @@
 {
-  "version": 203,
-  "total_minted": 7893,
+  "version": 204,
+  "total_minted": 7951,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -9,8 +9,8 @@
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 39,
-      "total_minted": 1463
+      "next_slot": 40,
+      "total_minted": 1521
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -4036,6 +4036,25 @@
       "redundancy_proof": "VIOLATION exits 1 for any |computed - stored| > 0; WARNING for history-only agents exits 0. Validated on live ledger.",
       "accepted_at": "2026-04-26T04:30:10Z",
       "idem_key": "trajectory_mint|T1|38"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 39,
+      "amount": 58,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        58
+      ],
+      "issue_or_pr": "#843",
+      "frontier_closed": "check_agent_registry_completeness rename detection, zero-amount classification, trajectory_mint coverage, large-history burial, false-positive rename, and case-sensitivity were untested adversarially.",
+      "artifact": "tests/test_check_agent_registry_completeness_adversarial.py (569 lines, 7 adversarial categories)",
+      "evidence": "All 7 adversarial categories pass: rename cascade → WARNING, zero-amount only → WARNING, trajectory_mint to unregistered → VIOLATION, 1 ghost in 200 events → surfaced, false-positive rename → no conflation, case-sensitivity → consistent, mixed → exit 1 all reported.",
+      "made_redundant": "Adversarial bypass vectors: rename cascade edge cases, zero-amount misclassification, trajectory_mint gap, large-history burial, false-positive rename conflation.",
+      "redundancy_proof": "7 explicit pass/fail assertions per category; checker handles all adversarial scenarios including mixed VIOLATION+WARNING with correct exit code.",
+      "accepted_at": "2026-04-26T04:36:38Z",
+      "idem_key": "trajectory_mint|T2|39"
     }
   ]
 }
