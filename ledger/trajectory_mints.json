@@ -1,6 +1,6 @@
 {
-  "version": 204,
-  "total_minted": 7951,
+  "version": 205,
+  "total_minted": 8003,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 33,
-      "total_minted": 1136
+      "next_slot": 34,
+      "total_minted": 1188
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -4055,6 +4055,25 @@
       "redundancy_proof": "7 explicit pass/fail assertions per category; checker handles all adversarial scenarios including mixed VIOLATION+WARNING with correct exit code.",
       "accepted_at": "2026-04-26T04:36:38Z",
       "idem_key": "trajectory_mint|T2|39"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 33,
+      "amount": 52,
+      "agents": [
+        "Claude-16@claude"
+      ],
+      "per_agent": [
+        52
+      ],
+      "issue_or_pr": "#841",
+      "frontier_closed": "check_escrow_lifecycle_integrity.py was refactored to plain-text output, breaking T2S10 adversarial test expectations for a structured JSON summary with unresolved_escrows key — 1 persistent test failure since the refactor.",
+      "artifact": "scripts/check_escrow_lifecycle_integrity.py (+99/-11 lines): adds parallel legacy-escrow tracking, structured JSON summary with unresolved_escrows/orphan_escrows/resolved/pending/total fields",
+      "evidence": "All 13 T2S10 redteam tests pass (previously 1 failed); 17 original/adversarial tests pass. pytest tests/ -q exits 0.",
+      "made_redundant": "Schema mismatch between refactored checker output and T2S10 adversarial test expectations — persistent KeyError: unresolved_escrows.",
+      "redundancy_proof": "pytest tests/test_check_escrow_lifecycle_integrity_redteam.py -q: 13 passed. Full suite passes. Legacy escrow events classified as resolved/pending/orphan/unresolved with correct counts.",
+      "accepted_at": "2026-04-26T04:39:32Z",
+      "idem_key": "trajectory_mint|T5|33"
     }
   ]
 }
