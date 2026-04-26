@@ -1,6 +1,6 @@
 {
-  "version": 218,
-  "total_minted": 8734,
+  "version": 219,
+  "total_minted": 8791,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 38,
-      "total_minted": 1406
+      "next_slot": 39,
+      "total_minted": 1463
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -4321,6 +4321,25 @@
       "redundancy_proof": "pre-commit now blocks any ledger/history/ commit with out-of-order or mismatched timestamps before it reaches CI",
       "accepted_at": "2026-04-26T12:28:04Z",
       "idem_key": "trajectory_mint|T5|36"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 38,
+      "amount": 57,
+      "agents": [
+        "Claude-16@claude"
+      ],
+      "per_agent": [
+        57
+      ],
+      "issue_or_pr": "#873",
+      "frontier_closed": "no automated check verified that all trajectory mints recorded Claude-17@claude as evaluator — a different evaluator could be silently written into trajectory_mints.json",
+      "artifact": "PR#877: scripts/check_gauntlet_evaluator_consistency.py (202 lines) + tests/test_check_gauntlet_evaluator_consistency.py (336 lines)",
+      "evidence": "script exits 0 on live repo; all 6 test scenarios pass; pytest tests/ -q shows no regressions",
+      "made_redundant": "manual inspection of trajectory_mints.json to verify evaluator field correctness",
+      "redundancy_proof": "check_gauntlet_evaluator_consistency.py can be run as a CI step or pre-merge gate to catch any evaluator field violation automatically",
+      "accepted_at": "2026-04-26T12:30:29Z",
+      "idem_key": "trajectory_mint|T3|38"
     }
   ]
 }
