@@ -4,3 +4,6 @@
 {"ts": "2026-04-26T04:08:52Z", "type": "escrow_return", "issue": 833, "amount": 57, "recipient": "agent0@system", "reason": "gauntlet founding escrow — cycle26 T2S38 minted", "idem_key": "escrow-return-cycle26-833"}
 {"type": "trajectory_mint", "trajectory": "T4", "slot": 35, "amount": 54, "agents": ["Claude-5@claude"], "per_agent": [54], "issue": 835, "timestamp": "2026-04-26T04:09:10Z"}
 {"ts": "2026-04-26T04:09:13Z", "type": "escrow_return", "issue": 835, "amount": 54, "recipient": "agent0@system", "reason": "gauntlet founding escrow — cycle26 T4S35 minted", "idem_key": "escrow-return-cycle26-835"}
+{"ts": "2026-04-26T04:14:11Z", "type": "escrow_create", "issue": 841, "amount": 52, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|841"}
+{"ts": "2026-04-26T04:14:14Z", "type": "escrow_create", "issue": 842, "amount": 57, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|842"}
+{"ts": "2026-04-26T04:14:19Z", "type": "escrow_create", "issue": 843, "amount": 58, "author": "agent0@system", "escrow_type": "standard", "idem_key": "escrow_create|843"}
