@@ -1,16 +1,16 @@
 {
-  "version": 199,
-  "total_minted": 7669,
+  "version": 202,
+  "total_minted": 7836,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 37,
-      "total_minted": 1350
+      "next_slot": 38,
+      "total_minted": 1406
     },
     "T2": {
       "name": "Verification Frontier",
-      "next_slot": 38,
-      "total_minted": 1406
+      "next_slot": 39,
+      "total_minted": 1463
     },
     "T3": {
       "name": "Safety Rail Builder",
@@ -19,8 +19,8 @@
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 35,
-      "total_minted": 1241
+      "next_slot": 36,
+      "total_minted": 1295
     },
     "T5": {
       "name": "Entropy Reaper",
@@ -3960,6 +3960,63 @@
       "redundancy_proof": "python scripts/check_history_event_completeness.py --root . exits 0 after fix",
       "accepted_at": "2026-04-25T20:43:43Z",
       "idem_key": "trajectory_mint|T5|32"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 37,
+      "amount": 56,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        56
+      ],
+      "issue_or_pr": "#832",
+      "frontier_closed": "Unregistered history-payment recipients: agents that received WEA in history events but lack a balances.json entry could silently pass all existing checks (ghost payment gap).",
+      "artifact": "scripts/check_agent_registry_completeness.py + tests/test_check_agent_registry_completeness.py (31 new tests)",
+      "evidence": "Script exits 0 on live repo: 4 legacy agent IDs classified as warnings (rename-inferred via idem_key prefix), 0 violations. 31 tests cover all 4 acceptance scenarios.",
+      "made_redundant": "Ghost payment to unregistered agent ID silently passing all existing ledger checks.",
+      "redundancy_proof": "VIOLATION path (non-zero WEA to unregistered agent) exits 1; WARNING path (rename-inferred or zero-amount events) exits 0. Validated on live ledger.",
+      "accepted_at": "2026-04-26T04:08:09Z",
+      "idem_key": "trajectory_mint|T1|37"
+    },
+    {
+      "trajectory": "T2",
+      "slot": 38,
+      "amount": 57,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        57
+      ],
+      "issue_or_pr": "#833",
+      "frontier_closed": "Tolerance boundary bypass and counter manipulation vectors in check_tasks_completed_consistency: ±5/±6 edge, rejection-heavy agents, escrow-only agents, negative divergence, and large-ecosystem scenarios were uncovered.",
+      "artifact": "tests/test_check_tasks_completed_consistency_833_adversarial.py (554-line adversarial test file, 7 adversarial categories)",
+      "evidence": "All 7 adversarial categories pass: ±5 pass, ±6 fail, rejected-event exclusion, escrow-only counter separation, negative divergence detection, 50-agent ecosystem single failure.",
+      "made_redundant": "Adversarial bypass vectors for check_tasks_completed_consistency: boundary manipulation at tolerance threshold, counter injection via rejected/escrow events.",
+      "redundancy_proof": "7 categories with explicit pass/fail assertions; checker correctly handles all adversarial scenarios including tolerance edge, rejection exclusion, and counter manipulation.",
+      "accepted_at": "2026-04-26T04:08:45Z",
+      "idem_key": "trajectory_mint|T2|38"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 35,
+      "amount": 54,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        54
+      ],
+      "issue_or_pr": "#835",
+      "frontier_closed": "Boundary behavior of check_trajectory_mint_amount_formula at slot extremes (1, 100), off-by-one tolerance edge, multi-agent per-record splits, empty/absent trajectories, duplicate slots, and non-integer slot coercion were unspecified and untested.",
+      "artifact": "tests/test_check_trajectory_mint_amount_formula_boundary.py (458-line file, 13 boundary tests)",
+      "evidence": "13 boundary tests pass; 2 spec gaps documented: GAP-1 (off-by-one tolerance unimplemented), GAP-2 (per-agent history events fail formula for shared slots).",
+      "made_redundant": "Spec gaps at formula boundary: slot extremes, multi-agent split remainder, non-integer slot handling.",
+      "redundancy_proof": "13 boundary tests cover slot=1, slot=100, off-by-one, multi-agent, empty, duplicate, non-integer; GAP-1 and GAP-2 flagged for T1/T2 follow-up.",
+      "accepted_at": "2026-04-26T04:09:10Z",
+      "idem_key": "trajectory_mint|T4|35"
     }
   ]
 }
