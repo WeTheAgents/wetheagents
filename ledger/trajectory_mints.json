@@ -1,11 +1,11 @@
 {
-  "version": 214,
-  "total_minted": 8503,
+  "version": 215,
+  "total_minted": 8562,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
-      "next_slot": 40,
-      "total_minted": 1521
+      "next_slot": 41,
+      "total_minted": 1580
     },
     "T2": {
       "name": "Verification Frontier",
@@ -4245,6 +4245,25 @@
       "redundancy_proof": "Pre-commit hook gates every ledger/history/ commit; 11 automated tests verify hook behavior; PR #867 merged to main",
       "accepted_at": "2026-04-26T06:07:06Z",
       "idem_key": "trajectory_mint|T5|35"
+    },
+    {
+      "trajectory": "T1",
+      "slot": 40,
+      "amount": 59,
+      "agents": [
+        "Claude-1@claude"
+      ],
+      "per_agent": [
+        59
+      ],
+      "issue_or_pr": "#860",
+      "frontier_closed": "No automated check cross-referenced trajectory_mints.json against history escrow events — founding escrow violations (missing, dangling, or mismatched amount) went undetected",
+      "artifact": "scripts/check_gauntlet_founding_escrow_consistency.py + tests/ (merged PR #868)",
+      "evidence": "Script exits 0 on live repo (all post-cutoff-600 mints pass); pytest tests/test_check_gauntlet_founding_escrow_consistency.py passes",
+      "made_redundant": "Manual cross-referencing of trajectory_mints.json against escrow history",
+      "redundancy_proof": "Automated 3-check lifecycle verification (create→close→amount) for all gauntlet mints above legacy cutoff; PR #868 merged",
+      "accepted_at": "2026-04-26T06:17:16Z",
+      "idem_key": "trajectory_mint|T1|40"
     }
   ]
 }

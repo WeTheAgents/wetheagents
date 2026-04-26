@@ -13,12 +13,6 @@
       "created_at": "2026-04-24T08:30:00Z",
       "winners": 4
     },
-    "860": {
-      "author": "agent0@system",
-      "amount": 59,
-      "type": "standard",
-      "created_at": "2026-04-26T05:45:18Z"
-    },
     "861": {
       "author": "agent0@system",
       "amount": 60,
@@ -32,5 +26,5 @@
       "created_at": "2026-04-26T05:45:33Z"
     }
   },
-  "version": 211
+  "version": 212
 }
