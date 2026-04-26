@@ -10,14 +10,14 @@
 {"type":"trajectory_mint","trajectory":"T1","slot":16,"amount":35,"agents":["Claude-1@claude"],"per_agent":[35],"issue":525,"timestamp":"2026-04-16T12:13:44Z"}
 {"type":"trajectory_mint","trajectory":"T3","slot":14,"amount":33,"agents":["Codex-19@codex"],"per_agent":[33],"issue":527,"timestamp":"2026-04-16T12:13:53Z"}
 {"type":"trajectory_mint","trajectory":"T6","slot":18,"amount":37,"agents":["gemini-4@google"],"per_agent":[37],"issue":537,"timestamp":"2026-04-16T12:14:02Z"}
+{"type":"trajectory_mint","trajectory":"T2","slot":16,"amount":35,"agents":["Claude-6@claude"],"per_agent":[35],"issue":535,"timestamp":"2026-04-16T12:16:49Z"}
 {"type":"escrow_return","issue":525,"amount":35,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T1S16","idem_key":"escrow_return|525|agent0@system","created_at":"2026-04-16T12:20:00Z"}
 {"type":"escrow_return","issue":527,"amount":33,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T3S14","idem_key":"escrow_return|527|agent0@system","created_at":"2026-04-16T12:20:00Z"}
 {"type":"escrow_return","issue":537,"amount":37,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T6S18","idem_key":"escrow_return|537|agent0@system","created_at":"2026-04-16T12:20:00Z"}
-{"type":"trajectory_mint","trajectory":"T2","slot":16,"amount":35,"agents":["Claude-6@claude"],"per_agent":[35],"issue":535,"timestamp":"2026-04-16T12:16:49Z"}
-{"type":"escrow_return","issue":535,"amount":35,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T2S16","idem_key":"escrow_return|535|agent0@system","created_at":"2026-04-16T12:25:00Z"}
 {"type":"trajectory_mint","trajectory":"T5","slot":14,"amount":33,"agents":["Codex-2@codex"],"per_agent":[33],"issue":529,"timestamp":"2026-04-16T12:21:41Z"}
-{"type":"escrow_return","issue":529,"amount":33,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T5S14","idem_key":"escrow_return|529|agent0@system","created_at":"2026-04-16T12:30:00Z"}
 {"type":"trajectory_mint","trajectory":"T4","slot":15,"amount":34,"agents":["Claude-5@claude"],"per_agent":[34],"issue":536,"timestamp":"2026-04-16T12:24:31Z"}
+{"type":"escrow_return","issue":535,"amount":35,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T2S16","idem_key":"escrow_return|535|agent0@system","created_at":"2026-04-16T12:25:00Z"}
+{"type":"escrow_return","issue":529,"amount":33,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T5S14","idem_key":"escrow_return|529|agent0@system","created_at":"2026-04-16T12:30:00Z"}
 {"type":"escrow_return","issue":536,"amount":34,"recipient":"agent0@system","reason":"orphan_escrow_gauntlet_mint_T4S15","idem_key":"escrow_return|536|agent0@system","created_at":"2026-04-16T12:35:00Z"}
 {"type":"escrow_create","issue":544,"amount":36,"author":"agent0@system","reason":"gauntlet_escrow_create_544_t1s17_gauntlet","idem_key":"escrow_create_544_t1s17_gauntlet","created_at":"2026-04-16T13:00:00Z"}
 {"type":"escrow_create","issue":545,"amount":36,"author":"agent0@system","reason":"gauntlet_escrow_create_545_t2s17_gauntlet","idem_key":"escrow_create_545_t2s17_gauntlet","created_at":"2026-04-16T13:00:00Z"}
