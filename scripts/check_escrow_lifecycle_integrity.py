@@ -167,9 +167,23 @@ def run_check(root: Path) -> dict[str, Any]:
     history_files = sorted(history_dir.glob("*.jsonl")) if history_dir.is_dir() else []
     history_events, malformed_lines = load_history_events(history_dir)
 
+    # ── Load active escrows from escrows.json ─────────────────────────────────
+    active_escrows: set[str] = set()
+    escrows_file = root / "ledger" / "escrows.json"
+    if escrows_file.exists():
+        try:
+            escrows_data = json.loads(escrows_file.read_text(encoding="utf-8"))
+            for key in escrows_data.get("active", {}):
+                normalized = _normalize_issue(key)
+                if normalized:
+                    active_escrows.add(normalized)
+        except (json.JSONDecodeError, OSError):
+            pass
+
     # ── Original escrow_create tracking ──────────────────────────────────────
     open_creates: dict[str, list[OpenCreate]] = {}
     issues_with_tracked_create_history: set[str] = set()
+    issues_with_any_create: set[str] = set()
     reports: list[dict[str, Any]] = []
     escrow_create_events_scanned = 0
     close_events_scanned = 0
@@ -218,6 +232,7 @@ def run_check(root: Path) -> dict[str, Any]:
                 continue
             if tracked:
                 issues_with_tracked_create_history.add(record.issue)
+            issues_with_any_create.add(record.issue)
             open_creates.setdefault(record.issue, []).append(OpenCreate(record=record, tracked=tracked))
             continue
 
@@ -226,6 +241,14 @@ def run_check(root: Path) -> dict[str, Any]:
 
         close_events_scanned += 1
         if record.issue is None or record.amount is None:
+            # post-mint orphan return: escrow_return with no amount for a minted issue is a valid close
+            if kind == "escrow_return" and record.issue is not None and record.issue in trajectory_mint_issues:
+                pending = open_creates.get(record.issue, [])
+                if pending:
+                    pending.pop(0)
+                    if not pending:
+                        open_creates.pop(record.issue, None)
+                continue
             if kind != "payment":
                 reports.append(
                     _report_entry(
@@ -241,6 +264,17 @@ def run_check(root: Path) -> dict[str, Any]:
         if not pending:
             # payment and escrow_return are exempt when the issue has no tracked create history
             if kind in ("payment", "escrow_return") and record.issue not in issues_with_tracked_create_history:
+                continue
+            # legacy era: issue had escrow events (not escrow_create) and all were consumed → WARNING
+            if record.issue in issues_with_any_create and record.issue not in issues_with_tracked_create_history:
+                reports.append(
+                    _report_entry(
+                        status="WARNING",
+                        issue=record.issue,
+                        reason="close_without_prior_create",
+                        close_record=record,
+                    )
+                )
                 continue
             reports.append(
                 _report_entry(
@@ -279,6 +313,9 @@ def run_check(root: Path) -> dict[str, Any]:
         for matched_create in pending:
             if not matched_create.tracked:
                 continue
+            # active escrows haven't been closed yet — not a violation
+            if issue in active_escrows:
+                continue
             reports.append(
                 _report_entry(
                     status="FAIL",
@@ -299,22 +336,10 @@ def run_check(root: Path) -> dict[str, Any]:
 
     failures_list = [entry for entry in reports if entry["status"] == "FAIL"]
     passes_list = [entry for entry in reports if entry["status"] == "PASS"]
+    legacy_warnings_count = sum(1 for entry in reports if entry["status"] == "WARNING")
     close_without_prior_create_count = sum(
         1 for entry in failures_list if entry["reason"] == "close_without_prior_create"
     )
-
-    # ── Load active escrows from escrows.json ─────────────────────────────────
-    active_escrows: set[str] = set()
-    escrows_file = root / "ledger" / "escrows.json"
-    if escrows_file.exists():
-        try:
-            escrows_data = json.loads(escrows_file.read_text(encoding="utf-8"))
-            for key in escrows_data.get("active", {}):
-                normalized = _normalize_issue(key)
-                if normalized:
-                    active_escrows.add(normalized)
-        except (json.JSONDecodeError, OSError):
-            pass
 
     # ── Classify legacy escrows ───────────────────────────────────────────────
     total_escrow_events = sum(legacy_escrow_counts.values())
@@ -369,6 +394,7 @@ def run_check(root: Path) -> dict[str, Any]:
             "failures": len(failures_list),
             "total_checked": len(passes_list) + len(failures_list),
             "close_without_prior_create": close_without_prior_create_count,
+            "legacy_warnings": legacy_warnings_count,
             "total_escrow_events": total_escrow_events,
             "resolved": resolved_count,
             "pending": pending_count,
@@ -408,6 +434,12 @@ def _print_human(report: dict[str, Any]) -> None:
                 f"  PASS issue {issue_text}: "
                 f"{entry['create_kind']} -> {entry['close_kind']} "
                 f"amount={entry['create_amount']}"
+            )
+            continue
+        if entry["status"] == "WARNING":
+            print(
+                f"  WARN issue {issue_text}: reason={entry['reason']} "
+                f"close_kind={entry['close_kind']} close_amount={entry['close_amount']}"
             )
             continue
         print(
