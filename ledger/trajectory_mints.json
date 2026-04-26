@@ -1,6 +1,6 @@
 {
-  "version": 205,
-  "total_minted": 8003,
+  "version": 206,
+  "total_minted": 8057,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 35,
-      "total_minted": 1241
+      "next_slot": 36,
+      "total_minted": 1295
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -4074,6 +4074,25 @@
       "redundancy_proof": "pytest tests/test_check_escrow_lifecycle_integrity_redteam.py -q: 13 passed. Full suite passes. Legacy escrow events classified as resolved/pending/orphan/unresolved with correct counts.",
       "accepted_at": "2026-04-26T04:39:32Z",
       "idem_key": "trajectory_mint|T5|33"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 35,
+      "amount": 54,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        54
+      ],
+      "issue_or_pr": "#834",
+      "frontier_closed": "No check verified that all 5 trajectories (T1-T5) are minted in every gauntlet cycle — partial cycles with missing trajectory slots silently passed all existing checks.",
+      "artifact": "scripts/check_gauntlet_cycle_completeness.py (169 lines) + tests/test_check_gauntlet_cycle_completeness.py (282 lines, 12 tests)",
+      "evidence": "12 tests: all-complete pass, missing-T3 violation, in-progress-highest-cycle warning, T6 excluded, live-ledger pass, edge cases. Script exits 0 on live ledger.",
+      "made_redundant": "Partial gauntlet cycles where some trajectories skipped a slot while others minted — undetected by existing checks.",
+      "redundancy_proof": "VIOLATION for any trajectory skipping a slot in a completed cycle; WARNING for in-progress highest cycle; T6 excluded. Validated on live trajectory_mints.json exits 0.",
+      "accepted_at": "2026-04-26T04:52:08Z",
+      "idem_key": "trajectory_mint|T3|35"
     }
   ]
 }
