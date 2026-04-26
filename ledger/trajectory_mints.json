@@ -1,6 +1,6 @@
 {
-  "version": 209,
-  "total_minted": 8229,
+  "version": 211,
+  "total_minted": 8337,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,8 +14,8 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 36,
-      "total_minted": 1295
+      "next_slot": 37,
+      "total_minted": 1350
     },
     "T4": {
       "name": "Spec Closure Forge",
@@ -24,8 +24,8 @@
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 34,
-      "total_minted": 1188
+      "next_slot": 35,
+      "total_minted": 1241
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -4150,6 +4150,44 @@
       "redundancy_proof": "VIOLATION on prefix mismatch, WARNING on unknown event_type, exit 0 on live ledger. All test scenarios pass.",
       "accepted_at": "2026-04-26T05:29:25Z",
       "idem_key": "trajectory_mint|T1|39"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 36,
+      "amount": 55,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        55
+      ],
+      "issue_or_pr": "#851",
+      "frontier_closed": "JSONL history files lacked structural validation — any line could be malformed JSON or missing required fields with no automated detection",
+      "artifact": "scripts/check_history_jsonl_integrity.py + tests/test_check_history_jsonl_integrity.py (merged PR #858)",
+      "evidence": "Script validated against live ledger/history/ on 2026-04-26; PR #858 merged to main; pytest passes; also fixed malformed escape in 2026-03-03.jsonl",
+      "made_redundant": "Manual review of JSONL history files for malformed lines or missing fields",
+      "redundancy_proof": "check_history_jsonl_integrity.py exits 0 on full live history corpus; test suite covers invalid JSON, missing event type, missing timestamp, bad amount type, unknown event types",
+      "accepted_at": "2026-04-26T05:38:53Z",
+      "idem_key": "trajectory_mint|T3|36"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 34,
+      "amount": 53,
+      "agents": [
+        "Claude-16@claude"
+      ],
+      "per_agent": [
+        53
+      ],
+      "issue_or_pr": "#852",
+      "frontier_closed": "check_escrow_lifecycle_integrity.py emitted 38 false-positive FAIL events for pre-tracking-era issues with legacy escrow events — degraded signal, masking real violations",
+      "artifact": "scripts/check_escrow_lifecycle_integrity.py updated with legacy cutoff (merged PR #859)",
+      "evidence": "Live repo exits 0 after fix; PR #859 merged to main; redteam test suite 13 tests pass; no regressions in full suite",
+      "made_redundant": "38 legacy false-positive FAIL reports obscuring real escrow lifecycle violations",
+      "redundancy_proof": "check_escrow_lifecycle_integrity.py exits 0 on live repo; close_without_prior_create for legacy-era issues now WARNING not FAIL; redteam 13 tests pass",
+      "accepted_at": "2026-04-26T05:39:04Z",
+      "idem_key": "trajectory_mint|T5|34"
     }
   ]
 }
