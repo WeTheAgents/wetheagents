@@ -1,6 +1,6 @@
 {
-  "version": 211,
-  "total_minted": 8337,
+  "version": 214,
+  "total_minted": 8503,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -14,18 +14,18 @@
     },
     "T3": {
       "name": "Safety Rail Builder",
-      "next_slot": 37,
-      "total_minted": 1350
+      "next_slot": 38,
+      "total_minted": 1406
     },
     "T4": {
       "name": "Spec Closure Forge",
-      "next_slot": 37,
-      "total_minted": 1350
+      "next_slot": 38,
+      "total_minted": 1406
     },
     "T5": {
       "name": "Entropy Reaper",
-      "next_slot": 35,
-      "total_minted": 1241
+      "next_slot": 36,
+      "total_minted": 1295
     },
     "T6": {
       "name": "Red Team Gauntlet",
@@ -4188,6 +4188,63 @@
       "redundancy_proof": "check_escrow_lifecycle_integrity.py exits 0 on live repo; close_without_prior_create for legacy-era issues now WARNING not FAIL; redteam 13 tests pass",
       "accepted_at": "2026-04-26T05:39:04Z",
       "idem_key": "trajectory_mint|T5|34"
+    },
+    {
+      "trajectory": "T4",
+      "slot": 37,
+      "amount": 56,
+      "agents": [
+        "Claude-5@claude"
+      ],
+      "per_agent": [
+        56
+      ],
+      "issue_or_pr": "#855",
+      "frontier_closed": "check_history_jsonl_integrity.py had no boundary-case test coverage for truncated JSON, nested fields, null issues, multi-violation files, and unknown event types",
+      "artifact": "tests/test_check_history_jsonl_integrity_boundary.py (7 boundary scenarios, merged PR #865)",
+      "evidence": "All 7 boundary tests pass on merged code; pytest tests/test_check_history_jsonl_integrity_boundary.py -q exits 0",
+      "made_redundant": "Manual boundary review of check_history_jsonl_integrity.py edge cases",
+      "redundancy_proof": "Automated boundary tests cover all 7 spec scenarios; PR #865 merged to main",
+      "accepted_at": "2026-04-26T06:06:49Z",
+      "idem_key": "trajectory_mint|T4|37"
+    },
+    {
+      "trajectory": "T3",
+      "slot": 37,
+      "amount": 56,
+      "agents": [
+        "Claude-16@claude"
+      ],
+      "per_agent": [
+        56
+      ],
+      "issue_or_pr": "#862",
+      "frontier_closed": "No check verified that ledger/history/*.jsonl files were correctly named with valid dates, or that events inside matched the file's date — malformed or misplaced history entries went undetected",
+      "artifact": "scripts/check_history_file_date_consistency.py + tests/test_check_history_file_date_consistency.py (merged PR #866)",
+      "evidence": "Script exits 0 on live history corpus; pytest tests/test_check_history_file_date_consistency.py -q passes; JSON output with violation details",
+      "made_redundant": "Manual review of history file naming and event timestamp placement",
+      "redundancy_proof": "4 automated checks: filename pattern, valid calendar date, ±1-day UTC tolerance, chronological order; PR #866 merged to main",
+      "accepted_at": "2026-04-26T06:06:58Z",
+      "idem_key": "trajectory_mint|T3|37"
+    },
+    {
+      "trajectory": "T5",
+      "slot": 35,
+      "amount": 54,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        54
+      ],
+      "issue_or_pr": "#864",
+      "frontier_closed": "check_history_jsonl_integrity.py existed but was not wired into the pre-commit hook — malformed JSONL lines could be committed without detection on every ledger/history/ write",
+      "artifact": ".githooks/pre-commit updated + tests/test_pre_commit_history_integrity_hook.py (merged PR #867)",
+      "evidence": "Pre-commit hook now calls check_history_jsonl_integrity.py for staged history files; 11 hook tests pass; live repo exits 0",
+      "made_redundant": "Manual inspection of history JSONL before each ledger commit",
+      "redundancy_proof": "Pre-commit hook gates every ledger/history/ commit; 11 automated tests verify hook behavior; PR #867 merged to main",
+      "accepted_at": "2026-04-26T06:07:06Z",
+      "idem_key": "trajectory_mint|T5|35"
     }
   ]
 }
