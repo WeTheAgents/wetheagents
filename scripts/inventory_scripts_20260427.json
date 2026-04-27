@@ -1,0 +1,1508 @@
+{
+  "scan_date": "2026-04-27",
+  "zone": "scripts",
+  "grammar_version": "v1_roles",
+  "summary": {
+    "total": 135,
+    "by_role": {
+      "runnable_entrypoint": 127,
+      "import_safe_support": 6,
+      "declaration_module": 1,
+      "unclassified": 1
+    }
+  },
+  "files": [
+    {
+      "path": "scripts/agent_lock.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/audit_branch_entropy.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/audit_entropy.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/auth_proxy.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/auto_triage.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/censor_diary.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_agent_balances_schema.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_agent_payment_precedes_registration.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_agent_registry_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_agent_slot_integrity.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_balance_history_reconciliation.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_balances_earned_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_branch_entropy.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_claim_before_payment.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_claim_chain_integrity.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_claim_ttl.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_concurrent_claims.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_cross_file_integrity.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_dead_branch_links.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_diary_incidents.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_doc_sync.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_escrow_age_report.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_escrow_idem_coverage.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_escrow_lifecycle_integrity.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_escrow_return_coverage.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_escrow_return_validity.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_escrow_schema.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_escrow_task_reward_match.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_gauntlet_pr_fields.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_gauntlet_script_coverage.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_genome_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_genome_meta_version_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_genome_mutation_provenance.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_genome_naming.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_genome_snapshot_freshness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_genome_trailer.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_balance_flow.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_chronological_order.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_escrow_solvency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_event_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_event_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_event_type_schema.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_file_gaps.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_reconciliation.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_history_schema.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_key_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_key_format.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_key_format_integrity.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_key_format_uniformity.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_key_timeline.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_idem_keys_schema.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_incident_correlator.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_invariant.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_invariant_history_replay.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_issue_ledger_sync.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_ledger_schema.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_mint_agents_registered.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_mint_record_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_no_duplicate_payments.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_orphan_escrows.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_orphan_genome_dirs.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_orphan_idem_keys.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_orphan_scripts.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_payment_amount_matches_escrow.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_payment_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_payment_escrow_amount_match.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_payment_has_prior_escrow.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_per_agent_balance_floor.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_pr_scope.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_precommit_coverage.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_reject_before_payment.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_script_test_coverage.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_single_escrow_per_issue.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_stale_escrows.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_stale_task_claims.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_t6_team_enforcement.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_task_escrow_sync.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_task_format.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_task_index_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_task_index_schema.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_task_spec_completeness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_task_status_history_sync.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_tasks_completed_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_tasks_created_vs_escrow_creates.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_total_earned_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_total_earned_vs_payment_history.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_total_spent_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_total_spent_vs_escrow_creates.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_trajectory_history_sync.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_trajectory_mint_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_trajectory_mint_timeline.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_trajectory_slot_uniqueness.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_trajectory_total_consistency.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_unused_idem_key_namespaces.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_version_drift.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/check_zombie_genomes.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/circle1/role_grammar.py",
+      "role": "import_safe_support",
+      "reasons": [
+        "Has reusable definitions (functions or classes)",
+        "No bare function calls at module top level",
+        "No sys.path mutation in module-level code"
+      ],
+      "bypass_notes": [
+        "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
+      ]
+    },
+    {
+      "path": "scripts/circle1/scripts_inventory.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/circle1/task_contract_extractor.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/circle1/zone_grammar.py",
+      "role": "import_safe_support",
+      "reasons": [
+        "Has reusable definitions (functions or classes)",
+        "No bare function calls at module top level",
+        "No sys.path mutation in module-level code"
+      ],
+      "bypass_notes": [
+        "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
+      ]
+    },
+    {
+      "path": "scripts/circuit_breaker.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/claim_fast.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/cleanup_branches.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/cleanup_worktrees.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/code_survival.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/create_gauntlet_escrows_cycle16.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/create_gauntlet_escrows_cycle17.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/create_gauntlet_escrows_cycle19.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/duel_randomizer.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/economy_constants.py",
+      "role": "declaration_module",
+      "reasons": [
+        "Module body contains only imports, assignments, and string constants"
+      ],
+      "bypass_notes": [
+        "Known limitation (V1): assignments like X = os.getenv('VAR') contain a function call in the RHS expression but still pass this check. V1 tolerates this because: (a) detecting side-effectful RHS expressions requires dataflow analysis or a type database to know which functions are pure; (b) the practical impact is low \u2014 RHS-call patterns in this codebase are config reads (os.getenv, int(), str()) that are observably side-effect-free. V2 mitigation path: a side-effect-free callable allowlist (os.getenv, os.environ.get, int, str, etc.), or type-stub annotations marking callables @pure, would allow safe detection without false positives."
+      ]
+    },
+    {
+      "path": "scripts/economy_report.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/genome_guard.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/genome_log.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/genome_self_audit.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/genome_snapshot.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/io_helpers.py",
+      "role": "import_safe_support",
+      "reasons": [
+        "Has reusable definitions (functions or classes)",
+        "No bare function calls at module top level",
+        "No sys.path mutation in module-level code"
+      ],
+      "bypass_notes": [
+        "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
+      ]
+    },
+    {
+      "path": "scripts/label_paid.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/ledger_health_report.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/ledger_ops.py",
+      "role": "import_safe_support",
+      "reasons": [
+        "Has reusable definitions (functions or classes)",
+        "No bare function calls at module top level",
+        "No sys.path mutation in module-level code"
+      ],
+      "bypass_notes": [
+        "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
+      ]
+    },
+    {
+      "path": "scripts/pipeline_parser.py",
+      "role": "unclassified",
+      "reasons": [
+        "module-level sys.path mutation detected (inside control flow, not a bare call)"
+      ]
+    },
+    {
+      "path": "scripts/post_ecosystem_digest.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/process_pending.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/reconcile_batch_a.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/reconcile_counters.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/run_all_checks.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/score_repo.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/seed_economy.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/tide.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/tide_ops.py",
+      "role": "import_safe_support",
+      "reasons": [
+        "Has reusable definitions (functions or classes)",
+        "No bare function calls at module top level",
+        "No sys.path mutation in module-level code"
+      ],
+      "bypass_notes": [
+        "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
+      ]
+    },
+    {
+      "path": "scripts/tide_parser.py",
+      "role": "import_safe_support",
+      "reasons": [
+        "Has reusable definitions (functions or classes)",
+        "No bare function calls at module top level",
+        "No sys.path mutation in module-level code"
+      ],
+      "bypass_notes": [
+        "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
+      ]
+    },
+    {
+      "path": "scripts/validate_submission.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    },
+    {
+      "path": "scripts/wea_report.py",
+      "role": "runnable_entrypoint",
+      "reasons": [
+        "__main__ guard detected at module level via AST"
+      ],
+      "bypass_notes": [
+        "Bypass closed: text search for 'if __name__' matches inside strings or comments; AST restricts detection to actual module-level If nodes.",
+        "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized; AST normalization checks both orderings of the equality."
+      ]
+    }
+  ]
+}

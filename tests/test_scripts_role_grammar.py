@@ -130,6 +130,33 @@ class TestRunnableEntrypoint:
         combined = " ".join(result.bypass_notes).lower()
         assert "string" in combined or "comment" in combined or "text search" in combined
 
+    def test_reversed_main_guard_recognized(self, py_file):
+        """V1 policy (Point 2): reversed guard `if '__main__' == __name__:` is recognized.
+
+        Both comparison orderings are semantically identical. V1 normalizes both
+        via AST inspection instead of rejecting the reversed form silently.
+        """
+        p = py_file("""\
+            \"\"\"A script using the reversed guard form.\"\"\"
+            from __future__ import annotations
+
+            def main() -> int:
+                return 0
+
+            if "__main__" == __name__:
+                raise SystemExit(main())
+        """)
+        result = classify_role(p)
+        _assert_role(result, Role.RUNNABLE_ENTRYPOINT, "reversed guard must be recognized")
+
+    def test_reversed_guard_single_quotes(self, py_file):
+        """Reversed guard with single-quoted string is also recognized."""
+        p = py_file("""\
+            if '__main__' == __name__:
+                pass
+        """)
+        _assert_role(classify_role(p), Role.RUNNABLE_ENTRYPOINT)
+
 
 # ---------------------------------------------------------------------------
 # import_safe_support
@@ -263,6 +290,81 @@ class TestImportSafeSupport:
         combined = " ".join(result.bypass_notes).lower()
         assert "import" in combined and ("side effect" in combined or "side-effect" in combined), (
             "bypass_notes must document the import-side-effects limitation"
+        )
+
+    def test_bypass_decorator_call_disqualifies_import_safe(self, py_file):
+        """BYPASS CLOSED (Point 1): @register() at module level executes at import time.
+
+        A module with Call-type decorators on top-level definitions is NOT
+        import_safe_support — the decorator expression executes at import time,
+        mutating whatever state the decorator touches. V1 detects this by scanning
+        FunctionDef/ClassDef.decorator_list for ast.Call nodes.
+        """
+        p = py_file("""\
+            \"\"\"Module using a registry decorator — import-time side effect.\"\"\"
+            from __future__ import annotations
+
+            REGISTRY = {}
+
+            def register(name):
+                def _dec(fn):
+                    REGISTRY[name] = fn
+                    return fn
+                return _dec
+
+            @register("do_thing")
+            def do_thing() -> None:
+                pass
+        """)
+        result = classify_role(p)
+        assert result.role != Role.IMPORT_SAFE_SUPPORT, (
+            "BYPASS NOT CLOSED: @register() executes at import time and must "
+            "disqualify import_safe_support. "
+            f"Got: role={result.role!r}, reasons={result.reasons!r}"
+        )
+        combined_reasons = " ".join(result.reasons).lower()
+        assert "decorator" in combined_reasons or "import" in combined_reasons, (
+            "Unclassified reason must mention decorator side effect"
+        )
+
+    def test_decorator_bare_name_still_import_safe(self, py_file):
+        """Bare decorator reference (@staticmethod, not a Call) does not disqualify.
+
+        Only Call-type decorators (@register()) count as import-time side effects.
+        Bare name decorators (@staticmethod, @property) are attribute lookups, not calls.
+        """
+        p = py_file("""\
+            \"\"\"Module using built-in non-call decorators.\"\"\"
+            from __future__ import annotations
+
+            class MyClass:
+                @staticmethod
+                def util() -> int:
+                    return 0
+
+            def helper() -> str:
+                return "ok"
+        """)
+        result = classify_role(p)
+        _assert_role(result, Role.IMPORT_SAFE_SUPPORT, "@staticmethod should not disqualify")
+
+    def test_decorator_call_on_class_disqualifies(self, py_file):
+        """Call-type decorator on a top-level class also disqualifies import_safe."""
+        p = py_file("""\
+            \"\"\"Module with decorated class.\"\"\"
+            from __future__ import annotations
+
+            def dataclass_like(cls):
+                return cls
+
+            @dataclass_like()
+            class Config:
+                value: int = 0
+        """)
+        result = classify_role(p)
+        assert result.role != Role.IMPORT_SAFE_SUPPORT, (
+            "@dataclass_like() on a class executes at import time; must not be import_safe. "
+            f"Got: role={result.role!r}"
         )
 
 
@@ -585,6 +687,45 @@ class TestASTFeatures:
         assert f.parse_error is True
         assert f.parse_error_reason
 
+    def test_decorator_call_detected(self, py_file):
+        """has_decorator_side_effects is True when a Call-type decorator is present."""
+        p = py_file("""\
+            def reg(name):
+                return lambda fn: fn
+
+            @reg("x")
+            def fn() -> None:
+                pass
+        """)
+        f = extract_ast_features(p)
+        assert f.has_decorator_side_effects is True
+
+    def test_decorator_bare_name_not_detected(self, py_file):
+        """has_decorator_side_effects is False for bare-name decorators (no call)."""
+        p = py_file("""\
+            class C:
+                @staticmethod
+                def fn() -> None:
+                    pass
+        """)
+        f = extract_ast_features(p)
+        assert f.has_decorator_side_effects is False
+
+    def test_decorator_call_inside_function_not_detected(self, py_file):
+        """Decorated nested functions do not count — they run only when outer is called."""
+        p = py_file("""\
+            def factory():
+                @some_decorator()
+                def inner() -> None:
+                    pass
+                return inner
+
+            def helper() -> str:
+                return "ok"
+        """)
+        f = extract_ast_features(p)
+        assert f.has_decorator_side_effects is False
+
 
 # ---------------------------------------------------------------------------
 # Integration: canonical repo files
@@ -650,3 +791,61 @@ class TestCanonicalFiles:
     def test_zone_grammar_is_import_safe(self):
         result = self._classify("scripts/circle1/zone_grammar.py")
         _assert_role(result, Role.IMPORT_SAFE_SUPPORT, "zone_grammar.py")
+
+
+# ---------------------------------------------------------------------------
+# Inventory policy
+# ---------------------------------------------------------------------------
+
+class TestInventoryPolicy:
+    """Pin the deliberate V1 inventory policy: recursive scan of scripts/."""
+
+    def test_recursive_scan_includes_subdirectory_files(self, tmp_path):
+        """V1 policy (Point 4): scan is recursive — scripts/ subdirectories are included.
+
+        The task spec said `scripts/*.py except __init__.py`, but the implementation
+        scans recursively with rglob. Recursive is the correct operational choice
+        because scripts/ already contains subdirectories (circle1/, etc.) with
+        classifiable Python files. This test pins the recursive behavior as deliberate.
+        """
+        from scripts.circle1.scripts_inventory import scan_scripts
+
+        # Set up a mock scripts/ tree with files at root and in a subdir
+        scripts_dir = tmp_path / "scripts"
+        (scripts_dir / "sub").mkdir(parents=True)
+        (scripts_dir / "top_level.py").write_text(
+            "if __name__ == '__main__':\n    pass\n", encoding="utf-8"
+        )
+        (scripts_dir / "sub" / "helper.py").write_text(
+            "def helper():\n    return 1\n", encoding="utf-8"
+        )
+        (scripts_dir / "__init__.py").write_text("", encoding="utf-8")
+
+        inventory = scan_scripts(tmp_path, scan_date="2026-01-01")
+        paths = {e["path"] for e in inventory["files"]}
+
+        assert any("top_level.py" in p for p in paths), (
+            "Root-level scripts must be included"
+        )
+        assert any("sub/helper.py" in p or "sub\\helper.py" in p for p in paths), (
+            "Subdirectory files must be included (recursive scan)"
+        )
+        assert not any("__init__.py" in p for p in paths), (
+            "__init__.py must be excluded from inventory"
+        )
+
+    def test_init_py_excluded_at_all_levels(self, tmp_path):
+        """__init__.py files in any subdirectory are excluded from inventory."""
+        from scripts.circle1.scripts_inventory import scan_scripts
+
+        scripts_dir = tmp_path / "scripts"
+        (scripts_dir / "sub").mkdir(parents=True)
+        (scripts_dir / "__init__.py").write_text("", encoding="utf-8")
+        (scripts_dir / "sub" / "__init__.py").write_text("", encoding="utf-8")
+        (scripts_dir / "sub" / "util.py").write_text("def f(): pass\n", encoding="utf-8")
+
+        inventory = scan_scripts(tmp_path, scan_date="2026-01-01")
+        for entry in inventory["files"]:
+            assert "__init__" not in entry["path"], (
+                f"__init__.py must not appear in inventory: {entry['path']}"
+            )

@@ -32,6 +32,7 @@ class ASTFeatures:
     has_classes: bool
     has_toplevel_bare_calls: bool
     has_module_level_sys_path_mutation: bool
+    has_decorator_side_effects: bool
     has_only_data_body: bool
     parse_error: bool
     parse_error_reason: str = ""
@@ -51,26 +52,46 @@ class RoleResult:
 # ---------------------------------------------------------------------------
 
 def _is_main_guard_if(node: ast.stmt) -> bool:
-    """True if *node* is `if __name__ == '__main__':` at the AST level.
+    """True if *node* is a `__main__` guard at the AST level.
+
+    Recognizes both the canonical form and the reversed comparison:
+      - canonical:  if __name__ == '__main__':
+      - reversed:   if '__main__' == __name__:
+
+    Both are semantically identical. Python style guides prefer the canonical
+    form, but the reversed form appears in practice and must not be silently
+    rejected. V1 detects both via AST normalization.
 
     Bypass closed: text search finds this pattern inside string literals or
-    comments (e.g. a docstring that documents the idiom). AST inspection
-    restricts the match to actual control-flow nodes.
+    comments. AST inspection restricts the match to actual control-flow nodes.
     """
     if not isinstance(node, ast.If):
         return False
     test = node.test
     if not isinstance(test, ast.Compare):
         return False
-    return (
-        isinstance(test.left, ast.Name)
-        and test.left.id == "__name__"
-        and len(test.ops) == 1
-        and isinstance(test.ops[0], ast.Eq)
-        and len(test.comparators) == 1
-        and isinstance(test.comparators[0], ast.Constant)
-        and test.comparators[0].value == "__main__"
-    )
+    if len(test.ops) != 1 or not isinstance(test.ops[0], ast.Eq):
+        return False
+    if len(test.comparators) != 1:
+        return False
+    left, right = test.left, test.comparators[0]
+    # canonical: __name__ == '__main__'
+    if (
+        isinstance(left, ast.Name)
+        and left.id == "__name__"
+        and isinstance(right, ast.Constant)
+        and right.value == "__main__"
+    ):
+        return True
+    # reversed: '__main__' == __name__
+    if (
+        isinstance(left, ast.Constant)
+        and left.value == "__main__"
+        and isinstance(right, ast.Name)
+        and right.id == "__name__"
+    ):
+        return True
+    return False
 
 
 def _detect_ast_main_guard(tree: ast.Module) -> bool:
@@ -123,6 +144,27 @@ def _detect_sys_path_mutation(tree: ast.Module) -> bool:
         for child in ast.walk(node):
             if isinstance(child, ast.Call) and _is_sys_path_mutating_call(child):
                 return True
+    return False
+
+
+def _detect_decorator_side_effects(tree: ast.Module) -> bool:
+    """True if any top-level function or class has a Call-type decorator.
+
+    A decorator like @register() is evaluated as a function call at import time,
+    so it constitutes a module-level side effect. We check only top-level
+    FunctionDef / AsyncFunctionDef / ClassDef nodes (not nested ones), because
+    nested definitions execute only when the outer function is called, not at
+    import time.
+
+    Bypass closed: bare decorator references (`@register`, no parentheses) are
+    ast.Name or ast.Attribute nodes, not ast.Call — they are not calls and do
+    not trigger this predicate. Only `@register()` (with parentheses) counts.
+    """
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            for decorator in node.decorator_list:
+                if isinstance(decorator, ast.Call):
+                    return True
     return False
 
 
@@ -191,6 +233,7 @@ def extract_ast_features(path: Path) -> ASTFeatures:
             has_classes=False,
             has_toplevel_bare_calls=False,
             has_module_level_sys_path_mutation=False,
+            has_decorator_side_effects=False,
             has_only_data_body=False,
             parse_error=True,
             parse_error_reason=str(exc),
@@ -205,6 +248,7 @@ def extract_ast_features(path: Path) -> ASTFeatures:
             has_classes=False,
             has_toplevel_bare_calls=False,
             has_module_level_sys_path_mutation=False,
+            has_decorator_side_effects=False,
             has_only_data_body=False,
             parse_error=True,
             parse_error_reason=str(exc),
@@ -222,6 +266,7 @@ def extract_ast_features(path: Path) -> ASTFeatures:
         has_classes=has_classes,
         has_toplevel_bare_calls=bool(_detect_toplevel_bare_calls(tree)),
         has_module_level_sys_path_mutation=_detect_sys_path_mutation(tree),
+        has_decorator_side_effects=_detect_decorator_side_effects(tree),
         has_only_data_body=_has_only_data_body(tree),
         parse_error=False,
     )
@@ -234,17 +279,31 @@ def extract_ast_features(path: Path) -> ASTFeatures:
 _BYPASS_MAIN: list[str] = [
     "Bypass closed: text search for 'if __name__' matches inside strings or comments; "
     "AST restricts detection to actual module-level If nodes.",
+    "V1 policy: both canonical (`if __name__ == '__main__':`) and reversed "
+    "(`if '__main__' == __name__:`) comparison forms are recognized; AST normalization "
+    "checks both orderings of the equality.",
 ]
 
 _BYPASS_IMPORT_SAFE: list[str] = [
+    "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on "
+    "top-level functions/classes execute the decorator expression at import time. "
+    "Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for "
+    "ast.Call nodes; files with these decorators are classified unclassified, not "
+    "import_safe_support.",
     "Known limitation: any 'import X' at module level may execute X's module-level "
     "side effects at import time; detecting this requires knowing X's implementation.",
 ]
 
 _BYPASS_DECLARATION: list[str] = [
-    "Known limitation: assignments like X = os.getenv('VAR') contain a function call "
-    "in the RHS expression but still pass this check; detecting all side-effectful "
-    "RHS calls requires dataflow analysis.",
+    "Known limitation (V1): assignments like X = os.getenv('VAR') contain a function "
+    "call in the RHS expression but still pass this check. "
+    "V1 tolerates this because: (a) detecting side-effectful RHS expressions requires "
+    "dataflow analysis or a type database to know which functions are pure; "
+    "(b) the practical impact is low — RHS-call patterns in this codebase are config "
+    "reads (os.getenv, int(), str()) that are observably side-effect-free. "
+    "V2 mitigation path: a side-effect-free callable allowlist (os.getenv, "
+    "os.environ.get, int, str, etc.), or type-stub annotations marking callables "
+    "@pure, would allow safe detection without false positives.",
 ]
 
 
@@ -293,6 +352,7 @@ def classify_role(path: Path) -> RoleResult:
         (features.has_functions or features.has_classes)
         and not features.has_toplevel_bare_calls
         and not features.has_module_level_sys_path_mutation
+        and not features.has_decorator_side_effects
     ):
         return RoleResult(
             path=path,
@@ -312,6 +372,11 @@ def classify_role(path: Path) -> RoleResult:
         reasons.append("module-level sys.path mutation detected (inside control flow, not a bare call)")
     if features.has_toplevel_bare_calls:
         reasons.append("bare function calls at module top level (called for side effects)")
+    if features.has_decorator_side_effects:
+        reasons.append(
+            "Call-type decorators on top-level definitions execute at import time "
+            "(e.g. @register(), @app.route('/')) — import-time side effect"
+        )
     if not features.has_functions and not features.has_classes and not features.has_only_data_body:
         reasons.append("no functions, no classes, and body is not purely declarative")
     if not reasons:

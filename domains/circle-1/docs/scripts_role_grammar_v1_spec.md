@@ -20,8 +20,13 @@ role families that reflect how files are actually used, plus an explicit
 
 A file whose primary purpose is to be invoked directly from the command line.
 
-**Defining predicate**: `if __name__ == '__main__':` at module body level, detected
-via AST (not text search).
+**Defining predicate**: `__main__` guard at module body level, detected via AST
+(not text search). V1 recognizes both comparison orderings:
+- canonical: `if __name__ == '__main__':`
+- reversed:  `if '__main__' == __name__:`
+
+Both are semantically identical. AST normalization checks both orderings; neither
+is rejected silently. See Bypass 4 for the explicit decision and test.
 
 **Canonical examples**: `check_invariant.py`, `score_repo.py`, `tide.py`
 
@@ -40,6 +45,7 @@ triggering module-level side effects.
 - Has at least one function or class definition
 - No bare function calls at module top level (`ast.Expr(ast.Call(...))`)
 - No `sys.path` mutation in module-level code
+- No Call-type decorators on top-level definitions (see Bypass 5)
 
 **Canonical examples**: `io_helpers.py`, `tide_ops.py`, `tide_parser.py`, `ledger_ops.py`
 
@@ -73,12 +79,13 @@ A file that does not fit cleanly into any of the three role families.
 Priority order (first match wins):
 
 ```
-1. has_ast_main_guard                       → runnable_entrypoint
-2. has_only_data_body                       → declaration_module
+1. has_ast_main_guard                         → runnable_entrypoint
+2. has_only_data_body                         → declaration_module
 3. (has_functions OR has_classes)
    AND NOT has_toplevel_bare_calls
-   AND NOT has_module_level_sys_path_mutation → import_safe_support
-4. (everything else)                        → unclassified + reason
+   AND NOT has_module_level_sys_path_mutation
+   AND NOT has_decorator_side_effects          → import_safe_support
+4. (everything else)                          → unclassified + reason
 ```
 
 The ordering reflects role exclusivity: a file with a `__main__` guard is
@@ -168,6 +175,64 @@ stub-import pattern) and if-blocks whose entire body consists solely of imports.
 
 ---
 
+### Bypass 4: Reversed `__main__` guard (Point 2 — V1 explicit decision)
+
+**Question**: `if '__main__' == __name__:` is semantically identical to the
+canonical form but has the operands reversed. Should V1 recognize it?
+
+**Decision**: V1 **recognizes** the reversed form. Rejecting it silently would
+produce a false negative — a runnable script misclassified as `import_safe_support`
+or `unclassified`. The canonical form is preferred by style guides, but the reversed
+form appears in the wild and must not be a silent failure mode.
+
+**Implementation**: `_is_main_guard_if` checks both orderings: `Name('__name__')
+Eq Constant('__main__')` and `Constant('__main__') Eq Name('__name__')`.
+
+**Status**: CLOSED — `TestRunnableEntrypoint::test_reversed_main_guard_recognized`
+and `test_reversed_guard_single_quotes` pin this behavior.
+
+---
+
+### Bypass 5: Decorator-time side effects (Point 1 — DETECTED)
+
+**Attack**: A module uses `@register()` or `@app.route('/path')` on a top-level
+function or class. These are evaluated as function calls at import time, mutating
+the registry/router state. A classifier that only checks for bare `ast.Expr(Call)`
+statements misses these because the call is in a decorator position, not a
+standalone expression.
+
+**Example**:
+```python
+@register("handler")
+def handle_event(event: dict) -> None:
+    ...
+```
+
+When Python processes this at import time, it calls `register("handler")` — a
+side-effectful operation — before calling the result as a decorator.
+
+**Fix**: `_detect_decorator_side_effects` walks `module.body` checking
+`FunctionDef.decorator_list` and `ClassDef.decorator_list` for `ast.Call` nodes.
+Any top-level definition with a Call-type decorator sets
+`has_decorator_side_effects=True`, disqualifying `import_safe_support`.
+
+**Scope**: Only top-level function/class definitions are scanned. Decorators on
+methods nested inside a class body are a separate concern — method decoration is
+common (`@staticmethod`, `@property`) and scoping it correctly would require
+distinguishing pure decorators from effectful ones.
+
+**V1 limitation**: Bare decorator references without parentheses (`@staticmethod`,
+`@property`, `@module.decorator`) are `ast.Name` / `ast.Attribute` nodes, not
+`ast.Call`. They do not trigger this predicate. This is correct — a bare reference
+is just a name lookup, not a function call, and produces no side effect.
+
+**Status**: CLOSED — `TestImportSafeSupport::test_bypass_decorator_call_disqualifies_import_safe`,
+`test_decorator_bare_name_still_import_safe`, `test_decorator_call_on_class_disqualifies`.
+ASTFeatures unit tests: `TestASTFeatures::test_decorator_call_detected`,
+`test_decorator_bare_name_not_detected`, `test_decorator_call_inside_function_not_detected`.
+
+---
+
 ## Self-Roast Findings (Post-Implementation)
 
 Three bypass vectors were enumerated after initial implementation. One was fixed
@@ -244,7 +309,7 @@ support modules for side-effectful dependencies.
 
 ---
 
-### Limitation 2: Assignments with function calls in RHS
+### Limitation 2: Assignments with function calls in RHS (Point 3 — V1 documented)
 
 **Vector**: A declaration-like file has assignments where the right-hand side
 calls a function, e.g. `DB_URL = os.getenv("DATABASE_URL", "sqlite:///dev.db")`.
@@ -261,15 +326,66 @@ TIMEOUT = int(os.environ.get("TIMEOUT", "30"))
 
 This is classified as `declaration_module` despite calling functions.
 
-**Why not fixed**: Detecting all side-effectful expressions in assignment values
-requires dataflow analysis — knowing which functions have observable side effects.
-Simple heuristics (blacklist `os.getenv`, `subprocess.run`, etc.) would produce
-false positives on pure functions and miss unlisted ones.
+**Why tolerated in V1**:
 
-**Mitigation**: The practical impact is low. Files that use `os.getenv` in
-assignments are typically config modules, which are a reasonable subset of
-`declaration_module`. The `bypass_notes` on every `declaration_module` result
-documents this gap explicitly.
+1. **Dataflow analysis required.** Determining whether `os.getenv(...)` has
+   observable side effects requires knowing the function's contract — information
+   not available from the AST alone without a type database or call-graph analysis.
+
+2. **Low practical impact.** RHS-call patterns in this codebase are config reads
+   (`os.getenv`, `os.environ.get`, `int()`, `str()`). These functions read
+   environment state but do not mutate shared mutable state, making them
+   observably side-effect-free for classification purposes.
+
+3. **Heuristic blacklists are fragile.** An allowlist approach (permit
+   `os.getenv`, reject `subprocess.run`) would miss unlisted pure functions,
+   produce false positives, and require ongoing maintenance.
+
+**V2 mitigation path**:
+
+- **Side-effect-free callable allowlist**: Enumerate known-pure functions
+  (`os.getenv`, `os.environ.get`, `int`, `str`, `float`, `bool`, `len`, etc.)
+  and permit only those in assignment RHS positions.
+- **Type-stub annotations**: Extend the PEP 526 / stub ecosystem with a
+  `@pure` marker; classifiers check stubs rather than maintaining their own
+  allowlist.
+- **Restrict `declaration_module` to literal-only RHS**: Accept only `ast.Constant`,
+  `ast.List`, `ast.Dict`, `ast.Tuple` in assignment values — effectively limiting
+  the role to true compile-time constants. This is the safest V2 option but
+  would reclassify some legitimate config modules.
+
+**Test pinning the limitation**: `TestDeclarationModule::test_known_limitation_assignment_with_call`
+asserts that `X = os.getenv(...)` classifies as `declaration_module` and that
+`bypass_notes` documents the gap. This test is a canary: if V2 changes this
+behavior, the test will fail and force an explicit decision.
+
+---
+
+## V1 Inventory Policy (Point 4)
+
+### Scan scope: recursive
+
+**Background**: The original task brief said `scripts/*.py except __init__.py`.
+The V1 harness (`scripts/circle1/scripts_inventory.py`) scans recursively using
+`scripts_dir.rglob("*.py")`.
+
+**Deliberate decision**: Recursive scanning is the correct V1 policy, not an
+accident. The `scripts/` directory already contains classifiable Python files
+in subdirectories (`scripts/circle1/role_grammar.py`, `scripts/circle1/zone_grammar.py`,
+etc.). A flat scan would silently skip these files, creating a gap between what
+the grammar covers and what gets reported.
+
+**Exclusions**: `__init__.py` files at any nesting level are excluded. These are
+package markers, not scripts, and carry no role within the grammar.
+
+**Implication**: Any Python file added anywhere under `scripts/` — at root level
+or in a subdirectory — is automatically included in the next inventory run.
+Adding a new subdirectory under `scripts/` requires no harness changes.
+
+**Test pinning the policy**: `TestInventoryPolicy::test_recursive_scan_includes_subdirectory_files`
+asserts that files in a subdirectory of `scripts/` appear in the inventory.
+`test_init_py_excluded_at_all_levels` asserts that `__init__.py` files are
+excluded at all nesting levels.
 
 ---
 

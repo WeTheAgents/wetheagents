@@ -9,7 +9,8 @@
       "canonical_examples": ["check_invariant.py", "score_repo.py", "tide.py"],
       "required_predicates": ["has_ast_main_guard"],
       "excluded_predicates": [],
-      "adversarial_note": "Text search for 'if __name__' matches inside string literals and comments. AST restricts detection to actual module-level If nodes — the only robust approach."
+      "adversarial_note": "Text search for 'if __name__' matches inside string literals and comments. AST restricts detection to actual module-level If nodes — the only robust approach.",
+      "v1_policy": "Both canonical (`if __name__ == '__main__':`) and reversed (`if '__main__' == __name__:`) comparison forms are recognized. AST normalization checks both orderings of the equality — neither form is rejected silently."
     },
     "import_safe_support": {
       "description": "Importable library; no top-level side effects; provides reusable functions or classes",
@@ -18,11 +19,13 @@
         "no_ast_main_guard",
         "has_functions_or_classes",
         "no_toplevel_bare_calls",
-        "no_module_level_sys_path_mutation"
+        "no_module_level_sys_path_mutation",
+        "no_decorator_side_effects"
       ],
       "excluded_predicates": ["has_ast_main_guard"],
       "adversarial_notes": [
         "Bypass closed: sys.path.insert inside an if-guard is not a bare Expr(Call) and would be missed by bare-call detection alone; we scan all module-level control flow for sys.path mutations.",
+        "Bypass closed: Call-type decorators (@register(), @app.route('/')) on top-level function/class definitions execute at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes.",
         "Known limitation: any 'import X' at module level may execute X's side effects at import time; detecting this requires knowing X's implementation — not statically possible."
       ]
     },
@@ -36,7 +39,7 @@
       "excluded_predicates": ["has_ast_main_guard"],
       "adversarial_notes": [
         "Bypass closed: a file with only named assignments could still contain an if-block with a non-import call body (conditional behavior). We reject any module-level ast.If whose body is not purely imports, except TYPE_CHECKING guards.",
-        "Known limitation: assignments like X = os.getenv('VAR') contain a Call in the RHS but pass the data-body check. Detecting all side-effectful RHS expressions requires dataflow analysis beyond static AST inspection."
+        "Known limitation (V1): assignments like X = os.getenv('VAR') contain a Call in the RHS but pass the data-body check. Tolerated in V1 because detecting side-effectful RHS expressions requires dataflow analysis; practical impact is low (RHS calls in this codebase are config reads). V2 path: side-effect-free callable allowlist or restrict to literal-only RHS values."
       ]
     },
     "unclassified": {
@@ -69,7 +72,18 @@
       "description": "Module body contains only imports, assignments, string constants, and TYPE_CHECKING-guarded ifs",
       "implementation": "All module.body nodes are: Import | ImportFrom | Assign | AnnAssign | Expr(Constant) | If(TYPE_CHECKING) | If(imports-only body)",
       "bypass_closed": "Non-trivial If blocks with non-import bodies are rejected — catches config files with conditional behavior."
+    },
+    "no_decorator_side_effects": {
+      "description": "No Call-type decorators on top-level function or class definitions",
+      "implementation": "Scan module.body for FunctionDef/AsyncFunctionDef/ClassDef nodes; check decorator_list for any ast.Call node",
+      "bypass_closed": "@register(), @app.route('/'), etc. execute at import time. Bare name decorators (@staticmethod, @property) are ast.Name/ast.Attribute, not ast.Call, and do not trigger this predicate."
     }
+  },
+  "inventory_policy": {
+    "scan_scope": "recursive",
+    "rationale": "scripts/ already contains classifiable subdirectories (scripts/circle1/). A flat scan would silently skip these files, creating a gap between grammar coverage and inventory reporting. Recursive scanning is the correct V1 policy.",
+    "exclusions": ["__init__.py at any nesting level"],
+    "implementation": "scripts_dir.rglob('*.py') with p.name != '__init__.py' filter"
   },
   "classification_order": [
     "runnable_entrypoint",
