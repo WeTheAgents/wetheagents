@@ -148,6 +148,9 @@ def extended_file_features(path: Path) -> dict[str, Any]:
                     if _is_sys_path_call(node):
                         has_sys_path_mutation = True
                         break
+            # V1 limitation: decorator_list of FunctionDef/ClassDef is NOT scanned for
+            # ast.Call nodes. @register() executes at import time but cannot be safely
+            # distinguished from benign @dataclass() without an allowlist. See spec: Boundary 2.
 
     except SyntaxError:
         pass
