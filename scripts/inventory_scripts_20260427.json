@@ -1255,7 +1255,8 @@
         "Module body contains only imports, assignments, and string constants"
       ],
       "bypass_notes": [
-        "Known limitation (V1): assignments like X = os.getenv('VAR') contain a function call in the RHS expression but still pass this check. V1 tolerates this because: (a) detecting side-effectful RHS expressions requires dataflow analysis or a type database to know which functions are pure; (b) the practical impact is low \u2014 RHS-call patterns in this codebase are config reads (os.getenv, int(), str()) that are observably side-effect-free. V2 mitigation path: a side-effect-free callable allowlist (os.getenv, os.environ.get, int, str, etc.), or type-stub annotations marking callables @pure, would allow safe detection without false positives."
+        "Known limitation (V1): assignments like X = os.getenv('VAR') contain a function call in the RHS expression but still pass this check. V1 tolerates this because: (a) detecting side-effectful RHS expressions requires dataflow analysis or a type database to know which functions are pure; (b) the practical impact is low \u2014 RHS-call patterns in this codebase are config reads (os.getenv, int(), str()) that are observably side-effect-free. V2 mitigation path: a side-effect-free callable allowlist (os.getenv, os.environ.get, int, str, etc.), or type-stub annotations marking callables @pure, would allow safe detection without false positives.",
+        "Bypass closed: if-test expressions containing ast.Call are rejected (e.g. `if pathlib.Path('x').exists(): import y` disqualifies because the condition itself calls a function at import time). Allowed test shapes: Constant, Name, Attribute, BoolOp/UnaryOp/Compare on those leaves \u2014 no Call anywhere in the condition."
       ]
     },
     {
@@ -1365,7 +1366,8 @@
       "path": "scripts/pipeline_parser.py",
       "role": "unclassified",
       "reasons": [
-        "module-level sys.path mutation detected (inside control flow, not a bare call)"
+        "module-level sys.path mutation detected (inside control flow, not a bare call)",
+        "bare function calls at module top level (called for side effects)"
       ]
     },
     {

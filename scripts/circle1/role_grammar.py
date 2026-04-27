@@ -103,17 +103,46 @@ def _detect_ast_main_guard(tree: ast.Module) -> bool:
 # Predicate: import_safe_support
 # ---------------------------------------------------------------------------
 
-def _detect_toplevel_bare_calls(tree: ast.Module) -> list[ast.Call]:
-    """Return bare Call expressions (Expr(Call(...))) directly in module.body.
+# Definitions only execute when called, not at module import time.
+_OPAQUE_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
 
-    These are function calls made purely for side effects at import time.
-    Examples: logging.basicConfig(), print("loaded"), os.makedirs(...)
+
+def _walk_no_defs(node: ast.AST):
+    """Yield *node* and all descendants, treating FunctionDef / AsyncFunctionDef /
+    ClassDef as opaque: yield them but do not recurse into their bodies.
+
+    This models import-time reachability — code inside a def/class body only
+    runs when called, not when the module is imported.
     """
-    return [
-        node.value
-        for node in tree.body
-        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call)
-    ]
+    yield node
+    if isinstance(node, _OPAQUE_DEFS):
+        return
+    for child in ast.iter_child_nodes(node):
+        yield from _walk_no_defs(child)
+
+
+def _detect_toplevel_bare_calls(tree: ast.Module) -> list[ast.Call]:
+    """Return bare Call expressions (Expr(Call(...))) reachable at import time.
+
+    Scans module-level statements AND descends into module-level control-flow
+    bodies (If, For, While, Try, With, etc.), but treats FunctionDef /
+    AsyncFunctionDef / ClassDef as opaque — their bodies run only when called,
+    not at import time.
+
+    Bypass closed: the previous implementation only checked statements directly
+    in tree.body. Expr(Call) nodes hidden inside module-level control flow
+    (e.g. `if flag: logging.basicConfig()`, `for x in items: setup(x)`,
+    `try: ...\nexcept E: recover()`) were invisible to bare-call detection and
+    could make a file look import-safe when it isn't.
+    """
+    result = []
+    for node in tree.body:
+        if isinstance(node, _OPAQUE_DEFS):
+            continue
+        for child in _walk_no_defs(node):
+            if isinstance(child, ast.Expr) and isinstance(child.value, ast.Call):
+                result.append(child.value)
+    return result
 
 
 def _is_sys_path_mutating_call(call: ast.Call) -> bool:
@@ -134,14 +163,16 @@ def _detect_sys_path_mutation(tree: ast.Module) -> bool:
 
     Bypass closed: a naive bare-call check misses sys.path.insert inside a
     conditional guard (e.g. `if str(root) not in sys.path: sys.path.insert(…)`).
-    That pattern is an ast.If — not an ast.Expr — so bare-call detection silently
-    passes it. We scan all module-level control flow, excluding function and class
-    bodies where path manipulation is local and intentional.
+
+    Fix: use _walk_no_defs to scan all module-level control flow while treating
+    FunctionDef / AsyncFunctionDef / ClassDef as opaque. A sys.path call nested
+    inside `if True:\n    def init():\n        sys.path.append(...)` lives inside
+    a def body — not reachable at import time — and must NOT be flagged.
     """
     for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            continue  # path edits inside function bodies are scoped
-        for child in ast.walk(node):
+        if isinstance(node, _OPAQUE_DEFS):
+            continue  # path edits inside top-level def/class bodies are scoped
+        for child in _walk_no_defs(node):
             if isinstance(child, ast.Call) and _is_sys_path_mutating_call(child):
                 return True
     return False
@@ -172,8 +203,35 @@ def _detect_decorator_side_effects(tree: ast.Module) -> bool:
 # Predicate: declaration_module
 # ---------------------------------------------------------------------------
 
+def _if_test_is_call_free(node: ast.If) -> bool:
+    """True if the if-test expression contains no ast.Call nodes.
+
+    Allowed test shapes: Constant, Name, Attribute, BoolOp / UnaryOp / Compare
+    composed of those leaves. Any ast.Call in the condition means the test
+    itself executes code at import time.
+
+    Example disqualified: `if pathlib.Path('x').exists():` — the `.exists()`
+      call executes at import time even if the body is imports-only.
+    Example allowed:      `if sys.version_info >= (3, 10):` — pure comparison,
+      no function call.
+    """
+    return not any(isinstance(child, ast.Call) for child in ast.walk(node.test))
+
+
 def _if_body_is_imports_only(node: ast.If) -> bool:
-    """True if every statement in node.body and node.orelse is an import."""
+    """True if every statement in node.body and node.orelse is an import
+    AND the test expression contains no ast.Call nodes.
+
+    Bypass closed: `if pathlib.Path('x').exists(): import y` has a Call in the
+    test expression — the condition itself executes at import time even though
+    the body is imports-only. The fix: require _if_test_is_call_free before
+    accepting the block as declaration-safe.
+
+    Allowed test shapes: Constant, Name, Attribute, BoolOp / UnaryOp / Compare
+    composed of those leaves — no ast.Call anywhere in the condition.
+    """
+    if not _if_test_is_call_free(node):
+        return False
     all_stmts = node.body + node.orelse
     return all(isinstance(s, (ast.Import, ast.ImportFrom)) for s in all_stmts)
 
@@ -304,6 +362,11 @@ _BYPASS_DECLARATION: list[str] = [
     "V2 mitigation path: a side-effect-free callable allowlist (os.getenv, "
     "os.environ.get, int, str, etc.), or type-stub annotations marking callables "
     "@pure, would allow safe detection without false positives.",
+    "Bypass closed: if-test expressions containing ast.Call are rejected "
+    "(e.g. `if pathlib.Path('x').exists(): import y` disqualifies because the "
+    "condition itself calls a function at import time). Allowed test shapes: "
+    "Constant, Name, Attribute, BoolOp/UnaryOp/Compare on those leaves — no "
+    "Call anywhere in the condition.",
 ]
 
 

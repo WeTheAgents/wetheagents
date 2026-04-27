@@ -849,3 +849,153 @@ class TestInventoryPolicy:
             assert "__init__" not in entry["path"], (
                 f"__init__.py must not appear in inventory: {entry['path']}"
             )
+
+
+# ---------------------------------------------------------------------------
+# Fix A — nested side effects in control-flow bodies
+# ---------------------------------------------------------------------------
+
+class TestNestedSideEffects:
+    """Fix A: _detect_toplevel_bare_calls must find Expr(Call) inside control-flow."""
+
+    def test_bare_call_inside_if_is_unclassified(self, py_file):
+        """Fix A: `if True: bare_call()` contains an import-time bare call."""
+        p = py_file("if True:\n    bare_call()\n")
+        _assert_role(classify_role(p), Role.UNCLASSIFIED)
+
+    def test_bare_call_inside_for_is_unclassified(self, py_file):
+        """Fix A: `for x in []: setup()` contains an import-time bare call."""
+        p = py_file("for x in []:\n    setup()\n")
+        _assert_role(classify_role(p), Role.UNCLASSIFIED)
+
+    def test_bare_call_inside_function_not_detected(self, py_file):
+        """Fix A: a bare call inside a FunctionDef body is NOT import-time.
+
+        Calls inside a def only execute when the def is called, never at
+        import time. The file should classify as import_safe_support.
+        """
+        p = py_file("def fn():\n    side_effect()\n")
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Bare call inside function body must not be detected as import-time"
+        )
+        _assert_role(classify_role(p), Role.IMPORT_SAFE_SUPPORT)
+
+    def test_bare_call_in_except_handler_is_unclassified(self, py_file):
+        """Fix A: a bare call in an except-handler body is an import-time bare call."""
+        p = py_file("try:\n    pass\nexcept Exception:\n    recovery()\n")
+        _assert_role(classify_role(p), Role.UNCLASSIFIED)
+
+    def test_ast_features_bare_call_in_if_detected(self, py_file):
+        """Fix A: has_toplevel_bare_calls is True for `if True: bare_call()`."""
+        p = py_file("if True:\n    bare_call()\n")
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True
+
+    def test_ast_features_bare_call_in_for_detected(self, py_file):
+        """Fix A: has_toplevel_bare_calls is True for `for x in []: setup()`."""
+        p = py_file("for x in []:\n    setup()\n")
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True
+
+    def test_ast_features_bare_call_in_except_detected(self, py_file):
+        """Fix A: has_toplevel_bare_calls is True for a bare call in except body."""
+        p = py_file("try:\n    pass\nexcept Exception:\n    recovery()\n")
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True
+
+
+# ---------------------------------------------------------------------------
+# Fix B — sys.path inside nested def must not be flagged
+# ---------------------------------------------------------------------------
+
+class TestNestedDefSysPath:
+    """Fix B: sys.path call inside a def that lives inside a module-level if
+    is NOT module-level code and must NOT trigger has_module_level_sys_path_mutation.
+    """
+
+    def test_sys_path_in_nested_def_not_flagged(self, py_file):
+        """Fix B: sys.path inside `if True: def init(): sys.path.append(...)` → import_safe."""
+        p = py_file("""\
+            import sys
+
+            if True:
+                def init():
+                    sys.path.append('x')
+
+            def helper():
+                return 1
+        """)
+        f = extract_ast_features(p)
+        assert f.has_module_level_sys_path_mutation is False, (
+            "Fix B: sys.path inside a nested def is not module-level"
+        )
+        _assert_role(classify_role(p), Role.IMPORT_SAFE_SUPPORT)
+
+    def test_sys_path_direct_in_if_still_flagged(self, py_file):
+        """Fix B regression guard: sys.path directly inside if body is still caught."""
+        p = py_file("""\
+            import sys
+
+            if True:
+                sys.path.insert(0, 'x')
+
+            def helper():
+                return 1
+        """)
+        f = extract_ast_features(p)
+        assert f.has_module_level_sys_path_mutation is True, (
+            "Fix B regression: direct sys.path.insert inside if must still be detected"
+        )
+        _assert_role(classify_role(p), Role.UNCLASSIFIED)
+
+
+# ---------------------------------------------------------------------------
+# Fix C — if-test with Call disqualifies declaration_module
+# ---------------------------------------------------------------------------
+
+class TestIfTestCallCheck:
+    """Fix C: _if_body_is_imports_only must reject if-tests that contain ast.Call."""
+
+    def test_if_test_with_call_disqualifies_declaration(self, py_file):
+        """Fix C: `if pathlib.Path('x').exists(): import y` must NOT be declaration_module.
+
+        The `.exists()` call in the test condition executes at import time even
+        though the body is imports-only.
+        """
+        p = py_file(
+            "import pathlib\n"
+            "if pathlib.Path('x').exists():\n"
+            "    import os\n"
+        )
+        result = classify_role(p)
+        assert result.role != Role.DECLARATION_MODULE, (
+            "Fix C: Call in if-test disqualifies declaration_module. "
+            f"Got: {result.role!r}, reasons={result.reasons!r}"
+        )
+
+    def test_if_test_compare_on_attribute_still_allowed(self, py_file):
+        """Fix C negative: `if sys.version_info >= (3, 10): import x` is still allowed.
+
+        Compare on Attribute with no ast.Call in the test — the test is a
+        pure comparison, safe for declaration_module.
+        """
+        p = py_file(
+            "import sys\n"
+            "if sys.version_info >= (3, 10):\n"
+            "    import importlib\n"
+        )
+        _assert_role(classify_role(p), Role.DECLARATION_MODULE,
+                     "version_info compare (no Call) must still be allowed")
+
+    def test_ast_features_if_test_call_disqualifies_data_body(self, py_file):
+        """Fix C: has_only_data_body is False when if-test contains a Call."""
+        p = py_file(
+            "import pathlib\n"
+            "if pathlib.Path('x').exists():\n"
+            "    import os\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_only_data_body is False, (
+            "Fix C: Call in if-test must set has_only_data_body=False"
+        )

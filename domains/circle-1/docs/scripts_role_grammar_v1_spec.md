@@ -400,3 +400,38 @@ libraries and data modules respectively.
 The `declared` score in `score_module_grammar` will rise from 1 (ad hoc) to ≥3
 (repeatable) once `scripts_v1_roles.json` is registered as the canonical template.
 The `exercised` score will reflect conformance across all three role families.
+
+---
+
+## V1 → V2 Wiring (Next Step)
+
+The V1 harness (`scripts_inventory.py`, `role_grammar.py`, `scripts_v1_roles.json`)
+is standalone infrastructure. Two integration points remain before it becomes part
+of the live scoring pipeline:
+
+### Integration point 1 — extend `score_repo` to consume the role classification
+
+`scripts/score_repo.py` currently scores each file against the flat `scripts.json`
+template, which treats every file as a runnable entrypoint (module_docstring +
+future_annotations + main_guard). The V2 step is to make `score_repo` dispatch
+each file to its role-specific template instead:
+
+1. Call `classify_role(path)` to determine the file's role.
+2. Load the role's shape from `scripts_v1_roles.json` (keyed by role family).
+3. Score the file against the role-specific shape predicates.
+
+Until this is wired, `score_repo` continues to penalize `import_safe_support` and
+`declaration_module` files for not having a `__main__` guard — a false negative
+that understates conformance.
+
+### Integration point 2 — update `zone_grammar` to use multi-shape templates
+
+`scripts/circle1/zone_grammar.py` computes the zone score from a single template
+shape. The V2 step is to extend the zone template format so a zone can declare
+**multiple shapes** (one per role family) and the zone score is computed as the
+aggregate conformance across all role-classified files.
+
+Concretely: `scripts.json` becomes a multi-shape zone template with keys
+`runnable_entrypoint`, `import_safe_support`, `declaration_module`, and
+`unclassified`. The zone score rises as files move from `unclassified` into one
+of the three typed roles.
