@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-07T12:00:00Z",
-  "last_snapshot": "2026-04-26T11:55:31Z",
+  "last_snapshot": "2026-04-27T20:03:09Z",
   "role": "implementor",
   "fitness": {
-    "tasks_completed": 3,
+    "tasks_completed": 4,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 50,
+    "total_earned": 70,
     "total_minted": 956,
     "gauntlet_slots": 25,
-    "total_income": 1006
+    "total_income": 1026
   },
   "lineage": [],
   "mutations": [
@@ -214,6 +214,61 @@
       "fitness_after": {
         "tasks_completed": 1,
         "total_earned": 20
+      }
+    },
+    {
+      "commit": "7272e15f01ab7401274bf71035f07620c9c19edd",
+      "date": "2026-04-27T20:03:09Z",
+      "trigger_issue": 798,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 17,
+      "lines_removed": 0,
+      "summary": "release #798 [X] Best rank 3 - classifiers surface WHY not WHAT, reframe to why-this-role-and-not-others",
+      "fitness_before": {
+        "tasks_completed": 3,
+        "total_earned": 50,
+        "total_minted": 956,
+        "total_income": 1006
+      },
+      "fitness_after": {
+        "tasks_completed": 4,
+        "total_earned": 70,
+        "total_minted": 956,
+        "total_income": 1026
+      },
+      "provenance": {
+        "proposal": {
+          "station": "release",
+          "agent_id": "Codex-2@codex",
+          "issue": 798,
+          "severity": "memory",
+          "experience": {
+            "task_id": 798,
+            "mechanic": "best_x",
+            "outcome": "lose",
+            "agent_role": "harness_builder",
+            "key_moment": "Rank 3 of 4. Operator's red-team round identified PRs #805 and #807 as the two finalists; my submission landed at rank 3. Per the rank-3 settlement note: 'ranking trailed the leaders primarily on bypass documentation and explicit handling of the unclassified path as a first-class outcome with reasons'. The harness was functional and AST-based, but the leading submissions invested more in turning `unclassified` into an explicit per-file outcome carrying explicit reasons rather than treating it as a default fallthrough."
+          },
+          "reflection": {
+            "what_worked": "Functional AST-based classifier covering the three role families. Predicate set was real and testable.",
+            "what_failed": "`unclassified` was effectively a quiet success bucket - files that didn't match any role landed there without explicit reasons attached. The two leading submissions both materialized `unclassified` with an explicit reasons list per file (sys.path mutation detected, bare call at module top, etc.) so consumers could act on the diagnosis rather than just see the label.",
+            "root_cause": "Classification thinking stopped at 'which role does this file have?' instead of asking 'why this role and not the others?'. The latter framing forces every UNCLASSIFIED result to carry the predicate that excluded it from the better roles - which is what makes the harness useful for downstream decisions."
+          },
+          "proposal": {
+            "target_file": "genomes/Codex-2@codex/AGENTS.local.md",
+            "target_section": "Memory",
+            "change_type": "add",
+            "proposed_content": "**2026-04-27 - Task #798 ([X] Best, rank 3 - scripts role grammar v1):**\n- **Classification harnesses must surface the WHY, not just the WHAT.** A file that lands as `unclassified` (or any catch-all bucket) is useless to a consumer unless it carries the explicit predicate that excluded it from the better roles. Rule for any classifier: every result, including the fallback, must include a `reasons: list[str]` populated from the predicates that fired. Lost rank-3 vs rank-1/2 because the leading submissions did this and mine did not - same harness shape, different downstream value.\n- **Reframe classification from 'which role?' to 'why this role and not the others?'.** The first framing accepts a default fallthrough; the second forces explicit reason capture at every decision point. Apply this lens before submitting any classifier or scoring task - it surfaces the gap between 'works' and 'usable for decisions'."
+          }
+        },
+        "decision": {
+          "verdict": "approved",
+          "rationale": "agent0-synthesized SGR per release_sessions.md Phase 7c \u2014 observable ranking signal supports the lesson; severity=memory free-tier",
+          "proposal_hash": "agent0-synthesized"
+        }
       }
     }
   ]

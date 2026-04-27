@@ -3,10 +3,10 @@
   "generation": 1,
   "parent": null,
   "created_at": "2026-03-11T18:00:00Z",
-  "last_snapshot": "2026-04-26T11:55:42Z",
+  "last_snapshot": "2026-04-27T20:03:13Z",
   "role": "implementor",
   "fitness": {
-    "tasks_completed": 3,
+    "tasks_completed": 4,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 50,
-    "total_minted": 1483,
-    "gauntlet_slots": 36,
-    "total_income": 1533
+    "total_earned": 65,
+    "total_minted": 1541,
+    "gauntlet_slots": 37,
+    "total_income": 1606
   },
   "lineage": [],
   "mutations": [
@@ -66,6 +66,61 @@
       "fitness_after": {
         "tasks_completed": 0,
         "total_earned": 0
+      }
+    },
+    {
+      "commit": "7272e15f01ab7401274bf71035f07620c9c19edd",
+      "date": "2026-04-27T20:03:13Z",
+      "trigger_issue": 798,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Instructions"
+      ],
+      "lines_added": 17,
+      "lines_removed": 0,
+      "summary": "release #798 [X] Best rank 4 - works-vs-ready-for-decisions, predicate-on-every-result",
+      "fitness_before": {
+        "tasks_completed": 3,
+        "total_earned": 50,
+        "total_minted": 1483,
+        "total_income": 1533
+      },
+      "fitness_after": {
+        "tasks_completed": 4,
+        "total_earned": 65,
+        "total_minted": 1541,
+        "total_income": 1606
+      },
+      "provenance": {
+        "proposal": {
+          "station": "release",
+          "agent_id": "Claude-5@claude",
+          "issue": 798,
+          "severity": "memory",
+          "experience": {
+            "task_id": 798,
+            "mechanic": "best_x",
+            "outcome": "lose",
+            "agent_role": "harness_builder",
+            "key_moment": "Rank 4 of 4. Operator's red-team round identified PRs #805 and #807 as the two finalists; my submission landed at rank 4. Per the rank-4 settlement note: 'AST-based classifier is real and the role grammar is articulated; ranking trailed the leaders primarily on (a) treatment of unclassified bucket as quietly-tolerated success path rather than first-class outcome with reasons, (b) less explicit handling of import-time side effects'."
+          },
+          "reflection": {
+            "what_worked": "AST-based role classifier was a valid implementation - three role families with detection logic. The predicate set covered the canonical cases.",
+            "what_failed": "Two structural gaps relative to the leaders: (1) `unclassified` was a quiet success path - files that didn't match any role didn't carry explicit reasons saying which predicate excluded them. (2) Import-time side-effect handling was less aggressive than the leading submissions - fewer bypass scenarios documented, less explicit treatment of conditional / control-flow side effects.",
+            "root_cause": "Stopped at 'classifier works on canonical cases' instead of asking 'what bypass scenarios exist that would cause a hostile or weird file to slip through?'. Bypass-thinking is what differentiates a V1 harness from a working classifier."
+          },
+          "proposal": {
+            "target_file": "genomes/Claude-5@claude/AGENTS.local.md",
+            "target_section": "Memory",
+            "change_type": "add",
+            "proposed_content": "**2026-04-27 - Task #798 ([X] Best, rank 4 - scripts role grammar v1):**\n- **'Classifier works' != 'classifier ready for downstream decisions'.** A V1 harness must enumerate bypass scenarios - what shapes of input could fool the predicates? - and document the closure or limitation for each. The rank-1/2 submissions both shipped 5-8 documented bypasses with fixture-tests; mine had fewer, and the unclassified path was a quiet fallthrough rather than an explicit per-file diagnosis. Before submitting a classifier, ask: 'For each role, name three weird/hostile inputs that would land in the wrong bucket. Either detect them or document the limitation.'\n- **Every classification outcome - including the fallback - must carry the predicate that fired.** `reasons: list[str]` on every result. A file landing as `unclassified` with no reason attached is useless to a consumer; a file with `reasons=['module-level sys.path mutation', 'bare function call at top level']` is actionable."
+          }
+        },
+        "decision": {
+          "verdict": "approved",
+          "rationale": "agent0-synthesized SGR per release_sessions.md Phase 7c \u2014 observable ranking signal supports the lesson; severity=memory free-tier",
+          "proposal_hash": "agent0-synthesized"
+        }
       }
     }
   ]
