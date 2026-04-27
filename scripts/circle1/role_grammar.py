@@ -103,16 +103,25 @@ def _detect_ast_main_guard(tree: ast.Module) -> bool:
 # Predicate: import_safe_support
 # ---------------------------------------------------------------------------
 
-# Definitions only execute when called, not at module import time.
-_OPAQUE_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+# Function bodies are skipped during import-time reachability analysis: they
+# execute only when the function is called. Class bodies, in contrast, ARE
+# executed at import time (Python evaluates each class-body statement to build
+# the class dict when the `class C:` statement runs). So decorators on methods,
+# class-level assignments with side effects, and bare calls inside a class body
+# are all real import-time side effects and must be visible to the scanners.
+_OPAQUE_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef)
 
 
 def _walk_no_defs(node: ast.AST):
-    """Yield *node* and all descendants, treating FunctionDef / AsyncFunctionDef /
-    ClassDef as opaque: yield them but do not recurse into their bodies.
+    """Yield *node* and all descendants, treating FunctionDef / AsyncFunctionDef
+    as opaque: yield them but do not recurse into their bodies.
 
-    This models import-time reachability — code inside a def/class body only
-    runs when called, not when the module is imported.
+    This models import-time reachability:
+      - Function bodies run only when called, not at import → opaque.
+      - Class bodies run at class-creation time (== import time when the
+        ClassDef is defined at module level) → walked.
+      - Module-level control flow (If, For, While, Try, With) executes at
+        import → walked.
     """
     yield node
     if isinstance(node, _OPAQUE_DEFS):
@@ -121,27 +130,94 @@ def _walk_no_defs(node: ast.AST):
         yield from _walk_no_defs(child)
 
 
+def _control_flow_header_calls(node: ast.AST) -> list[ast.Call]:
+    """Return Call expressions reachable in *node*'s control-flow header.
+
+    Headers are expressions that the interpreter evaluates as part of executing
+    the statement itself (not its body):
+      - If.test, While.test            — boolean condition
+      - For.iter, AsyncFor.iter        — iterable expression
+      - With.items[].context_expr,
+        AsyncWith.items[].context_expr — context manager
+      - ExceptHandler.type             — exception type expression. Evaluated
+        when the try-statement processes a raised exception. If the try block
+        is empty (`pass`) and never raises, the expression is not evaluated;
+        but in any try block that *can* raise, the except.type Call runs at
+        import time. Conservative rule: flag it unconditionally.
+
+    All run at import time when the enclosing statement is at module top level
+    (or within a class body that itself runs at import time). Calls inside
+    these expressions therefore count as import-time bare calls.
+
+    Bypass closed (control-flow header): the previous bare-call detector only
+    matched `ast.Expr(ast.Call)` — it missed Calls embedded in If.test,
+    For.iter, While.test, With.items[].context_expr, and ExceptHandler.type.
+    A file like `if validate_config(): pass` plus a top-level `def f(): ...`
+    could classify as import_safe_support even though `validate_config()` runs
+    at import. Fix C (`_if_test_is_call_free`) closed this on the
+    declaration_module path; this helper closes the same gap for the
+    import_safe_support path and extends coverage to all control-flow header
+    variants including ExceptHandler.type.
+    """
+    calls: list[ast.Call] = []
+    if isinstance(node, (ast.If, ast.While)):
+        calls.extend(c for c in ast.walk(node.test) if isinstance(c, ast.Call))
+    elif isinstance(node, (ast.For, ast.AsyncFor)):
+        calls.extend(c for c in ast.walk(node.iter) if isinstance(c, ast.Call))
+    elif isinstance(node, (ast.With, ast.AsyncWith)):
+        for item in node.items:
+            calls.extend(
+                c for c in ast.walk(item.context_expr) if isinstance(c, ast.Call)
+            )
+    elif isinstance(node, ast.ExceptHandler):
+        if node.type is not None:
+            calls.extend(c for c in ast.walk(node.type) if isinstance(c, ast.Call))
+    return calls
+
+
 def _detect_toplevel_bare_calls(tree: ast.Module) -> list[ast.Call]:
     """Return bare Call expressions (Expr(Call(...))) reachable at import time.
 
-    Scans module-level statements AND descends into module-level control-flow
-    bodies (If, For, While, Try, With, etc.), but treats FunctionDef /
-    AsyncFunctionDef / ClassDef as opaque — their bodies run only when called,
-    not at import time.
+    Scans module-level statements AND descends into:
+      - module-level control-flow bodies (If, For, While, Try, With, etc.)
+      - class bodies (which run at class-creation time = import time)
+    Function bodies (FunctionDef / AsyncFunctionDef) are treated as opaque —
+    they only run when called, not at import time.
 
-    Bypass closed: the previous implementation only checked statements directly
-    in tree.body. Expr(Call) nodes hidden inside module-level control flow
-    (e.g. `if flag: logging.basicConfig()`, `for x in items: setup(x)`,
-    `try: ...\nexcept E: recover()`) were invisible to bare-call detection and
-    could make a file look import-safe when it isn't.
+    Bypass closed (control-flow): an earlier implementation only checked
+    statements directly in tree.body. Expr(Call) nodes hidden inside
+    module-level control flow (e.g. `if flag: logging.basicConfig()`,
+    `for x in items: setup(x)`, `try: ...\nexcept E: recover()`) were invisible
+    to bare-call detection.
+
+    Bypass closed (class body): an earlier implementation also treated
+    ClassDef as opaque, so `class C:\n    setup()` was missed even though the
+    class body runs at import time. _OPAQUE_DEFS no longer includes ClassDef.
+
+    Known limitation (same family as spec Limitation 2 — assignment-call):
+    this scanner matches bare `Expr(Call)` only. It does NOT detect Calls
+    embedded in import-time positions other than bare expression statements:
+      - assignment RHS at class body: `class C:\n    cfg = load_cfg()`
+      - AnnAssign RHS at class body:  `class C:\n    cfg: dict = load_cfg()`
+      - function default args:        `def f(cfg=load_cfg()): ...`
+      - keyword-only defaults:        `def f(*, cfg=load_cfg()): ...`
+    All execute at import time (defaults at def-statement time; class-body
+    Assign at class-creation time). Flagging every Call in these positions
+    would require a side-effect-free callable allowlist (os.getenv,
+    logging.getLogger, int, str, ...) to avoid false positives on the
+    dominant config-read pattern. V2 mitigation path: extend the documented
+    allowlist (spec Limitation 2) to cover these positions.
     """
     result = []
     for node in tree.body:
         if isinstance(node, _OPAQUE_DEFS):
             continue
         for child in _walk_no_defs(node):
+            # Bare Expr(Call) statements (the original check)
             if isinstance(child, ast.Expr) and isinstance(child.value, ast.Call):
                 result.append(child.value)
+            # Calls in control-flow headers (Fix I, debug-loop iter 2)
+            result.extend(_control_flow_header_calls(child))
     return result
 
 
@@ -161,17 +237,23 @@ def _is_sys_path_mutating_call(call: ast.Call) -> bool:
 def _detect_sys_path_mutation(tree: ast.Module) -> bool:
     """True if sys.path is mutated anywhere in module-level code.
 
-    Bypass closed: a naive bare-call check misses sys.path.insert inside a
-    conditional guard (e.g. `if str(root) not in sys.path: sys.path.insert(…)`).
+    Bypass closed (conditional guard): a naive bare-call check misses
+    sys.path.insert inside a conditional guard (e.g.
+    `if str(root) not in sys.path: sys.path.insert(…)`). _walk_no_defs
+    descends into module-level If / For / While / Try / With bodies.
 
-    Fix: use _walk_no_defs to scan all module-level control flow while treating
-    FunctionDef / AsyncFunctionDef / ClassDef as opaque. A sys.path call nested
-    inside `if True:\n    def init():\n        sys.path.append(...)` lives inside
-    a def body — not reachable at import time — and must NOT be flagged.
+    Bypass closed (class body): the previous implementation treated ClassDef as
+    opaque, so `class C:\n    sys.path.append('x')` was missed despite running
+    at class-creation = import time. Class bodies are now walked.
+
+    NOT a side effect: `if True:\n    def init():\n        sys.path.append(...)`
+    nests the call inside a function body — only runs when init() is called,
+    not at import. _walk_no_defs treats FunctionDef / AsyncFunctionDef as
+    opaque so the call is correctly scoped out.
     """
     for node in tree.body:
         if isinstance(node, _OPAQUE_DEFS):
-            continue  # path edits inside top-level def/class bodies are scoped
+            continue  # path edits inside top-level def bodies are scoped
         for child in _walk_no_defs(node):
             if isinstance(child, ast.Call) and _is_sys_path_mutating_call(child):
                 return True
@@ -179,23 +261,33 @@ def _detect_sys_path_mutation(tree: ast.Module) -> bool:
 
 
 def _detect_decorator_side_effects(tree: ast.Module) -> bool:
-    """True if any top-level function or class has a Call-type decorator.
+    """True if any def/class reachable at import time has a Call-type decorator.
 
-    A decorator like @register() is evaluated as a function call at import time,
-    so it constitutes a module-level side effect. We check only top-level
-    FunctionDef / AsyncFunctionDef / ClassDef nodes (not nested ones), because
-    nested definitions execute only when the outer function is called, not at
-    import time.
+    A decorator like `@register()` is evaluated as a function call at the time
+    its def/class statement is executed. For top-level defs, that is import
+    time; for methods inside a top-level class, the decorator runs while the
+    class body executes at class-creation (also import time). For defs nested
+    inside a function body, the decorator runs only when the outer function is
+    called — those don't count.
 
-    Bypass closed: bare decorator references (`@register`, no parentheses) are
-    ast.Name or ast.Attribute nodes, not ast.Call — they are not calls and do
-    not trigger this predicate. Only `@register()` (with parentheses) counts.
+    Walks module top-level statements, descending into class bodies and
+    module-level control flow (If / For / etc.) but treating FunctionDef /
+    AsyncFunctionDef as opaque (their bodies don't run at import).
+
+    Bypass closed (method decorators): an earlier implementation only iterated
+    tree.body, so `class C:\n    @register()\n    def f(...): ...` was missed
+    even though `register()` runs at class-creation = import time.
+
+    Bypass closed (bare decorators): `@register` (no parentheses) is an
+    ast.Name or ast.Attribute, not ast.Call — it does not trigger this
+    predicate. Only Call-type decorators count.
     """
-    for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            for decorator in node.decorator_list:
-                if isinstance(decorator, ast.Call):
-                    return True
+    for top in tree.body:
+        for descendant in _walk_no_defs(top):
+            if isinstance(descendant, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                for decorator in descendant.decorator_list:
+                    if isinstance(decorator, ast.Call):
+                        return True
     return False
 
 
@@ -312,11 +404,18 @@ def extract_ast_features(path: Path) -> ASTFeatures:
             parse_error_reason=str(exc),
         )
 
+    # Top-level only. A FunctionDef / ClassDef nested inside an `if False:` or
+    # other control-flow branch is not a stable, importable top-level API even
+    # if Python parses it — we don't know statically whether it will execute.
+    # Conservative rule: only direct module-body definitions count.
+    # Bypass closed: ast.walk(tree) previously matched nested defs anywhere in
+    # the file, so a module with no real top-level API could still classify as
+    # import_safe_support.
     has_functions = any(
         isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-        for node in ast.walk(tree)
+        for node in tree.body
     )
-    has_classes = any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
+    has_classes = any(isinstance(node, ast.ClassDef) for node in tree.body)
 
     return ASTFeatures(
         has_ast_main_guard=_detect_ast_main_guard(tree),
@@ -348,20 +447,44 @@ _BYPASS_IMPORT_SAFE: list[str] = [
     "Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for "
     "ast.Call nodes; files with these decorators are classified unclassified, not "
     "import_safe_support.",
+    "Bypass closed: class bodies execute at import time (Python evaluates each "
+    "class-body statement to build the class dict when `class C:` runs). Bare "
+    "calls, sys.path mutations, and Call-type decorators on methods inside a "
+    "top-level class are now visible to the scanners — _OPAQUE_DEFS no longer "
+    "includes ClassDef.",
+    "Bypass closed: has_functions / has_classes count direct module-level "
+    "definitions only (tree.body, not ast.walk). A nested `if False: def f(): ...` "
+    "no longer registers a top-level API, so files with no real importable surface "
+    "do not classify as import_safe_support.",
+    "Known limitation (V1, RHS Call positions): assignments and defaults whose "
+    "RHS contains a Call are NOT detected as import-time side effects. Affected "
+    "shapes: class-body `cfg = load_cfg()`, class-body `cfg: dict = load_cfg()`, "
+    "function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults. "
+    "Same family as spec Limitation 2 (module-level assignment-call). V1 tolerates "
+    "this for the same reason — the dominant pattern is side-effect-free config "
+    "reads (os.getenv, logging.getLogger). V2 mitigation: extend a side-effect-free "
+    "callable allowlist uniformly to all RHS Call positions.",
     "Known limitation: any 'import X' at module level may execute X's module-level "
     "side effects at import time; detecting this requires knowing X's implementation.",
 ]
 
 _BYPASS_DECLARATION: list[str] = [
-    "Known limitation (V1): assignments like X = os.getenv('VAR') contain a function "
-    "call in the RHS expression but still pass this check. "
-    "V1 tolerates this because: (a) detecting side-effectful RHS expressions requires "
+    "Known limitation (V1, RHS Call positions): the harness does NOT detect "
+    "Calls embedded in import-time positions other than bare Expr(Call). "
+    "Affected shapes: module-level `X = os.getenv('VAR')`, class-body "
+    "`class C:\n    cfg = load_cfg()` and `class C:\n    cfg: dict = load_cfg()`, "
+    "function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults "
+    "`def f(*, cfg=load_cfg()): ...`. All run at import time (defaults at "
+    "def-statement time; class-body Assign/AnnAssign at class-creation time). "
+    "V1 tolerates this because: (a) detecting side-effectful Call RHS requires "
     "dataflow analysis or a type database to know which functions are pure; "
-    "(b) the practical impact is low — RHS-call patterns in this codebase are config "
-    "reads (os.getenv, int(), str()) that are observably side-effect-free. "
+    "(b) the dominant pattern in this codebase is config reads (os.getenv, "
+    "logging.getLogger, int, str) that are observably side-effect-free. "
     "V2 mitigation path: a side-effect-free callable allowlist (os.getenv, "
-    "os.environ.get, int, str, etc.), or type-stub annotations marking callables "
-    "@pure, would allow safe detection without false positives.",
+    "os.environ.get, logging.getLogger, int, str, etc.), or type-stub "
+    "annotations marking callables @pure, applied uniformly to module-level "
+    "Assign RHS, class-body Assign/AnnAssign RHS, and FunctionDef defaults / "
+    "kw_defaults — would allow safe detection without false positives.",
     "Bypass closed: if-test expressions containing ast.Call are rejected "
     "(e.g. `if pathlib.Path('x').exists(): import y` disqualifies because the "
     "condition itself calls a function at import time). Allowed test shapes: "

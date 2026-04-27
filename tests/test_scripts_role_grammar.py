@@ -999,3 +999,488 @@ class TestIfTestCallCheck:
         assert f.has_only_data_body is False, (
             "Fix C: Call in if-test must set has_only_data_body=False"
         )
+
+
+# ---------------------------------------------------------------------------
+# Fix E — has_functions / has_classes count only top-level definitions
+# (debug-loop iteration 2 — codex finding [P2] role_grammar.py:315-319)
+# ---------------------------------------------------------------------------
+
+class TestTopLevelDefCount:
+    def test_nested_def_in_if_false_does_not_count(self, py_file):
+        """`if False: def helper()` → has_functions=False (no real top-level API)."""
+        p = py_file(
+            "from __future__ import annotations\n"
+            "if False:\n"
+            "    def helper():\n"
+            "        return 1\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_functions is False, (
+            "Fix E: a FunctionDef nested under control flow must not register as a top-level API"
+        )
+
+    def test_nested_class_in_if_does_not_count(self, py_file):
+        """`if cond: class C: pass` → has_classes=False."""
+        p = py_file(
+            'if __name__ == "__debug__":\n'
+            "    class C:\n"
+            "        pass\n"
+        )
+        f = extract_ast_features(p)
+        # Note: __debug__ is special; the if-test here is a Compare with Name+Constant,
+        # AST-level it parses as a regular if. Behavior we care about: nested ClassDef
+        # is not at tree.body, so has_classes must be False.
+        assert f.has_classes is False, (
+            "Fix E: a ClassDef nested under control flow must not register as a top-level API"
+        )
+
+    def test_top_level_def_with_nested_def_still_counts_once(self, py_file):
+        """Top-level def with a nested helper inside an if → has_functions=True via the top-level def."""
+        p = py_file(
+            "def outer():\n"
+            "    return 1\n"
+            "if True:\n"
+            "    def nested():\n"
+            "        return 2\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_functions is True, (
+            "Fix E: top-level def must still register has_functions=True regardless of nested defs"
+        )
+
+    def test_only_nested_def_classifies_unclassified(self, py_file):
+        """A file with only `if False: def helper()` and nothing top-level should not be import_safe_support."""
+        p = py_file(
+            "from __future__ import annotations\n"
+            "if False:\n"
+            "    def helper():\n"
+            "        return 1\n"
+        )
+        result = classify_role(p)
+        assert result.role != Role.IMPORT_SAFE_SUPPORT, (
+            "Fix E: file with no real top-level API must not classify as import_safe_support"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Fix F — class bodies execute at import time; bare calls / sys.path inside
+# a top-level class body must be visible to the scanners
+# (debug-loop iteration 2 — codex finding [P2] role_grammar.py:107-120)
+# ---------------------------------------------------------------------------
+
+class TestClassBodySideEffects:
+    def test_bare_call_in_class_body_flagged(self, py_file):
+        """`class C: setup()` — bare Expr(Call) at class body executes at class-creation = import time."""
+        p = py_file(
+            "def setup():\n"
+            "    return 1\n"
+            "class C:\n"
+            "    setup()\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True, (
+            "Fix F: bare Expr(Call) in a top-level class body must be flagged as import-time bare call"
+        )
+
+    def test_sys_path_in_class_body_flagged(self, py_file):
+        """`class C: sys.path.append('x')` — runs at class-creation = import time."""
+        p = py_file(
+            "import sys\n"
+            "class C:\n"
+            "    sys.path.append('x')\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_module_level_sys_path_mutation is True, (
+            "Fix F: sys.path mutation in a top-level class body must be flagged"
+        )
+
+    def test_bare_call_inside_method_not_flagged(self, py_file):
+        """`class C: def m(self): setup()` — call is in method body (opaque)."""
+        p = py_file(
+            "def setup():\n"
+            "    return 1\n"
+            "class C:\n"
+            "    def m(self):\n"
+            "        setup()\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Fix F regression guard: call inside a method body must not be flagged"
+        )
+
+    def test_sys_path_inside_method_not_flagged(self, py_file):
+        """`class C: def m(self): sys.path.append(...)` — call is in method body (opaque)."""
+        p = py_file(
+            "import sys\n"
+            "class C:\n"
+            "    def m(self):\n"
+            "        sys.path.append('x')\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_module_level_sys_path_mutation is False, (
+            "Fix F regression guard: sys.path call inside a method body must not be flagged"
+        )
+
+    def test_class_with_bare_body_call_classifies_unclassified(self, py_file):
+        """End-to-end: a class with a bare body call should land as unclassified."""
+        p = py_file(
+            "def setup():\n"
+            "    return 1\n"
+            "class C:\n"
+            "    setup()\n"
+        )
+        result = classify_role(p)
+        _assert_role(result, Role.UNCLASSIFIED, "Fix F end-to-end")
+        assert any("bare" in r.lower() for r in result.reasons), (
+            "Reason must explicitly cite the bare call"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Fix G — decorator-side-effect detection covers class-method decorators
+# (debug-loop iteration 2 — codex finding [P2] role_grammar.py:194-199)
+# ---------------------------------------------------------------------------
+
+class TestMethodDecorators:
+    def test_method_call_decorator_flagged(self, py_file):
+        """`class C: @register() def f(): pass` — decorator runs at class body = import time."""
+        p = py_file(
+            "def register():\n"
+            "    return lambda x: x\n"
+            "class C:\n"
+            "    @register()\n"
+            "    def f(self):\n"
+            "        pass\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_decorator_side_effects is True, (
+            "Fix G: Call-type decorator on a method must be flagged as import-time side effect"
+        )
+
+    def test_method_bare_decorator_not_flagged(self, py_file):
+        """`class C: @staticmethod def f(): pass` — bare decorator (Name), not Call."""
+        p = py_file(
+            "class C:\n"
+            "    @staticmethod\n"
+            "    def f():\n"
+            "        return 1\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_decorator_side_effects is False, (
+            "Fix G regression guard: bare decorator (Name) on a method must NOT be flagged"
+        )
+
+    def test_decorator_inside_function_body_not_flagged(self, py_file):
+        """`def outer(): @register() def inner(): ...` — decorator runs only when outer() is called."""
+        p = py_file(
+            "def register():\n"
+            "    return lambda x: x\n"
+            "def outer():\n"
+            "    @register()\n"
+            "    def inner():\n"
+            "        return 1\n"
+            "    return inner\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_decorator_side_effects is False, (
+            "Fix G regression guard: decorator on a def nested in a function body must NOT be flagged "
+            "(function bodies are opaque at import time)"
+        )
+
+    def test_class_with_method_call_decorator_not_import_safe(self, py_file):
+        """End-to-end: a top-level class with a Call-decorated method must not be import_safe_support."""
+        p = py_file(
+            "def register():\n"
+            "    return lambda x: x\n"
+            "class C:\n"
+            "    @register()\n"
+            "    def f(self):\n"
+            "        pass\n"
+        )
+        result = classify_role(p)
+        assert result.role != Role.IMPORT_SAFE_SUPPORT, (
+            "Fix G end-to-end: method @register() must disqualify import_safe_support"
+        )
+
+    def test_nested_class_decorator_in_class_body_flagged(self, py_file):
+        """`class Outer: @deco() class Inner: pass` — nested ClassDef decorator at outer class body."""
+        p = py_file(
+            "def deco():\n"
+            "    return lambda x: x\n"
+            "class Outer:\n"
+            "    @deco()\n"
+            "    class Inner:\n"
+            "        pass\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_decorator_side_effects is True, (
+            "Fix G: Call-type decorator on a nested ClassDef inside a top-level class body must be flagged"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Limitation H — RHS Call positions (assignment-call family) NOT detected
+# (debug-loop iteration 2 — codex finding [P2] role_grammar.py:157-159)
+# Same family as spec Limitation 2; pinned as documented V1 limitation.
+# V2 mitigation path: side-effect-free callable allowlist applied uniformly
+# to module-level Assign RHS, class-body Assign/AnnAssign RHS, and
+# FunctionDef defaults / kw_defaults.
+# ---------------------------------------------------------------------------
+
+class TestRHSCallLimitationPinned:
+    def test_class_body_assign_with_call_rhs_not_flagged(self, py_file):
+        """`class C: cfg = load_cfg()` — Call in class-body Assign RHS NOT detected (V1 limitation)."""
+        p = py_file(
+            "def load_cfg():\n"
+            "    return {}\n"
+            "class C:\n"
+            "    cfg = load_cfg()\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Limitation H pinned: class-body Assign-with-Call-RHS is not flagged "
+            "(same family as spec Limitation 2; documented V1 bypass)"
+        )
+
+    def test_class_body_annassign_with_call_rhs_not_flagged(self, py_file):
+        """`class C: cfg: dict = load_cfg()` — Call in class-body AnnAssign RHS NOT detected (V1 limitation)."""
+        p = py_file(
+            "def load_cfg():\n"
+            "    return {}\n"
+            "class C:\n"
+            "    cfg: dict = load_cfg()\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Limitation H pinned: class-body AnnAssign-with-Call-RHS is not flagged"
+        )
+
+    def test_function_default_with_call_not_flagged(self, py_file):
+        """`def f(cfg=load_cfg()): ...` — Call in default NOT detected (V1 limitation)."""
+        p = py_file(
+            "def load_cfg():\n"
+            "    return {}\n"
+            "def f(cfg=load_cfg()):\n"
+            "    return cfg\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Limitation H pinned: function default arg containing a Call is not flagged"
+        )
+
+    def test_kwonly_default_with_call_not_flagged(self, py_file):
+        """`def f(*, cfg=load_cfg()): ...` — Call in keyword-only default NOT detected (V1 limitation)."""
+        p = py_file(
+            "def load_cfg():\n"
+            "    return {}\n"
+            "def f(*, cfg=load_cfg()):\n"
+            "    return cfg\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Limitation H pinned: keyword-only default containing a Call is not flagged"
+        )
+
+    def test_class_body_call_rhs_classifies_as_import_safe_support(self, py_file):
+        """End-to-end: class with Assign-Call-RHS still classifies as IMPORT_SAFE_SUPPORT.
+
+        Pins the documented V1 limitation in classification. When V2 lands the
+        callable-allowlist mitigation, this test should be flipped (the file
+        should classify as UNCLASSIFIED for non-allowlisted callees).
+        """
+        p = py_file(
+            "def load_cfg():\n"
+            "    return {}\n"
+            "class C:\n"
+            "    cfg = load_cfg()\n"
+        )
+        result = classify_role(p)
+        _assert_role(result, Role.IMPORT_SAFE_SUPPORT, "Limitation H end-to-end pin")
+
+    def test_bypass_notes_describe_rhs_limitation(self, py_file):
+        """import_safe_support results must surface the documented V1 limitation."""
+        p = py_file(
+            "def load_cfg():\n"
+            "    return {}\n"
+            "class C:\n"
+            "    cfg = load_cfg()\n"
+        )
+        result = classify_role(p)
+        assert result.role == Role.IMPORT_SAFE_SUPPORT
+        combined = " ".join(result.bypass_notes).lower()
+        assert "rhs" in combined or "default" in combined, (
+            "bypass_notes must mention the RHS-Call / defaults limitation so consumers know it"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Fix I — control-flow header Calls (If.test / For.iter / While.test /
+# With.items.context_expr) execute at import time and must be flagged
+# (debug-loop iteration 2 — codex finding [P2] role_grammar.py:171-172)
+# ---------------------------------------------------------------------------
+
+class TestControlFlowHeaderCalls:
+    def test_call_in_if_test_at_module_level_flagged(self, py_file):
+        """`def f(): ...; if validate(): pass` — Call in If.test runs at import."""
+        p = py_file(
+            "def f():\n"
+            "    return 1\n"
+            "def validate():\n"
+            "    return True\n"
+            "if validate():\n"
+            "    pass\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True, (
+            "Fix I: Call in module-level If.test must be flagged as import-time bare call"
+        )
+
+    def test_call_in_if_test_disqualifies_import_safe_support(self, py_file):
+        """End-to-end: file with `def f(): ...` + `if Call(): pass` is NOT import_safe_support."""
+        p = py_file(
+            "def f():\n"
+            "    return 1\n"
+            "def validate():\n"
+            "    return True\n"
+            "if validate():\n"
+            "    pass\n"
+        )
+        result = classify_role(p)
+        assert result.role != Role.IMPORT_SAFE_SUPPORT, (
+            "Fix I end-to-end: import-time Call in If.test must disqualify import_safe_support"
+        )
+
+    def test_call_in_for_iter_flagged(self, py_file):
+        """`for x in get_items(): pass` — Call in For.iter runs at import."""
+        p = py_file(
+            "def f():\n"
+            "    return 1\n"
+            "def get_items():\n"
+            "    return []\n"
+            "for x in get_items():\n"
+            "    pass\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True, (
+            "Fix I: Call in module-level For.iter must be flagged"
+        )
+
+    def test_call_in_while_test_flagged(self, py_file):
+        """`while is_running(): pass` — Call in While.test runs at import."""
+        p = py_file(
+            "def f():\n"
+            "    return 1\n"
+            "def is_running():\n"
+            "    return False\n"
+            "while is_running():\n"
+            "    pass\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True, (
+            "Fix I: Call in module-level While.test must be flagged"
+        )
+
+    def test_call_in_with_context_expr_flagged(self, py_file):
+        """`with open('x') as f: pass` — Call in With.context_expr runs at import."""
+        p = py_file(
+            "def f():\n"
+            "    return 1\n"
+            "with open('x') as fh:\n"
+            "    pass\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True, (
+            "Fix I: Call in module-level With context_expr (e.g. open) must be flagged"
+        )
+
+    def test_call_in_if_test_inside_class_body_flagged(self, py_file):
+        """`class C: if validate(): pass` — same rule applies inside class body (runs at class creation)."""
+        p = py_file(
+            "def validate():\n"
+            "    return True\n"
+            "class C:\n"
+            "    if validate():\n"
+            "        pass\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is True, (
+            "Fix I: Call in class-body control-flow header must be flagged (class body runs at import)"
+        )
+
+    def test_call_inside_function_body_if_test_not_flagged(self, py_file):
+        """Regression guard: Calls in if-tests inside a function body do NOT count."""
+        p = py_file(
+            "def validate():\n"
+            "    return True\n"
+            "def outer():\n"
+            "    if validate():\n"
+            "        return 1\n"
+            "    return 0\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Fix I regression guard: Call in if-test inside a function body must NOT be flagged"
+        )
+
+    def test_pure_comparison_in_if_test_not_flagged(self, py_file):
+        """`if sys.version_info >= (3, 10): import x` — no Call, must not flag."""
+        p = py_file(
+            "import sys\n"
+            "def f():\n"
+            "    return 1\n"
+            "if sys.version_info >= (3, 10):\n"
+            "    import importlib\n"
+        )
+        f = extract_ast_features(p)
+        assert f.has_toplevel_bare_calls is False, (
+            "Fix I regression guard: Compare with no Call in if-test must NOT be flagged"
+        )
+
+    def test_call_in_except_handler_type_flagged(self, py_file):
+        """`try: ... except f(): pass` — Call in ExceptHandler.type runs at import time when handler matches."""
+        p = py_file(
+            "def f():\n"
+            "    return ValueError\n"
+            "def g():\n"
+            "    return 1\n"
+            "try:\n"
+            "    pass\n"
+            "except f():\n"
+            "    pass\n"
+        )
+        feats = extract_ast_features(p)
+        assert feats.has_toplevel_bare_calls is True, (
+            "Fix J: Call in module-level ExceptHandler.type must be flagged"
+        )
+
+    def test_except_handler_type_call_inside_function_not_flagged(self, py_file):
+        """Regression guard: except-type Call inside a function body does NOT count (function bodies opaque)."""
+        p = py_file(
+            "def f():\n"
+            "    return ValueError\n"
+            "def outer():\n"
+            "    try:\n"
+            "        pass\n"
+            "    except f():\n"
+            "        pass\n"
+        )
+        feats = extract_ast_features(p)
+        assert feats.has_toplevel_bare_calls is False, (
+            "Fix J regression guard: except-type Call inside a function body must NOT be flagged"
+        )
+
+    def test_named_except_handler_not_flagged(self, py_file):
+        """Regression: `except ValueError:` (Name, not Call) must NOT trigger."""
+        p = py_file(
+            "def f():\n"
+            "    return 1\n"
+            "try:\n"
+            "    pass\n"
+            "except ValueError:\n"
+            "    pass\n"
+        )
+        feats = extract_ast_features(p)
+        assert feats.has_toplevel_bare_calls is False, (
+            "Fix J regression guard: bare Name (e.g. ValueError) in except.type must NOT be flagged"
+        )

@@ -1111,6 +1111,9 @@
       ],
       "bypass_notes": [
         "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Bypass closed: class bodies execute at import time (Python evaluates each class-body statement to build the class dict when `class C:` runs). Bare calls, sys.path mutations, and Call-type decorators on methods inside a top-level class are now visible to the scanners \u2014 _OPAQUE_DEFS no longer includes ClassDef.",
+        "Bypass closed: has_functions / has_classes count direct module-level definitions only (tree.body, not ast.walk). A nested `if False: def f(): ...` no longer registers a top-level API, so files with no real importable surface do not classify as import_safe_support.",
+        "Known limitation (V1, RHS Call positions): assignments and defaults whose RHS contains a Call are NOT detected as import-time side effects. Affected shapes: class-body `cfg = load_cfg()`, class-body `cfg: dict = load_cfg()`, function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults. Same family as spec Limitation 2 (module-level assignment-call). V1 tolerates this for the same reason \u2014 the dominant pattern is side-effect-free config reads (os.getenv, logging.getLogger). V2 mitigation: extend a side-effect-free callable allowlist uniformly to all RHS Call positions.",
         "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
       ]
     },
@@ -1146,6 +1149,9 @@
       ],
       "bypass_notes": [
         "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Bypass closed: class bodies execute at import time (Python evaluates each class-body statement to build the class dict when `class C:` runs). Bare calls, sys.path mutations, and Call-type decorators on methods inside a top-level class are now visible to the scanners \u2014 _OPAQUE_DEFS no longer includes ClassDef.",
+        "Bypass closed: has_functions / has_classes count direct module-level definitions only (tree.body, not ast.walk). A nested `if False: def f(): ...` no longer registers a top-level API, so files with no real importable surface do not classify as import_safe_support.",
+        "Known limitation (V1, RHS Call positions): assignments and defaults whose RHS contains a Call are NOT detected as import-time side effects. Affected shapes: class-body `cfg = load_cfg()`, class-body `cfg: dict = load_cfg()`, function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults. Same family as spec Limitation 2 (module-level assignment-call). V1 tolerates this for the same reason \u2014 the dominant pattern is side-effect-free config reads (os.getenv, logging.getLogger). V2 mitigation: extend a side-effect-free callable allowlist uniformly to all RHS Call positions.",
         "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
       ]
     },
@@ -1255,7 +1261,7 @@
         "Module body contains only imports, assignments, and string constants"
       ],
       "bypass_notes": [
-        "Known limitation (V1): assignments like X = os.getenv('VAR') contain a function call in the RHS expression but still pass this check. V1 tolerates this because: (a) detecting side-effectful RHS expressions requires dataflow analysis or a type database to know which functions are pure; (b) the practical impact is low \u2014 RHS-call patterns in this codebase are config reads (os.getenv, int(), str()) that are observably side-effect-free. V2 mitigation path: a side-effect-free callable allowlist (os.getenv, os.environ.get, int, str, etc.), or type-stub annotations marking callables @pure, would allow safe detection without false positives.",
+        "Known limitation (V1, RHS Call positions): the harness does NOT detect Calls embedded in import-time positions other than bare Expr(Call). Affected shapes: module-level `X = os.getenv('VAR')`, class-body `class C:\n    cfg = load_cfg()` and `class C:\n    cfg: dict = load_cfg()`, function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults `def f(*, cfg=load_cfg()): ...`. All run at import time (defaults at def-statement time; class-body Assign/AnnAssign at class-creation time). V1 tolerates this because: (a) detecting side-effectful Call RHS requires dataflow analysis or a type database to know which functions are pure; (b) the dominant pattern in this codebase is config reads (os.getenv, logging.getLogger, int, str) that are observably side-effect-free. V2 mitigation path: a side-effect-free callable allowlist (os.getenv, os.environ.get, logging.getLogger, int, str, etc.), or type-stub annotations marking callables @pure, applied uniformly to module-level Assign RHS, class-body Assign/AnnAssign RHS, and FunctionDef defaults / kw_defaults \u2014 would allow safe detection without false positives.",
         "Bypass closed: if-test expressions containing ast.Call are rejected (e.g. `if pathlib.Path('x').exists(): import y` disqualifies because the condition itself calls a function at import time). Allowed test shapes: Constant, Name, Attribute, BoolOp/UnaryOp/Compare on those leaves \u2014 no Call anywhere in the condition."
       ]
     },
@@ -1324,6 +1330,9 @@
       ],
       "bypass_notes": [
         "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Bypass closed: class bodies execute at import time (Python evaluates each class-body statement to build the class dict when `class C:` runs). Bare calls, sys.path mutations, and Call-type decorators on methods inside a top-level class are now visible to the scanners \u2014 _OPAQUE_DEFS no longer includes ClassDef.",
+        "Bypass closed: has_functions / has_classes count direct module-level definitions only (tree.body, not ast.walk). A nested `if False: def f(): ...` no longer registers a top-level API, so files with no real importable surface do not classify as import_safe_support.",
+        "Known limitation (V1, RHS Call positions): assignments and defaults whose RHS contains a Call are NOT detected as import-time side effects. Affected shapes: class-body `cfg = load_cfg()`, class-body `cfg: dict = load_cfg()`, function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults. Same family as spec Limitation 2 (module-level assignment-call). V1 tolerates this for the same reason \u2014 the dominant pattern is side-effect-free config reads (os.getenv, logging.getLogger). V2 mitigation: extend a side-effect-free callable allowlist uniformly to all RHS Call positions.",
         "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
       ]
     },
@@ -1359,6 +1368,9 @@
       ],
       "bypass_notes": [
         "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Bypass closed: class bodies execute at import time (Python evaluates each class-body statement to build the class dict when `class C:` runs). Bare calls, sys.path mutations, and Call-type decorators on methods inside a top-level class are now visible to the scanners \u2014 _OPAQUE_DEFS no longer includes ClassDef.",
+        "Bypass closed: has_functions / has_classes count direct module-level definitions only (tree.body, not ast.walk). A nested `if False: def f(): ...` no longer registers a top-level API, so files with no real importable surface do not classify as import_safe_support.",
+        "Known limitation (V1, RHS Call positions): assignments and defaults whose RHS contains a Call are NOT detected as import-time side effects. Affected shapes: class-body `cfg = load_cfg()`, class-body `cfg: dict = load_cfg()`, function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults. Same family as spec Limitation 2 (module-level assignment-call). V1 tolerates this for the same reason \u2014 the dominant pattern is side-effect-free config reads (os.getenv, logging.getLogger). V2 mitigation: extend a side-effect-free callable allowlist uniformly to all RHS Call positions.",
         "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
       ]
     },
@@ -1468,6 +1480,9 @@
       ],
       "bypass_notes": [
         "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Bypass closed: class bodies execute at import time (Python evaluates each class-body statement to build the class dict when `class C:` runs). Bare calls, sys.path mutations, and Call-type decorators on methods inside a top-level class are now visible to the scanners \u2014 _OPAQUE_DEFS no longer includes ClassDef.",
+        "Bypass closed: has_functions / has_classes count direct module-level definitions only (tree.body, not ast.walk). A nested `if False: def f(): ...` no longer registers a top-level API, so files with no real importable surface do not classify as import_safe_support.",
+        "Known limitation (V1, RHS Call positions): assignments and defaults whose RHS contains a Call are NOT detected as import-time side effects. Affected shapes: class-body `cfg = load_cfg()`, class-body `cfg: dict = load_cfg()`, function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults. Same family as spec Limitation 2 (module-level assignment-call). V1 tolerates this for the same reason \u2014 the dominant pattern is side-effect-free config reads (os.getenv, logging.getLogger). V2 mitigation: extend a side-effect-free callable allowlist uniformly to all RHS Call positions.",
         "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
       ]
     },
@@ -1481,6 +1496,9 @@
       ],
       "bypass_notes": [
         "Bypass closed: Call-type decorators (@register(), @app.route('/'), etc.) on top-level functions/classes execute the decorator expression at import time. Detected by scanning FunctionDef/AsyncFunctionDef/ClassDef.decorator_list for ast.Call nodes; files with these decorators are classified unclassified, not import_safe_support.",
+        "Bypass closed: class bodies execute at import time (Python evaluates each class-body statement to build the class dict when `class C:` runs). Bare calls, sys.path mutations, and Call-type decorators on methods inside a top-level class are now visible to the scanners \u2014 _OPAQUE_DEFS no longer includes ClassDef.",
+        "Bypass closed: has_functions / has_classes count direct module-level definitions only (tree.body, not ast.walk). A nested `if False: def f(): ...` no longer registers a top-level API, so files with no real importable surface do not classify as import_safe_support.",
+        "Known limitation (V1, RHS Call positions): assignments and defaults whose RHS contains a Call are NOT detected as import-time side effects. Affected shapes: class-body `cfg = load_cfg()`, class-body `cfg: dict = load_cfg()`, function defaults `def f(cfg=load_cfg()): ...`, keyword-only defaults. Same family as spec Limitation 2 (module-level assignment-call). V1 tolerates this for the same reason \u2014 the dominant pattern is side-effect-free config reads (os.getenv, logging.getLogger). V2 mitigation: extend a side-effect-free callable allowlist uniformly to all RHS Call positions.",
         "Known limitation: any 'import X' at module level may execute X's module-level side effects at import time; detecting this requires knowing X's implementation."
       ]
     },

@@ -216,10 +216,14 @@ side-effectful operation — before calling the result as a decorator.
 Any top-level definition with a Call-type decorator sets
 `has_decorator_side_effects=True`, disqualifying `import_safe_support`.
 
-**Scope**: Only top-level function/class definitions are scanned. Decorators on
-methods nested inside a class body are a separate concern — method decoration is
-common (`@staticmethod`, `@property`) and scoping it correctly would require
-distinguishing pure decorators from effectful ones.
+**Scope (debug-loop iter 2 — extended)**: Top-level function/class definitions
+**plus method/nested-class decorators inside a top-level class body**. Decorators
+on methods inside a top-level `class C:` execute at class-creation = import time,
+so `class C:\n    @register()\n    def f(): ...` is now flagged. Decorators on
+defs nested inside function bodies are still NOT flagged — function bodies don't
+run at import. Detection walks `_walk_no_defs(top)` for every top-level
+statement, which descends into class bodies but treats FunctionDef /
+AsyncFunctionDef as opaque.
 
 **V1 limitation**: Bare decorator references without parentheses (`@staticmethod`,
 `@property`, `@module.decorator`) are `ast.Name` / `ast.Attribute` nodes, not
@@ -230,6 +234,99 @@ is just a name lookup, not a function call, and produces no side effect.
 `test_decorator_bare_name_still_import_safe`, `test_decorator_call_on_class_disqualifies`.
 ASTFeatures unit tests: `TestASTFeatures::test_decorator_call_detected`,
 `test_decorator_bare_name_not_detected`, `test_decorator_call_inside_function_not_detected`.
+Extended scope tests: `TestMethodDecorators::test_method_call_decorator_flagged`,
+`test_method_bare_decorator_not_flagged`, `test_decorator_inside_function_body_not_flagged`,
+`test_class_with_method_call_decorator_not_import_safe`,
+`test_nested_class_decorator_in_class_body_flagged`.
+
+---
+
+### Bypass 6: Class bodies execute at import time (debug-loop iter 2 — CLOSED)
+
+**Attack**: A top-level `class C:` definition has its body executed during
+class creation — which happens at the time the `class C:` statement runs, i.e.
+at module import time. An earlier implementation treated `ClassDef` as opaque
+in `_OPAQUE_DEFS`, so bare calls and `sys.path` mutations inside a class body
+were invisible to the scanners.
+
+**Examples**:
+```python
+class C:
+    setup()                    # bare Expr(Call) — runs at import, was missed
+    sys.path.append("/x")      # sys.path mutation — runs at import, was missed
+```
+
+**Fix**: `_OPAQUE_DEFS` now contains only `(FunctionDef, AsyncFunctionDef)`.
+ClassDef bodies are walked by `_walk_no_defs`. Function/async-function bodies
+nested inside a class are still treated as opaque (a method body runs only when
+the method is called). The same opaque rule applies recursively for nested
+classes.
+
+**Status**: CLOSED — `TestClassBodySideEffects::test_bare_call_in_class_body_flagged`,
+`test_sys_path_in_class_body_flagged`, `test_bare_call_inside_method_not_flagged`,
+`test_sys_path_inside_method_not_flagged`, `test_class_with_bare_body_call_classifies_unclassified`.
+
+---
+
+### Bypass 7: Top-level definition count via `ast.walk` (debug-loop iter 2 — CLOSED)
+
+**Attack**: An earlier implementation computed `has_functions` / `has_classes`
+with `ast.walk(tree)`, which matches every nested `FunctionDef` / `ClassDef`
+anywhere in the file. So a module with no real top-level API could still
+classify as `import_safe_support`:
+
+```python
+if False:
+    def helper():       # never executed, but ast.walk still finds it
+        return 1
+```
+
+**Fix**: `has_functions` and `has_classes` count only direct `tree.body`
+members. Reachability under control-flow branches is undecidable from AST;
+the conservative rule is: "only top-level definitions count as a stable,
+importable surface".
+
+**Status**: CLOSED — `TestTopLevelDefCount::test_nested_def_in_if_false_does_not_count`,
+`test_nested_class_in_if_does_not_count`,
+`test_top_level_def_with_nested_def_still_counts_once`,
+`test_only_nested_def_classifies_unclassified`.
+
+---
+
+### Bypass 8: Calls in module-level control-flow headers (debug-loop iter 2 — CLOSED)
+
+**Attack**: A control-flow statement at module top level (`if`, `for`, `while`,
+`with`, `try`/`except`) evaluates its header expression at import time, even
+if its body is empty or innocuous. An earlier implementation only matched
+`ast.Expr(ast.Call)` for bare calls — it missed Calls embedded in:
+- `If.test`        — `if validate_config(): pass`
+- `While.test`     — `while is_running(): pass`
+- `For.iter`       — `for x in get_items(): register(x)`
+- `With.items[].context_expr` — `with open("config") as f: ...`
+- `ExceptHandler.type` — `try: ...\nexcept f(): pass` (Call evaluated when
+  the try-statement processes a raised exception; conservatively flagged
+  unconditionally)
+
+So a file with a top-level `def f()` plus `if side_effect(): pass` could pass
+as `import_safe_support`.
+
+**Fix**: `_control_flow_header_calls(node)` returns Call expressions in the
+header positions of If / For / While / With (and async variants). It is called
+on every node yielded by `_walk_no_defs`, so the same coverage applies to
+module-level statements, statements nested inside other module-level
+control-flow blocks, and statements inside top-level class bodies (which run
+at class creation = import time).
+
+**Relation to Fix C** (`_if_test_is_call_free`): Fix C closed the same gap on
+the `declaration_module` path (`_if_body_is_imports_only` rejects If-blocks
+whose test contains a Call). Fix I extends the same rule to the
+`import_safe_support` path and to the For / While / With variants.
+
+**Status**: CLOSED — `TestControlFlowHeaderCalls` covers If.test, For.iter,
+While.test, With.context_expr at module level; class-body If.test;
+ExceptHandler.type (`test_call_in_except_handler_type_flagged`); the
+function-body regression guard; the pure-Compare regression guard; and the
+named-Exception regression guard.
 
 ---
 
@@ -358,6 +455,34 @@ This is classified as `declaration_module` despite calling functions.
 asserts that `X = os.getenv(...)` classifies as `declaration_module` and that
 `bypass_notes` documents the gap. This test is a canary: if V2 changes this
 behavior, the test will fail and force an explicit decision.
+
+#### Extended scope (debug-loop iter 2): same-family RHS Call positions
+
+The same RHS-Call gap applies, by structural identity, in three additional
+positions that all execute at import time:
+
+| Position                                | Example                                                | When the Call runs    |
+|-----------------------------------------|--------------------------------------------------------|-----------------------|
+| Class-body `Assign` RHS                 | `class C:\n    cfg = load_cfg()`                       | Class-creation time   |
+| Class-body `AnnAssign` RHS              | `class C:\n    cfg: dict = load_cfg()`                 | Class-creation time   |
+| Function `default` argument             | `def f(cfg=load_cfg()): ...`                           | Def-statement time    |
+| Function `kw_default` (keyword-only)    | `def f(*, cfg=load_cfg()): ...`                        | Def-statement time    |
+
+For a top-level `class` or top-level `def`, all four positions execute at
+**import time** — semantically identical to the module-level Assign-with-Call-RHS
+case above. They are tolerated in V1 for the same three reasons (dataflow
+needed; dominant pattern is config reads; allowlist would need maintenance).
+
+**V2 mitigation path** (extends Limitation 2 above): the same side-effect-free
+callable allowlist must be applied **uniformly** to all four RHS positions.
+Detection logic for V2: walk class-body Assign/AnnAssign `value`, and walk
+FunctionDef.args.defaults / kw_defaults at top-level, looking for `ast.Call`
+whose target is not on the allowlist.
+
+**Tests pinning this extended limitation**: `TestRHSCallLimitationPinned`
+covers each shape — class-body Assign, class-body AnnAssign, function default,
+keyword-only default, end-to-end classification, and a check that
+`bypass_notes` surfaces the limitation. All six tests serve as canaries for V2.
 
 ---
 
