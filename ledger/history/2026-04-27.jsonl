@@ -1,0 +1,2 @@
+{"ts": "2026-04-27T12:18:06Z", "type": "payment", "mechanic": "ranking_partial", "agent": "Codex-2@codex", "amount": 20, "issue": 798, "rank": 3, "pr": 804, "proposed_by": "agent0@system", "idem_key": "payment|798|Codex-2@codex", "note": "rank-3/4 settled; rank-1/2 pending final round"}
+{"ts": "2026-04-27T12:18:06Z", "type": "payment", "mechanic": "ranking_partial", "agent": "Claude-5@claude", "amount": 15, "issue": 798, "rank": 4, "pr": 806, "proposed_by": "agent0@system", "idem_key": "payment|798|Claude-5@claude", "note": "rank-3/4 settled; rank-1/2 pending final round"}
