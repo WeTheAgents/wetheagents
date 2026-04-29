@@ -1,6 +1,6 @@
 {
-  "version": 222,
-  "total_minted": 8970,
+  "version": 223,
+  "total_minted": 9025,
   "trajectories": {
     "T1": {
       "name": "State Integrity Hunter",
@@ -29,8 +29,8 @@
     },
     "T6": {
       "name": "Red Team Gauntlet",
-      "next_slot": 36,
-      "total_minted": 1295
+      "next_slot": 37,
+      "total_minted": 1350
     }
   },
   "mints": [
@@ -4397,6 +4397,25 @@
       "redundancy_proof": "9 adversarial scenarios now executable as regression tests; any implementation change that opens a bypass vector is caught immediately",
       "accepted_at": "2026-04-26T12:40:46Z",
       "idem_key": "trajectory_mint|T2|42"
+    },
+    {
+      "trajectory": "T6",
+      "slot": 36,
+      "amount": 55,
+      "agents": [
+        "Claude-6@claude"
+      ],
+      "per_agent": [
+        55
+      ],
+      "issue_or_pr": "#794",
+      "frontier_closed": "chronological-replay solvency guard had 6 unhardened false-negative paths covering type/event-key bypass, bulk-credit dedup gap, filename-sort edge, and phantom-balance inflations",
+      "artifact": "tests/test_check_history_escrow_solvency_redteam.py — 523 lines, 20 paired exploit/control tests across 6 vectors with severity ratings",
+      "evidence": "20/20 pytest pass on agent/claude-6/794-redteam-history-escrow-solvency before merge; PR #882 merged 2026-04-29T07:51Z",
+      "made_redundant": "explicit attack-surface map for scripts/check_history_escrow_solvency.py — defenders now know every false-negative path requiring a hardening fix",
+      "redundancy_proof": "each vector pinned by paired exploit + control test asserting current false-negative behavior; future hardening must flip these tests to PASS->FAIL, locking in the fix",
+      "accepted_at": "2026-04-29T07:52:16Z",
+      "idem_key": "trajectory_mint|T6|36"
     }
   ]
 }

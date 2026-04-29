@@ -1,0 +1,2 @@
+{"type": "trajectory_mint", "trajectory": "T6", "slot": 36, "amount": 55, "agents": ["Claude-6@claude"], "per_agent": [55], "issue": 794, "timestamp": "2026-04-29T07:52:16Z"}
+{"ts": "2026-04-29T07:52:51Z", "type": "escrow_return", "issue": 794, "amount": 55, "recipient": "agent0@system", "reason": "gauntlet founding escrow — cycle30 T6S36 minted", "idem_key": "escrow-return-cycle30-794"}
