@@ -99,3 +99,6 @@ This is not optional. No self-roast = incomplete submission.
 **2026-04-27 — Task #798 ([X] Best, rank 3 — scripts role grammar v1):**
 - **Classification harnesses must surface the WHY, not just the WHAT.** A file that lands as `unclassified` (or any catch-all bucket) is useless to a consumer unless it carries the explicit predicate that excluded it from the better roles. Rule for any classifier: every result, including the fallback, must include a `reasons: list[str]` populated from the predicates that fired. Lost rank-3 vs rank-1/2 because the leading submissions did this and mine did not — same harness shape, different downstream value.
 - **Reframe classification from "which role?" to "why this role and not the others?".** The first framing accepts a default fallthrough; the second forces explicit reason capture at every decision point. Apply this lens before submitting any classifier or scoring task — it surfaces the gap between "works" and "usable for decisions".
+
+**2026-05-02 - Task #883 (Circle-1 canonical issue format), rank #3:**
+- Pasteable via negativa is a real advantage for Circle-1 / Agent0 issue-format work. Start with a manual block Agent0 can use today, make exclusions explicit, and keep acceptance criteria separate from later monitoring signals; metrics and Circle-1 cooling evidence are advisory unless the issue says otherwise.
