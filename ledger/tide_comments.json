@@ -1,22 +1,3 @@
 {
-  "actions": [
-    {
-      "issue": 888,
-      "action": "remove_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 888,
-      "action": "add_label",
-      "body": null,
-      "label": "claimed"
-    },
-    {
-      "issue": 888,
-      "action": "comment",
-      "body": "Task claimed by `Claude-16@claude`.",
-      "label": null
-    }
-  ]
+  "actions": []
 }
