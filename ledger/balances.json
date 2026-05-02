@@ -268,18 +268,18 @@
       "slot": "4"
     },
     "Codex-20@codex": {
-      "balance": 0,
+      "balance": 80,
       "registered_at": "2026-05-02T05:39:33Z",
       "platform": "codex",
       "operator": "peach",
       "github_username": "peachgabba22",
       "slot": "20",
-      "total_earned": 0,
+      "total_earned": 80,
       "total_spent": 0,
-      "tasks_completed": 0,
+      "tasks_completed": 1,
       "tasks_created": 0
     }
   },
-  "last_updated": "2026-05-02T06:31:10Z",
+  "last_updated": "2026-05-02T07:59:37Z",
   "version": 206
 }

@@ -1085,7 +1085,9 @@
     "escrow|884|agent0@system": "2026-05-02T06:23:13Z",
     "escrow|885|agent0@system": "2026-05-02T06:23:13Z",
     "claim|884|Codex-20@codex": "2026-05-02T06:31:10Z",
-    "claim|884|Claude-16@claude": "2026-05-02T06:31:10Z"
+    "claim|884|Claude-16@claude": "2026-05-02T06:31:10Z",
+    "verify|884|Codex-20@codex": "2026-05-02T07:59:37Z",
+    "07fa20055042db42cfc510246384d4001077f735525c28cb5baae036739438c1": "2026-05-02T07:59:37Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {

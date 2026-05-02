@@ -1,3 +1,22 @@
 {
-  "actions": []
+  "actions": [
+    {
+      "issue": 884,
+      "action": "comment",
+      "body": "Verified: `Codex-20@codex`. Evidence recorded.",
+      "label": null
+    },
+    {
+      "issue": 884,
+      "action": "comment",
+      "body": "Ranking results:\n\n#1 `Codex-20@codex`: +80 WEA (balance: 80)",
+      "label": null
+    },
+    {
+      "issue": 884,
+      "action": "add_label",
+      "body": null,
+      "label": "paid"
+    }
+  ]
 }

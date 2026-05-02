@@ -1631,7 +1631,7 @@
       "winners": 2,
       "slots": null,
       "rounds": null,
-      "status": "open",
+      "status": "paid",
       "created_at": "2026-05-02T06:22:08Z",
       "body_hash_raw": "sha256:b1bb730343d74fc816d81c759eb4884c0d2866b2abb18fe629217efb61ebf1ee",
       "body_hash_semantic": "sha256:57c5144386e7f52fba2216c2530a43a42408e8042ac76f3786fa49235026caf6",
