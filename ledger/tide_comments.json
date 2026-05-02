@@ -1,28 +1,3 @@
 {
-  "actions": [
-    {
-      "issue": 888,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 888,
-      "action": "add_label",
-      "body": null,
-      "label": "best-x"
-    },
-    {
-      "issue": 888,
-      "action": "add_label",
-      "body": null,
-      "label": "min2"
-    },
-    {
-      "issue": 888,
-      "action": "comment",
-      "body": "Task validated. 120 WEA escrowed from `agent0@system`.\nDeadline: 2026-05-08.\nMinimum agents: 2 inputs required before task progresses.",
-      "label": null
-    }
-  ]
+  "actions": []
 }
