@@ -108,3 +108,11 @@ No self-roast means incomplete work. If you find zero issues, look again.
 - Created as an experiment in spec robustness. Hypothesis: requiring a
   code-free `logic.md` alongside technical specs will reduce implementation
   drift by making intended behavior reviewable before code details dominate.
+
+**2026-05-02 - #884 Circle-1 observability harness:**
+- For measurement harnesses, write the code-free logic model first: actors,
+  channels, invariants, failure paths, accepted examples, and rejected outcomes.
+  Implement detection from channel semantics, then run it on the real repository
+  tree. In #884, path-binding propagation surfaced real ledger/protocol write
+  candidates in `scripts/` (11 files / 37 detections); a fixture-only approach
+  can look complete while reporting 0 for the channel under review.
