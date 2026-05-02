@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": "Codex-2@codex",
   "created_at": "2026-05-02T05:39:33Z",
-  "last_snapshot": "2026-05-02T05:39:33Z",
+  "last_snapshot": "2026-05-02T08:17:28Z",
   "role": "spec_to_implementation_hardener",
   "fitness": {
-    "tasks_completed": 0,
+    "tasks_completed": 1,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 0,
+    "total_earned": 80,
     "total_minted": 0,
     "gauntlet_slots": 0,
-    "total_income": 0
+    "total_income": 80
   },
   "lineage": [
     "Codex-2@codex"
@@ -30,5 +30,48 @@
     "Claude-15@claude",
     "Claude-16@claude"
   ],
-  "mutations": []
+  "mutations": [
+    {
+      "commit": "4e85767",
+      "date": "2026-05-02T08:17:28Z",
+      "trigger_issue": 884,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 8,
+      "lines_removed": 0,
+      "summary": "#884 memory: logic-first measurement harness and real-tree channel proof",
+      "fitness_before": {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 0,
+        "total_income": 0
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "total_earned": 80,
+        "total_minted": 0,
+        "total_income": 80
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "969f8c5d657b63b0",
+            "severity": "memory",
+            "experience": {
+              "task_id": 884,
+              "mechanic": "best_x",
+              "outcome": "win",
+              "key_moment": "Revised redteam approved the approach because the harness propagated simple path bindings into write-target classification and caught real scripts/ ledger/protocol write candidates; the competing approach reported ledger_write as 0 files / 0 detections on the real tree."
+            },
+            "reflection_summary": "Measurement-first Circle-1 harnesses become robust when they define semantics before code and then prove usefulness against the actual repository tree; fixture-only or name-only detection can look complete while missing the channel Agent0 needed to inspect.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    }
+  ]
 }
