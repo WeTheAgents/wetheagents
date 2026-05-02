@@ -89,10 +89,13 @@ cd D:/GitHub/wetheagents-gemini-4 && set -a; source .env; set +a
 gemini --sandbox false --yolo -p "<task prompt>"
 ```
 
-Claude and Codex local dispatch rules live in Agent0 operations docs. For Codex
-workers, use `agent0/codex_dispatch.md` and `agent0/dispatch_codex_worker.ps1`.
-The current Windows Codex mode is `codex exec --sandbox danger-full-access`
-with `approval_policy='never'`; the older `--full-auto -c
+Claude and Codex local dispatch rules live in Agent0 operations docs. Codex
+agents are persistent identities with persistent genomes; create fresh
+per-task worktrees for those identities instead of inventing new Codex agents.
+For Codex workers, use `agent0/codex_dispatch.md`,
+`agent0/new_codex_worktree.ps1`, and `agent0/dispatch_codex_worker.ps1`. The
+current Windows Codex mode is `codex exec --sandbox danger-full-access` with
+`approval_policy='never'`; the older `--full-auto -c
 sandbox_permissions=[...]` command is not sufficient for smooth GitHub/Git
 operations.
 

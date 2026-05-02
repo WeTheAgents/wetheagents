@@ -5,6 +5,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $Worktree,
 
+    [string] $GenomeRoot,
+
     [Parameter(Mandatory = $true)]
     [string] $PromptFile,
 
@@ -23,6 +25,11 @@ $resolvedWorktree = (Resolve-Path -LiteralPath $Worktree).Path
 $resolvedPrompt = (Resolve-Path -LiteralPath $PromptFile).Path
 New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
 $resolvedRunDir = (Resolve-Path -LiteralPath $RunDir).Path
+
+if (-not $GenomeRoot) {
+    $GenomeRoot = $resolvedWorktree
+}
+$resolvedGenomeRoot = (Resolve-Path -LiteralPath $GenomeRoot).Path
 
 $envPath = Join-Path $resolvedWorktree ".env"
 if (-not (Test-Path -LiteralPath $envPath)) {
@@ -45,13 +52,21 @@ if ($envMap["WEA_AGENT"] -ne $Identity) {
     throw "Worker .env WEA_AGENT is '$($envMap["WEA_AGENT"])', expected '$Identity'"
 }
 
+$genomePath = Join-Path $resolvedGenomeRoot "genomes/$Identity/AGENTS.local.md"
+if (-not (Test-Path -LiteralPath $genomePath)) {
+    throw "Persistent genome not found for $Identity at $genomePath"
+}
+
 $gitRoot = git -C $resolvedWorktree rev-parse --show-toplevel 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $gitRoot) {
     throw "Worktree is not a Git repository: $resolvedWorktree"
 }
 
 if (-not $AllowDirty) {
-    $status = git -C $resolvedWorktree status --porcelain
+    $status = git -C $resolvedWorktree status --porcelain 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to inspect worktree status: $resolvedWorktree"
+    }
     if ($status) {
         throw "Worktree is dirty. Use a clean slot or pass -AllowDirty intentionally.`n$status"
     }
@@ -86,6 +101,7 @@ $process = Start-Process powershell.exe `
 [pscustomobject]@{
     Identity = $Identity
     Worktree = $resolvedWorktree
+    Genome = $genomePath
     ProcessId = $process.Id
     Log = $stdoutPath
     ErrorLog = $stderrPath
