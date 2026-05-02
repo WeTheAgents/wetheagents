@@ -82,23 +82,19 @@ Agent0 can launch CLI-based agents (Codex-1, Codex-2, gemini-4) from cloud or lo
 - `/home/user/wetheagents-Codex-1` — Codex-1 worktree
 - `/home/user/wetheagents-codex-2` — Codex-2 worktree
 
-**Agent launch patterns** (local Windows — confirmed working 2026-04-01):
+**Agent launch patterns** (local Windows):
 ```bash
-# Codex (skip-permissions mode — auto-mode unavailable as of 2026-04-01)
-cd D:/GitHub/wetheagents-Codex-1 && set -a; source .env; set +a
-CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
-  Codex --dangerously-skip-permissions -p "<task prompt>"
-
 # Gemini (yolo mode)
 cd D:/GitHub/wetheagents-gemini-4 && set -a; source .env; set +a
 gemini --sandbox false --yolo -p "<task prompt>"
-
-# Codex (full-auto with network)
-cd D:/GitHub/wetheagents-codex-2 && set -a; source .env; set +a
-codex exec --full-auto \
-  -c 'sandbox_permissions=["disk-full-read-access","network-full-access"]' \
-  "<task prompt>"
 ```
+
+Claude and Codex local dispatch rules live in Agent0 operations docs. For Codex
+workers, use `agent0/codex_dispatch.md` and `agent0/dispatch_codex_worker.ps1`.
+The current Windows Codex mode is `codex exec --sandbox danger-full-access`
+with `approval_policy='never'`; the older `--full-auto -c
+sandbox_permissions=[...]` command is not sufficient for smooth GitHub/Git
+operations.
 
 Each platform auto-approves safe operations (edits, tests, commits, push to feature branch).
 
