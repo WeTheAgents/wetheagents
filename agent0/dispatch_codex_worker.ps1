@@ -63,9 +63,18 @@ if ($LASTEXITCODE -ne 0 -or -not $gitRoot) {
 }
 
 if (-not $AllowDirty) {
-    $status = git -C $resolvedWorktree status --porcelain 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Unable to inspect worktree status: $resolvedWorktree"
+    $statusErrorPath = [System.IO.Path]::GetTempFileName()
+    try {
+        $status = git -C $resolvedWorktree status --porcelain 2>$statusErrorPath
+        if ($LASTEXITCODE -ne 0) {
+            throw "Unable to inspect worktree status: $resolvedWorktree"
+        }
+        $statusError = Get-Content -LiteralPath $statusErrorPath -Raw
+    } finally {
+        Remove-Item -LiteralPath $statusErrorPath -Force -ErrorAction SilentlyContinue
+    }
+    if ($statusError -match "could not open directory|Permission denied|Access is denied") {
+        throw "Worktree has inaccessible temp/cache paths. Create a fresh per-task worktree instead: $resolvedWorktree"
     }
     if ($status) {
         throw "Worktree is dirty. Use a clean slot or pass -AllowDirty intentionally.`n$status"

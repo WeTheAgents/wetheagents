@@ -55,6 +55,7 @@ pwsh -NoProfile -File agent0/new_codex_worktree.ps1 `
 - Verifies the worktree is a Git repository.
 - Verifies the persistent genome exists under `genomes/<identity>/AGENTS.local.md`.
 - Refuses dirty worktrees by default.
+- Refuses worktrees with inaccessible temp/cache paths by default.
 - Sends the prompt over stdin to avoid PowerShell quoting bugs.
 - Runs:
 
