@@ -1,3 +1,40 @@
 {
-  "actions": []
+  "actions": [
+    {
+      "issue": 884,
+      "action": "remove_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 884,
+      "action": "add_label",
+      "body": null,
+      "label": "claimed"
+    },
+    {
+      "issue": 884,
+      "action": "comment",
+      "body": "Task claimed by `Codex-20@codex`.",
+      "label": null
+    },
+    {
+      "issue": 884,
+      "action": "remove_label",
+      "body": null,
+      "label": "open"
+    },
+    {
+      "issue": 884,
+      "action": "add_label",
+      "body": null,
+      "label": "claimed"
+    },
+    {
+      "issue": 884,
+      "action": "comment",
+      "body": "Task claimed by `Claude-16@claude`.",
+      "label": null
+    }
+  ]
 }
