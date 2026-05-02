@@ -189,22 +189,104 @@ class TestLogging:
         report = scan_file(p, tmp_path)
         assert "logging" in _channels(report)
 
-    def test_bound_logger_heuristic(self, write_py, tmp_path):
-        """Bound-logger detection fires only when the receiver name contains
-        'log' (e.g. logger, log, audit_logger). Pure heuristic — documented."""
+    def test_from_import_get_logger(self, write_py, tmp_path):
+        """`from logging import getLogger` followed by a bare `getLogger(...)`
+        call must classify as logging via the ImportFrom alias table."""
+        p = write_py(
+            """\
+            from logging import getLogger
+            def go():
+                getLogger(__name__)
+            """
+        )
+        report = scan_file(p, tmp_path)
+        assert "logging" in _channels(report)
+
+    def test_from_import_get_logger_aliased(self, write_py, tmp_path):
+        p = write_py(
+            """\
+            from logging import getLogger as gl
+            def go():
+                gl(__name__)
+            """
+        )
+        report = scan_file(p, tmp_path)
+        assert "logging" in _channels(report)
+
+    def test_bound_logger_tracked_binding(self, write_py, tmp_path):
+        """Receiver assigned from logging.getLogger is tracked, regardless
+        of name — `audit`, `metrics`, `tracer` are all classified."""
         p = write_py(
             """\
             import logging
-            logger = logging.getLogger(__name__)
+            audit = logging.getLogger('audit')
+            metrics = logging.getLogger('metrics')
+            tracer = logging.getLogger('tracer')
             def go():
+                audit.info('a')
+                metrics.error('m')
+                tracer.debug('t')
+            """
+        )
+        report = scan_file(p, tmp_path)
+        chans = _channels(report)
+        # 3 getLogger configs + 3 bound calls = 6 logging detections
+        assert chans.count("logging") >= 6
+        # Evidence makes the binding-tracking path explicit somewhere.
+        joined = " | ".join(d.reason for d in report.channels)
+        assert "tracked as logging.getLogger" in joined
+
+    def test_bound_logger_from_import_binding(self, write_py, tmp_path):
+        """Binding tracker also handles `from logging import getLogger`."""
+        p = write_py(
+            """\
+            from logging import getLogger
+            audit = getLogger('audit')
+            def go():
+                audit.warning('hi')
+            """
+        )
+        report = scan_file(p, tmp_path)
+        chans = _channels(report)
+        assert chans.count("logging") >= 2  # getLogger + audit.warning
+
+    def test_bound_logger_named_logger_heuristic(self, write_py, tmp_path):
+        """`logger.info(...)` without a tracked binding still classifies
+        via the narrowed name heuristic (logger / *_logger)."""
+        p = write_py(
+            """\
+            def emit(logger):
                 logger.info('hi')
                 logger.error('bad')
             """
         )
         report = scan_file(p, tmp_path)
-        chans = _channels(report)
-        # getLogger + info + error = 3 logging detections (heuristic catches info/error)
-        assert chans.count("logging") >= 3
+        assert "logging" in _channels(report)
+
+    def test_dialog_not_classified_as_logger(self, write_py, tmp_path):
+        """`dialog.error(...)` and `catalog.warning(...)` must NOT fire the
+        bound-logger heuristic — name does not end in 'logger' and there is
+        no tracked binding. This was the redteam's over-firing complaint."""
+        p = write_py(
+            """\
+            def show(dialog, catalog):
+                dialog.error('oh no')
+                catalog.warning('missing')
+            """
+        )
+        report = scan_file(p, tmp_path)
+        assert "logging" not in _channels(report)
+
+    def test_logger_substring_alone_not_enough(self, write_py, tmp_path):
+        """Receiver `mylog` (substring 'log' but no binding) must NOT fire."""
+        p = write_py(
+            """\
+            def emit(mylog):
+                mylog.info('hi')
+            """
+        )
+        report = scan_file(p, tmp_path)
+        assert "logging" not in _channels(report)
 
 
 # ---------------------------------------------------------------------------
@@ -366,6 +448,58 @@ class TestGithubSideEffect:
         chans = _channels(report)
         assert "subprocess_launch" in chans
         assert "github_side_effect" not in chans
+
+    def test_from_import_subprocess_run_gh(self, write_py, tmp_path):
+        """`from subprocess import run; run(['gh', ...])` must classify via
+        the ImportFrom alias table — both subprocess_launch AND github."""
+        p = write_py(
+            """\
+            from subprocess import run
+            run(['gh', 'pr', 'list'])
+            """
+        )
+        report = scan_file(p, tmp_path)
+        chans = _channels(report)
+        assert "subprocess_launch" in chans
+        assert "github_side_effect" in chans
+
+    def test_from_import_subprocess_check_output(self, write_py, tmp_path):
+        p = write_py(
+            """\
+            from subprocess import check_output
+            check_output(['gh', 'api', 'user'])
+            """
+        )
+        report = scan_file(p, tmp_path)
+        chans = _channels(report)
+        assert "subprocess_launch" in chans
+        assert "github_side_effect" in chans
+
+    def test_os_popen_gh_string(self, write_py, tmp_path):
+        """`os.popen('gh issue list')` must flag both subprocess_launch and
+        github_side_effect — first-token check is uniform across os funcs."""
+        p = write_py(
+            """\
+            import os
+            os.popen('gh issue list')
+            """
+        )
+        report = scan_file(p, tmp_path)
+        chans = _channels(report)
+        assert "subprocess_launch" in chans
+        assert "github_side_effect" in chans
+
+    def test_os_system_gh_string(self, write_py, tmp_path):
+        p = write_py(
+            """\
+            import os
+            os.system('gh pr review --approve')
+            """
+        )
+        report = scan_file(p, tmp_path)
+        chans = _channels(report)
+        assert "subprocess_launch" in chans
+        assert "github_side_effect" in chans
 
 
 # ---------------------------------------------------------------------------
@@ -611,6 +745,36 @@ class TestEnd2End:
         md = out_md.read_text(encoding="utf-8")
         assert "Observability inventory" in md
         assert "stdout_human" in md
+
+    def test_cli_missing_zone_exits_nonzero(self, tmp_path, capsys):
+        """A mistyped --zone must exit nonzero with a stderr message rather
+        than silently produce total_files=0 (denominator-hiding violation)."""
+        rc = main(
+            [
+                "--root",
+                str(tmp_path),
+                "--zone",
+                "scrits",  # typo
+                "--scan-date",
+                "2026-05-02",
+            ]
+        )
+        captured = capsys.readouterr()
+        assert rc != 0
+        assert "zone directory not found" in captured.err
+        # No JSON inventory written to stdout — empty inventory must not be
+        # indistinguishable from a successful scan of an empty zone.
+        assert captured.out == ""
+
+    def test_cli_root_present_zone_absent_no_silent_zero(self, tmp_path, capsys):
+        """Defensive variant: root is a real directory, zone happens to be
+        absent. We must NOT print a valid {total_files: 0} JSON document."""
+        # tmp_path is a valid directory but contains no `scripts/` subdir.
+        rc = main(["--root", str(tmp_path), "--scan-date", "2026-05-02"])
+        captured = capsys.readouterr()
+        assert rc != 0
+        assert captured.out == ""
+        assert "zone directory not found" in captured.err
 
     def test_cli_subprocess_invocation(self, tmp_path):
         """Black-box: invoke the CLI as a child process. Catches any

@@ -138,6 +138,16 @@ LIMITATIONS: list[str] = [
         "measures *capability* to emit on a channel, not import-time emission."
     ),
     (
+        "Bound-logger detection has two signals. (1) Receivers assigned from "
+        "a `logging.getLogger(...)` call (any name — `audit`, `metrics`, "
+        "`tracer`, etc.) are tracked and classified accurately. (2) Receivers "
+        "with no tracked binding are matched only when the receiver name is "
+        "exactly `logger`/`log` or ends in `logger`. This drops false hits on "
+        "`dialog.error`, `catalog.warning`. Logger names that do not match "
+        "either signal (e.g. parameter `tracer` passed in from another "
+        "module) remain a documented miss."
+    ),
+    (
         "Open-modes: open() with no mode argument defaults to 'r' (read-only) "
         "and is not flagged. Pathlib's Path.read_* are reads, not writes, "
         "and are also not flagged. Only mode strings containing 'w', 'a', "
@@ -154,12 +164,14 @@ LIMITATIONS: list[str] = [
         "--exclude and is reflected in exclude_patterns in the output."
     ),
     (
-        "`from X import Y` does not populate the alias table: bare calls to "
-        "Y (e.g. `from logging import getLogger; getLogger(__name__)`, "
-        "`from subprocess import run; run(...)`) are not classified. The "
-        "canonical attribute-call form (logging.getLogger, subprocess.run) "
-        "is the dominant style in this codebase; from-imports are a "
-        "documented blind spot."
+        "`from X import Y` populates the alias table: bare calls to Y "
+        "(e.g. `from subprocess import run; run([...])`, `from logging "
+        "import getLogger as gl; gl(__name__)`) resolve through the "
+        "canonical-chain machinery into ['subprocess', 'run'] / ['logging', "
+        "'getLogger'] and reach the same per-channel classifiers as the "
+        "attribute-call form. Star imports (`from X import *`) and relative "
+        "imports without a module are skipped — there is no canonical name "
+        "to record."
     ),
     (
         "HTTP via long-lived Session/Client objects is not classified: "
@@ -299,7 +311,16 @@ _HTTP_VERBS = {"get", "post", "put", "delete", "patch", "head", "options", "requ
 class ObservabilityVisitor(ast.NodeVisitor):
     def __init__(self, source_lines: list[str], aliases: dict[str, str]) -> None:
         self.source_lines = source_lines
-        self.aliases = aliases  # local_name -> canonical_module_name
+        # local_name -> canonical dotted path. For `import logging` and
+        # `import logging as L` the value is just "logging" (single segment).
+        # For `from subprocess import run` the value is "subprocess.run"
+        # (multi-segment) so canonical-chain machinery can match bare calls
+        # to `run(...)` against `_classify_process` etc.
+        self.aliases = aliases
+        # Local names bound to a logging.getLogger() result. Populated by
+        # visit_Assign; consulted by _classify_logging to mark bound-logger
+        # calls without relying on substring heuristics.
+        self.logger_bindings: set[str] = set()
         self.detections: list[Detection] = []
 
     # -- helpers ------------------------------------------------------------
@@ -322,10 +343,15 @@ class ObservabilityVisitor(ast.NodeVisitor):
     def _canonical_chain(self, chain: list[str]) -> list[str]:
         """Resolve the leftmost segment of an attribute chain through the
         alias table. ``L.getLogger`` with ``import logging as L`` becomes
-        ``["logging", "getLogger"]``."""
+        ``["logging", "getLogger"]``. ``r(...)`` after ``from subprocess
+        import run as r`` resolves head ``r`` to ``"subprocess.run"`` and
+        expands to ``["subprocess", "run"]``."""
         if not chain:
             return chain
-        resolved = self._resolve_root(chain[0])
+        head = chain[0]
+        resolved = self.aliases.get(head, head)
+        if "." in resolved:
+            return [*resolved.split("."), *chain[1:]]
         return [resolved, *chain[1:]]
 
     def _has_kw(self, call: ast.Call, name: str) -> ast.expr | None:
@@ -367,8 +393,18 @@ class ObservabilityVisitor(ast.NodeVisitor):
     def _classify_bare_name(self, call: ast.Call, name: str) -> None:
         if name == "print":
             self._classify_print(call)
-        elif name == "open":
+            return
+        if name == "open":
             self._classify_open(call)
+            return
+        # Route from-imports through the attribute-call dispatcher.
+        # `from subprocess import run` followed by `run([...])` resolves to
+        # canonical ["subprocess", "run"], so the existing _classify_process
+        # branch fires the same way it does for `subprocess.run([...])`.
+        canonical = self.aliases.get(name)
+        if canonical and "." in canonical:
+            chain = canonical.split(".")
+            self._classify_attribute_call(call, chain, chain)
 
     def _classify_print(self, call: ast.Call) -> None:
         file_kw = self._has_kw(call, "file")
@@ -461,30 +497,48 @@ class ObservabilityVisitor(ast.NodeVisitor):
                     "logging", call, f"logging.{tail}() — module-level log emission"
                 )
                 return True
-        # Bound logger: <name>.info(...). We accept any attribute call whose
-        # tail is a logging level *name* AND whose receiver root is not a
-        # known non-logging module. This intentionally over-includes; the
-        # evidence/reason makes the heuristic explicit.
-        if len(canonical) == 2 and canonical[1] in _LOG_LEVELS and canonical[0] not in {
-            "logging",
-            "sys",
-            "os",
-            "subprocess",
-            "requests",
-            "httpx",
-            "urllib",
-            "json",
-        }:
-            # Heuristic only fires when the local name strongly suggests a
-            # logger, to avoid flagging arbitrary `obj.error(...)` methods.
-            root = canonical[0].lower()
-            if "log" in root:
+        # Bound logger: <name>.info(...). Two signals, in order of strength:
+        #   1. Tracked binding from `<name> = logging.getLogger(...)`. This
+        #      catches `audit.info(...)`, `metrics.error(...)`, `tracer.debug(...)`
+        #      which the prior substring heuristic missed.
+        #   2. Narrow name heuristic: receiver name is exactly `logger`/`log`
+        #      or ends in `logger`. This avoids false-firing on `dialog.error`,
+        #      `catalog.warning`, etc., while still catching parameter names
+        #      like `audit_logger` whose binding is not local.
+        if (
+            len(canonical) == 2
+            and canonical[1] in _LOG_LEVELS
+            and canonical[0]
+            not in {
+                "logging",
+                "sys",
+                "os",
+                "subprocess",
+                "requests",
+                "httpx",
+                "urllib",
+                "json",
+            }
+        ):
+            root_name = canonical[0]
+            if root_name in self.logger_bindings:
                 self._emit(
                     "logging",
                     call,
                     (
-                        f"{canonical[0]}.{canonical[1]}() — bound logger call "
-                        "(heuristic: receiver name contains 'log')"
+                        f"{root_name}.{canonical[1]}() — bound logger call "
+                        "(receiver tracked as logging.getLogger result)"
+                    ),
+                )
+                return True
+            lower = root_name.lower()
+            if lower in {"logger", "log"} or lower.endswith("logger"):
+                self._emit(
+                    "logging",
+                    call,
+                    (
+                        f"{root_name}.{canonical[1]}() — bound logger call "
+                        "(heuristic: receiver name is logger/<…>logger)"
                     ),
                 )
                 return True
@@ -544,7 +598,12 @@ class ObservabilityVisitor(ast.NodeVisitor):
                     "cannot determine whether it shells out to gh, git, etc.",
                 )
             return True
-        # os.system / popen / exec / spawn
+        # os.system / popen / exec / spawn. The github-trigger first-token
+        # check applies uniformly to every entry in _OS_PROCESS_FUNCS that
+        # accepts a literal command string. system/popen typically pass the
+        # whole command line as a single string ("gh issue list"); exec*/
+        # spawn* take an explicit argv0 path that almost never spells "gh"
+        # alone, so they fall through harmlessly.
         if canonical[0] == "os" and canonical[-1] in _OS_PROCESS_FUNCS:
             self._emit("subprocess_launch", call, f"os.{canonical[-1]}(...)")
             arg_first = (
@@ -757,11 +816,54 @@ class ObservabilityVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
-        # `from logging import getLogger` -> `getLogger` is a bare name; we
-        # do not treat it as `logging.getLogger` because the harness
-        # primarily tracks attribute-call shapes. Bound loggers are still
-        # detected via bound-logger heuristic. Document this limitation.
+        # `from subprocess import run` -> aliases["run"] = "subprocess.run".
+        # `from logging import getLogger as gl` -> aliases["gl"] =
+        # "logging.getLogger". Bare calls (`run(...)`, `gl(...)`) then
+        # resolve through _canonical_chain into ["subprocess", "run"] /
+        # ["logging", "getLogger"] and reach the existing per-channel
+        # classifiers without a duplicate code path.
+        #
+        # Star imports and relative imports without a module are skipped:
+        # we have no canonical name to record.
+        module = node.module
+        if module:
+            for alias in node.names:
+                if alias.name == "*":
+                    continue
+                local = alias.asname or alias.name
+                self.aliases[local] = f"{module}.{alias.name}"
         self.generic_visit(node)
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        # Track `<name> = logging.getLogger(...)` (or via alias / from-import)
+        # so receiver-name agnostic bound-logger calls can be classified.
+        # Only single-target Name assignments are tracked; tuple unpacking
+        # and attribute targets (`self.log = ...`) are out of scope.
+        value = node.value
+        if isinstance(value, ast.Call):
+            canonical = self._canonical_call_chain(value.func)
+            if (
+                canonical
+                and canonical[0] == "logging"
+                and canonical[-1] == "getLogger"
+            ):
+                for tgt in node.targets:
+                    if isinstance(tgt, ast.Name):
+                        self.logger_bindings.add(tgt.id)
+        self.generic_visit(node)
+
+    def _canonical_call_chain(self, func: ast.AST) -> list[str] | None:
+        """Resolve the function part of a Call to a canonical dotted chain
+        if possible. Used by visit_Assign to recognise getLogger bindings."""
+        if isinstance(func, ast.Name):
+            mapped = self.aliases.get(func.id)
+            if mapped:
+                return mapped.split(".")
+            return [func.id]
+        chain = _attr_chain(func)
+        if chain is None:
+            return None
+        return self._canonical_chain(chain)
 
 
 # ---------------------------------------------------------------------------
@@ -941,6 +1043,19 @@ def main(argv: list[str] | None = None) -> int:
     if not root.is_dir():
         print(f"ERROR: not a directory: {root}", file=sys.stderr)
         return 1
+
+    zone_dir = root / args.zone
+    if not zone_dir.is_dir():
+        # Anti-gaming: a missing or mistyped zone must NOT silently produce
+        # total_files=0. An empty inventory is indistinguishable from "zone
+        # has no observable channels"; that violates the issue's MUST NOT
+        # clause on hidden skipped files.
+        print(
+            f"ERROR: zone directory not found: {zone_dir} "
+            f"(--zone={args.zone!r} relative to {root})",
+            file=sys.stderr,
+        )
+        return 2
 
     exclude_patterns = args.exclude if args.exclude else ["__init__.py"]
     reports = scan_zone(root, zone=args.zone, exclude_patterns=exclude_patterns)
