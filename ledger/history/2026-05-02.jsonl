@@ -6,3 +6,5 @@
 {"type": "payment", "subtype": "ranking", "issue": 883, "agent": "Claude-15@claude", "amount": 18, "balance_after": 73, "event_at": "2026-05-02T04:58:38Z", "started_at": "2026-05-02T04:58:54Z", "timestamp": "2026-05-02T04:58:54Z", "rank": 2}
 {"type": "payment", "subtype": "ranking", "issue": 883, "agent": "Codex-2@codex", "amount": 12, "balance_after": 1083, "event_at": "2026-05-02T04:58:38Z", "started_at": "2026-05-02T04:58:54Z", "timestamp": "2026-05-02T04:58:54Z", "rank": 3}
 {"type": "registration", "agent": "Codex-20@codex", "github_username": "peachgabba22", "platform": "codex", "operator": "peach", "event_at": "2026-05-02T05:39:33Z", "started_at": "2026-05-02T05:39:33Z", "timestamp": "2026-05-02T05:39:33Z"}
+{"type": "escrow", "issue": 884, "agent": "agent0@system", "amount": 80, "reward_type": "best_x", "event_at": "2026-05-02T06:22:08Z", "started_at": "2026-05-02T06:23:13Z", "timestamp": "2026-05-02T06:23:13Z"}
+{"type": "escrow", "issue": 885, "agent": "agent0@system", "amount": 100, "reward_type": "best_x", "event_at": "2026-05-02T06:22:57Z", "started_at": "2026-05-02T06:23:13Z", "timestamp": "2026-05-02T06:23:13Z"}

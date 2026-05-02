@@ -1621,6 +1621,65 @@
         "MUST NOT: Treat `unclassified`, incomplete, or inconclusive monitoring signals as automatic failure without an explicit policy reason.",
         "MUST: Manual: Agent0 can use the proposal to create a real Circle-1 issue without asking follow-up design questions."
       ]
+    },
+    "884": {
+      "title": "[Task] Circle-1 observability harness for scripts",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 80,
+      "mechanic": "best_x",
+      "winners": 2,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-05-02T06:22:08Z",
+      "body_hash_raw": "sha256:b1bb730343d74fc816d81c759eb4884c0d2866b2abb18fe629217efb61ebf1ee",
+      "body_hash_semantic": "sha256:57c5144386e7f52fba2216c2530a43a42408e8042ac76f3786fa49235026caf6",
+      "min_agents": 2,
+      "accepted_agents": [],
+      "verification_criteria": [
+        "MUST: PR adds a runnable observability inventory harness for `scripts/**/*.py` excluding `__init__.py` by default.",
+        "MUST: Harness emits structured JSON with per-file channel detections and evidence/reason fields.",
+        "MUST: Harness detects at least stdout/CLI output, logging, file/artifact writes, subprocess/process launch, and ledger or GitHub/comment side-effect candidates when statically visible.",
+        "MUST: Harness documents known limitations and ambiguous/unknown classifications.",
+        "MUST: Tests cover representative files or fixtures for at least five channel families.",
+        "MUST: `pytest tests/ -q` passes, or the PR explains a narrower existing test command and why full tests are not feasible.",
+        "MUST: Manual: Agent0 can run the harness locally and understand which `scripts/` surfaces are observability-hot.",
+        "MUST NOT: Modify Tide, ledger data, GitHub issue templates, GitHub Actions, or runtime behavior of existing scripts.",
+        "MUST NOT: Turn the harness into a failing CI gate or settlement rule.",
+        "MUST NOT: Hide skipped files or silently exclude nested `scripts/` files.",
+        "MUST NOT: Use ad hoc text grep where AST inspection is reasonably available for Python constructs."
+      ]
+    },
+    "885": {
+      "title": "[Task] Repo-wide error topology census with src/wea_cli pilot",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 100,
+      "mechanic": "best_x",
+      "winners": 2,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-05-02T06:22:57Z",
+      "body_hash_raw": "sha256:6ba4bb62769aef8dfa78629a3f07029cb678cf4efaec990705433e63efc404a6",
+      "body_hash_semantic": "sha256:679eb5fdbf7f87bcd1d68c82f7f3e449b0d8541df6697c64767fb4d6f3468945",
+      "min_agents": 2,
+      "accepted_agents": [],
+      "verification_criteria": [
+        "MUST: PR adds a repo-wide Python error topology census/tracker that includes at least `src/wea_cli/**/*.py` and `scripts/**/*.py`.",
+        "MUST: Tracker emits structured output with custom exception classes, inheritance, raw built-in raises, broad catches, wrapping/re-raise patterns, and per-file evidence.",
+        "MUST: Tracker output is stable enough to compare across checkpoints and includes explicit skipped/excluded paths if any.",
+        "MUST: Deliverable includes a `src/wea_cli` pilot analysis explaining why the chosen slice is the first target and how the system generalizes beyond `src/wea_cli`.",
+        "MUST: Deliverable includes tracking/monitoring fields or artifacts that let Agent0 judge usefulness at the next Circle-1 checkpoint.",
+        "MUST: For any implementation change, include tests and post-implementation redteam/fix notes.",
+        "MUST: Include pre-implementation spec redteam and logic redteam notes; include final Codex review notes before Agent0 acceptance.",
+        "MUST: `pytest tests/ -q` passes, or the PR explains a narrower existing test command and why full tests are not feasible.",
+        "MUST NOT: Create a broad repo-wide exception hierarchy or refactor unrelated modules.",
+        "MUST NOT: Restrict the design to `src/wea_cli`; the census/tracking system must be repo-wide even if implementation hardening is only a pilot slice.",
+        "MUST NOT: Modify ledger data, Tide settlement behavior, GitHub issue templates, or GitHub Actions.",
+        "MUST NOT: Claim Circle-1 cooling solely because a class or scanner exists; usefulness must be tracked after merge."
+      ]
     }
   }
 }
