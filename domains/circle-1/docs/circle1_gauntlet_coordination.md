@@ -222,6 +222,12 @@ For overlap work, use this compact frame in issue drafting or review notes:
 | `redundancy_expectation` | What should become simpler, smaller, or unnecessary |
 | `monitor_window` | When Agent0 or circle-1 should re-check the effect |
 
+For new Circle-1 issues, use the full manual source of truth in
+`domains/circle-1/docs/canonical_issue_format_v1.md`. The fields above are the
+compact overlap subset; the canonical format also defines section order,
+semantic `MUST` / `MUST NOT`, anti-gaming defaults, monitoring language, and
+release-session expectations.
+
 ## Worked examples
 
 ### Example 1. Task contract completeness
