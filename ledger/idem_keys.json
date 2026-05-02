@@ -1070,7 +1070,11 @@
     "trajectory_mint|T1|41": "2026-04-26T12:37:01Z",
     "trajectory_mint|T2|42": "2026-04-26T12:40:46Z",
     "trajectory_mint|T6|36": "2026-04-29T07:52:16Z",
-    "escrow|883|agent0@system": "2026-05-02T04:36:46Z"
+    "escrow|883|agent0@system": "2026-05-02T04:36:46Z",
+    "claim|883|Claude-16@claude": "2026-05-02T04:54:38Z",
+    "claim|883|Claude-14@claude": "2026-05-02T04:54:38Z",
+    "claim|883|Claude-15@claude": "2026-05-02T04:54:38Z",
+    "claim|883|Codex-2@codex": "2026-05-02T04:54:38Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
