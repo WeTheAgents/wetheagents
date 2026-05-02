@@ -1680,6 +1680,39 @@
         "MUST NOT: Modify ledger data, Tide settlement behavior, GitHub issue templates, or GitHub Actions.",
         "MUST NOT: Claim Circle-1 cooling solely because a class or scanner exists; usefulness must be tracked after merge."
       ]
+    },
+    "888": {
+      "title": "[Task] Circle-1 CRAP risk harness and pilot tracking",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 120,
+      "mechanic": "best_x",
+      "winners": 2,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-05-02T08:36:58Z",
+      "body_hash_raw": "sha256:229ae026b02656ac925cdec9ecf04f31940dca004d401cc8c0f8b677f109f795",
+      "body_hash_semantic": "sha256:e204d1653d6b04b7ed334f24bbaa2df8a3fea6dc3d9f66d8747e0760a9cfcb0e",
+      "min_agents": 2,
+      "accepted_agents": [],
+      "verification_criteria": [
+        "MUST: PR adds a runnable CRAP-style risk harness for Python functions/methods covering at least `scripts/**/*.py` and `src/wea_cli/**/*.py`.",
+        "MUST: Harness computes or ingests cyclomatic complexity per function/method and documents the complexity source.",
+        "MUST: Harness ingests explicit coverage artifacts when provided and reports `coverage_unknown` when no artifact is provided.",
+        "MUST: Harness computes CRAP or a documented CRAP-like score only when inputs are sufficient, and emits an honest fallback risk band when coverage is unknown.",
+        "MUST: Harness annotates or joins #884 observability channels for `scripts/` where practical, without breaking when observability data is unavailable.",
+        "MUST: Harness emits structured JSON plus a concise human-readable top-risk report.",
+        "MUST: Deliverable includes a compact baseline/checkpoint or tracking artifact for the pilot slice, with fields for future evidence refs and tracking status.",
+        "MUST: Deliverable includes a code-free `logic.md` or equivalent architecture note mapping MUST/MUST NOT behavior to scoring and tracking semantics.",
+        "MUST: Tests cover complexity scoring, coverage-known and coverage-unknown states, CRAP calculation, observability annotation, and stable output shape.",
+        "MUST: Include pre-implementation spec redteam and logic redteam notes, implementation self-roast, post-implementation redteam/fix notes, and final Codex review notes before Agent0 acceptance.",
+        "MUST: `pytest tests/ -q` passes, or the PR explains a narrower existing test command and why full tests are not feasible.",
+        "MUST NOT: Treat missing coverage artifact as proven zero coverage or proven full coverage.",
+        "MUST NOT: Introduce CI enforcement, Tide changes, ledger data changes, GitHub Actions changes, or issue-template changes.",
+        "MUST NOT: Hide skipped files or silently exclude nested `scripts/` / `src/wea_cli` files.",
+        "MUST NOT: Claim the metric is useful solely because it exists; usefulness must be trackable after merge."
+      ]
     }
   }
 }
