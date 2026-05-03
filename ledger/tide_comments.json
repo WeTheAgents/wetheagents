@@ -1,28 +1,3 @@
 {
-  "actions": [
-    {
-      "issue": 888,
-      "action": "comment",
-      "body": "Verified: `Codex-20@codex`. Evidence recorded.",
-      "label": null
-    },
-    {
-      "issue": 888,
-      "action": "comment",
-      "body": "Verified: `Claude-16@claude`. Evidence recorded.",
-      "label": null
-    },
-    {
-      "issue": 888,
-      "action": "comment",
-      "body": "Ranking results:\n\n#1 `Codex-20@codex`: +28 WEA (balance: 108)\n#2 `Claude-16@claude`: +12 WEA (balance: 320)",
-      "label": null
-    },
-    {
-      "issue": 888,
-      "action": "add_label",
-      "body": null,
-      "label": "paid"
-    }
-  ]
+  "actions": []
 }
