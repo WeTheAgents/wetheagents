@@ -73,6 +73,14 @@ _CRAP_MEDIUM = 5.0
 _COMPLEXITY_HIGH = 10
 _COMPLEXITY_MEDIUM = 5
 
+# Known-coverage escalation: a side_effect_weight >= 3 function (ledger,
+# GitHub, subprocess, network) sitting near the next CRAP threshold gets
+# bumped one band so it is prioritized over a pure formatter at the same
+# CRAP score. "Near" is the upper portion of the current band.
+_SIDE_EFFECT_ESCALATION_WEIGHT = 3
+_ESCALATE_NEAR_HIGH = 0.6 * _CRAP_HIGH      # 18.0; medium -> high
+_ESCALATE_NEAR_MEDIUM = 0.6 * _CRAP_MEDIUM  # 3.0;  low    -> medium
+
 _RISK_TIER_ORDER = (
     "high",
     "unknown_high",
@@ -100,6 +108,7 @@ class FunctionRecord:
     observability_channels: list[str]
     observability_state: str
     side_effect_weight: int
+    tracking_id: str
     tracking_status: str
     tracking_notes: str
     evidence_refs: list[str] = field(default_factory=list)
@@ -126,6 +135,7 @@ class FunctionRecord:
             "observability_channels": sorted(self.observability_channels),
             "observability_state": self.observability_state,
             "side_effect_weight": self.side_effect_weight,
+            "tracking_id": self.tracking_id,
             "tracking_status": self.tracking_status,
             "tracking_notes": self.tracking_notes,
             "evidence_refs": list(self.evidence_refs),
@@ -246,11 +256,34 @@ def _collect_functions(tree: ast.Module) -> list[_FuncInfo]:
 # --------------------------------------------------------------------------- #
 
 
-def _normalize_path(text: str) -> str:
-    return text.replace("\\", "/").lstrip("./")
+def _normalize_path(text: str, root: Path | None = None) -> str:
+    """Normalize a path string to repo-relative POSIX form.
+
+    - Backslashes are converted to forward slashes.
+    - Absolute paths are made relative to ``root`` when possible; otherwise
+      they are returned in POSIX form so the caller can detect mismatches.
+    - Leading ``./`` segments are stripped iteratively (NOT via ``lstrip("./")``,
+      which would also strip parts of names that happen to start with ``.``).
+    """
+    if not text:
+        return text
+    text = text.replace("\\", "/")
+    p = Path(text)
+    if p.is_absolute():
+        if root is not None:
+            try:
+                return p.resolve().relative_to(root.resolve()).as_posix()
+            except ValueError:
+                return p.as_posix()
+        return p.as_posix()
+    while text.startswith("./"):
+        text = text[2:]
+    return text
 
 
-def _load_coverage(coverage_path: Path | None) -> dict[str, dict[str, Any]] | None:
+def _load_coverage(
+    coverage_path: Path | None, root: Path | None = None
+) -> dict[str, dict[str, Any]] | None:
     """Return coverage.py-shaped per-file maps, or None when unavailable."""
     if coverage_path is None:
         return None
@@ -263,7 +296,7 @@ def _load_coverage(coverage_path: Path | None) -> dict[str, dict[str, Any]] | No
         )
     result: dict[str, dict[str, Any]] = {}
     for raw_path, data in files.items():
-        rel = _normalize_path(str(raw_path))
+        rel = _normalize_path(str(raw_path), root=root)
         executed = set(data.get("executed_lines", []) or [])
         missing = set(data.get("missing_lines", []) or [])
         result[rel] = {"executed": executed, "missing": missing}
@@ -307,19 +340,54 @@ def _crap_score(complexity: int, coverage_percent: float | None) -> float | None
 
 def _build_observability_index(
     inventory: dict[str, Any] | None,
-) -> dict[str, list[str]]:
-    """Map relative path -> sorted list of channel names detected."""
+) -> dict[str, list[dict[str, Any]]]:
+    """Map relative path -> list of detection dicts with channel + evidence.
+
+    Each detection retains its ``evidence`` entries so callers can intersect
+    evidence line numbers against function ranges. Detections missing a
+    channel name are dropped.
+    """
     if not inventory:
         return {}
-    out: dict[str, list[str]] = {}
+    out: dict[str, list[dict[str, Any]]] = {}
     for entry in inventory.get("files", []):
         path = entry.get("path")
         channels = entry.get("channels") or []
         if not path:
             continue
-        names = sorted({c.get("channel", "") for c in channels if c.get("channel")})
-        out[_normalize_path(path)] = names
+        kept: list[dict[str, Any]] = []
+        for det in channels:
+            name = det.get("channel")
+            if not name:
+                continue
+            evidence = det.get("evidence") or []
+            kept.append({"channel": name, "evidence": list(evidence)})
+        out[_normalize_path(path)] = kept
     return out
+
+
+def _channels_in_range(
+    detections: list[dict[str, Any]],
+    start: int,
+    end: int,
+) -> list[str]:
+    """Return sorted unique channel names whose evidence falls in [start, end].
+
+    Detections without evidence line numbers are skipped: without a line we
+    cannot bind a side-effect channel to a specific function, so the safe
+    default is to NOT inherit it onto pure helpers in the same file.
+    """
+    matched: set[str] = set()
+    for det in detections:
+        channel = det.get("channel")
+        if not channel:
+            continue
+        for ev in det.get("evidence") or []:
+            line = ev.get("line")
+            if isinstance(line, int) and start <= line <= end:
+                matched.add(channel)
+                break
+    return sorted(matched)
 
 
 def _side_effect_weight(channels: Iterable[str]) -> int:
@@ -340,15 +408,36 @@ def _risk(
 ) -> tuple[str, str]:
     """Return (risk_band, risk_reason).
 
-    Known coverage uses CRAP thresholds. Unknown coverage falls back to
-    complexity bands, escalated by side-effect weight (a complex
-    ledger-touching function with unknown coverage is escalated one tier).
+    Known coverage uses CRAP thresholds. A high side-effect weight
+    (ledger / GitHub / subprocess / network) bumps the band by one tier when
+    CRAP is in the upper portion of the current band, so a covered
+    ledger-writer near the next threshold outranks a pure formatter at the
+    same CRAP score. Unknown coverage falls back to complexity bands with an
+    analogous side-effect escalation.
     """
     if coverage_state == "known" and crap is not None:
         if crap >= _CRAP_HIGH:
             return "high", f"crap={crap:.2f} >= {_CRAP_HIGH}"
         if crap >= _CRAP_MEDIUM:
+            if (
+                side_effect_weight >= _SIDE_EFFECT_ESCALATION_WEIGHT
+                and crap >= _ESCALATE_NEAR_HIGH
+            ):
+                return (
+                    "high",
+                    f"crap={crap:.2f} in [{_ESCALATE_NEAR_HIGH}, {_CRAP_HIGH}); "
+                    f"escalated by side_effect_weight={side_effect_weight}",
+                )
             return "medium", f"crap={crap:.2f} in [{_CRAP_MEDIUM}, {_CRAP_HIGH})"
+        if (
+            side_effect_weight >= _SIDE_EFFECT_ESCALATION_WEIGHT
+            and crap >= _ESCALATE_NEAR_MEDIUM
+        ):
+            return (
+                "medium",
+                f"crap={crap:.2f} in [{_ESCALATE_NEAR_MEDIUM}, {_CRAP_MEDIUM}); "
+                f"escalated by side_effect_weight={side_effect_weight}",
+            )
         return "low", f"crap={crap:.2f} < {_CRAP_MEDIUM}"
 
     # not_applicable behaves like unknown for ranking purposes but reasons differ.
@@ -362,9 +451,13 @@ def _risk(
     else:
         base, reason = "unknown_low", f"complexity={complexity} < {_COMPLEXITY_MEDIUM}"
 
-    if side_effect_weight >= 3 and base == "unknown_medium":
-        return "unknown_high", reason + f"; escalated by side_effect_weight={side_effect_weight}"
-    if side_effect_weight >= 3 and base == "unknown_low" and complexity >= 3:
+    high_weight = side_effect_weight >= _SIDE_EFFECT_ESCALATION_WEIGHT
+    if high_weight and base == "unknown_medium":
+        return (
+            "unknown_high",
+            reason + f"; escalated by side_effect_weight={side_effect_weight}",
+        )
+    if high_weight and base == "unknown_low" and complexity >= 3:
         return (
             "unknown_medium",
             reason + f"; escalated by side_effect_weight={side_effect_weight}",
@@ -409,7 +502,7 @@ def inspect_file(
     path: Path,
     root: Path,
     coverage_map: dict[str, dict[str, Any]] | None,
-    observability_index: dict[str, list[str]],
+    observability_index: dict[str, list[dict[str, Any]]],
     observability_zone: str,
 ) -> tuple[list[FunctionRecord], dict[str, Any] | None]:
     rel_path = str(path.relative_to(root)).replace("\\", "/")
@@ -427,14 +520,19 @@ def inspect_file(
     if not funcs:
         return [], {"path": rel_path, "status": "no_functions"}
 
-    # Observability is file-scope in v1.
+    # Observability is per-function: we intersect detection evidence line
+    # numbers against each function's [start_line, end_line] so a pure
+    # helper does not inherit a neighbor's side-effect channels.
+    file_in_inventory = (
+        observability_zone == "scripts" and rel_path in observability_index
+    )
+    file_detections = (
+        observability_index.get(rel_path, []) if file_in_inventory else []
+    )
     if observability_zone == "scripts":
-        channels = observability_index.get(rel_path, [])
-        observability_state = "joined" if rel_path in observability_index else "missing"
+        observability_state = "joined" if file_in_inventory else "missing"
     else:
-        channels = []
         observability_state = "not_applicable"
-    weight = _side_effect_weight(channels) if channels else 0
 
     records: list[FunctionRecord] = []
     for info in funcs:
@@ -447,6 +545,13 @@ def inspect_file(
             if coverage_state == "known"
             else None
         )
+        if file_in_inventory:
+            channels = _channels_in_range(
+                file_detections, info.start_line, info.end_line
+            )
+        else:
+            channels = []
+        weight = _side_effect_weight(channels) if channels else 0
         band, reason = _risk(coverage_state, complexity, crap, weight)
         records.append(
             FunctionRecord(
@@ -464,6 +569,7 @@ def inspect_file(
                 observability_channels=list(channels),
                 observability_state=observability_state,
                 side_effect_weight=weight,
+                tracking_id=f"{rel_path}::{info.qualname}::{info.start_line}",
                 tracking_status="new",
                 tracking_notes="",
             )
@@ -494,7 +600,9 @@ def scan_crap(
     """Scan includes, ingest coverage if provided, return structured report."""
     root = root.resolve()
     files, skipped_files = _gather_python_files(root, includes)
-    coverage_map = _load_coverage(coverage_path) if coverage_path else None
+    coverage_map = (
+        _load_coverage(coverage_path, root=root) if coverage_path else None
+    )
 
     if observability_inventory is None and scan_observability is not None:
         try:
@@ -541,7 +649,19 @@ def scan_crap(
             "crap_medium": _CRAP_MEDIUM,
             "complexity_high": _COMPLEXITY_HIGH,
             "complexity_medium": _COMPLEXITY_MEDIUM,
+            "side_effect_escalation_weight": _SIDE_EFFECT_ESCALATION_WEIGHT,
+            "escalate_near_high": _ESCALATE_NEAR_HIGH,
+            "escalate_near_medium": _ESCALATE_NEAR_MEDIUM,
         },
+        "limitations": [
+            "coverage.py marks a function's def-line as executable, which is "
+            "trivially executed on import; this can inflate coverage_percent "
+            "for short pure functions. Future versions may exclude def lines.",
+            "observability_state=joined means the file was scanned by the "
+            "observability inventory; it does NOT guarantee every detection "
+            "carries an evidence line. Detections without evidence are "
+            "ignored when binding channels to functions.",
+        ],
         "summary": summary,
         "skipped_files": sorted(
             skipped_files, key=lambda d: (d.get("path", ""), d.get("reason", ""))

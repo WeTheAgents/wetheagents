@@ -199,8 +199,36 @@ def test_risk_band_known_high_with_crap_30() -> None:
     assert "crap" in reason
 
 
-def test_risk_band_known_low_with_crap_below_5() -> None:
-    band, _ = _risk("known", 3, 4.0, 4)  # high weight does not affect known
+def test_risk_band_known_low_with_crap_below_5_no_weight() -> None:
+    band, _ = _risk("known", 3, 4.0, 0)
+    assert band == "low"
+
+
+def test_risk_band_known_low_escalates_to_medium_near_threshold() -> None:
+    # crap=4.0 sits in the upper portion of the low band ([3.0, 5.0));
+    # high side-effect weight escalates it one tier so a covered ledger
+    # writer outranks a pure formatter at the same score.
+    band, reason = _risk("known", 3, 4.0, 4)
+    assert band == "medium"
+    assert "escalated" in reason
+
+
+def test_risk_band_known_medium_escalates_to_high_near_threshold() -> None:
+    # crap=20 in the upper portion of the medium band ([18.0, 30.0));
+    # high side-effect weight escalates to high.
+    band, reason = _risk("known", 6, 20.0, 4)
+    assert band == "high"
+    assert "escalated" in reason
+
+
+def test_risk_band_known_medium_no_escalation_when_far_from_threshold() -> None:
+    # crap=10 sits below the near-high cutoff (18) so no escalation.
+    band, _ = _risk("known", 4, 10.0, 4)
+    assert band == "medium"
+
+
+def test_risk_band_known_low_no_escalation_for_pure_function() -> None:
+    band, _ = _risk("known", 3, 4.0, 0)
     assert band == "low"
 
 
@@ -228,13 +256,16 @@ def test_risk_band_unknown_low_to_medium_when_complexity_3_and_weight_3() -> Non
 
 
 def test_observability_annotation_joined_for_scripts() -> None:
+    # do_thing spans lines 3..6 in the temp fixture; evidence at line 5
+    # falls inside the function so channels bind via per-function
+    # intersection rather than file-scope copy.
     inventory = {
         "files": [
             {
                 "path": "scripts/foo.py",
                 "channels": [
-                    {"channel": "subprocess_launch"},
-                    {"channel": "logging"},
+                    {"channel": "subprocess_launch", "evidence": [{"line": 5}]},
+                    {"channel": "logging", "evidence": [{"line": 5}]},
                 ],
             }
         ]
@@ -253,6 +284,49 @@ def test_observability_state_missing_when_inventory_silent() -> None:
     assert rec["observability_state"] == "missing"
     assert rec["observability_channels"] == []
     assert rec["side_effect_weight"] == 0
+
+
+def test_observability_pure_helper_does_not_inherit_neighbor_channels(
+    tmp_path: Path,
+) -> None:
+    root = _temp_repo(tmp_path)
+    _write(
+        root / "scripts" / "mixed.py",
+        """
+        import subprocess
+        def helper(x):
+            return x + 1
+        def do_thing(x):
+            subprocess.run(["gh", "issue", "comment", "1"])
+            return x
+        """,
+    )
+    # File written above: line 1 blank, 2 import, 3-4 helper, 5-7 do_thing.
+    inventory = {
+        "files": [
+            {
+                "path": "scripts/mixed.py",
+                "channels": [
+                    {
+                        "channel": "subprocess_launch",
+                        "evidence": [{"line": 6}],
+                    },
+                ],
+            }
+        ]
+    }
+    report = scan_crap(
+        root, observability_inventory=inventory, scan_date="2026-05-02"
+    )
+    helper = _record_for(report, "scripts/mixed.py", "helper")
+    do_thing = _record_for(report, "scripts/mixed.py", "do_thing")
+    assert helper["observability_channels"] == []
+    assert helper["side_effect_weight"] == 0
+    assert do_thing["observability_channels"] == ["subprocess_launch"]
+    assert do_thing["side_effect_weight"] == 3
+    # Both functions still report the file as joined to the inventory.
+    assert helper["observability_state"] == "joined"
+    assert do_thing["observability_state"] == "joined"
 
 
 def test_observability_state_not_applicable_for_wea_cli() -> None:
@@ -348,6 +422,7 @@ def test_scan_emits_stable_shape(tmp_path: Path) -> None:
         "observability_channels",
         "observability_state",
         "side_effect_weight",
+        "tracking_id",
         "tracking_status",
         "tracking_notes",
         "evidence_refs",
@@ -356,6 +431,7 @@ def test_scan_emits_stable_shape(tmp_path: Path) -> None:
     for f in report["functions"]:
         assert required <= set(f)
         assert f["tracking_status"] == "new"
+        assert f["tracking_id"] == f"{f['path']}::{f['symbol']}::{f['start_line']}"
 
 
 def test_scan_is_deterministic(tmp_path: Path) -> None:
@@ -415,6 +491,42 @@ def test_scan_with_coverage_artifact_computes_crap(tmp_path: Path) -> None:
     assert rec["coverage_percent"] is not None
     assert rec["crap_score"] is not None
     assert report["coverage_artifact_format"] == "coverage.py-json"
+
+
+def test_scan_with_absolute_coverage_paths(tmp_path: Path) -> None:
+    # coverage.py emits absolute paths in some configurations; the harness
+    # must rebase them onto the scan root rather than treating them as
+    # opaque keys (the old `lstrip("./")` form silently failed here).
+    root = _temp_repo(tmp_path)
+    src = _write(
+        root / "scripts" / "a.py",
+        """
+        def alpha(x):
+            if x:
+                return x
+            return 0
+        """,
+    )
+    abs_key = str(src.resolve()).replace("\\", "/")
+    cov = {
+        "files": {
+            abs_key: {
+                "executed_lines": [2, 3],
+                "missing_lines": [4],
+            }
+        }
+    }
+    cov_path = tmp_path / "coverage.json"
+    cov_path.write_text(json.dumps(cov), encoding="utf-8")
+
+    report = scan_crap(
+        root,
+        coverage_path=cov_path,
+        observability_inventory={"files": []},
+        scan_date="2026-05-02",
+    )
+    rec = _record_for(report, "scripts/a.py", "alpha")
+    assert rec["coverage_state"] == "known"
 
 
 def test_scan_without_coverage_refuses_to_compute_crap(tmp_path: Path) -> None:
