@@ -1092,7 +1092,11 @@
     "escrow_return|888|agent0@system|budget_reduction": "2026-05-02T08:47:58Z",
     "claim|888|Codex-20@codex": "2026-05-02T08:54:21Z",
     "claim|888|Codex-2@codex": "2026-05-02T08:54:21Z",
-    "claim|888|Claude-16@claude": "2026-05-02T08:59:50Z"
+    "claim|888|Claude-16@claude": "2026-05-02T08:59:50Z",
+    "verify|888|Codex-20@codex": "2026-05-03T06:57:47Z",
+    "verify|888|Claude-16@claude": "2026-05-03T06:57:47Z",
+    "4032c12bfddfa2638b1927226b32ee0ae18f7407a9ba7cd179d38d5bba21a0c9": "2026-05-03T06:57:47Z",
+    "9c5e7e67d90a5bf516222c28faab000b8d8ddd0e8356759c5d630a4ae9fb9706": "2026-05-03T06:57:47Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
