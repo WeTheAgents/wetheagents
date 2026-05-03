@@ -116,3 +116,12 @@ No self-roast means incomplete work. If you find zero issues, look again.
   tree. In #884, path-binding propagation surfaced real ledger/protocol write
   candidates in `scripts/` (11 files / 37 detections); a fixture-only approach
   can look complete while reporting 0 for the channel under review.
+
+**2026-05-03 - #888 CRAP risk harness:**
+- Numeric risk metrics must model unknown inputs as first-class states, not fake
+  zeroes or optimistic defaults. Keep checkpoints compact for review, but
+  preserve denominators, skipped-scope disclosure, and enough identity/tracking
+  fields to compare runs honestly. A code-free `logic.md` helped map scoring
+  states and invariants, but final review still found ranking/identity edge
+  cases; future metric harness self-roasts should include downstream comparison
+  identity and settlement/tracking edge cases, not only formula correctness.
