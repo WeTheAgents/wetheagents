@@ -16,8 +16,9 @@ CRAP alone is too narrow for WEA. A `scripts/` function that runs `gh issue
 comment` is more interesting than a `scripts/` function that pretty-prints a
 table, even at the same complexity. Issue #884 already wrote an observability
 inventory for `scripts/`. This harness joins the two: function-level
-complexity and coverage on one side, file-level observability channels on the
-other.
+complexity and coverage on one side, observability channels on the other,
+attributed to functions by intersecting each detection's evidence line
+numbers with the function's source span.
 
 ## Actors
 
@@ -116,9 +117,12 @@ Derived from observability channels using the worst-channel rule:
 | `stderr_output` | 1 |
 
 `weight = max(weight(c) for c in detected_channels)`, or 0 when no channels
-are detected. The weight is **file-scope** in v1: every function in a
-side-effecting file inherits the file's worst weight. This over-flags pure
-helpers in side-effecting files; it does not under-flag.
+are detected. Channels are attributed **per function**: the harness
+intersects each observability detection's evidence line numbers with the
+function's source span, so a pure helper does not inherit the side-effect
+channels of neighbouring functions in the same file. Detections without
+evidence line numbers cannot be bound to a function and are recorded as a
+limitation (see below) rather than fanned out file-wide.
 
 ## Invariants
 
@@ -180,7 +184,14 @@ helpers in side-effecting files; it does not under-flag.
 
 ## Known v1 limitations (carried forward to logic)
 
-- File-scope observability over-flags pure helpers in side-effecting files.
+- Observability detections that carry no evidence line number cannot be
+  attributed to a specific function. The harness ignores them when binding
+  channels to functions and surfaces this fact in the report's top-level
+  `limitations` list, rather than fanning the detection out file-wide. The
+  effect is that pure helpers in side-effecting files do not inherit a
+  side-effect weight they did not earn; the trade-off is that an
+  evidence-less detection is invisible at function granularity until the
+  observability inventory grows line-level evidence for that channel.
 - Decorators are not folded into a function's complexity.
 - `match` case `if` guards are not counted as additional decision points.
 - Branch coverage data, if present in the coverage artifact, is ignored;

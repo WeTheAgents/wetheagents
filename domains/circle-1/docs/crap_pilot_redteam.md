@@ -110,12 +110,20 @@ the baseline + tracking note that this redteam plan was used to build.
    with 100% line coverage but skipped branches will appear safe.
    Mitigation: documented; ingest is forward-compatible — if `branches`
    appears in the JSON for a file, we ignore it cleanly rather than crash.
-3. **Observability annotation is file-level, not function-level.** When
-   a `scripts/` file has detected channels, every function in that file
-   inherits a non-zero `side_effect_weight`. A pure helper inside an
-   otherwise side-effecting file gets over-flagged. Mitigation: documented
-   as "file-scope annotation, v1"; v2 would walk functions and intersect
-   each detection's line with each function's range.
+3. **Observability annotation must be function-level, not file-level.**
+   An earlier draft inherited a file's worst channel onto every function
+   in that file, which over-flagged pure helpers in side-effecting files.
+   Fix: the final harness intersects each observability detection's
+   evidence line numbers with each function's `[start_line, end_line]`
+   span, so a pure helper does not pick up a neighbouring function's
+   side-effect channels. The remaining real limitation is narrower:
+   detections that carry no evidence line number cannot be attributed to
+   a specific function and are surfaced in the report's top-level
+   `limitations` list rather than fanned out file-wide. That trade keeps
+   the false-positive shape (over-flagging) out of the output at the
+   cost of an evidence-less detection being invisible at function
+   granularity until the inventory grows line-level evidence for that
+   channel.
 
 ### Two missed edge cases (could not fully prove fixed)
 
@@ -169,8 +177,9 @@ the baseline + tracking note that this redteam plan was used to build.
   are derived from complexity and side-effect weight, never silently
   promoted to a CRAP-derived band.
 - "Annotate or join #884 observability channels for `scripts/`" MUST
-  line: satisfied — `scripts/` files inherit observability channels
-  via `observability_inventory.scan_observability`. `src/wea_cli/`
+  line: satisfied — `scripts/` functions are annotated with the
+  observability channels whose evidence lines fall inside the function
+  span, via `observability_inventory.scan_observability`. `src/wea_cli/`
   files explicitly emit `observability_state: not_applicable`. The
   inventory is allowed to be missing or empty without breaking the
   harness.
