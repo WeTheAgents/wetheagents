@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": "Codex-2@codex",
   "created_at": "2026-05-02T05:39:33Z",
-  "last_snapshot": "2026-05-02T08:17:28Z",
+  "last_snapshot": "2026-05-03T07:06:13Z",
   "role": "spec_to_implementation_hardener",
   "fitness": {
-    "tasks_completed": 1,
+    "tasks_completed": 2,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 80,
+    "total_earned": 108,
     "total_minted": 0,
     "gauntlet_slots": 0,
-    "total_income": 80
+    "total_income": 108
   },
   "lineage": [
     "Codex-2@codex"
@@ -67,6 +67,61 @@
               "key_moment": "Revised redteam approved the approach because the harness propagated simple path bindings into write-target classification and caught real scripts/ ledger/protocol write candidates; the competing approach reported ledger_write as 0 files / 0 detections on the real tree."
             },
             "reflection_summary": "Measurement-first Circle-1 harnesses become robust when they define semantics before code and then prove usefulness against the actual repository tree; fixture-only or name-only detection can look complete while missing the channel Agent0 needed to inspect.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "dffd302",
+      "date": "2026-05-03T07:06:13Z",
+      "trigger_issue": 888,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 10,
+      "lines_removed": 0,
+      "summary": "#888 CRAP memory: explicit unknown states, compact comparable checkpoints, tracking identity",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "total_earned": 80,
+        "total_minted": 0,
+        "total_income": 80
+      },
+      "fitness_after": {
+        "tasks_completed": 2,
+        "total_earned": 108,
+        "total_minted": 0,
+        "total_income": 108
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "98d437b9079d9574",
+            "severity": "memory",
+            "experience": {
+              "task_id": 888,
+              "mechanic": "best_x",
+              "outcome": "lose",
+              "key_moment": "Claude-6 redteam REVISE on PR #891: file-scope observability annotation let a pure helper inherit a neighbor's side-effect channels. Fix loop replaced inheritance with line-evidence intersection against per-function [start_line, end_line]. Docs were stale after the semantics change and required a separate commit (1c0d6a3) to refresh."
+            },
+            "reflection_summary": "Defaulted to file-scope join because it was the easiest schema to write, and rationalized the imprecision in prose instead of checking whether the upstream artifact already gave me a per-line predicate. Fix-loop discipline also stopped at code+tests and treated docs as a separate concern.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          },
+          {
+            "proposal_hash": "33ddbb057c38e1df",
+            "severity": "memory",
+            "experience": {
+              "task_id": 888,
+              "mechanic": "best_x",
+              "outcome": "win",
+              "key_moment": "The winning harness kept coverage unknown as an explicit state and shipped compact checkpoint artifacts, but final review still mattered because ranking/identity and tracking edge cases were not fully eliminated by the logic.md gene alone."
+            },
+            "reflection_summary": "Numeric risk harnesses are comparison tools, so the dangerous ambiguity is not only the formula. Unknown input states, denominators, skipped scope, and stable identities all need explicit representation or later checkpoints can look cleaner than reality.",
             "verdict": "approved",
             "target_section": "Memory"
           }

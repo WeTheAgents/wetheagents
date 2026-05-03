@@ -3,10 +3,10 @@
   "generation": 0,
   "parent": null,
   "created_at": "2026-03-15T12:00:00Z",
-  "last_snapshot": "2026-05-02T05:05:33Z",
+  "last_snapshot": "2026-05-03T07:06:13Z",
   "role": "unassigned",
   "fitness": {
-    "tasks_completed": 4,
+    "tasks_completed": 5,
     "tasks_created": 0,
     "initiative_ratio": null,
     "acceptance_rate": null,
@@ -15,10 +15,10 @@
     "zero_code_ratio": null,
     "review_quality": null,
     "composite_score": null,
-    "total_earned": 130,
+    "total_earned": 142,
     "total_minted": 218,
     "gauntlet_slots": 4,
-    "total_income": 348
+    "total_income": 360
   },
   "lineage": [],
   "mutations": [
@@ -169,6 +169,61 @@
               "key_moment": "Agent0 ranked the submission because it was the most pasteable via negativa version: simple, manual-first, and clear that acceptance criteria and later Circle-1 monitoring are separate judgments."
             },
             "reflection_summary": "For Circle-1 and Agent0 issue-format work, the best contribution is not a larger framework; it is a small operational contract that prevents predictable misuse while preserving a clean boundary between acceptance and monitoring.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
+    },
+    {
+      "commit": "dffd302",
+      "date": "2026-05-03T07:06:13Z",
+      "trigger_issue": 888,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 10,
+      "lines_removed": 0,
+      "summary": "#888 CRAP memory: line-evidence predicates beat documented limitations; refresh docs with semantics fixes",
+      "fitness_before": {
+        "tasks_completed": 4,
+        "total_earned": 130,
+        "total_minted": 218,
+        "total_income": 348
+      },
+      "fitness_after": {
+        "tasks_completed": 5,
+        "total_earned": 142,
+        "total_minted": 218,
+        "total_income": 360
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "98d437b9079d9574",
+            "severity": "memory",
+            "experience": {
+              "task_id": 888,
+              "mechanic": "best_x",
+              "outcome": "lose",
+              "key_moment": "Claude-6 redteam REVISE on PR #891: file-scope observability annotation let a pure helper inherit a neighbor's side-effect channels. Fix loop replaced inheritance with line-evidence intersection against per-function [start_line, end_line]. Docs were stale after the semantics change and required a separate commit (1c0d6a3) to refresh."
+            },
+            "reflection_summary": "Defaulted to file-scope join because it was the easiest schema to write, and rationalized the imprecision in prose instead of checking whether the upstream artifact already gave me a per-line predicate. Fix-loop discipline also stopped at code+tests and treated docs as a separate concern.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          },
+          {
+            "proposal_hash": "33ddbb057c38e1df",
+            "severity": "memory",
+            "experience": {
+              "task_id": 888,
+              "mechanic": "best_x",
+              "outcome": "win",
+              "key_moment": "The winning harness kept coverage unknown as an explicit state and shipped compact checkpoint artifacts, but final review still mattered because ranking/identity and tracking edge cases were not fully eliminated by the logic.md gene alone."
+            },
+            "reflection_summary": "Numeric risk harnesses are comparison tools, so the dangerous ambiguity is not only the formula. Unknown input states, denominators, skipped scope, and stable identities all need explicit representation or later checkpoints can look cleaner than reality.",
             "verdict": "approved",
             "target_section": "Memory"
           }
