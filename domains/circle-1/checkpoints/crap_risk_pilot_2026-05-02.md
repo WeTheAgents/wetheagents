@@ -3,11 +3,13 @@
 - scan_date: 2026-05-02
 - harness_version: v0
 - scanned_files: 174
-- functions_seen: 1551
-- coverage_states: known=0, unknown=1551, not_applicable=0
-- risk_bands: critical=183, high=174, medium=495, low=699
+- functions_seen: 1552
+- coverage_states: known=0, unknown=1552, not_applicable=0
+- risk_bands: critical=183, high=174, medium=497, low=698
 
 ## Top Risk Functions
+
+> **WARNING: no coverage artifact was supplied. Coverage is unknown, and blank CRAP cells mean CRAP was not computed; they are not zero or low-risk scores.**
 
 | rank | path | symbol | complexity | coverage | CRAP | side effects | risk |
 |---:|---|---|---:|---|---:|---|---|
@@ -27,7 +29,7 @@
 | 14 | scripts/check_ledger_schema.py:122 | validate_achievements | 39 | unknown |  | none | critical |
 | 15 | scripts/pipeline_parser.py:270 | aggregate_results | 39 | unknown |  | none | critical |
 
-JSON checkpoint is compact: 1526 lower-priority functions omitted.
+Compact JSON preview: 25 functions in `compact_functions`; 1527 lower-priority functions omitted from that preview. The canonical `functions` array remains complete.
 
 ## Tracking
 

@@ -237,7 +237,10 @@ def _normalize_coverage_path(raw: str, root: Path) -> str:
             return _rel(path.resolve(), root)
         except ValueError:
             return str(path).replace("\\", "/")
-    return raw.replace("\\", "/").lstrip("./")
+    normalized = raw.replace("\\", "/")
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized
 
 
 def _lines_from_json_file(entry: dict[str, Any], source: str) -> CoverageFile:
@@ -459,6 +462,7 @@ def build_entry(
             record.complexity, obs["side_effect_weight"]
         )
     return {
+        "tracking_id": f"{record.path}:{record.start_line}:{record.symbol}",
         "path": record.path,
         "symbol": record.symbol,
         "start_line": record.start_line,
@@ -549,14 +553,13 @@ def build_report(
     ]
     entries = sorted(entries, key=_sort_key)
     omitted = 0
+    compact_entries: list[dict[str, Any]] = []
     if max_json_functions is not None and max_json_functions >= 0:
         omitted = max(0, len(entries) - max_json_functions)
-        entries = entries[:max_json_functions]
+        compact_entries = entries[:max_json_functions]
 
     summary = summarize(
-        entries if omitted == 0 else [
-            build_entry(record, coverage_files, obs_by_file) for record in records
-        ],
+        entries,
         scanned_files=len(files),
         skipped_files=skipped_files,
         parse_errors=parse_errors,
@@ -573,11 +576,19 @@ def build_report(
             "complexity_source": COMPLEXITY_SOURCE,
             "crap_formula": "complexity^2 * (1 - coverage)^3 + complexity",
             "missing_coverage_rule": "coverage_unknown; CRAP not computed",
+            "coverage_line_span_rule": (
+                "line coverage is counted across the AST function span from "
+                "the def line through end_line; def-line execution can inflate "
+                "simple functions when using line-only coverage artifacts"
+            ),
             "side_effect_weights": SIDE_EFFECT_WEIGHTS,
         },
         "summary": summary,
         "truncation": {
             "max_json_functions": max_json_functions,
+            "canonical_functions_truncated": False,
+            "compact_functions_count": len(compact_entries),
+            "omitted_from_compact": omitted,
             "omitted_functions": omitted,
         },
         "tracking_contract": {
@@ -595,13 +606,41 @@ def build_report(
                 "follow_up_hardening_task",
                 "test_addition",
             ],
+            "identity": "tracking_id, equivalent to path:start_line:symbol",
             "inspection_window": (
                 "next Circle-1 checkpoint after merge plus the next five accepted "
                 "Python code-change tasks touching scripts/ or src/wea_cli"
             ),
         },
+        "compact_functions": compact_entries,
         "functions": entries,
     }
+
+
+def _coverage_warning(report: dict[str, Any]) -> str | None:
+    summary = report["summary"]
+    coverage = summary["coverage_states"]
+    functions_seen = summary["functions"]
+    artifact = report["scope"]["coverage_artifact"]
+    all_unknown = (
+        functions_seen > 0
+        and coverage["unknown"] == functions_seen
+        and coverage["known"] == 0
+        and coverage["not_applicable"] == 0
+    )
+    if artifact is None:
+        return (
+            "WARNING: no coverage artifact was supplied. Coverage is unknown, "
+            "and blank CRAP cells mean CRAP was not computed; they are not zero "
+            "or low-risk scores."
+        )
+    if all_unknown:
+        return (
+            "WARNING: all coverage is unknown. The supplied coverage artifact "
+            "did not yield measured function coverage for this report, and blank "
+            "CRAP cells mean CRAP was not computed."
+        )
+    return None
 
 
 def render_markdown(report: dict[str, Any], top: int = 20) -> str:
@@ -628,9 +667,17 @@ def render_markdown(report: dict[str, Any], top: int = 20) -> str:
         "",
         "## Top Risk Functions",
         "",
-        "| rank | path | symbol | complexity | coverage | CRAP | side effects | risk |",
-        "|---:|---|---|---:|---|---:|---|---|",
     ]
+    warning = _coverage_warning(report)
+    if warning is not None:
+        lines.extend([f"> **{warning}**", ""])
+    lines.extend(
+        [
+            "| rank | path | symbol | complexity | coverage | CRAP | "
+            "side effects | risk |",
+            "|---:|---|---|---:|---|---:|---|---|",
+        ]
+    )
     shown = report["functions"][:top]
     if not shown:
         lines.append("| - | - | - | - | - | - | - | - |")
@@ -651,8 +698,11 @@ def render_markdown(report: dict[str, Any], top: int = 20) -> str:
         lines.extend(
             [
                 "",
-                "JSON checkpoint is compact: "
-                f"{omitted} lower-priority functions omitted.",
+                "Compact JSON preview: "
+                f"{report['truncation']['compact_functions_count']} functions in "
+                "`compact_functions`; "
+                f"{omitted} lower-priority functions omitted from that preview. "
+                "The canonical `functions` array remains complete.",
             ]
         )
     if summary["parse_errors"]:
@@ -694,7 +744,10 @@ def main(argv: list[str] | None = None) -> int:
         "--max-json-functions",
         type=int,
         default=None,
-        help="Limit JSON functions to top N for compact checkpoints",
+        help=(
+            "Populate compact_functions with top N for checkpoint previews; "
+            "the canonical functions array remains complete"
+        ),
     )
     args = parser.parse_args(argv)
 

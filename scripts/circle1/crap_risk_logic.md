@@ -40,6 +40,12 @@ exception handlers, boolean decision points, assertions, comprehensions, match
 cases, conditional expressions, and lambdas. Nested functions are separate
 review units.
 
+Coverage is line-span based: the measured denominator is the AST function span
+from the `def` line through `end_line`. With line-only coverage artifacts, the
+definition line can make tiny functions look more covered than their body
+behavior deserves; consumers should treat CRAP as advisory until function-level
+or branch coverage is available.
+
 ## Observability Annotation
 
 For functions in `scripts/`, the harness imports the #884 scanner and keeps only
@@ -59,10 +65,13 @@ Side-effect weights are advisory:
 
 Each function entry carries:
 
-`path`, `symbol`, `start_line`, `end_line`, `complexity`,
+`tracking_id`, `path`, `symbol`, `start_line`, `end_line`, `complexity`,
 `complexity_source`, `coverage_state`, `coverage_percent`, `crap_score`,
 `risk_band`, `risk_reason`, `observability_channels`, `side_effect_weight`,
 `tracking_status`, `tracking_notes`, and `evidence_refs`.
+
+`tracking_id` is the stable identity key for follow-up sweeps. It is equivalent
+to `(path, symbol, start_line)` and serialized as `path:start_line:symbol`.
 
 Future sweeps should keep the same entry shape and update:
 
@@ -72,8 +81,10 @@ Future sweeps should keep the same entry shape and update:
 - `evidence_refs`: compact refs such as PR numbers, issue numbers, review
   findings, redteam notes, bug fixes, hardening tasks, or test additions.
 
-The committed pilot checkpoint is intentionally compact. It can omit
-lower-priority functions while reporting how many were omitted.
+The canonical JSON `functions` array is always full. When `--max-json-functions`
+is supplied, it creates a separate `compact_functions` top-N preview and reports
+how many lower-priority functions are omitted from that preview. Operators must
+not treat `compact_functions` as the complete denominator.
 
 ## Invariants
 
@@ -130,8 +141,8 @@ lower-priority functions while reporting how many were omitted.
    method level with symbols and line spans.
 4. Observability could be over-joined at file level. Fix: channel evidence is
    filtered to lines within the function span.
-5. The checkpoint could become noisy. Fix: CLI supports compact JSON truncation
-   with omitted-count disclosure.
+5. The checkpoint could become noisy. Fix: CLI supports a compact JSON preview
+   with omitted-count disclosure while keeping the canonical function list full.
 
 ## Pre-Implementation Logic Redteam
 
@@ -143,8 +154,8 @@ lower-priority functions while reporting how many were omitted.
    executed and missing line sets.
 4. Observability line evidence can miss wrapper calls. The existing #884
    scanner already documents this limitation; the CRAP harness inherits it.
-5. Compact checkpoints can omit lower-risk functions. The omitted count is
-   explicit, and Agent0 can rerun without `--max-json-functions`.
+5. Compact previews can hide lower-risk functions from the preview. The omitted
+   count is explicit, and the full denominator remains in `functions`.
 
 ## Implementation Self-Roast
 

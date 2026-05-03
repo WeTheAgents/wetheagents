@@ -13,6 +13,7 @@ from scripts.circle1.crap_risk_harness import (
     collect_functions,
     compute_crap_score,
     load_coverage_artifact,
+    render_markdown,
 )
 
 
@@ -140,6 +141,35 @@ def test_coverage_xml_ingestion(tmp_path: Path) -> None:
     assert coverage["scripts/tool.py"].missing_lines == {2}
 
 
+def test_coverage_path_normalization_only_removes_literal_dot_slash_prefix(
+    tmp_path: Path,
+) -> None:
+    root = _temp_repo(tmp_path)
+    coverage_path = _write(
+        root / "coverage.json",
+        json.dumps(
+            {
+                "files": {
+                    "./scripts/tool.py": {
+                        "executed_lines": [1],
+                        "missing_lines": [],
+                    },
+                    ".hidden/scripts/tool.py": {
+                        "executed_lines": [2],
+                        "missing_lines": [],
+                    },
+                }
+            }
+        ),
+    )
+
+    coverage = load_coverage_artifact(coverage_path, root)
+
+    assert "scripts/tool.py" in coverage
+    assert ".hidden/scripts/tool.py" in coverage
+    assert "hidden/scripts/tool.py" not in coverage
+
+
 def test_coverage_artifact_with_no_function_lines_is_not_applicable(
     tmp_path: Path,
 ) -> None:
@@ -222,12 +252,17 @@ def test_stable_checkpoint_shape_and_tracking_fields(tmp_path: Path) -> None:
         "summary",
         "truncation",
         "tracking_contract",
+        "compact_functions",
         "functions",
     ]
     assert report["summary"]["functions"] == 2
+    assert report["truncation"]["canonical_functions_truncated"] is False
     assert report["truncation"]["omitted_functions"] == 1
-    assert len(report["functions"]) == 1
+    assert report["truncation"]["omitted_from_compact"] == 1
+    assert len(report["compact_functions"]) == 1
+    assert len(report["functions"]) == 2
     assert {
+        "tracking_id",
         "path",
         "symbol",
         "start_line",
@@ -244,7 +279,22 @@ def test_stable_checkpoint_shape_and_tracking_fields(tmp_path: Path) -> None:
         "tracking_status",
         "tracking_notes",
         "evidence_refs",
-    } <= set(report["functions"][0])
+    } <= set(report["compact_functions"][0])
+    assert report["compact_functions"][0]["tracking_id"] == (
+        f"{report['compact_functions'][0]['path']}:"
+        f"{report['compact_functions'][0]['start_line']}:"
+        f"{report['compact_functions'][0]['symbol']}"
+    )
+
+
+def test_markdown_warns_when_all_coverage_is_unknown(tmp_path: Path) -> None:
+    root = _temp_repo(tmp_path)
+    _write(root / "scripts" / "tool.py", "def main():\n    return 'ok'\n")
+
+    markdown = render_markdown(build_report(root, scan_date="2026-05-02"))
+
+    assert "WARNING: no coverage artifact was supplied" in markdown
+    assert "blank CRAP cells mean CRAP was not computed" in markdown
 
 
 def test_cli_writes_json_and_markdown(tmp_path: Path) -> None:
@@ -278,5 +328,8 @@ def test_cli_writes_json_and_markdown(tmp_path: Path) -> None:
     payload = json.loads(out_json.read_text(encoding="utf-8"))
     markdown = out_md.read_text(encoding="utf-8")
     assert payload["scan_date"] == "2026-05-02"
+    assert len(payload["functions"]) == 1
+    assert len(payload["compact_functions"]) == 1
     assert payload["functions"][0]["coverage_state"] == "unknown"
     assert "# Circle-1 CRAP Risk Pilot" in markdown
+    assert "WARNING: no coverage artifact was supplied" in markdown
