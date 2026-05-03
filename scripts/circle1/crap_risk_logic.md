@@ -30,8 +30,10 @@ When coverage is known, the harness computes:
 `CRAP = complexity^2 * (1 - coverage)^3 + complexity`
 
 Coverage is a fraction from 0 to 1, derived from measured executable lines in
-the function range. The harness records the coverage source and measured line
-counts so reviewers can see why the state is known.
+the function body after the `def` line. Excluding the declaration line avoids
+inflating a function's coverage with a line that may be hit just by defining the
+module. The harness records the coverage source and measured line counts so
+reviewers can see why the state is known.
 
 When coverage is unknown, CRAP is not computed. The harness uses a separate
 unknown-coverage risk rule based on complexity and side-effect weight.
@@ -63,6 +65,20 @@ high-impact side effects is critical. Complexity at or above 10, or complexity
 at or above 6 with high-impact side effects, is high. Complexity at or above 4
 or observable mutation is medium. Simple functions with low side-effect weight
 are low.
+
+Within a risk band, known-coverage functions sort primarily by CRAP magnitude.
+Complexity and side-effect weight remain tie-breakers, so a larger CRAP score
+does not get buried by raw complexity alone.
+
+## Tracking Identity
+
+`tracking_id` is the canonical stable identity for comparing functions between
+full reports, compact checkpoints, and later Circle-1 sweeps. It is built from
+`path:symbol:start_line`, which keeps duplicate symbols distinct when Python
+files use conditional redefinition, compatibility shims, or overload-style
+patterns. If a function moves, reviewers should treat the changed
+`tracking_id` as a new identity and use nearby evidence refs or notes to
+connect history when needed.
 
 ## Invariants
 

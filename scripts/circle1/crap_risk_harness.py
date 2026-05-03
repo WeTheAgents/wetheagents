@@ -112,7 +112,7 @@ class CoverageIndex:
         measured = {
             line: covered
             for line, covered in lines.items()
-            if function.start_line <= line <= function.end_line
+            if function.start_line < line <= function.end_line
         }
         if not measured:
             return CoverageResult(
@@ -160,7 +160,10 @@ def _normalize_coverage_path(path_text: str, root: Path) -> str:
             return str(path.resolve().relative_to(root.resolve())).replace("\\", "/")
         except ValueError:
             return str(path).replace("\\", "/")
-    return path_text.replace("\\", "/").lstrip("./")
+    normalized = path_text.replace("\\", "/")
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized
 
 
 def load_coverage_index(
@@ -443,6 +446,20 @@ def _tracking_id(function: FunctionRecord) -> str:
     return f"{function.path}:{function.symbol}:{function.start_line}"
 
 
+def _review_priority(
+    *, risk_band: str, crap_score: float | None, complexity: int, weight: int
+) -> int:
+    band_priority = RISK_SEVERITY[risk_band] * 1_000_000_000
+    if crap_score is not None:
+        return (
+            band_priority
+            + round(crap_score * 10_000_000)
+            + complexity * 100
+            + weight
+        )
+    return band_priority + complexity * 100 + weight
+
+
 def _function_dict(
     function: FunctionRecord,
     coverage: CoverageResult,
@@ -460,11 +477,11 @@ def _function_dict(
         crap_score=crap_score,
         weight=weight,
     )
-    review_priority = (
-        RISK_SEVERITY[risk_band] * 1000
-        + function.complexity * 10
-        + weight
-        + int(crap_score or 0)
+    review_priority = _review_priority(
+        risk_band=risk_band,
+        crap_score=crap_score,
+        complexity=function.complexity,
+        weight=weight,
     )
     return {
         "path": function.path,
@@ -577,8 +594,8 @@ def build_report(
         "limitations": [
             "Complexity is AST McCabe-like static complexity, not runtime path proof.",
             (
-                "Coverage is line evidence mapped to function ranges; branch "
-                "coverage is not inferred."
+                "Coverage is line evidence mapped to function bodies after "
+                "the def line; branch coverage is not inferred."
             ),
             (
                 "Coverage is only known when an explicit JSON/XML artifact is "

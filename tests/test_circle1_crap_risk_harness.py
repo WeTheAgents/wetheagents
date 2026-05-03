@@ -105,9 +105,93 @@ def test_coverage_known_and_crap_calculation(tmp_path: Path) -> None:
     item = _function(report, "partly")
 
     assert item["coverage_state"] == "known"
-    assert item["coverage_percent"] == 50.0
+    assert item["coverage_percent"] == 33.33
     assert item["complexity"] == 2
-    assert item["crap_score"] == compute_crap_score(2, 50.0)
+    assert item["crap_score"] == compute_crap_score(2, 33.33)
+
+
+def test_coverage_path_normalization_handles_literal_relative_prefix(
+    tmp_path: Path,
+) -> None:
+    root = _repo(tmp_path)
+    _write(
+        root / "scripts" / "prefixed.py",
+        """
+        def known():
+            return 1
+        """,
+    )
+    coverage = {
+        "files": {
+            "./scripts/prefixed.py": {
+                "executed_lines": [3],
+                "missing_lines": [],
+            }
+        }
+    }
+    coverage_path = _write(root / "coverage.json", json.dumps(coverage))
+
+    report = build_report(root, coverage_path=coverage_path, coverage_format="json")
+    item = _function(report, "known")
+
+    assert item["coverage_state"] == "known"
+    assert item["coverage_percent"] == 100.0
+
+
+def test_review_priority_uses_crap_before_complexity_within_band(
+    tmp_path: Path,
+) -> None:
+    root = _repo(tmp_path)
+    high_complex_lines = [
+        "def complex_but_less_crap(x):",
+        "    total = 0",
+    ]
+    for index in range(14):
+        high_complex_lines.extend(
+            [
+                f"    if x == {index}:",
+                f"        total += {index}",
+            ]
+        )
+    high_complex_lines.append("    return total")
+    script = _write(
+        root / "scripts" / "priority.py",
+        "\n".join(
+            [
+                *high_complex_lines,
+                "",
+                "def crappier(a, b, c):",
+                "    total = 0",
+                "    if a:",
+                "        total += 1",
+                "    if b:",
+                "        total += 1",
+                "    if c:",
+                "        total += 1",
+                "    return total",
+            ]
+        ),
+    )
+    coverage = {
+        "files": {
+            str(script.relative_to(root)).replace("\\", "/"): {
+                "executed_lines": [line for line in range(2, 32) if line != 10],
+                "missing_lines": [10, *range(34, 42)],
+            }
+        }
+    }
+    coverage_path = _write(root / "coverage.json", json.dumps(coverage))
+
+    report = build_report(root, coverage_path=coverage_path, coverage_format="json")
+    symbols = [item["symbol"] for item in report["functions"]]
+    complex_item = _function(report, "complex_but_less_crap")
+    crappier_item = _function(report, "crappier")
+
+    assert complex_item["risk_band"] == "high"
+    assert crappier_item["risk_band"] == "high"
+    assert crappier_item["complexity"] < complex_item["complexity"]
+    assert crappier_item["crap_score"] > complex_item["crap_score"]
+    assert symbols.index("crappier") < symbols.index("complex_but_less_crap")
 
 
 def test_coverage_artifact_file_without_function_lines_is_not_applicable(
