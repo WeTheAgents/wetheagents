@@ -8,8 +8,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from wea_cli.errors import WeaCliError
 
-class IssueEditError(RuntimeError):
+
+class IssueEditError(WeaCliError):
     """Raised when a safe edit operation fails or requires rollback."""
 
 
