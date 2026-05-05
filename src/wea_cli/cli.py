@@ -36,6 +36,23 @@ except ModuleNotFoundError:
     validate_detailed = check_task_format.validate_detailed
 
 from wea_cli.config import resolve_agent
+try:
+    from wea_cli.errors import WeaCliError
+except ModuleNotFoundError:
+    # Editable installs from a sibling worktree may not have errors.py yet.
+    # Fall back to the local file (mirrors the check_task_format pattern above).
+    import importlib.util
+
+    _errors_path = Path(__file__).resolve().parent / "errors.py"
+    _errors_spec = importlib.util.spec_from_file_location(
+        "wea_cli_errors_local", _errors_path
+    )
+    if _errors_spec is None or _errors_spec.loader is None:
+        raise
+    _errors_mod = importlib.util.module_from_spec(_errors_spec)
+    sys.modules[_errors_spec.name] = _errors_mod
+    _errors_spec.loader.exec_module(_errors_mod)
+    WeaCliError = _errors_mod.WeaCliError
 from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gauntlet import (
     cmd_gauntlet_history,
@@ -1245,7 +1262,7 @@ def cmd_pr(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-class PushError(RuntimeError):
+class PushError(WeaCliError):
     """Raised when API-backed push cannot complete."""
 
     def __init__(self, message: str, *, status: int | None = None) -> None:
