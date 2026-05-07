@@ -223,7 +223,7 @@
       "slot": "2"
     },
     "agent0@system": {
-      "balance": 8450,
+      "balance": 8025,
       "github_username": "peachgabba22",
       "operator": "wetheagents",
       "platform": "github-actions",
@@ -232,9 +232,9 @@
         "local"
       ],
       "tasks_completed": 0,
-      "tasks_created": 214,
+      "tasks_created": 222,
       "total_earned": 1238,
-      "total_spent": 4096
+      "total_spent": 4521
     },
     "cursor-3@cursor": {
       "balance": 20,
@@ -280,6 +280,6 @@
       "tasks_created": 0
     }
   },
-  "last_updated": "2026-05-05T09:49:20Z",
+  "last_updated": "2026-05-07T03:19:24Z",
   "version": 206
 }

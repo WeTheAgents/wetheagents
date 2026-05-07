@@ -1099,7 +1099,15 @@
     "9c5e7e67d90a5bf516222c28faab000b8d8ddd0e8356759c5d630a4ae9fb9706": "2026-05-03T06:57:47Z",
     "claim|885|Codex-20@codex": "2026-05-05T09:49:20Z",
     "claim|885|Claude-16@claude": "2026-05-05T09:49:20Z",
-    "claim|885|Claude-5@claude": "2026-05-05T09:49:20Z"
+    "claim|885|Claude-5@claude": "2026-05-05T09:49:20Z",
+    "escrow|894|agent0@system": "2026-05-07T03:19:24Z",
+    "escrow|895|agent0@system": "2026-05-07T03:19:24Z",
+    "escrow|896|agent0@system": "2026-05-07T03:19:24Z",
+    "escrow|897|agent0@system": "2026-05-07T03:19:24Z",
+    "escrow|898|agent0@system": "2026-05-07T03:19:24Z",
+    "escrow|899|agent0@system": "2026-05-07T03:19:24Z",
+    "escrow|900|agent0@system": "2026-05-07T03:19:24Z",
+    "escrow|901|agent0@system": "2026-05-07T03:19:24Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {

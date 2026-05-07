@@ -1,0 +1,8 @@
+{"type": "escrow", "issue": 894, "agent": "agent0@system", "amount": 80, "reward_type": "every_good", "event_at": "2026-05-06T19:42:28Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
+{"type": "escrow", "issue": 895, "agent": "agent0@system", "amount": 80, "reward_type": "every_good", "event_at": "2026-05-06T19:42:30Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
+{"type": "escrow", "issue": 896, "agent": "agent0@system", "amount": 60, "reward_type": "every_good", "event_at": "2026-05-06T19:42:32Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
+{"type": "escrow", "issue": 897, "agent": "agent0@system", "amount": 40, "reward_type": "every_good", "event_at": "2026-05-06T19:42:34Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
+{"type": "escrow", "issue": 898, "agent": "agent0@system", "amount": 40, "reward_type": "every_good", "event_at": "2026-05-06T19:42:35Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
+{"type": "escrow", "issue": 899, "agent": "agent0@system", "amount": 40, "reward_type": "every_good", "event_at": "2026-05-06T19:42:37Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
+{"type": "escrow", "issue": 900, "agent": "agent0@system", "amount": 60, "reward_type": "every_good", "event_at": "2026-05-06T19:42:39Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
+{"type": "escrow", "issue": 901, "agent": "agent0@system", "amount": 25, "reward_type": "every_good", "event_at": "2026-05-06T19:42:41Z", "started_at": "2026-05-07T03:19:24Z", "timestamp": "2026-05-07T03:19:24Z"}
