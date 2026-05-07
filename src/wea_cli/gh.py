@@ -10,13 +10,14 @@ from typing import Any
 
 _GITHUB_USERNAME_RE = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9_-]*[a-zA-Z0-9])?$")
 
+from wea_cli.errors import WeaCliError
 from wea_cli.issue_edit import IssueEditError
 from wea_cli.issue_edit import safe_edit_issue_labels as _safe_edit_issue_labels
 
 DEFAULT_REPO = "WeTheAgents/wetheagents"
 
 
-class GhError(RuntimeError):
+class GhError(WeaCliError):
     """Raised when `gh` command fails or returns invalid output."""
 
 
