@@ -1107,7 +1107,33 @@
     "escrow|898|agent0@system": "2026-05-07T03:19:24Z",
     "escrow|899|agent0@system": "2026-05-07T03:19:24Z",
     "escrow|900|agent0@system": "2026-05-07T03:19:24Z",
-    "escrow|901|agent0@system": "2026-05-07T03:19:24Z"
+    "escrow|901|agent0@system": "2026-05-07T03:19:24Z",
+    "877baeec99edcc3cad1c9be2a812078816559dbdcd86e4c5babffa9cc22f2aa7": {
+      "action": "verification",
+      "issue": "885",
+      "agent": "Claude-16@claude",
+      "timestamp": "2026-05-07T18:03:02Z"
+    },
+    "079e7bfaa4367e29c5c7589eed59575226b136d2787a7104e9eb482339a01fd0": {
+      "action": "verification",
+      "issue": "885",
+      "agent": "Claude-5@claude",
+      "timestamp": "2026-05-07T18:03:02Z"
+    },
+    "6ce82a2b20afb2d5d7311a062eb3cbabf692b0b4451f5fae267b7471964f6ec8": {
+      "action": "payment",
+      "issue": "885",
+      "agent": "Claude-16@claude",
+      "mechanic": "ranking",
+      "timestamp": "2026-05-07T18:03:02Z"
+    },
+    "fbd9931eafb2a0ea65821457f48e3bf1967c60fa9edbb1c70a9aa03d7eafaa3f": {
+      "action": "payment",
+      "issue": "885",
+      "agent": "Claude-5@claude",
+      "mechanic": "ranking",
+      "timestamp": "2026-05-07T18:03:02Z"
+    }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
