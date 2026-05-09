@@ -1,0 +1,52 @@
+{
+  "_comment": "Temporary scaffold for the Stabilization sprint (issues #894-#901). Each entry MUST link to the open Stabilization issue tracking the eventual fix. When a cluster closes and its checkers move from FAIL to PASS in `python scripts/run_all_checks.py`, remove the corresponding entries here. The master sweep CI must NOT be allowed to keep this allowlist permanently — entries with no open issue MUST be removed.",
+  "_format": "Each key is a script filename (basename) under scripts/check_*.py. Each value: {issue: <int>, cluster: <string>, rationale: <string optional>}.",
+  "allowed_failures": {
+    "check_idem_consistency.py":              {"issue": 894, "cluster": "idem-key"},
+    "check_idem_key_completeness.py":         {"issue": 894, "cluster": "idem-key"},
+    "check_idem_key_format.py":               {"issue": 894, "cluster": "idem-key"},
+    "check_idem_key_format_uniformity.py":    {"issue": 894, "cluster": "idem-key"},
+    "check_idem_key_timeline.py":             {"issue": 894, "cluster": "idem-key"},
+    "check_idem_keys_schema.py":              {"issue": 894, "cluster": "idem-key"},
+    "check_orphan_idem_keys.py":              {"issue": 894, "cluster": "idem-key"},
+    "check_unused_idem_key_namespaces.py":    {"issue": 894, "cluster": "idem-key"},
+
+    "check_escrow_idem_coverage.py":              {"issue": 895, "cluster": "escrow"},
+    "check_escrow_ledger_history_consistency.py": {"issue": 895, "cluster": "escrow"},
+    "check_escrow_lifecycle_integrity.py":        {"issue": 895, "cluster": "escrow"},
+    "check_escrow_return_validity.py":            {"issue": 895, "cluster": "escrow"},
+    "check_escrow_schema.py":                     {"issue": 895, "cluster": "escrow"},
+    "check_payment_amount_matches_escrow.py":     {"issue": 895, "cluster": "escrow"},
+    "check_payment_escrow_amount_match.py":       {"issue": 895, "cluster": "escrow"},
+    "check_task_escrow_sync.py":                  {"issue": 895, "cluster": "escrow"},
+
+    "check_balance_history_reconciliation.py":     {"issue": 896, "cluster": "balance/totals"},
+    "check_balances_earned_consistency.py":        {"issue": 896, "cluster": "balance/totals"},
+    "check_history_balance_flow.py":               {"issue": 896, "cluster": "balance/totals"},
+    "check_total_earned_consistency.py":           {"issue": 896, "cluster": "balance/totals"},
+    "check_total_earned_spent_consistency.py":     {"issue": 896, "cluster": "balance/totals"},
+    "check_total_earned_vs_payment_history.py":    {"issue": 896, "cluster": "balance/totals"},
+
+    "check_history_event_idem_keys.py":  {"issue": 897, "cluster": "history"},
+    "check_history_file_gaps.py":        {"issue": 897, "cluster": "history"},
+    "check_history_reconciliation.py":   {"issue": 897, "cluster": "history"},
+    "check_history_schema.py":           {"issue": 897, "cluster": "history"},
+
+    "check_genome_meta_version_consistency.py": {"issue": 898, "cluster": "genome"},
+    "check_genome_mutation_provenance.py":      {"issue": 898, "cluster": "genome"},
+    "check_genome_snapshot_freshness.py":       {"issue": 898, "cluster": "genome"},
+
+    "check_gauntlet_evaluator_consistency.py": {"issue": 899, "cluster": "gauntlet-meta"},
+    "check_gauntlet_pr_fields.py":             {"issue": 899, "cluster": "gauntlet-meta"},
+    "check_t6_team_enforcement.py":            {"issue": 899, "cluster": "gauntlet-meta"},
+    "check_mint_record_completeness.py":       {"issue": 899, "cluster": "gauntlet-meta"},
+
+    "check_incident_correlator.py":      {"issue": 900, "cluster": "miscellaneous"},
+    "check_issue_ledger_sync.py":        {"issue": 900, "cluster": "miscellaneous"},
+    "check_precommit_coverage.py":       {"issue": 900, "cluster": "miscellaneous"},
+    "check_task_status_history_sync.py": {"issue": 900, "cluster": "miscellaneous"},
+
+    "check_dead_branch_links.py":      {"issue": 900, "cluster": "miscellaneous", "rationale": "Not explicitly listed in any cluster issue body but failing on main; placed in #900 (miscellaneous catch-all). Re-classify when triaged."},
+    "check_task_index_consistency.py": {"issue": 900, "cluster": "miscellaneous", "rationale": "Not explicitly listed in any cluster issue body but failing on main; placed in #900 (miscellaneous catch-all). Re-classify when triaged."}
+  }
+}
