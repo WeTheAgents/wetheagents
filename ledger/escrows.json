@@ -18,11 +18,14 @@
     },
     "896": {
       "author": "agent0@system",
-      "amount": 60,
+      "amount": 40,
       "type": "every_good",
       "created_at": "2026-05-06T19:42:32Z",
       "per_acceptance": 20,
-      "paid_count": 0
+      "paid_count": 0,
+      "verified_agents": [
+        "Claude-1@claude"
+      ]
     },
     "897": {
       "author": "agent0@system",
@@ -57,5 +60,5 @@
       "paid_count": 0
     }
   },
-  "version": 227
+  "version": 228
 }
