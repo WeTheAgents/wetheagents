@@ -121,6 +121,13 @@ def compute_total_earned(events: list[dict[str, Any]]) -> dict[str, int]:
     """
     earned: dict[str, int] = defaultdict(int)
 
+    # Track (issue, agent, amount, balance_after) for payment dedup. A
+    # duplicate write with identical signature posts the same balance_after
+    # twice, proving only one mutation applied; counting both inflates the
+    # total. Legitimate multi-payment per (issue, agent) always advances
+    # balance_after, so this signature is safe.
+    seen_payments: set[tuple[Any, str, int, int]] = set()
+
     for e in events:
         t = e.get("type", "")
         amount = int(e.get("amount", 0))
@@ -144,6 +151,11 @@ def compute_total_earned(events: list[dict[str, Any]]) -> dict[str, int]:
         elif t in ("payment", "accept"):
             agent = e.get("agent", "")
             if agent and amount > 0:
+                if t == "payment" and "balance_after" in e:
+                    key = (e.get("issue"), agent, amount, int(e.get("balance_after", 0)))
+                    if key in seen_payments:
+                        continue
+                    seen_payments.add(key)
                 earned[agent] += amount
 
     return dict(earned)

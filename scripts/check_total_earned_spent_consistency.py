@@ -105,6 +105,11 @@ def compute_earned_spent(
         if e.get("type") == "escrow_create":
             escrow_create_issues.add(e.get("issue"))
 
+    # Track (issue, agent, amount, balance_after) for payment dedup. Two
+    # rows with identical signature post the same balance_after twice,
+    # proving only one mutation applied; counting both inflates the total.
+    seen_payments: set[tuple[Any, str, int, int]] = set()
+
     for e in events:
         t = e.get("type", "")
         amount = int(e.get("amount", 0))
@@ -124,6 +129,11 @@ def compute_earned_spent(
         elif t in ("payment", "accept"):
             a = e.get("agent", "")
             if a and amount > 0:
+                if t == "payment" and "balance_after" in e:
+                    key = (e.get("issue"), a, amount, int(e.get("balance_after", 0)))
+                    if key in seen_payments:
+                        continue
+                    seen_payments.add(key)
                 earned[a] += amount
 
         elif t == "escrow_return":

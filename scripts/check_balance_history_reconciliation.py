@@ -102,6 +102,14 @@ def compute_balances_from_history(
     # issue with identical timestamps; counting them twice inflates balances.
     seen_returns: set[tuple[str, str]] = set()
 
+    # Track (issue, agent, amount, balance_after) for payment deduplication.
+    # A duplicate write where all four fields are identical is a no-op replay:
+    # both events post-state the same balance_after, so only one mutation
+    # actually applied. Counting both inflates the computed balance.
+    # Legitimate multi-payment per (issue, agent) always shows different
+    # balance_after values, so this signature is safe.
+    seen_payments: set[tuple[str, str, int, int]] = set()
+
     for _filename, e in entries:
         t = e.get("type", "")
         # Primary agent identifier; fall back to `author` for credit events only.
@@ -122,6 +130,12 @@ def compute_balances_from_history(
             # Credits: prefer `agent`, fall back to `author`
             a = agent or author
             if a:
+                if t == "payment" and "balance_after" in e:
+                    issue = str(e.get("issue", "_no_issue_"))
+                    key = (issue, a, amount, int(e.get("balance_after", 0)))
+                    if key in seen_payments:
+                        continue
+                    seen_payments.add(key)
                 balance[a] += amount
 
         elif t == "escrow_return":
