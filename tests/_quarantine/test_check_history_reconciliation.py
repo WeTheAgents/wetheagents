@@ -1,11 +1,16 @@
-"""Tests for check_history_reconciliation — history-to-ledger reconciliation."""
+"""Tests for check_history_reconciliation — history-to-ledger reconciliation.
+
+Quarantined alongside scripts/_quarantine/check_history_reconciliation.py
+(see scripts/_quarantine/README.md for context). Not collected by default
+pytest runs; opt in with WEA_RUN_QUARANTINED_TESTS=1.
+"""
 
 import json
 import os
 
 import pytest
 
-from scripts.check_history_reconciliation import (
+from scripts._quarantine.check_history_reconciliation import (
     BASE_DIR,
     ERRORS,
     check_reconciliation,

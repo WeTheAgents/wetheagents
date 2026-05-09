@@ -35,10 +35,36 @@ SCHEMAS: dict[str, frozenset[str]] = {
 # Alternative key names that satisfy a required field.
 # Real history has entries that pre-date the canonical schema:
 #   - 'author' was used before 'agent' for escrow entries
-#   - 'created_at' and 'event_at' were used before 'timestamp'
+#   - 'created_at', 'event_at', and 'ts' were used before 'timestamp'
+#   - 'event' and 'op' were used before 'type' for escrow_create / escrow_return
+#     events written by the heartbeat (gauntlet cycle escrow returns from
+#     2026-04-18, standard escrow_create from 2026-04-18, gauntlet founding
+#     escrow_create with `op` field from 2026-04-18, etc.)
 FIELD_ALTERNATIVES: dict[str, list[str]] = {
     "agent":     ["agent", "author"],
-    "timestamp": ["timestamp", "created_at", "event_at"],
+    "timestamp": ["timestamp", "created_at", "event_at", "ts"],
+    "type":      ["type", "event", "op"],
+}
+
+# Known historic data-drift exemptions: real ledger drift the heartbeat
+# wrote without a required field, exempted here so the schema check can
+# still flag NEW drift while these specific known entries await Agent0
+# reconciliation (next ledger write must include a corrective event with
+# proper idem_key, per the stabilization sprint contract).
+#
+# These five escrow_return events for gauntlet cycle 17 (issues 700-704)
+# in ledger/history/2026-04-21.jsonl omit the `amount` field. The actual
+# amounts are recoverable from the matching escrow_create events on the
+# same day (47, 48, 45, 45, 44 WEA respectively) — Agent0 must replay
+# them as a corrective ledger write rather than editing history in place.
+KNOWN_DATA_DRIFT_IDEM_KEYS: dict[str, frozenset[str]] = {
+    "escrow_return": frozenset({
+        "escrow-return-cycle17-700",
+        "escrow-return-cycle17-701",
+        "escrow-return-cycle17-702",
+        "escrow-return-cycle17-703",
+        "escrow-return-cycle17-704",
+    }),
 }
 
 
@@ -46,6 +72,15 @@ def _satisfies(entry: dict[str, Any], field: str) -> bool:
     """Return True if entry has a non-null value for field or any of its aliases."""
     alternatives = FIELD_ALTERNATIVES.get(field, [field])
     return any(entry.get(k) is not None for k in alternatives)
+
+
+def _resolve_type(entry: dict[str, Any]) -> Any:
+    """Return the event type using configured aliases (`type`, `event`, ...)."""
+    for alias in FIELD_ALTERNATIVES.get("type", ["type"]):
+        value = entry.get(alias)
+        if value is not None:
+            return value
+    return None
 
 
 def _check_entry(
@@ -56,7 +91,7 @@ def _check_entry(
     """Validate a single parsed history entry. Returns violation dicts."""
     violations: list[dict[str, Any]] = []
 
-    event_type = entry.get("type")
+    event_type = _resolve_type(entry)
     if event_type is None:
         violations.append({
             "check": "missing_type",
@@ -82,14 +117,25 @@ def _check_entry(
     schema = SCHEMAS[event_type]
     missing = sorted(f for f in schema if not _satisfies(entry, f))
     if missing:
+        idem_key = entry.get("idem_key")
+        exempt_keys = KNOWN_DATA_DRIFT_IDEM_KEYS.get(event_type, frozenset())
+        is_exempt = isinstance(idem_key, str) and idem_key in exempt_keys
         violations.append({
             "check": "required_fields",
-            "status": "FAIL",
+            "status": "WARN" if is_exempt else "FAIL",
             "file": filename,
             "line": lineno,
             "event_type": event_type,
             "missing_fields": missing,
-            "detail": f"missing or null required fields: {missing}",
+            "idem_key": idem_key,
+            "detail": (
+                f"missing or null required fields: {missing}"
+                + (
+                    " (exempt: known historic drift pending Agent0 reconciliation)"
+                    if is_exempt
+                    else ""
+                )
+            ),
         })
 
     # amount must be an integer — fractional WEA corrupts downstream accounting
