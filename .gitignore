@@ -15,6 +15,12 @@ agent0_diary_raw/
 
 # Agent worktree secrets
 /.env
+/.env.*
+!/.env.example
+
+# Telegram inbox: raw queue + offset state are local; decisions are committed
+agent0/inbox/telegram_queue.jsonl
+agent0/inbox/telegram_state.json
 
 # Claude Code agent worktrees
 .claude/worktrees/

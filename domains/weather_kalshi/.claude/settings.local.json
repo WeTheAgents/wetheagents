@@ -7,7 +7,15 @@
       "Bash(grep *)",
       "Bash(ls *)",
       "Bash(wc *)",
-      "Bash(C:/Users/peach/.config/herbie/config.toml:*)"
+      "Bash(C:/Users/peach/.config/herbie/config.toml:*)",
+      "Bash(HTTPS_PROXY=\"http://US:x@46.101.120.80:13128\" uv run python scripts/collect_all_cities.py --days-back 14 --days-ahead 5)",
+      "Bash(HTTPS_PROXY=\"http://US:x@46.101.120.80:13128\" uv run python -m scripts.daily_snapshot)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run --no-project python -m scripts.aviation_snapshot)",
+      "Bash(HTTPS_PROXY=\"http://US:x@46.101.120.80:13128\" uv run --no-project python scripts/collect_all_cities.py --days-back 14 --days-ahead 5)",
+      "Bash([ ! -f \"C:\\\\\\\\Users\\\\\\\\peach\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\D--GitHub-wetheagents-domains-weather-kalshi\\\\\\\\93d377e2-4400-469b-895e-6029c7b6ad8d\\\\\\\\tasks\\\\\\\\bo18lb8m5.status\" ])",
+      "Bash(tasklist)",
+      "Bash(tasklist /fo csv)"
     ]
   }
 }
