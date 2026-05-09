@@ -11,11 +11,17 @@ import json
 from pathlib import Path
 from typing import Any
 
+from scripts.circle1.role_grammar import Role, classify_role
+
 SESSION_1_ZONES: list[str] = ["scripts", "src_wea_cli"]
 
 _ZONE_PATHS: dict[str, str] = {
     "scripts": "scripts",
     "src_wea_cli": "src/wea_cli",
+}
+_ZONE_TEMPLATE_CANDIDATES: dict[str, list[str]] = {
+    "scripts": ["scripts_v1_roles.json", "scripts.json"],
+    "src_wea_cli": ["src_wea_cli.json"],
 }
 
 
@@ -26,12 +32,15 @@ def template_dir(root: Path) -> Path:
 def detect_zone_templates(root: Path) -> dict[str, Path | None]:
     """Return zone_name -> template Path if declared, else None."""
     tmpl_dir = template_dir(root)
-    return {
-        zone: (tmpl_dir / f"{zone}.json")
-        if (tmpl_dir / f"{zone}.json").exists()
-        else None
-        for zone in SESSION_1_ZONES
-    }
+    result: dict[str, Path | None] = {}
+    for zone in SESSION_1_ZONES:
+        result[zone] = None
+        for name in _ZONE_TEMPLATE_CANDIDATES[zone]:
+            candidate = tmpl_dir / name
+            if candidate.exists():
+                result[zone] = candidate
+                break
+    return result
 
 
 def load_template(path: Path) -> dict[str, Any]:
@@ -96,6 +105,57 @@ def file_conforms(path: Path, template: dict[str, Any]) -> bool:
     return True
 
 
+def _is_scripts_role_template(template: dict[str, Any]) -> bool:
+    return (
+        template.get("zone") == "scripts"
+        and template.get("version") == "v1_roles"
+        and isinstance(template.get("roles"), dict)
+    )
+
+
+def _zone_py_files(root: Path, zone: str) -> list[Path]:
+    zone_dir = root / _ZONE_PATHS[zone]
+    return sorted(
+        p for p in zone_dir.rglob("*.py")
+        if p.name != "__init__.py" and p.is_file()
+    )
+
+
+def _compute_scripts_role_conformance(
+    root: Path,
+    template: dict[str, Any],
+) -> dict[str, Any]:
+    py_files = _zone_py_files(root, "scripts")
+    role_counts: dict[str, int] = {role.value: 0 for role in Role}
+    unclassified: list[dict[str, Any]] = []
+
+    for path in py_files:
+        result = classify_role(path)
+        role_counts[result.role.value] += 1
+        if result.role == Role.UNCLASSIFIED:
+            unclassified.append(
+                {
+                    "path": str(path.relative_to(root)).replace("\\", "/"),
+                    "reasons": result.reasons,
+                }
+            )
+
+    total = len(py_files)
+    conforming = total - role_counts[Role.UNCLASSIFIED.value]
+    rate = 1.0 if total == 0 else round(conforming / total, 6)
+    return {
+        "conforming": conforming,
+        "total": total,
+        "rate": rate,
+        "template_declared": True,
+        "basis": "declared",
+        "grammar_version": template.get("version", "v1_roles"),
+        "scoring_basis": "role_aware",
+        "role_inventory": role_counts,
+        "unclassified": unclassified,
+    }
+
+
 # Empirical dominant shape used before templates are declared.
 _EMPIRICAL_REQUIRED: dict[str, list[str]] = {
     "scripts": ["has_module_docstring", "has_future_annotations", "has_main_guard"],
@@ -127,11 +187,10 @@ def compute_zone_conformance(
 
     Uses the declared template if present; falls back to empirical dominant shape.
     """
-    zone_dir = root / _ZONE_PATHS[zone]
-    py_files = [
-        p for p in zone_dir.rglob("*.py")
-        if p.name != "__init__.py" and p.is_file()
-    ]
+    if zone == "scripts" and template is not None and _is_scripts_role_template(template):
+        return _compute_scripts_role_conformance(root, template)
+
+    py_files = _zone_py_files(root, zone)
     total = len(py_files)
     if total == 0:
         return {

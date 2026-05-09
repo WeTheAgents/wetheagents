@@ -90,6 +90,18 @@ _WEA_CLI_TEMPLATE: dict = {
     ],
 }
 
+_SCRIPTS_ROLE_TEMPLATE: dict = {
+    "zone": "scripts",
+    "version": "v1_roles",
+    "description": "Role-aware test scripts template",
+    "roles": {
+        "runnable_entrypoint": {},
+        "import_safe_support": {},
+        "declaration_module": {},
+        "unclassified": {},
+    },
+}
+
 
 def _write_templates(root: Path) -> None:
     tmpl_dir = root / "domains" / "circle-1" / "zone_templates"
@@ -98,6 +110,13 @@ def _write_templates(root: Path) -> None:
     )
     (tmpl_dir / "src_wea_cli.json").write_text(
         json.dumps(_WEA_CLI_TEMPLATE), encoding="utf-8"
+    )
+
+
+def _write_role_template(root: Path) -> None:
+    tmpl_dir = root / "domains" / "circle-1" / "zone_templates"
+    (tmpl_dir / "scripts_v1_roles.json").write_text(
+        json.dumps(_SCRIPTS_ROLE_TEMPLATE), encoding="utf-8"
     )
 
 
@@ -166,6 +185,15 @@ class TestScoreModuleGrammarDeclared:
         assert mg["declared"] == 2, f"Expected declared=2, got {mg['declared']}"
         assert "scripts" in mg["zones_with_declared_templates"]
         assert "src_wea_cli" not in mg["zones_with_declared_templates"]
+
+    def test_scripts_role_template_takes_precedence_over_flat_template(self, tmp_path):
+        """scripts_v1_roles.json is the declared scripts template when both exist."""
+        repo = _make_fixture_repo(tmp_path)
+        _write_templates(repo)
+        _write_role_template(repo)
+
+        result = detect_zone_templates(repo)
+        assert result["scripts"].name == "scripts_v1_roles.json"
 
     def test_declared_is_3_with_both_templates(self, tmp_path):
         """Both template files → declared=3 (repeatable)."""
@@ -240,6 +268,78 @@ class TestConformanceFromFixture:
         assert zone_data["total"] == 2
         assert zone_data["conforming"] == 1
         assert zone_data["rate"] == 0.5
+
+    def test_role_template_allows_import_safe_support_without_main_guard(self, tmp_path):
+        """With role-aware scoring, support modules do not need __main__ guards."""
+        repo = _make_fixture_repo(tmp_path)
+        (repo / "scripts" / "helper.py").write_text(
+            '"""Import-safe helper."""\n\n'
+            "from __future__ import annotations\n\n"
+            "def helper() -> int:\n"
+            "    return 1\n",
+            encoding="utf-8",
+        )
+        _write_templates(repo)
+        _write_role_template(repo)
+
+        mg = score_module_grammar(repo)
+        zone_data = mg["zone_signals"]["scripts"]
+        assert zone_data["scoring_basis"] == "role_aware"
+        assert zone_data["grammar_version"] == "v1_roles"
+        assert zone_data["role_inventory"]["import_safe_support"] == 1
+        assert zone_data["conforming"] == zone_data["total"] == 2
+        assert zone_data["rate"] == 1.0
+
+    def test_flat_template_fallback_still_requires_main_guard(self, tmp_path):
+        """Without scripts_v1_roles.json, the legacy flat scripts template still applies."""
+        repo = _make_fixture_repo(tmp_path)
+        (repo / "scripts" / "helper.py").write_text(
+            '"""Import-safe helper."""\n\n'
+            "from __future__ import annotations\n\n"
+            "def helper() -> int:\n"
+            "    return 1\n",
+            encoding="utf-8",
+        )
+        _write_templates(repo)
+
+        mg = score_module_grammar(repo)
+        zone_data = mg["zone_signals"]["scripts"]
+        assert zone_data["basis"] == "declared"
+        assert "scoring_basis" not in zone_data
+        assert zone_data["conforming"] == 1
+        assert zone_data["total"] == 2
+        assert zone_data["rate"] == 0.5
+
+    def test_unclassified_counts_against_role_aware_conformance(self, tmp_path):
+        """unclassified is diagnostic debt: visible in detail and excluded from conforming."""
+        repo = _make_fixture_repo(tmp_path)
+        (repo / "scripts" / "side_effect.py").write_text(
+            '"""Looks reusable but mutates sys.path at import time."""\n\n'
+            "from __future__ import annotations\n"
+            "import sys\n\n"
+            "sys.path.insert(0, 'x')\n\n"
+            "def helper() -> int:\n"
+            "    return 1\n",
+            encoding="utf-8",
+        )
+        _write_templates(repo)
+        _write_role_template(repo)
+
+        mg = score_module_grammar(repo)
+        zone_data = mg["zone_signals"]["scripts"]
+        assert zone_data["conforming"] == 1
+        assert zone_data["total"] == 2
+        assert zone_data["rate"] == 0.5
+        assert zone_data["role_inventory"]["unclassified"] == 1
+        assert zone_data["unclassified"] == [
+            {
+                "path": "scripts/side_effect.py",
+                "reasons": [
+                    "module-level sys.path mutation detected (inside control flow, not a bare call)",
+                    "bare function calls at module top level (called for side effects)",
+                ],
+            }
+        ]
 
 
 # ---------------------------------------------------------------------------
@@ -316,6 +416,17 @@ class TestLiveWEARepo:
                 f"Zone {zone} reports basis={basis!r}, expected 'declared'"
             )
 
+    def test_live_scripts_zone_uses_role_aware_scoring(self, wea_root):
+        """After task #798, scripts zone detail should expose role-aware scoring."""
+        mg = score_module_grammar(wea_root)
+        scripts = mg["zone_signals"]["scripts"]
+        assert scripts["grammar_version"] == "v1_roles"
+        assert scripts["scoring_basis"] == "role_aware"
+        assert scripts["role_inventory"]["runnable_entrypoint"] > 0
+        assert scripts["role_inventory"]["import_safe_support"] > 0
+        assert scripts["role_inventory"]["unclassified"] > 0
+        assert scripts["unclassified"], "Live scripts role scan should expose review debt"
+
     def test_score_repo_cli_surfaces_template_evidence(self, wea_root):
         """score_repo._scan_wea surfaces declared-template evidence for both zones."""
         sys.path.insert(0, str(wea_root))
@@ -329,6 +440,11 @@ class TestLiveWEARepo:
         detail = result["module_grammar_detail"]
         assert "scripts" in detail["zones_with_declared_templates"]
         assert "src_wea_cli" in detail["zones_with_declared_templates"]
+        scripts = detail["zone_signals"]["scripts"]
+        assert scripts["grammar_version"] == "v1_roles"
+        assert scripts["scoring_basis"] == "role_aware"
+        assert scripts["role_inventory"]["unclassified"] > 0
+        assert scripts["unclassified"]
 
         notes_text = " ".join(result["notes"])
         assert "scripts" in notes_text

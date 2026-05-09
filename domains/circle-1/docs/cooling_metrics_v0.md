@@ -5,6 +5,29 @@ This is the internal measurement model for phase 1.
 It is designed for WEA self-dogfooding first. It is **not** yet the public
 circle-1 standard.
 
+## Phase 1 implementation boundary
+
+Phase 1 implements an **evidence checkpoint**, not the full future scorecard.
+
+That means:
+
+- the first instrument collects deterministic evidence and raw signals;
+- Agent0 remains the scorer, interpreter, and router;
+- structural and outcome concepts still matter, but not every concept is
+  automatically collected yet.
+
+Phase 1 explicitly does **not** automate:
+
+- `Declared / Enforced / Exercised` verdicts for the six dimensions;
+- top-cut recommendations;
+- Gauntlet routing verdicts;
+- cohort and outcome metrics from GitHub history;
+- external portability claims.
+
+If a future metric is not yet implemented honestly in the first instrument, it
+must be absent or explicitly `null`. Phase 1 does not backfill fake zeroes just
+to satisfy shape.
+
 ## Design rules
 
 - No cadence-sensitive metrics that can be improved by simply running Agent0 more often.

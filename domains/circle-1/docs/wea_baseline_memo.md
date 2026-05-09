@@ -15,6 +15,11 @@ The core distinction is deliberate:
 This memo does **not** assume that WEA is already cold just because it is
 well-documented.
 
+Machine-produced follow-up artifacts for Phase 1 now exist:
+
+- evidence checkpoint: `domains/circle-1/checkpoints/wea--2026-04-23--c07e079.json`
+- Agent0 interpretation: `domains/circle-1/docs/wea_checkpoint_assessment_2026-04-23.md`
+
 ## Snapshot
 
 Observed locally on 2026-04-21:
