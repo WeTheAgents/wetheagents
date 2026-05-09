@@ -111,6 +111,13 @@ def replay(events: list[dict]) -> dict[str, Any]:
     # duplicate entries for the same return that must only count once.
     seen_returns: set[tuple[str, str]] = set()
 
+    # Deduplicate payment events by (issue, agent, amount, balance_after).
+    # A duplicate write where all four fields match is a no-op replay: both
+    # rows post-state the same balance_after, proving only one mutation
+    # applied. Legitimate multi-payment per (issue, agent) always advances
+    # balance_after, so this tight signature does not over-collapse.
+    seen_payments: set[tuple[str, str, int, int]] = set()
+
     negative_violations: list[dict] = []
     events_replayed = 0
 
@@ -157,10 +164,22 @@ def replay(events: list[dict]) -> dict[str, Any]:
             a = str(event.get("agent", "") or event.get("author", "") or "")
             amount = int(event.get("amount", 0))
             if a:
+                if t == "payment" and "balance_after" in event:
+                    issue = str(event.get("issue", "_no_issue_"))
+                    key = (issue, a, amount, int(event.get("balance_after", 0)))
+                    if key in seen_payments:
+                        continue
+                    seen_payments.add(key)
                 balances[a] += amount
 
         elif t == "trajectory_mint":
-            a = str(event.get("agent", "") or "")
+            # Three historical formats are supported:
+            #   1. Single-agent (modern): "agent" + "amount"
+            #   2. Single-agent (legacy heartbeat): "to" + "amount"
+            #   3. Multi-agent: "agents" list + "per_agent" list
+            # Without the `to` fallback, legacy mints are silently dropped,
+            # leaving the agent's computed balance short by the mint amount.
+            a = str(event.get("agent", "") or event.get("to", "") or "")
             amount = int(event.get("amount", 0))
             if a:
                 balances[a] += amount

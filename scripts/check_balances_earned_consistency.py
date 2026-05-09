@@ -103,6 +103,13 @@ def compute_earned_spent(
     earned: dict[str, int] = defaultdict(int)
     spent: dict[str, int] = defaultdict(int)
 
+    # Track (issue, agent, amount, balance_after) for payment dedup. Some
+    # history files contain a duplicate payment write where all four fields
+    # are identical; both rows post-state the same balance_after, so only
+    # one mutation actually applied. Legitimate multi-payment per
+    # (issue, agent) always advances balance_after, so this signature is safe.
+    seen_payments: set[tuple[Any, str, int, int]] = set()
+
     # First pass: collect issues that have a modern escrow_create event.
     # Only escrow_return events for these issues are eligible to count toward
     # total_earned.  Old-format ``escrow`` events pre-date escrow_create and
@@ -136,6 +143,11 @@ def compute_earned_spent(
         elif t in ("payment", "accept"):
             a = e.get("agent", "")
             if a and amount > 0:
+                if t == "payment" and "balance_after" in e:
+                    key = (e.get("issue"), a, amount, int(e.get("balance_after", 0)))
+                    if key in seen_payments:
+                        continue
+                    seen_payments.add(key)
                 earned[a] += amount
 
         # --- escrow_return (modern escrows only) ---

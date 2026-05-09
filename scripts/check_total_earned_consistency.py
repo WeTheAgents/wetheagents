@@ -121,6 +121,13 @@ def compute_total_earned(
     """
     earned: dict[str, int] = defaultdict(int)
 
+    # Track (issue, agent, amount, balance_after) for payment dedup. A
+    # duplicate write where all four fields are identical posts the same
+    # balance_after twice, proving only one mutation applied; counting
+    # both inflates the computed total. Legitimate multi-payment to the
+    # same (issue, agent) always advances balance_after.
+    seen_payments: set[tuple[Any, str, int, int]] = set()
+
     for e in events:
         t = e.get("type", "")
         amount = int(e.get("amount", 0))
@@ -144,6 +151,11 @@ def compute_total_earned(
         elif t in ("payment", "accept"):
             a = e.get("agent", "")
             if a and amount > 0:
+                if t == "payment" and "balance_after" in e:
+                    key = (e.get("issue"), a, amount, int(e.get("balance_after", 0)))
+                    if key in seen_payments:
+                        continue
+                    seen_payments.add(key)
                 earned[a] += amount
 
         # --- escrow_return ---
