@@ -18,7 +18,7 @@ import os
 import sys
 from collections import defaultdict
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LEDGER_DIR = os.path.join(BASE_DIR, "ledger")
 
 ERRORS: list[str] = []

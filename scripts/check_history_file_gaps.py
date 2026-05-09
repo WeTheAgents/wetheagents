@@ -132,12 +132,13 @@ def _collect_history_event_dates(history_dir: Path) -> set[str]:
     return dates
 
 
-def _earliest_history_date(history_dir: Path) -> str | None:
-    """Return the earliest YYYY-MM-DD that has a history file, or None."""
-    if not history_dir.is_dir():
-        return None
-    files = sorted(history_dir.glob("*.jsonl"))
-    return files[0].stem if files else None
+# Fixed pre-history baseline: history journaling began on 2026-03-03.
+# Earlier dates (e.g. agent0@system registered_at on 2026-03-02 genesis)
+# definitionally cannot have a history file. Anchoring to a fixed constant
+# (rather than min(history_dir/*.jsonl)) prevents the check from silently
+# passing if the earliest history file is itself deleted or renamed —
+# that's exactly the kind of drift this checker must catch.
+HISTORY_JOURNAL_START = "2026-03-03"
 
 
 def run_check(root: Path) -> dict[str, Any]:
@@ -152,7 +153,6 @@ def run_check(root: Path) -> dict[str, Any]:
 
     checked_dates = sorted(all_dates)
     history_event_dates = _collect_history_event_dates(history_dir)
-    earliest_history = _earliest_history_date(history_dir)
 
     missing_dates: list[str] = []
     for date_value in checked_dates:
@@ -168,8 +168,8 @@ def run_check(root: Path) -> dict[str, Any]:
         # 3. Pre-history baseline timestamps (e.g. agent registered_at on
         #    genesis day before history journaling began) cannot have a
         #    history file by definition. Treat dates strictly before the
-        #    earliest history file as reconciled.
-        if earliest_history and date_value < earliest_history:
+        #    fixed HISTORY_JOURNAL_START as reconciled.
+        if date_value < HISTORY_JOURNAL_START:
             continue
         # 4. Known historic gaps awaiting Agent0 reconciliation. New
         #    unreconciled dates still fail; only the documented set is
@@ -189,7 +189,7 @@ def run_check(root: Path) -> dict[str, Any]:
         "checked_files": list(SOURCE_FILES),
         "dates_by_source": dates_by_source,
         "dates_checked": checked_dates,
-        "earliest_history_file": earliest_history,
+        "history_journal_start": HISTORY_JOURNAL_START,
         "missing_dates": missing_dates,
         "summary": summary,
     }
