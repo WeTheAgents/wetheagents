@@ -99,3 +99,52 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Escrowed task `#885` cannot progress without GitHub connectivity.
 - **Next highest-leverage action**:
   - From a GitHub-connected environment, execute `agent0/task_index_reconciliation.md` until `python scripts/check_task_escrow_sync.py` is green; then re-run `python scripts/circle1_director_sweep.py --fail`.
+
+## 2026-05-09T21:10:56+03:00 (Circle-1 director loop)
+
+- **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `agent0/task_index_reconciliation.md`, automation memory.
+- **Ops sweep (local / offline)**:
+  - `python scripts/circle1_director_sweep.py --out .wea_runs/circle1_sweep_<ts>.json`: `has_drift=True`.
+  - Return codes: `check_invariant=0` (PASS), `check_task_escrow_sync=1` (FAIL), `report_task_index_stale_open=1` (FAIL), `report_task_index_drift_json=0`.
+  - Drift counts: `open_no_active_escrow=70`, `open_has_payment_events=4`, `history_issue_missing_task_index_entry=255`.
+- **Decisions**:
+  - Keep this environment **offline-only**; optimize “director sweep → online reconciliation” handoff instead of attempting GitHub operations here.
+- **Actions taken (repo)**:
+  - `scripts/check_task_escrow_sync.py`: added `--json` output mode (no behavior change; easier tooling/CI consumption).
+  - `scripts/circle1_director_sweep.py`: added `generated_at`, top-level `drift_counts`/`return_codes`, parses escrow-sync JSON, and `--out` now also writes `.wea_runs/circle1_sweep_latest.json`.
+  - `agent0/task_index_reconciliation.md`: documented the `.wea_runs/circle1_sweep_latest.json` side-effect.
+- **Issues/PRs touched**: none (GitHub access blocked).
+- **Dispatches launched**: none.
+- **Ledger-affecting actions**: none (no writes to `ledger/`).
+- **Invariant results**: PASS (via sweep).
+- **Blockers**:
+  - Outbound GitHub access blocked (cannot reconcile `task_index` with issue truth; cannot comment/create issues).
+- **Active threads**:
+  - Online reconciliation pass to resolve the 70 stale `open` tasks + investigate the 255 history-only issue ids.
+  - Escrowed task `#885` (and other “open_has_payment_events” tasks) cannot be progressed/closed correctly without GitHub connectivity.
+- **Next highest-leverage action**:
+  - From a GitHub-connected environment, execute `agent0/task_index_reconciliation.md` until `python scripts/check_task_escrow_sync.py` is green; re-run `python scripts/circle1_director_sweep.py --fail --out .wea_runs/circle1_sweep.json` to confirm.
+
+## 2026-05-09T22:03:10+03:00 (Circle-1 director loop)
+
+- **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `agent0/task_index_reconciliation.md`; automation memory was missing at start of run.
+- **Ops sweep (local / offline)**:
+  - `python scripts/circle1_director_sweep.py --out .wea_runs/circle1_sweep_<ts>.json`: `has_drift=True`.
+  - Drift counts: `open_no_active_escrow=70`, `open_has_payment_events=4`, `history_issue_missing_task_index_entry=255`.
+  - Return codes: `check_invariant=0` (PASS), `check_task_escrow_sync=1` (FAIL), `report_task_index_stale_open=1` (FAIL), `report_task_index_drift_json=0`.
+- **Decisions**:
+  - Keep this environment **offline-only**; reduce temperature by tightening the “offline sweep → online reconciliation” dogfooding loop.
+- **Actions taken (repo)**:
+  - Added `wea circle1 sweep` (CLI wrapper around the same offline director sweep logic).
+  - Updated `agent0/task_index_reconciliation.md` to prefer `wea circle1 sweep` invocations.
+- **Issues/PRs touched**: none (GitHub access blocked).
+- **Dispatches launched**: none (no GitHub-connected work possible here).
+- **Ledger-affecting actions**: none (no writes to `ledger/`).
+- **Invariant results**: PASS (via sweep).
+- **Blockers**:
+  - Outbound GitHub access blocked (cannot reconcile `task_index` with issue truth; cannot comment/create issues).
+- **Active threads**:
+  - Online reconciliation pass to resolve the 70 stale `open` tasks + investigate the 255 history-only issue ids.
+  - Escrowed task `#885` (and other “open_has_payment_events” tasks) cannot be progressed/closed correctly without GitHub connectivity.
+- **Next highest-leverage action**:
+  - From a GitHub-connected environment, run `wea circle1 sweep --fail --out .wea_runs/circle1_sweep.json`, execute `agent0/task_index_reconciliation.md` until escrow-sync is green, then re-run the sweep to confirm drift counts drop to zero.

@@ -14,6 +14,7 @@ import argparse
 import json
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -49,7 +50,7 @@ def build_sweep(repo_root: Path, *, limit: int) -> dict[str, Any]:
     python = sys.executable
 
     invariant = _run([python, "scripts/check_invariant.py"], cwd=repo_root)
-    escrow_sync = _run([python, "scripts/check_task_escrow_sync.py"], cwd=repo_root)
+    escrow_sync = _run([python, "scripts/check_task_escrow_sync.py", "--json"], cwd=repo_root)
     stale_open = _run(
         [python, "scripts/report_task_index_stale_open.py", "--fail", "--limit", str(limit)],
         cwd=repo_root,
@@ -60,6 +61,7 @@ def build_sweep(repo_root: Path, *, limit: int) -> dict[str, Any]:
     )
 
     drift_report = _parse_json_report(drift_json["output"])
+    escrow_sync_report = _parse_json_report(escrow_sync["output"])
 
     drift_counts: dict[str, int] = {}
     if drift_report:
@@ -67,6 +69,14 @@ def build_sweep(repo_root: Path, *, limit: int) -> dict[str, Any]:
         for key, value in drift_block.items():
             if isinstance(value, dict) and isinstance(value.get("count"), int):
                 drift_counts[str(key)] = int(value["count"])
+
+    escrow_sync_counts: dict[str, int] = {}
+    if escrow_sync_report:
+        for check in escrow_sync_report.get("checks", []) or []:
+            title = str(check.get("title", "")).strip()
+            problems = check.get("problems", []) or []
+            if isinstance(problems, list):
+                escrow_sync_counts[title] = len(problems)
 
     has_drift = any(
         [
@@ -85,9 +95,18 @@ def build_sweep(repo_root: Path, *, limit: int) -> dict[str, Any]:
     )
 
     return {
+        "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "repo_root": str(repo_root),
         "has_drift": has_drift,
         "recommended_next_action": recommended_next_action,
+        "drift_counts": drift_counts,
+        "escrow_sync_counts": escrow_sync_counts,
+        "return_codes": {
+            "check_invariant": invariant["returncode"],
+            "check_task_escrow_sync": escrow_sync["returncode"],
+            "report_task_index_stale_open": stale_open["returncode"],
+            "report_task_index_drift_json": drift_json["returncode"],
+        },
         "checks": {
             "check_invariant": invariant,
             "check_task_escrow_sync": escrow_sync,
@@ -95,7 +114,7 @@ def build_sweep(repo_root: Path, *, limit: int) -> dict[str, Any]:
             "report_task_index_drift_json": drift_json,
         },
         "parsed": {
-            "task_index_drift_counts": drift_counts,
+            "task_escrow_sync_report": escrow_sync_report,
             "task_index_drift_report": drift_report,
         },
     }
@@ -105,7 +124,7 @@ def _print_human(sweep: dict[str, Any]) -> None:
     checks = sweep["checks"]
     print(f"has_drift={sweep['has_drift']}")
 
-    drift_counts: dict[str, int] = sweep["parsed"]["task_index_drift_counts"] or {}
+    drift_counts: dict[str, int] = sweep.get("drift_counts", {}) or {}
     if drift_counts:
         print("task_index_drift_counts:")
         for key in sorted(drift_counts.keys()):
@@ -167,6 +186,8 @@ def main() -> int:
         out_path = Path(args.out)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(sweep, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        latest_path = out_path.parent / "circle1_sweep_latest.json"
+        latest_path.write_text(json.dumps(sweep, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     if args.json or args.out:
         print(json.dumps(sweep, indent=2, ensure_ascii=False))

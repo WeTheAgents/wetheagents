@@ -10,6 +10,7 @@ Validates that task_index.json and escrows.json are consistent:
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -93,18 +94,39 @@ def main() -> int:
         default=None,
         help="Path to repository root (default: auto-detect from script location)",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON instead of human text.",
+    )
     args = parser.parse_args()
 
     root = _repo_root_from(args.root)
+    results = []
     failed = False
     for title, problems in run_checks(root):
-        if problems:
+        ok = not bool(problems)
+        if not ok:
             failed = True
-            print(f"FAIL: {title}")
-            for problem in problems:
-                print(f"  - {problem}")
-        else:
-            print(f"PASS: {title}")
+        results.append({"title": title, "ok": ok, "problems": problems})
+
+    if args.json:
+        payload = {
+            "repo_root": str(root),
+            "ok": not failed,
+            "checks": results,
+        }
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        for item in results:
+            title = item["title"]
+            problems = item["problems"]
+            if problems:
+                print(f"FAIL: {title}")
+                for problem in problems:
+                    print(f"  - {problem}")
+            else:
+                print(f"PASS: {title}")
 
     return 1 if failed else 0
 

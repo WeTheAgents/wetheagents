@@ -115,6 +115,7 @@ from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.spawn import run_spawn
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 from wea_cli.trace import emit_event
+from wea_cli.circle1 import cmd_circle1_sweep
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -146,6 +147,7 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "task": frozenset({"calc-budget", "check-criteria", "lint", "template"}),
     "escrow": frozenset({"check"}),
     "knowledge": frozenset({"search", "list"}),
+    "circle1": frozenset({"sweep"}),
 }
 
 
@@ -3570,6 +3572,24 @@ def build_parser() -> argparse.ArgumentParser:
         "spawn_args", metavar="ARG", nargs="*", help="Arguments for the command",
     )
     spawn.set_defaults(_handler=cmd_spawn)
+
+    # --- Circle-1 commands (offline / read-only) ---
+
+    circle1 = subparsers.add_parser("circle1", help="Circle-1 offline director utilities")
+    circle1_sub = circle1.add_subparsers(dest="circle1_command")
+    circle1_sub.required = True
+
+    c1_sweep = circle1_sub.add_parser("sweep", help="Run offline director sweep (no ledger writes)")
+    c1_sweep.add_argument("--root", default=".", help="Repository root (default: .)")
+    c1_sweep.add_argument("--limit", type=int, default=20, help="Max sample size for reports (default: 20)")
+    c1_sweep.add_argument("--json", action="store_true", help="Emit machine-readable JSON to stdout")
+    c1_sweep.add_argument(
+        "--out",
+        default=None,
+        help="Optional path to write the JSON sweep payload (UTF-8). Also writes .wea_runs/circle1_sweep_latest.json.",
+    )
+    c1_sweep.add_argument("--fail", action="store_true", help="Exit non-zero when drift is detected")
+    c1_sweep.set_defaults(_handler=cmd_circle1_sweep)
 
     # --- Health commands ---
 

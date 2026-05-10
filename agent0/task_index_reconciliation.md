@@ -23,15 +23,16 @@ python scripts/report_task_index_drift.py
 Or run the one-command Circle-1 director sweep (recommended for offline triage):
 
 ```bash
-python scripts/circle1_director_sweep.py --fail
+wea circle1 sweep --fail
 ```
 
-If you want a JSON snapshot written to disk (recommended on Windows), use
-`--out`:
+If you want a JSON snapshot written to disk (recommended on Windows), use `--out`:
 
 ```bash
-python scripts/circle1_director_sweep.py --out .wea_runs/circle1_sweep.json
+wea circle1 sweep --out .wea_runs/circle1_sweep.json
 ```
+
+This also updates `.wea_runs/circle1_sweep_latest.json` for quick access.
 
 For machine-readable output:
 
