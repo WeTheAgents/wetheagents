@@ -6,6 +6,9 @@ Known patterns:
   register|{agent}
   trajectory_mint|T{N}|{slot}
   escrow_create_{issue}_{type}_gauntlet
+  escrow-create-gauntlet-cycle{cycle}-{issue}
+  escrow_create-{issue}
+  escrow_create|{issue}
   escrow_return|{issue}
   escrow_return|{issue}|{agent}
   escrow_return|{issue}|{agent}|{reason}
@@ -41,6 +44,9 @@ KNOWN_PATTERNS = [
     re.compile(rf"^register\|{AGENT}$"),
     re.compile(rf"^trajectory_mint\|{TRAJ}\|{SLOT}$"),
     re.compile(rf"^escrow_create_{ISSUE}_{REASON}_gauntlet$"),
+    re.compile(rf"^escrow-create-gauntlet-cycle\d+-{ISSUE}$"),
+    re.compile(rf"^escrow_create-{ISSUE}$"),
+    re.compile(rf"^escrow_create\|{ISSUE}$"),
     re.compile(rf"^escrow_return\|{ISSUE}$"),
     re.compile(rf"^escrow_return\|{ISSUE}\|{AGENT}$"),
     re.compile(rf"^escrow_return\|{ISSUE}\|{AGENT}\|{REASON}$"),

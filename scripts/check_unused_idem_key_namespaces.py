@@ -44,8 +44,10 @@ _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _DYNAMIC_SEGMENT_RE = re.compile(r"^\d+$|^[Tt]\d+(?:s\d+)?$|^slot\d+$|^cycle\d+$")
 _DASHED_NAMESPACE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("escrow-create", re.compile(r"^escrow-create-\d+$")),
+    ("escrow-create", re.compile(r"^escrow-create-gauntlet-cycle\d+-\d+$")),
     ("escrow-cancel", re.compile(r"^escrow-cancel-\d+$")),
     ("escrow-return-cycle", re.compile(r"^escrow-return-cycle\d+-\d+$")),
+    ("escrow_create", re.compile(r"^escrow_create-\d+$")),
 )
 
 

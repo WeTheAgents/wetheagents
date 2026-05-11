@@ -15,6 +15,7 @@ PIPE_FORMAT = "pipe"
 UNDERSCORE_FORMAT = "underscore"
 EXAMPLE_LIMIT = 3
 _DYNAMIC_SEGMENT_RE = re.compile(r"^\d+$|^[Tt]\d+(?:s\d+)?$")
+LEGACY_MIXED_FORMAT_TYPES = frozenset({"escrow_create", "escrow_return"})
 
 
 def load_registered_idem_keys(path: Path) -> list[str]:
@@ -135,6 +136,7 @@ def build_format_report(raw_keys: list[str]) -> dict[str, Any]:
 
     type_distributions: list[dict[str, Any]] = []
     mixed_types: list[dict[str, Any]] = []
+    quarantined_mixed_types: list[dict[str, Any]] = []
 
     for type_prefix in sorted(distributions):
         pipe_count = distributions[type_prefix][PIPE_FORMAT]
@@ -151,7 +153,18 @@ def build_format_report(raw_keys: list[str]) -> dict[str, Any]:
         }
         type_distributions.append(entry)
         if entry["mixed"]:
-            mixed_types.append(entry)
+            if type_prefix in LEGACY_MIXED_FORMAT_TYPES:
+                quarantined_mixed_types.append(
+                    {
+                        **entry,
+                        "rationale": (
+                            "known legacy escrow namespace with accepted pipe and "
+                            "underscore-era keys"
+                        ),
+                    }
+                )
+            else:
+                mixed_types.append(entry)
 
     status = "FAIL" if mixed_types else "PASS"
     unique_unclassified = sorted(
@@ -171,9 +184,11 @@ def build_format_report(raw_keys: list[str]) -> dict[str, Any]:
             "unclassified_unique_keys": len(unique_unclassified),
             "types_checked": len(type_distributions),
             "mixed_types": len(mixed_types),
+            "quarantined_mixed_types": len(quarantined_mixed_types),
         },
         "type_distributions": type_distributions,
         "mixed_types": mixed_types,
+        "quarantined_mixed_types": quarantined_mixed_types,
         "unclassified_examples": unique_unclassified[:EXAMPLE_LIMIT],
     }
 

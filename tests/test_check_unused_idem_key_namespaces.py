@@ -76,6 +76,14 @@ def test_extract_namespace_from_dashed_cycle_key() -> None:
     assert extract_namespace("escrow-return-cycle17-700") == "escrow-return-cycle"
 
 
+def test_extract_namespace_from_gauntlet_dashed_escrow_create_key() -> None:
+    assert extract_namespace("escrow-create-gauntlet-cycle20-741") == "escrow-create"
+
+
+def test_extract_namespace_from_transitional_dashed_escrow_create_key() -> None:
+    assert extract_namespace("escrow_create-765") == "escrow_create"
+
+
 def test_extract_namespace_from_sha256_hash() -> None:
     assert (
         extract_namespace(

@@ -233,6 +233,43 @@ class TestLegacyStringValue:
         assert result["violations"] == []
 
 
+class TestLegacyEscrowMetadata:
+    """Known escrow metadata dicts from older ledger eras are accepted."""
+
+    def test_created_at_amount_without_op_passes_for_gauntlet_escrow_create(self):
+        data = {
+            "escrow_create_525_t1s16_gauntlet": {
+                "amount": 35,
+                "created_at": VALID_CREATED_AT,
+            }
+        }
+        result = run(data)
+        assert result["status"] == "PASS"
+        assert result["violations"] == []
+
+    def test_ts_without_created_at_passes_for_cycle_return(self):
+        data = {
+            "escrow-return-cycle22-789": {
+                "ts": VALID_CREATED_AT,
+                "op": "escrow_return",
+                "issue": 789,
+            }
+        }
+        result = run(data)
+        assert result["status"] == "PASS"
+        assert result["violations"] == []
+
+    def test_true_sentinel_passes_for_known_escrow_create_key(self):
+        result = run({"escrow_create|812": True})
+        assert result["status"] == "PASS"
+        assert result["violations"] == []
+
+    def test_unknown_true_sentinel_still_fails(self):
+        result = run({"payment|1|alice@test": True})
+        assert result["status"] == "FAIL"
+        assert any(v["key"] == "payment|1|alice@test" for v in result["violations"])
+
+
 class TestIsValidCreatedAt:
     """Unit tests for the _is_valid_created_at helper."""
 

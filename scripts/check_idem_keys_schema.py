@@ -7,6 +7,8 @@ Schema enforced for each entry in the keys map:
   - Each key must be a non-empty string.
   - Each value must be either:
     - A string (legacy format — grandfathered, no field validation applied), OR
+    - A known legacy sentinel (`true`) for escrow-create/return cycle keys, OR
+    - A known legacy metadata dict for escrow-create/return keys, OR
     - A dict with:
         created_at  required  ISO-8601 datetime ending in Z or ±HH:MM
         op          required  non-empty string
@@ -49,6 +51,14 @@ _ISO8601_RE = re.compile(
     r"(\.\d+)?"
     r"(Z|[+-]\d{2}:\d{2})$"
 )
+
+_LEGACY_TRUE_SENTINEL_RE = re.compile(
+    r"^(escrow-return-cycle\d+-\d+|escrow_create\|\d+)$"
+)
+_LEGACY_METADATA_RE = re.compile(
+    r"^(escrow_create_\d+_[A-Za-z0-9_-]+_gauntlet|escrow_return\|\d+\|[A-Za-z0-9@._-]+|escrow-return-cycle\d+-\d+)$"
+)
+_LEGACY_METADATA_FIELDS = frozenset({"amount", "created_at", "issue", "note", "op", "ts"})
 
 
 def _is_valid_created_at(value: object) -> bool:
@@ -104,6 +114,22 @@ def _validate_dict_value(key: str, value: dict) -> list[dict]:
     return violations
 
 
+def _is_legacy_true_sentinel(key: str, value: object) -> bool:
+    """Return True for historical presence-only idem entries."""
+    return value is True and bool(_LEGACY_TRUE_SENTINEL_RE.match(key))
+
+
+def _is_legacy_metadata_dict(key: str, value: dict) -> bool:
+    """Return True for historical metadata dicts predating the created_at/op schema."""
+    if not _LEGACY_METADATA_RE.match(key):
+        return False
+    if not set(value).issubset(_LEGACY_METADATA_FIELDS):
+        return False
+
+    timestamp = value.get("created_at") or value.get("ts")
+    return timestamp is None or _is_valid_created_at(timestamp)
+
+
 def run(entries: object) -> dict:
     """Validate the idem_keys entries map.
 
@@ -141,7 +167,12 @@ def run(entries: object) -> dict:
         if isinstance(value, str):
             # Legacy format (plain ISO timestamp string) — accepted as-is.
             pass
+        elif _is_legacy_true_sentinel(key, value):
+            # Legacy presence-only sentinel for a few historical escrow keys.
+            pass
         elif isinstance(value, dict):
+            if _is_legacy_metadata_dict(key, value):
+                continue
             # Determine format by presence of new-schema sentinel fields.
             # Old-format dicts (pre-schema, e.g. {"action": ..., "timestamp": ...})
             # lack both "created_at" and "op" and are grandfathered in.

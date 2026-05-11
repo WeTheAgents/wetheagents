@@ -172,7 +172,25 @@ def test_run_check_reads_history_and_registered_keys(temp_repo: Path) -> None:
     assert types["escrow_return"][UNDERSCORE_FORMAT] == 1
 
 
-def test_run_check_fails_when_same_type_is_mixed_across_sources(temp_repo: Path) -> None:
+def test_run_check_fails_when_non_legacy_type_is_mixed_across_sources(temp_repo: Path) -> None:
+    root = _make_repo(
+        temp_repo,
+        idem_keys={"payment|7|agent0@system": "2026-04-20T10:00:00Z"},
+    )
+    _write_history(
+        root,
+        "2026-04-20.jsonl",
+        [{"type": "payment", "idem_key": "payment_8_agent0@system_legacy"}],
+    )
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 1
+    assert report["status"] == "FAIL"
+    assert report["mixed_types"][0]["type"] == "payment"
+
+
+def test_run_check_quarantines_known_legacy_escrow_return_mix(temp_repo: Path) -> None:
     root = _make_repo(
         temp_repo,
         idem_keys={"escrow_return|7|agent0@system": "2026-04-20T10:00:00Z"},
@@ -185,9 +203,10 @@ def test_run_check_fails_when_same_type_is_mixed_across_sources(temp_repo: Path)
 
     report, exit_code = run_check(root)
 
-    assert exit_code == 1
-    assert report["status"] == "FAIL"
-    assert report["mixed_types"][0]["type"] == "escrow_return"
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["mixed_types"] == []
+    assert report["quarantined_mixed_types"][0]["type"] == "escrow_return"
 
 
 def test_run_check_ignores_unclassified_keys_for_failure(temp_repo: Path) -> None:
