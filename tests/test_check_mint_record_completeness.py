@@ -201,6 +201,59 @@ def test_file_not_found_graceful_fail(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Test 14: pre-rule grandfathered mint is GRANDFATHERED, overall PASS
+# ---------------------------------------------------------------------------
+
+def test_pre_rule_grandfathered_mint(tmp_path: Path) -> None:
+    """A mint in the grandfather allowlist with missing fields is tagged
+    GRANDFATHERED and does not flip overall status to FAIL."""
+    # (T2, 12) is in PRE_RULE_GRANDFATHERED_SLOTS — cycle 12 pre-rule entry.
+    grandfathered = {
+        "trajectory": "T2",
+        "slot": 12,
+        # idem_key intentionally absent — the real records on main are also
+        # idem_key-less.
+        "frontier_closed": "x" * 10,
+        "artifact": "x" * 10,
+        "evidence": "x" * 10,
+        # made_redundant and redundancy_proof intentionally missing.
+    }
+    _write_mints(tmp_path / "ledger" / "trajectory_mints.json", [grandfathered])
+
+    report = run(tmp_path)
+
+    assert report["status"] == "PASS"
+    assert len(report["checks"]) == 1
+    check = report["checks"][0]
+    assert check["status"] == "GRANDFATHERED"
+    assert "made_redundant" in check["missing_fields"]
+    assert "redundancy_proof" in check["missing_fields"]
+    assert "1 grandfathered" in report["summary"]
+
+
+def test_pre_rule_grandfather_does_not_excuse_new_drift(tmp_path: Path) -> None:
+    """A new mint at a (trajectory, slot) NOT in the allowlist still FAILs
+    even if its missing-field pattern matches the grandfathered records."""
+    new_drift = {
+        "trajectory": "T2",
+        "slot": 99,  # not in the allowlist
+        "idem_key": "trajectory_mint|T2|99",
+        "frontier_closed": "x",
+        "artifact": "x",
+        "evidence": "x",
+        # made_redundant / redundancy_proof missing — same pattern as cycle 12
+    }
+    _write_mints(tmp_path / "ledger" / "trajectory_mints.json", [new_drift])
+
+    report = run(tmp_path)
+
+    assert report["status"] == "FAIL"
+    check = report["checks"][0]
+    assert check["status"] == "FAIL"
+    assert "made_redundant" in check["missing_fields"]
+
+
+# ---------------------------------------------------------------------------
 # Test 14: non-string field value (int instead of str) → FAIL
 # ---------------------------------------------------------------------------
 

@@ -1,3 +1,10 @@
+"""Tests for check_gauntlet_evaluator_consistency.
+
+Quarantined alongside scripts/_quarantine/check_gauntlet_evaluator_consistency.py
+(see scripts/_quarantine/README.md for context). Not collected by default
+pytest runs; opt in with WEA_RUN_QUARANTINED_TESTS=1.
+"""
+
 from __future__ import annotations
 
 import json
@@ -5,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.check_gauntlet_evaluator_consistency import main, run_check
+from scripts._quarantine.check_gauntlet_evaluator_consistency import main, run_check
 
 EVALUATOR = "Claude-17@claude"
 OTHER_AGENT = "Claude-5@claude"

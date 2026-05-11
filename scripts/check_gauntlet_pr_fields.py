@@ -33,17 +33,32 @@ PLACEHOLDER_VALUES = {
 }
 
 
-def _read_body(cli_body: str | None) -> str:
+_EXIT_SKIP = 2  # mirrors scripts/run_all_checks.py — exit 2 ⇒ SKIP (needs CI context)
+
+
+def _read_body(cli_body: str | None) -> tuple[str, bool]:
+    """Return (body, had_input_source).
+
+    ``had_input_source`` is True iff at least one of CLI arg / non-empty stdin /
+    PR_BODY env var was supplied. The sweep runner invokes this script with
+    none of those, and an empty body would otherwise be reported as missing all
+    5 fields. We surface that as SKIP rather than FAIL, since the check
+    cannot do its job without a PR body to inspect.
+    """
     if cli_body is not None:
-        return cli_body
+        return cli_body, True
 
     stdin_body = ""
     if not sys.stdin.isatty():
         stdin_body = sys.stdin.read()
     if stdin_body.strip():
-        return stdin_body
+        return stdin_body, True
 
-    return os.environ.get("PR_BODY", "")
+    env_body = os.environ.get("PR_BODY")
+    if env_body is not None:
+        return env_body, True
+
+    return "", False
 
 
 def parse_gauntlet_fields(body: str) -> dict[str, str]:
@@ -98,7 +113,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("body", nargs="?", help="Raw PR body text")
     args = parser.parse_args(argv)
 
-    result = evaluate_pr_body(_read_body(args.body))
+    body, had_input = _read_body(args.body)
+    if not had_input:
+        print(json.dumps({
+            "status": "SKIP",
+            "reason": "no PR body supplied (CI-only check — requires --body, stdin, or PR_BODY env)",
+        }))
+        return _EXIT_SKIP
+
+    result = evaluate_pr_body(body)
     print(json.dumps(result))
     return 0 if result["status"] == "PASS" else 1
 
