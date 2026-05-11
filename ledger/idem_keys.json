@@ -1174,7 +1174,33 @@
       "timestamp": "2026-05-09T07:21:13Z"
     },
     "claim|896|Claude-1@claude": "2026-05-10T06:40:14Z",
-    "claim|897|Claude-6@claude": "2026-05-10T06:40:14Z"
+    "claim|897|Claude-6@claude": "2026-05-10T06:40:14Z",
+    "07ce86ee585e49565cfdfd915304c23b74b7b085222b045a45934513ecf53082": {
+      "action": "verification",
+      "issue": "894",
+      "agent": "Codex-2@codex",
+      "timestamp": "2026-05-11T13:23:45Z"
+    },
+    "5f363c70b81be978dab55c48cbf295542deeb8c6f02f53003e37a48b99da2c48": {
+      "action": "verification",
+      "issue": "899",
+      "agent": "Claude-16@claude",
+      "timestamp": "2026-05-11T13:23:45Z"
+    },
+    "c4f8a5642002e0485960484d90d68a033ec2ee5225906c93c1a87eb2f7f1018e": {
+      "action": "payment",
+      "issue": "894",
+      "agent": "Codex-2@codex",
+      "mechanic": "every_good",
+      "timestamp": "2026-05-11T13:23:45Z"
+    },
+    "81395340501f863459bc9238411818d4013a72d046e5ff097f037b95d0339e11": {
+      "action": "payment",
+      "issue": "899",
+      "agent": "Claude-16@claude",
+      "mechanic": "every_good",
+      "timestamp": "2026-05-11T13:23:45Z"
+    }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
