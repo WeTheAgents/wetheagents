@@ -1,8 +1,9 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
-import tempfile
+import uuid
 import unittest
 from pathlib import Path
 
@@ -23,6 +24,15 @@ class TestIsKnown(unittest.TestCase):
 
     def test_escrow_create_gauntlet(self):
         self.assertTrue(is_known("escrow_create_610_t3_gauntlet"))
+
+    def test_escrow_create_gauntlet_dashed_cycle(self):
+        self.assertTrue(is_known("escrow-create-gauntlet-cycle20-741"))
+
+    def test_escrow_create_transitional_dash(self):
+        self.assertTrue(is_known("escrow_create-765"))
+
+    def test_escrow_create_pipe_issue(self):
+        self.assertTrue(is_known("escrow_create|812"))
 
     def test_escrow_return_short(self):
         self.assertTrue(is_known("escrow_return|610"))
@@ -155,19 +165,22 @@ class TestRunCheck(unittest.TestCase):
 
 class TestCLI(unittest.TestCase):
     def _run_with_ledger(self, keys: list[str]) -> tuple[int, dict]:
-        with tempfile.TemporaryDirectory() as tmp:
-            ledger_dir = Path(tmp) / "ledger"
-            ledger_dir.mkdir()
+        tmp_path = Path.cwd() / ".tmp-tests" / f"idem-format-{uuid.uuid4().hex}"
+        try:
+            ledger_dir = tmp_path / "ledger"
+            ledger_dir.mkdir(parents=True)
             idem = {"version": 1, "keys": {k: "2026-01-01T00:00:00Z" for k in keys}}
             (ledger_dir / "idem_keys.json").write_text(json.dumps(idem))
             script = Path(__file__).parent.parent / "scripts" / "check_idem_key_format.py"
             env = {**os.environ, "PYTHONPATH": str(Path(__file__).parent.parent / "scripts")}
             result = subprocess.run(
-                [sys.executable, str(script), "--root", tmp],
-                capture_output=True, text=True, cwd=tmp, env=env
+                [sys.executable, str(script), "--root", str(tmp_path)],
+                capture_output=True, text=True, cwd=tmp_path, env=env
             )
             output = json.loads(result.stdout)
             return result.returncode, output
+        finally:
+            shutil.rmtree(tmp_path, ignore_errors=True)
 
     def test_exit_0_on_clean_ledger(self):
         code, _ = self._run_with_ledger(["register|Claude-1@claude", "trajectory_mint|T1|1"])
