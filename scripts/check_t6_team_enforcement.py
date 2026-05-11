@@ -38,6 +38,43 @@ from typing import Any
 
 DEFAULT_T6_AGENT = "gemini-4@google"
 
+# T6 holder rotation schedule. Each entry is (start_date, agent_id) and means
+# "from start_date onward (inclusive), the only agent allowed to receive T6
+# mints is agent_id" — until the next entry's start_date supersedes it.
+#
+# Documented rotations (see C:\Users\peach\.claude\projects\D--GitHub-wetheagents
+# memory and docs/gauntlet.md):
+#   - 2026-03-17: Gauntlet implementation day. T6 cycle 1 (slot 1, #301) was
+#     filed against Claude-1 during bootstrapping, before the gemini-4 rule
+#     was ratified. Slot 1 accepted 2026-03-26.
+#   - 2026-03-27: gemini-4@google became the canonical T6 holder; slots 2..35
+#     credited to gemini-4@google.
+#   - 2026-04-29: After gemini-4 was deprecated 2026-04-23 for API-token cost,
+#     the T6 seat was reassigned to Claude-6@claude. Slot 36 (#794) is the
+#     first slot under the new holder.
+T6_AUTHORIZATION_SCHEDULE: tuple[tuple[date, str], ...] = (
+    (date(2026, 3, 27), "gemini-4@google"),
+    (date(2026, 4, 29), "Claude-6@claude"),
+)
+
+
+def _authorized_at(when: date | None) -> str | None:
+    """Return the T6 agent authorized at `when`, or None if pre-schedule.
+
+    None means "no rule applies yet" — pre-policy bootstrapping period. Callers
+    should treat that as grandfathered (skip the entry), since there was no
+    documented holder to enforce against.
+    """
+    if when is None:
+        return None
+    authorized: str | None = None
+    for start, agent in T6_AUTHORIZATION_SCHEDULE:
+        if when >= start:
+            authorized = agent
+        else:
+            break
+    return authorized
+
 
 def _repo_root_from(root: str | None) -> Path:
     if root:
@@ -72,17 +109,32 @@ def _check_mints(
     authorized_agent: str,
     violations: list[dict[str, Any]],
     since: date | None = None,
+    use_schedule: bool = False,
 ) -> None:
-    """Check trajectory_mints.json entries for T6 team violations."""
+    """Check trajectory_mints.json entries for T6 team violations.
+
+    When ``use_schedule`` is True, the authorized agent at each mint is
+    determined by ``T6_AUTHORIZATION_SCHEDULE`` keyed on ``accepted_at``.
+    Mints with no parseable ``accepted_at`` or with an ``accepted_at`` before
+    the first scheduled entry are grandfathered (skipped).
+    """
     for record in mints:
         if record.get("trajectory") != "T6":
             continue
+        accepted_at = _parse_date_prefix(record.get("accepted_at", ""))
         if since is not None:
-            accepted_at = _parse_date_prefix(record.get("accepted_at", ""))
             if accepted_at is None or accepted_at < since:
                 continue
+        effective_agent = authorized_agent
+        if use_schedule:
+            scheduled = _authorized_at(accepted_at)
+            if scheduled is None:
+                # Pre-schedule (or undated) — grandfather; the policy did not
+                # apply yet at that point.
+                continue
+            effective_agent = scheduled
         agents = _extract_agents(record)
-        bad = [a for a in agents if a != authorized_agent]
+        bad = [a for a in agents if a != effective_agent]
         if bad:
             violations.append(
                 {
@@ -92,7 +144,7 @@ def _check_mints(
                     "issue": record.get("issue_or_pr"),
                     "actual_agents": agents,
                     "unauthorized_agents": bad,
-                    "authorized_agent": authorized_agent,
+                    "authorized_agent": effective_agent,
                 }
             )
         elif not agents:
@@ -105,7 +157,7 @@ def _check_mints(
                     "issue": record.get("issue_or_pr"),
                     "actual_agents": [],
                     "unauthorized_agents": [],
-                    "authorized_agent": authorized_agent,
+                    "authorized_agent": effective_agent,
                     "detail": "no agents credited in mint record",
                 }
             )
@@ -134,19 +186,31 @@ def _check_history(
     authorized_agent: str,
     violations: list[dict[str, Any]],
     since: date | None = None,
+    use_schedule: bool = False,
 ) -> None:
-    """Check history event stream for T6 trajectory_mint violations."""
+    """Check history event stream for T6 trajectory_mint violations.
+
+    Schedule resolution mirrors ``_check_mints``: when ``use_schedule`` is
+    True, the per-event authorized agent is looked up from
+    ``T6_AUTHORIZATION_SCHEDULE`` via the event's ``timestamp``.
+    """
     for event in events:
         if event.get("type") != "trajectory_mint":
             continue
         if event.get("trajectory") != "T6":
             continue
+        ts = _parse_date_prefix(event.get("timestamp", ""))
         if since is not None:
-            ts = _parse_date_prefix(event.get("timestamp", ""))
             if ts is None or ts < since:
                 continue
+        effective_agent = authorized_agent
+        if use_schedule:
+            scheduled = _authorized_at(ts)
+            if scheduled is None:
+                continue
+            effective_agent = scheduled
         agents = _extract_agents(event)
-        bad = [a for a in agents if a != authorized_agent]
+        bad = [a for a in agents if a != effective_agent]
         if bad:
             violations.append(
                 {
@@ -156,7 +220,7 @@ def _check_history(
                     "issue": event.get("issue"),
                     "actual_agents": agents,
                     "unauthorized_agents": bad,
-                    "authorized_agent": authorized_agent,
+                    "authorized_agent": effective_agent,
                 }
             )
         elif not agents:
@@ -168,7 +232,7 @@ def _check_history(
                     "issue": event.get("issue"),
                     "actual_agents": [],
                     "unauthorized_agents": [],
-                    "authorized_agent": authorized_agent,
+                    "authorized_agent": effective_agent,
                     "detail": "no agents credited in history event",
                 }
             )
@@ -181,6 +245,7 @@ def run_check(
     events: list[dict[str, Any]] | None = None,
     authorized_agent: str = DEFAULT_T6_AGENT,
     since: date | None = None,
+    use_schedule: bool = False,
 ) -> dict[str, Any]:
     """Run the T6 team-enforcement check and return the report.
 
@@ -228,7 +293,7 @@ def run_check(
         mints = data.get("mints", [])
 
     assert mints is not None  # assigned or sys.exit() called above
-    _check_mints(mints, authorized_agent, violations, since=since)
+    _check_mints(mints, authorized_agent, violations, since=since, use_schedule=use_schedule)
 
     # --- ledger/history/*.jsonl ---
     if events is None:
@@ -243,19 +308,23 @@ def run_check(
     else:
         event_stream = iter(events)
 
-    _check_history(event_stream, authorized_agent, violations, since=since)
+    _check_history(event_stream, authorized_agent, violations, since=since, use_schedule=use_schedule)
 
     status = "FAIL" if violations else "PASS"
+    if use_schedule:
+        clean_desc = "all T6 mints match the authorization schedule"
+    else:
+        clean_desc = "all T6 mints credited to " + authorized_agent
     summary = (
         f"{len(violations)} violation(s) — "
-        f"{'all T6 mints credited to ' + authorized_agent if not violations else 'unauthorized T6 agent(s) detected'}"
+        f"{clean_desc if not violations else 'unauthorized T6 agent(s) detected'}"
     )
 
     return {
         "status": status,
         "violations": violations,
         "summary": summary,
-        "authorized_agent": authorized_agent,
+        "authorized_agent": "<schedule>" if use_schedule else authorized_agent,
     }
 
 
@@ -273,10 +342,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--authorized-agent",
-        default=DEFAULT_T6_AGENT,
+        default=None,
         help=(
-            f"The only agent allowed to receive T6 mints "
-            f"(default: {DEFAULT_T6_AGENT})"
+            "Override the per-mint authorized T6 agent (singular). If not "
+            "supplied, the rotation schedule in T6_AUTHORIZATION_SCHEDULE is "
+            "used: gemini-4@google from 2026-03-27, Claude-6@claude from "
+            "2026-04-29. Mints before the first scheduled entry are "
+            "grandfathered."
         ),
     )
     parser.add_argument(
@@ -302,7 +374,12 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     root = _repo_root_from(args.root)
-    result = run_check(root, authorized_agent=args.authorized_agent, since=since)
+    if args.authorized_agent is None:
+        result = run_check(root, since=since, use_schedule=True)
+    else:
+        result = run_check(
+            root, authorized_agent=args.authorized_agent, since=since
+        )
     print(json.dumps(result, indent=2))
     return 1 if result["status"] == "FAIL" else 0
 

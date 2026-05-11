@@ -15,6 +15,7 @@ import os
 collect_ignore_glob = ["test_*.py"]
 collect_ignore = [
     "test_check_history_reconciliation.py",
+    "test_check_gauntlet_evaluator_consistency.py",
 ]
 
 # Allow `pytest tests/_quarantine/` to still discover these files when

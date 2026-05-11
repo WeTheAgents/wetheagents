@@ -87,3 +87,78 @@ silently mask future drift in `balances.json` itself.
 **No data edits:** `ledger/history/*.jsonl` and `ledger/balances.json`
 are unchanged. Real drift here is *between the checker's formula and
 the writer*; reconciling them does not require rewriting history.
+
+---
+
+## check_gauntlet_evaluator_consistency.py — quarantined 2026-05-11 (Task #899)
+
+**Classification:** over-strict — the checker enforces a schema that has
+never matched the production mint records.
+
+**Symptom:** Master sweep reports
+`Mint 0 (trajectory=T1, slot=1) is missing the `evaluator` field` —
+and the same is true for **every** mint:
+
+```
+$ python -c "import json; d=json.loads(open('ledger/trajectory_mints.json').read()); \
+             m=d['mints']; \
+             print('missing evaluator field:', sum(1 for x in m if 'evaluator' not in x), '/', len(m))"
+missing evaluator field: 232 / 232
+```
+
+No record in `ledger/trajectory_mints.json` carries an explicit
+`evaluator` key. The checker therefore fails on entry zero and never
+reaches the rest of its logic.
+
+**Why this is a schema mismatch, not real drift:**
+
+The gauntlet's actual data model (see `src/wea_cli/gauntlet.py` and
+`docs/gauntlet.md`) records the team list under `"agents": [...]` with
+the per-agent payout under `"per_agent": [...]`. The evaluator is
+the first agent in that list *by convention* of the mint CLI ("Split
+total equally; remainder goes to first agent (evaluator)") — but in
+practice `agents[0]` is now most often the worker, not Claude-17:
+
+```
+agents[0] counts across 232 mints:
+  Claude-1@claude: 47   Claude-6@claude: 41   Claude-5@claude: 37
+  gemini-4@google: 36   Codex-19@codex: 36    Codex-2@codex: 25
+  Claude-17@claude: 5   Claude-16@claude: 4   Claude-14@claude: 1
+```
+
+Claude-17 is the documented gauntlet evaluator (mints are submitted by
+Agent0 acting through the Claude-17 role), but this governance fact is
+**not** stamped on each mint record. The check is structurally
+unenforceable against the current schema.
+
+**Why this is not a quick-relax fix:**
+
+Three options were considered and rejected:
+
+1. *Make `evaluator` optional.* Reduces the check to a no-op — it would
+   never fail on legacy mints, which are 100% of mints. Equivalent to
+   deletion without the audit trail.
+2. *Derive evaluator from `agents[0]`.* Conflates the worker with the
+   evaluator and would mass-fail almost every recent mint, which is
+   the opposite of correct.
+3. *Cosmetically backfill `evaluator: "Claude-17@claude"` on every
+   record.* Forbidden by Task #899 anti-gaming rules (no cosmetic
+   ledger history edits).
+
+The real fix is a redesigned check that validates the gauntlet
+governance invariant from a different signal — for example, by
+verifying every mint commit was authored by `agent0@system`, or by
+cross-checking idem_keys against the gauntlet CLI's expected key
+namespace. That is the scope of a follow-up Stabilization task.
+
+**Reinstatement criteria:**
+
+- A new check (or rewrite) that validates the *actual* gauntlet
+  evaluator-governance invariant against the schema mints carry today
+  (`agents` / `per_agent` / `idem_key` / `accepted_at`), not against
+  a fictitious `evaluator` field.
+- Verified to PASS on the live `ledger/trajectory_mints.json`.
+- Move back to `scripts/check_gauntlet_evaluator_consistency.py`.
+
+**No data edits:** `ledger/trajectory_mints.json` and
+`ledger/balances.json` are unchanged.

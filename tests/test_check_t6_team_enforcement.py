@@ -344,3 +344,74 @@ def test_since_boundary_same_day_is_enforced() -> None:
     result = _run(mints=mints, since=date(2026, 3, 27))
     assert result["status"] == "FAIL"
     assert len(result["violations"]) == 1
+
+
+# ---------------------------------------------------------------------------
+# Schedule mode (T6 rotation: gemini-4 → Claude-6 on 2026-04-29)
+# ---------------------------------------------------------------------------
+
+def _run_scheduled(
+    mints: list[dict] | None = None,
+    events: list[dict] | None = None,
+) -> dict:
+    return checker.run_check(
+        Path("/fake/root"),
+        mints=mints if mints is not None else [],
+        events=events if events is not None else [],
+        use_schedule=True,
+    )
+
+
+def test_schedule_passes_gemini_era_mint() -> None:
+    """A T6 mint to gemini-4 during the gemini era is PASS."""
+    mints = [_mint("T6", 5, ["gemini-4@google"], "#400", accepted_at="2026-04-01T00:00:00Z")]
+    result = _run_scheduled(mints=mints)
+    assert result["status"] == "PASS"
+
+
+def test_schedule_passes_claude6_post_rotation_mint() -> None:
+    """A T6 mint to Claude-6 on/after 2026-04-29 is PASS."""
+    mints = [_mint("T6", 36, ["Claude-6@claude"], "#794", accepted_at="2026-04-29T07:52:16Z")]
+    result = _run_scheduled(mints=mints)
+    assert result["status"] == "PASS"
+
+
+def test_schedule_fails_claude6_in_gemini_era() -> None:
+    """A T6 mint to Claude-6 before 2026-04-29 is FAIL (wrong holder)."""
+    mints = [_mint("T6", 5, ["Claude-6@claude"], "#400", accepted_at="2026-04-01T00:00:00Z")]
+    result = _run_scheduled(mints=mints)
+    assert result["status"] == "FAIL"
+    assert "Claude-6@claude" in result["violations"][0]["unauthorized_agents"]
+
+
+def test_schedule_fails_gemini_after_rotation() -> None:
+    """A T6 mint to gemini-4 after the 2026-04-29 rotation is FAIL."""
+    mints = [_mint("T6", 37, ["gemini-4@google"], "#900", accepted_at="2026-04-30T00:00:00Z")]
+    result = _run_scheduled(mints=mints)
+    assert result["status"] == "FAIL"
+    assert "gemini-4@google" in result["violations"][0]["unauthorized_agents"]
+
+
+def test_schedule_grandfathers_pre_policy_mint() -> None:
+    """T6 mint dated before the first scheduled rotation is grandfathered."""
+    mints = [_mint("T6", 1, ["Claude-1@claude"], "#301", accepted_at="2026-03-26T06:48:23Z")]
+    result = _run_scheduled(mints=mints)
+    assert result["status"] == "PASS"
+    assert result["violations"] == []
+
+
+def test_schedule_grandfathers_undated_mint() -> None:
+    """T6 mint with no accepted_at is grandfathered under schedule mode."""
+    mints = [_mint("T6", 1, ["Claude-1@claude"], "#301")]  # no accepted_at
+    result = _run_scheduled(mints=mints)
+    assert result["status"] == "PASS"
+    assert result["violations"] == []
+
+
+def test_schedule_authorized_lookup_helper() -> None:
+    """_authorized_at returns the expected holder for each era."""
+    assert checker._authorized_at(date(2026, 3, 1)) is None  # pre-policy
+    assert checker._authorized_at(date(2026, 3, 27)) == "gemini-4@google"
+    assert checker._authorized_at(date(2026, 4, 28)) == "gemini-4@google"
+    assert checker._authorized_at(date(2026, 4, 29)) == "Claude-6@claude"
+    assert checker._authorized_at(date(2026, 12, 31)) == "Claude-6@claude"
