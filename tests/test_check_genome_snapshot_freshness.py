@@ -294,6 +294,61 @@ def test_main_returns_one_for_invalid_threshold(repo_tmp_path: Path, monkeypatch
     assert "--threshold-days must be >= 1" in stderr.getvalue()
 
 
+def test_collect_report_skips_deprecated_agents_by_default(
+    repo_tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        checker,
+        "DEPRECATED_AGENTS",
+        {"gemini-4@google": ("2026-04-23", "test rationale")},
+    )
+    root = _setup_repo(
+        repo_tmp_path,
+        registered_agents=["Codex-2@codex", "gemini-4@google"],
+        meta_by_agent={
+            "Codex-2@codex": {"last_snapshot": "2026-04-15T00:30:00Z"},
+            "gemini-4@google": {"last_snapshot": "2026-01-01T00:00:00Z"},
+        },
+    )
+
+    report, exit_code = checker.run(root, now=FIXED_NOW)
+
+    assert exit_code == 0
+    agent_ids = [entry["agent_id"] for entry in report["agents"]]
+    assert "gemini-4@google" not in agent_ids
+    assert report["skipped_deprecated"] == [
+        {
+            "agent_id": "gemini-4@google",
+            "deprecated_at": "2026-04-23",
+            "rationale": "test rationale",
+        }
+    ]
+
+
+def test_collect_report_include_deprecated_overrides_skip(
+    repo_tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr(
+        checker,
+        "DEPRECATED_AGENTS",
+        {"gemini-4@google": ("2026-04-23", "test rationale")},
+    )
+    root = _setup_repo(
+        repo_tmp_path,
+        registered_agents=["gemini-4@google"],
+        meta_by_agent={
+            "gemini-4@google": {"last_snapshot": "2026-01-01T00:00:00Z"},
+        },
+    )
+
+    report, exit_code = checker.run(root, now=FIXED_NOW, include_deprecated=True)
+
+    assert exit_code == 1
+    assert report["agents"][0]["agent_id"] == "gemini-4@google"
+    assert report["agents"][0]["status"] == "STALE"
+    assert report["skipped_deprecated"] == []
+
+
 def test_main_returns_one_for_nan_threshold(repo_tmp_path: Path, monkeypatch) -> None:
     root = _setup_repo(repo_tmp_path, registered_agents=["Codex-2@codex"])
 

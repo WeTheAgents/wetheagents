@@ -87,6 +87,25 @@ PROPOSAL_KEYS = {
     "verdict",
     "target_section",
 }
+# Phase 7c "agent0-synthesized" SGR shape (see agent0/release_sessions.md,
+# pipeline/release/proposal.schema.json, pipeline/release/decision.schema.json):
+# a single ``proposal`` + ``decision`` pair, used when heartbeat synthesizes a
+# release SGR directly. First appeared in #798 release session
+# (commit 7272e15 / c9d37dd, 2026-04-27). This is the canonical schema-file
+# shape; the older ``{sgr_version, proposals[]}`` block (provenance_v1) is the
+# multi-proposal aggregate produced by ``wea release`` tooling. Both are
+# accepted as valid provenance epochs.
+PROVENANCE_PHASE_7C_KEYS = {"decision", "proposal"}
+PHASE_7C_PROPOSAL_REQUIRED_KEYS = {
+    "station",
+    "agent_id",
+    "issue",
+    "severity",
+    "experience",
+    "reflection",
+    "proposal",
+}
+PHASE_7C_DECISION_REQUIRED_KEYS = {"verdict", "rationale", "proposal_hash"}
 EXPERIENCE_KEYS = {"task_id", "mechanic", "outcome", "agent_role", "key_moment"}
 LEGACY_EXPERIENCE_KEYS = EXPERIENCE_KEYS - {"agent_role"}
 BASE_CHECKS = (
@@ -217,6 +236,96 @@ def classify_mutation_version(mutation: dict[str, Any]) -> str | None:
     return None
 
 
+def validate_phase_7c_provenance(
+    provenance: dict[str, Any],
+    *,
+    root: Path,
+    path: Path,
+    agent: str,
+    mutation_index: int,
+) -> list[dict[str, Any]]:
+    """Validate Phase 7c agent0-synthesized provenance (single proposal+decision).
+
+    Shape source of truth: ``pipeline/release/proposal.schema.json`` and
+    ``pipeline/release/decision.schema.json``. Validation here is intentionally
+    shape-only (presence of required keys + simple type checks) — the schema
+    files are authoritative for deeper field validation.
+    """
+    violations: list[dict[str, Any]] = []
+
+    proposal = provenance.get("proposal")
+    if not isinstance(proposal, dict):
+        violations.append(
+            _violation(
+                root=root,
+                path=path,
+                agent=agent,
+                mutation_index=mutation_index,
+                check="provenance_shape",
+                detail="phase_7c provenance.proposal must be a JSON object",
+            )
+        )
+    else:
+        missing_proposal = PHASE_7C_PROPOSAL_REQUIRED_KEYS - set(proposal)
+        if missing_proposal:
+            violations.append(
+                _violation(
+                    root=root,
+                    path=path,
+                    agent=agent,
+                    mutation_index=mutation_index,
+                    check="provenance_shape",
+                    detail="phase_7c proposal is missing required keys",
+                    missing_keys=sorted(missing_proposal),
+                    expected_keys=sorted(PHASE_7C_PROPOSAL_REQUIRED_KEYS),
+                )
+            )
+
+    decision = provenance.get("decision")
+    if not isinstance(decision, dict):
+        violations.append(
+            _violation(
+                root=root,
+                path=path,
+                agent=agent,
+                mutation_index=mutation_index,
+                check="provenance_shape",
+                detail="phase_7c provenance.decision must be a JSON object",
+            )
+        )
+    else:
+        missing_decision = PHASE_7C_DECISION_REQUIRED_KEYS - set(decision)
+        if missing_decision:
+            violations.append(
+                _violation(
+                    root=root,
+                    path=path,
+                    agent=agent,
+                    mutation_index=mutation_index,
+                    check="provenance_shape",
+                    detail="phase_7c decision is missing required keys",
+                    missing_keys=sorted(missing_decision),
+                    expected_keys=sorted(PHASE_7C_DECISION_REQUIRED_KEYS),
+                )
+            )
+
+        verdict = decision.get("verdict")
+        if verdict not in ("approved", "rejected"):
+            violations.append(
+                _violation(
+                    root=root,
+                    path=path,
+                    agent=agent,
+                    mutation_index=mutation_index,
+                    check="provenance_shape",
+                    detail="phase_7c decision.verdict must be 'approved' or 'rejected'",
+                    value=verdict,
+                )
+            )
+
+    return violations
+
+
 def validate_provenance(
     provenance: Any,
     *,
@@ -238,7 +347,17 @@ def validate_provenance(
             )
         ]
 
-    if set(provenance) != PROVENANCE_KEYS:
+    keys = set(provenance)
+    if keys == PROVENANCE_PHASE_7C_KEYS:
+        return "provenance_phase_7c", validate_phase_7c_provenance(
+            provenance,
+            root=root,
+            path=path,
+            agent=agent,
+            mutation_index=mutation_index,
+        )
+
+    if keys != PROVENANCE_KEYS:
         return None, [
             _violation(
                 root=root,
@@ -249,6 +368,7 @@ def validate_provenance(
                 detail="unsupported provenance key set",
                 keys=sorted(provenance),
                 expected_keys=sorted(PROVENANCE_KEYS),
+                expected_keys_phase_7c=sorted(PROVENANCE_PHASE_7C_KEYS),
             )
         ]
 

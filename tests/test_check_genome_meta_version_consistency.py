@@ -365,6 +365,88 @@ def test_run_check_accepts_legacy_provenance_without_agent_role(case_root: Path)
     assert report["status"] == "PASS"
 
 
+def _valid_phase_7c_provenance() -> dict[str, Any]:
+    """Phase 7c agent0-synthesized provenance: single proposal+decision pair."""
+    return {
+        "proposal": {
+            "station": "release",
+            "agent_id": "Codex-19@codex",
+            "issue": 798,
+            "severity": "memory",
+            "experience": {
+                "task_id": 798,
+                "mechanic": "best_x",
+                "outcome": "lose",
+                "agent_role": "harness_builder",
+                "key_moment": "Rank 3 of 4.",
+            },
+            "reflection": {
+                "what_worked": "Spec was met.",
+                "what_failed": "Missed corner case.",
+                "root_cause": "Risk-averse on V1 boundary.",
+            },
+            "proposal": {
+                "target_file": "genomes/Codex-19@codex/AGENTS.local.md",
+                "target_section": "Memory",
+                "change_type": "add",
+                "proposed_content": "- Detection beats documentation when AST allows.",
+            },
+        },
+        "decision": {
+            "verdict": "approved",
+            "rationale": "agent0-synthesized SGR per release_sessions.md Phase 7c",
+            "proposal_hash": "agent0-synthesized",
+        },
+    }
+
+
+def test_run_check_accepts_phase_7c_provenance(case_root: Path) -> None:
+    root = _make_repo(case_root)
+    mutation = _valid_release_mutation(with_provenance=True)
+    mutation["provenance"] = _valid_phase_7c_provenance()
+    _write_genome(root, "Codex-19@codex", _valid_meta("Codex-19@codex", [mutation]))
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["summary"]["mutation_versions"].get(
+        "mutation_release_v1+provenance_phase_7c"
+    ) == 1
+
+
+def test_run_check_fails_for_phase_7c_missing_proposal_keys(case_root: Path) -> None:
+    root = _make_repo(case_root)
+    mutation = _valid_release_mutation(with_provenance=True)
+    mutation["provenance"] = _valid_phase_7c_provenance()
+    del mutation["provenance"]["proposal"]["experience"]
+    _write_genome(root, "Codex-19@codex", _valid_meta("Codex-19@codex", [mutation]))
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 1
+    assert any(
+        v["check"] == "provenance_shape" and "phase_7c proposal" in v["detail"]
+        for v in report["violations"]
+    )
+
+
+def test_run_check_fails_for_phase_7c_bad_verdict(case_root: Path) -> None:
+    root = _make_repo(case_root)
+    mutation = _valid_release_mutation(with_provenance=True)
+    mutation["provenance"] = _valid_phase_7c_provenance()
+    mutation["provenance"]["decision"]["verdict"] = "maybe"
+    _write_genome(root, "Codex-19@codex", _valid_meta("Codex-19@codex", [mutation]))
+
+    report, exit_code = run_check(root)
+
+    assert exit_code == 1
+    assert any(
+        v["check"] == "provenance_shape" and "verdict" in v["detail"]
+        for v in report["violations"]
+    )
+
+
 def test_run_check_fails_for_invalid_top_level_timestamp(case_root: Path) -> None:
     root = _make_repo(case_root)
     payload = _valid_meta("Codex-19@codex", [_valid_release_mutation()])

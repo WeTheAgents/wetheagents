@@ -24,6 +24,21 @@ from typing import Any
 
 SKIP_BALANCE_AGENTS = {"agent0@system"}
 
+# Deprecated agents are still listed in ledger/balances.json because they
+# retain historical earnings (zeroing a balance would corrupt the supply
+# invariant). Snapshot freshness is not a meaningful signal for them — their
+# genome is frozen at the deprecation date by design.
+#
+# Each entry: agent_id -> (deprecated_at_iso, rationale).
+DEPRECATED_AGENTS: dict[str, tuple[str, str]] = {
+    "gemini-4@google": (
+        "2026-04-23",
+        "Deprecated 2026-04-23 due to API-token cost; T6 role reassigned to "
+        "Claude-6@claude 2026-04-29. Last snapshot 2026-04-23T03:52:49Z "
+        "matches the deprecation date — no further snapshots are expected.",
+    ),
+}
+
 
 def _repo_root(override: str | None = None) -> Path:
     if override:
@@ -60,12 +75,15 @@ def _validate_threshold_days(threshold_days: float) -> None:
         raise ValueError("--threshold-days must be >= 1")
 
 
-def _registered_agents(root: Path) -> list[str]:
+def _registered_agents(root: Path, *, include_deprecated: bool = False) -> list[str]:
     balances = _load_json(root / "ledger" / "balances.json")
     agents = balances.get("agents")
     if not isinstance(agents, dict):
         raise ValueError("ledger/balances.json missing top-level 'agents' object")
-    return sorted(set(agents) - SKIP_BALANCE_AGENTS)
+    skip = set(SKIP_BALANCE_AGENTS)
+    if not include_deprecated:
+        skip |= set(DEPRECATED_AGENTS)
+    return sorted(set(agents) - skip)
 
 
 def _classify_snapshot(
@@ -97,12 +115,13 @@ def collect_report(
     *,
     threshold_days: float = 3.0,
     now: datetime | str | None = None,
+    include_deprecated: bool = False,
 ) -> dict[str, Any]:
     _validate_threshold_days(threshold_days)
     current_time = _resolve_now(now)
 
     agents_report: list[dict[str, Any]] = []
-    for agent_id in _registered_agents(root):
+    for agent_id in _registered_agents(root, include_deprecated=include_deprecated):
         meta_path = root / "genomes" / agent_id / "genome_meta.json"
         if not meta_path.exists():
             agents_report.append(
@@ -162,12 +181,19 @@ def collect_report(
     for entry in agents_report:
         counts[entry["status"]] += 1
 
+    skipped_deprecated = [
+        {"agent_id": agent_id, "deprecated_at": meta[0], "rationale": meta[1]}
+        for agent_id, meta in sorted(DEPRECATED_AGENTS.items())
+        if not include_deprecated
+    ]
+
     return {
         "root": str(root).replace("\\", "/"),
         "now": current_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "threshold_days": threshold_days,
         "agents": agents_report,
         "counts": counts,
+        "skipped_deprecated": skipped_deprecated,
     }
 
 
@@ -207,6 +233,11 @@ def print_report(report: dict[str, Any]) -> None:
         f"(threshold={report['threshold_days']:g}d, now={report['now']})"
     )
 
+    skipped = report.get("skipped_deprecated") or []
+    if skipped:
+        names = ", ".join(entry["agent_id"] for entry in skipped)
+        print(f"Skipped deprecated: {names} (pass --include-deprecated to include)")
+
 
 def run(
     root: Path,
@@ -214,8 +245,14 @@ def run(
     threshold_days: float = 3.0,
     strict: bool = False,
     now: datetime | str | None = None,
+    include_deprecated: bool = False,
 ) -> tuple[dict[str, Any], int]:
-    report = collect_report(root, threshold_days=threshold_days, now=now)
+    report = collect_report(
+        root,
+        threshold_days=threshold_days,
+        now=now,
+        include_deprecated=include_deprecated,
+    )
     return report, exit_code_for_report(report, strict=strict)
 
 
@@ -233,6 +270,14 @@ def main() -> int:
         action="store_true",
         help="Treat AGING agents as a failure in addition to STALE/MISSING agents",
     )
+    parser.add_argument(
+        "--include-deprecated",
+        action="store_true",
+        help=(
+            "Also check agents listed in DEPRECATED_AGENTS (default: skip them; "
+            "their genome is frozen at the deprecation date by design)"
+        ),
+    )
     args = parser.parse_args()
 
     root = _repo_root(args.root)
@@ -241,6 +286,7 @@ def main() -> int:
             root,
             threshold_days=args.threshold_days,
             strict=args.strict,
+            include_deprecated=args.include_deprecated,
         )
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
