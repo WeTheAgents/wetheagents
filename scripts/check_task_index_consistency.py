@@ -105,9 +105,18 @@ def check_open_tasks_escrow_amount(
         esc_type = escrow.get("type", "")
         if esc_type == "every_good":
             per = escrow.get("per_acceptance")
-            if per is not None and per != reward:
+            if per is not None and (
+                not isinstance(per, (int, float))
+                or isinstance(per, bool)
+                or per <= 0
+                or per > reward
+            ):
                 failures.append(
-                    f"task #{issue_str} every_good escrow per_acceptance={per} != task reward={reward}"
+                    f"task #{issue_str} every_good escrow per_acceptance={per} is not within task reward={reward}"
+                )
+            if amount > reward:
+                failures.append(
+                    f"task #{issue_str} every_good escrow amount={amount} exceeds task reward={reward}"
                 )
         else:
             if amount != reward:

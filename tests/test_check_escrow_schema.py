@@ -93,7 +93,7 @@ class TestInvalidType:
         assert any(v["field"] == "type" for v in result["violations"])
 
     def test_all_valid_types_pass(self):
-        for t in ("pod", "progressive", "winner_take_all", "x_best", "duel", "linear"):
+        for t in ("pod", "progressive", "winner_take_all", "x_best", "duel", "linear", "every_good"):
             data = _active({
                 "author": "alice@test",
                 "amount": 5,

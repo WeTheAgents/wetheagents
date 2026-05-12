@@ -146,6 +146,14 @@ def _issue_from_key(key: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _event_type(event: dict) -> str:
+    for key in ("event", "op", "type"):
+        value = event.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return ""
+
+
 def run_coverage_check(
     all_idem_keys: dict[str, object],
     events: list[dict],
@@ -185,7 +193,7 @@ def run_coverage_check(
     returned_issues: set[str] = set()
 
     for event in events:
-        etype = event.get("type", "")
+        etype = _event_type(event)
 
         if etype == "escrow_create":
             issue = str(event.get("issue", ""))
@@ -215,7 +223,7 @@ def run_coverage_check(
     missing_idem_keys: list[dict] = []
 
     for event in events:
-        if event.get("type") != "escrow_create":
+        if _event_type(event) != "escrow_create":
             continue
         if since is not None:
             ts = event.get("created_at") or event.get("timestamp") or ""
@@ -345,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     # Count only the events / keys actually checked under the active filter.
     n_checked = sum(
         1 for e in events
-        if e.get("type") == "escrow_create"
+        if _event_type(e) == "escrow_create"
         and isinstance(e.get("idem_key", ""), str)
         and e.get("idem_key", "").startswith(_ESCROW_CREATE_PREFIX)
         and (

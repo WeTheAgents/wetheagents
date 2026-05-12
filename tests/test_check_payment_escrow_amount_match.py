@@ -113,6 +113,35 @@ def test_later_escrow_before_second_payment_replenishes_budget(temp_repo: Path) 
     assert _check(report)["violations"] == []
 
 
+def test_ts_timestamp_sorts_op_escrow_before_payment(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"op": "escrow_create", "issue": 42, "amount": 10, "ts": "2026-04-01T00:00:00Z"},
+            {"type": "payment", "issue": 42, "agent": "alice@test", "amount": 10, "timestamp": "2026-04-01T01:00:00Z"},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert _check(report)["violations"] == []
+
+
+def test_duplicate_payment_with_same_balance_after_is_deduped(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow", "issue": 42, "amount": 40, "timestamp": "2026-04-01T00:00:00Z"},
+            {"type": "payment", "issue": 42, "agent": "alice@test", "amount": 40, "balance_after": 10, "timestamp": "2026-04-01T01:00:00Z"},
+            {"type": "payment", "issue": 42, "agent": "alice@test", "amount": 40, "balance_after": 10, "timestamp": "2026-04-01T01:00:05Z"},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["deduped_duplicate_payments"] == 1
+
+
 def test_later_escrow_does_not_retroactively_fix_earlier_overpayment(temp_repo: Path) -> None:
     root = _make_root(temp_repo, {
         "2026-04-02.jsonl": [

@@ -66,12 +66,29 @@ def _load_active_issues(escrows: dict[str, Any]) -> list[str]:
     return sorted(issues, key=_issue_sort_key)
 
 
-def _index_history_events(history_dir: Path) -> tuple[set[str], set[str]]:
+def _load_active_types(escrows: dict[str, Any]) -> dict[str, str]:
+    active = escrows.get("active", {})
+    if not isinstance(active, dict):
+        return {}
+
+    types: dict[str, str] = {}
+    for raw_issue, entry in active.items():
+        issue = _normalize_issue(raw_issue)
+        if issue is None or not isinstance(entry, dict):
+            continue
+        raw_type = entry.get("type") or entry.get("reward_type") or entry.get("mechanic")
+        if isinstance(raw_type, str):
+            types[issue] = raw_type
+    return types
+
+
+def _index_history_events(history_dir: Path) -> tuple[set[str], set[str], set[str]]:
     creates: set[str] = set()
-    closes: set[str] = set()
+    terminal_closes: set[str] = set()
+    payment_closes: set[str] = set()
 
     if not history_dir.is_dir():
-        return creates, closes
+        return creates, terminal_closes, payment_closes
 
     for path in sorted(history_dir.glob("*.jsonl")):
         try:
@@ -96,12 +113,14 @@ def _index_history_events(history_dir: Path) -> tuple[set[str], set[str]]:
                 continue
 
             kind = _event_kind(event)
-            if kind == "escrow_create":
+            if kind in {"escrow", "escrow_create"}:
                 creates.add(issue)
-            elif kind in {"payment", "accept", "reject", "escrow_return"}:
-                closes.add(issue)
+            elif kind == "payment":
+                payment_closes.add(issue)
+            elif kind in {"accept", "reject", "escrow_return"}:
+                terminal_closes.add(issue)
 
-    return creates, closes
+    return creates, terminal_closes, payment_closes
 
 
 def run_check(root: Path) -> dict[str, Any]:
@@ -110,10 +129,17 @@ def run_check(root: Path) -> dict[str, Any]:
         default={"active": {}},
     )
     active_issues = set(_load_active_issues(escrows))
+    active_types = _load_active_types(escrows)
 
-    creates, closes = _index_history_events(root / "ledger" / "history")
+    creates, terminal_closes, payment_closes = _index_history_events(root / "ledger" / "history")
     phantom_issues = sorted(active_issues - creates, key=_issue_sort_key)
-    zombie_issues = sorted(active_issues & closes, key=_issue_sort_key)
+    multi_payment_types = {"every_good", "progressive", "linear"}
+    payment_zombies = {
+        issue
+        for issue in active_issues & payment_closes
+        if active_types.get(issue) not in multi_payment_types
+    }
+    zombie_issues = sorted((active_issues & terminal_closes) | payment_zombies, key=_issue_sort_key)
 
     return {
         "status": "FAIL" if phantom_issues or zombie_issues else "PASS",

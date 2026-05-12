@@ -42,7 +42,7 @@ def _parse_timestamp(value: Any) -> datetime | None:
 
 
 def _event_timestamp(event: dict[str, Any]) -> datetime | None:
-    for key in ("timestamp", "event_at", "started_at"):
+    for key in ("timestamp", "ts", "created_at", "event_at", "started_at"):
         parsed = _parse_timestamp(event.get(key))
         if parsed is not None:
             return parsed
@@ -59,6 +59,27 @@ def _numeric_amount(value: Any) -> int | float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return value
+
+
+def _event_type(event: dict[str, Any]) -> str | None:
+    for key in ("event", "op", "type"):
+        value = event.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return None
+
+
+def _payment_identity(event: dict[str, Any]) -> tuple[Any, ...] | None:
+    if "balance_after" not in event:
+        return None
+    return (
+        _normalize_issue(event.get("issue")),
+        event.get("agent"),
+        _numeric_amount(event.get("amount")),
+        event.get("balance_after"),
+        event.get("mechanic"),
+        event.get("rank"),
+    )
 
 
 def load_history_events(history_dir: Path) -> list[HistoryEvent]:
@@ -123,15 +144,17 @@ def run_check(root: Path) -> dict[str, Any]:
     batch_issues: set[str] = set()
     violations: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
+    seen_payment_identities: set[tuple[Any, ...]] = set()
 
     payment_events_scanned = 0
     explicit_escrow_events_scanned = 0
     skipped_legacy_batch_only_payments = 0
     skipped_malformed_payments = 0
+    deduped_duplicate_payments = 0
 
     for record in history_events:
         event = record.event
-        event_type = event.get("type")
+        event_type = _event_type(event)
 
         if event_type == "escrow_batch":
             issues = event.get("issues", [])
@@ -174,6 +197,14 @@ def run_check(root: Path) -> dict[str, Any]:
             skipped_malformed_payments += 1
             warnings.append(_detail(record, "skipped_malformed_payment", amount=amount))
             continue
+
+        payment_identity = _payment_identity(event)
+        if payment_identity is not None:
+            if payment_identity in seen_payment_identities:
+                deduped_duplicate_payments += 1
+                warnings.append(_detail(record, "deduped_duplicate_payment", amount=amount))
+                continue
+            seen_payment_identities.add(payment_identity)
 
         if issue not in explicit_escrow_issues and issue in batch_issues:
             skipped_legacy_batch_only_payments += 1
@@ -219,6 +250,7 @@ def run_check(root: Path) -> dict[str, Any]:
             "violations": len(violations),
             "skipped_legacy_batch_only_payments": skipped_legacy_batch_only_payments,
             "skipped_malformed_payments": skipped_malformed_payments,
+            "deduped_duplicate_payments": deduped_duplicate_payments,
         },
     }
 

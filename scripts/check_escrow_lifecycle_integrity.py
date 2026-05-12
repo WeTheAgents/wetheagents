@@ -33,6 +33,7 @@ class HistoryEvent:
 class OpenCreate:
     record: HistoryEvent
     tracked: bool
+    remaining_amount: int | float | None = None
 
 
 def _repo_root_from(root: str | None) -> Path:
@@ -89,6 +90,22 @@ def _numeric_amount(value: Any) -> int | float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return value
+
+
+def _mechanic(event: dict[str, Any]) -> str:
+    for key in ("mechanic", "subtype", "escrow_type", "reward_type"):
+        value = event.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return ""
+
+
+def _supports_partial_payment(create_event: dict[str, Any], close_event: dict[str, Any]) -> bool:
+    partial_markers = {"best_x", "x_best", "ranking", "ranking_partial", "every_good"}
+    return (
+        _mechanic(create_event) in partial_markers
+        or _mechanic(close_event) in partial_markers
+    )
 
 
 def _issue_display(issue_key: str | None) -> int | str | None:
@@ -233,7 +250,9 @@ def run_check(root: Path) -> dict[str, Any]:
             if tracked:
                 issues_with_tracked_create_history.add(record.issue)
             issues_with_any_create.add(record.issue)
-            open_creates.setdefault(record.issue, []).append(OpenCreate(record=record, tracked=tracked))
+            open_creates.setdefault(record.issue, []).append(
+                OpenCreate(record=record, tracked=tracked, remaining_amount=record.amount)
+            )
             continue
 
         if kind not in CLOSE_KINDS:
@@ -286,28 +305,54 @@ def run_check(root: Path) -> dict[str, Any]:
             )
             continue
 
-        matched_create = pending.pop(0)
-        if not pending:
-            open_creates.pop(record.issue, None)
-
+        matched_create = pending[0]
         if not matched_create.tracked:
+            pending.pop(0)
+            if not pending:
+                open_creates.pop(record.issue, None)
             continue
 
         reason = None
         status = "PASS"
-        if matched_create.record.amount != record.amount:
-            status = "FAIL"
-            reason = "amount_mismatch"
+        close_amount = record.amount
+        partial_payment = (
+            kind == "payment"
+            and matched_create.remaining_amount is not None
+            and _supports_partial_payment(matched_create.record.event, record.event)
+        )
 
-        reports.append(
-            _report_entry(
+        if partial_payment:
+            if record.amount > matched_create.remaining_amount:
+                status = "FAIL"
+                reason = "amount_mismatch"
+                pending.pop(0)
+                if not pending:
+                    open_creates.pop(record.issue, None)
+            elif record.amount < matched_create.remaining_amount:
+                matched_create.remaining_amount -= record.amount
+                continue
+            else:
+                close_amount = matched_create.record.amount
+                pending.pop(0)
+                if not pending:
+                    open_creates.pop(record.issue, None)
+        else:
+            pending.pop(0)
+            if not pending:
+                open_creates.pop(record.issue, None)
+            if matched_create.record.amount != record.amount:
+                status = "FAIL"
+                reason = "amount_mismatch"
+
+        entry = _report_entry(
                 status=status,
                 issue=record.issue,
                 reason=reason,
                 create_record=matched_create.record,
                 close_record=record,
-            )
         )
+        entry["close_amount"] = close_amount
+        reports.append(entry)
 
     for issue, pending in sorted(open_creates.items(), key=lambda item: int(item[0]) if item[0].isdigit() else item[0]):
         for matched_create in pending:

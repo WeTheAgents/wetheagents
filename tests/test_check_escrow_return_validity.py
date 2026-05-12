@@ -67,6 +67,16 @@ def test_old_escrow_type_counts_as_prior_create_pass() -> None:
     assert result["warnings"] == []
 
 
+def test_event_field_escrow_create_with_type_metadata_passes() -> None:
+    """Legacy rows may store event kind in event= while type= is mechanic metadata."""
+    result = _run([
+        {"event": "escrow_create", "type": "standard", "issue": 201, "amount": 15},
+        _return(201, 15),
+    ])
+    assert result["status"] == "PASS"
+    assert result["violations"] == []
+
+
 def test_double_return_partial_within_total_pass() -> None:
     """Two partial returns that together do not exceed the total escrow → PASS."""
     result = _run([_create(300, 100), _return(300, 40), _return(300, 50)])

@@ -76,6 +76,24 @@ def test_payment_is_valid_equivalent_close_pass(temp_repo: Path) -> None:
     assert _issues(report)[0]["close_kind"] == "payment"
 
 
+def test_best_x_split_payments_close_one_escrow_create(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow_create", "issue": 78, "amount": 100, "escrow_type": "best_x", "timestamp": "2026-04-01T00:00:00Z"},
+            {"type": "payment", "issue": 78, "amount": 20, "mechanic": "ranking_partial", "timestamp": "2026-04-01T01:00:00Z"},
+            {"type": "payment", "issue": 78, "amount": 15, "mechanic": "ranking_partial", "timestamp": "2026-04-01T02:00:00Z"},
+            {"type": "payment", "issue": 78, "amount": 40, "mechanic": "ranking", "timestamp": "2026-04-01T03:00:00Z"},
+            {"type": "payment", "issue": 78, "amount": 25, "mechanic": "ranking", "timestamp": "2026-04-01T04:00:00Z"},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["summary"]["passes"] == 1
+    assert _issues(report)[0]["close_amount"] == 100
+
+
 def test_mixed_event_and_op_fields_are_normalized(temp_repo: Path) -> None:
     root = _make_root(temp_repo, {
         "2026-04-02.jsonl": [
