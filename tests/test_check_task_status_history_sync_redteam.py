@@ -110,7 +110,7 @@ def test_bypass_trajectory_mint_list_format(tmp_path):
     assert passed is False
     assert result["status"] == "FAIL"
     assert result["checks"][0]["result"] == "FAIL"
-    assert "no 'accept' or 'trajectory_mint' event found" in result["checks"][0]["note"]
+    assert "no 'accept', 'payment', or 'trajectory_mint' event found" in result["checks"][0]["note"]
 
 def test_bypass_issue_type_confusion(tmp_path):
     """

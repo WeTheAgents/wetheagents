@@ -48,9 +48,9 @@ def _gh_issue(number: int, *label_names: str) -> dict:
 def test_run_checks_all_consistent() -> None:
     """Fully consistent data → no failures and no warnings."""
     checks = run_checks(
-        accept_issues={42},
+        ledger_paid={42},
         escrow_issues={42, 99},
-        paid_issues={42},
+        github_paid={42},
         claimed_not_paid={99},
     )
     for _name, _severity, bad in checks:
@@ -58,33 +58,48 @@ def test_run_checks_all_consistent() -> None:
 
 
 def test_run_checks_orphan_paid_label() -> None:
-    """Issue has 'paid' label but no accept event → ERROR."""
+    """Issue has 'paid' label but no paid-class event → ERROR."""
     checks = dict(
         (name, bad)
         for name, _sev, bad in run_checks(
-            accept_issues=set(),
+            ledger_paid=set(),
             escrow_issues=set(),
-            paid_issues={42},
+            github_paid={42},
             claimed_not_paid=set(),
         )
     )
-    assert 42 in checks["paid label with no accept event"]
-    assert checks["accept event with no paid label"] == []
+    assert 42 in checks["paid label with no payment/accept/mint event"]
+    assert checks["paid event with no paid label"] == []
 
 
-def test_run_checks_orphan_accept_event() -> None:
-    """Accept event exists but issue not labeled 'paid' → ERROR."""
+def test_run_checks_orphan_paid_event_is_warn() -> None:
+    """Paid-class event exists but issue not labeled 'paid' → WARN.
+
+    Down-graded from ERROR because this direction catches GitHub label
+    backlog (ledger paid, label missing), not economic drift. The opposite
+    direction stays at ERROR.
+    """
+    severities = {
+        name: sev
+        for name, sev, _bad in run_checks(
+            ledger_paid={42},
+            escrow_issues=set(),
+            github_paid=set(),
+            claimed_not_paid=set(),
+        )
+    }
     checks = dict(
         (name, bad)
         for name, _sev, bad in run_checks(
-            accept_issues={42},
+            ledger_paid={42},
             escrow_issues=set(),
-            paid_issues=set(),
+            github_paid=set(),
             claimed_not_paid=set(),
         )
     )
-    assert 42 in checks["accept event with no paid label"]
-    assert checks["paid label with no accept event"] == []
+    assert 42 in checks["paid event with no paid label"]
+    assert checks["paid label with no payment/accept/mint event"] == []
+    assert severities["paid event with no paid label"] == "WARN"
 
 
 def test_run_checks_claimed_no_escrow() -> None:
@@ -92,9 +107,9 @@ def test_run_checks_claimed_no_escrow() -> None:
     checks = dict(
         (name, bad)
         for name, _sev, bad in run_checks(
-            accept_issues=set(),
+            ledger_paid=set(),
             escrow_issues=set(),
-            paid_issues=set(),
+            github_paid=set(),
             claimed_not_paid={77},
         )
     )
@@ -106,9 +121,9 @@ def test_run_checks_claimed_with_escrow_passes() -> None:
     checks = dict(
         (name, bad)
         for name, _sev, bad in run_checks(
-            accept_issues=set(),
+            ledger_paid=set(),
             escrow_issues={77},
-            paid_issues=set(),
+            github_paid=set(),
             claimed_not_paid={77},
         )
     )
@@ -126,8 +141,20 @@ def test_load_ledger_accept_events(tmp_path: Path) -> None:
         {"type": "accept", "issue": 42, "agent": "agent@x", "amount": 10},
         {"type": "accept", "issue": 99, "agent": "agent@x", "amount": 5},
     )
-    accept, escrow = load_ledger_events(tmp_path)
-    assert accept == {42, 99}
+    paid, escrow = load_ledger_events(tmp_path)
+    assert paid == {42, 99}
+    assert escrow == set()
+
+
+def test_load_ledger_payment_and_mint_events(tmp_path: Path) -> None:
+    """payment and trajectory_mint events also populate paid_issues."""
+    _write_history(
+        tmp_path,
+        {"type": "payment", "issue": 12, "agent": "agent@x", "amount": 10},
+        {"type": "trajectory_mint", "issue": 13, "agent": "agent@x", "amount": 25},
+    )
+    paid, escrow = load_ledger_events(tmp_path)
+    assert paid == {12, 13}
     assert escrow == set()
 
 
@@ -137,15 +164,15 @@ def test_load_ledger_escrow_batch_issues_array(tmp_path: Path) -> None:
         tmp_path,
         {"type": "escrow_batch", "author": "agent0@system", "issues": [10, 20, 30], "total": 60},
     )
-    accept, escrow = load_ledger_events(tmp_path)
-    assert accept == set()
+    paid, escrow = load_ledger_events(tmp_path)
+    assert paid == set()
     assert escrow == {10, 20, 30}
 
 
 def test_load_ledger_missing_history_dir(tmp_path: Path) -> None:
     """Missing ledger/history dir returns empty sets without error."""
-    accept, escrow = load_ledger_events(tmp_path)
-    assert accept == set()
+    paid, escrow = load_ledger_events(tmp_path)
+    assert paid == set()
     assert escrow == set()
 
 
@@ -183,17 +210,31 @@ def test_main_exits_0_on_clean(tmp_path: Path, capsys: pytest.CaptureFixture) ->
     rc = main(["--root", str(tmp_path)], gh_issues_json=gh)
     out = capsys.readouterr().out
     assert rc == 0
-    assert "PASS: paid label with no accept event" in out
-    assert "PASS: accept event with no paid label" in out
+    assert "PASS: paid label with no payment/accept/mint event" in out
+    assert "PASS: paid event with no paid label" in out
     assert "PASS: claimed issue with no escrow event" in out
 
 
 def test_main_exits_1_on_discrepancy(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
     """Orphan paid label → exit 1 and FAIL line in output."""
-    _write_history(tmp_path)  # no accept events
+    _write_history(tmp_path)  # no paid-class events
     gh = _gh_json(_gh_issue(42, "task", "paid"))
     rc = main(["--root", str(tmp_path)], gh_issues_json=gh)
     out = capsys.readouterr().out
     assert rc == 1
-    assert "FAIL: paid label with no accept event" in out
+    assert "FAIL: paid label with no payment/accept/mint event" in out
+    assert "42" in out
+
+
+def test_main_exits_0_on_warn_only(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    """Orphan ledger paid event (WARN severity) does not fail the run."""
+    _write_history(
+        tmp_path,
+        {"type": "payment", "issue": 42, "agent": "a@x", "amount": 10},
+    )
+    gh = _gh_json()  # no GitHub issues at all
+    rc = main(["--root", str(tmp_path)], gh_issues_json=gh)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "WARN: paid event with no paid label" in out
     assert "42" in out

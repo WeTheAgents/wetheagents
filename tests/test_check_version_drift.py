@@ -117,8 +117,29 @@ def test_backdated_last_updated_fails(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert passed is False
     assert payload["timestamp_drift"][0]["reason"] == (
-        "last_updated is older than the second-most-recent commit timestamp"
+        "last_updated regressed compared to previous snapshot"
     )
+
+
+def test_equal_last_updated_does_not_fail(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Same last_updated across snapshots is not a regression.
+
+    Captures the writer-race pattern where a tool computes the snapshot
+    first and commits it ~seconds later. The version field still bumps,
+    so monotonicity is preserved; the logical clock has just not moved
+    yet. This is informational, not a failure.
+    """
+    _patch_balances(
+        monkeypatch,
+        current={"version": 2, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
+        history=[("c1", _epoch(2026, 1, 1, 10)), ("c2", _epoch(2026, 1, 1, 11))],
+        previous={"version": 1, "last_updated": _iso(2026, 1, 1, 10), "agents": {}},
+    )
+
+    payload, passed = check_version_drift.run(ROOT)
+
+    assert passed is True
+    assert payload["timestamp_drift"] == []
 
 
 def test_first_commit_passes(monkeypatch: pytest.MonkeyPatch) -> None:

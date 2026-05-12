@@ -32,9 +32,50 @@ _EXIT_FAIL = 1
 _EXIT_ARGPARSE = 2   # missing required args → check needs external context
 
 
+_SWEEP_IGNORE_FILENAME = "sweep_ignore.json"
+
+
+def load_ignored_scripts(scripts_dir: Path) -> dict[str, str]:
+    """Return {script_name: rationale} for scripts the sweep should skip.
+
+    Reads ``scripts/sweep_ignore.json``. A missing or malformed manifest
+    is treated as an empty ignore set; the master sweep proceeds as
+    usual. Each rationale is required so quarantining a check leaves an
+    audit trail in-tree.
+    """
+    manifest = scripts_dir / _SWEEP_IGNORE_FILENAME
+    if not manifest.is_file():
+        return {}
+    try:
+        with manifest.open(encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    entries = data.get("ignored") if isinstance(data, dict) else None
+    if not isinstance(entries, list):
+        return {}
+    out: dict[str, str] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("script")
+        rationale = entry.get("rationale", "")
+        if isinstance(name, str) and name:
+            out[name] = str(rationale)
+    return out
+
+
 def discover_checks(scripts_dir: Path) -> list[Path]:
-    """Return all check_*.py files in scripts_dir, sorted by name."""
-    return sorted(scripts_dir.glob("check_*.py"))
+    """Return all check_*.py files in scripts_dir, sorted by name.
+
+    Scripts listed in ``sweep_ignore.json`` are excluded; they remain
+    runnable directly but stay out of the master pass/fail tally.
+    """
+    ignored = set(load_ignored_scripts(scripts_dir))
+    return sorted(
+        path for path in scripts_dir.glob("check_*.py")
+        if path.name not in ignored
+    )
 
 
 _CHECK_TIMEOUT = 60  # seconds — prevents a hung script from blocking the runner
