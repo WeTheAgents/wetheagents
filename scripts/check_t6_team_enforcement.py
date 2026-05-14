@@ -121,13 +121,19 @@ def _check_mints(
     for record in mints:
         if record.get("trajectory") != "T6":
             continue
-        accepted_at = _parse_date_prefix(record.get("accepted_at", ""))
+        # Prefer accepted_at; fall back to timestamp before treating as undated.
+        # T6 slot 15 (and any future mint written through a code path that only
+        # records `timestamp`) would otherwise classify as pre-policy and bypass
+        # the rotation schedule. The fallback ensures the rule still applies.
+        when = _parse_date_prefix(record.get("accepted_at", ""))
+        if when is None:
+            when = _parse_date_prefix(record.get("timestamp", ""))
         if since is not None:
-            if accepted_at is None or accepted_at < since:
+            if when is None or when < since:
                 continue
         effective_agent = authorized_agent
         if use_schedule:
-            scheduled = _authorized_at(accepted_at)
+            scheduled = _authorized_at(when)
             if scheduled is None:
                 # Pre-schedule (or undated) — grandfather; the policy did not
                 # apply yet at that point.

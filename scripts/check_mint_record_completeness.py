@@ -49,6 +49,15 @@ PRE_RULE_GRANDFATHERED_SLOTS: frozenset[tuple[str, int]] = frozenset({
     ("T6", 15),
 })
 
+# The grandfather narrowly excuses only the two fields that were never written
+# on cycle-12 records. If any allowlisted slot later loses one of the *other*
+# three mandatory fields (frontier_closed / artifact / evidence), that is fresh
+# damage, not historical absence — the checker must still FAIL.
+PRE_RULE_GRANDFATHERED_FIELDS: frozenset[str] = frozenset({
+    "made_redundant",
+    "redundancy_proof",
+})
+
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
@@ -85,14 +94,37 @@ def _check_mints(mints: list[Any]) -> list[dict[str, Any]]:
         ]
 
         if missing and (trajectory, slot) in PRE_RULE_GRANDFATHERED_SLOTS:
+            # Narrow the grandfather: only the two fields that were never
+            # written on cycle-12 records (made_redundant, redundancy_proof)
+            # may be excused. If anything else is missing on an allowlisted
+            # slot, that's a fresh defect (e.g., someone blanked frontier_closed
+            # in a later edit) and must FAIL.
+            unexcused = [f for f in missing if f not in PRE_RULE_GRANDFATHERED_FIELDS]
+            if not unexcused:
+                checks.append(
+                    {
+                        "idem_key": idem_key,
+                        "trajectory": trajectory,
+                        "slot": slot,
+                        "status": "GRANDFATHERED",
+                        "missing_fields": missing,
+                        "reason": "pre-rule mint (cycle 12): mandatory-fields rule postdated this record",
+                    }
+                )
+                continue
+            # Fresh damage on an allowlisted slot — FAIL with only the
+            # unexcused fields highlighted so the report stays actionable.
             checks.append(
                 {
                     "idem_key": idem_key,
                     "trajectory": trajectory,
                     "slot": slot,
-                    "status": "GRANDFATHERED",
-                    "missing_fields": missing,
-                    "reason": "pre-rule mint (cycle 12): mandatory-fields rule postdated this record",
+                    "status": "FAIL",
+                    "missing_fields": unexcused,
+                    "reason": (
+                        "allowlisted slot lost a field beyond the grandfathered "
+                        "(made_redundant, redundancy_proof) set"
+                    ),
                 }
             )
             continue

@@ -119,15 +119,75 @@ def _is_legacy_true_sentinel(key: str, value: object) -> bool:
     return value is True and bool(_LEGACY_TRUE_SENTINEL_RE.match(key))
 
 
-def _is_legacy_metadata_dict(key: str, value: dict) -> bool:
-    """Return True for historical metadata dicts predating the created_at/op schema."""
+def _matches_legacy_metadata_shape(key: str, value: dict) -> bool:
+    """Return True if key+fields match the legacy-escrow metadata shape.
+
+    Used to route legacy-shaped entries into ``_validate_legacy_metadata_dict``
+    instead of the new-format validator (which would falsely demand op /
+    created_at to be present).
+    """
     if not _LEGACY_METADATA_RE.match(key):
         return False
-    if not set(value).issubset(_LEGACY_METADATA_FIELDS):
-        return False
+    return set(value).issubset(_LEGACY_METADATA_FIELDS)
 
-    timestamp = value.get("created_at") or value.get("ts")
-    return timestamp is None or _is_valid_created_at(timestamp)
+
+def _validate_legacy_metadata_dict(key: str, value: dict) -> list[dict]:
+    """Validate constrained fields on a legacy-shaped metadata entry.
+
+    Grandfathers only the *absence* of fields, never *present-but-invalid*
+    fields. Required-presence checks (op / created_at must exist) do NOT apply
+    to legacy entries — they predate that rule. But any constrained field that
+    IS present must satisfy its constraint.
+    """
+    violations: list[dict] = []
+
+    # Timestamps: if a timestamp key is present at all, its value must be valid.
+    # A null or malformed timestamp is a real defect, not a historical absence.
+    for ts_field in ("created_at", "ts"):
+        if ts_field not in value:
+            continue
+        if value[ts_field] is None:
+            violations.append({
+                "key": key,
+                "field": ts_field,
+                "issue": "must not be null",
+            })
+        elif not _is_valid_created_at(value[ts_field]):
+            violations.append({
+                "key": key,
+                "field": ts_field,
+                "issue": (
+                    f"invalid ISO-8601 datetime '{value[ts_field]}'; "
+                    "must end with Z or ±HH:MM"
+                ),
+            })
+
+    # Amount: if present, must be a positive integer (bool excluded).
+    if "amount" in value:
+        amt = value["amount"]
+        if isinstance(amt, bool) or not isinstance(amt, int):
+            violations.append({
+                "key": key,
+                "field": "amount",
+                "issue": f"must be an integer if present, got {type(amt).__name__}",
+            })
+        elif amt <= 0:
+            violations.append({
+                "key": key,
+                "field": "amount",
+                "issue": f"must be a positive integer (> 0), got {amt}",
+            })
+
+    # op: if present, must be a non-empty string (legacy entries may omit op
+    # entirely — that's grandfathered — but a present blank/null op is invalid).
+    if "op" in value:
+        op = value["op"]
+        if op is None:
+            violations.append({"key": key, "field": "op", "issue": "must not be null"})
+        elif not isinstance(op, str) or not op.strip():
+            violations.append({"key": key, "field": "op", "issue": "must be a non-empty string"})
+
+    return violations
 
 
 def run(entries: object) -> dict:
@@ -171,15 +231,14 @@ def run(entries: object) -> dict:
             # Legacy presence-only sentinel for a few historical escrow keys.
             pass
         elif isinstance(value, dict):
-            if _is_legacy_metadata_dict(key, value):
-                continue
-            # Determine format by presence of new-schema sentinel fields.
-            # Old-format dicts (pre-schema, e.g. {"action": ..., "timestamp": ...})
-            # lack both "created_at" and "op" and are grandfathered in.
-            # New-format dicts that include either field are validated fully.
-            if "created_at" in value or "op" in value:
+            if _matches_legacy_metadata_shape(key, value):
+                # Legacy escrow metadata pattern — only validate present-but-invalid
+                # fields. Required-presence checks don't apply (predates rule).
+                violations.extend(_validate_legacy_metadata_dict(key, value))
+            elif "created_at" in value or "op" in value:
+                # New-format dicts that include sentinel fields are validated fully.
                 violations.extend(_validate_dict_value(key, value))
-            # else: old-format dict — skip validation
+            # else: old-format dict (no sentinel fields, non-legacy pattern) — skip
         else:
             # Any other type (int, null, list, …) is a schema violation.
             violations.append({
