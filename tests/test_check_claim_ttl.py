@@ -105,6 +105,71 @@ def test_json_file_invalid_timestamp_treated_as_expired(tmp_path: Path) -> None:
     assert "#1" in result.stdout
 
 
+def test_json_file_every_good_claim_exempt_from_ttl(tmp_path: Path) -> None:
+    """Claim 25h ago on an every_good task is exempt (no squatting harm)."""
+    claims_file = tmp_path / "claims.json"
+    claims_file.write_text(
+        json.dumps([
+            {
+                "issue": 99,
+                "agent": "bob@test",
+                "claimed_at": "2026-03-05T00:00:00Z",
+                "mechanic": "every_good",
+            },
+        ])
+    )
+    result = _run([
+        "--json-file", str(claims_file),
+        "--now", "2026-03-06T01:00:00Z",
+        "--ttl-hours", "24",
+    ])
+    assert result.returncode == 0
+    assert "OK" in result.stdout
+
+
+def test_json_file_best_x_claim_exempt_from_ttl(tmp_path: Path) -> None:
+    """best_x is also a parallel-submission mechanic, so claims are exempt."""
+    claims_file = tmp_path / "claims.json"
+    claims_file.write_text(
+        json.dumps([
+            {
+                "issue": 100,
+                "agent": "alice@test",
+                "claimed_at": "2026-03-05T00:00:00Z",
+                "mechanic": "best_x",
+            },
+        ])
+    )
+    result = _run([
+        "--json-file", str(claims_file),
+        "--now", "2026-03-06T01:00:00Z",
+        "--ttl-hours", "24",
+    ])
+    assert result.returncode == 0
+
+
+def test_json_file_standard_claim_still_enforces_ttl(tmp_path: Path) -> None:
+    """Standard mechanic is single-winner — TTL still applies."""
+    claims_file = tmp_path / "claims.json"
+    claims_file.write_text(
+        json.dumps([
+            {
+                "issue": 101,
+                "agent": "carol@test",
+                "claimed_at": "2026-03-05T00:00:00Z",
+                "mechanic": "standard",
+            },
+        ])
+    )
+    result = _run([
+        "--json-file", str(claims_file),
+        "--now", "2026-03-06T01:00:00Z",
+        "--ttl-hours", "24",
+    ])
+    assert result.returncode == 1
+    assert "#101" in result.stdout
+
+
 def test_json_file_whitespace_only_agent_or_claimed_at_skipped(tmp_path: Path) -> None:
     """Whitespace-only agent or claimed_at rejected after strip."""
     claims_file = tmp_path / "claims.json"

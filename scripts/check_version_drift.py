@@ -6,11 +6,21 @@ immediately previous commit for that file and verifies that:
 
 1. The top-level ``version`` increases monotonically.
 2. The version is never reused and never jumps by more than 1.
-3. The current ``last_updated`` is not older than the second-most-recent
-   commit timestamp for ``ledger/balances.json``.
+3. The current ``last_updated`` is not older than the previous snapshot's
+   ``last_updated`` field (a logical-clock comparison).
 
 If the previous snapshot predates the introduction of a ``version`` field, the
 current snapshot is treated as the baseline versioned state.
+
+Why the logical-clock comparison: ``last_updated`` is a logical timestamp
+set by whatever tool writes ``balances.json``. The git commit timestamp is
+a *wall-clock* value chosen by the writer's machine at commit time. The
+two clocks routinely diverge by tens of seconds when a tool computes the
+snapshot first and commits it shortly afterwards. Comparing ``last_updated``
+against the previous file commit's wall-clock timestamp therefore produces
+sub-minute false positives without catching anything the logical-clock
+comparison does not. Real backdating (e.g. a snapshot whose
+``last_updated`` is earlier than the previous snapshot's) is still caught.
 
 Output: JSON with keys ``status``, ``version_drift``, ``timestamp_drift``,
 ``files_checked``, and ``summary``.
@@ -207,6 +217,7 @@ def inspect_balances(root: Path) -> tuple[dict[str, Any], list[dict[str, Any]], 
     last_updated_raw = current.get("last_updated")
     last_updated = _parse_timestamp(last_updated_raw)
     previous_commit_time = datetime.fromtimestamp(previous_raw_ts, tz=timezone.utc)
+    previous_last_updated = _parse_timestamp(previous_data.get("last_updated"))
     if last_updated is None:
         timestamp_drift.append(
             {
@@ -218,15 +229,19 @@ def inspect_balances(root: Path) -> tuple[dict[str, Any], list[dict[str, Any]], 
                 "reason": "missing or invalid last_updated after first commit",
             }
         )
-    elif last_updated < previous_commit_time:
+    elif previous_last_updated is not None and last_updated < previous_last_updated:
+        # Logical-clock regression: current snapshot's last_updated is
+        # earlier than the previous snapshot's last_updated. This is real
+        # backdating regardless of the wall-clock commit times.
         timestamp_drift.append(
             {
                 "file": BALANCES_PATH,
                 "commit": current_commit,
                 "previous_commit": previous_commit,
                 "previous_commit_timestamp": _format_utc(previous_commit_time),
+                "previous_last_updated": _format_utc(previous_last_updated),
                 "last_updated": _format_utc(last_updated),
-                "reason": "last_updated is older than the second-most-recent commit timestamp",
+                "reason": "last_updated regressed compared to previous snapshot",
             }
         )
 

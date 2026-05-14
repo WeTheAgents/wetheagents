@@ -11,9 +11,20 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# Scripts that must be wired into .githooks/pre-commit. Each entry must be
+# runnable without external CLI arguments (no positional args, no required
+# context flags), because pre-commit can only pass file lists at most.
+#
+# Historical note: an earlier version of this list included
+# ``check_idem_keys.py``. That script takes one or more idempotency keys as
+# *positional* arguments and cannot be invoked from a pre-commit hook
+# without a specific key to validate. The hook has therefore never
+# actually invoked it. ``check_ledger_schema.py`` is the right substitute:
+# it validates the structure of ``ledger/*.json`` (including
+# ``idem_keys.json``) and is wired into the hook on ledger changes.
 MANDATORY_SCRIPTS = (
-    "check_idem_keys.py",
     "check_invariant.py",
+    "check_ledger_schema.py",
     "genome_guard.py",
 )
 

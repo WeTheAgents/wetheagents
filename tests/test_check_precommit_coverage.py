@@ -42,14 +42,14 @@ def _mandatory_hook() -> str:
         [
             'python "$REPO_ROOT/scripts/genome_guard.py" --files $GENOME_FILES || exit 1',
             'python "$REPO_ROOT/scripts/check_invariant.py" --root "$REPO_ROOT" || exit 1',
-            'python "$REPO_ROOT/scripts/check_idem_keys.py" hash123 || exit 1',
+            'python "$REPO_ROOT/scripts/check_ledger_schema.py" || exit 1',
         ]
     ) + "\n"
 
 
 def _write_mandatory_scripts(repo: Path) -> None:
     scripts_dir = repo / "scripts"
-    for name in ("genome_guard.py", "check_invariant.py", "check_idem_keys.py"):
+    for name in ("genome_guard.py", "check_invariant.py", "check_ledger_schema.py"):
         _write_script(scripts_dir, name)
 
 
@@ -83,7 +83,7 @@ def test_one_missing_mandatory_fails(precommit_repo: Path) -> None:
 
     assert passed is False
     assert result["status"] == "FAIL"
-    assert result["missing_mandatory"] == ["check_idem_keys.py"]
+    assert result["missing_mandatory"] == ["check_ledger_schema.py"]
 
 
 def test_dead_reference_warns_but_passes(precommit_repo: Path) -> None:
@@ -115,8 +115,8 @@ def test_empty_hook_fails(precommit_repo: Path) -> None:
     assert passed is False
     assert result["status"] == "FAIL"
     assert result["missing_mandatory"] == [
-        "check_idem_keys.py",
         "check_invariant.py",
+        "check_ledger_schema.py",
         "genome_guard.py",
     ]
 
@@ -159,7 +159,7 @@ def test_comments_do_not_count_as_invocations(precommit_repo: Path) -> None:
         repo,
         "\n".join(
             [
-                '# python "$REPO_ROOT/scripts/check_idem_keys.py" || exit 1',
+                '# python "$REPO_ROOT/scripts/check_ledger_schema.py" || exit 1',
                 'python "$REPO_ROOT/scripts/genome_guard.py" || exit 1',
                 '# python "$REPO_ROOT/scripts/check_invariant.py" || exit 1',
             ]
@@ -170,8 +170,8 @@ def test_comments_do_not_count_as_invocations(precommit_repo: Path) -> None:
 
     assert passed is False
     assert result["missing_mandatory"] == [
-        "check_idem_keys.py",
         "check_invariant.py",
+        "check_ledger_schema.py",
     ]
 
 
@@ -198,7 +198,7 @@ def test_non_python_references_are_ignored(precommit_repo: Path) -> None:
         repo,
         "\n".join(
             [
-                'bash "$REPO_ROOT/scripts/check_idem_keys.py"',
+                'bash "$REPO_ROOT/scripts/check_ledger_schema.py"',
                 'python "$REPO_ROOT/scripts/genome_guard.py"',
                 'python "$REPO_ROOT/scripts/check_invariant.py"',
             ]
@@ -208,7 +208,7 @@ def test_non_python_references_are_ignored(precommit_repo: Path) -> None:
     result, passed = run(repo)
 
     assert passed is False
-    assert result["missing_mandatory"] == ["check_idem_keys.py"]
+    assert result["missing_mandatory"] == ["check_ledger_schema.py"]
 
 
 def test_python_substring_command_is_ignored(precommit_repo: Path) -> None:
@@ -218,7 +218,7 @@ def test_python_substring_command_is_ignored(precommit_repo: Path) -> None:
         repo,
         "\n".join(
             [
-                'mypython "$REPO_ROOT/scripts/check_idem_keys.py"',
+                'mypython "$REPO_ROOT/scripts/check_ledger_schema.py"',
                 'python "$REPO_ROOT/scripts/genome_guard.py"',
                 'python "$REPO_ROOT/scripts/check_invariant.py"',
             ]
@@ -228,7 +228,7 @@ def test_python_substring_command_is_ignored(precommit_repo: Path) -> None:
     result, passed = run(repo)
 
     assert passed is False
-    assert result["missing_mandatory"] == ["check_idem_keys.py"]
+    assert result["missing_mandatory"] == ["check_ledger_schema.py"]
 
 
 def test_line_continuation_is_parsed(precommit_repo: Path) -> None:
@@ -241,7 +241,7 @@ def test_line_continuation_is_parsed(precommit_repo: Path) -> None:
                 'python \\',
                 '  "$REPO_ROOT/scripts/genome_guard.py" --files $GENOME_FILES || exit 1',
                 'python "$REPO_ROOT/scripts/check_invariant.py" || exit 1',
-                'python "$REPO_ROOT/scripts/check_idem_keys.py" hash123 || exit 1',
+                'python "$REPO_ROOT/scripts/check_ledger_schema.py" || exit 1',
             ]
         ) + "\n",
     )
@@ -301,8 +301,8 @@ def test_subprocess_exit_one_on_fail(precommit_repo: Path) -> None:
     assert result.returncode == 1
     assert payload["status"] == "FAIL"
     assert payload["missing_mandatory"] == [
-        "check_idem_keys.py",
         "check_invariant.py",
+        "check_ledger_schema.py",
     ]
 
 

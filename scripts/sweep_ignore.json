@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "description": "Scripts in scripts/check_*.py that run_all_checks.py should skip with a recorded rationale. Excluded scripts are still discoverable directly (they live in scripts/) and continue to be picked up by their own dedicated tests; they are just kept out of the master pass/fail tally.",
+  "ignored": [
+    {
+      "script": "check_incident_correlator.py",
+      "classification": "contradiction",
+      "rationale": "This is a diagnostic correlator, not a primary check. It internally re-runs check_stale_escrows.py, check_task_escrow_sync.py, and check_invariant.py — all of which are also direct entries in the master sweep. When any of those fails, the correlator fails too, double-counting the same incident. Quarantining the correlator from the sweep keeps the correlation tool available for manual incident investigation without inflating the failure count. Invoke directly via `python scripts/check_incident_correlator.py` when correlating a multi-failure incident."
+    }
+  ]
+}

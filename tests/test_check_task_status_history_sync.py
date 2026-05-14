@@ -46,12 +46,13 @@ def _write_history(history_dir: Path, filename: str, events: list[dict]) -> None
 def test_build_issue_sets_categorises_events() -> None:
     events = [
         {"type": "accept", "issue": 10},
+        {"type": "payment", "issue": 11},
         {"type": "trajectory_mint", "issue": 20},
         {"type": "reject", "issue": 30},
-        {"type": "payment", "issue": 10},  # irrelevant type
     ]
-    accept, mint, reject = _build_issue_sets(events)
+    accept, payment, mint, reject = _build_issue_sets(events)
     assert accept == {10}
+    assert payment == {11}
     assert mint == {20}
     assert reject == {30}
 
@@ -61,7 +62,7 @@ def test_build_issue_sets_skips_missing_issue() -> None:
         {"type": "accept"},  # no issue field
         {"type": "trajectory_mint", "issue": None},
     ]
-    accept, mint, reject = _build_issue_sets(events)
+    accept, payment, mint, reject = _build_issue_sets(events)
     assert accept == set()
     assert mint == set()
 
@@ -69,13 +70,13 @@ def test_build_issue_sets_skips_missing_issue() -> None:
 def test_build_issue_sets_normalises_issue_as_int() -> None:
     # issue stored as string "42" in history (edge case)
     events = [{"type": "accept", "issue": "42"}]
-    accept, mint, _ = _build_issue_sets(events)
+    accept, payment, mint, _ = _build_issue_sets(events)
     assert 42 in accept
 
 
 def test_build_issue_sets_skips_non_numeric_issue() -> None:
     events = [{"type": "accept", "issue": "bad"}]
-    accept, mint, reject = _build_issue_sets(events)
+    accept, payment, mint, reject = _build_issue_sets(events)
     assert accept == set()
 
 
@@ -85,7 +86,7 @@ def test_build_issue_sets_multiple_events_same_issue() -> None:
         {"type": "accept", "issue": 5},
         {"type": "trajectory_mint", "issue": 5},
     ]
-    accept, mint, reject = _build_issue_sets(events)
+    accept, payment, mint, reject = _build_issue_sets(events)
     assert accept == {5}
     assert mint == {5}
 
@@ -97,7 +98,7 @@ def test_build_issue_sets_multiple_events_same_issue() -> None:
 
 def test_paid_with_accept_event_passes() -> None:
     tasks = {"100": {"status": "paid"}}
-    checks = check_tasks(tasks, accept_issues={100}, mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues={100}, payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert len(checks) == 1
     assert checks[0]["result"] == "PASS"
     assert checks[0]["issue"] == 100
@@ -105,13 +106,13 @@ def test_paid_with_accept_event_passes() -> None:
 
 def test_paid_with_trajectory_mint_passes() -> None:
     tasks = {"200": {"status": "paid"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues={200}, reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues={200}, reject_issues=set())
     assert checks[0]["result"] == "PASS"
 
 
 def test_paid_with_no_event_fails() -> None:
     tasks = {"300": {"status": "paid"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "FAIL"
     assert "300" in checks[0]["note"] or "300" in str(checks[0]["issue"])
 
@@ -119,7 +120,7 @@ def test_paid_with_no_event_fails() -> None:
 def test_paid_with_only_reject_event_fails() -> None:
     # A reject event does NOT satisfy the paid rule
     tasks = {"400": {"status": "paid"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues={400})
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues={400})
     assert checks[0]["result"] == "FAIL"
 
 
@@ -130,26 +131,26 @@ def test_paid_with_only_reject_event_fails() -> None:
 
 def test_open_with_no_accept_passes() -> None:
     tasks = {"50": {"status": "open"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "PASS"
 
 
 def test_claimed_with_no_accept_passes() -> None:
     tasks = {"51": {"status": "claimed"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "PASS"
 
 
 def test_open_with_accept_event_fails() -> None:
     tasks = {"52": {"status": "open"}}
-    checks = check_tasks(tasks, accept_issues={52}, mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues={52}, payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "FAIL"
     assert "open" in checks[0]["note"]
 
 
 def test_claimed_with_accept_event_fails() -> None:
     tasks = {"53": {"status": "claimed"}}
-    checks = check_tasks(tasks, accept_issues={53}, mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues={53}, payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "FAIL"
     assert "claimed" in checks[0]["note"]
 
@@ -161,13 +162,13 @@ def test_claimed_with_accept_event_fails() -> None:
 
 def test_rejected_with_reject_event_passes() -> None:
     tasks = {"60": {"status": "rejected"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues={60})
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues={60})
     assert checks[0]["result"] == "PASS"
 
 
 def test_rejected_without_reject_event_fails() -> None:
     tasks = {"61": {"status": "rejected"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "FAIL"
     assert "rejected" in checks[0]["note"]
 
@@ -179,13 +180,13 @@ def test_rejected_without_reject_event_fails() -> None:
 
 def test_cancelled_is_skipped() -> None:
     tasks = {"70": {"status": "cancelled"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "SKIP"
 
 
 def test_unknown_status_is_skipped() -> None:
     tasks = {"71": {"status": "some_future_status"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "SKIP"
 
 
@@ -196,20 +197,20 @@ def test_unknown_status_is_skipped() -> None:
 
 def test_non_integer_issue_key_fails() -> None:
     tasks = {"not_a_number": {"status": "paid"}}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "FAIL"
     assert "non-integer" in checks[0]["note"]
 
 
 def test_task_entry_not_a_dict_fails() -> None:
     tasks = {"80": "wrong_type"}
-    checks = check_tasks(tasks, accept_issues=set(), mint_issues=set(), reject_issues=set())
+    checks = check_tasks(tasks, accept_issues=set(), payment_issues=set(), mint_issues=set(), reject_issues=set())
     assert checks[0]["result"] == "FAIL"
     assert "not a dict" in checks[0]["note"]
 
 
 def test_empty_tasks_returns_empty_checks() -> None:
-    checks = check_tasks({}, set(), set(), set())
+    checks = check_tasks({}, set(), set(), set(), set())
     assert checks == []
 
 

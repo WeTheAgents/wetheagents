@@ -254,6 +254,7 @@ def test_open_task_neighbour_accept_not_a_violation(tmp_path: Path) -> None:
     checks = check_tasks(
         tasks,
         accept_issues={99},  # neighbour, not 100
+        payment_issues=set(),
         mint_issues=set(),
         reject_issues=set(),
     )
@@ -457,6 +458,6 @@ def test_build_issue_sets_multiple_accepts_same_issue_deduplicates() -> None:
         {"type": "accept", "issue": 55},
         {"type": "accept", "issue": 56},
     ]
-    accept, mint, reject = _build_issue_sets(events)
+    accept, payment, mint, reject = _build_issue_sets(events)
     assert accept == {55, 56}
     assert len(accept) == 2  # no duplicates in set
