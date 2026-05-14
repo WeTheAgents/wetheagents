@@ -39,20 +39,23 @@ _EXIT_SKIP = 2  # mirrors scripts/run_all_checks.py — exit 2 ⇒ SKIP (needs C
 def _read_body(cli_body: str | None) -> tuple[str, bool]:
     """Return (body, had_input_source).
 
-    ``had_input_source`` is True iff at least one of CLI arg / non-empty stdin /
-    PR_BODY env var was supplied. The sweep runner invokes this script with
-    none of those, and an empty body would otherwise be reported as missing all
-    5 fields. We surface that as SKIP rather than FAIL, since the check
-    cannot do its job without a PR body to inspect.
+    ``had_input_source`` is True iff the caller supplied a body via CLI arg,
+    a connected (non-tty) stdin, or the PR_BODY env var.
+
+    A *connected but empty* stdin pipe counts as input — it represents a real
+    PR body that happens to be blank, which is exactly the case the check
+    exists to catch. SKIP is reserved for the sweep-runner invocation that
+    pipes nothing at all (stdin is a tty / not redirected).
     """
     if cli_body is not None:
         return cli_body, True
 
-    stdin_body = ""
     if not sys.stdin.isatty():
-        stdin_body = sys.stdin.read()
-    if stdin_body.strip():
-        return stdin_body, True
+        # Stdin is connected (pipe or redirect). Whatever it carries — empty
+        # string, whitespace, or content — is the PR body under test. Do not
+        # second-guess by stripping; an all-whitespace body should FAIL, not
+        # silently SKIP and hide the defect.
+        return sys.stdin.read(), True
 
     env_body = os.environ.get("PR_BODY")
     if env_body is not None:
