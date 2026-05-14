@@ -60,13 +60,30 @@ def _numeric_amount(value: Any) -> int | float | None:
 
 
 def _event_type(event: dict[str, Any]) -> str | None:
-    raw = event.get("type")
-    if isinstance(raw, str) and raw:
-        return raw
-    raw = event.get("op")
-    if isinstance(raw, str) and raw:
-        return raw
+    for key in ("event", "op", "type"):
+        raw = event.get(key)
+        if isinstance(raw, str) and raw:
+            return raw
     return None
+
+
+def _payment_identity(event: dict[str, Any]) -> tuple[Any, ...] | None:
+    """Return a duplicate-detection key for replayed payment rows.
+
+    A repeated payment row with the same post-payment balance is a historical
+    replay artifact, not a second spend. Rows without balance_after remain
+    fully counted so real double payments are still detected.
+    """
+    if "balance_after" not in event:
+        return None
+    return (
+        _normalize_issue(event.get("issue")),
+        event.get("agent"),
+        _numeric_amount(event.get("amount")),
+        event.get("balance_after"),
+        event.get("mechanic"),
+        event.get("rank"),
+    )
 
 
 def _explicit_escrow_kind(event: dict[str, Any]) -> str | None:
@@ -91,6 +108,7 @@ def run_check(root: Path) -> dict[str, Any]:
     batch_only_issues: set[str] = set()
     payment_totals_by_issue: dict[str, int | float] = {}
     max_payment_by_issue: dict[str, int | float] = {}
+    seen_payment_identities: set[tuple[Any, ...]] = set()
 
     stats = {
         "history_files_scanned": len(history_files),
@@ -105,6 +123,7 @@ def run_check(root: Path) -> dict[str, Any]:
         "skipped_non_object_events": 0,
         "skipped_malformed_escrows": 0,
         "skipped_malformed_payments": 0,
+        "deduped_duplicate_payments": 0,
         "violations": 0,
     }
 
@@ -162,6 +181,13 @@ def run_check(root: Path) -> dict[str, Any]:
             if issue is None or amount is None or amount <= 0:
                 stats["skipped_malformed_payments"] += 1
                 continue
+
+            payment_identity = _payment_identity(event)
+            if payment_identity is not None:
+                if payment_identity in seen_payment_identities:
+                    stats["deduped_duplicate_payments"] += 1
+                    continue
+                seen_payment_identities.add(payment_identity)
 
             payment_totals_by_issue[issue] = payment_totals_by_issue.get(issue, 0) + amount
             max_payment_by_issue[issue] = max(max_payment_by_issue.get(issue, 0), amount)

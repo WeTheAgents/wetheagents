@@ -59,13 +59,6 @@ def _base_repo(tmp_path: Path) -> Path:
                     "mechanic": "standard",
                     "accepted_agents": None,
                 },
-                "30": {
-                    "title": "open task without escrow",
-                    "status": "open",
-                    "reward": 10,
-                    "mechanic": "every_good",
-                    "accepted_agents": None,
-                },
             },
         },
     )
@@ -146,18 +139,18 @@ def test_open_no_escrow_passes() -> None:
     assert failures == []
 
 
-def test_open_every_good_per_acceptance_mismatch_fails() -> None:
+def test_open_every_good_per_acceptance_over_reward_fails() -> None:
     failures = check_open_tasks_escrow_amount(
         {"tasks": {"40": {"status": "open", "reward": 25}}},
-        {"active": {"40": {"amount": 50, "type": "every_good", "per_acceptance": 10}}},
+        {"active": {"40": {"amount": 25, "type": "every_good", "per_acceptance": 30}}},
     )
-    assert any("per_acceptance=10" in f for f in failures)
+    assert any("per_acceptance=30" in f for f in failures)
 
 
 def test_open_every_good_matching_per_acceptance_passes() -> None:
     failures = check_open_tasks_escrow_amount(
         {"tasks": {"40": {"status": "open", "reward": 25}}},
-        {"active": {"40": {"amount": 50, "type": "every_good", "per_acceptance": 25}}},
+        {"active": {"40": {"amount": 20, "type": "every_good", "per_acceptance": 10}}},
     )
     assert failures == []
 

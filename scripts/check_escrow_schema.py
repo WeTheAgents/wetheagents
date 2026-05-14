@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEDGER_DIR = os.path.join(BASE_DIR, "ledger")
 
-VALID_TYPES = {"pod", "progressive", "winner_take_all", "x_best", "duel", "linear"}
+VALID_TYPES = {"pod", "progressive", "winner_take_all", "x_best", "duel", "linear", "every_good"}
 
 
 def _is_iso8601(value: str) -> bool:

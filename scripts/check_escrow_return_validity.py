@@ -62,6 +62,13 @@ def _iter_events(history_dir: Path):
                         file=sys.stderr,
                     )
 
+def _event_type(event: dict[str, Any]) -> str:
+    for key in ("event", "op", "type"):
+        value = event.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return ""
+
 
 def run_check(
     root: Path,
@@ -105,7 +112,7 @@ def run_check(
     warnings: list[dict[str, Any]] = []
 
     for event in event_stream:
-        etype = event.get("type", "")
+        etype = _event_type(event)
         raw_issue = event.get("issue")
 
         if raw_issue is None:

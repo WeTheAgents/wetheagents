@@ -106,6 +106,16 @@ def test_active_linear_remaining_budget_pass() -> None:
     assert result["violations"] == []
 
 
+def test_active_every_good_remaining_budget_pass() -> None:
+    """Every Good escrow may be below reward after per-acceptance payouts."""
+    result = _run(
+        active={"895": {"amount": 60, "type": "every_good", "per_acceptance": 20}},
+        task_entries={"895": {"reward": 80, "mechanic": "every_good"}},
+    )
+    assert result["status"] == "PASS"
+    assert result["violations"] == []
+
+
 def test_active_progressive_exceeds_reward_fail() -> None:
     """Progressive escrow amount > reward → FAIL (over-escrowed)."""
     result = _run(

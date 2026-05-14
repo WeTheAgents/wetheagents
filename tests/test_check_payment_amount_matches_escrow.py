@@ -216,6 +216,35 @@ def test_op_based_escrow_create_counts(temp_repo: Path) -> None:
     assert report["stats"]["escrow_create_events_scanned"] == 1
 
 
+def test_event_field_escrow_create_with_type_metadata_counts(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"event": "escrow_create", "type": "standard", "issue": 42, "amount": 7},
+            {"type": "payment", "issue": 42, "amount": 7, "agent": "alice@test"},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["stats"]["escrow_create_events_scanned"] == 1
+
+
+def test_duplicate_payment_with_same_balance_after_is_deduped(temp_repo: Path) -> None:
+    root = _make_root(temp_repo, {
+        "2026-04-01.jsonl": [
+            {"type": "escrow", "issue": 42, "amount": 40},
+            {"type": "payment", "issue": 42, "amount": 40, "agent": "alice@test", "balance_after": 10},
+            {"type": "payment", "issue": 42, "amount": 40, "agent": "alice@test", "balance_after": 10},
+        ]
+    })
+
+    report = run_check(root)
+
+    assert report["status"] == "PASS"
+    assert report["stats"]["deduped_duplicate_payments"] == 1
+
+
 def test_malformed_payment_is_skipped(temp_repo: Path) -> None:
     root = _make_root(temp_repo, {
         "2026-04-01.jsonl": [

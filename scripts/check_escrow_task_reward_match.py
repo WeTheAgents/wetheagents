@@ -39,7 +39,7 @@ from typing import Any
 
 # Types where the escrow amount can legitimately be below the full task reward
 # because the budget is paid out incrementally.
-_PARTIAL_ESCROW_TYPES: frozenset[str] = frozenset({"progressive", "linear"})
+_PARTIAL_ESCROW_TYPES: frozenset[str] = frozenset({"progressive", "linear", "every_good"})
 
 
 def _repo_root_from(root: str | None) -> Path:
