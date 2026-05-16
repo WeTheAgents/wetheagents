@@ -22,6 +22,7 @@ jobs:
           python-version: '3.12'
 
       - name: Check PR scope
+        env:
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: |
-          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}" \
-            python scripts/check_pr_scope.py --diff-base origin/main
+          python scripts/check_pr_scope.py --diff-base origin/main
