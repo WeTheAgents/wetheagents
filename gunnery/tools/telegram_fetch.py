@@ -65,7 +65,10 @@ def call_get_updates(token: str, offset: int) -> list[dict]:
         f"&timeout=0&allowed_updates="
         + urllib.parse.quote(json.dumps(["message", "channel_post"]))
     )
-    with urllib.request.urlopen(url, timeout=15) as resp:
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme != "https" or parsed.netloc != "api.telegram.org":
+        raise RuntimeError("Refusing to call non-Telegram URL")
+    with urllib.request.urlopen(url, timeout=15) as resp:  # nosemgrep
         data = json.loads(resp.read().decode("utf-8"))
     if not data.get("ok"):
         sys.exit(f"telegram api error: {data}")

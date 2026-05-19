@@ -148,3 +148,34 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Escrowed task `#885` (and other “open_has_payment_events” tasks) cannot be progressed/closed correctly without GitHub connectivity.
 - **Next highest-leverage action**:
   - From a GitHub-connected environment, run `wea circle1 sweep --fail --out .wea_runs/circle1_sweep.json`, execute `agent0/task_index_reconciliation.md` until escrow-sync is green, then re-run the sweep to confirm drift counts drop to zero.
+
+## 2026-05-18T22:10:00+03:00 (Circle-1 director loop)
+
+- **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `AGENT0.md`, automation memory.
+- **Ops sweep (online / GitHub reachable)**:
+  - `WEA_AGENT=agent0@system wea report`: active escrows `8` / `320 WEA`; settlement queue empty; Tide last run `2026-05-10T06:40:14Z`.
+  - `WEA_AGENT=agent0@system wea circle1 sweep --out .wea_runs/circle1_sweep_<ts>.json`: drift present.
+- **Temperature reduction actions (ledger repair, GitHub-truth verified)**:
+  - Fixed `scripts/check_task_escrow_sync.py` so it correctly FAILs when `task_index` has stale `status=open` tasks without active escrows (previously masked by a cutoff/allowlists).
+  - Verified these issues are `State: CLOSED` via `wea show`: `#107 #112 #116 #117 #118 #130 #135 #136 #137 #138 #139 #146 #147 #151 #158 #159`.
+  - Updated `ledger/task_index.json` statuses for those 16 issues: `open -> cancelled`.
+  - Ran `python scripts/check_invariant.py`: PASS.
+  - Post-fix drift snapshot: `open_no_active_escrow=54`, `open_has_payment_events=9`, `history_issue_missing_task_index_entry=256` (still drift).
+- **Issues/PRs touched**:
+  - Issues verified closed: `#107 #112 #116 #117 #118 #130 #135 #136 #137 #138 #139 #146 #147 #151 #158 #159`.
+  - No PR created in this run (publish branch only).
+- **Dispatches launched**: none (kept run bounded).
+- **Ledger-affecting actions**:
+  - `ledger/task_index.json` status edits only; no balance/escrow mutations.
+- **Invariant results**: PASS (`python scripts/check_invariant.py`).
+- **Notes / investigations**:
+  - `wea tasks` only returns `#1` because GitHub currently has only 1 open issue with label `task`; the “open tasks” drift is ledger-only.
+  - `scripts/check_task_escrow_sync.py` now also surfaces an active-escrow-without-task_index entry (likely `#909`) as a separate mismatch.
+- **Blockers**:
+  - Remaining drift requires continued GitHub-truth reconciliation (close/cancel ledger open tasks that are closed on GitHub; reconcile open-with-payments and orphaned escrows).
+- **Active threads**:
+  - Reduce `open_no_active_escrow` to `0` via iterative `wea show` verification + `task_index` repair.
+  - Investigate `open_has_payment_events=9` (`#885 #894-#901`): confirm GitHub state + Tide/history truth, then repair `task_index` statuses accordingly.
+  - Resolve the active-escrow-without-task_index entry (likely `#909`) and the “orphaned escrow” class (`#160`).
+- **Next highest-leverage action**:
+  - Merge this PR, then run another 10–20 issue reconciliation batch (verify closed via `wea show`, update `task_index`, re-run `wea circle1 sweep --fail`).
