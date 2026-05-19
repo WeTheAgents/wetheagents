@@ -17,8 +17,8 @@ import json
 import os
 import re
 import sys
-import http.client
 import urllib.parse
+import urllib.request
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -59,19 +59,17 @@ def save_state(state: dict) -> None:
 
 
 def call_get_updates(token: str, offset: int) -> list[dict]:
-    query = (
-        f"offset={offset}"
-        f"&timeout=0&allowed_updates={urllib.parse.quote(json.dumps(['message', 'channel_post']))}"
+    url = (
+        f"https://api.telegram.org/bot{token}"
+        f"/getUpdates?offset={offset}"
+        f"&timeout=0&allowed_updates="
+        + urllib.parse.quote(json.dumps(["message", "channel_post"]))
     )
-    path = f"/bot{token}/getUpdates?{query}"
-    conn = http.client.HTTPSConnection("api.telegram.org", timeout=15)
-    try:
-        conn.request("GET", path)
-        resp = conn.getresponse()
-        payload = resp.read()
-    finally:
-        conn.close()
-    data = json.loads(payload.decode("utf-8"))
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme != "https" or parsed.netloc != "api.telegram.org":
+        raise RuntimeError("Refusing to call non-Telegram URL")
+    with urllib.request.urlopen(url, timeout=15) as resp:  # nosemgrep
+        data = json.loads(resp.read().decode("utf-8"))
     if not data.get("ok"):
         sys.exit(f"telegram api error: {data}")
     return data.get("result", [])
