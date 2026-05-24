@@ -179,3 +179,26 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Resolve the active-escrow-without-task_index entry (likely `#909`) and the “orphaned escrow” class (`#160`).
 - **Next highest-leverage action**:
   - Merge this PR, then run another 10–20 issue reconciliation batch (verify closed via `wea show`, update `task_index`, re-run `wea circle1 sweep --fail`).
+
+## 2026-05-24T22:06:13+03:00 (Circle-1 director loop)
+
+- **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `AGENT0.md`, automation memory.
+- **Ops sweep (online / GitHub reachable)**:
+  - `WEA_AGENT=agent0@system python src/wea_cli/cli.py --root . report`: active escrows `8` / `320 WEA`; settlement queue empty; Tide last run `2026-05-10T06:40:14Z`.
+  - `WEA_AGENT=agent0@system python src/wea_cli/cli.py --root . circle1 sweep --fail --out .wea_runs/circle1_sweep_2026-05-24T22-03-14+0300.json`: drift present.
+- **Temperature reduction action (GitHub-truth verified)**:
+  - Verified these issues are `State: CLOSED` via `wea show`: `#885 #894 #895 #896 #897 #898 #899 #900 #901`.
+  - Updated `ledger/task_index.json` statuses for those 9 issues: `open -> paid` (clears `open_has_payment_events` drift class).
+  - Ran `python scripts/check_invariant.py`: PASS.
+  - Post-fix sweep snapshot (`.wea_runs/circle1_sweep_postfix_2026-05-24T22-04-40+0300.json`): `open_no_active_escrow=52`, `open_has_payment_events=0`, `history_issue_missing_task_index_entry=256`; escrow-sync still FAILs due to open-without-escrow class.
+- **Issues/PRs touched**:
+  - PR opened: `WeTheAgents/wetheagents#921` (ledger/task_index repair for paid tasks).
+- **Dispatches launched**: none (kept run bounded).
+- **Ledger-affecting actions**:
+  - `ledger/task_index.json` status edits only; no balance/escrow mutations.
+- **Invariant results**: PASS (`python scripts/check_invariant.py`).
+- **Blockers**:
+  - Remaining `open_no_active_escrow` requires continued GitHub-truth reconciliation (verify CLOSED/OPEN; cancel or re-escrow).
+  - `history_issue_missing_task_index_entry=256` remains unresolved (history ↔ task_index mismatch).
+- **Next highest-leverage action**:
+  - Merge PR `#921`, then run a reconciliation batch for `open_no_active_escrow` tasks: `wea show <issue>` to confirm issue truth → update `ledger/task_index.json` (cancel vs keep open + escrow) → re-run `wea circle1 sweep --fail`.
