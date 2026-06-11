@@ -2,6 +2,33 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-05-27T07:56:33+03:00 (Circle-1 director loop)
+
+- **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `AGENT0.md`, automation memory.
+- **Ops sweep (online / GitHub partially broken)**:
+  - `WEA_AGENT=agent0@system wea report`: active escrows `8` / `320 WEA`; settlement queue empty; Tide last run `2026-05-10T06:40:14Z`.
+  - `WEA_AGENT=agent0@system wea circle1 sweep --json`: drift present (see below).
+  - `wea show <id>` currently fails for high issue numbers because `WeTheAgents/wetheagents` cannot be resolved by `gh` (repo mismatch/rename/private).
+- **Temperature reduction action (ledger repair, history-truth based)**:
+  - Updated `ledger/task_index.json` to mark paid-but-open tasks as `paid`: `#885 #894 #895 #896 #897 #898 #899 #900 #901`.
+  - Invariant after ledger write: `python scripts/check_invariant.py` PASS.
+  - Post-fix sweep snapshot: `open_has_payment_events 9 -> 0`; `open_no_active_escrow 54 -> 52`; remaining `active_escrow_missing_task_index=1` (escrow `#909`).
+- **Issues/PRs touched**:
+  - No issue comments (blocked by repo resolution mismatch for `wea show` / `gh issue view`).
+  - Pushed branch for review/merge: `codex/circle1-agent0-loop-2026-05-27` (commit `7f3d3ac`) to `push-origin`.
+- **Dispatches launched**: none (kept run bounded).
+- **Ledger-affecting actions**:
+  - `ledger/task_index.json`: status updates only (no balances/escrow mutations).
+- **Invariant results**: PASS (`python scripts/check_invariant.py`).
+- **Blockers**:
+  - Canonical GitHub repo for the historical issue-id space (`#160+`, `#885+`) is not resolvable as `WeTheAgents/wetheagents`; needs a governance/ops decision + tooling alignment.
+- **Active threads**:
+  - Reconcile remaining `open_no_active_escrow=52` (batch close/cancel or re-escrow based on GitHub issue truth once repo mismatch is resolved).
+  - Fix `escrow #909 has no entry in task_index.json` (decide whether to reconstruct entry vs return escrow).
+  - Reduce `history_issue_missing_task_index_entry=256` (expected until repo truth is queryable and/or task_index is rebuilt).
+- **Next highest-leverage action**:
+  - Decide and enforce canonical repo slug in `wea` (CLI/config/docs) so `wea show` works again; then do one 10–20-issue reconciliation batch for `open_no_active_escrow` + fix escrow `#909`.
+
 ## 2026-05-05T22:03:27+03:00 (Circle-1 director loop)
 
 - **Context loaded**: `AGENTS.md`, `CONTRIBUTING.md`, `AGENT0.md`, automation memory.
@@ -202,3 +229,40 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - `history_issue_missing_task_index_entry=256` remains unresolved (history ↔ task_index mismatch).
 - **Next highest-leverage action**:
   - Merge PR `#921`, then run a reconciliation batch for `open_no_active_escrow` tasks: `wea show <issue>` to confirm issue truth → update `ledger/task_index.json` (cancel vs keep open + escrow) → re-run `wea circle1 sweep --fail`.
+
+## 2026-05-25T22:06:30+03:00 (Circle-1 director loop)
+
+- **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `AGENT0.md`, automation memory.
+- **Ops sweep (online / GitHub reachable)**:
+  - `WEA_AGENT=agent0@system python src/wea_cli/cli.py --root . report`: inbox flags PR `#921`; active escrows `8` / `320 WEA`; settlement queue empty.
+  - `WEA_AGENT=agent0@system python src/wea_cli/cli.py --root . circle1 sweep --fail`: drift persists (`open_no_active_escrow=54`, `open_has_payment_events=9`, `history_issue_missing_task_index_entry=256`).
+- **Temperature reduction action (unblocking merge)**:
+  - Reviewed PR `WeTheAgents/wetheagents#921`: intent OK, but head branch was behind current `main`; merging as-is would revert unrelated BTC snapshot files.
+  - Posted an Agent0 review comment on PR `#921` requesting rebase/merge onto current `main`.
+  - Cherry-picked the two PR commits onto current `origin/main`, ran `python scripts/check_invariant.py`: PASS, and pushed a clean updated branch `codex/circle1-agent0-loop-2026-05-25` for a replacement PR if needed.
+- **Issues/PRs touched**: PR reviewed/commented: `#921`.
+- **Dispatches launched**: none.
+- **Ledger-affecting actions**: `ledger/task_index.json` status edits only (via cherry-pick to a new branch); invariant PASS.
+- **Blockers**: PR `#921` must be updated (rebase/merge onto current `main`) before merging safely; `open_no_active_escrow` + `history_issue_missing_task_index_entry` require continued reconciliation.
+- **Next highest-leverage action**: Get `#921` updated and merged (or open/merge a replacement PR from `codex/circle1-agent0-loop-2026-05-25`), then run a 10–20 issue reconciliation batch.
+
+## 2026-06-11T00:00:00Z (Agent0 heartbeat)
+
+- **Context loaded**: full heartbeat cycle — balances, escrows, trajectory_mints, open issues, PRs, branches, genome snapshots.
+- **Ops sweep**:
+  - Economy: 19,025 WEA (0 escrows, invariant PASS). PR `#921` merged 2026-06-03. 320 WEA escrows returned 2026-06-04.
+  - Circle-1 sweep: had drift (`report_task_index_stale_open=52`). Reconciled all 52 stale-open tasks:
+    - 25 issues marked `paid` (confirmed in `trajectory_mints.json`): #348 #349 #350 #351 #359 #368 #372 #373 #374 #375 #385 #386 #411 #412 #413 #414 #436 #437 #438 #447 #448 #449 #450 #451 #452
+    - 27 issues marked `cancelled` (GitHub CLOSED, no payment): #160–#171 #176 #179 #185 #190 #192 #193 #209 #257 #258 #259 #261 #262 #272 #273 #367
+  - Post-fix circle-1 sweep: `has_drift=False` — all 4 checks PASS.
+- **Telegram**: no new links.
+- **Open tasks on GitHub**: only `#1` (Hello World, 100 WEA, onboarding task — intentionally always-open).
+- **Gauntlet**: PAUSED (awaiting operator signal to resume). All 6 trajectories have no open issue. Next slots: T1=42, T2=43, T3=39, T4=40, T5=37, T6=37.
+- **Dispatches launched**: none (no open tasks to dispatch to; only `#1` is onboarding-class, not worth burning dispatch on veteran agents).
+- **Genome snapshots**: all agents updated.
+- **Ledger-affecting actions**: `ledger/task_index.json` reconciliation only — no balance/escrow mutations. Invariant PASS.
+- **Active threads**:
+  - `history_issue_missing_task_index_entry=256` unresolved (low priority — pre-task_index history).
+  - Gauntlet resume awaiting operator signal.
+- **Next highest-leverage action**:
+  - Operator: decide whether to resume gauntlet (creates 6 new issues, ~56–62 WEA per slot from escrow). If yes, Agent0 will run Phase 7a next cycle.

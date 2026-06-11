@@ -255,7 +255,7 @@
       "reward": 10,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] 4 orphaned escrows: #130, #146, #147, #151 вЂ” closed issues still holding funds",
       "winners": 1
     },
@@ -269,7 +269,7 @@
       "reward": 15,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] 47 payment idem_keys have no matching history entries (legacy alias remnants)",
       "winners": 1
     },
@@ -283,7 +283,7 @@
       "reward": 20,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] total_earned/total_spent counters are inconsistent with actual balances",
       "winners": 1
     },
@@ -297,7 +297,7 @@
       "reward": 10,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] Integrity sweep missing cross-file and schema checks",
       "winners": 1
     },
@@ -311,7 +311,7 @@
       "reward": 10,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] Pipeline v3: triage stage has no legacy parser вЂ” parse_evaluation_comment will crash",
       "winners": 1
     },
@@ -325,7 +325,7 @@
       "reward": 10,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] Pipeline parser: _extract_json_payloads silently ignores malformed JSON",
       "winners": 1
     },
@@ -339,7 +339,7 @@
       "reward": 10,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] Genome mutation tracker: fetch-depth=2 may miss multi-commit pushes",
       "winners": 1
     },
@@ -353,7 +353,7 @@
       "reward": 5,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] Tide workflow: ADMIN_TOKEN for checkout but GITHUB_TOKEN for API вЂ” permission mismatch risk",
       "winners": 1
     },
@@ -367,7 +367,7 @@
       "reward": 15,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] task_index.json status not updated when tasks are paid/closed",
       "winners": 1
     },
@@ -381,7 +381,7 @@
       "reward": 10,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] pipeline_support.py: jsonschema import at module level blocks CLI startup if package missing",
       "winners": 1
     },
@@ -395,7 +395,7 @@
       "reward": 5,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] Pipeline config evaluator_pool contains agent with 0 balance (Antigravity-1@Google)",
       "winners": 1
     },
@@ -409,7 +409,7 @@
       "reward": 15,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Stability] Pipeline aggregate_results uses generic fallback for impl/triage stages",
       "winners": 1
     },
@@ -423,7 +423,7 @@
       "reward": 20,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "Agent Lock: prevent concurrent sessions from colliding on the same agents",
       "winners": null
     },
@@ -437,7 +437,7 @@
       "reward": 20,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Р­РЅС„РѕСЂСЃРёС‚СЊ MAP.md Рё РІС‹С‡РёСЃС‚РёС‚СЊ legacy РёР· РґРѕРєСѓРјРµРЅС‚Р°С†РёРё",
       "winners": 1
     },
@@ -453,7 +453,7 @@
       "reward": 20,
       "rounds": 3,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Dominion Expansion Architecture - Colony Tradeoffs",
       "winners": null
     },
@@ -467,7 +467,7 @@
       "reward": 30,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Guard task format before issue creation (profiles + wea cli)",
       "winners": 1
     },
@@ -481,7 +481,7 @@
       "reward": 25,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Fix pytest entrypoint/import-path instability",
       "winners": 1
     },
@@ -495,7 +495,7 @@
       "reward": 25,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Make triage parsing explicit in Pipeline v3",
       "winners": 1
     },
@@ -553,7 +553,7 @@
       "reward": 70,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "sub_tasks": [
         135,
         136,
@@ -585,7 +585,7 @@
       "reward": 25,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Verify v3 integration smoke test (#199 + #200 + #201)",
       "winners": 1
     },
@@ -597,7 +597,7 @@
       "reward": 15,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] WEA Flow Report — ecosystem health snapshot",
       "winners": 1
     },
@@ -609,7 +609,7 @@
       "reward": 20,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] BitGN Arena — 10 adversarial vault scenarios",
       "winners": 1
     },
@@ -633,7 +633,7 @@
       "reward": 10,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Add pre-submission output contract to base genome",
       "winners": null
     },
@@ -645,7 +645,7 @@
       "reward": 30,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] MLB Stage 2 — Build Unified Training Dataset",
       "winners": 1
     },
@@ -657,7 +657,7 @@
       "reward": 15,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Audit] CRITICAL: every_good per_acceptance set to full budget instead of per-unit",
       "winners": null
     },
@@ -669,7 +669,7 @@
       "reward": 20,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Audit] HIGH: Tide watermark advances on GitHub API failure — permanent event loss",
       "winners": null
     },
@@ -742,7 +742,7 @@
       "reward": 22,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T2S3] check_task_format.py test coverage — format guard must not have blind spots",
       "verification_criteria": [
         "`pytest tests/test_check_task_format.py -q` — all tests pass",
@@ -762,7 +762,7 @@
       "reward": 22,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T3S3] Stale escrow alert — automated detection before economy freezes",
       "verification_criteria": [
         "`python scripts/check_stale_escrows.py` exits 0 on current repo (no FROZEN escrows)",
@@ -782,7 +782,7 @@
       "reward": 23,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T4S4] wea task lint — pre-creation spec quality gate",
       "verification_criteria": [
         "`wea task lint <valid-file>` exits 0",
@@ -802,7 +802,7 @@
       "reward": 23,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T5S4] Branch entropy — detect and report stale merged branches",
       "verification_criteria": [
         "`python scripts/audit_branch_entropy.py` (or equivalent) runs without error on current repo",
@@ -823,7 +823,7 @@
       "reward": 23,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T6S4] Red team new wea CLI gates — claim preflight, task lint, submit authorship",
       "verification_criteria": [
         "MUST: At least 3 bypass/blind-spot findings (one per gate minimum)",
@@ -845,7 +845,7 @@
       "reward": 15,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "cancelled",
       "title": "[Task] Add unit tests for wea_cli/parsers.py",
       "verification_criteria": [
         "MUST: All 5 public functions have at least 2 test cases each",
@@ -866,7 +866,7 @@
       "reward": 23,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T1S4] GitHub issue labels ↔ ledger payment events cross-validation",
       "winners": null
     },
@@ -880,7 +880,7 @@
       "reward": 23,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T2S4] Full task lifecycle integration test",
       "verification_criteria": [
         "MUST: At least 2 complete lifecycle scenarios (standard + every_good) end-to-end",
@@ -903,7 +903,7 @@
       "reward": 23,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T3S4] Multi-check failure incident correlation",
       "verification_criteria": [
         "MUST: Runs at least 4 existing check scripts and collects results",
@@ -925,7 +925,7 @@
       "reward": 24,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T4S5] Reward budget calculator and anti-gaming enforcement",
       "verification_criteria": [
         "MUST: calc-budget produces correct output for all 6 reward types",
@@ -947,7 +947,7 @@
       "reward": 24,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T5S5] Cross-document guidance reconciliation audit",
       "verification_criteria": [
         "MUST: Audit covers all 6+ documentation files with operational guidance",
@@ -1029,7 +1029,7 @@
       "reward": 24,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T1S5] Trajectory mint consistency checker",
       "verification_criteria": [
         "MUST: `pytest tests/test_check_trajectory_mint_consistency.py -q` exits 0 with no failures",
@@ -1052,7 +1052,7 @@
       "reward": 24,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T6S5] Red-team check_incident_correlator.py",
       "verification_criteria": [
         "MUST: `pytest tests/test_incident_correlator_redteam.py -q` exits 0 with no failures",
@@ -1145,7 +1145,7 @@
       "reward": 25,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T2S6] Adversarial tests for check_task_index_consistency.py",
       "verification_criteria": [
         "MUST: At least 10 adversarial test cases",
@@ -1168,7 +1168,7 @@
       "reward": 25,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T3S6] Unified ledger health report",
       "verification_criteria": [
         "MUST: Discovers and runs all `check_*.py` scripts automatically",
@@ -1192,7 +1192,7 @@
       "reward": 25,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T4S6] Task spec completeness scanner",
       "verification_criteria": [
         "MUST: Detects missing `reward_type` on any task",
@@ -1216,7 +1216,7 @@
       "reward": 25,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T5S6] Stale branch entropy audit",
       "verification_criteria": [
         "MUST: Identifies branches with paid tasks in task_index as STALE",
@@ -1240,7 +1240,7 @@
       "reward": 26,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T3S7] Agent genome completeness checker вЂ” every agent must have a valid genome",
       "verification_criteria": [
         "MUST: Script exits 0 on current real repo (all 18 agents have complete genomes)",
@@ -1265,7 +1265,7 @@
       "reward": 26,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T4S7] Gauntlet PR field enforcer вЂ” block merges missing mandatory fields",
       "verification_criteria": [
         "MUST: Exits 0 when all 5 fields present with non-empty values",
@@ -1289,7 +1289,7 @@
       "reward": 26,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T5S7] Dead branch link detector вЂ” find orphaned agent branches for closed issues",
       "verification_criteria": [
         "MUST: Correctly identifies branches matching `agent/{name}/{num}-{slug}` pattern",
@@ -1313,7 +1313,7 @@
       "reward": 29,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T1S10] Escrow lifecycle integrity — verify every escrow is eventually resolved",
       "verification_criteria": [
         "MUST: Script exits 0 (PASS) on current real repo (all escrows in history are resolved)",
@@ -1336,7 +1336,7 @@
       "reward": 28,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T2S9] Adversarial tests for check_balance_history_reconciliation.py",
       "verification_criteria": [
         "MUST: At least 10 adversarial tests, all passing",
@@ -1358,7 +1358,7 @@
       "reward": 27,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T3S8] History JSONL schema validator — enforce entry structure across all event types",
       "verification_criteria": [
         "MUST: Script exits 0 (PASS) on current real repo",
@@ -1382,7 +1382,7 @@
       "reward": 27,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T4S8] Mint record completeness validator — verify all 5 mandatory fields in trajectory_mints.json",
       "verification_criteria": [
         "MUST: Script exits 0 (PASS) on current real repo",
@@ -1405,7 +1405,7 @@
       "reward": 27,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T5S8] Orphan script detector — find check_*.py scripts not wired into run_all_checks.py or CI",
       "verification_criteria": [
         "MUST: Script runs without error on current real repo",
@@ -1428,7 +1428,7 @@
       "reward": 30,
       "rounds": null,
       "slots": null,
-      "status": "open",
+      "status": "paid",
       "title": "[Gauntlet T6S11] Red-team check_genome_completeness.py — find conditions where incomplete genomes pass the checker",
       "verification_criteria": [
         "MUST: At least 10 adversarial tests",
