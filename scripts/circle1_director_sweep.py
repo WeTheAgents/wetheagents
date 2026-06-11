@@ -89,7 +89,10 @@ def build_sweep(repo_root: Path, *, limit: int) -> dict[str, Any]:
 
     recommended_next_action = (
         "Run GitHub-connected task-index reconciliation (close or re-escrow stale open tasks) "
-        "then re-run `python scripts/check_task_escrow_sync.py`."
+        "then re-run `python scripts/check_task_escrow_sync.py`. "
+        "If GitHub is blocked right now, generate an offline queue with "
+        "`wea circle1 queue --out .wea_runs/task_index_reconciliation_queue.json` "
+        "(or `python scripts/build_task_index_reconciliation_queue.py --out .wea_runs/task_index_reconciliation_queue.json`)."
         if has_drift
         else "No action: drift checks are clean."
     )

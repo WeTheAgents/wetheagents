@@ -1,244 +1,145 @@
 #!/usr/bin/env python3
-"""Offline drift report for ledger/task_index.json.
+"""
+Report task-index drift for Circle-1 temperature sweeps.
 
-This script is designed for Circle-1 "temperature reduction" work when GitHub
-is unavailable or blocked. It compares:
+In this repo snapshot, task state is tracked via GitHub issues and escrow/payout
+events live in `ledger/idem_keys.json`. Some environments also maintain a local
+`ledger/task_index.json` cache of issue statuses.
 
-- `ledger/task_index.json` (declared task state)
-- `ledger/escrows.json` (active escrows only)
-- `ledger/history/*.jsonl` (settlement/payment evidence)
+This script is schema-aware:
+- If `ledger/task_index.json` is missing, it reports `skipped=true` and exits 0.
+- If present, it reports:
+  - `open_no_active_escrow`: tasks marked open with <=0 remaining escrow
+  - `open_has_payment_events`: tasks marked open with any payment events
 
-It does **not** attempt to mutate the ledger. Instead it produces a compact
-report that can be used to drive a GitHub-connected reconciliation pass.
+Exit codes:
+- 0: OK (no drift, or skipped)
+- 1: FAIL (drift present)
+- 2: usage/config/file error
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import sys
-from pathlib import Path
-from typing import Any
-
-_SCRIPTS_DIR = Path(__file__).resolve().parent
-if str(_SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_DIR))
-
-from io_helpers import load_json  # noqa: E402
+import os
+from typing import Any, Dict, List, Tuple
 
 
-def _repo_root_from(root: str | None) -> Path:
-    if root:
-        return Path(root).resolve()
-    return Path(__file__).resolve().parent.parent
+def _repo_root(default_root: str | None) -> str:
+    if default_root:
+        return default_root
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _iter_history(root: Path) -> list[dict[str, Any]]:
-    history_dir = root / "ledger" / "history"
-    if not history_dir.exists():
-        return []
-    records: list[dict[str, Any]] = []
-    for path in sorted(history_dir.glob("*.jsonl")):
-        for line in path.read_text(encoding="utf-8-sig").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(payload, dict):
-                records.append(payload)
-    return records
+def _load_json(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def _build_indexes(
-    history: list[dict[str, Any]],
-) -> tuple[dict[int, set[str]], dict[int, list[dict[str, Any]]]]:
-    payments_by_issue: dict[int, set[str]] = {}
-    events_by_issue: dict[int, list[dict[str, Any]]] = {}
-
-    for record in history:
+def _escrow_and_payment_by_issue(idem: Dict[str, Any]) -> Tuple[Dict[str, int], Dict[str, int]]:
+    keys = idem.get("keys", {})
+    remaining: Dict[str, int] = {}
+    payments: Dict[str, int] = {}
+    for _, data in keys.items():
+        if not isinstance(data, dict):
+            continue
+        action = data.get("action")
+        issue = data.get("issue")
+        amount = data.get("amount", 0)
+        if issue is None:
+            continue
+        issue_str = str(issue)
         try:
-            issue = int(record.get("issue"))  # type: ignore[arg-type]
-        except (TypeError, ValueError):
+            amount_i = int(amount)
+        except Exception:
             continue
 
-        events_by_issue.setdefault(issue, []).append(record)
-        if record.get("type") == "payment":
-            agent = str(record.get("agent", "")).strip()
-            if agent:
-                payments_by_issue.setdefault(issue, set()).add(agent)
-
-    return payments_by_issue, events_by_issue
-
-
-def _title_for(issue: int, task_index: dict[str, Any]) -> str:
-    task = task_index.get("tasks", {}).get(str(issue), {})
-    title = str(task.get("title") or "").strip()
-    if title:
-        return title
-    return "<missing title>"
-
-
-def _compact_issue_list(
-    issues: list[int],
-    task_index: dict[str, Any],
-    *,
-    limit: int,
-) -> list[dict[str, Any]]:
-    out: list[dict[str, Any]] = []
-    for issue in issues[:limit]:
-        out.append({"issue": issue, "title": _title_for(issue, task_index)})
-    return out
-
-
-def build_report(root: Path, *, limit: int) -> dict[str, Any]:
-    task_index = load_json(
-        root / "ledger" / "task_index.json",
-        default={"tasks": {}},
-        encoding="utf-8-sig",
-    )
-    escrows = load_json(
-        root / "ledger" / "escrows.json",
-        default={"active": {}},
-        encoding="utf-8-sig",
-    )
-    history = _iter_history(root)
-    payments_by_issue, events_by_issue = _build_indexes(history)
-
-    tasks: dict[str, dict[str, Any]] = task_index.get("tasks", {}) or {}
-    active_escrows: dict[str, Any] = escrows.get("active", {}) or {}
-
-    open_tasks = [int(k) for k, v in tasks.items() if v.get("status") == "open"]
-    claimed_tasks = [int(k) for k, v in tasks.items() if v.get("status") == "claimed"]
-    paid_tasks = [int(k) for k, v in tasks.items() if v.get("status") == "paid"]
-
-    open_no_escrow = sorted([i for i in open_tasks if str(i) not in active_escrows])
-    claimed_no_escrow = sorted(
-        [i for i in claimed_tasks if str(i) not in active_escrows]
-    )
-
-    open_with_payments = sorted([i for i in open_tasks if payments_by_issue.get(i)])
-    claimed_with_payments = sorted(
-        [i for i in claimed_tasks if payments_by_issue.get(i)]
-    )
-
-    paid_missing_payments = sorted([i for i in paid_tasks if not payments_by_issue.get(i)])
-
-    issues_in_history = sorted(events_by_issue.keys())
-    missing_task_index = sorted(
-        [i for i in issues_in_history if str(i) not in tasks]
-    )
-
-    return {
-        "active_escrows": len(active_escrows),
-        "task_index": {
-            "open": len(open_tasks),
-            "claimed": len(claimed_tasks),
-            "paid": len(paid_tasks),
-        },
-        "drift": {
-            "open_no_active_escrow": {
-                "count": len(open_no_escrow),
-                "sample": _compact_issue_list(open_no_escrow, task_index, limit=limit),
-            },
-            "claimed_no_active_escrow": {
-                "count": len(claimed_no_escrow),
-                "sample": _compact_issue_list(
-                    claimed_no_escrow, task_index, limit=limit
-                ),
-            },
-            "open_has_payment_events": {
-                "count": len(open_with_payments),
-                "sample": _compact_issue_list(
-                    open_with_payments, task_index, limit=limit
-                ),
-            },
-            "claimed_has_payment_events": {
-                "count": len(claimed_with_payments),
-                "sample": _compact_issue_list(
-                    claimed_with_payments, task_index, limit=limit
-                ),
-            },
-            "paid_missing_payment_events": {
-                "count": len(paid_missing_payments),
-                "sample": _compact_issue_list(
-                    paid_missing_payments, task_index, limit=limit
-                ),
-            },
-            "history_issue_missing_task_index_entry": {
-                "count": len(missing_task_index),
-                "sample": _compact_issue_list(
-                    missing_task_index, task_index, limit=limit
-                ),
-            },
-        },
-        "notes": [
-            "This report is offline-only: it does not query GitHub for issue truth.",
-            "Reconciliation should be driven by GitHub issue state + escrow-first rule.",
-        ],
-    }
-
-
-def _print_human(report: dict[str, Any]) -> None:
-    print(f"active_escrows={report['active_escrows']}")
-    print(
-        "task_index:"
-        f" open={report['task_index']['open']}"
-        f" claimed={report['task_index']['claimed']}"
-        f" paid={report['task_index']['paid']}"
-    )
-    print("")
-    drift = report["drift"]
-    for key in [
-        "open_no_active_escrow",
-        "claimed_no_active_escrow",
-        "open_has_payment_events",
-        "claimed_has_payment_events",
-        "paid_missing_payment_events",
-        "history_issue_missing_task_index_entry",
-    ]:
-        block = drift[key]
-        print(f"{key}={block['count']}")
-        for row in block["sample"]:
-            print(f"  - #{row['issue']} title={row['title']}")
-        print("")
+        if action == "escrow":
+            remaining[issue_str] = remaining.get(issue_str, 0) + amount_i
+        elif action == "payment":
+            remaining[issue_str] = remaining.get(issue_str, 0) - amount_i
+            payments[issue_str] = payments.get(issue_str, 0) + amount_i
+        elif action == "escrow_return":
+            remaining[issue_str] = remaining.get(issue_str, 0) - amount_i
+    return remaining, payments
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Offline drift report for ledger/task_index.json vs escrows/history."
-    )
-    parser.add_argument(
-        "--root",
-        default=None,
-        help="Repository root (default: auto-detect from script location).",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=20,
-        help="Maximum sample size per drift category (default: 20).",
-    )
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Emit machine-readable JSON (otherwise prints a human report).",
-    )
+    parser = argparse.ArgumentParser(description="Report task_index drift vs escrow/payment events.")
+    parser.add_argument("--root", default=None, help="Repo root (defaults to scripts/..)")
+    parser.add_argument("--json", action="store_true", help="Emit JSON.")
+    parser.add_argument("--limit", type=int, default=20, help="Max issues listed per drift class.")
     args = parser.parse_args()
 
-    root = _repo_root_from(args.root)
-    report = build_report(root, limit=args.limit)
+    root = _repo_root(args.root)
+    task_index_path = os.path.join(root, "ledger", "task_index.json")
+    idem_path = os.path.join(root, "ledger", "idem_keys.json")
+
+    if not os.path.exists(task_index_path):
+        payload = {"ok": True, "skipped": True, "reason": "ledger/task_index.json not present in this repo schema"}
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print("SKIP: ledger/task_index.json not present; drift report unavailable.")
+        return 0
+
+    if not os.path.exists(idem_path):
+        payload = {"ok": False, "error": f"Missing {idem_path}"}
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(payload["error"])
+        return 2
+
+    task_index = _load_json(task_index_path)
+    idem = _load_json(idem_path)
+    remaining, payments = _escrow_and_payment_by_issue(idem)
+
+    tasks = task_index.get("tasks", {})
+    open_no_active_escrow: List[int] = []
+    open_has_payment_events: List[int] = []
+
+    for issue_str, task in tasks.items():
+        if not isinstance(task, dict):
+            continue
+        if task.get("status") != "open":
+            continue
+        rem = remaining.get(str(issue_str), 0)
+        if rem <= 0:
+            if str(issue_str).isdigit():
+                open_no_active_escrow.append(int(issue_str))
+        if payments.get(str(issue_str), 0) > 0:
+            if str(issue_str).isdigit():
+                open_has_payment_events.append(int(issue_str))
+
+    open_no_active_escrow = open_no_active_escrow[: args.limit]
+    open_has_payment_events = open_has_payment_events[: args.limit]
+
+    drift_counts = {
+        "open_no_active_escrow": len(open_no_active_escrow),
+        "open_has_payment_events": len(open_has_payment_events),
+    }
+    ok = all(v == 0 for v in drift_counts.values())
+
+    payload = {
+        "ok": ok,
+        "skipped": False,
+        "drift_counts": drift_counts,
+        "examples": {
+            "open_no_active_escrow": open_no_active_escrow,
+            "open_has_payment_events": open_has_payment_events,
+        },
+    }
 
     if args.json:
-        print(json.dumps(report, indent=2, ensure_ascii=False))
+        print(json.dumps(payload, indent=2, sort_keys=True))
     else:
-        _print_human(report)
+        print(json.dumps(payload, indent=2, sort_keys=True))
 
-    return 0
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
 

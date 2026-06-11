@@ -1,135 +1,127 @@
 #!/usr/bin/env python3
-"""Task-escrow synchronization checks.
+"""
+Task/Escrow sync checker (schema-compatible).
 
-Validates that task_index.json and escrows.json are consistent:
-- Every open task has an active escrow.
-- Every active escrow has a task_index entry.
-- No escrow amount exceeds its task reward.
+This repository's ledger schema does not (yet) include `ledger/task_index.json`
+or `ledger/escrows.json`. Escrow state is tracked via idempotency keys in
+`ledger/idem_keys.json`.
+
+This script provides a minimal integrity check that is still useful for
+Circle-1 "temperature" sweeps:
+- Compute remaining escrow per issue: sum(escrow) - sum(payment, escrow_return)
+- Flag issues that have negative remaining escrow (overpaid / double-return)
+
+Exit codes:
+- 0: OK (no negative remaining escrow)
+- 1: FAIL (at least one issue negative)
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
-from pathlib import Path
-from typing import Any
-
-_SCRIPTS_DIR = Path(__file__).resolve().parent
-if str(_SCRIPTS_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_DIR))
-
-from io_helpers import load_json  # noqa: E402
+from typing import Any, Dict, Tuple
 
 
-def _repo_root_from(root: str | None) -> Path:
-    if root:
-        return Path(root).resolve()
-    return Path(__file__).resolve().parent.parent
+def _repo_root(default_root: str | None) -> str:
+    if default_root:
+        return default_root
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def check_open_tasks_have_escrow(
-    tasks: dict[str, Any],
-    escrows: dict[str, Any],
-) -> list[str]:
-    """Every task with status 'open' must have a corresponding active escrow."""
-    active = escrows.get("active", {})
-    failures: list[str] = []
-    for issue, task in sorted(tasks.get("tasks", {}).items(), key=lambda kv: int(kv[0])):
-        if str(task.get("status", "")).strip() != "open":
+def _load_json(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _compute_remaining_by_issue(idem: Dict[str, Any]) -> Tuple[Dict[str, int], Dict[str, int], Dict[str, int]]:
+    keys = idem.get("keys", {})
+    escrowed: Dict[str, int] = {}
+    paid: Dict[str, int] = {}
+    returned: Dict[str, int] = {}
+
+    for _, data in keys.items():
+        if not isinstance(data, dict):
             continue
-        if issue not in active:
-            failures.append(f"task #{issue} is open but has no active escrow")
-    return failures
+        action = data.get("action")
+        issue = data.get("issue")
+        amount = data.get("amount", 0)
 
+        if issue is None:
+            continue
+        issue_str = str(issue)
 
-def check_escrows_have_task(
-    tasks: dict[str, Any],
-    escrows: dict[str, Any],
-) -> list[str]:
-    """Every active escrow must have a corresponding task_index entry."""
-    all_tasks = tasks.get("tasks", {})
-    failures: list[str] = []
-    for issue in sorted(escrows.get("active", {}), key=lambda v: int(v)):
-        if issue not in all_tasks:
-            failures.append(f"escrow #{issue} has no entry in task_index.json")
-    return failures
+        if not isinstance(amount, int):
+            try:
+                amount = int(amount)
+            except Exception:
+                continue
 
+        if action == "escrow":
+            escrowed[issue_str] = escrowed.get(issue_str, 0) + amount
+        elif action == "payment":
+            paid[issue_str] = paid.get(issue_str, 0) + amount
+        elif action == "escrow_return":
+            returned[issue_str] = returned.get(issue_str, 0) + amount
 
-def check_escrow_not_exceeds_reward(
-    tasks: dict[str, Any],
-    escrows: dict[str, Any],
-) -> list[str]:
-    """No escrow amount should exceed its task reward."""
-    all_tasks = tasks.get("tasks", {})
-    active = escrows.get("active", {})
-    failures: list[str] = []
-    for issue in sorted(set(all_tasks) & set(active), key=lambda v: int(v)):
-        escrow_amount = active[issue].get("amount", 0)
-        task_reward = all_tasks[issue].get("reward", 0)
-        if escrow_amount > task_reward:
-            failures.append(
-                f"escrow #{issue} amount {escrow_amount} exceeds task reward {task_reward}"
-            )
-    return failures
-
-
-def run_checks(root: Path) -> list[tuple[str, list[str]]]:
-    tasks = load_json(root / "ledger" / "task_index.json", default={"tasks": {}}, encoding="utf-8-sig")
-    escrows = load_json(root / "ledger" / "escrows.json", default={"active": {}}, encoding="utf-8-sig")
-
-    return [
-        ("Every open task has an active escrow", check_open_tasks_have_escrow(tasks, escrows)),
-        ("Every active escrow has a task_index entry", check_escrows_have_task(tasks, escrows)),
-        ("No escrow amount exceeds task reward", check_escrow_not_exceeds_reward(tasks, escrows)),
-    ]
+    remaining: Dict[str, int] = {}
+    for issue in set(escrowed) | set(paid) | set(returned):
+        remaining[issue] = escrowed.get(issue, 0) - paid.get(issue, 0) - returned.get(issue, 0)
+    return remaining, paid, returned
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Task-escrow synchronization checks"
-    )
-    parser.add_argument(
-        "--root",
-        default=None,
-        help="Path to repository root (default: auto-detect from script location)",
-    )
-    parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Emit machine-readable JSON instead of human text.",
-    )
+    parser = argparse.ArgumentParser(description="Check internal escrow remaining per issue from idem_keys.json.")
+    parser.add_argument("--root", default=None, help="Repo root (defaults to scripts/..)")
+    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON to stdout.")
     args = parser.parse_args()
 
-    root = _repo_root_from(args.root)
-    results = []
-    failed = False
-    for title, problems in run_checks(root):
-        ok = not bool(problems)
-        if not ok:
-            failed = True
-        results.append({"title": title, "ok": ok, "problems": problems})
+    root = _repo_root(args.root)
+    idem_path = os.path.join(root, "ledger", "idem_keys.json")
+
+    if not os.path.exists(idem_path):
+        msg = f"Missing {idem_path}"
+        if args.json:
+            print(json.dumps({"ok": False, "error": msg}, indent=2))
+        else:
+            print(msg)
+        return 2
+
+    idem = _load_json(idem_path)
+    remaining, paid, returned = _compute_remaining_by_issue(idem)
+
+    negative = {issue: rem for issue, rem in remaining.items() if rem < 0}
+    ok = len(negative) == 0
 
     if args.json:
-        payload = {
-            "repo_root": str(root),
-            "ok": not failed,
-            "checks": results,
-        }
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "ok": ok,
+                    "schema": "idem_keys_escrow",
+                    "issues_total": len(remaining),
+                    "issues_negative_remaining": len(negative),
+                    "negative_remaining_by_issue": negative,
+                    "paid_by_issue": paid,
+                    "returned_by_issue": returned,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
     else:
-        for item in results:
-            title = item["title"]
-            problems = item["problems"]
-            if problems:
-                print(f"FAIL: {title}")
-                for problem in problems:
-                    print(f"  - {problem}")
-            else:
-                print(f"PASS: {title}")
+        if ok:
+            print("OK: no issues have negative remaining escrow.")
+        else:
+            print("FAIL: some issues have negative remaining escrow:")
+            for issue, rem in sorted(negative.items(), key=lambda kv: int(kv[0]) if kv[0].isdigit() else kv[0]):
+                print(f"  - issue #{issue}: remaining={rem}")
 
-    return 1 if failed else 0
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
+

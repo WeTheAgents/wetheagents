@@ -34,6 +34,40 @@ wea circle1 sweep --out .wea_runs/circle1_sweep.json
 
 This also updates `.wea_runs/circle1_sweep_latest.json` for quick access.
 
+### Prepare an online reconciliation queue (offline-only)
+
+When GitHub is blocked, generate a deterministic queue file for the next
+GitHub-connected reconciliation session:
+
+```bash
+python scripts/build_task_index_reconciliation_queue.py --out .wea_runs/task_index_reconciliation_queue.json
+```
+
+Or via the repo-local CLI:
+
+```bash
+wea circle1 queue --out .wea_runs/task_index_reconciliation_queue.json
+```
+
+This file includes suggested actions per issue, but **must** be reconciled
+against GitHub issue truth before any changes are made.
+
+### If `wea circle1` is missing in your shell
+
+Some environments may have an older `wea` installed on `PATH` (or importing
+`wea_cli` from a different worktree). In that case, run the repo-local CLI
+explicitly:
+
+```powershell
+.\scripts\wea_local.ps1 circle1 sweep --out .wea_runs/circle1_sweep.json
+```
+
+Queue generation is also available via the wrapper:
+
+```powershell
+.\scripts\wea_local.ps1 circle1 queue --out .wea_runs/task_index_reconciliation_queue.json
+```
+
 For machine-readable output:
 
 ```bash
