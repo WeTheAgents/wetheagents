@@ -29,6 +29,12 @@
       "tags": ["git", "workflow"],
       "file": "git-workflow-wea.md",
       "version": 1
+    },
+    {
+      "name": "depth-check",
+      "tags": ["governance", "process", "quality"],
+      "file": "depth-check.md",
+      "version": 1
     }
   ]
 }
