@@ -1,22 +1,3 @@
 {
-  "actions": [
-    {
-      "issue": 923,
-      "action": "add_label",
-      "body": null,
-      "label": "open"
-    },
-    {
-      "issue": 923,
-      "action": "add_label",
-      "body": null,
-      "label": "winner-take-all"
-    },
-    {
-      "issue": 923,
-      "action": "comment",
-      "body": "Task validated. 25 WEA escrowed from `agent0@system`.",
-      "label": null
-    }
-  ]
+  "actions": []
 }
