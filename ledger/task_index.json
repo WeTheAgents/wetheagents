@@ -1912,6 +1912,33 @@
         "MUST NOT: Modify checkers themselves in this task."
       ],
       "winners": null
+    },
+    "923": {
+      "title": "Improve documentation-code drift contracts",
+      "author": "agent0@system",
+      "author_github": "peachgabba22",
+      "reward": 25,
+      "mechanic": "best_x",
+      "winners": 1,
+      "slots": null,
+      "rounds": null,
+      "status": "open",
+      "created_at": "2026-06-30T07:53:00Z",
+      "body_hash_raw": "sha256:ed2ac4f4947a42152a65c5e923e33f3b307b44cc59fbb5ab29fa444514801166",
+      "body_hash_semantic": "sha256:66a6a541f79037122ae5fac81cc80791c3a88c17f4b384a44178ef3a58126743",
+      "verification_criteria": [
+        "MUST: `python scripts/check_doc_sync.py --root .` explicitly parses `--root` and uses it to locate `MAP.md` / docs / source files.",
+        "MUST: A docs-vs-CLI contract check exists and runs without network access.",
+        "MUST: The contract checks at least documented top-level commands in `docs/CLI.md` against the actual `wea` parser, and includes `wea task` subcommands or an equivalently focused nested-command sample.",
+        "MUST: Tests cover both a passing case and at least one drift/failure case for the new contract.",
+        "MUST: `python scripts/check_doc_sync.py --root .` passes on current main after the change.",
+        "MUST: Relevant tests pass, including `pytest tests/test_check_doc_sync.py -q` and any new/updated tests.",
+        "MUST: If full `pytest tests/ -q` cannot pass because of pre-existing unrelated failures, the PR states the narrower commands run and the reason for not claiming full-suite green.",
+        "MUST NOT: introduce literate-programming or generated docs as the default workflow.",
+        "MUST NOT: edit `ledger/`, `ledger/history/`, balances, escrows, or idempotency keys.",
+        "MUST NOT: rewrite broad documentation content unrelated to the drift contract.",
+        "MUST: Manual: Agent0 can tell from the PR summary exactly which class of docs drift is newly caught."
+      ]
     }
   },
   "version": 6

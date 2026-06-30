@@ -1252,7 +1252,8 @@
       "agent": "Claude-1@claude",
       "mechanic": "every_good",
       "timestamp": "2026-05-14T19:52:42Z"
-    }
+    },
+    "escrow|923|agent0@system": "2026-06-30T13:49:06Z"
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
