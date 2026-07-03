@@ -1,0 +1,234 @@
+{
+ "generated_at": "2026-07-03T08:26:57.297353+00:00",
+ "window_days": 60,
+ "entropy_q75": 1.6964,
+ "cr_cut": 0.5,
+ "warm_cut": 3.0,
+ "cities": {
+  "nyc": {
+   "h50": 16,
+   "city_rate": 0.509,
+   "n_days": 53
+  },
+  "chicago": {
+   "h50": 15,
+   "city_rate": 0.377,
+   "n_days": 53
+  },
+  "miami": {
+   "h50": 14,
+   "city_rate": 0.17,
+   "n_days": 53
+  },
+  "los-angeles": {
+   "h50": 13,
+   "city_rate": 0.019,
+   "n_days": 53
+  },
+  "houston": {
+   "h50": 15,
+   "city_rate": 0.453,
+   "n_days": 53
+  },
+  "dallas": {
+   "h50": 16,
+   "city_rate": 0.528,
+   "n_days": 53
+  },
+  "denver": {
+   "h50": 16,
+   "city_rate": 0.566,
+   "n_days": 53
+  },
+  "seattle": {
+   "h50": 16,
+   "city_rate": 0.771,
+   "n_days": 48
+  },
+  "atlanta": {
+   "h50": 16,
+   "city_rate": 0.638,
+   "n_days": 47
+  },
+  "san-francisco": {
+   "h50": 14,
+   "city_rate": 0.17,
+   "n_days": 47
+  },
+  "austin": {
+   "h50": 16,
+   "city_rate": 0.681,
+   "n_days": 47
+  },
+  "hong-kong": {
+   "h50": 13,
+   "city_rate": 0.122,
+   "n_days": 49
+  },
+  "taipei": {
+   "h50": 12,
+   "city_rate": 0.04,
+   "n_days": 50
+  },
+  "tel-aviv": {
+   "h50": 13,
+   "city_rate": 0.037,
+   "n_days": 54
+  },
+  "london": {
+   "h50": 14,
+   "city_rate": 0.352,
+   "n_days": 54
+  },
+  "tokyo": {
+   "h50": 13,
+   "city_rate": 0.04,
+   "n_days": 50
+  },
+  "seoul": {
+   "h50": 13,
+   "city_rate": 0.082,
+   "n_days": 49
+  },
+  "singapore": {
+   "h50": 13,
+   "city_rate": 0.122,
+   "n_days": 49
+  },
+  "paris": {
+   "h50": 16,
+   "city_rate": 0.556,
+   "n_days": 54
+  },
+  "toronto": {
+   "h50": 14,
+   "city_rate": 0.28,
+   "n_days": 50
+  },
+  "sao-paulo": {
+   "h50": 14,
+   "city_rate": 0.044,
+   "n_days": 45
+  },
+  "buenos-aires": {
+   "h50": 14,
+   "city_rate": 0.082,
+   "n_days": 49
+  },
+  "shanghai": {
+   "h50": 12,
+   "city_rate": 0.036,
+   "n_days": 55
+  },
+  "beijing": {
+   "h50": 15,
+   "city_rate": 0.204,
+   "n_days": 49
+  },
+  "madrid": {
+   "h50": 17,
+   "city_rate": 0.741,
+   "n_days": 54
+  },
+  "warsaw": {
+   "h50": 15,
+   "city_rate": 0.333,
+   "n_days": 54
+  },
+  "dc": {
+   "h50": 16,
+   "city_rate": 0.66,
+   "n_days": 53
+  },
+  "phoenix": {
+   "h50": 16,
+   "city_rate": 0.617,
+   "n_days": 47
+  },
+  "mexico-city": {
+   "h50": 14,
+   "city_rate": 0.104,
+   "n_days": 48
+  },
+  "istanbul": {
+   "h50": 14,
+   "city_rate": 0.17,
+   "n_days": 53
+  },
+  "dubai": {
+   "h50": 12,
+   "city_rate": 0.038,
+   "n_days": 52
+  },
+  "moscow": {
+   "h50": 14,
+   "city_rate": 0.212,
+   "n_days": 52
+  },
+  "milan": {
+   "h50": 16,
+   "city_rate": 0.537,
+   "n_days": 54
+  },
+  "munich": {
+   "h50": 15,
+   "city_rate": 0.5,
+   "n_days": 54
+  },
+  "ankara": {
+   "h50": 15,
+   "city_rate": 0.463,
+   "n_days": 54
+  },
+  "wellington": {
+   "h50": 12,
+   "city_rate": 0.082,
+   "n_days": 49
+  },
+  "shenzhen": {
+   "h50": 12,
+   "city_rate": 0.0,
+   "n_days": 54
+  },
+  "chengdu": {
+   "h50": 15,
+   "city_rate": 0.315,
+   "n_days": 54
+  },
+  "chongqing": {
+   "h50": 15,
+   "city_rate": 0.315,
+   "n_days": 54
+  },
+  "wuhan": {
+   "h50": 13,
+   "city_rate": 0.148,
+   "n_days": 54
+  },
+  "lucknow": {
+   "h50": 15,
+   "city_rate": 0.184,
+   "n_days": 49
+  },
+  "jakarta": {
+   "h50": 12,
+   "city_rate": 0.02,
+   "n_days": 49
+  },
+  "kuala-lumpur": {
+   "h50": 13,
+   "city_rate": 0.061,
+   "n_days": 49
+  },
+  "amsterdam": {
+   "h50": 14,
+   "city_rate": 0.315,
+   "n_days": 54
+  },
+  "helsinki": {
+   "h50": 14,
+   "city_rate": 0.444,
+   "n_days": 54
+  }
+ }
+}
