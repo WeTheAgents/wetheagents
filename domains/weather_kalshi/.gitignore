@@ -1,8 +1,16 @@
 data/raw/
 data/processed/
+data/paper/
 .env
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .llm_cache/
 catboost_info/
+
+# runtime artifacts — never commit
+logs/
+reports/
+tmp/
+.codex-weather-logs/
+/*.log
