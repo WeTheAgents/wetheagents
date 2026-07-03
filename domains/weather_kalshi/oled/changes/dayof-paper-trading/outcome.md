@@ -4,6 +4,7 @@
 | Version | Date | Change | Human Verified |
 | --- | --- | --- | --- |
 | 0.1 | 2026-07-03 | Initial outcome | pending (operator said "go" on the study's next-steps plan) |
+| 0.2 | 2026-07-03 | BR6 stake changed: $100 → dual $10/$25 per trade (executability study: $100 market orders walk 12–19¢ into thin books; touch cost ≈1.5¢) | yes — operator: "давай сделаем $10 и $25. go" |
 
 ## Why Now
 
@@ -48,8 +49,10 @@ go / no-go decision on real-money trading.
   with the study's ground-truth convention — not against our own obs pipeline.
 - **BR5. Every scheduled run leaves a trace** (timestamp, cities considered, trades
   made or reasons for none) so silent failures are visible in the report.
-- **BR6. Stake is a nominal fixed amount per trade** (paper $100) — large enough to
-  test book depth, small enough to be a plausible first real-money size.
+- **BR6 (v0.2). Two nominal stakes are simulated per trade: $10 and $25** ($25 is
+  primary for skip logic and headline P&L). Rationale: the executability study
+  showed $100 market orders walk 12–19¢ into thin books while touch-size orders
+  pay ~1.5¢ — $10/$25 match realistic book capacity.
 
 ## Scenarios
 

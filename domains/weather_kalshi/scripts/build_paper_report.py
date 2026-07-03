@@ -36,8 +36,17 @@ def read_jsonl(path: Path) -> list[dict]:
 
 def load() -> dict:
     d = {}
-    d["sweeps"] = (pd.read_parquet(PAPER_DIR / "book_sweeps.parquet")
-                   if (PAPER_DIR / "book_sweeps.parquet").exists() else pd.DataFrame())
+    s = (pd.read_parquet(PAPER_DIR / "book_sweeps.parquet")
+         if (PAPER_DIR / "book_sweeps.parquet").exists() else pd.DataFrame())
+    # stake sizes changed $100 -> $25/$10 on 2026-07-03; coalesce old columns
+    if not s.empty:
+        for new, old in [("yes25_avg", "yes100_avg"), ("yes25_complete", "yes100_complete"),
+                         ("no25_avg", "no100_avg"), ("no25_complete", "no100_complete")]:
+            if new not in s.columns:
+                s[new] = np.nan
+            if old in s.columns:
+                s[new] = s[new].fillna(s[old])
+    d["sweeps"] = s
     d["trades"] = read_jsonl(PAPER_DIR / "paper_trades.jsonl")
     d["runs"] = read_jsonl(PAPER_DIR / "paper_runs.jsonl")
     return d
@@ -57,16 +66,16 @@ def fig_spread(s: pd.DataFrame) -> go.Figure:
 def fig_slippage(s: pd.DataFrame) -> go.Figure:
     cm = s[s["role"] == "curmax"]
     ab = s[s["role"] == "above"]
-    yes_slip = ((cm["yes100_avg"] - cm["mid"]) * 100).dropna()
-    no_slip = ((ab["no100_avg"] - (1 - ab["mid"])) * 100).dropna()
+    yes_slip = ((cm["yes25_avg"] - cm["mid"]) * 100).dropna()
+    no_slip = ((ab["no25_avg"] - (1 - ab["mid"])) * 100).dropna()
     fig = go.Figure()
-    fig.add_trace(go.Histogram(x=yes_slip, name="Стратегия A: YES $100 на curmax",
+    fig.add_trace(go.Histogram(x=yes_slip, name="Стратегия A: YES $25 на curmax",
                                marker_color=PALETTE["blue"], opacity=0.7, nbinsx=30))
-    fig.add_trace(go.Histogram(x=no_slip, name="Стратегия B: NO $100 на above",
+    fig.add_trace(go.Histogram(x=no_slip, name="Стратегия B: NO $25 на above",
                                marker_color=PALETTE["amber"], opacity=0.7, nbinsx=30))
     fig.add_vline(x=1.0, line_color=PALETTE["red"], line_dash="dash",
                   annotation_text="1¢ — допущение бэктеста")
-    fig.update_layout(title="Слиппедж симулированного филла $100 против mid-цены",
+    fig.update_layout(title="Слиппедж симулированного филла $25 против mid-цены",
                       xaxis_title="Слиппедж, ¢", yaxis_title="Число стаканов",
                       barmode="overlay", height=380, template="plotly_white")
     return fig
@@ -81,7 +90,7 @@ def fig_pnl(settled: pd.DataFrame) -> go.Figure | None:
     fig.add_trace(go.Scatter(x=settled["ts_utc"], y=settled["cum_pnl"],
                              mode="lines+markers", line=dict(color=PALETTE["green"])))
     fig.add_hline(y=0, line_color=PALETTE["gray"])
-    fig.update_layout(title="Накопленный paper P&L, $ (ставка $100 на сделку)",
+    fig.update_layout(title="Накопленный paper P&L, $ (ставки $25 (осн.) и $10, до 2026-07-03 — $100)",
                       xaxis_title="Дата", yaxis_title="$", height=380, template="plotly_white")
     return fig
 
@@ -132,14 +141,14 @@ def render(d: dict) -> str:
         cm, ab = sub[sub["role"] == "curmax"], sub[sub["role"] == "above"]
         exec_rows.append([
             label, len(cm),
-            q(cm["spread"], 0.5), q((cm["yes100_avg"] - cm["mid"]), 0.5),
-            f"{cm['yes100_complete'].mean() * 100:.0f}%" if len(cm) else "—",
-            q(ab["no100_avg"] - (1 - ab["mid"]), 0.5),
-            f"{ab['no100_complete'].mean() * 100:.0f}%" if len(ab) else "—",
+            q(cm["spread"], 0.5), q((cm["yes25_avg"] - cm["mid"]), 0.5),
+            f"{cm['yes25_complete'].mean() * 100:.0f}%" if len(cm) else "—",
+            q(ab["no25_avg"] - (1 - ab["mid"]), 0.5),
+            f"{ab['no25_complete'].mean() * 100:.0f}%" if len(ab) else "—",
         ])
     exec_t = html_table(exec_rows, ["Срез", "N стаканов", "Медианный спред curmax, ¢",
-                                    "Слиппедж YES $100 (A), ¢", "Заполняемость A",
-                                    "Слиппедж NO $100 (B), ¢", "Заполняемость B"])
+                                    "Слиппедж YES $25 (A), ¢", "Заполняемость A",
+                                    "Слиппедж NO $25 (B), ¢", "Заполняемость B"])
 
     # ledger table
     ledger_rows = []
@@ -195,13 +204,13 @@ sweep-стаканов: {len(s)}</i></p>
 <i>day-of nowcasting</i> (2026-07-03), <b>без реальных денег</b> — только чтение рынка
 и симуляция филлов по реальному стакану CLOB:</p>
 <ul>
-<li><b>Стратегия A (скальп v2)</b> — купить YES на $100 в брекете текущего максимума
+<li><b>Стратегия A (скальп v2)</b> — купить YES (paper $25 + параллельная симуляция $10) в брекете текущего максимума
 METAR (пропуск, если ask &gt; 85¢). Час входа пер-городской: на чистых днях —
 скользящий медианный час установления максимума h*₅₀ (12–17, пересчёт из METAR
 каждые ≤30 дней, окно 60 дней), на «флагованных» днях (предиктор ненормального дня:
 база города / прогнозный прогрев / персистентность×энтропия) — 17:00.
 Бэктест OOS: чистые +65%, флагованные@17 +47–71%.</li>
-<li><b>Стратегия B</b> — в 16:30–16:45 местного купить NO на $100 на брекет НАД текущим
+<li><b>Стратегия B</b> — в 16:30–16:45 местного купить NO ($25/$10) на брекет НАД текущим
 максимумом (если YES bid в диапазоне 2–50¢). Бэктест: +4–6% за сделку.</li>
 </ul>
 <p>Windows-задача <code>dayof-paper-trade</code> запускает раннер каждые 15 минут:
@@ -216,7 +225,7 @@ METAR (пропуск, если ask &gt; 85¢). Час входа пер-гор�
 {exec_t}
 {fig_html.get('slip', '')}
 <div class="warn"><b>Первый честный ответ: для стратегии A допущение 1¢ оптимистично.</b>
-Медианный слиппедж симулированного филла $100 против mid — несколько центов, у трети
+Медианный слиппедж симулированного филла против mid зависит от размера: $100 проваливался на 12–19¢ вглубь тонких книг (поэтому ставка снижена до $25/$10 с 2026-07-03), у трети
 стаканов хуже. Часть sweep-замеров сделана ночью по местному времени (тонкие книги) —
 решающими будут стаканы, записанные самими сделками в окнах 15:00/16:30. Для стратегии B
 (NO по цене ~90–95¢) слиппедж в центах мал, там допущение выглядит реалистичным.</div>
@@ -236,7 +245,7 @@ METAR (пропуск, если ask &gt; 85¢). Час входа пер-гор�
 
 <h2>6. Критерий go / no-go</h2>
 <p>Через 2–3 недели накопления: стратегия остаётся в плюсе по <b>реальным филлам</b>
-(не mid!), заполняемость $100 ≥ 80%, и ошибок базиса не больше, чем в бэктесте
+(не mid!), заполняемость $25 ≥ 95%, и ошибок базиса не больше, чем в бэктесте
 (0.55%). Тогда — минимальный реальный размер. Иначе — закрываем ветку, данные
 остаются для исследований.</p>
 
