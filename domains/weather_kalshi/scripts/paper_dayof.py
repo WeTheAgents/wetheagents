@@ -61,7 +61,12 @@ SWEEPS_PATH = PAPER_DIR / "book_sweeps.parquet"
 MARKETS_PATH = ROOT / "data" / "raw" / "polymarket" / "all_cities_markets.parquet"
 STATIC = ROOT / "data" / "static"
 
-STAKE = 100.0
+# Two paper stake sizes are simulated on every trade (operator decision 2026-07-03
+# after the executability study: $100 market orders walk 12-19c into thin books,
+# while touch-size orders pay ~1.5c). Primary stake drives skip logic and the
+# headline P&L; both are recorded and settled.
+STAKES = (10.0, 25.0)
+STAKE = 25.0  # primary
 WINDOW_B = (16 * 60 + 30, 16 * 60 + 45)  # minutes since local midnight, [start, end)
 LATE_HOUR = 17                            # A-entry on flagged days
 MAX_ASK_A = 0.85
@@ -457,14 +462,16 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
             return {**base, "skip_reason": "empty_ask_side"}
         if book.best_ask > MAX_ASK_A:
             return {**base, "skip_reason": f"ask_above_{MAX_ASK_A}"}
-        fill = walk_fill(book.asks, STAKE)
+        levels = book.asks
     else:
         if book.best_bid is None:
             return {**base, "skip_reason": "empty_bid_side"}
         if not (YES_BID_RANGE_B[0] <= book.best_bid <= YES_BID_RANGE_B[1]):
             return {**base, "skip_reason": "yes_bid_outside_band"}
-        fill = walk_fill(no_levels_from_yes_bids(book.bids), STAKE)
+        levels = no_levels_from_yes_bids(book.bids)
 
+    fills = {str(int(s)): walk_fill(levels, s) for s in STAKES}
+    fill = fills[str(int(STAKE))]
     if fill.avg_price is None:
         return {**base, "skip_reason": "unfillable"}
     base.update({
@@ -472,6 +479,9 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
         "fill_avg_price": fill.avg_price, "fill_shares": fill.shares,
         "fill_stake": fill.stake_filled, "fill_complete": fill.complete,
         "fill_levels_used": fill.levels_used,
+        "fills": {k: {"avg_price": f.avg_price, "shares": f.shares,
+                      "stake_filled": f.stake_filled, "complete": f.complete}
+                  for k, f in fills.items()},
     })
     return base
 
@@ -512,6 +522,10 @@ def run_settle(cities: dict) -> dict:
             "ts_utc": datetime.now(timezone.utc).isoformat(),
             "yes_last_price": last_p, "won": trade_won, "pnl": round(pnl, 2),
         }
+        # per-stake P&L when the row carries multiple simulated fills
+        for k, f in (t.get("fills") or {}).items():
+            fp = f["shares"] * 1.0 - f["stake_filled"] if trade_won else -f["stake_filled"]
+            t["settled"][f"pnl_{k}"] = round(fp, 2)
         t["status"] = "settled"
         trace["settled"] += 1
         changed = True
@@ -554,6 +568,8 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
                 continue
             fill_yes = walk_fill(book.asks, STAKE)
             fill_no = walk_fill(no_levels_from_yes_bids(book.bids), STAKE)
+            fill_yes10 = walk_fill(book.asks, STAKES[0])
+            fill_no10 = walk_fill(no_levels_from_yes_bids(book.bids), STAKES[0])
             rows.append({
                 "ts_utc": ts, "city_slug": slug, "market_date": md, "role": role,
                 "local_hour": now_local.hour + now_local.minute / 60,
@@ -563,8 +579,10 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
                 "spread": book.spread, "mid": book.mid,
                 "bid_depth_shares": sum(s for _, s in book.bids),
                 "ask_depth_shares": sum(s for _, s in book.asks),
-                "yes100_avg": fill_yes.avg_price, "yes100_complete": fill_yes.complete,
-                "no100_avg": fill_no.avg_price, "no100_complete": fill_no.complete,
+                "yes25_avg": fill_yes.avg_price, "yes25_complete": fill_yes.complete,
+                "no25_avg": fill_no.avg_price, "no25_complete": fill_no.complete,
+                "yes10_avg": fill_yes10.avg_price, "yes10_complete": fill_yes10.complete,
+                "no10_avg": fill_no10.avg_price, "no10_complete": fill_no10.complete,
             })
             time.sleep(BOOK_RATE_S)
     df = pd.DataFrame(rows)
