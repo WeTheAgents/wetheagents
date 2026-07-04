@@ -611,6 +611,7 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
         "ts_utc": datetime.now(timezone.utc).isoformat(),
         "strategy": strategy, "city_slug": slug, "market_date": md,
         "unit": cm["unit"], "icao": cm["icao"], "stake": STAKE,
+        "execution_model": PASSIVE_MODEL,
         "window": window, "h_star": h50,
         "status": "skipped", "skip_reason": None, "settled": None,
     }
@@ -665,7 +666,6 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
     desired_price, desired_source = desired
     base.update({
         "status": "open",
-        "execution_model": PASSIVE_MODEL,
         "desired_price": desired_price,
         "desired_price_source": desired_source,
         "bid_orders": make_bid_ladder(desired_price),

@@ -33,7 +33,7 @@ and `Last Result: 0`; step 4 writes the report without errors.
   battery flags — the laptop runs on battery and the default is AC-only):
 
 ```powershell
-$action  = New-ScheduledTaskAction -Execute "C:\Users\peach\AppData\Local\Programs\Python\Python313\python.exe" -Argument "-m scripts.paper_dayof --trade --settle" -WorkingDirectory "D:\GitHub\wetheagents-codex-paper-passive-bids\domains\weather_kalshi"
+$action  = New-ScheduledTaskAction -Execute "C:\Users\peach\AppData\Local\Programs\Python\Python313\python.exe" -Argument "-m scripts.paper_dayof --trade --settle" -WorkingDirectory "D:\GitHub\wetheagents\domains\weather_kalshi"
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 15)
 $set     = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 10) -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 Register-ScheduledTask -TaskName "dayof-paper-trade" -Action $action -Trigger $trigger -Settings $set
