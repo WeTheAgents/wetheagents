@@ -3,10 +3,10 @@
 Scalp v2 (oled/changes/scalp-v2-runner, 2026-07-03):
   A (curmax-buy):  on CLEAN days enter at the city's rolling median settle hour
                    h*50 (12-19 local); on FLAGGED days (abnormal-day flag v2)
-                   enter at 17:00. Buy YES $100 on the bracket containing the
-                   rounded native-unit METAR running max (skip if ask > 0.85).
-  B (above-NO):    at 16:30-16:45 local, buy NO $100 on the bracket above the
-                   current-max bracket (only if YES bid in [0.02, 0.50]).
+                   enter at 17:00. Place a virtual $24 YES bid ladder on the
+                   bracket containing the rounded native-unit METAR running max.
+  B (above-NO):    at 16:30-16:45 local, place a virtual $24 NO bid ladder on
+                   the bracket above the current-max bracket.
 
 Flag v2 (computed at trade time from local data + live METAR):
   flag = city_rate >= 0.5 OR fc_warm >= 3 native deg
@@ -20,8 +20,9 @@ Modes (combinable):
   --retune   rebuild data/static/scalp_hours.json from the rolling 60-day
              METAR window (h*50 + city_rate per city, entropy_q75)
 
-Ledger:  data/paper/paper_trades.jsonl   (one JSON object per trade)
-Traces:  data/paper/paper_runs.jsonl     (one object per run)
+Ledger:  data/paper/paper_trades.jsonl          (one JSON object per trade)
+Orders:  data/paper/paper_order_snapshots.jsonl (post-signal book observations)
+Traces:  data/paper/paper_runs.jsonl            (one object per run)
 Sweeps:  data/paper/book_sweeps.parquet
 
 Scheduled every 15 min by Windows task `dayof-paper-trade`
@@ -56,17 +57,20 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[1]
 PAPER_DIR = ROOT / "data" / "paper"
 TRADES_PATH = PAPER_DIR / "paper_trades.jsonl"
+ORDER_SNAPSHOTS_PATH = PAPER_DIR / "paper_order_snapshots.jsonl"
 RUNS_PATH = PAPER_DIR / "paper_runs.jsonl"
 SWEEPS_PATH = PAPER_DIR / "book_sweeps.parquet"
 MARKETS_PATH = ROOT / "data" / "raw" / "polymarket" / "all_cities_markets.parquet"
 STATIC = ROOT / "data" / "static"
 
-# Two paper stake sizes are simulated on every trade (operator decision 2026-07-03
-# after the executability study: $100 market orders walk 12-19c into thin books,
-# while touch-size orders pay ~1.5c). Primary stake drives skip logic and the
-# headline P&L; both are recorded and settled.
-STAKES = (10.0, 25.0)
-STAKE = 25.0  # primary
+# Passive paper execution model (operator decision 2026-07-04): place a virtual
+# bid ladder instead of crossing the spread. Orders fill fully when the market
+# passes through the bid, and half-fill when it only touches.
+PASSIVE_MODEL = "passive_bid_ladder_v1"
+LADDER_STAKES = (10.0, 8.0, 6.0)
+STAKE = sum(LADDER_STAKES)  # primary headline notional
+LADDER_TICK = 0.01
+PRICE_EPS = 1e-9
 WINDOW_B = (16 * 60 + 30, 16 * 60 + 45)  # minutes since local midnight, [start, end)
 LATE_HOUR = 17                            # A-entry on flagged days
 MAX_ASK_A = 0.85
@@ -365,13 +369,201 @@ def rewrite_jsonl(path: Path, objs: list[dict]) -> None:
     tmp.replace(path)
 
 
+def clamp_price(price: float) -> float:
+    return round(min(max(float(price), 0.01), 0.99), 4)
+
+
+def bought_side_touch(side: str, best_bid: float | None, best_ask: float | None) -> float | None:
+    """Return the taker price for buying the target side from a YES-token book."""
+    if side == "YES":
+        return best_ask
+    if best_bid is None:
+        return None
+    return clamp_price(1.0 - best_bid)
+
+
+def bought_side_mid(side: str, best_bid: float | None, best_ask: float | None) -> float | None:
+    if best_bid is None or best_ask is None:
+        return None
+    mid = (best_bid + best_ask) / 2
+    return clamp_price(mid if side == "YES" else 1.0 - mid)
+
+
+def desired_bid_price(side: str, best_bid: float | None, best_ask: float | None) -> tuple[float, str] | None:
+    """Desired passive buy price in the bought-side unit."""
+    mid = bought_side_mid(side, best_bid, best_ask)
+    if mid is not None:
+        return mid, "mid"
+    touch = bought_side_touch(side, best_bid, best_ask)
+    if touch is None:
+        return None
+    return clamp_price(touch - LADDER_TICK), "touch_minus_1c"
+
+
+def make_bid_ladder(desired_price: float) -> list[dict]:
+    orders = []
+    for i, stake in enumerate(LADDER_STAKES):
+        orders.append({
+            "level": i + 1,
+            "price": clamp_price(desired_price - i * LADDER_TICK),
+            "stake_target": stake,
+            "filled_stake": 0.0,
+            "filled_shares": 0.0,
+            "status": "open",
+            "last_event": None,
+        })
+    return orders
+
+
+def sync_passive_fill_summary(trade: dict) -> None:
+    orders = trade.get("bid_orders") or []
+    stake = sum(float(o.get("filled_stake") or 0.0) for o in orders)
+    shares = sum(float(o.get("filled_shares") or 0.0) for o in orders)
+    target = sum(float(o.get("stake_target") or 0.0) for o in orders) or float(trade.get("stake") or 0.0)
+    avg = stake / shares if shares > 0 else None
+    trade.update({
+        "fill_avg_price": avg,
+        "fill_shares": shares,
+        "fill_stake": stake,
+        "fill_complete": stake >= target * 0.999 if target else False,
+        "fill_levels_used": sum(1 for o in orders if float(o.get("filled_stake") or 0.0) > 0),
+        "fills": {
+            str(int(target)): {
+                "avg_price": avg,
+                "shares": shares,
+                "stake_filled": stake,
+                "complete": stake >= target * 0.999 if target else False,
+            }
+        },
+    })
+
+
+def apply_passive_bid_observation(trade: dict, book_bid: float | None, book_ask: float | None,
+                                  ts_utc: str) -> tuple[list[dict], float | None]:
+    """Apply one post-signal book observation to a passive bid ladder.
+
+    Returns (events, bought-side touch). A pass fills the remaining level; an
+    exact touch fills up to half of that level.
+    """
+    touch = bought_side_touch(trade["side"], book_bid, book_ask)
+    events = []
+    if touch is None:
+        sync_passive_fill_summary(trade)
+        return events, None
+
+    for order in trade.get("bid_orders") or []:
+        target = float(order.get("stake_target") or 0.0)
+        price = float(order.get("price") or 0.0)
+        before = float(order.get("filled_stake") or 0.0)
+        if target <= 0 or before >= target * 0.999:
+            continue
+
+        event_type = None
+        after = before
+        if touch < price - PRICE_EPS:
+            after = target
+            event_type = "passed"
+        elif abs(touch - price) <= PRICE_EPS:
+            after = max(before, target / 2)
+            event_type = "touched"
+
+        if after <= before + PRICE_EPS:
+            continue
+        delta = after - before
+        order["filled_stake"] = after
+        order["filled_shares"] = float(order.get("filled_shares") or 0.0) + delta / price
+        order["status"] = "filled" if after >= target * 0.999 else "partial"
+        order["last_event"] = event_type
+        event = {
+            "ts_utc": ts_utc,
+            "level": order.get("level"),
+            "event": event_type,
+            "price": price,
+            "market_touch": touch,
+            "delta_stake": round(delta, 4),
+            "filled_stake": round(after, 4),
+        }
+        events.append(event)
+
+    sync_passive_fill_summary(trade)
+    return events, touch
+
+
 def already_traded(trades: list[dict], strategy: str, slug: str, md: str) -> bool:
     """One attempt per (strategy, city, day) — except explicitly non-blocking
     skips (a flagged city waiting for its 17:00 window must retry)."""
     return any(t["strategy"] == strategy and t["city_slug"] == slug
                and t["market_date"] == md and t["status"] != "error"
+               and t.get("execution_model") == PASSIVE_MODEL
                and t.get("skip_reason") not in NONBLOCKING_SKIPS
                for t in trades)
+
+
+# ---------------------------------------------------------------------------
+# --track
+# ---------------------------------------------------------------------------
+
+def run_track_open_orders() -> dict:
+    trades = read_jsonl(TRADES_PATH)
+    ts = datetime.now(timezone.utc).isoformat()
+    trace = {"ts_utc": ts, "mode": "track", "checked": 0, "updated": 0,
+             "filled_events": 0, "errors": []}
+    changed = False
+
+    for t in trades:
+        if t.get("status") != "open" or t.get("settled"):
+            continue
+        if t.get("execution_model") != PASSIVE_MODEL:
+            continue
+        token_id = t.get("token_id")
+        if not token_id:
+            continue
+        trace["checked"] += 1
+        try:
+            book = fetch_order_book(str(token_id))
+        except Exception as e:
+            trace["errors"].append(f"{t.get('trade_id')}: {type(e).__name__}: {e}")
+            continue
+
+        events, market_touch = apply_passive_bid_observation(
+            t, book.best_bid, book.best_ask, ts)
+        t["last_observed"] = {
+            "ts_utc": ts,
+            "best_bid": book.best_bid,
+            "best_ask": book.best_ask,
+            "spread": book.spread,
+            "mid": book.mid,
+            "market_touch": market_touch,
+        }
+        append_jsonl(ORDER_SNAPSHOTS_PATH, {
+            "ts_utc": ts,
+            "trade_id": t.get("trade_id"),
+            "strategy": t.get("strategy"),
+            "city_slug": t.get("city_slug"),
+            "market_date": t.get("market_date"),
+            "bracket_index": t.get("bracket_index"),
+            "side": t.get("side"),
+            "token_id": token_id,
+            "desired_price": t.get("desired_price"),
+            "best_bid": book.best_bid,
+            "best_ask": book.best_ask,
+            "spread": book.spread,
+            "mid": book.mid,
+            "market_touch": market_touch,
+            "fill_stake": t.get("fill_stake"),
+            "fill_shares": t.get("fill_shares"),
+            "fill_complete": t.get("fill_complete"),
+            "events": events,
+        })
+        trace["updated"] += 1
+        trace["filled_events"] += len(events)
+        changed = True
+        time.sleep(BOOK_RATE_S)
+
+    if changed:
+        rewrite_jsonl(TRADES_PATH, trades)
+    append_jsonl(RUNS_PATH, trace)
+    return trace
 
 
 # ---------------------------------------------------------------------------
@@ -420,6 +612,7 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
         "ts_utc": datetime.now(timezone.utc).isoformat(),
         "strategy": strategy, "city_slug": slug, "market_date": md,
         "unit": cm["unit"], "icao": cm["icao"], "stake": STAKE,
+        "execution_model": PASSIVE_MODEL,
         "window": window, "h_star": h50,
         "status": "skipped", "skip_reason": None, "settled": None,
     }
@@ -462,27 +655,29 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
             return {**base, "skip_reason": "empty_ask_side"}
         if book.best_ask > MAX_ASK_A:
             return {**base, "skip_reason": f"ask_above_{MAX_ASK_A}"}
-        levels = book.asks
     else:
         if book.best_bid is None:
             return {**base, "skip_reason": "empty_bid_side"}
         if not (YES_BID_RANGE_B[0] <= book.best_bid <= YES_BID_RANGE_B[1]):
             return {**base, "skip_reason": "yes_bid_outside_band"}
-        levels = no_levels_from_yes_bids(book.bids)
 
-    fills = {str(int(s)): walk_fill(levels, s) for s in STAKES}
-    fill = fills[str(int(STAKE))]
-    if fill.avg_price is None:
-        return {**base, "skip_reason": "unfillable"}
+    desired = desired_bid_price(side, book.best_bid, book.best_ask)
+    if desired is None:
+        return {**base, "skip_reason": "no_passive_price"}
+    desired_price, desired_source = desired
     base.update({
         "status": "open",
-        "fill_avg_price": fill.avg_price, "fill_shares": fill.shares,
-        "fill_stake": fill.stake_filled, "fill_complete": fill.complete,
-        "fill_levels_used": fill.levels_used,
-        "fills": {k: {"avg_price": f.avg_price, "shares": f.shares,
-                      "stake_filled": f.stake_filled, "complete": f.complete}
-                  for k, f in fills.items()},
+        "desired_price": desired_price,
+        "desired_price_source": desired_source,
+        "bid_orders": make_bid_ladder(desired_price),
+        "fill_avg_price": None,
+        "fill_shares": 0.0,
+        "fill_stake": 0.0,
+        "fill_complete": False,
+        "fill_levels_used": 0,
+        "fills": {},
     })
+    sync_passive_fill_summary(base)
     return base
 
 
@@ -493,10 +688,13 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
 def run_settle(cities: dict) -> dict:
     trades = read_jsonl(TRADES_PATH)
     trace = {"ts_utc": datetime.now(timezone.utc).isoformat(), "mode": "settle",
-             "settled": 0, "checked": 0, "errors": []}
+             "settled": 0, "checked": 0, "ignored_legacy": 0, "errors": []}
     changed = False
     for t in trades:
         if t["status"] != "open" or t.get("settled"):
+            continue
+        if t.get("execution_model") != PASSIVE_MODEL:
+            trace["ignored_legacy"] += 1
             continue
         cm = cities.get(t["city_slug"])
         if cm is None:
@@ -517,14 +715,18 @@ def run_settle(cities: dict) -> dict:
             continue  # not yet resolved
         yes_won = last_p >= 0.90
         trade_won = yes_won if t["side"] == "YES" else not yes_won
-        pnl = t["fill_shares"] * 1.0 - t["fill_stake"] if trade_won else -t["fill_stake"]
+        fill_shares = float(t.get("fill_shares") or 0.0)
+        fill_stake = float(t.get("fill_stake") or 0.0)
+        pnl = fill_shares * 1.0 - fill_stake if trade_won else -fill_stake
         t["settled"] = {
             "ts_utc": datetime.now(timezone.utc).isoformat(),
             "yes_last_price": last_p, "won": trade_won, "pnl": round(pnl, 2),
         }
         # per-stake P&L when the row carries multiple simulated fills
         for k, f in (t.get("fills") or {}).items():
-            fp = f["shares"] * 1.0 - f["stake_filled"] if trade_won else -f["stake_filled"]
+            shares = float(f.get("shares") or 0.0)
+            stake_filled = float(f.get("stake_filled") or 0.0)
+            fp = shares * 1.0 - stake_filled if trade_won else -stake_filled
             t["settled"][f"pnl_{k}"] = round(fp, 2)
         t["status"] = "settled"
         trace["settled"] += 1
@@ -568,8 +770,6 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
                 continue
             fill_yes = walk_fill(book.asks, STAKE)
             fill_no = walk_fill(no_levels_from_yes_bids(book.bids), STAKE)
-            fill_yes10 = walk_fill(book.asks, STAKES[0])
-            fill_no10 = walk_fill(no_levels_from_yes_bids(book.bids), STAKES[0])
             rows.append({
                 "ts_utc": ts, "city_slug": slug, "market_date": md, "role": role,
                 "local_hour": now_local.hour + now_local.minute / 60,
@@ -579,10 +779,8 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
                 "spread": book.spread, "mid": book.mid,
                 "bid_depth_shares": sum(s for _, s in book.bids),
                 "ask_depth_shares": sum(s for _, s in book.asks),
-                "yes25_avg": fill_yes.avg_price, "yes25_complete": fill_yes.complete,
-                "no25_avg": fill_no.avg_price, "no25_complete": fill_no.complete,
-                "yes10_avg": fill_yes10.avg_price, "yes10_complete": fill_yes10.complete,
-                "no10_avg": fill_no10.avg_price, "no10_complete": fill_no10.complete,
+                "yes24_avg": fill_yes.avg_price, "yes24_complete": fill_yes.complete,
+                "no24_avg": fill_no.avg_price, "no24_complete": fill_no.complete,
             })
             time.sleep(BOOK_RATE_S)
     df = pd.DataFrame(rows)
@@ -619,6 +817,10 @@ def main() -> None:
         retune()
     cities = load_cities()
     mk = load_markets() if (args.trade or args.sweep) else None
+    if args.trade or args.settle:
+        tk = run_track_open_orders()
+        logger.info("track: checked=%d updated=%d fills=%d errors=%d",
+                    tk["checked"], tk["updated"], tk["filled_events"], len(tk["errors"]))
     if args.trade:
         cfg = load_scalp_config()
         tr = run_trade(cities, mk, cfg)

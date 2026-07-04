@@ -49,6 +49,9 @@ Register-ScheduledTask -TaskName "dayof-paper-trade" -Action $action -Trigger $t
 - The runner windows: strategy A at each city's `h50` local hour (clean days) or
   17:00 (flagged days); strategy B at 16:30. Details:
   `oled/changes/scalp-v2-runner/spec.md`.
+- Paper execution is passive-only from 2026-07-04: rows place a virtual
+  `$24` bid ladder (`$10/$8/$6`) and every scheduled cycle appends post-signal
+  observations to `data/paper/paper_order_snapshots.jsonl` until settlement.
 - gamma-api.polymarket.com needs VPN (DNS-blocked) — the daily flow does NOT use it.
 
 ## Weekly (Mondays)
