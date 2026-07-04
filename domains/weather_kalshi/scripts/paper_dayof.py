@@ -3,10 +3,10 @@
 Scalp v2 (oled/changes/scalp-v2-runner, 2026-07-03):
   A (curmax-buy):  on CLEAN days enter at the city's rolling median settle hour
                    h*50 (12-19 local); on FLAGGED days (abnormal-day flag v2)
-                   enter at 17:00. Buy YES $100 on the bracket containing the
-                   rounded native-unit METAR running max (skip if ask > 0.85).
-  B (above-NO):    at 16:30-16:45 local, buy NO $100 on the bracket above the
-                   current-max bracket (only if YES bid in [0.02, 0.50]).
+                   enter at 17:00. Place a virtual $24 YES bid ladder on the
+                   bracket containing the rounded native-unit METAR running max.
+  B (above-NO):    at 16:30-16:45 local, place a virtual $24 NO bid ladder on
+                   the bracket above the current-max bracket.
 
 Flag v2 (computed at trade time from local data + live METAR):
   flag = city_rate >= 0.5 OR fc_warm >= 3 native deg
@@ -69,7 +69,6 @@ STATIC = ROOT / "data" / "static"
 PASSIVE_MODEL = "passive_bid_ladder_v1"
 LADDER_STAKES = (10.0, 8.0, 6.0)
 STAKE = sum(LADDER_STAKES)  # primary headline notional
-STAKES = (10.0, STAKE)
 LADDER_TICK = 0.01
 PRICE_EPS = 1e-9
 WINDOW_B = (16 * 60 + 30, 16 * 60 + 45)  # minutes since local midnight, [start, end)
@@ -688,10 +687,13 @@ def trade_city(slug: str, cm: dict, mk: pd.DataFrame, md: str, strategy: str,
 def run_settle(cities: dict) -> dict:
     trades = read_jsonl(TRADES_PATH)
     trace = {"ts_utc": datetime.now(timezone.utc).isoformat(), "mode": "settle",
-             "settled": 0, "checked": 0, "errors": []}
+             "settled": 0, "checked": 0, "ignored_legacy": 0, "errors": []}
     changed = False
     for t in trades:
         if t["status"] != "open" or t.get("settled"):
+            continue
+        if t.get("execution_model") != PASSIVE_MODEL:
+            trace["ignored_legacy"] += 1
             continue
         cm = cities.get(t["city_slug"])
         if cm is None:
@@ -767,8 +769,6 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
                 continue
             fill_yes = walk_fill(book.asks, STAKE)
             fill_no = walk_fill(no_levels_from_yes_bids(book.bids), STAKE)
-            fill_yes10 = walk_fill(book.asks, STAKES[0])
-            fill_no10 = walk_fill(no_levels_from_yes_bids(book.bids), STAKES[0])
             rows.append({
                 "ts_utc": ts, "city_slug": slug, "market_date": md, "role": role,
                 "local_hour": now_local.hour + now_local.minute / 60,
@@ -780,8 +780,6 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
                 "ask_depth_shares": sum(s for _, s in book.asks),
                 "yes24_avg": fill_yes.avg_price, "yes24_complete": fill_yes.complete,
                 "no24_avg": fill_no.avg_price, "no24_complete": fill_no.complete,
-                "yes10_avg": fill_yes10.avg_price, "yes10_complete": fill_yes10.complete,
-                "no10_avg": fill_no10.avg_price, "no10_complete": fill_no10.complete,
             })
             time.sleep(BOOK_RATE_S)
     df = pd.DataFrame(rows)

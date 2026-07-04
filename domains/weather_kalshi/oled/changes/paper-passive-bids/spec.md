@@ -25,12 +25,12 @@ Prices are clamped to `[0.01, 0.99]`.
 
 For a NO bid order, use current NO ask = `1 - YES best_bid` with the same pass/touch rule.
 
-**P6. Settlement.** Settlement P&L uses only filled stake and shares. Unfilled stake has zero P&L. Historical market-taker rows remain settle-compatible.
+**P6. Settlement.** Settlement P&L uses only filled stake and shares. Unfilled stake has zero P&L. Historical market-taker rows are ignored by active settlement.
 
-**P7. Reporting.** The HTML report should expose passive ladder filled stake/fill price when present while preserving old-row compatibility.
+**P7. Reporting.** The HTML report only counts passive ladder rows in the active paper ledger.
 
 ## Acceptance
 
 - Unit tests cover desired-price fallback, pass/touch fill semantics, and passive settlement economics.
 - Existing CLOB fill tests still pass.
-- `python -m scripts.paper_dayof --trade --settle` can run without schema errors against existing paper ledgers.
+- `python -m scripts.paper_dayof --trade --settle` can run after the live paper ledger has been reset to passive-only rows.

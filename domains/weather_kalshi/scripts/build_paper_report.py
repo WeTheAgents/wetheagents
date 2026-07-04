@@ -26,6 +26,7 @@ REPORT = ROOT / "reports" / "paper_trading_report.html"
 
 DECISION_HOURS = (13.0, 18.0)  # local hours relevant to strategy windows
 PALETTE = dict(blue="#2563eb", red="#dc2626", green="#059669", gray="#6b7280", amber="#d97706")
+PASSIVE_MODEL = "passive_bid_ladder_v1"
 
 
 def read_jsonl(path: Path) -> list[dict]:
@@ -38,19 +39,13 @@ def load() -> dict:
     d = {}
     s = (pd.read_parquet(PAPER_DIR / "book_sweeps.parquet")
          if (PAPER_DIR / "book_sweeps.parquet").exists() else pd.DataFrame())
-    # Stake sizes changed $100 -> $25/$10 on 2026-07-03 and then to a passive
-    # $24 ladder on 2026-07-04. Use $24 columns when present, with the short
-    # $25 era as a historical proxy for the same executability charts.
     if not s.empty:
-        for new, old in [("yes24_avg", "yes25_avg"), ("yes24_complete", "yes25_complete"),
-                         ("no24_avg", "no25_avg"), ("no24_complete", "no25_complete")]:
-            if new not in s.columns:
-                s[new] = s[old] if old in s.columns else np.nan
         for col in ["yes24_avg", "yes24_complete", "no24_avg", "no24_complete"]:
             if col not in s.columns:
                 s[col] = np.nan
     d["sweeps"] = s
-    d["trades"] = read_jsonl(PAPER_DIR / "paper_trades.jsonl")
+    d["trades"] = [t for t in read_jsonl(PAPER_DIR / "paper_trades.jsonl")
+                   if t.get("execution_model") == PASSIVE_MODEL]
     d["runs"] = read_jsonl(PAPER_DIR / "paper_runs.jsonl")
     return d
 
@@ -93,7 +88,7 @@ def fig_pnl(settled: pd.DataFrame) -> go.Figure | None:
     fig.add_trace(go.Scatter(x=settled["ts_utc"], y=settled["cum_pnl"],
                              mode="lines+markers", line=dict(color=PALETTE["green"])))
     fig.add_hline(y=0, line_color=PALETTE["gray"])
-    fig.update_layout(title="Накопленный paper P&L, $ ($24 passive ladder с 2026-07-04; ранее $25/$10 и $100)",
+    fig.update_layout(title="Накопленный passive bid-fill P&L, $ ($24 ladder)",
                       xaxis_title="Дата", yaxis_title="$", height=380, template="plotly_white")
     return fig
 
@@ -215,9 +210,8 @@ def render(d: dict) -> str:
 sweep-стаканов: {len(s)}</i></p>
 
 <h2>1. Что это</h2>
-<p>Автоматический пейпер-трейдинг двух стратегий из исследования
-<i>day-of nowcasting</i> (2026-07-03), <b>без реальных денег</b> — только чтение рынка
-и симуляция филлов по реальному стакану CLOB:</p>
+<p>Автоматический пейпер-трейдинг двух стратегий, <b>без реальных денег</b>:
+раннер только читает CLOB и симулирует исполнение наших виртуальных bid-ордеров.</p>
 <ul>
 <li><b>Стратегия A (скальп v2)</b> — поставить виртуальный bid-ladder $24 ($10/$8/$6) на YES в брекете текущего максимума
 METAR (пропуск, если ask &gt; 85¢). Час входа пер-городской: на чистых днях —
@@ -242,12 +236,10 @@ METAR (пропуск, если ask &gt; 85¢). Час входа пер-гор�
 <p>Ключевой вопрос к бэктесту: реалистично ли допущение «слиппедж 1¢»?</p>
 {exec_t}
 {fig_html.get('slip', '')}
-<div class="warn"><b>Первый честный ответ: для стратегии A допущение 1¢ оптимистично.</b>
-Медианный слиппедж симулированного филла против mid зависит от размера: $100 проваливался на 12–19¢ вглубь тонких книг (поэтому ставка снижена до $25/$10 с 2026-07-03), у трети
-стаканов хуже. С 2026-07-04 основной paper-run ставит passive bid-ladder $24 и
-считает fill только когда рынок касается или проходит нашу цену. Часть sweep-замеров
-сделана ночью по местному времени (тонкие книги) — решающими будут post-signal
-наблюдения самих сделок.</div>
+<div class="warn"><b>Главная метрика теперь не taker slippage, а bid-fill.</b>
+Основной paper-run ставит passive bid-ladder $24 и считает fill только когда рынок
+касается или проходит нашу цену. Решающими являются post-signal наблюдения самих
+сделок до расчёта.</div>
 {fig_html.get('spread', '')}
 
 <h2>3. Леджер сделок</h2>

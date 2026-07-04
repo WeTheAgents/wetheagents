@@ -17,9 +17,10 @@ The operator needs to know whether the strategy can be profitable when buying on
 - A ladder order is considered fully filled when the observed market passes its bid price.
 - A ladder order is considered half filled when the observed market only touches its bid price.
 - Post-signal observations must continue on every scheduled runner cycle until the trade settles.
+- Historical `$100` and `$25` taker rows are out of scope for the active paper series.
 
 ## Non-goals
 
 - No real orders, wallet use, or private API keys.
 - No queue-position modeling beyond the explicit half-fill-on-touch rule.
-- No deletion or rewriting of historical paper rows except normal settlement/status updates.
+- No active reporting or settlement of historical market-taker rows.

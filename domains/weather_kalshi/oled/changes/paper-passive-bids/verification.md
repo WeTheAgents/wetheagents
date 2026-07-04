@@ -24,10 +24,10 @@ Result: pass.
 python -m pytest domains/weather_kalshi/tests -q
 ```
 
-Result: `26 passed in 0.88s` after the final report text cleanup.
+Result: `27 passed in 0.89s` after strict passive-only settlement/reporting.
 
 ## Notes
 
-- Did not run a live `--trade --settle` smoke in the new worktree, to avoid creating a parallel paper ledger outside the production scheduled task.
-- Historical market-taker rows remain settlement-compatible because settlement still reads `fill_shares` and `fill_stake`.
+- Historical market-taker rows are ignored by active settlement/reporting; the live paper ledger was reset separately in `data/paper/`.
 - New passive rows append post-signal observations to `data/paper/paper_order_snapshots.jsonl`, which is under gitignored `data/paper/`.
+- Runtime reset on 2026-07-04: cleared `paper_trades.jsonl`, `paper_runs.jsonl`, `paper_order_snapshots.jsonl`, and removed old `book_sweeps.parquet`; manual scheduled run returned `Last Result: 0` and wrote only fresh empty `track/trade/settle` traces.

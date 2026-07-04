@@ -130,6 +130,7 @@ class TestPassiveBidLadder:
                 _mod.RUNS_PATH = root / "paper_runs.jsonl"
                 trade = {
                     "trade_id": "t1", "status": "open", "settled": None,
+                    "execution_model": _mod.PASSIVE_MODEL,
                     "city_slug": "tokyo", "market_date": "2020-01-01",
                     "token_id": "token", "side": "YES",
                     "fill_shares": 20.0, "fill_stake": 10.0,
@@ -143,5 +144,30 @@ class TestPassiveBidLadder:
                 assert settled["status"] == "settled"
                 assert settled["settled"]["pnl"] == 10.0
                 assert settled["settled"]["pnl_24"] == 10.0
+        finally:
+            _mod.TRADES_PATH, _mod.RUNS_PATH, _mod.fetch_price_history = old_trades, old_runs, old_fetch
+
+    def test_settle_ignores_legacy_open_rows(self):
+        old_trades, old_runs, old_fetch = _mod.TRADES_PATH, _mod.RUNS_PATH, _mod.fetch_price_history
+        try:
+            with tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                _mod.TRADES_PATH = root / "paper_trades.jsonl"
+                _mod.RUNS_PATH = root / "paper_runs.jsonl"
+                trade = {
+                    "trade_id": "legacy", "status": "open", "settled": None,
+                    "city_slug": "tokyo", "market_date": "2020-01-01",
+                    "token_id": "token", "side": "YES",
+                    "fill_shares": 20.0, "fill_stake": 10.0,
+                }
+                _mod.TRADES_PATH.write_text(json.dumps(trade) + "\n", encoding="utf-8")
+                _mod.fetch_price_history = lambda *a, **k: [{"p": 0.99}]
+                result = _mod.run_settle({"tokyo": {"tz": ZoneInfo("UTC")}})
+                assert result["settled"] == 0
+                assert result["checked"] == 0
+                assert result["ignored_legacy"] == 1
+                unchanged = json.loads(_mod.TRADES_PATH.read_text(encoding="utf-8").strip())
+                assert unchanged["status"] == "open"
+                assert unchanged["settled"] is None
         finally:
             _mod.TRADES_PATH, _mod.RUNS_PATH, _mod.fetch_price_history = old_trades, old_runs, old_fetch
