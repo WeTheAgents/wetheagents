@@ -56,14 +56,19 @@ class TestSelectStrategy:
 
 
 def row(strategy="A_curmax_buy", slug="tokyo", md="2026-07-03",
-        status="skipped", skip_reason=None):
+        status="skipped", skip_reason=None, execution_model=_mod.PASSIVE_MODEL):
     return {"strategy": strategy, "city_slug": slug, "market_date": md,
-            "status": status, "skip_reason": skip_reason}
+            "status": status, "skip_reason": skip_reason,
+            "execution_model": execution_model}
 
 
 class TestDedup:
     def test_open_trade_blocks(self):
         assert already_traded([row(status="open")], "A_curmax_buy", "tokyo", "2026-07-03")
+
+    def test_legacy_open_trade_does_not_block_passive_series(self):
+        assert not already_traded([row(status="open", execution_model=None)],
+                                  "A_curmax_buy", "tokyo", "2026-07-03")
 
     def test_hard_skip_blocks(self):
         assert already_traded([row(skip_reason="ask_above_0.85")],

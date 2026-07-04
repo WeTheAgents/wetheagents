@@ -494,6 +494,7 @@ def already_traded(trades: list[dict], strategy: str, slug: str, md: str) -> boo
     skips (a flagged city waiting for its 17:00 window must retry)."""
     return any(t["strategy"] == strategy and t["city_slug"] == slug
                and t["market_date"] == md and t["status"] != "error"
+               and t.get("execution_model") == PASSIVE_MODEL
                and t.get("skip_reason") not in NONBLOCKING_SKIPS
                for t in trades)
 
