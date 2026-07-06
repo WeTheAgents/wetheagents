@@ -7,6 +7,9 @@ Polymarket resolves on different stations than Kalshi:
   - NYC: Polymarket → KLGA (LaGuardia), Kalshi → KNYC (Central Park)
   - Chicago: Polymarket → KORD (O'Hare), Kalshi → KMDW (Midway)
   - Miami: Both → KMIA
+
+The Polymarket US station list is derived from stations_canonical.json so
+resolution-station corrections flow through without another hardcoded list.
 """
 
 from __future__ import annotations
@@ -54,6 +57,38 @@ def load_stations() -> dict[str, Station]:
     }
 
 
+def load_station_canonical() -> dict:
+    """Load canonical city/station metadata."""
+    path = STATIC_DIR / "stations_canonical.json"
+    with open(path) as f:
+        return json.load(f)
+
+
+def _load_polymarket_us_resolution_map() -> dict[str, str]:
+    """Return slug -> resolution ICAO for traded US Polymarket cities."""
+    canonical = load_station_canonical()
+    mapping = {}
+    missing = []
+    for slug, city in canonical.items():
+        if not city.get("traded_on_polymarket") or not city.get("has_nbm"):
+            continue
+        resolution = city.get("resolution") or {}
+        station_id = resolution.get("station_id")
+        if not station_id:
+            missing.append(f"{slug}:<missing>")
+            continue
+        if station_id not in STATIONS:
+            missing.append(f"{slug}:{station_id}")
+            continue
+        mapping[slug] = station_id
+    if missing:
+        raise KeyError(
+            "Canonical Polymarket US station(s) missing from stations.json: "
+            + ", ".join(missing)
+        )
+    return mapping
+
+
 # Pre-loaded registry for quick access
 STATIONS = load_stations()
 
@@ -64,28 +99,11 @@ IEM_TO_ICAO = {s.iem_station_id: s.icao for s in STATIONS.values()}
 PHASE1_STATIONS = ["KNYC", "KMDW", "KMIA"]
 
 # Polymarket resolution stations
-POLYMARKET_STATIONS = [
-    "KLGA",  # NYC
-    "KORD",  # Chicago
-    "KMIA",  # Miami
-    "KLAX",  # Los Angeles
-    "KIAH",  # Houston
-    "KDFW",  # Dallas
-    "KDEN",  # Denver
-    "KSEA",  # Seattle
-    "KATL",  # Atlanta
-    "KSFO",  # San Francisco
-    "KAUS",  # Austin
-    "KDCA",  # Washington DC
-    "KPHX",  # Phoenix
-]
+POLYMARKET_SLUG_TO_ICAO = _load_polymarket_us_resolution_map()
+POLYMARKET_STATIONS = list(POLYMARKET_SLUG_TO_ICAO.values())
 
-# Polymarket slug → ICAO lookup
-POLYMARKET_SLUG_TO_ICAO = {
-    s.polymarket_city_slug: s.icao
-    for s in STATIONS.values()
-    if s.polymarket_city_slug
-}
+# Polymarket slug → ICAO lookup is canonical-driven and excludes non-traded
+# config carryovers such as dc and phoenix.
 
 
 def get_station(icao: str) -> Station:

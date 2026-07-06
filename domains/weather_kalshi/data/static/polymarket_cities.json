@@ -33,24 +33,24 @@
   },
   "houston": {
     "name": "Houston",
-    "lat": 29.9844,
-    "lon": -95.3414,
+    "lat": 29.6453,
+    "lon": -95.2768,
     "unit": "F",
     "nbm": true,
     "timezone": "America/Chicago"
   },
   "dallas": {
     "name": "Dallas",
-    "lat": 32.8998,
-    "lon": -97.0403,
+    "lat": 32.8448,
+    "lon": -96.8477,
     "unit": "F",
     "nbm": true,
     "timezone": "America/Chicago"
   },
   "denver": {
     "name": "Denver",
-    "lat": 39.8561,
-    "lon": -104.674,
+    "lat": 39.7017,
+    "lon": -104.7520,
     "unit": "F",
     "nbm": true,
     "timezone": "America/Denver"
@@ -97,8 +97,8 @@
   },
   "taipei": {
     "name": "Taipei",
-    "lat": 25.033,
-    "lon": 121.565,
+    "lat": 25.0377,
+    "lon": 121.5149,
     "unit": "C",
     "nbm": false,
     "timezone": "Asia/Taipei"
@@ -113,8 +113,8 @@
   },
   "london": {
     "name": "London",
-    "lat": 51.47,
-    "lon": -0.4543,
+    "lat": 51.5053,
+    "lon": 0.0553,
     "unit": "C",
     "nbm": false,
     "timezone": "Europe/London"
@@ -241,8 +241,8 @@
   },
   "istanbul": {
     "name": "Istanbul",
-    "lat": 41.2752,
-    "lon": 28.7519,
+    "lat": 41.2749,
+    "lon": 28.7321,
     "unit": "C",
     "nbm": false,
     "timezone": "Europe/Istanbul"
@@ -257,8 +257,8 @@
   },
   "moscow": {
     "name": "Moscow",
-    "lat": 55.9728,
-    "lon": 37.4146,
+    "lat": 55.5915,
+    "lon": 37.2615,
     "unit": "C",
     "nbm": false,
     "timezone": "Europe/Moscow"
@@ -337,8 +337,8 @@
   },
   "jakarta": {
     "name": "Jakarta",
-    "lat": -6.267,
-    "lon": 106.891,
+    "lat": -6.2670,
+    "lon": 106.8903,
     "unit": "C",
     "nbm": false,
     "timezone": "Asia/Jakarta"

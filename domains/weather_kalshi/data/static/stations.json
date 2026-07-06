@@ -89,50 +89,50 @@
     "polymarket_city_slug": "los-angeles",
     "wunderground_id": "KLAX"
   },
-  "KIAH": {
-    "name": "Houston George Bush Intercontinental",
+  "KHOU": {
+    "name": "Houston William P. Hobby",
     "city": "Houston",
     "state": "TX",
-    "lat": 29.9844,
-    "lon": -95.3414,
+    "lat": 29.6453,
+    "lon": -95.2768,
     "nws_office": "HGX",
     "cli_time_utc": "09:00",
     "iem_network": "TX_ASOS",
-    "iem_station_id": "IAH",
+    "iem_station_id": "HOU",
     "timezone": "America/Chicago",
     "kalshi_ticker_prefix": "",
     "polymarket_city_slug": "houston",
-    "wunderground_id": "KIAH"
+    "wunderground_id": "KHOU"
   },
-  "KDFW": {
-    "name": "Dallas/Fort Worth International",
+  "KDAL": {
+    "name": "Dallas Love Field",
     "city": "Dallas",
     "state": "TX",
-    "lat": 32.8998,
-    "lon": -97.0403,
+    "lat": 32.8448,
+    "lon": -96.8477,
     "nws_office": "FWD",
     "cli_time_utc": "09:00",
     "iem_network": "TX_ASOS",
-    "iem_station_id": "DFW",
+    "iem_station_id": "DAL",
     "timezone": "America/Chicago",
     "kalshi_ticker_prefix": "",
     "polymarket_city_slug": "dallas",
-    "wunderground_id": "KDFW"
+    "wunderground_id": "KDAL"
   },
-  "KDEN": {
-    "name": "Denver International",
+  "KBKF": {
+    "name": "Buckley Space Force Base",
     "city": "Denver",
     "state": "CO",
-    "lat": 39.8561,
-    "lon": -104.6737,
+    "lat": 39.7017,
+    "lon": -104.7520,
     "nws_office": "BOU",
     "cli_time_utc": "11:00",
     "iem_network": "CO_ASOS",
-    "iem_station_id": "DEN",
+    "iem_station_id": "BKF",
     "timezone": "America/Denver",
     "kalshi_ticker_prefix": "",
     "polymarket_city_slug": "denver",
-    "wunderground_id": "KDEN"
+    "wunderground_id": "KBKF"
   },
   "KSEA": {
     "name": "Seattle-Tacoma International",
