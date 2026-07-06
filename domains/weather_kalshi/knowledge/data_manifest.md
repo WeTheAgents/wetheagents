@@ -41,33 +41,23 @@ local, not committed. Only static config (`data/static/`) is in git.
   `wetheagents-codex-paper-passive-bids` worktree: `paper_trades.jsonl` (27 settled),
   `paper_order_snapshots.jsonl`, `paper_runs.jsonl`. Kept separate from the day-of ledger.
 
-## ⚠ Known issue for ML data prep — legacy-station joinability
+## ML data-prep contract (operator decisions, 2026-07-06)
 
-Six cities changed resolution station (2026-07-06). Historical data collected BEFORE the change is
-keyed by the OLD ICAO, and `scripts/build_ml_panel.py` maps station→slug via `ICAO_TO_SLUG` (derived
-from the current `STATIONS` registry, which no longer contains the old codes). So when rebuilding the
-ML panel, **pre-change forecast/snapshot rows for these cities will orphan and their historical forecast
-features will drop** unless a legacy-alias map is added.
+Completeness verified 2026-07-06 (window 2026-03-01..07-06): METAR complete for 41/42 cities
+(~112–128 days; the six corrected stations backfilled to full history); observed complete;
+forecast snapshots 25 Mar–6 Jul; prices mostly 97–119 days. `metar_day_table` has been rebuilt on the
+corrected stations. Decisions for the ML pipeline:
 
-METAR is NOT affected: the corrected stations were backfilled for the full history (2026-03-01..), so
-`metar_day_table` rebuilt on the corrected `icao_map` is complete. The gap is only the point-in-time
-FORECAST snapshots (which cannot be re-fetched for the corrected coordinates).
-
-Old → new station map to wire into `build_ml_panel` (add these as `ICAO_TO_SLUG` aliases when building
-the panel, so historical rows still join):
-
-| slug | old ICAO | new (resolution) ICAO |
-|------|----------|------------------------|
-| houston | KIAH | KHOU |
-| dallas | KDFW | KDAL |
-| denver | KDEN | KBKF |
-| london | EGLL | EGLC |
-| moscow | UUEE | UUWW |
-| jakarta | WIII | WIHH |
-
-Note the historical forecasts for these cities are for the OLD airport (wrong coords, ~30 km off);
-going forward both forecast and obs use the corrected station. Decide in the ML chat whether to keep
-the old-airport forecast history (continuity) or start the clean series at the correction date.
+1. **Exclude `taipei`** — only 65 days of METAR (RCTP from 27 Apr) and its resolution is the Taiwan CWA
+   city station 46692, not the RCTP airport proxy. Drop it from training and evaluation.
+2. **Keep `jakarta` but do NOT train on it** — only 49 days of price history (from 3 Apr). Usable for
+   context, not as a training city.
+3. **Harmonize the forecast snapshots to the new schema; do NOT keep legacy ICAO aliases** — early
+   snapshots are keyed `slug`+`icao`, later ones `station`+`pm_bracket_*`. Unify to one schema and
+   **relabel historical rows of the six corrected cities from the old station code to the new resolution
+   ICAO** (KIAH→KHOU, KDFW→KDAL, KDEN→KBKF, EGLL→EGLC, UUEE→UUWW, WIII→WIHH) so each city is one
+   continuous series under its correct station. The pre-change forecasts are for the old-airport
+   coordinates (~30 km off) — accepted; observations/resolution are correct via the backfill.
 
 ## Provenance
 
