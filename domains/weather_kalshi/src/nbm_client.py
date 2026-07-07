@@ -50,6 +50,18 @@ FXX_MAXT = {
     3: 90,   # day+3's high (72-90h)
 }
 
+# When today's cycle has not published yet we fall back to an earlier run and
+# add 24h to fxx per day back, so the valid target stays the same calendar day.
+NBM_MAX_RUN_FALLBACK_DAYS = 2   # NOMADS keeps ~2 days; older dates need S3
+# Largest MaxT forecast hour we may request: the deepest base horizon (90, for
+# days_ahead=3) plus the full fallback shift (24h * 2 days). QMD carries MaxT
+# fields well past this ("96-114"/"120-138 hour max fcst" both exist), so a
+# fallback for day+3 still lands on a real windowed-max field.
+NBM_MAX_FXX = 90 + 24 * NBM_MAX_RUN_FALLBACK_DAYS  # 138
+
+# Public AWS mirror of NBM GRIB2 (full history; NOMADS is rolling ~2 days).
+NBM_S3_BASE = "https://noaa-nbm-grib2-pds.s3.amazonaws.com"
+
 # Percentiles to fetch (covers full distribution shape)
 TARGET_PERCENTILES = [1, 5, 10, 25, 50, 75, 90, 95, 99]
 
@@ -80,13 +92,34 @@ def _kelvin_to_fahrenheit(k: float) -> float:
     return k * 9.0 / 5.0 - 459.67
 
 
-def _build_qmd_url(run_date: date, cycle: str, fxx: int) -> tuple[str, str]:
-    """Build NOMADS URLs for QMD GRIB2 and its index file."""
+def _nearest_grid_cell(
+    lats: np.ndarray, lons: np.ndarray, lat: float, lon: float
+) -> tuple[int, int]:
+    """Nearest (row, col) on a 2D lat/lon grid to a point.
+
+    NBM CONUS is a Lambert-conformal grid: latitude/longitude are 2D and
+    curvilinear, so a column is NOT constant longitude. Searching lats[:,0] and
+    lons[0,:] independently (the old approach) landed hundreds of km offshore —
+    e.g. KLGA resolved to the Atlantic off Maine (71F) instead of LaGuardia
+    (102F). Compute the true 2D nearest neighbour instead.
+    """
+    lon360 = lon % 360
+    dlon = (lons - lon360 + 180.0) % 360.0 - 180.0  # shortest signed lon delta
+    dist2 = (lats - lat) ** 2 + dlon ** 2
+    row, col = np.unravel_index(int(np.argmin(dist2)), lats.shape)
+    return int(row), int(col)
+
+
+def _build_qmd_url(run_date: date, cycle: str, fxx: int, source: str = "nomads") -> tuple[str, str]:
+    """Build QMD GRIB2 + index URLs.
+
+    source="nomads" -> live NOMADS server (rolling ~2 days).
+    source="s3"     -> public AWS mirror (full history, for backfill).
+    """
     date_str = run_date.strftime("%Y%m%d")
-    grib = (
-        f"{NOMADS_BASE}/blend.{date_str}/{cycle}/qmd/"
-        f"blend.t{cycle}z.qmd.f{fxx:03d}.co.grib2"
-    )
+    rel = f"blend.{date_str}/{cycle}/qmd/blend.t{cycle}z.qmd.f{fxx:03d}.co.grib2"
+    base = NBM_S3_BASE if source == "s3" else NOMADS_BASE
+    grib = f"{base}/{rel}"
     return grib, f"{grib}.idx"
 
 
@@ -121,8 +154,16 @@ def _parse_idx(idx_text: str) -> list[dict]:
 def _find_percentile_ranges(
     idx_records: list[dict],
     percentiles: list[int],
+    field_marker: str = "max fcst",
 ) -> dict[int, tuple[int, int | None]]:
-    """Find byte ranges for TMP MaxT percentile fields in the IDX.
+    """Find byte ranges for TMP windowed-MaxT percentile fields in the IDX.
+
+    At a MaxT fxx the QMD file carries TWO TMP records per percentile: an
+    instantaneous "{fxx} hour fcst" (the temperature AT the valid time — 06Z /
+    overnight for fxx=18) and the windowed "0-{fxx} hour max fcst" (the daytime
+    maximum). We must select the MAX field: matching on percentile alone grabbed
+    the instantaneous overnight temp and stored it as the day's high (~16-19F too
+    low; root cause of the broken archive, fixed 2026-07-07).
 
     Returns dict mapping percentile number to (start_byte, end_byte).
     end_byte is None for the last record in the file.
@@ -131,6 +172,8 @@ def _find_percentile_ranges(
     for rec in idx_records:
         if rec["var"] != "TMP":
             continue
+        if field_marker not in rec.get("forecast", ""):
+            continue  # skip the instantaneous "{fxx} hour fcst" field
         extra = rec.get("extra", "")
         for p in percentiles:
             if f"{p}% level" == extra.strip():
@@ -155,6 +198,7 @@ def _download_and_extract(
         Dict mapping station ICAO to dict of percentile → temperature (F).
     """
     results: dict[str, dict[int, float]] = {st: {} for st in stations}
+    cell_cache: dict[str, tuple[int, int]] = {}  # station -> (row, col); grid is identical across percentiles
 
     with httpx.Client(timeout=60) as client:
         for pctl, (start, end) in sorted(byte_ranges.items()):
@@ -180,12 +224,13 @@ def _download_and_extract(
                 var_name = list(ds.data_vars)[0]
                 lats = ds.latitude.values
                 lons = ds.longitude.values  # 0-360 format
+                vals = ds[var_name].values
 
                 for station, (lat, lon) in stations.items():
-                    lon360 = lon % 360
-                    lat_idx = int(np.argmin(np.abs(lats[:, 0] - lat)))
-                    lon_idx = int(np.argmin(np.abs(lons[0, :] - lon360)))
-                    val_k = float(ds[var_name].values[lat_idx, lon_idx])
+                    if station not in cell_cache:
+                        cell_cache[station] = _nearest_grid_cell(lats, lons, lat, lon)
+                    lat_idx, lon_idx = cell_cache[station]
+                    val_k = float(vals[lat_idx, lon_idx])
                     results[station][pctl] = _kelvin_to_fahrenheit(val_k)
 
                 ds.close()
@@ -224,35 +269,64 @@ def fetch_nbm_batch(
     if target_date is None:
         target_date = date.today() + timedelta(days=days_ahead)
 
-    fxx = FXX_MAXT.get(days_ahead)
-    if fxx is None:
+    base_fxx = FXX_MAXT.get(days_ahead)
+    if base_fxx is None:
         logger.warning(f"No fxx mapping for days_ahead={days_ahead}")
         return []
 
-    # Run date is today (or yesterday if cycle hasn't run yet)
-    run_date = date.today()
-
-    grib_url, idx_url = _build_qmd_url(run_date, cycle, fxx)
-
-    # Step 1: Download and parse IDX
-    try:
-        with httpx.Client(timeout=30) as client:
-            resp = client.get(idx_url)
-            resp.raise_for_status()
-            idx_text = resp.text
-    except httpx.HTTPError:
-        # Try yesterday's run if today's isn't available yet
-        run_date = date.today() - timedelta(days=1)
-        grib_url, idx_url = _build_qmd_url(run_date, cycle, fxx)
+    # Find the freshest published cycle. When today's {cycle}Z run has not
+    # published yet (QMD lands ~1.5h after cycle time), fall back to an earlier
+    # run AND add 24h to fxx per day so the valid target stays the same calendar
+    # date. Reusing base_fxx against a stale run returns an EARLIER day's MaxT —
+    # the bug that filled the snapshot archive with overnight-window maxima
+    # (day-of |error| ~16-19F vs realized; fixed 2026-07-07).
+    idx_text = None
+    grib_url = None
+    run_date = None
+    fxx = None
+    for back in range(NBM_MAX_RUN_FALLBACK_DAYS + 1):
+        rd = date.today() - timedelta(days=back)
+        fx = base_fxx + 24 * back
+        if fx > NBM_MAX_FXX:
+            break
+        g_url, i_url = _build_qmd_url(rd, cycle, fx)
         try:
             with httpx.Client(timeout=30) as client:
-                resp = client.get(idx_url)
+                resp = client.get(i_url)
                 resp.raise_for_status()
                 idx_text = resp.text
-        except httpx.HTTPError as e:
-            logger.error(f"NBM QMD index not available: {e}")
-            return []
+            run_date, fxx, grib_url = rd, fx, g_url
+            if back:
+                logger.info("NBM %sZ for target not out yet; using %d-day-old run at fxx=%d",
+                            cycle, back, fx)
+            break
+        except httpx.HTTPError:
+            continue
+    if idx_text is None:
+        logger.error("NBM QMD index not available for cycle %sZ within %d-day fallback",
+                     cycle, NBM_MAX_RUN_FALLBACK_DAYS)
+        return []
 
+    forecasts = _forecasts_from_idx(grib_url, idx_text, stations, target_date, run_date, cycle, fxx)
+    logger.info(f"NBM fetch complete: {len(forecasts)} stations")
+    return forecasts
+
+
+def _forecasts_from_idx(
+    grib_url: str,
+    idx_text: str,
+    stations: list[str],
+    target_date: date,
+    run_date: date,
+    cycle: str,
+    fxx: int,
+) -> list[NBMForecast]:
+    """Parse an idx, download the percentile byte ranges, and build forecasts.
+
+    Shared by the live NOMADS fetch and the S3 backfill (they differ only in how
+    they pick the run/URL). All percentiles are for the same (run_date, fxx),
+    labelled with the caller's target_date.
+    """
     idx_records = _parse_idx(idx_text)
     byte_ranges = _find_percentile_ranges(idx_records, TARGET_PERCENTILES)
 
@@ -269,35 +343,65 @@ def fetch_nbm_batch(
         f"{len(byte_ranges)} percentiles for {len(stations)} stations"
     )
 
-    # Step 2: Build station coordinate lookup
     station_coords = {}
     for icao in stations:
         st = get_station(icao)
         station_coords[icao] = (st.lat, st.lon)
 
-    # Step 3: Download and extract
     raw = _download_and_extract(grib_url, byte_ranges, station_coords)
 
-    # Step 4: Build NBMForecast objects
     forecasts = []
     for icao, pctls in raw.items():
         if 10 not in pctls or 90 not in pctls or 50 not in pctls:
             logger.warning(f"Incomplete percentiles for {icao}: {sorted(pctls.keys())}")
             continue
-
-        sigma = (pctls[90] - pctls[10]) / 2.56
         forecasts.append(NBMForecast(
             target_date=target_date,
             station=icao,
             cycle=cycle,
             fxx=fxx,
             percentiles=pctls,
-            sigma=sigma,
+            sigma=(pctls[90] - pctls[10]) / 2.56,
             median=pctls[50],
         ))
-
-    logger.info(f"NBM fetch complete: {len(forecasts)} stations")
     return forecasts
+
+
+def fetch_nbm_s3(
+    stations: list[str] | None = None,
+    target_date: date | None = None,
+    cycle: str = "12",
+    days_ahead: int = 0,
+) -> list[NBMForecast]:
+    """Fetch NBM MaxT percentiles for a specific PAST date from the AWS mirror.
+
+    Deterministic (no fallback): run_date = target_date - days_ahead, fxx from
+    FXX_MAXT. days_ahead=0 -> that date's {cycle}Z fxx=18 = the morning-of
+    forecast for the day's high (what the live pipeline sees at ~14:00 UTC).
+    Used by scripts/backfill_nbm_dayof.py to repair the broken snapshot archive.
+    """
+    if stations is None:
+        stations = POLYMARKET_STATIONS
+    if target_date is None:
+        raise ValueError("fetch_nbm_s3 requires an explicit target_date")
+
+    fxx = FXX_MAXT.get(days_ahead)
+    if fxx is None:
+        logger.warning(f"No fxx mapping for days_ahead={days_ahead}")
+        return []
+
+    run_date = target_date - timedelta(days=days_ahead)
+    grib_url, idx_url = _build_qmd_url(run_date, cycle, fxx, source="s3")
+    try:
+        with httpx.Client(timeout=60) as client:
+            resp = client.get(idx_url)
+            resp.raise_for_status()
+            idx_text = resp.text
+    except httpx.HTTPError as e:
+        logger.warning("NBM S3 idx missing for %s %sZ f%03d: %s", run_date, cycle, fxx, e)
+        return []
+
+    return _forecasts_from_idx(grib_url, idx_text, stations, target_date, run_date, cycle, fxx)
 
 
 def fetch_nbm_percentiles(
