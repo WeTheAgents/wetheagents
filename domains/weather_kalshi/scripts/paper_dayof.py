@@ -741,56 +741,77 @@ def run_settle(cities: dict) -> dict:
 # --sweep
 # ---------------------------------------------------------------------------
 
+# Horizons to sweep: 0 = today (T-0), 1/2 = tomorrow / day-after (T-1/T-2).
+# Slow-horizon books let us watch how volume/depth builds up and whether it is
+# worth entering part of a position earlier. T+1/T+2 markets exist in
+# all_cities_markets when gamma has published them (usually through ~T+2).
+SWEEP_HORIZONS = (0, 1, 2)
+
+
+def _sweep_city_horizon(slug, brackets, days_ahead, md, local_hour, ts, rm):
+    """Sweep every bracket of one city-day's book, tagging roles.
+
+    Only T-0 has a running max, so curmax/above roles apply there; on T+1/T+2
+    (day not started) roles are just favorite / wing and run_max is None.
+    """
+    role_of: dict[int, str] = {}
+    if brackets["yes_price"].notna().any():
+        fav = brackets.loc[brackets["yes_price"].idxmax()]
+        role_of[int(fav["bracket_index"])] = "favorite"
+    dayof = days_ahead == 0 and rm is not None
+    if dayof:
+        cur, above = positions(brackets, rm["rounded_native"])
+        if above is not None:
+            role_of[int(above["bracket_index"])] = "above"
+        if cur is not None:  # curmax wins if a bracket carries several roles
+            role_of[int(cur["bracket_index"])] = "curmax"
+    run_max = rm["rounded_native"] if dayof else None
+    n_obs = rm["n_obs"] if dayof else None
+
+    out = []
+    for _, br in brackets.iterrows():
+        idx = int(br["bracket_index"])
+        role = role_of.get(idx, "wing")
+        tok = br.get("clob_token_id_yes")
+        if tok is None or (isinstance(tok, float) and pd.isna(tok)):
+            continue
+        try:
+            book = fetch_order_book(str(tok))
+        except Exception as e:
+            logger.warning("sweep book failed %s da=%d %s idx=%d: %s", slug, days_ahead, role, idx, e)
+            continue
+        fill_yes = walk_fill(book.asks, STAKE)
+        fill_no = walk_fill(no_levels_from_yes_bids(book.bids), STAKE)
+        out.append({
+            "ts_utc": ts, "city_slug": slug, "market_date": md,
+            "days_ahead": days_ahead, "role": role, "local_hour": local_hour,
+            "bracket_index": idx, "question": br["question"],
+            "run_max_native": run_max, "n_obs": n_obs,
+            "best_bid": book.best_bid, "best_ask": book.best_ask,
+            "spread": book.spread, "mid": book.mid,
+            "bid_depth_shares": sum(s for _, s in book.bids),
+            "ask_depth_shares": sum(s for _, s in book.asks),
+            "yes24_avg": fill_yes.avg_price, "yes24_complete": fill_yes.complete,
+            "no24_avg": fill_no.avg_price, "no24_complete": fill_no.complete,
+        })
+        time.sleep(BOOK_RATE_S)
+    return out
+
+
 def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
     rows = []
     ts = datetime.now(timezone.utc).isoformat()
     for slug, cm in cities.items():
         now_local = datetime.now(cm["tz"])
-        md = now_local.date().isoformat()
-        brackets = city_brackets(mk, slug, md)
-        if brackets.empty:
-            continue
+        local_hour = now_local.hour + now_local.minute / 60
+        # running max only exists for today; reused for T-0 role tagging
         rm = metar_bundle(cm["icao"], cm["tz"], cm["unit"])
-        if rm is None:
-            continue
-        cur, above = positions(brackets, rm["rounded_native"])
-        fav = brackets.loc[brackets["yes_price"].idxmax()] if brackets["yes_price"].notna().any() else None
-        # Label the key brackets; sweep EVERY bracket so cheap wings (exactly the
-        # brackets outside the curmax/above/favorite trio) get depth recorded too.
-        # Priority curmax > above > favorite if a bracket carries several roles.
-        role_of: dict[int, str] = {}
-        if fav is not None:
-            role_of[int(fav["bracket_index"])] = "favorite"
-        if above is not None:
-            role_of[int(above["bracket_index"])] = "above"
-        if cur is not None:
-            role_of[int(cur["bracket_index"])] = "curmax"
-        for _, br in brackets.iterrows():
-            idx = int(br["bracket_index"])
-            role = role_of.get(idx, "wing")
-            tok = br.get("clob_token_id_yes")
-            if tok is None or (isinstance(tok, float) and pd.isna(tok)):
-                continue
-            try:
-                book = fetch_order_book(str(tok))
-            except Exception as e:
-                logger.warning("sweep book failed %s %s idx=%d: %s", slug, role, idx, e)
-                continue
-            fill_yes = walk_fill(book.asks, STAKE)
-            fill_no = walk_fill(no_levels_from_yes_bids(book.bids), STAKE)
-            rows.append({
-                "ts_utc": ts, "city_slug": slug, "market_date": md, "role": role,
-                "local_hour": now_local.hour + now_local.minute / 60,
-                "bracket_index": idx, "question": br["question"],
-                "run_max_native": rm["rounded_native"], "n_obs": rm["n_obs"],
-                "best_bid": book.best_bid, "best_ask": book.best_ask,
-                "spread": book.spread, "mid": book.mid,
-                "bid_depth_shares": sum(s for _, s in book.bids),
-                "ask_depth_shares": sum(s for _, s in book.asks),
-                "yes24_avg": fill_yes.avg_price, "yes24_complete": fill_yes.complete,
-                "no24_avg": fill_no.avg_price, "no24_complete": fill_no.complete,
-            })
-            time.sleep(BOOK_RATE_S)
+        for da in SWEEP_HORIZONS:
+            md = (now_local.date() + timedelta(days=da)).isoformat()
+            brackets = city_brackets(mk, slug, md)
+            if brackets.empty:
+                continue  # gamma hasn't published this horizon's market yet
+            rows.extend(_sweep_city_horizon(slug, brackets, da, md, local_hour, ts, rm))
     df = pd.DataFrame(rows)
     if not df.empty:
         PAPER_DIR.mkdir(parents=True, exist_ok=True)
