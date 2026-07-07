@@ -15,6 +15,10 @@ dependencies = [
     "scipy",
     # ML (Phase 2)
     "scikit-learn",
+    # ML wing ladder (stage 4): catboost>=1.2.7 for py3.13 wheels;
+    # statsmodels for offset-logistic (GLM Binomial with market logit offset)
+    "catboost>=1.2.7",
+    "statsmodels",
     # Visualization
     "matplotlib",
     "seaborn",

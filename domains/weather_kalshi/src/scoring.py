@@ -164,3 +164,51 @@ def crps_empirical(
     term2 = (sorted_ens * weights[np.newaxis, :]).sum(axis=1) / (m * m)
 
     return term1 - term2
+
+
+# --- Binary probability scores (wing-ladder / market-comparison metrics) ---
+
+_P_EPS = 1e-6
+
+
+def log_loss(y: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """Per-row binary log-loss (natural log). Probabilities are clipped to
+    [1e-6, 1-1e-6] so a confidently-wrong 0/1 stays finite."""
+    y = np.asarray(y, dtype=float)
+    p = np.clip(np.asarray(p, dtype=float), _P_EPS, 1.0 - _P_EPS)
+    return -(y * np.log(p) + (1.0 - y) * np.log(1.0 - p))
+
+
+def brier(y: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """Per-row Brier score (squared probability error)."""
+    y = np.asarray(y, dtype=float)
+    p = np.asarray(p, dtype=float)
+    return (p - y) ** 2
+
+
+def reliability_table(
+    y: np.ndarray,
+    p: np.ndarray,
+    bins: np.ndarray | list[float],
+) -> list[dict]:
+    """Reliability curve on predicted-probability bins.
+
+    Returns one dict per non-empty bin: predicted mean, realized rate, count.
+    Pass tail-focused bins (e.g. [0, .02, .05, .08, .12, .15]) to inspect the
+    wing zone specifically.
+    """
+    y = np.asarray(y, dtype=float)
+    p = np.asarray(p, dtype=float)
+    edges = np.asarray(bins, dtype=float)
+    out = []
+    for lo, hi in zip(edges[:-1], edges[1:], strict=False):
+        m = (p >= lo) & (p < hi)
+        if m.sum() == 0:
+            continue
+        out.append({
+            "bin": f"[{lo:.3f},{hi:.3f})",
+            "n": int(m.sum()),
+            "pred_mean": float(p[m].mean()),
+            "realized": float(y[m].mean()),
+        })
+    return out
