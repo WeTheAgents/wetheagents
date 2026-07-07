@@ -333,10 +333,17 @@ def model_prob_in_bracket(
     CDF); falls back to ensemble member array when only that is present.
     Returns None when neither source has data.
     """
-    pcts = [1, 5, 10, 25, 50, 75, 90, 95, 99]
-    nbm_vals = [row.get(f"nbm_p{p}") for p in pcts]
-    if all(pd.notna(v) for v in nbm_vals):
-        return _prob_from_percentiles(pcts, nbm_vals, lower_f, upper_f)
+    # Use whatever NBM percentiles are present. The QMD MaxT product exposes only
+    # P5-P95 (not P1/P99, which live on the instantaneous field we intentionally
+    # skip), so requiring all nine silently dropped every corrected NBM row.
+    present = [(p, row.get(f"nbm_p{p}")) for p in (1, 5, 10, 25, 50, 75, 90, 95, 99)]
+    present = [(p, v) for p, v in present if pd.notna(v)]
+    have = {p for p, _ in present}
+    if {10, 50, 90}.issubset(have):  # core points for a usable CDF
+        pcts = [p for p, _ in present]
+        vals = [v for _, v in present]
+        pcts, vals = _add_tail_anchors(pcts, vals)
+        return _prob_from_percentiles(pcts, vals, lower_f, upper_f)
 
     # Fallback: ensemble members from multimodel_members_json (intl cities)
     members_json = row.get("multimodel_members_json")
@@ -353,6 +360,31 @@ def model_prob_in_bracket(
     return None
 
 
+def _add_tail_anchors(pcts: list[int], vals: list[float]) -> tuple[list[int], list[float]]:
+    """Add synthetic P1/P99 anchors by linear extrapolation of the outer segments.
+
+    QMD MaxT gives only P5-P95, so without anchors the CDF clamps at 0.05/0.95 and
+    finite wing brackets beyond them collapse to 0 while the open tail absorbs the
+    whole 5%. Extending to P1/P99 restores the tail resolution the old 9-percentile
+    path had (approximate, for the legacy edge proxy; the exceedance pipeline uses
+    bracket_builder's Pchip CDF instead).
+    """
+    pcts, vals = list(pcts), list(vals)
+    if len(pcts) >= 2 and pcts[0] > 1:
+        # slope of the lowest segment (F per percentile-point); extend to P1
+        slope_lo = (vals[1] - vals[0]) / (pcts[1] - pcts[0])
+        v1 = vals[0] - slope_lo * (pcts[0] - 1)
+        pcts.insert(0, 1)
+        vals.insert(0, v1)
+    if len(pcts) >= 2 and pcts[-1] < 99:
+        # slope of the highest segment; extend to P99
+        slope_hi = (vals[-1] - vals[-2]) / (pcts[-1] - pcts[-2])
+        v99 = vals[-1] + slope_hi * (99 - pcts[-1])
+        pcts.append(99)
+        vals.append(v99)
+    return pcts, vals
+
+
 def _prob_from_percentiles(
     pcts: list[int],
     vals: list[float],
@@ -363,13 +395,12 @@ def _prob_from_percentiles(
     cdf_x = list(vals)
     cdf_y = [p / 100.0 for p in pcts]
 
-    def cdf_at(x: float | None) -> float:
-        if x is None:
-            return 0.0 if cdf_x[0] > -1e9 else 0.0
-        if x <= cdf_x[0]:
-            return 0.0
-        if x >= cdf_x[-1]:
-            return 1.0
+    def cdf_at(x: float) -> float:
+        # np.interp clamps to the endpoint cumulative prob outside the percentile
+        # range: below the lowest percentile it returns that percentile's prob
+        # (e.g. 0.05 for P5), NOT 0. A hard 0/1 clamp zeroed the tail-wing mass
+        # once the QMD MaxT set shrank to P5-P95 (no P1/P99). Open bracket tails
+        # (lower/upper None) are handled by the caller.
         return float(np.interp(x, cdf_x, cdf_y))
 
     p_lo = cdf_at(lower) if lower is not None else 0.0

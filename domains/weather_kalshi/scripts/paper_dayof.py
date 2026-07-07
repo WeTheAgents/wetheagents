@@ -755,25 +755,33 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
             continue
         cur, above = positions(brackets, rm["rounded_native"])
         fav = brackets.loc[brackets["yes_price"].idxmax()] if brackets["yes_price"].notna().any() else None
-        targets = {}
-        if cur is not None:
-            targets["curmax"] = cur
+        # Label the key brackets; sweep EVERY bracket so cheap wings (exactly the
+        # brackets outside the curmax/above/favorite trio) get depth recorded too.
+        # Priority curmax > above > favorite if a bracket carries several roles.
+        role_of: dict[int, str] = {}
+        if fav is not None:
+            role_of[int(fav["bracket_index"])] = "favorite"
         if above is not None:
-            targets["above"] = above
-        if fav is not None and all(fav["bracket_index"] != t["bracket_index"] for t in targets.values()):
-            targets["favorite"] = fav
-        for role, br in targets.items():
+            role_of[int(above["bracket_index"])] = "above"
+        if cur is not None:
+            role_of[int(cur["bracket_index"])] = "curmax"
+        for _, br in brackets.iterrows():
+            idx = int(br["bracket_index"])
+            role = role_of.get(idx, "wing")
+            tok = br.get("clob_token_id_yes")
+            if tok is None or (isinstance(tok, float) and pd.isna(tok)):
+                continue
             try:
-                book = fetch_order_book(str(br["clob_token_id_yes"]))
+                book = fetch_order_book(str(tok))
             except Exception as e:
-                logger.warning("sweep book failed %s %s: %s", slug, role, e)
+                logger.warning("sweep book failed %s %s idx=%d: %s", slug, role, idx, e)
                 continue
             fill_yes = walk_fill(book.asks, STAKE)
             fill_no = walk_fill(no_levels_from_yes_bids(book.bids), STAKE)
             rows.append({
                 "ts_utc": ts, "city_slug": slug, "market_date": md, "role": role,
                 "local_hour": now_local.hour + now_local.minute / 60,
-                "bracket_index": int(br["bracket_index"]), "question": br["question"],
+                "bracket_index": idx, "question": br["question"],
                 "run_max_native": rm["rounded_native"], "n_obs": rm["n_obs"],
                 "best_bid": book.best_bid, "best_ask": book.best_ask,
                 "spread": book.spread, "mid": book.mid,

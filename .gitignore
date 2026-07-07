@@ -28,6 +28,9 @@ agent0/inbox/telegram_state.json
 # Claude Code local settings (machine-specific permissions)
 .claude/settings.local.json
 
+# Generated runtime locks (scheduled-tasks MCP etc.) — machine-local state
+.claude/*.lock
+
 # Scratch / temp artifacts
 test_write_tmp.txt
 .tmp_*
