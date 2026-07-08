@@ -60,12 +60,26 @@ Slow-horizon depth data is the chronic blocker of every past study (sessions
 8–11: signals existed, executability could not be proven). Keep book statistics
 flowing daily; the ML cheap-wings pipeline (v2: intl / T-1) consumes them.
 
-**What to run** (existing sweep, no new code):
+**Status: AUTOMATED since 2026-07-07.** The Windows scheduled task **`book-sweeps`**
+runs `python -m scripts.paper_dayof --sweep` 3×/day (09:00 / 14:30 / 21:00
+machine-local). Daily codex duty is a HEALTH CHECK, not running sweeps by hand:
 
 ```bash
-# One book sweep: all brackets x horizons T-0/T-1/T-2, all cities (~5 min, no VPN)
+schtasks /query /tn book-sweeps      # Status: Ready, Last Result: 0
+# fresh rows landed today? (ts_utc of the newest sweep rows)
+python -c "import pandas as pd; d=pd.read_parquet('data/paper/book_sweeps.parquet'); print(d.ts_utc.max(), len(d))"
+```
+
+Manual one-off sweep (e.g. after an outage):
+
+```bash
+# One book sweep: all brackets x horizons T-0/T-1/T-2, all cities (~5-10 min, no VPN)
 python -m scripts.paper_dayof --sweep   >> logs/history/book_sweep_$(date +%F).log 2>&1
 ```
+
+⚠ The sweep enumerates markets from `all_cities_markets.parquet` — if the daily
+collection (step 1 of the daily flow) stops, T-1/T-2 coverage starves within ~2
+days because gamma-published future markets stop landing in the parquet.
 
 Writes `data/paper/book_sweeps.parquet` (append): one row per (city, **horizon**,
 **bracket**). Since 2026-07-07 the sweep records **every** bracket across
@@ -80,12 +94,10 @@ sum(LADDER_STAKES) = 24`). ~11 brackets × up to 3 horizons per city (T-1/T-2 on
 when gamma has published those markets — usually through ~T+2). CLOB `/book`
 works without VPN.
 
-**Cadence**: ~3×/day. The three triggers below fire at 09:00 / 14:30 / 21:00
-**machine-local** time (scheduled-task triggers are always local — there is no
-UTC option), spreading sweeps across intl morning, US morning and US afternoon.
-Exact times are not critical; even coverage is. Either run manually in each
-codex session, or register a dedicated task (battery flags mandatory, laptop
-runs on battery):
+**Re-registration** (only if the task is missing/broken — it was registered
+2026-07-07). Triggers fire machine-local (no UTC option), spreading sweeps
+across intl morning, US morning and US afternoon; exact times are not critical,
+even coverage is. Battery flags mandatory, laptop runs on battery:
 
 ```powershell
 $action   = New-ScheduledTaskAction -Execute "C:\Users\peach\AppData\Local\Programs\Python\Python313\python.exe" -Argument "-m scripts.paper_dayof --sweep" -WorkingDirectory "D:\GitHub\wetheagents\domains\weather_kalshi"
@@ -94,14 +106,17 @@ $triggers = @(
   New-ScheduledTaskTrigger -Daily -At 14:30
   New-ScheduledTaskTrigger -Daily -At 21:00
 )
-$set      = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 15) -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+$set      = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 45) -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 Register-ScheduledTask -TaskName "book-sweeps" -Action $action -Trigger $triggers -Settings $set
 ```
 
 **Coverage:** all brackets, horizons T-0/T-1/T-2 (2026-07-07). Full-ladder
 slow-horizon depth is now recorded — the prior "T-0 only / 3 brackets only" gaps
-are both closed. A sweep is now ~3× the book calls of the T-0-only version, so it
-takes a few minutes; keep the 15-minute execution-time-limit on the task.
+are both closed. A full sweep takes **15–25 minutes** (~40 cities × up to 33
+books, rate-limited) — the task's execution-time-limit is **45 minutes** (the
+first automated run was killed by the original 15-min limit and wrote nothing).
+The sweep flushes to the parquet every 8 cities, so a mid-run kill keeps
+everything already swept.
 
 ## NBM day-of archive (repaired 2026-07-07)
 
