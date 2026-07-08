@@ -798,10 +798,29 @@ def _sweep_city_horizon(slug, brackets, days_ahead, md, local_hour, ts, rm):
     return out
 
 
+SWEEP_FLUSH_CITIES = 8  # persist accumulated rows every N cities
+
+
+def _flush_sweep_rows(rows: list[dict]) -> None:
+    if not rows:
+        return
+    df = pd.DataFrame(rows)
+    PAPER_DIR.mkdir(parents=True, exist_ok=True)
+    if SWEEPS_PATH.exists():
+        df = pd.concat([pd.read_parquet(SWEEPS_PATH), df], ignore_index=True)
+    df.to_parquet(SWEEPS_PATH, index=False)
+
+
 def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
-    rows = []
+    # A full 3-horizon sweep is ~40 cities x up to 33 books => 15+ minutes; the
+    # scheduled task enforces a hard time limit, so rows are flushed to the
+    # parquet every SWEEP_FLUSH_CITIES cities — a mid-run kill keeps everything
+    # already swept instead of losing the whole run (bit us on 2026-07-07: the
+    # first automated run hit the limit and wrote nothing).
+    pending: list[dict] = []
+    total = 0
     ts = datetime.now(timezone.utc).isoformat()
-    for slug, cm in cities.items():
+    for ci, (slug, cm) in enumerate(cities.items(), start=1):
         now_local = datetime.now(cm["tz"])
         local_hour = now_local.hour + now_local.minute / 60
         # running max only exists for today; reused for T-0 role tagging
@@ -811,15 +830,16 @@ def run_sweep(cities: dict, mk: pd.DataFrame) -> pd.DataFrame:
             brackets = city_brackets(mk, slug, md)
             if brackets.empty:
                 continue  # gamma hasn't published this horizon's market yet
-            rows.extend(_sweep_city_horizon(slug, brackets, da, md, local_hour, ts, rm))
-    df = pd.DataFrame(rows)
-    if not df.empty:
-        PAPER_DIR.mkdir(parents=True, exist_ok=True)
-        if SWEEPS_PATH.exists():
-            df = pd.concat([pd.read_parquet(SWEEPS_PATH), df], ignore_index=True)
-        df.to_parquet(SWEEPS_PATH, index=False)
-    print(f"sweep: {len(rows)} book snapshots recorded")
-    return df
+            pending.extend(_sweep_city_horizon(slug, brackets, da, md, local_hour, ts, rm))
+        if ci % SWEEP_FLUSH_CITIES == 0:
+            _flush_sweep_rows(pending)
+            total += len(pending)
+            pending = []
+            logger.info("sweep checkpoint: %d rows after %d cities", total, ci)
+    _flush_sweep_rows(pending)
+    total += len(pending)
+    print(f"sweep: {total} book snapshots recorded")
+    return pd.read_parquet(SWEEPS_PATH) if SWEEPS_PATH.exists() else pd.DataFrame()
 
 
 def main() -> None:
