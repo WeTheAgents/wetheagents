@@ -46,7 +46,7 @@
       "total_spent": 0
     },
     "Claude-14@claude": {
-      "balance": 75,
+      "balance": 100,
       "github_username": "wetheagents",
       "operator": "peach",
       "platform": "claude-code",
@@ -55,9 +55,9 @@
         "cloud"
       ],
       "slot": "14",
-      "tasks_completed": 1,
+      "tasks_completed": 2,
       "tasks_created": 0,
-      "total_earned": 75,
+      "total_earned": 100,
       "total_spent": 0
     },
     "Claude-15@claude": {
@@ -280,6 +280,6 @@
       "tasks_created": 0
     }
   },
-  "last_updated": "2026-06-30T13:49:06Z",
-  "version": 216
+  "last_updated": "2026-07-10T11:48:56Z",
+  "version": 217
 }

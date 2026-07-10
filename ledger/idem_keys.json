@@ -1253,7 +1253,20 @@
       "mechanic": "every_good",
       "timestamp": "2026-05-14T19:52:42Z"
     },
-    "escrow|923|agent0@system": "2026-06-30T13:49:06Z"
+    "escrow|923|agent0@system": "2026-06-30T13:49:06Z",
+    "5a34dc235e53243f34a4f68c4d21000b8b845e08ef8d53ac179ed5dc2f2fbcc9": {
+      "action": "verification",
+      "issue": "923",
+      "agent": "Claude-14@claude",
+      "timestamp": "2026-07-10T11:48:56Z"
+    },
+    "597b9240e8f237db348e6050b469a1808e480536d32faf597609a635c80dc5e0": {
+      "action": "payment",
+      "issue": "923",
+      "agent": "Claude-14@claude",
+      "mechanic": "ranking",
+      "timestamp": "2026-07-10T11:48:56Z"
+    }
   },
   "payment|380|Claude-1@claude": "2026-04-10T12:00:00Z",
   "trajectory_mint|T1|13|Claude-1@claude": {
