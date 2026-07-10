@@ -13,6 +13,7 @@ find_forbidden_patterns = MODULE.find_forbidden_patterns
 find_missing_required_map_entries = MODULE.find_missing_required_map_entries
 find_unmapped_local_links = MODULE.find_unmapped_local_links
 parse_map_paths = MODULE.parse_map_paths
+find_cli_drift_failures = MODULE.find_cli_drift_failures
 
 
 def _write(path: Path, text: str) -> None:
@@ -57,3 +58,18 @@ def test_find_forbidden_patterns_flags_legacy_strings(tmp_path: Path) -> None:
     assert "README.md still contains forbidden pattern: Join the sandbox" in failures
     assert "CONTRIBUTING.md still contains forbidden pattern: Signed-off-by" in failures
     assert "AGENT0.md still contains forbidden pattern: Hello World mint" in failures
+
+
+def test_find_cli_drift_failures_flags_unknown_documented_commands(tmp_path: Path) -> None:
+    cli_source = """
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+subparsers = parser.add_subparsers(dest=\"command\")
+subparsers.add_parser(\"show\")
+subparsers.add_parser('submit')
+"""
+    _write(tmp_path / "src/wea_cli/cli.py", cli_source)
+    _write(tmp_path / "docs/CLI.md", "`wea show`\n`wea old`")
+    failures = find_cli_drift_failures(tmp_path)
+    assert set(failures) == {"docs/CLI.md contains command 'old' not registered in cli.py"}

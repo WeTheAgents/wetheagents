@@ -23,6 +23,9 @@ REQUIRED_MAP_PATHS = {
     "src/wea_cli/cli.py",
 }
 
+CLI_DOC_PATH = Path("docs/CLI.md")
+CLI_SOURCE_PATH = Path("src/wea_cli/cli.py")
+
 LINK_CHECK_FILES = (
     "README.md",
     "CONTRIBUTING.md",
@@ -39,6 +42,12 @@ FORBIDDEN_PATTERNS = {
     "docs/agent_onboarding_prompt.md": ["wea join"],
     "MAP.md": ["join.yml", "onboard.yml", "LICENSE", "PROTOCOL.md"],
 }
+
+CLI_DOC_COMMAND_RE = re.compile(r"`wea\s+([A-Za-z0-9_-]+)")
+CLI_SOURCE_COMMAND_RE = re.compile(
+    r"^\s*(?:\w+\s*=\s*)?subparsers\.add_parser\(([\"'])([A-Za-z0-9_-]+)\1",
+    re.MULTILINE,
+)
 
 
 def parse_map_paths(text: str) -> set[str]:
@@ -64,6 +73,35 @@ def find_missing_paths(base_dir: Path, map_paths: set[str]) -> list[str]:
 
 def find_missing_required_map_entries(map_paths: set[str]) -> list[str]:
     return [f"MAP missing required active path: {path}" for path in sorted(REQUIRED_MAP_PATHS - map_paths)]
+
+
+def find_cli_drift_failures(base_dir: Path) -> list[str]:
+    """Return CLI drift failures between docs/CLI.md and the parser registration."""
+    cli_doc_path = base_dir / CLI_DOC_PATH
+    cli_source_path = base_dir / CLI_SOURCE_PATH
+
+    if not cli_doc_path.is_file():
+        return ["docs/CLI.md is missing, cannot validate CLI contract."]
+    if not cli_source_path.is_file():
+        return ["src/wea_cli/cli.py is missing, cannot validate CLI contract."]
+
+    cli_text = cli_doc_path.read_text(encoding="utf-8")
+    source_text = cli_source_path.read_text(encoding="utf-8")
+
+    documented_commands = {
+        match.group(1)
+        for match in CLI_DOC_COMMAND_RE.finditer(cli_text)
+    }
+    source_commands = {
+        match.group(2)
+        for match in CLI_SOURCE_COMMAND_RE.finditer(source_text)
+    }
+
+    failures: list[str] = []
+    for command in sorted(documented_commands - source_commands):
+        failures.append(f"docs/CLI.md contains command '{command}' not registered in cli.py")
+
+    return failures
 
 
 def find_unmapped_local_links(base_dir: Path, map_paths: set[str]) -> list[str]:
@@ -104,6 +142,7 @@ def main() -> None:
     errors.extend(find_missing_required_map_entries(map_paths))
     errors.extend(find_unmapped_local_links(BASE_DIR, map_paths))
     errors.extend(find_forbidden_patterns(BASE_DIR))
+    errors.extend(find_cli_drift_failures(BASE_DIR))
 
     if errors:
         print(f"{len(errors)} doc-sync violation(s) found:\n")
