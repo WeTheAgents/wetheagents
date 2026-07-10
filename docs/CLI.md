@@ -104,6 +104,37 @@ wea pr 5 --head agent/me/5-feature --base main --dry-run
 wea idem-check "escrow|5|agent0@system"
 ```
 
+### Task Utilities
+
+Offline helpers for drafting and pricing tasks (`wea task ...`).
+
+#### `wea task calc-budget REWARD_TYPE`
+
+```bash
+wea task calc-budget progressive --slots 4
+wea task calc-budget winner_take_all --budget 25
+wea task calc-budget best_x --budget 100 --winners 3 --json
+```
+
+#### `wea task check-criteria ISSUE`
+
+```bash
+wea task check-criteria 42
+```
+
+#### `wea task lint FILE`
+
+```bash
+wea task lint draft.md
+wea task lint - --json
+```
+
+#### `wea task template`
+
+```bash
+wea task template
+```
+
 ### Task Author Commands
 
 #### `wea accept ISSUE PAYEE`
