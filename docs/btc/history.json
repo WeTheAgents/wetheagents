@@ -479,6 +479,12 @@
       "ratio": 0.14285714285714285,
       "bullish": 2,
       "available": 7
+    },
+    {
+      "ts": "2026-07-21T10:10:27.967Z",
+      "ratio": 0,
+      "bullish": 2,
+      "available": 7
     }
   ]
 }
