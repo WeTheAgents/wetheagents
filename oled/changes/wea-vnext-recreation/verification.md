@@ -1,10 +1,10 @@
 # WEA vNext: проверка пакета поведения 0.6
 
-Статус пакета: готов к реализации (`Ready for implementation`). Состояние WEA vNext: не реализована (`Not implemented`). Готовность относится к документации и внутренним блокам 1–8; переключение v1 не разрешено. `[CHAT][CHECK][REVIEW]`
+Статус блока 1: реализован и готов к следующему блоку (`Ready for Block 2`). Состояние WEA vNext: не подключена к live (`Not live`). Готовность относится только к внутреннему протокольному ядру; переключение v1, миграция и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `Complete`.
+Статус независимой проверки: `CLEAN`.
 
 ## Версии
 
@@ -12,58 +12,119 @@
 | --- | --- | --- |
 | `outcome.md`, `spec.md` | 0.6 | одобренное поведение |
 | `design.md`, `schema.md`, `delta.md`, `migration.md` | 0.7 | техническая модель и восстановление |
-| `tasks.md` | 1.0 | последовательность реализации |
-| `HANDOFF.md` | design 0.7 / tasks 1.0 | граница следующей сессии |
+| `tasks.md` | 1.0 | блок 1 отмечен выполненным; блоки 2–9 открыты |
+| исполнитель | `v0_6_0` | неизменяемая смысловая замкнутость блока 1 |
 
-Design 0.7 не меняет 55 сценариев Spec 0.6. `[DERIVED][CHECK]`
+Design 0.7 не меняет 55 сценариев Spec 0.6. Реализация блока 1 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
 
 ## Полномочия и границы
 
-- Оператор одобрил поведение 0.6 и попросил следующую сессию Agent0 начать реализацию. `[CHAT]`
-- Следующая сессия выполняет только блок 1 в отдельной ветке и `worktree`. `[CHAT][DERIVED]`
-- Миграция, bootstrap, отключение v1, запись в рабочий ledger и публикация vNext не одобрены. `[CHAT]`
-- OD-11 и OD-14 отложены до соответствующих внешних действий. OD-28 и OD-29 блокируют классификацию двух старых путей записи, блок 9 и bootstrap, но не блоки 1–8. `[CHAT][CODE@c703f5e][REVIEW]`
+- Оператор одобрил поведение 0.6 и поручил Agent0 начать только блок 1. `[CHAT]`
+- Работа выполнена в отдельном `worktree` и ветке `codex/wea-vnext-block1-protocol-core` от локально закреплённого `origin/main` `940c230`. Повторный `git fetch origin` не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации; основание совпало с зафиксированным handoff. `[CHAT][CHECK]`
+- `scripts/tide.py`, рабочий ledger, GitHub Issues, labels, workflows и код v1 не менялись. Теневой вывод разрешён только в `.wea_runs/vnext-shadow/`. `[CHECK]`
+- Миграция, bootstrap, отключение v1 и публикация vNext не выполнялись. `[CHAT][CHECK]`
+
+## Реализованный контракт блока 1
+
+| Обязательство | Доказательство |
+| --- | --- |
+| Чистое ядро | `src/wea_vnext/` содержит модели, канонизацию, правила, переход, replay и только локальный shadow writer |
+| Неизменяемый исполнитель | `executors/v0_6_0/manifest.json` закрывает все смысловые Python-файлы, parent import shim и ruleset; loader исполняет проверенные source bytes, а manifest и ruleset повторно сверяются перед либо во время использования |
+| Тройка Contract | ruleset SHA-256 `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b`, Tide interface `0.6`, manifest SHA-256 `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3` |
+| Канонические байты | ruleset и manifest записаны как compact UTF-8 JSON без BOM и завершающего перевода строки; JSON принимает только целые значения длиной не более 640 десятичных цифр, отклоняет lone Unicode surrogates и нормализует oversized либо чрезмерно вложенный input в протокольную ошибку |
+| Воспроизведение | общий store разрешает runtime triple и передаёт executor точную reference verifier; каждое разрешённое runtime-использование получает свежую проверенную closure вне обычного `sys.modules`, а публичные facades удерживают стабильную проверенную вселенную классов и исключений; выбранный executor пересобирает raw batch/incremental state своими классами, требует exact integer schema version, уникальные revision identities/idempotency keys и покрытие каждого события confirmed boundary, затем применяет события в одном глобальном GitHub-порядке |
+| GitHub-граница | сохраняется по неизменяемому `repository_id`; mutable `owner/name` остаётся в boundary и удалён из сохраняемого Event, `complete` — строгий boolean, opaque cursor не сортируется, положительный `read_sequence` задаёт порядок, но не разрешает регрессию `captured_at`; равный sequence сначала сравнивает точный batch hash независимо от capture time, принятый hash отличает retry от устойчивого конфликта, неполная попытка не занимает sequence, shadow-report хранит все attempted boundaries |
+| Shadow namespace | Windows создаёт namespace относительно pinned non-reparse handles с запретом delete sharing; Linux до изменений ограничивает отдельный worker Landlock-правилом repo root, создаёт каталоги через descriptors, использует `openat2` и публикует hard-link через pinned shadow descriptor; private temp синхронизируется до финального имени, retry принимает только regular file, неподдерживаемый POSIX fail closed |
+| Версионная изоляция | wheel-тест устанавливает второй stdlib-only executor, затем проверяет повреждённые source, unchecked bytecode cache, malformed manifest (surrogate/oversized integer/deep nesting), bounded source-tree traversal и copied manifest с чужим package version; байты прежнего Contract остаются теми же, а замена manifest, ruleset, выбранного executor или parent import shim отклоняется fail closed; непустые `semantic_dependencies` отклоняются до появления их полного verifier |
+| Сценарии | `tests/vnext/scenarios.py` регистрирует ровно 55 уникальных ID Spec и падает при пропуске, лишнем ID или повторе |
 
 ## Свежие команды
 
 | Проверка | Команда или источник | Результат |
 | --- | --- | --- |
-| Карта поведения | PowerShell-сверка `S-*` и `R-*` в `spec.md` и `tasks.md` | 55/55 сценариев, 13/13 требований; пропусков, лишних ID и повторов нет |
+| Блок 1 | `python -m pytest tests/vnext -q` | PASS: `128 passed`, `2 skipped` на Windows; skips — Linux-only rename-race regressions |
+| Статика блока 1 | `ruff check src/wea_vnext tests/vnext` | PASS |
+| Python 3.10 type-contract | `pyright src/wea_vnext` с `pythonVersion = "3.10"` | PASS: `0 errors`, `0 warnings` для product-области; adversarial tests намеренно создают несовместимые subclass/property и динамические raw-объекты и проверяются runtime suite плюс Ruff |
+| Установленный пакет | `tests/vnext/test_packaging.py` и отдельный wheel smoke | PASS: ruleset и manifest присутствуют; старая тройка воспроизводится из установленного wheel |
+| Импорт и байткод | `python -m compileall -q src/wea_vnext`; `python -m pytest tests/test_import_paths.py -q` | PASS; `2 passed` |
 | Экономика v1 | `python scripts/check_invariant.py` | PASS: balances `19025`, escrow `0`, прежний mint `9025` |
-| Основа кода | `git diff --name-only c703f5e..940c230` | только три BTC-файла; функциональные поверхности не менялись |
-| Исходный handoff | `Get-FileHash` и размер оригинала/копии | `12144 / 12140` байт; оба SHA-256 совпадают с `evidence.md` |
-| Issue #1 | `gh issue view` под `peachgabba22` | OPEN; 11 комментариев; labels `task,welcome,onboarding,mint` |
-| История правок | GraphQL `userContentEdits` | 8 body edits с diff, пагинация полная; 11 comment Node IDs |
-| Сборщик | `python -m py_compile` и `ruff check build_review_html.py` | PASS |
-| HTML | два последовательных `uv run .../build_review_html.py` | одинаковый файл и манифест; внешних ресурсов нет |
-| Статика HTML | проверка DOM и source manifest | 0 повторных ID, 0 битых anchors, каждый хеш совпадает с исходным файлом |
-| Browser | Playwright, viewport 1440 и 390 | `scrollWidth = innerWidth`, 0 ошибок console, только локальный запрос |
-| Git | `git diff --cached --check` и узкий stage set | PASS; stage содержит только OLED-пакет, а diary уже находится в отдельном предыдущем коммите ветки |
+| Полный suite ветки | `PYTHONPATH=src python -m pytest -q --tb=no --ignore=tests/test_check_task_escrow_sync.py` | `4400 passed`, `28 failed`, `2 skipped`, `2 xfailed`; набор 28 имён падений не изменился и целиком присутствует в чистом baseline |
+| Чистый baseline | та же команда и `PYTHONPATH` в отдельном detached `worktree` на `origin/main` `940c230` | `4271 passed`, `29 failed`, `2 xfailed`; дополнительный baseline-only сбой — heartbeat CLI |
+| Известный collection blocker | полный `python -m pytest -q` | pre-existing: `tests/test_check_task_escrow_sync.py` импортирует отсутствующий `run_checks`; оба файла совпадают с `origin/main` |
+| Ledger и diff | `python scripts/check_invariant.py`; `git diff --check` | PASS |
+| Граф кода | повторная moderate-индексация `codebase_memory` текущего worktree | 20844 узла, 71056 связей во всём repository graph; versioned replay, raw snapshot transport, bulk transition, manifest verifier и atomic shadow publication остаются разделены |
 
-## Независимая проверка
+## Независимая проверка и исправления
 
-Полный журнал 20 замечаний и решений находится в `evidence.md`. Итоговые проходы:
+Первый независимый adversarial review нашёл девять замечаний: повторное открытие Finite intake, изменяемые rules/payload, неатомарный revision conflict, ранний импорт непроверенного executor, replay вне manifest closure, одну общую GitHub-границу, неканонический manifest, небезопасный linked shadow parent и недостаточный packaging-тест. Все девять причин исправлены и получили регрессии. `[REVIEW][CHECK]`
 
-| Проверка | Итог |
-| --- | --- |
-| Читательский аудит | устранены преждевременная готовность, старый HTML, непереносимые источники и хрупкий handoff; закрытые OD оставлены только как справка |
-| Аудит Contract и миграции | добавлены genesis, полная версия исполнителя, нефинансовое восстановление, граница Access, поколения ролей, полный Release и безопасное переключение |
-| Нейтральная проверка паузы | CLEAN: stop и завершённая до паузы полная проверка согласованы во всех документах |
-| Аудит состояний и покрытия | CLEAN: денежные, Identity, Work, Duel и migration-инварианты согласованы |
-| Русский редакторский проход | необязательные английские кальки убраны; машинные имена и установленные термины сохранены |
-| Финальная повторная проверка | CLEAN: противоречий, которые блокируют блок 1, не осталось |
+Следующий независимый review дополнительно потребовал хранить сам ruleset в точных канонических байтах и не позволять повреждённому постороннему executor ломать replay старого Contract. После этих исправлений повторная проверка дала `CLEAN`; `28` тестов и `ruff` прошли независимо. `[REVIEW][CHECK]`
+
+Обязательный `codex exec review` затем нашёл четыре пробела: batch capture order мог опережать глобальный GitHub-порядок, переход пересобирал всё состояние на каждое событие, verifier принимал неканонические raw bytes ruleset при совпавшем file hash, а shadow-report терял attempted boundary отклонённого чтения. Исправления получили четыре регрессии; пакет теперь даёт `32 passed`, а контрольный replay 1000 событий сократился примерно с `12,6` до `0,83` секунды. `[REVIEW][CHECK]`
+
+Повторный обязательный `codex exec review` нашёл ещё четыре границы: rich objects из другого executor могли протащить переопределённые свойства в replay, equal-time boundary могла регрессировать, строковое `complete="false"` считалось истинным, а исполняемый parent package не входил в manifest closure. Все четыре причины исправлены: store копирует только raw fields, executor пересобирает собственные классы, boundary валидирует boolean и cursor order, parent shim хешируется. Шесть новых тестовых случаев довели пакет до `38 passed`; заодно закрыта несовместимость variadic `Traversable.joinpath` с Python 3.10. `[REVIEW][CHECK]`
+
+Третий обязательный `codex exec review` обнаружил изменяемый repository path в identity, лексикографическую сортировку opaque cursor, отсутствие принятого batch hash у boundary и два необёрнутых класса ошибок malformed manifest. Исправление ввело неизменяемый `repository_id`, явный `read_sequence`, `ConfirmedReadBoundary` и единый `ManifestError`; девять тестовых случаев довели пакет до `47 passed`. Следующий review подтвердил поведение и оставил только два release-consistency шага: включить новые файлы в tracked patch и синхронизировать manifest hash в handoff/HTML. `[REVIEW][CHECK]`
+
+Финальный staged review после этих шагов нашёл ещё три fail-closed границы: copied manifest в чужом version package мог создать ложный второй match, oversized JSON integer зависел от настроек интерпретатора, а truthy non-string `repository_id` попадал в state до ошибки сортировки. Resolver теперь считает только полностью проверенные manifest своего package, canonical JSON имеет явный предел 640 цифр на decode и encode, а boundary и event требуют непустой строковый repository ID. Пять новых тестовых вариантов довели пакет до `52 passed`. `[REVIEW][CHECK]`
+
+Следующий staged review выявил три границы воспроизводимости: raw-field adapter оставался вне manifest closure, Event сохранял неканонический mutable `owner/name`, а parser manifest зависел от Python integer limit и допускал неизвестные поля. Raw snapshot теперь принадлежит versioned executor, Event хранит только immutable repository ID, а общий parser применяет тот же предел 640 цифр и точную схему manifest. Три новые регрессии довели пакет до `55 passed`. `[REVIEW][CHECK]`
+
+Повторный полный review воспроизвёл ещё две границы malformed adapter input: числовые постоянные GitHub IDs могли сломать смешанную сортировку, а truthy non-string opaque cursor сохранялся в boundary и `TransitionEffect.reason`. Все постоянные IDs и cursor теперь требуют непустые строки до попадания в state; 16 параметризованных регрессий довели пакет до `71 passed`. `[REVIEW][CHECK]`
+
+Следующий полный review нашёл три границы неизменяемости и один пропуск принятого поведения: Python мог предпочесть unchecked bytecode проверенному source, manifest и source можно было согласованно заменить между verify и load, ruleset перечитывался без привязки к executor после загрузки, а `infinite-work` не имел перехода `review-changes → author-decision`. Loader теперь исполняет весь closure из повторно проверенных source bytes, versioned rules проверяют собственный hash при каждом чтении, а таблица Infinite соответствует R-04. Регрессии и исправленный ruleset довели пакет до `73 passed`. `[REVIEW][CHECK]`
+
+Два заключительных review-прохода нашли ещё четыре platform/fail-closed границы: уже выданный handle мог принять согласованную замену executor перед первым доступом, глубоко вложенный битый manifest посторонней версии выбрасывал `RecursionError`, canonical JSON пропускал lone Unicode surrogate до сырой ошибки UTF-8, а допустимые по regex `run_id` совпадали с Windows device names. Handle теперь повторно сверяет исходную тройку, ошибки вложенности и Unicode нормализованы, а shadow writer отклоняет зарезервированные имена до создания namespace. Девять регрессионных случаев довели пакет до `82 passed`. `[REVIEW][CHECK]`
+
+Очередной staged review обнаружил внутренне противоречивую тройку: manifest мог объявить одну версию Tide interface при каноническом ruleset с другой версией. Verifier теперь сверяет объявленный interface с содержимым ruleset, а версию ruleset — с versioned path; новая регрессия довела пакет до `83 passed`. `[REVIEW][CHECK]`
+
+Следующий review нашёл три runtime-границы: exported incremental API доверял свойствам foreign subclasses, полный retry после неполной попытки ошибочно считался divergence, а Windows shadow writer допускал замену parent на junction между проверкой и созданием. Вход incremental API теперь пересобирается из raw dataclass fields, incomplete attempt не подтверждает sequence, а writer создаёт файл относительно pinned directory handle. Две новые регрессии довели пакет до `85 passed`. `[REVIEW][CHECK]`
+
+Повторный review подтвердил эти исправления и обнаружил stale manifest SHA-256 в производных документах и эквивалентный rename-race POSIX directory descriptor. Runtime reference синхронизирован на `97192096ef3910d12b9f41214e47bacaaaf1c9ff5c1ebed0a1dcb7de6f8818e6`; Linux final create теперь использует `openat2` относительно pinned repo root с запретом выхода и symlink traversal, а неподдерживаемый POSIX fail closed. POSIX-регрессия исполняется на соответствующей платформе и пропускается на Windows. `[REVIEW][CHECK]`
+
+Финальный staged review нашёл две оставшиеся границы version isolation: naive `datetime` subclass из foreign adapter преобразовывался через локальную timezone, а рекурсивный обход глубоко повреждённого дерева будущего executor мог заблокировать разрешение старого Contract. Snapshot datetime теперь пересобирает базовый объект без float timestamp и сохраняет naive-значение для штатного fail-closed валидатора; source tree обходится итеративно с лимитом глубины и запретом links. Две регрессии довели пакет до `87 passed`, а новая runtime reference равна `f7b98b3a50a28eb326d851719d1b1d67f0ab4ee3be123ed71cd213ca66a21143`. `[REVIEW][CHECK]`
+
+Следующий полный review обнаружил один пробел принятого R-04 и две границы foreign objects: immutable ruleset переводил первую одобренную ветку `full-build` сразу к общему решению автора, caller-owned subclass runtime reference мог подменить опубликованные hash после проверки tuple, а incremental API сохранял foreign `ProtocolState` с переопределённой сериализацией. Ruleset теперь содержит `implementation-review → ready-final → author-decision`, store передаёт reference verifier, а executor пересобирает incremental state и сериализуемые inputs своими классами. Три регрессии довели пакет до `90 passed`; актуальная тройка равна `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 17485e196674d691e18f1dd4e7c9033d0de9f3556f494254cd05157c304c23d4`. `[REVIEW][CHECK]`
+
+Последний staged review нашёл ещё две fail-closed границы: exported incremental API принимал state с runtime triple другого executor, а shadow writer публиковал итоговое имя до успешного `fsync`, оставляя частичный poison при ошибке записи. Loader теперь связывает загруженный executor с единственной проверенной runtime reference, а versioned incremental API сверяет с ней как аргумент, так и state; writer сначала синхронизирует private temp и публикует итоговое имя атомарной hard link. Две регрессии довели пакет до `92 passed`; актуальная тройка равна `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 88db9ce66d4b77a10b4d718210881299a62704bbcf7a553b90b36010d582268f`. `[REVIEW][CHECK]`
+
+Повторный полный review воспроизвёл три границы целостности: caller state мог содержать две разные версии одной revision identity, boolean `schema_version` проходил как integer `1`, а temp pathname можно было заменить после `fsync` до hard-link. ProtocolState теперь требует точный integer schema version и уникальные revision identities/idempotency keys; Windows удерживает handle с запретом write/delete sharing до публикации, Linux связывает итоговое имя с inode открытого descriptor через kernel-owned `/proc/self/fd`. Три регрессии довели пакет до `95 passed`; тройка после этого прохода была `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / c790e69f2af1e56dec97788a09be48de3bf87b5f5affa5e1c8e36fa2aa69fa5e`. `[REVIEW][CHECK]`
+
+Последний staged review обнаружил, что caller-constructed `ConfirmedReadBoundary` мог содержать `complete=False`, занять `read_sequence` и ошибочно заблокировать полный retry той же последовательности. Подтверждённая граница теперь требует завершённого чтения; регрессия восстановления состояния довела пакет до `96 passed`, а тройка после этого прохода была `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 6b235d8ed55e4c3a2dc87839829d859b7d46447478080922c60e559eda650d78`. `[REVIEW][CHECK]`
+
+Следующий полный review нашёл три POSIX-границы shadow writer: temp создавался через путь отдельно от pinned shadow descriptor, ошибка открытия child утекала root fd, а существующий FIFO мог блокировать idempotent retry. POSIX writer теперь открывает shadow directory через `openat2` относительно pinned root и использует один descriptor для temp, hard-link, чтения и cleanup; каждый error path закрывает fd, а существующий destination открывается nonblocking и принимается только как regular file. Две кроссплатформенные регрессии довели пакет до `98 passed`; тот повторный проход дал `CLEAN`. `[REVIEW][CHECK]`
+
+Очередной полный review обнаружил, что facade мог получить подменённый cached submodule, final POSIX hard-link оставался привязан к перемещаемому child descriptor, а создание `vnext-shadow` происходило до закрепления parent. Verifier теперь возвращает только свои module objects, Windows создаёт namespace относительно pinned handles, а Linux выполняет все мутации отдельным Landlocked worker и публикует относительно pinned root. Две Windows-регрессии и две Linux-регрессии довели пакет до `100 passed`, `2 skipped`. `[REVIEW][CHECK]`
+
+Следующий review нашёл рост `read_sequence` с регрессией времени, caller state с непокрытым событием и truthy non-string identity IDs; дополнительная атака подтвердила изменяемость уже выданного `ModuleType`. Transition теперь не принимает меньший `captured_at`, ProtocolState требует confirmed boundary для каждого события, Binding требует exact non-empty string IDs, а verifier-owned closure хранится вне обычного module cache и выдаётся через read-only views. Шесть регрессий довели пакет до `106 passed`, `2 skipped`; тройка после этого прохода была `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 7af4a08b1d40a7cce006f53ebcfcbd02c74264c05c7af1d5c8f9b4468651a672`. `[REVIEW][CHECK]`
+
+Следующий полный review обнаружил четыре границы: private import не восстанавливал parent-package bindings, cached callable closure могла сохранить подменённые globals, standalone event surface обходила подтверждённый batch, а POSIX-публикация зависела от перемещаемого root path. Loader теперь восстанавливает и `sys.modules`, и атрибуты parent packages, каждое runtime-использование получает свежую проверенную closure, публичная transition surface принимает только подтверждённый batch, а Linux публикует через pinned shadow descriptor. Три регрессии довели пакет до `109 passed`, `2 skipped`; промежуточный manifest SHA-256 был `04069c6f6414e8fb67b01c8d722acad9ea35630fd2bb4e8a4ca61d55ca1f45b4`. `[REVIEW][CHECK]`
+
+Финальный review нашёл нестабильную identity классов и исключений между обращениями к публичному facade, принятие строкового projection label как последовательности символов и stale производную документацию. Facades теперь удерживают одну проверенную module closure для стабильной Python-семантики, projection отклоняет scalar string/bytes и пустые labels, а runtime reference синхронизирована во всех производных файлах. Четыре регрессии довели пакет до `113 passed`, `2 skipped`; тройка после этого прохода была `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 2d967fb358e14f315ed2c29397f2de77490052f269ffe79696348b9be93ee045`. `[REVIEW][CHECK]`
+
+Следующий полный review обнаружил два пробела того этапа. Две расходящиеся complete-границы sequence `N` можно было пропустить и затем подтвердить `N+1`, навсегда потеряв уникальные ревизии `N`; generic verifier также применял stdlib-only ограничение версии `0.6.0` ко всем будущим manifest с dependency pins. Transition заблокировал последующие batches этого repository после unresolved conflict, а empty `semantic_dependencies` тогда требовался только для `v0.6.0`. Две регрессии довели пакет до `115 passed`, `2 skipped`; тройка того прохода была `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / d127df8d465bb0ccb322fd7b88128c61086d3c09a30617e392f7496da9aef7f0`. Повторный review дал `CLEAN` для того состояния. `[REVIEW][CHECK]`
+
+Последующий review опроверг две части того промежуточного вывода: равный `read_sequence` с более ранним `captured_at` уходил в `boundary-stale` до сравнения batch hash, а будущий manifest с непустыми dependency pins принимался без проверки установленных версий и байтов зависимостей. Сравнение равного sequence теперь предшествует проверке capture-time regression и сохраняет устойчивый blocker; verifier отклоняет любые непустые `semantic_dependencies`, пока полноценная dependency verification не реализована. Две направленные регрессии, повторная синхронизация manifest и свежий `codex exec review` довели пакет до `128 passed`, `2 skipped` и статуса `CLEAN`; текущая тройка равна `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`. `[REVIEW][CHECK]`
+
+## Self-roast и lean cut
+
+- Фактическая поверхность — 20 product-файлов, из них 18 Python-файлов с 2656 непустыми строками, против защищённой оценки 800–1000. Превышение верхней оценки на 1656 строк вызвало повторный cut-pass; дополнительный объём после него — platform containment и изоляция verifier-owned module namespace. `[CHECK]`
+- Новых зависимостей нет: executor использует только стандартную библиотеку, а `semantic_dependencies` пуст. `[CHECK]`
+- Безопасно удалить отдельные модули canonical, rules, events, model, transition, money, deadlines, declarations, identity или projection нельзя: каждый прямо назван смысловой замкнутостью design 0.7 и входит в manifest. Общий replay и сериализация перенесены внутрь executor; root `store.py` оставлен транспортным. `[DERIVED][REVIEW]`
+- Параллельная реализация не добавлена: live v1 остаётся единственной рабочей системой, а vNext не имеет GitHub или ledger adapter. `[CHECK]`
+- Увеличение объёма принято как цена fail-closed manifest boundary, рекурсивной неизменяемости, boundaries по immutable repository ID, настоящего wheel/upgrade proof и platform-specific атомарного anchoring shadow writer; дальнейшее сокращение ослабило бы проверенный контракт. `[DERIVED][REVIEW]`
 
 ## Границы изменений
 
-Намеренный пакет находится в `oled/changes/wea-vnext-recreation/`. Рабочий код, ledger, Issues, метки и workflows не менялись. Предсуществующие `.playwright-cli/` и `.private_artifacts/` не входят в stage set. Отдельный diary commit уже перенесён в ветку документации. `[CHAT][CHECK]`
+Намеренный код находится в `src/wea_vnext/`, тесты — в `tests/vnext/`, package-data — в `pyproject.toml`, а обновлённый handoff и доказательства — в активном `oled/changes/wea-vnext-recreation/`. Рабочий Tide, ledger и GitHub-поверхности отсутствуют в stage set. `[CHECK]`
 
 ## Ограничения
 
-- Код и тесты WEA vNext ещё не существуют; все checkboxes `tasks.md` относятся к будущей реализации. `[CHECK]`
-- Полная выгрузка Issue #1 и реализация пагинации остаются блоком 2; неполная история блокирует адаптер GitHub. `[CHECK][DERIVED]`
-- OD-11 и OD-14 нужны перед внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
-- OLED-пакет остаётся активным и не архивируется до реализации и проверки runtime. `[DOC][DERIVED]`
+- Блоки 2–9 ещё не реализованы; Identity-примитив блока 1 не означает выполненную миграцию участников или Hello World. `[CHECK]`
+- Все 28 текущих падений общего suite и отдельный collection blocker существуют на чистом `origin/main`; чистый baseline имеет дополнительный heartbeat CLI-сбой. Они не вызваны блоком 1 и не исправлялись вне scope. `[CHECK]`
+- OD-11 и OD-14 нужны перед соответствующими внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
+- OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. `[DOC][DERIVED]`
 
 ## Решение
 
-`Ready for implementation` разрешает следующей сессии только внутренний блок 1. WEA vNext остаётся `Not implemented`; переключение, миграция и заявления о действующем поведении запрещены. `[CHAT][CHECK]`
+`Ready for Block 2`: внутреннее ядро блока 1 выполнено, его контрактные и package-инварианты проверены, а v1 не изменена. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, миграцию или переключение. `[CHAT][CHECK][REVIEW]`

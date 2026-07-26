@@ -22,6 +22,9 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+wea_vnext = ["rulesets/*.json", "executors/*/manifest.json"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py310"
@@ -31,7 +34,7 @@ select = ["E", "W", "F", "I", "UP", "B", "RUF"]
 ignore = ["B008"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["wea_cli", "scripts"]
+known-first-party = ["wea_cli", "wea_vnext", "scripts"]
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]

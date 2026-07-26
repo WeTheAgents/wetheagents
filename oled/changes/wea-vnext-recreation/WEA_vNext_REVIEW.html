@@ -734,7 +734,7 @@
         <a href="#doc-handoff">Следующая сессия</a>
         <span>HANDOFF.md</span>
       </summary>
-      <ul class="nav-subsections"><li class="nav-level-2"><a href="#handoff-с-чего-начать" data-nav-text="с чего начать">С чего начать</a></li><li class="nav-level-2"><a href="#handoff-точная-граница-первой-задачи" data-nav-text="точная граница первой задачи">Точная граница первой задачи</a></li><li class="nav-level-2"><a href="#handoff-техническая-опора" data-nav-text="техническая опора">Техническая опора</a></li><li class="nav-level-2"><a href="#handoff-решения-которые-нельзя-потерять" data-nav-text="решения, которые нельзя потерять">Решения, которые нельзя потерять</a></li><li class="nav-level-2"><a href="#handoff-когда-остановиться-и-спросить" data-nav-text="когда остановиться и спросить">Когда остановиться и спросить</a></li><li class="nav-level-2"><a href="#handoff-состояние-пакета" data-nav-text="состояние пакета">Состояние пакета</a></li></ul>
+      <ul class="nav-subsections"><li class="nav-level-2"><a href="#handoff-с-чего-начать" data-nav-text="с чего начать">С чего начать</a></li><li class="nav-level-2"><a href="#handoff-что-завершено-в-блоке-1" data-nav-text="что завершено в блоке 1">Что завершено в блоке 1</a></li><li class="nav-level-2"><a href="#handoff-точная-граница-блока-2" data-nav-text="точная граница блока 2">Точная граница блока 2</a></li><li class="nav-level-2"><a href="#handoff-что-не-делать" data-nav-text="что не делать">Что не делать</a></li><li class="nav-level-2"><a href="#handoff-известный-baseline" data-nav-text="известный baseline">Известный baseline</a></li><li class="nav-level-2"><a href="#handoff-когда-остановиться-и-спросить" data-nav-text="когда остановиться и спросить">Когда остановиться и спросить</a></li></ul>
     </details>
 
     <details class="nav-document" data-nav-document="tasks">
@@ -814,7 +814,7 @@
         <a href="#doc-verification">Проверка</a>
         <span>verification.md</span>
       </summary>
-      <ul class="nav-subsections"><li class="nav-level-2"><a href="#verification-версии" data-nav-text="версии">Версии</a></li><li class="nav-level-2"><a href="#verification-полномочия-и-границы" data-nav-text="полномочия и границы">Полномочия и границы</a></li><li class="nav-level-2"><a href="#verification-свежие-команды" data-nav-text="свежие команды">Свежие команды</a></li><li class="nav-level-2"><a href="#verification-независимая-проверка" data-nav-text="независимая проверка">Независимая проверка</a></li><li class="nav-level-2"><a href="#verification-границы-изменений" data-nav-text="границы изменений">Границы изменений</a></li><li class="nav-level-2"><a href="#verification-ограничения" data-nav-text="ограничения">Ограничения</a></li><li class="nav-level-2"><a href="#verification-решение" data-nav-text="решение">Решение</a></li></ul>
+      <ul class="nav-subsections"><li class="nav-level-2"><a href="#verification-версии" data-nav-text="версии">Версии</a></li><li class="nav-level-2"><a href="#verification-полномочия-и-границы" data-nav-text="полномочия и границы">Полномочия и границы</a></li><li class="nav-level-2"><a href="#verification-реализованный-контракт-блока-1" data-nav-text="реализованный контракт блока 1">Реализованный контракт блока 1</a></li><li class="nav-level-2"><a href="#verification-свежие-команды" data-nav-text="свежие команды">Свежие команды</a></li><li class="nav-level-2"><a href="#verification-независимая-проверка-и-исправления" data-nav-text="независимая проверка и исправления">Независимая проверка и исправления</a></li><li class="nav-level-2"><a href="#verification-self-roast-и-lean-cut" data-nav-text="self-roast и lean cut">Self-roast и lean cut</a></li><li class="nav-level-2"><a href="#verification-границы-изменений" data-nav-text="границы изменений">Границы изменений</a></li><li class="nav-level-2"><a href="#verification-ограничения" data-nav-text="ограничения">Ограничения</a></li><li class="nav-level-2"><a href="#verification-решение" data-nav-text="решение">Решение</a></li></ul>
     </details>
 
       </nav>
@@ -822,17 +822,17 @@
 
     <main id="top">
       <header class="hero">
-        <p class="hero-kicker">Кандидат · план реализации</p>
+        <p class="hero-kicker">Кандидат · блок 1 проверен</p>
         <h1>WEA vNext</h1>
-        <p class="hero-lead">Оператор одобрил поведение и разрешил начать внутреннее ядро vNext. План и handoff готовы; рабочий код, ledger и GitHub пока не менялись.</p>
+        <p class="hero-lead">Внутреннее протокольное ядро реализовано и прошло независимую проверку. Live Tide, ledger и GitHub не подключены; handoff ограничен Identity и Hello World.</p>
         <div class="hero-status" aria-label="Статус пакета">
-          <span class="status-pill">План готов; код не начат</span>
+          <span class="status-pill">Блок 1 готов; vNext не подключена</span>
           <span class="status-pill">Блокирующих решений: 0</span>
           <span class="status-pill">Отложено: 4</span>
           <span class="status-pill">Кандидат 0.6</span>
         </div>
         <div class="hero-actions">
-          <a class="primary" href="#doc-handoff">Открыть handoff</a>
+          <a class="primary" href="#doc-handoff">Открыть handoff блока 2</a>
           <a class="secondary" href="#doc-outcome">Читать основу системы</a>
         </div>
       </header>
@@ -841,48 +841,48 @@
     <section class="document-section" id="doc-handoff" data-source="HANDOFF.md">
       <header class="document-header">
         <p class="eyebrow">Требует внимания</p>
-        <h2>Agent0 handoff: начать реализацию WEA vNext</h2>
+        <h2>Agent0 handoff: блок 1 завершён, начать Identity и Hello World</h2>
         <p class="source-file">Исходный Markdown-файл: <code>HANDOFF.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус: готов к реализации (<code>Ready for implementation</code>). Оператор попросил следующую сессию Agent0 начать работу по <code>tasks 1.0</code>. Переключение с v1 пока не разрешено. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></p>
+<p>Статус: блок 1 реализован и проверен (<code>Ready for Block 2</code>). WEA vNext не подключена к live, а v1 остаётся единственным рабочим протоколом и writer ledger. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p>Техническая модель: <code>design 0.7</code>, <code>schema 0.7</code>; план: <code>tasks 1.0</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-doc" href="#evidence-doc" title="Следует из существующей документации">[DOC]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <h3 id="handoff-с-чего-начать">С чего начать</h3>
 <ol>
-<li>Прочитать <code>tasks.md</code>, затем новые разделы <code>design.md</code> о структуре кода, хранении и восстановлении.</li>
-<li>Взять только блок 1: ядро протокола и воспроизводимое состояние.</li>
-<li>Использовать <code>oled-start</code>, затем <code>oled-execute</code>. Создать отдельную ветку и <code>worktree</code> от свежего <code>origin/main</code>. Если документирующего коммита ещё нет в <code>origin/main</code>, перенести коммит <code>docs(wea): freeze vNext implementation plan and handoff</code> из ветки <code>codex/wea-restart-doc-2026-07-14</code>.</li>
-<li>Закончить блок тестами, self-roast и <code>codex exec review</code> до отсутствия замечаний. Следующий блок не начинать в том же PR. <span aria-label="Источники" class="source-tags"><a class="source-tag source-doc" href="#evidence-doc" title="Следует из существующей документации">[DOC]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
+<li>Прочитать <code>verification.md</code>, затем блок 2 <code>tasks.md</code> и разделы Identity/Hello World в <code>spec.md</code>, <code>design.md</code> и <code>schema.md</code>.</li>
+<li>Проверить, что текущая ветка содержит завершённый <code>src/wea_vnext/</code>, 128 проходящих тестов <code>tests/vnext</code> (плюс две Linux-регрессии, пропущенные на Windows) и тройку runtime из этого handoff.</li>
+<li>Для блока 2 создать отдельную ветку и <code>worktree</code> от проверенного коммита блока 1. Если он уже опубликован и принят, использовать свежий <code>origin/main</code>; иначе явно перенести локальный коммит блока 1.</li>
+<li>Выполнить только блок 2, закончить его тестами, self-roast и <code>codex exec review</code> до отсутствия замечаний. Блок 3 не начинать в том же PR. <span aria-label="Источники" class="source-tags"><a class="source-tag source-doc" href="#evidence-doc" title="Следует из существующей документации">[DOC]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
 </ol>
-<p>Перед первой правкой убедись, что новый <code>worktree</code> содержит <code>oled/changes/wea-vnext-recreation/HANDOFF.md</code>, <code>tasks.md</code>, <code>design.md</code> и <code>spec.md</code> из одного манифеста. Если хотя бы одного файла нет, реализацию не начинать. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
-<h3 id="handoff-точная-граница-первой-задачи">Точная граница первой задачи</h3>
-<p>Создай <code>src/wea_vnext/</code>: неизменяемые правила 0.6, самодостаточный версионированный исполнитель с манифестом полной смысловой замкнутости, каноническую сериализацию, чистую функцию перехода и восстановление состояния по журналу событий. Реестр должен содержать все 55 сценариев. Теневые файлы разрешены только в <code>.wea_runs/vnext-shadow/</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<p>Не меняй рабочий Tide, ledger, Issue Form, метки, workflows или GitHub Issues; не отключай v1 и не решай <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a> или <a class="xref" href="#decision-od-29">OD-29</a> догадкой. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<h3 id="handoff-техническая-опора">Техническая опора</h3>
+<p>Повторный <code>git fetch origin</code> в сессии блока 1 не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации. Локальный <code>origin/main</code> оставался на закреплённом в документации <code>940c230</code>; реализация выполнена в <code>codex/wea-vnext-block1-protocol-core</code>. Ничего не отправлено на GitHub. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<h3 id="handoff-что-завершено-в-блоке-1">Что завершено в блоке 1</h3>
 <ul>
-<li>Документы поведения: <code>outcome 0.6</code>, <code>spec 0.6</code>.</li>
-<li>Техническая модель: <code>design 0.7</code>, <code>schema 0.7</code>, <code>delta 0.7</code>, <code>migration 0.7</code>.</li>
-<li>План: <code>tasks 1.0</code>.</li>
-<li>Основа ветки документации: <code>origin/main</code> на <code>940c230</code>; функциональный код, исследованный для плана, не менялся после <code>c703f5e</code>. Последующие commits до <code>940c230</code> затронули только BTC-данные. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
-<li>Действующий v1 ledger при проверке: balances <code>19025</code>, escrow <code>0</code>, прежний mint <code>9025</code>; инвариант проходит. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
-<li><code>WeTheAgents/wetheagents#1</code> доступен: это открытый Hello World Issue от <code>peachgabba22</code>, созданный 2026-03-03. На 2026-07-22 он содержит 11 комментариев и labels <code>task</code>, <code>welcome</code>, <code>onboarding</code>, <code>mint</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
-<li>GraphQL GitHub даёт <code>UserContentEdit.id</code>, времена и diff для правок Issue и IssueComment. На Issue #1 видны восемь отдельных правок body; все 11 комментариев имеют постоянные Node ID. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
-<li>Текущий Tide уже запускается раз в четыре часа. Его код смешивает GitHub intake, переходы, ledger и проекцию, поэтому vNext строится рядом и подключается только при одобренном переключении. <span aria-label="Источники" class="source-tags"><a class="source-tag source-code" href="#evidence-code-c703f5e" title="Следует из кода на c703f5e">[CODE@c703f5e]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
+<li><code>rulesets/0.6.json</code> и <code>executors/v0_6_0/</code> образуют неизменяемую стандартно-библиотечную смысловую замкнутость.</li>
+<li>Contract выбирает executor по точной тройке: ruleset SHA-256 <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b</code>, Tide interface <code>0.6</code>, manifest SHA-256 <code>8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3</code>.</li>
+<li>Rules, payload, state и replay-байты детерминированы; replay использует точную runtime reference, возвращённую verifier, а exported incremental API пересобирает raw input и state классами выбранного executor. Для каждого разрешённого runtime-использования verifier загружает свежую проверенную closure вне обычного <code>sys.modules</code>; публичные facades сохраняют одну проверенную вселенную классов и исключений для стабильной Python-семантики. Подмена cache entry, parent-package binding или globals ранее выданной callable не отравляет последующее replay. State требует точную integer schema version, уникальные revision identities/idempotency keys и confirmed boundary, покрывающую каждое событие.</li>
+<li>Границы GitHub хранятся по неизменяемому <code>repository_id</code>; mutable <code>owner/name</code> остаётся только снимком boundary и не сохраняется в Event. <code>complete</code> требует настоящий boolean, opaque cursor не сортируется, порядок чтений задаёт положительный <code>read_sequence</code>, а подтверждённый boundary закрепляет точный batch hash и отклоняет расхождение. Равный sequence сравнивает hash до проверки capture time и создаёт устойчивый blocker; рост sequence не разрешает регрессию <code>captured_at</code>; неполная попытка не занимает sequence, поэтому полный retry той же границы остаётся допустимым.</li>
+<li>Выбор raw adapter fields выполняется внутри manifest-pinned executor; общий <code>store.py</code> только проверяет выбранную тройку, передаёт вход и оборачивает результат.</li>
+<li>Теневой writer допускает только <code>.wea_runs/vnext-shadow/</code>, отклоняет linked parent и Windows device names до внешнего создания, пишет private temp относительно проверенного directory handle, выполняет <code>fsync</code> и только затем атомарно публикует итоговое имя. Windows создаёт оба дочерних каталога относительно pinned non-reparse handles с запретом delete sharing. Linux до любого изменения ограничивает отдельный worker Landlock-правилом repo root, создаёт namespace относительно descriptors, использует <code>openat2</code> с <code>RESOLVE_BENEATH</code>/<code>RESOLVE_NO_SYMLINKS</code> и публикует hard-link через pinned shadow descriptor; неподдерживаемый POSIX fail closed.</li>
+<li>Wheel-тест доказывает package-data, изоляцию второго executor, игнорирование подложной копии старого manifest в чужом version package, исполнение только проверенных source bytes вместо bytecode cache и отказ принимать замену manifest, executor, ruleset либо parent import shim. Verifier отдельно сверяет версии ruleset path, содержимого ruleset и Tide interface; повреждённое глубокое дерево посторонней версии ограничивается итеративным traversal и не блокирует старый Contract. Непустые <code>semantic_dependencies</code> отклоняются fail closed, пока не существует проверки точных версий, установки и байтов зависимостей.</li>
+<li>Реестр содержит все 55 ID Spec. Последний review исправил порядок same-sequence conflict перед capture-time regression и закрыл непроверенные semantic dependencies; после регрессий, manifest sync и повторной независимой проверки пакет даёт <code>128 passed</code>, <code>2 skipped</code>, а review — <code>CLEAN</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
 </ul>
-<h3 id="handoff-решения-которые-нельзя-потерять">Решения, которые нельзя потерять</h3>
+<h3 id="handoff-точная-граница-блока-2">Точная граница блока 2</h3>
+<p>Реализовать версионированные Identity-привязки постоянного GitHub account ID к Agent ID и <code>control_group_id</code>, неизменяемый <code>base_agent_id</code>, общий валидатор авторства и системный Contract <code>system_hello_world</code> только для Issue #1. Восстановление участников v1 должно использовать сохранённые Issue/comment/revision IDs, ledger history, idempotency keys и aliases; уже полученный mint не повторяется. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
+<p>Перед любой правкой Issue #1 сначала получить полный read-only snapshot body, всех страниц <code>userContentEdits</code>, 11 известных комментариев, постоянных account/comment IDs и текущих hashes. Недоступная или неполная история блокирует внешний adapter, но не даёт права подменить revision ID одним <code>updatedAt</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
+<p>Проверка блока 2 по плану: <code>python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py -q</code>, затем весь <code>tests/vnext</code>, <code>ruff check src/wea_vnext tests/vnext</code>, wheel smoke и ledger invariant. <span aria-label="Источники" class="source-tags"><a class="source-tag source-doc" href="#evidence-doc" title="Следует из существующей документации">[DOC]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
+<h3 id="handoff-что-не-делать">Что не делать</h3>
 <ul>
-<li>GitHub остаётся интерфейсом; Tide читает события и один пишет штатные переходы ledger.</li>
-<li>Обычные комментарии остаются обсуждением. Только открытая декларация имеет протокольный смысл.</li>
-<li>Общего claim нет; join существует только у Duel.</li>
-<li>До Contract нет Task, task escrow или финансового состояния задачи.</li>
-<li>Автор платит полный bank своей задачи. Triage/Negativa бесплатна либо оплачивается Agent0 treasury.</li>
-<li>Одна Work содержит всю линию участия агента. Автор выбирает победителя или победителей.</li>
-<li>v1 остаётся единственным рабочим протоколом до отдельного bootstrap с двумя подтверждениями. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></li>
+<li>Не подключать <code>scripts/tide.py</code> или будущий <code>scripts/tide_vnext.py</code> к live.</li>
+<li>Не писать в рабочий ledger, GitHub Issues, labels или workflows.</li>
+<li>Не начислять <code>42 WEA</code> и не мигрировать участников по неполному snapshot.</li>
+<li>Не начинать Contract activation блока 3, профильные Work, payout или bootstrap.</li>
+<li>Не закрывать <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a> или <a class="xref" href="#decision-od-29">OD-29</a> догадкой. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
 </ul>
+<h3 id="handoff-известный-baseline">Известный baseline</h3>
+<p>Новый пакет даёт <code>128 passed</code>, <code>2 skipped</code> на Windows; skips — две исполняемые только на Linux регрессии rename-race. Свежий общий suite без предсуществующего collection blocker даёт <code>4400 passed</code>, <code>28 failed</code>, <code>2 skipped</code>, <code>2 xfailed</code>; набор 28 имён падений не изменился и целиком присутствует на чистом <code>origin/main</code>, где контрольный запуск дал <code>4271 passed</code>, <code>29 failed</code>, <code>2 xfailed</code>, включая дополнительный heartbeat CLI. Отдельно <code>tests/test_check_task_escrow_sync.py</code> импортирует отсутствующий <code>run_checks</code> уже на <code>origin/main</code>. Эти сбои не относятся к vNext и не должны расширять scope блока 2. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <h3 id="handoff-когда-остановиться-и-спросить">Когда остановиться и спросить</h3>
-<p>Остановись и спроси оператора, если блок 1 требует изменить наблюдаемое поведение, Spec 0.6 нельзя выразить канонической схемой или работа затрагивает пути записи v1. Недоступная история <code>userContentEdits</code> блокирует адаптер GitHub, но не чистое ядро. Вопрос фиксируется в документации с источником, а не решается скрытым допущением в коде. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
-<p><a class="xref" href="#decision-od-11">OD-11</a> нужно закрыть до оплаты дополнительного Agent. <a class="xref" href="#decision-od-14">OD-14</a> — до внешних вкладов. <a class="xref" href="#decision-od-28">OD-28</a> и <a class="xref" href="#decision-od-29">OD-29</a> — до классификации соответствующих путей записи в блоке 9. Эти вопросы не блокируют внутренние блоки 1–8. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<h3 id="handoff-состояние-пакета">Состояние пакета</h3>
-<p>Код WEA vNext ещё не написан. Активный OLED-пакет остаётся в <code>oled/changes/wea-vnext-recreation/</code>; архивировать его можно только после реализации и проверки. Предсуществующие <code>.playwright-cli/</code> и <code>.private_artifacts/</code> не относятся к пакету. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
+<p>Остановиться нужно, если невозможно доказать постоянный GitHub account ID или полную revision history, один account уже связан с противоречащими <code>base_agent_id</code>, старый mint нельзя однозначно восстановить либо блок 2 требует внешнего движения WEA. Вопрос фиксируется в OLED-документации с источником, а не решается скрытым допущением. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
+<p>Активный OLED-пакет остаётся в <code>oled/changes/wea-vnext-recreation/</code>; архивировать его можно только после реализации и проверки всего runtime. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
 </div>
     </section>
 
@@ -895,7 +895,7 @@
             Рекомендуемый маршрут: handoff → план реализации → техническое устройство →
             утверждённое поведение по необходимости → приложения.
           </p>
-          <p>Отложенные вопросы показаны только для контекста; сейчас решения по ним не нужны. План и handoff готовы для первой задачи реализации.</p>
+          <p>Отложенные вопросы показаны только для контекста; сейчас решения по ним не нужны. План и handoff готовы для следующего ограниченного блока.</p>
         </div>
         <div>
           <p class="eyebrow">Легенда источников</p>
@@ -911,7 +911,7 @@
         <p class="source-file">Исходный Markdown-файл: <code>tasks.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус: <code>tasks 1.0</code> готов к реализации <code>outcome 0.6</code>, <code>spec 0.6</code> и <code>design 0.7</code>. Оператор разрешил следующей сессии Agent0 начать работу по этому плану. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
+<p>Статус: блок 1 <code>tasks 1.0</code> реализован и проверен; блоки 2–9 остаются планом реализации <code>outcome 0.6</code>, <code>spec 0.6</code> и <code>design 0.7</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <h3 id="tasks-правила-исполнения">Правила исполнения</h3>
 <ul>
 <li>Каждый блок ниже становится отдельной задачей и отдельным PR. Следующий блок начинается после проверки предыдущего. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
@@ -924,14 +924,14 @@
 <h3 id="tasks-1-ядро-протокола-и-воспроизводимое-состояние">1. Ядро протокола и воспроизводимое состояние</h3>
 <p><strong>Цель.</strong> Создать чистую основу, которая не умеет писать в GitHub или действующий ledger. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
 <ul>
-<li>[ ] Добавить <code>src/wea_vnext/</code> с моделями событий и состояния, канонической сериализацией, загрузчиком правил и чистым переходом <code>состояние + событие → состояние + последствия</code>.</li>
-<li>[ ] Зафиксировать <code>src/wea_vnext/rulesets/0.6.json</code>: профили, совместимые механики, review-этапы, таблицы выплат, исходы Duel и переходы.</li>
-<li>[ ] Создать самодостаточный <code>src/wea_vnext/executors/v0_6_0/</code>: модель, канонизация, правила, декларации, Identity, события, переходы, деньги, сроки и схема проекции. Манифест хранит SHA-256 всей смысловой замкнутости, Python ABI и версии зависимостей; <code>engine.py</code> только проверяет тройку Contract и выбирает пакет.</li>
-<li>[ ] Включить JSON набора правил в пакет через <code>pyproject.toml</code> и читать его через <code>importlib.resources</code>; тест должен находить тот же файл из установленного пакета.</li>
-<li>[ ] Считать hash из UTF-8 JSON без BOM и завершающего перевода строки, с сортировкой ключей, компактными разделителями и целыми значениями WEA.</li>
-<li>[ ] Добавить полный порядок GitHub-событий, idempotency key и границу чтения. Тестовые примеры покрывают отдельные <code>UserContentEdit.id</code>, включая <code>A → B → A</code>; неполное чтение не двигает границу.</li>
-<li>[ ] Хранить теневой результат только в <code>.wea_runs/vnext-shadow/</code>. Повторное воспроизведение одного набора событий должно давать те же байты; установка второго исполнителя не меняет результат первого.</li>
-<li>[ ] Добавить <code>tests/vnext/scenarios.py</code>, который регистрирует все 55 ID из <code>spec.md</code> и падает при пропуске или повторе.</li>
+<li>[x] Добавить <code>src/wea_vnext/</code> с моделями событий и состояния, канонической сериализацией, загрузчиком правил и чистым переходом <code>состояние + событие → состояние + последствия</code>.</li>
+<li>[x] Зафиксировать <code>src/wea_vnext/rulesets/0.6.json</code>: профили, совместимые механики, review-этапы, таблицы выплат, исходы Duel и переходы.</li>
+<li>[x] Создать самодостаточный <code>src/wea_vnext/executors/v0_6_0/</code>: модель, канонизация, правила, декларации, Identity, события, переходы, деньги, сроки и схема проекции. Манифест хранит SHA-256 всей смысловой замкнутости, Python ABI и semantic-dependency map; <code>engine.py</code> проверяет тройку Contract, выбирает пакет и загружает его только из проверенных source bytes. До появления полного verifier зависимостей map обязан быть пустым.</li>
+<li>[x] Включить JSON набора правил в пакет через <code>pyproject.toml</code> и читать его через <code>importlib.resources</code>; тест должен находить тот же файл из установленного пакета.</li>
+<li>[x] Считать hash из UTF-8 JSON без BOM и завершающего перевода строки, с сортировкой ключей, компактными разделителями и целыми значениями WEA.</li>
+<li>[x] Добавить полный порядок GitHub-событий, idempotency key и границу чтения по неизменяемому repository ID. Opaque cursor не определяет порядок: положительный <code>read_sequence</code> двигает boundary, а batch hash выявляет расхождение одной границы до проверки capture-time regression и сохраняет blocker. Тестовые примеры покрывают rename/case, отдельные <code>UserContentEdit.id</code>, включая <code>A → B → A</code>; неполное чтение не двигает границу и допускает полный retry с тем же sequence.</li>
+<li>[x] Хранить теневой результат только в <code>.wea_runs/vnext-shadow/</code>. Повторное воспроизведение одного набора событий должно давать те же байты; установка второго исполнителя не меняет результат первого. Финальное создание файла остаётся привязанным к проверенному repo root при конкурентной замене junction/symlink parent.</li>
+<li>[x] Добавить <code>tests/vnext/scenarios.py</code>, который регистрирует все 55 ID из <code>spec.md</code> и падает при пропуске или повторе.</li>
 </ul>
 <p><strong>Проверка:</strong> <code>python -m pytest tests/vnext/test_ruleset.py tests/vnext/test_replay.py tests/vnext/test_scenario_registry.py -q</code> и <code>ruff check src/wea_vnext tests/vnext</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-code" href="#evidence-code-c703f5e" title="Следует из кода на c703f5e">[CODE@c703f5e]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
 <h3 id="tasks-2-identity-и-системный-hello-world">2. Identity и системный Hello World</h3>
@@ -1090,7 +1090,7 @@
 </table></div>
 <p>Все 55 BDD-сценариев имеют один основной блок. Табличные правила механик и payout проверяются в блоках 1 и 5, даже если у строки нет отдельного сценария. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
 <h3 id="tasks-граница-следующей-сессии">Граница следующей сессии</h3>
-<p>Следующая сессия начинает только блок 1. Она не меняет <code>scripts/tide.py</code>, рабочий ledger, GitHub Issues, labels или workflows. Если реализация обнаружит недостающее поведение, Agent0 останавливает кодирование и возвращает вопрос оператору через соответствующий OLED-документ. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
+<p>Блок 1 завершён локально. Следующая сессия начинает только блок 2: Identity и системный Hello World. Она не меняет <code>scripts/tide.py</code>, рабочий ledger, GitHub Issues, labels или workflows и не выполняет внешнюю миграцию участников. Если реализация обнаружит недостающее поведение, Agent0 останавливает кодирование и возвращает вопрос оператору через соответствующий OLED-документ. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 </div>
     </section>
 
@@ -3685,9 +3685,9 @@
         <p class="source-file">Исходный Markdown-файл: <code>verification.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус пакета: готов к реализации (<code>Ready for implementation</code>). Состояние WEA vNext: не реализована (<code>Not implemented</code>). Готовность относится к документации и внутренним блокам 1–8; переключение v1 не разрешено. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p>Статус блока 1: реализован и готов к следующему блоку (<code>Ready for Block 2</code>). Состояние WEA vNext: не подключена к live (<code>Not live</code>). Готовность относится только к внутреннему протокольному ядру; переключение v1, миграция и внешние записи не разрешены. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
-<p>Статус независимой проверки: <code>Complete</code>.</p>
+<p>Статус независимой проверки: <code>CLEAN</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -3711,23 +3711,70 @@
 <tr>
 <td><code>tasks.md</code></td>
 <td>1.0</td>
-<td>последовательность реализации</td>
+<td>блок 1 отмечен выполненным; блоки 2–9 открыты</td>
 </tr>
 <tr>
-<td><code>HANDOFF.md</code></td>
-<td>design 0.7 / tasks 1.0</td>
-<td>граница следующей сессии</td>
+<td>исполнитель</td>
+<td><code>v0_6_0</code></td>
+<td>неизменяемая смысловая замкнутость блока 1</td>
 </tr>
 </tbody>
 </table></div>
-<p>Design 0.7 не меняет 55 сценариев Spec 0.6. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Design 0.7 не меняет 55 сценариев Spec 0.6. Реализация блока 1 не закрывает <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a> или <a class="xref" href="#decision-od-29">OD-29</a>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <h3 id="verification-полномочия-и-границы">Полномочия и границы</h3>
 <ul>
-<li>Оператор одобрил поведение 0.6 и попросил следующую сессию Agent0 начать реализацию. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></li>
-<li>Следующая сессия выполняет только блок 1 в отдельной ветке и <code>worktree</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
-<li>Миграция, bootstrap, отключение v1, запись в рабочий ledger и публикация vNext не одобрены. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></li>
-<li><a class="xref" href="#decision-od-11">OD-11</a> и <a class="xref" href="#decision-od-14">OD-14</a> отложены до соответствующих внешних действий. <a class="xref" href="#decision-od-28">OD-28</a> и <a class="xref" href="#decision-od-29">OD-29</a> блокируют классификацию двух старых путей записи, блок 9 и bootstrap, но не блоки 1–8. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-code" href="#evidence-code-c703f5e" title="Следует из кода на c703f5e">[CODE@c703f5e]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
+<li>Оператор одобрил поведение 0.6 и поручил Agent0 начать только блок 1. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></li>
+<li>Работа выполнена в отдельном <code>worktree</code> и ветке <code>codex/wea-vnext-block1-protocol-core</code> от локально закреплённого <code>origin/main</code> <code>940c230</code>. Повторный <code>git fetch origin</code> не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации; основание совпало с зафиксированным handoff. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li><code>scripts/tide.py</code>, рабочий ledger, GitHub Issues, labels, workflows и код v1 не менялись. Теневой вывод разрешён только в <code>.wea_runs/vnext-shadow/</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li>Миграция, bootstrap, отключение v1 и публикация vNext не выполнялись. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
 </ul>
+<h3 id="verification-реализованный-контракт-блока-1">Реализованный контракт блока 1</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Обязательство</th>
+<th>Доказательство</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Чистое ядро</td>
+<td><code>src/wea_vnext/</code> содержит модели, канонизацию, правила, переход, replay и только локальный shadow writer</td>
+</tr>
+<tr>
+<td>Неизменяемый исполнитель</td>
+<td><code>executors/v0_6_0/manifest.json</code> закрывает все смысловые Python-файлы, parent import shim и ruleset; loader исполняет проверенные source bytes, а manifest и ruleset повторно сверяются перед либо во время использования</td>
+</tr>
+<tr>
+<td>Тройка Contract</td>
+<td>ruleset SHA-256 <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b</code>, Tide interface <code>0.6</code>, manifest SHA-256 <code>8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3</code></td>
+</tr>
+<tr>
+<td>Канонические байты</td>
+<td>ruleset и manifest записаны как compact UTF-8 JSON без BOM и завершающего перевода строки; JSON принимает только целые значения длиной не более 640 десятичных цифр, отклоняет lone Unicode surrogates и нормализует oversized либо чрезмерно вложенный input в протокольную ошибку</td>
+</tr>
+<tr>
+<td>Воспроизведение</td>
+<td>общий store разрешает runtime triple и передаёт executor точную reference verifier; каждое разрешённое runtime-использование получает свежую проверенную closure вне обычного <code>sys.modules</code>, а публичные facades удерживают стабильную проверенную вселенную классов и исключений; выбранный executor пересобирает raw batch/incremental state своими классами, требует exact integer schema version, уникальные revision identities/idempotency keys и покрытие каждого события confirmed boundary, затем применяет события в одном глобальном GitHub-порядке</td>
+</tr>
+<tr>
+<td>GitHub-граница</td>
+<td>сохраняется по неизменяемому <code>repository_id</code>; mutable <code>owner/name</code> остаётся в boundary и удалён из сохраняемого Event, <code>complete</code> — строгий boolean, opaque cursor не сортируется, положительный <code>read_sequence</code> задаёт порядок, но не разрешает регрессию <code>captured_at</code>; равный sequence сначала сравнивает точный batch hash независимо от capture time, принятый hash отличает retry от устойчивого конфликта, неполная попытка не занимает sequence, shadow-report хранит все attempted boundaries</td>
+</tr>
+<tr>
+<td>Shadow namespace</td>
+<td>Windows создаёт namespace относительно pinned non-reparse handles с запретом delete sharing; Linux до изменений ограничивает отдельный worker Landlock-правилом repo root, создаёт каталоги через descriptors, использует <code>openat2</code> и публикует hard-link через pinned shadow descriptor; private temp синхронизируется до финального имени, retry принимает только regular file, неподдерживаемый POSIX fail closed</td>
+</tr>
+<tr>
+<td>Версионная изоляция</td>
+<td>wheel-тест устанавливает второй stdlib-only executor, затем проверяет повреждённые source, unchecked bytecode cache, malformed manifest (surrogate/oversized integer/deep nesting), bounded source-tree traversal и copied manifest с чужим package version; байты прежнего Contract остаются теми же, а замена manifest, ruleset, выбранного executor или parent import shim отклоняется fail closed; непустые <code>semantic_dependencies</code> отклоняются до появления их полного verifier</td>
+</tr>
+<tr>
+<td>Сценарии</td>
+<td><code>tests/vnext/scenarios.py</code> регистрирует ровно 55 уникальных ID Spec и падает при пропуске, лишнем ID или повторе</td>
+</tr>
+</tbody>
+</table></div>
 <h3 id="verification-свежие-команды">Свежие команды</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -3739,9 +3786,29 @@
 </thead>
 <tbody>
 <tr>
-<td>Карта поведения</td>
-<td>PowerShell-сверка <code>S-*</code> и <code>R-*</code> в <code>spec.md</code> и <code>tasks.md</code></td>
-<td>55/55 сценариев, 13/13 требований; пропусков, лишних ID и повторов нет</td>
+<td>Блок 1</td>
+<td><code>python -m pytest tests/vnext -q</code></td>
+<td>PASS: <code>128 passed</code>, <code>2 skipped</code> на Windows; skips — Linux-only rename-race regressions</td>
+</tr>
+<tr>
+<td>Статика блока 1</td>
+<td><code>ruff check src/wea_vnext tests/vnext</code></td>
+<td>PASS</td>
+</tr>
+<tr>
+<td>Python 3.10 type-contract</td>
+<td><code>pyright src/wea_vnext</code> с <code>pythonVersion = "3.10"</code></td>
+<td>PASS: <code>0 errors</code>, <code>0 warnings</code> для product-области; adversarial tests намеренно создают несовместимые subclass/property и динамические raw-объекты и проверяются runtime suite плюс Ruff</td>
+</tr>
+<tr>
+<td>Установленный пакет</td>
+<td><code>tests/vnext/test_packaging.py</code> и отдельный wheel smoke</td>
+<td>PASS: ruleset и manifest присутствуют; старая тройка воспроизводится из установленного wheel</td>
+</tr>
+<tr>
+<td>Импорт и байткод</td>
+<td><code>python -m compileall -q src/wea_vnext</code>; <code>python -m pytest tests/test_import_paths.py -q</code></td>
+<td>PASS; <code>2 passed</code></td>
 </tr>
 <tr>
 <td>Экономика v1</td>
@@ -3749,99 +3816,77 @@
 <td>PASS: balances <code>19025</code>, escrow <code>0</code>, прежний mint <code>9025</code></td>
 </tr>
 <tr>
-<td>Основа кода</td>
-<td><code>git diff --name-only c703f5e..940c230</code></td>
-<td>только три BTC-файла; функциональные поверхности не менялись</td>
+<td>Полный suite ветки</td>
+<td><code>PYTHONPATH=src python -m pytest -q --tb=no --ignore=tests/test_check_task_escrow_sync.py</code></td>
+<td><code>4400 passed</code>, <code>28 failed</code>, <code>2 skipped</code>, <code>2 xfailed</code>; набор 28 имён падений не изменился и целиком присутствует в чистом baseline</td>
 </tr>
 <tr>
-<td>Исходный handoff</td>
-<td><code>Get-FileHash</code> и размер оригинала/копии</td>
-<td><code>12144 / 12140</code> байт; оба SHA-256 совпадают с <code>evidence.md</code></td>
+<td>Чистый baseline</td>
+<td>та же команда и <code>PYTHONPATH</code> в отдельном detached <code>worktree</code> на <code>origin/main</code> <code>940c230</code></td>
+<td><code>4271 passed</code>, <code>29 failed</code>, <code>2 xfailed</code>; дополнительный baseline-only сбой — heartbeat CLI</td>
 </tr>
 <tr>
-<td>Issue #1</td>
-<td><code>gh issue view</code> под <code>peachgabba22</code></td>
-<td>OPEN; 11 комментариев; labels <code>task,welcome,onboarding,mint</code></td>
+<td>Известный collection blocker</td>
+<td>полный <code>python -m pytest -q</code></td>
+<td>pre-existing: <code>tests/test_check_task_escrow_sync.py</code> импортирует отсутствующий <code>run_checks</code>; оба файла совпадают с <code>origin/main</code></td>
 </tr>
 <tr>
-<td>История правок</td>
-<td>GraphQL <code>userContentEdits</code></td>
-<td>8 body edits с diff, пагинация полная; 11 comment Node IDs</td>
-</tr>
-<tr>
-<td>Сборщик</td>
-<td><code>python -m py_compile</code> и <code>ruff check build_review_html.py</code></td>
+<td>Ledger и diff</td>
+<td><code>python scripts/check_invariant.py</code>; <code>git diff --check</code></td>
 <td>PASS</td>
 </tr>
 <tr>
-<td>HTML</td>
-<td>два последовательных <code>uv run .../build_review_html.py</code></td>
-<td>одинаковый файл и манифест; внешних ресурсов нет</td>
-</tr>
-<tr>
-<td>Статика HTML</td>
-<td>проверка DOM и source manifest</td>
-<td>0 повторных ID, 0 битых anchors, каждый хеш совпадает с исходным файлом</td>
-</tr>
-<tr>
-<td>Browser</td>
-<td>Playwright, viewport 1440 и 390</td>
-<td><code>scrollWidth = innerWidth</code>, 0 ошибок console, только локальный запрос</td>
-</tr>
-<tr>
-<td>Git</td>
-<td><code>git diff --cached --check</code> и узкий stage set</td>
-<td>PASS; stage содержит только OLED-пакет, а diary уже находится в отдельном предыдущем коммите ветки</td>
+<td>Граф кода</td>
+<td>повторная moderate-индексация <code>codebase_memory</code> текущего worktree</td>
+<td>20844 узла, 71056 связей во всём repository graph; versioned replay, raw snapshot transport, bulk transition, manifest verifier и atomic shadow publication остаются разделены</td>
 </tr>
 </tbody>
 </table></div>
-<h3 id="verification-независимая-проверка">Независимая проверка</h3>
-<p>Полный журнал 20 замечаний и решений находится в <code>evidence.md</code>. Итоговые проходы:</p>
-<div class="table-wrap"><table>
-<thead>
-<tr>
-<th>Проверка</th>
-<th>Итог</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Читательский аудит</td>
-<td>устранены преждевременная готовность, старый HTML, непереносимые источники и хрупкий handoff; закрытые OD оставлены только как справка</td>
-</tr>
-<tr>
-<td>Аудит Contract и миграции</td>
-<td>добавлены genesis, полная версия исполнителя, нефинансовое восстановление, граница Access, поколения ролей, полный Release и безопасное переключение</td>
-</tr>
-<tr>
-<td>Нейтральная проверка паузы</td>
-<td>CLEAN: stop и завершённая до паузы полная проверка согласованы во всех документах</td>
-</tr>
-<tr>
-<td>Аудит состояний и покрытия</td>
-<td>CLEAN: денежные, Identity, Work, Duel и migration-инварианты согласованы</td>
-</tr>
-<tr>
-<td>Русский редакторский проход</td>
-<td>необязательные английские кальки убраны; машинные имена и установленные термины сохранены</td>
-</tr>
-<tr>
-<td>Финальная повторная проверка</td>
-<td>CLEAN: противоречий, которые блокируют блок 1, не осталось</td>
-</tr>
-</tbody>
-</table></div>
+<h3 id="verification-независимая-проверка-и-исправления">Независимая проверка и исправления</h3>
+<p>Первый независимый adversarial review нашёл девять замечаний: повторное открытие Finite intake, изменяемые rules/payload, неатомарный revision conflict, ранний импорт непроверенного executor, replay вне manifest closure, одну общую GitHub-границу, неканонический manifest, небезопасный linked shadow parent и недостаточный packaging-тест. Все девять причин исправлены и получили регрессии. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий независимый review дополнительно потребовал хранить сам ruleset в точных канонических байтах и не позволять повреждённому постороннему executor ломать replay старого Contract. После этих исправлений повторная проверка дала <code>CLEAN</code>; <code>28</code> тестов и <code>ruff</code> прошли независимо. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Обязательный <code>codex exec review</code> затем нашёл четыре пробела: batch capture order мог опережать глобальный GitHub-порядок, переход пересобирал всё состояние на каждое событие, verifier принимал неканонические raw bytes ruleset при совпавшем file hash, а shadow-report терял attempted boundary отклонённого чтения. Исправления получили четыре регрессии; пакет теперь даёт <code>32 passed</code>, а контрольный replay 1000 событий сократился примерно с <code>12,6</code> до <code>0,83</code> секунды. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Повторный обязательный <code>codex exec review</code> нашёл ещё четыре границы: rich objects из другого executor могли протащить переопределённые свойства в replay, equal-time boundary могла регрессировать, строковое <code>complete="false"</code> считалось истинным, а исполняемый parent package не входил в manifest closure. Все четыре причины исправлены: store копирует только raw fields, executor пересобирает собственные классы, boundary валидирует boolean и cursor order, parent shim хешируется. Шесть новых тестовых случаев довели пакет до <code>38 passed</code>; заодно закрыта несовместимость variadic <code>Traversable.joinpath</code> с Python 3.10. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Третий обязательный <code>codex exec review</code> обнаружил изменяемый repository path в identity, лексикографическую сортировку opaque cursor, отсутствие принятого batch hash у boundary и два необёрнутых класса ошибок malformed manifest. Исправление ввело неизменяемый <code>repository_id</code>, явный <code>read_sequence</code>, <code>ConfirmedReadBoundary</code> и единый <code>ManifestError</code>; девять тестовых случаев довели пакет до <code>47 passed</code>. Следующий review подтвердил поведение и оставил только два release-consistency шага: включить новые файлы в tracked patch и синхронизировать manifest hash в handoff/HTML. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Финальный staged review после этих шагов нашёл ещё три fail-closed границы: copied manifest в чужом version package мог создать ложный второй match, oversized JSON integer зависел от настроек интерпретатора, а truthy non-string <code>repository_id</code> попадал в state до ошибки сортировки. Resolver теперь считает только полностью проверенные manifest своего package, canonical JSON имеет явный предел 640 цифр на decode и encode, а boundary и event требуют непустой строковый repository ID. Пять новых тестовых вариантов довели пакет до <code>52 passed</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий staged review выявил три границы воспроизводимости: raw-field adapter оставался вне manifest closure, Event сохранял неканонический mutable <code>owner/name</code>, а parser manifest зависел от Python integer limit и допускал неизвестные поля. Raw snapshot теперь принадлежит versioned executor, Event хранит только immutable repository ID, а общий parser применяет тот же предел 640 цифр и точную схему manifest. Три новые регрессии довели пакет до <code>55 passed</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Повторный полный review воспроизвёл ещё две границы malformed adapter input: числовые постоянные GitHub IDs могли сломать смешанную сортировку, а truthy non-string opaque cursor сохранялся в boundary и <code>TransitionEffect.reason</code>. Все постоянные IDs и cursor теперь требуют непустые строки до попадания в state; 16 параметризованных регрессий довели пакет до <code>71 passed</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий полный review нашёл три границы неизменяемости и один пропуск принятого поведения: Python мог предпочесть unchecked bytecode проверенному source, manifest и source можно было согласованно заменить между verify и load, ruleset перечитывался без привязки к executor после загрузки, а <code>infinite-work</code> не имел перехода <code>review-changes → author-decision</code>. Loader теперь исполняет весь closure из повторно проверенных source bytes, versioned rules проверяют собственный hash при каждом чтении, а таблица Infinite соответствует R-04. Регрессии и исправленный ruleset довели пакет до <code>73 passed</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Два заключительных review-прохода нашли ещё четыре platform/fail-closed границы: уже выданный handle мог принять согласованную замену executor перед первым доступом, глубоко вложенный битый manifest посторонней версии выбрасывал <code>RecursionError</code>, canonical JSON пропускал lone Unicode surrogate до сырой ошибки UTF-8, а допустимые по regex <code>run_id</code> совпадали с Windows device names. Handle теперь повторно сверяет исходную тройку, ошибки вложенности и Unicode нормализованы, а shadow writer отклоняет зарезервированные имена до создания namespace. Девять регрессионных случаев довели пакет до <code>82 passed</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Очередной staged review обнаружил внутренне противоречивую тройку: manifest мог объявить одну версию Tide interface при каноническом ruleset с другой версией. Verifier теперь сверяет объявленный interface с содержимым ruleset, а версию ruleset — с versioned path; новая регрессия довела пакет до <code>83 passed</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий review нашёл три runtime-границы: exported incremental API доверял свойствам foreign subclasses, полный retry после неполной попытки ошибочно считался divergence, а Windows shadow writer допускал замену parent на junction между проверкой и созданием. Вход incremental API теперь пересобирается из raw dataclass fields, incomplete attempt не подтверждает sequence, а writer создаёт файл относительно pinned directory handle. Две новые регрессии довели пакет до <code>85 passed</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Повторный review подтвердил эти исправления и обнаружил stale manifest SHA-256 в производных документах и эквивалентный rename-race POSIX directory descriptor. Runtime reference синхронизирован на <code>97192096ef3910d12b9f41214e47bacaaaf1c9ff5c1ebed0a1dcb7de6f8818e6</code>; Linux final create теперь использует <code>openat2</code> относительно pinned repo root с запретом выхода и symlink traversal, а неподдерживаемый POSIX fail closed. POSIX-регрессия исполняется на соответствующей платформе и пропускается на Windows. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Финальный staged review нашёл две оставшиеся границы version isolation: naive <code>datetime</code> subclass из foreign adapter преобразовывался через локальную timezone, а рекурсивный обход глубоко повреждённого дерева будущего executor мог заблокировать разрешение старого Contract. Snapshot datetime теперь пересобирает базовый объект без float timestamp и сохраняет naive-значение для штатного fail-closed валидатора; source tree обходится итеративно с лимитом глубины и запретом links. Две регрессии довели пакет до <code>87 passed</code>, а новая runtime reference равна <code>f7b98b3a50a28eb326d851719d1b1d67f0ab4ee3be123ed71cd213ca66a21143</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий полный review обнаружил один пробел принятого R-04 и две границы foreign objects: immutable ruleset переводил первую одобренную ветку <code>full-build</code> сразу к общему решению автора, caller-owned subclass runtime reference мог подменить опубликованные hash после проверки tuple, а incremental API сохранял foreign <code>ProtocolState</code> с переопределённой сериализацией. Ruleset теперь содержит <code>implementation-review → ready-final → author-decision</code>, store передаёт reference verifier, а executor пересобирает incremental state и сериализуемые inputs своими классами. Три регрессии довели пакет до <code>90 passed</code>; актуальная тройка равна <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 17485e196674d691e18f1dd4e7c9033d0de9f3556f494254cd05157c304c23d4</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Последний staged review нашёл ещё две fail-closed границы: exported incremental API принимал state с runtime triple другого executor, а shadow writer публиковал итоговое имя до успешного <code>fsync</code>, оставляя частичный poison при ошибке записи. Loader теперь связывает загруженный executor с единственной проверенной runtime reference, а versioned incremental API сверяет с ней как аргумент, так и state; writer сначала синхронизирует private temp и публикует итоговое имя атомарной hard link. Две регрессии довели пакет до <code>92 passed</code>; актуальная тройка равна <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 88db9ce66d4b77a10b4d718210881299a62704bbcf7a553b90b36010d582268f</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Повторный полный review воспроизвёл три границы целостности: caller state мог содержать две разные версии одной revision identity, boolean <code>schema_version</code> проходил как integer <code>1</code>, а temp pathname можно было заменить после <code>fsync</code> до hard-link. ProtocolState теперь требует точный integer schema version и уникальные revision identities/idempotency keys; Windows удерживает handle с запретом write/delete sharing до публикации, Linux связывает итоговое имя с inode открытого descriptor через kernel-owned <code>/proc/self/fd</code>. Три регрессии довели пакет до <code>95 passed</code>; тройка после этого прохода была <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / c790e69f2af1e56dec97788a09be48de3bf87b5f5affa5e1c8e36fa2aa69fa5e</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Последний staged review обнаружил, что caller-constructed <code>ConfirmedReadBoundary</code> мог содержать <code>complete=False</code>, занять <code>read_sequence</code> и ошибочно заблокировать полный retry той же последовательности. Подтверждённая граница теперь требует завершённого чтения; регрессия восстановления состояния довела пакет до <code>96 passed</code>, а тройка после этого прохода была <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 6b235d8ed55e4c3a2dc87839829d859b7d46447478080922c60e559eda650d78</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий полный review нашёл три POSIX-границы shadow writer: temp создавался через путь отдельно от pinned shadow descriptor, ошибка открытия child утекала root fd, а существующий FIFO мог блокировать idempotent retry. POSIX writer теперь открывает shadow directory через <code>openat2</code> относительно pinned root и использует один descriptor для temp, hard-link, чтения и cleanup; каждый error path закрывает fd, а существующий destination открывается nonblocking и принимается только как regular file. Две кроссплатформенные регрессии довели пакет до <code>98 passed</code>; тот повторный проход дал <code>CLEAN</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Очередной полный review обнаружил, что facade мог получить подменённый cached submodule, final POSIX hard-link оставался привязан к перемещаемому child descriptor, а создание <code>vnext-shadow</code> происходило до закрепления parent. Verifier теперь возвращает только свои module objects, Windows создаёт namespace относительно pinned handles, а Linux выполняет все мутации отдельным Landlocked worker и публикует относительно pinned root. Две Windows-регрессии и две Linux-регрессии довели пакет до <code>100 passed</code>, <code>2 skipped</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий review нашёл рост <code>read_sequence</code> с регрессией времени, caller state с непокрытым событием и truthy non-string identity IDs; дополнительная атака подтвердила изменяемость уже выданного <code>ModuleType</code>. Transition теперь не принимает меньший <code>captured_at</code>, ProtocolState требует confirmed boundary для каждого события, Binding требует exact non-empty string IDs, а verifier-owned closure хранится вне обычного module cache и выдаётся через read-only views. Шесть регрессий довели пакет до <code>106 passed</code>, <code>2 skipped</code>; тройка после этого прохода была <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 7af4a08b1d40a7cce006f53ebcfcbd02c74264c05c7af1d5c8f9b4468651a672</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий полный review обнаружил четыре границы: private import не восстанавливал parent-package bindings, cached callable closure могла сохранить подменённые globals, standalone event surface обходила подтверждённый batch, а POSIX-публикация зависела от перемещаемого root path. Loader теперь восстанавливает и <code>sys.modules</code>, и атрибуты parent packages, каждое runtime-использование получает свежую проверенную closure, публичная transition surface принимает только подтверждённый batch, а Linux публикует через pinned shadow descriptor. Три регрессии довели пакет до <code>109 passed</code>, <code>2 skipped</code>; промежуточный manifest SHA-256 был <code>04069c6f6414e8fb67b01c8d722acad9ea35630fd2bb4e8a4ca61d55ca1f45b4</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Финальный review нашёл нестабильную identity классов и исключений между обращениями к публичному facade, принятие строкового projection label как последовательности символов и stale производную документацию. Facades теперь удерживают одну проверенную module closure для стабильной Python-семантики, projection отклоняет scalar string/bytes и пустые labels, а runtime reference синхронизирована во всех производных файлах. Четыре регрессии довели пакет до <code>113 passed</code>, <code>2 skipped</code>; тройка после этого прохода была <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 2d967fb358e14f315ed2c29397f2de77490052f269ffe79696348b9be93ee045</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Следующий полный review обнаружил два пробела того этапа. Две расходящиеся complete-границы sequence <code>N</code> можно было пропустить и затем подтвердить <code>N+1</code>, навсегда потеряв уникальные ревизии <code>N</code>; generic verifier также применял stdlib-only ограничение версии <code>0.6.0</code> ко всем будущим manifest с dependency pins. Transition заблокировал последующие batches этого repository после unresolved conflict, а empty <code>semantic_dependencies</code> тогда требовался только для <code>v0.6.0</code>. Две регрессии довели пакет до <code>115 passed</code>, <code>2 skipped</code>; тройка того прохода была <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / d127df8d465bb0ccb322fd7b88128c61086d3c09a30617e392f7496da9aef7f0</code>. Повторный review дал <code>CLEAN</code> для того состояния. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Последующий review опроверг две части того промежуточного вывода: равный <code>read_sequence</code> с более ранним <code>captured_at</code> уходил в <code>boundary-stale</code> до сравнения batch hash, а будущий manifest с непустыми dependency pins принимался без проверки установленных версий и байтов зависимостей. Сравнение равного sequence теперь предшествует проверке capture-time regression и сохраняет устойчивый blocker; verifier отклоняет любые непустые <code>semantic_dependencies</code>, пока полноценная dependency verification не реализована. Две направленные регрессии, повторная синхронизация manifest и свежий <code>codex exec review</code> довели пакет до <code>128 passed</code>, <code>2 skipped</code> и статуса <code>CLEAN</code>; текущая тройка равна <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<h3 id="verification-self-roast-и-lean-cut">Self-roast и lean cut</h3>
+<ul>
+<li>Фактическая поверхность — 20 product-файлов, из них 18 Python-файлов с 2656 непустыми строками, против защищённой оценки 800–1000. Превышение верхней оценки на 1656 строк вызвало повторный cut-pass; дополнительный объём после него — platform containment и изоляция verifier-owned module namespace. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li>Новых зависимостей нет: executor использует только стандартную библиотеку, а <code>semantic_dependencies</code> пуст. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li>Безопасно удалить отдельные модули canonical, rules, events, model, transition, money, deadlines, declarations, identity или projection нельзя: каждый прямо назван смысловой замкнутостью design 0.7 и входит в manifest. Общий replay и сериализация перенесены внутрь executor; root <code>store.py</code> оставлен транспортным. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
+<li>Параллельная реализация не добавлена: live v1 остаётся единственной рабочей системой, а vNext не имеет GitHub или ledger adapter. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li>Увеличение объёма принято как цена fail-closed manifest boundary, рекурсивной неизменяемости, boundaries по immutable repository ID, настоящего wheel/upgrade proof и platform-specific атомарного anchoring shadow writer; дальнейшее сокращение ослабило бы проверенный контракт. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
+</ul>
 <h3 id="verification-границы-изменений">Границы изменений</h3>
-<p>Намеренный пакет находится в <code>oled/changes/wea-vnext-recreation/</code>. Рабочий код, ledger, Issues, метки и workflows не менялись. Предсуществующие <code>.playwright-cli/</code> и <code>.private_artifacts/</code> не входят в stage set. Отдельный diary commit уже перенесён в ветку документации. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Намеренный код находится в <code>src/wea_vnext/</code>, тесты — в <code>tests/vnext/</code>, package-data — в <code>pyproject.toml</code>, а обновлённый handoff и доказательства — в активном <code>oled/changes/wea-vnext-recreation/</code>. Рабочий Tide, ledger и GitHub-поверхности отсутствуют в stage set. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <h3 id="verification-ограничения">Ограничения</h3>
 <ul>
-<li>Код и тесты WEA vNext ещё не существуют; все checkboxes <code>tasks.md</code> относятся к будущей реализации. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
-<li>Полная выгрузка Issue #1 и реализация пагинации остаются блоком 2; неполная история блокирует адаптер GitHub. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
-<li><a class="xref" href="#decision-od-11">OD-11</a> и <a class="xref" href="#decision-od-14">OD-14</a> нужны перед внешними действиями; <a class="xref" href="#decision-od-28">OD-28</a> и <a class="xref" href="#decision-od-29">OD-29</a> — до блока 9 и bootstrap. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
-<li>OLED-пакет остаётся активным и не архивируется до реализации и проверки runtime. <span aria-label="Источники" class="source-tags"><a class="source-tag source-doc" href="#evidence-doc" title="Следует из существующей документации">[DOC]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
+<li>Блоки 2–9 ещё не реализованы; Identity-примитив блока 1 не означает выполненную миграцию участников или Hello World. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li>Все 28 текущих падений общего suite и отдельный collection blocker существуют на чистом <code>origin/main</code>; чистый baseline имеет дополнительный heartbeat CLI-сбой. Они не вызваны блоком 1 и не исправлялись вне scope. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li><a class="xref" href="#decision-od-11">OD-11</a> и <a class="xref" href="#decision-od-14">OD-14</a> нужны перед соответствующими внешними действиями; <a class="xref" href="#decision-od-28">OD-28</a> и <a class="xref" href="#decision-od-29">OD-29</a> — до блока 9 и bootstrap. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
+<li>OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. <span aria-label="Источники" class="source-tags"><a class="source-tag source-doc" href="#evidence-doc" title="Следует из существующей документации">[DOC]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
 </ul>
 <h3 id="verification-решение">Решение</h3>
-<p><code>Ready for implementation</code> разрешает следующей сессии только внутренний блок 1. WEA vNext остаётся <code>Not implemented</code>; переключение, миграция и заявления о действующем поведении запрещены. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p><code>Ready for Block 2</code>: внутреннее ядро блока 1 выполнено, его контрактные и package-инварианты проверены, а v1 не изменена. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, миграцию или переключение. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 </div>
     </section>
 
@@ -3849,13 +3894,13 @@
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>aa865fb9a2d503ca71a4a3aa79929b46b70c803c78156f4619c69955aeeaf2e4</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>3cd52f129a3bf6f7e6d9c19921bbcf4c267c6ddcb3fe386e65b3e98a9e8d4982</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>571a98ba7c296f2217c927e044ca2217d16be883c64c81d6a85602856368bef6</code></td></tr><tr><td><code>tasks.md</code></td><td><code>106862be473d399da1bb2dd332061ea204f545b9d8958bdf242e010043442151</code></td></tr><tr><td><code>design.md</code></td><td><code>adf40f803a9dcd220cbf470423fab198b560287faeece7e1133ffcd87d9928dc</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c81d95a5cff39e40da107fabc56e0a6b1486e4b96690aa699a64781477ce9357</code></td></tr><tr><td><code>spec.md</code></td><td><code>7fea61d67ce3cc21f5fa9e68cf38cf7b9db3d5bf6cc205a736684952aae888f2</code></td></tr><tr><td><code>schema.md</code></td><td><code>674bdc707a3ad130b9d15f4fec0d61988959f85875220dde274bcd9f16c9cd6f</code></td></tr><tr><td><code>migration.md</code></td><td><code>146d56c1c0c4780fc6e4e5bd414c526f49ee951c79af28d08d3d2ca217790fa1</code></td></tr><tr><td><code>delta.md</code></td><td><code>9bd13bac3035128aefc83a1529911c60a210144e901fc7aa7860e5298bdd5d31</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>ba11a08885a6110bf29e7bc9d864c3a1c737fb300b90e4330c12aafc33e263a4</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>ad2b33d345c4e1b28c7030333ce36cb8379faf1bcba375654a696b8029808bf2</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>90ee724564688c3a82e49c7b9906a13d4c8188a23a0b89631f8aa1f3ef4f5004</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>140723cc2505fd4e933acaf3cf67febe6b133c8d449cd3ed7ec29e7dcbd739cc</code></td></tr><tr><td><code>tasks.md</code></td><td><code>2d8c154b64005b3a8aa97a87b1514910a75ff53a258661109d892bbf3f7a8e97</code></td></tr><tr><td><code>design.md</code></td><td><code>adf40f803a9dcd220cbf470423fab198b560287faeece7e1133ffcd87d9928dc</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c81d95a5cff39e40da107fabc56e0a6b1486e4b96690aa699a64781477ce9357</code></td></tr><tr><td><code>spec.md</code></td><td><code>7fea61d67ce3cc21f5fa9e68cf38cf7b9db3d5bf6cc205a736684952aae888f2</code></td></tr><tr><td><code>schema.md</code></td><td><code>674bdc707a3ad130b9d15f4fec0d61988959f85875220dde274bcd9f16c9cd6f</code></td></tr><tr><td><code>migration.md</code></td><td><code>146d56c1c0c4780fc6e4e5bd414c526f49ee951c79af28d08d3d2ca217790fa1</code></td></tr><tr><td><code>delta.md</code></td><td><code>9bd13bac3035128aefc83a1529911c60a210144e901fc7aa7860e5298bdd5d31</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>ba11a08885a6110bf29e7bc9d864c3a1c737fb300b90e4330c12aafc33e263a4</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>3e7ef17696cc53f485b116506b2a9422fea5a33b1c5bc06befa8163bafd55ff6</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>9f3ef366c6835c89162e243dcfe0a2b8f2217b96c4160e9076f4b437ac0d6d98</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -3977,7 +4022,7 @@
           "",
           "- Версия кандидата: 0.6",
           "- Основа: 940c230",
-          "- Хеш исходных файлов: aa865fb9a2d503ca71a4a3aa79929b46b70c803c78156f4619c69955aeeaf2e4",
+          "- Хеш исходных файлов: 3cd52f129a3bf6f7e6d9c19921bbcf4c267c6ddcb3fe386e65b3e98a9e8d4982",
           ""
         ];
         cards

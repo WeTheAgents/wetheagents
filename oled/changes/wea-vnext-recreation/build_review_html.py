@@ -99,7 +99,7 @@ VERSION_MARKERS = {
         PACKAGE_REVISION,
     ),
     "design.md": (r"Статус: `design ([^`]+)`", DESIGN_REVISION),
-    "tasks.md": (r"Статус: `tasks ([^`]+)`", TASKS_REVISION),
+    "tasks.md": (r"`tasks ([^`]+)`", TASKS_REVISION),
     "schema.md": (r"Статус: `schema ([^`]+)`", DESIGN_REVISION),
     "migration.md": (r"Статус: `migration ([^`]+)`", DESIGN_REVISION),
     "delta.md": (r"Статус: `delta ([^`]+)`", DESIGN_REVISION),
@@ -129,22 +129,34 @@ def validate_package_contract() -> None:
     tasks = texts.get("tasks.md", "")
     handoff = texts.get("HANDOFF.md", "")
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
-    if "Ready for implementation" not in verification:
-        errors.append("verification.md: implementation-readiness marker is missing")
-    if "Not implemented" not in verification:
-        errors.append("verification.md: runtime status marker is missing")
+    block_one_complete = "Ready for Block 2" in verification
+    if block_one_complete:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+    else:
+        if "Ready for implementation" not in verification:
+            errors.append("verification.md: implementation-readiness marker is missing")
+        if "Not implemented" not in verification:
+            errors.append("verification.md: runtime status marker is missing")
     if "Статус свежих команд: `Complete`" not in verification:
         errors.append("verification.md: fresh-command evidence is incomplete")
-    if "Статус независимой проверки: `Complete`" not in verification:
+    expected_review = "`CLEAN`" if block_one_complete else "`Complete`"
+    if f"Статус независимой проверки: {expected_review}" not in verification:
         errors.append("verification.md: independent review is incomplete")
     if re.search(r"записываются после|выполняется после сборки", verification):
         errors.append("verification.md: contains a future evidence placeholder")
     if "блокирующих решений нет" not in decisions:
         errors.append("open-decisions.md: blocking-decision status disagrees with readiness")
-    if "готов к реализации" not in tasks:
-        errors.append("tasks.md: implementation boundary disagrees with readiness")
-    if "Ready for implementation" not in handoff:
-        errors.append("HANDOFF.md: next-session status is missing")
+    if block_one_complete:
+        if "блок 1 `tasks 1.0` реализован" not in tasks:
+            errors.append("tasks.md: Block 1 completion marker is missing")
+        if "Ready for Block 2" not in handoff:
+            errors.append("HANDOFF.md: Block 2 handoff status is missing")
+    else:
+        if "готов к реализации" not in tasks:
+            errors.append("tasks.md: implementation boundary disagrees with readiness")
+        if "Ready for implementation" not in handoff:
+            errors.append("HANDOFF.md: next-session status is missing")
     for marker in (
         "## CHAT",
         "## DOC",
@@ -538,6 +550,9 @@ def nav_document(document: Document, title: str, headings: list[dict[str, str | 
 
 def build() -> None:
     validate_package_contract()
+    block_one_complete = "Ready for Block 2" in (
+        ROOT / "verification.md"
+    ).read_text(encoding="utf-8")
     source_digest, manifest_rows = source_manifest()
     attention_sections: list[str] = []
     sections: list[str] = []
@@ -565,7 +580,7 @@ def build() -> None:
     else:
         decision_guide = (
             "Отложенные вопросы показаны только для контекста; сейчас решения по ним не нужны. "
-            "План и handoff готовы для первой задачи реализации."
+            "План и handoff готовы для следующего ограниченного блока."
         )
 
     if decision_counts["core"]:
@@ -577,6 +592,15 @@ def build() -> None:
         package_status = "Ожидает полной вычитки"
         primary_href = "#doc-decisions"
         primary_label = "Решить открытые вопросы"
+    elif block_one_complete:
+        hero_kicker = "Кандидат · блок 1 проверен"
+        hero_lead = (
+            "Внутреннее протокольное ядро реализовано и прошло независимую проверку. "
+            "Live Tide, ledger и GitHub не подключены; handoff ограничен Identity и Hello World."
+        )
+        package_status = "Блок 1 готов; vNext не подключена"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть handoff блока 2"
     else:
         hero_kicker = "Кандидат · план реализации"
         hero_lead = (
