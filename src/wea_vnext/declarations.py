@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from .engine import installed_executor, load_executor
+from .identity import _MODULES
 
-_MODULE = load_executor(installed_executor().reference).import_module("declarations")
+_MODULE = _MODULES["declarations"]
+
 Declaration = _MODULE.Declaration
 DeclarationError = _MODULE.DeclarationError
 
