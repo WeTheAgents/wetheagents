@@ -854,6 +854,8 @@
 <li>Локальная интеграция блока 1: <code>codex/wea-vnext-integration</code>, merge commit <code>8ef2f6d</code>.</li>
 <li>Блок 2: <code>codex/wea-vnext-block2-identity-hello-world</code>, commit <code>125898f</code>; объединён в integration merge commit <code>67f5a50</code>.</li>
 <li>Очистка устаревших baseline-контрактов тестов: <code>codex/wea-vnext-baseline-test-hygiene</code>, commit <code>19397f0</code>; объединена в integration merge commit <code>e5f900d</code>.</li>
+<li>Удаление общего claim и fail-closed pause legacy writers: integration commit <code>98413ec</code>.</li>
+<li>Security successor System Hello World <code>v0_6_2</code>: integration commit <code>4043290</code>.</li>
 <li>Интеграционная ветка: <code>codex/wea-vnext-integration</code>. Dirty main worktree не изменялся; ничего не отправлено на GitHub. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
 </ul>
 <h3 id="handoff-что-реализовано">Что реализовано</h3>
@@ -3953,13 +3955,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>45391a83e5086cd53bd42f26d6ed62d0bfa62a053dddd58259c61eae12acfe9a</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>6c3a1693e7dae49632e9cfeaf539433ee9446392a77d7557263f066e1c3883b6</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>fbbc45d86db5ec98c5f8c8e2829692fad472fd823062037432067af7c10d6003</code></td></tr><tr><td><code>tasks.md</code></td><td><code>04941eecce0cdb4bec8ba234fb143a457d526d4bdf5a3af6ab37a3c9c7cd3717</code></td></tr><tr><td><code>design.md</code></td><td><code>8f3287d96b947b5c615bd4ef8e922741c40f6adf9a26cbaff6303bae3ace3cef</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c81d95a5cff39e40da107fabc56e0a6b1486e4b96690aa699a64781477ce9357</code></td></tr><tr><td><code>spec.md</code></td><td><code>7fea61d67ce3cc21f5fa9e68cf38cf7b9db3d5bf6cc205a736684952aae888f2</code></td></tr><tr><td><code>schema.md</code></td><td><code>674bdc707a3ad130b9d15f4fec0d61988959f85875220dde274bcd9f16c9cd6f</code></td></tr><tr><td><code>migration.md</code></td><td><code>146d56c1c0c4780fc6e4e5bd414c526f49ee951c79af28d08d3d2ca217790fa1</code></td></tr><tr><td><code>delta.md</code></td><td><code>9bd13bac3035128aefc83a1529911c60a210144e901fc7aa7860e5298bdd5d31</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>ba11a08885a6110bf29e7bc9d864c3a1c737fb300b90e4330c12aafc33e263a4</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>4fcde8550722393fde79c3d39bf6ca9549f45f9140f16ba4d0c9cc245cb6298f</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>9f3ef366c6835c89162e243dcfe0a2b8f2217b96c4160e9076f4b437ac0d6d98</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>fb5cbf37449934da3041ae177ead195ac97b411653cb312e283a62a0f26980b9</code></td></tr><tr><td><code>tasks.md</code></td><td><code>04941eecce0cdb4bec8ba234fb143a457d526d4bdf5a3af6ab37a3c9c7cd3717</code></td></tr><tr><td><code>design.md</code></td><td><code>8f3287d96b947b5c615bd4ef8e922741c40f6adf9a26cbaff6303bae3ace3cef</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c81d95a5cff39e40da107fabc56e0a6b1486e4b96690aa699a64781477ce9357</code></td></tr><tr><td><code>spec.md</code></td><td><code>7fea61d67ce3cc21f5fa9e68cf38cf7b9db3d5bf6cc205a736684952aae888f2</code></td></tr><tr><td><code>schema.md</code></td><td><code>674bdc707a3ad130b9d15f4fec0d61988959f85875220dde274bcd9f16c9cd6f</code></td></tr><tr><td><code>migration.md</code></td><td><code>146d56c1c0c4780fc6e4e5bd414c526f49ee951c79af28d08d3d2ca217790fa1</code></td></tr><tr><td><code>delta.md</code></td><td><code>9bd13bac3035128aefc83a1529911c60a210144e901fc7aa7860e5298bdd5d31</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>ba11a08885a6110bf29e7bc9d864c3a1c737fb300b90e4330c12aafc33e263a4</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>4fcde8550722393fde79c3d39bf6ca9549f45f9140f16ba4d0c9cc245cb6298f</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>9f3ef366c6835c89162e243dcfe0a2b8f2217b96c4160e9076f4b437ac0d6d98</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -4081,7 +4083,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.6",
           "- Основа: 940c230",
-          "- Хеш исходных файлов: 45391a83e5086cd53bd42f26d6ed62d0bfa62a053dddd58259c61eae12acfe9a",
+          "- Хеш исходных файлов: 6c3a1693e7dae49632e9cfeaf539433ee9446392a77d7557263f066e1c3883b6",
           ""
         ];
         cards

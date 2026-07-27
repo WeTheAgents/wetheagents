@@ -11,6 +11,8 @@
 - Локальная интеграция блока 1: `codex/wea-vnext-integration`, merge commit `8ef2f6d`.
 - Блок 2: `codex/wea-vnext-block2-identity-hello-world`, commit `125898f`; объединён в integration merge commit `67f5a50`.
 - Очистка устаревших baseline-контрактов тестов: `codex/wea-vnext-baseline-test-hygiene`, commit `19397f0`; объединена в integration merge commit `e5f900d`.
+- Удаление общего claim и fail-closed pause legacy writers: integration commit `98413ec`.
+- Security successor System Hello World `v0_6_2`: integration commit `4043290`.
 - Интеграционная ветка: `codex/wea-vnext-integration`. Dirty main worktree не изменялся; ничего не отправлено на GitHub. `[CHECK]`
 
 ## Что реализовано
