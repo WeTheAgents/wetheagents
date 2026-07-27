@@ -146,10 +146,20 @@ def test_record_mutation_appends_with_before_after(tmp_path: Path) -> None:
 
     # fitness_before should reflect the state BEFORE this ledger scan
     # (genome_meta.json started with tasks_completed=0, total_earned=0)
-    assert m["fitness_before"] == {"tasks_completed": 0, "total_earned": 0}
+    assert m["fitness_before"] == {
+        "tasks_completed": 0,
+        "total_earned": 0,
+        "total_minted": 0,
+        "total_income": 0,
+    }
 
     # fitness_after should reflect the newly computed fitness
-    assert m["fitness_after"] == {"tasks_completed": 1, "total_earned": 10}
+    assert m["fitness_after"] == {
+        "tasks_completed": 1,
+        "total_earned": 10,
+        "total_minted": 0,
+        "total_income": 10,
+    }
 
 
 # ---------------------------------------------------------------------------

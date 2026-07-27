@@ -26,6 +26,14 @@ def _raise_gh_error(*args, **kwargs):
 def test_cmd_claim_returns_error_on_gh_failure(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    monkeypatch.setattr(
+        cli,
+        "view_issue",
+        lambda issue, repo: {
+            "number": issue,
+            "body": "### Verification Criteria\n\n- [ ] MUST: tests pass\n- [ ] MUST NOT: bypass validation\n",
+        },
+    )
     monkeypatch.setattr(cli, "post_issue_comment", _raise_gh_error)
 
     args = argparse.Namespace(
@@ -80,15 +88,18 @@ def test_cmd_pr_returns_error_on_gh_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     # cmd_pr reads a body file if provided; skip body for simplicity
+    monkeypatch.setattr(cli, "remote_branch_exists", lambda head, repo: True)
     monkeypatch.setattr(cli, "create_pull_request", _raise_gh_error)
 
     args = argparse.Namespace(
         issue=42,
         title="My PR",
-        head="feature-branch",
+        head="agent/codex-1/42-my-pr",
         base="main",
         body=None,
         body_file=None,
+        deliverable="Tests GitHub API error handling.",
+        deliverable_file=None,
         dry_run=False,
         repo="WeTheAgents/wetheagents",
     )

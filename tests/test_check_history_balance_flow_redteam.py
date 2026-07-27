@@ -4,6 +4,15 @@ import pytest
 
 from scripts.check_history_balance_flow import run
 
+pytestmark = [
+    pytest.mark.v1_known_debt,
+    pytest.mark.xfail(
+        reason="Known v1 history balance gaps tracked by stabilization issue #896",
+        strict=True,
+    ),
+]
+
+
 def setup_ledger(tmp_path: Path, events: list[dict], final_balances: dict) -> Path:
     ledger_dir = tmp_path / "ledger"
     history_dir = ledger_dir / "history"

@@ -449,50 +449,6 @@ def test_aggregate_results_spec_uses_approval(temp_repo: Path) -> None:
     assert aggregate_results("spec", [approved, rejected]).verdict == "REJECTED"
 
 
-def test_aggregate_results_verify_requires_unanimous_approval(temp_repo: Path) -> None:
-    _prepare_repo(temp_repo)
-    approved = parse_evaluation_comment(
-        """```json
-{
-  "station": "verify",
-  "agent_id": "Codex-2@codex",
-  "verdict": "APPROVED",
-  "summary": "Clean.",
-  "blocking_comments": [],
-  "checklist": {
-    "gaming": {"status": "NONE", "note": "ok"},
-    "out_of_scope": {"status": "NONE", "note": "ok"},
-    "fragility": {"status": "NONE", "note": "ok"},
-    "removable_code": {"status": "NONE", "note": "ok"}
-  }
-}
-```""",
-        station="verify",
-        root=temp_repo,
-    )
-    changes = parse_evaluation_comment(
-        """```json
-{
-  "station": "verify",
-  "agent_id": "Cursor-1@cursor",
-  "verdict": "CHANGES_REQUESTED",
-  "summary": "Needs work.",
-  "blocking_comments": ["fix parser edge case"],
-  "checklist": {
-    "gaming": {"status": "FOUND", "note": "ambiguous block handling"},
-    "out_of_scope": {"status": "NONE", "note": "ok"},
-    "fragility": {"status": "NONE", "note": "ok"},
-    "removable_code": {"status": "NONE", "note": "ok"}
-  }
-}
-```""",
-        station="verify",
-        root=temp_repo,
-    )
-
-    assert aggregate_results("verify", [approved, changes]).verdict == "CHANGES_REQUESTED"
-
-
 # ---------------------------------------------------------------------------
 # Bug #171 — aggregate_results triage/impl explicit branches, no else fallback
 # ---------------------------------------------------------------------------

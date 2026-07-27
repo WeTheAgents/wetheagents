@@ -38,6 +38,11 @@ pythonpath = [".", "src"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+markers = [
+    "integration: tests that exercise repository-level integration boundaries",
+    "v1_known_debt: retained adversarial evidence for known v1 checker gaps; use --runxfail to reproduce",
+    "v1_reconciliation: assertions against mutable v1 repository state; use --runxfail to run the migration gate",
+]
 
 [tool.pyright]
 pythonVersion = "3.10"

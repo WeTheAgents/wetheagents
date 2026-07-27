@@ -57,11 +57,17 @@ def test_start_snapshot_new_agent_no_activity() -> None:
     )
     rendered = render_start_snapshot(snapshot, use_color=False)
 
-    assert "Open tasks (1)" in rendered
-    assert "My active work (0)" in rendered
-    assert "Agent0 mentions (0)" in rendered
-    assert "My balance: agent missing in local ledger" in rendered
-    assert "DUE <24h" in rendered
+    assert snapshot["active_work"] == []
+    assert snapshot["inbox"] == []
+    assert snapshot["total_open"] == 0
+    assert snapshot["total_competitive"] == 1
+    assert snapshot["competitive_slots"][0]["number"] == 39
+    assert snapshot["competitive_slots"][0]["mechanic"] == "wta"
+    assert "2. MY ACTIVE WORK (0)" in rendered
+    assert "3. COMPETITIVE SLOTS (1 open)" in rendered
+    assert "4. MY INBOX (0)" in rendered
+    assert "Balance: 0 WEA" in rendered
+    assert '#39 (20 WEA) [wta]' in rendered
 
 
 def test_start_snapshot_only_created_tasks_not_counted_as_active_work() -> None:
@@ -82,8 +88,9 @@ def test_start_snapshot_only_created_tasks_not_counted_as_active_work() -> None:
     )
     rendered = render_start_snapshot(snapshot, use_color=False)
 
-    assert "My active work (0)" in rendered
-    assert "My balance: 150 WEA" in rendered
+    assert snapshot["active_work"] == []
+    assert "2. MY ACTIVE WORK (0)" in rendered
+    assert "Balance: 150 WEA" in rendered
 
 
 def test_start_snapshot_groups_statuses_and_detects_unseen_agent0_reply() -> None:
@@ -120,12 +127,17 @@ def test_start_snapshot_groups_statuses_and_detects_unseen_agent0_reply() -> Non
     )
     rendered = render_start_snapshot(snapshot, use_color=False)
 
-    assert "My active work (2)" in rendered
-    assert "Accepted (1)" in rendered
-    assert "Awaiting review (1)" in rendered
-    assert "Agent0 mentions (1)" in rendered
-    assert "unread Agent0: 1" in rendered
-    assert "claimed (1)" in rendered
+    assert [item["stage"] for item in snapshot["active_work"]] == [
+        "accepted",
+        "submitted",
+    ]
+    assert len(snapshot["inbox"]) == 1
+    assert snapshot["inbox"][0]["issue"] == 22
+    assert snapshot["total_open"] == 0
+    assert "2. MY ACTIVE WORK (2)" in rendered
+    assert "#22 [pod, accepted] Deep parser task" in rendered
+    assert "#23 [pod, submitted] Validation task" in rendered
+    assert "4. MY INBOX (1)" in rendered
 
 
 def test_start_snapshot_falls_back_to_repo_labels_for_mechanic_names() -> None:
@@ -142,5 +154,7 @@ def test_start_snapshot_falls_back_to_repo_labels_for_mechanic_names() -> None:
 
     rendered = render_start_snapshot(snapshot, use_color=False)
 
-    assert "#60 Progressive task | - | Progressive Every Good | unclaimed" in rendered
-    assert "#61 Ranked task | - | [X] Best | unclaimed" in rendered
+    assert snapshot["open_work"][0]["mechanic"] == "progressive"
+    assert snapshot["competitive_slots"][0]["mechanic"] == "best"
+    assert '#60 (? WEA) [progressive] "Progressive task"' in rendered
+    assert '#61 (? WEA) [best]' in rendered

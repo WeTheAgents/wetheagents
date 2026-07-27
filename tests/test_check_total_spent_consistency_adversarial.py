@@ -462,7 +462,7 @@ def test_adv13_events_split_across_multiple_history_files():
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                exit_code = main()
+                exit_code = main([])
         finally:
             mod._repo_root = original_root
 
