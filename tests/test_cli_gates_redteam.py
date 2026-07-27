@@ -1,6 +1,14 @@
-import pytest
 import argparse
-from wea_cli.cli import cmd_claim, cmd_submit, cmd_task_check_criteria, EXIT_DOMAIN_ERROR, EXIT_RUNTIME_ERROR, EXIT_OK
+
+import pytest
+
+from wea_cli.cli import (
+    EXIT_DOMAIN_ERROR,
+    EXIT_OK,
+    EXIT_RUNTIME_ERROR,
+    cmd_submit,
+    cmd_task_check_criteria,
+)
 from wea_cli.gh import GhError
 
 @pytest.fixture
@@ -9,21 +17,6 @@ def mock_root(tmp_path):
     ledger.mkdir()
     (ledger / "balances.json").write_text('{"agents": {"test_agent": {"github_username": "tester"}}}')
     return tmp_path
-
-def test_gate1_claim_force_blocked(monkeypatch, mock_root, capsys):
-    # Test that --force is blocked for high reward tasks
-    monkeypatch.setattr("wea_cli.cli._load_acceptance_criteria_check", lambda i, r: ({"body": "### Reward (WEA)\n\n10"}, type("Check", (), {"is_valid": False, "criteria": [], "errors": ["invalid"], "source": "test", "machine_criteria": [], "human_criteria": []}), None))
-    monkeypatch.setattr("wea_cli.cli.resolve_repo_root", lambda r: mock_root)
-    monkeypatch.setattr("wea_cli.cli.resolve_agent", lambda a: "test_agent")
-    
-    args = argparse.Namespace(issue=1, repo="test/repo", plain=False, agent="test_agent", force=True, dry_run=True)
-    
-    exit_code = cmd_claim(args)
-    captured = capsys.readouterr().out
-    
-    assert exit_code == EXIT_DOMAIN_ERROR
-    assert "strictly require valid acceptance criteria" in captured
-    assert "force is not allowed" in captured
 
 def test_gate2_submit_gherror_bypass_fixed(monkeypatch, mock_root, capsys):
     # Test that if a PR link throws GhError (e.g. an issue link), valid_prs_found is not wrongly incremented

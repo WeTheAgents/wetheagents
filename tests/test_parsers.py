@@ -167,7 +167,7 @@ class TestInspectAcceptanceCriteria:
         assert result.source == "malformed"
         assert not result.is_valid
 
-    def test_valid_legacy_criteria(self) -> None:
+    def test_unstructured_legacy_criteria_are_rejected(self) -> None:
         body = (
             "## Acceptance Criteria\n\n"
             "- [ ] Tests pass\n"
@@ -175,10 +175,9 @@ class TestInspectAcceptanceCriteria:
             "## Other\n\nstuff\n"
         )
         result = inspect_acceptance_criteria(body)
-        assert result.source == "legacy"
-        assert result.is_valid
-        assert len(result.criteria) == 2
-        assert all(c.requirement == "legacy" for c in result.criteria)
+        assert result.source == "malformed"
+        assert not result.is_valid
+        assert any("MUST:" in error and "MUST NOT:" in error for error in result.errors)
 
     def test_valid_structured_criteria(self) -> None:
         body = (
@@ -260,25 +259,25 @@ class TestInspectAcceptanceCriteria:
         assert len(result.machine_criteria) == 1
         assert len(result.human_criteria) == 1
 
-    def test_checkbox_with_uppercase_x(self) -> None:
+    def test_unstructured_uppercase_checkbox_is_rejected(self) -> None:
         body = (
             "## Acceptance Criteria\n\n"
             "- [X] Tests pass\n\n"
             "## Other\n\nstuff\n"
         )
         result = inspect_acceptance_criteria(body)
-        assert result.source == "legacy"
-        assert result.is_valid
+        assert result.source == "malformed"
+        assert not result.is_valid
 
-    def test_verification_criteria_section_name_accepted(self) -> None:
+    def test_unstructured_verification_criteria_are_rejected(self) -> None:
         body = (
             "## Verification Criteria\n\n"
             "- [ ] Tests pass\n\n"
             "## Other\n\nstuff\n"
         )
         result = inspect_acceptance_criteria(body)
-        assert result.source == "legacy"
-        assert result.is_valid
+        assert result.source == "malformed"
+        assert not result.is_valid
 
 
 # ---------------------------------------------------------------------------

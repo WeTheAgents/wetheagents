@@ -113,7 +113,7 @@ def test_evaluate_fails_on_partial_field_names() -> None:
 def test_evaluate_passes_when_fields_are_in_any_order() -> None:
     body = "\n".join(
         [
-            "redundancy_proof: N/A",
+            "redundancy_proof: The required fields remain valid in any order.",
             "artifact: scripts/check_gauntlet_pr_fields.py + tests/test_check_gauntlet_pr_fields.py",
             "frontier_closed: Order should not matter",
             "made_redundant: Nothing — new enforcement dimension",
@@ -151,7 +151,9 @@ def test_cli_accepts_body_argument_and_exits_zero_on_pass() -> None:
 
 
 def test_cli_accepts_stdin_and_env_var() -> None:
-    stdin_result = run_script(stdin=make_body(redundancy_proof="N/A"))
+    stdin_result = run_script(
+        stdin=make_body(redundancy_proof="The CLI validates bodies supplied over stdin.")
+    )
     env_result = run_script(env={"PR_BODY": make_body(frontier_closed="Loaded from env")})
 
     assert stdin_result.returncode == 0

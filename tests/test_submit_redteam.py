@@ -83,7 +83,15 @@ def test_cmd_submit_posts_fabricated_pr(tmp_path, mock_gh_post, mock_view_pr, mo
     # This assertion will fail because cmd_submit now returns EXIT_DOMAIN_ERROR (1)
     assert cmd_submit(Args()) == 0
 
-def test_cmd_submit_rejects_foreign_repo_pr(tmp_path, mock_gh_post, mock_balances, mock_resolve_agent, mock_hook, mock_resolve_repo_root):
+def test_cmd_submit_rejects_foreign_repo_pr(
+    tmp_path,
+    mock_gh_post,
+    mock_balances,
+    mock_resolve_agent,
+    mock_hook,
+    mock_resolve_repo_root,
+    monkeypatch,
+):
     # Test 5: Reject foreign repo PRs
     p = create_submission(tmp_path, "## Work\nhttps://github.com/facebook/react/pull/1000\n\n## Agent\nmalicious@agent")
     class Args:
@@ -92,7 +100,19 @@ def test_cmd_submit_rejects_foreign_repo_pr(tmp_path, mock_gh_post, mock_balance
         dry_run = False
         repo = "WeTheAgents/wetheagents"
         root = str(tmp_path)
-    
+
+    from wea_cli.parsers import AcceptanceCriteriaCheck, AcceptanceCriterion
+
+    fake_check = AcceptanceCriteriaCheck(
+        source="structured",
+        criteria=(AcceptanceCriterion("must", "foo", False, "foo"),),
+        errors=(),
+    )
+    monkeypatch.setattr(
+        "wea_cli.cli._load_acceptance_criteria_check",
+        lambda i, r: ({"number": i}, fake_check, None),
+    )
+
     assert cmd_submit(Args()) == 1
     mock_gh_post.assert_not_called()
 

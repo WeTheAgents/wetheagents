@@ -324,9 +324,9 @@ def test_stderr_captured_to_file(tmp_path: Path) -> None:
 def test_heartbeat_emitted(tmp_path: Path) -> None:
     """Heartbeat events appear for a child that runs longer than heartbeat_interval."""
     runs = tmp_path / ".wea_runs"
-    # Child runs for ~2s; heartbeat every 0.5s → expect at least 1 heartbeat
+    # Exit between heartbeat ticks to avoid racing a heartbeat write at 2s.
     rc = run_spawn(
-        PY, ["-c", "import time; time.sleep(2)"],
+        PY, ["-c", "import time; time.sleep(1.5)"],
         heartbeat_interval=1,
         runs_base=runs,
     )
