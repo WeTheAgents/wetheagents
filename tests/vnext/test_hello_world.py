@@ -112,7 +112,7 @@ def _identity_two_accounts() -> IdentityRegistry:
 
 
 def _contract(**changes: object) -> SystemHelloWorldContract:
-    runtime = installed_executor("0.6.1").reference
+    runtime = installed_executor("0.6.2").reference
     values: dict[str, object] = {
         "contract_id": "contract-system-hello-world",
         "issue_id": "I_kwDOIssueOne",
@@ -448,7 +448,7 @@ def test_s_09c_system_contract_rejects_ordinary_task_shapes(
 
 
 def test_s_09c_direct_import_cannot_forge_verified_runtime_authority() -> None:
-    import wea_vnext.executors.v0_6_1 as direct_executor
+    import wea_vnext.executors.v0_6_2 as direct_executor
 
     with pytest.raises(ValueError, match="requires the manifest verifier"):
         direct_executor._bind_verified_runtime(  # type: ignore[attr-defined]

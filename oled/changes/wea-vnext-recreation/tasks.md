@@ -34,7 +34,7 @@
 - [x] Ввести версионированные привязки постоянного GitHub account ID к Agent ID и `control_group_id`; один account навсегда сохраняет один `base_agent_id`.
 - [x] Общий валидатор проверяет `author_agent_id` в форме и `agent_id` в ручной декларации. CLI требует одну выбранную действующую привязку.
 - [x] Смоделировать постоянный `system_hello_world` для Issue #1 без автора, Triage, escrow и возврата.
-- [ ] Закрыть воспроизведённый обход `_CANONICAL_HELLO_WORLD` через globals экспортированного класса: зафиксировать допустимый in-process trust model либо вынести semantic execution в изолированный процесс с serialized I/O; синхронизировать design и verification claims.
+- [x] Закрыть воспроизведённые обходы `_CANONICAL_HELLO_WORLD` и dataclass `__post_init__` новым immutable executor `v0_6_2`: он не содержит изменяемого canonical sentinel и безусловно отклоняет System Hello World на каждой authoritative boundary, включая raw-allocated объект точного типа. `v0_6_1` сохранён byte-for-byte для replay; facade переключён на `v0_6_2`; source и wheel regressions подтверждают отсутствие transition и mint intent.
 - [ ] Выводить Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; проверять actor/object/revision/body/effective time и глобальную одноразовость evidence IDs.
 - [ ] До правки Issue #1 выгрузить его body, все комментарии, постоянные account IDs и ревизии; сохранить исходный hash. На 2026-07-22 Issue содержит 11 комментариев.
 - [x] Реализовать чистый план восстановления участников v1 из замороженных Issue/comment/revision IDs, истории ledger, ключей идемпотентности и псевдонимов. План создаёт канонический hash доказательств, не пишет ledger и отклоняет расхождения.

@@ -14,7 +14,8 @@
 | `design.md`, `schema.md`, `delta.md`, `migration.md` | 0.7 | техническая модель и восстановление |
 | `tasks.md` | 1.0 | блок 1 выполнен; код блока 2 выполнен, evidence-gates блока 2 открыты |
 | исполнитель Block 1 | `v0_6_0` | сохранённая неизменяемая смысловая замкнутость и прежняя replay triple |
-| исполнитель Block 2 | `v0_6_1` | новая неизменяемая замкнутость Identity и Hello World |
+| первоначальный исполнитель Block 2 | `v0_6_1` | сохранённая неизменяемая замкнутость Identity и Hello World до security fix |
+| текущий исполнитель Block 2 | `v0_6_2` | security successor без изменяемого canonical Hello World sentinel; навсегда fail closed |
 
 Design 0.7 не меняет 55 сценариев Spec 0.6. Реализация блоков 1–2 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
 
@@ -30,8 +31,8 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Обязательство | Доказательство |
 | --- | --- |
 | Чистое ядро | `src/wea_vnext/` содержит модели, канонизацию, правила, переход, replay и только локальный shadow writer |
-| Неизменяемые исполнители | `v0_6_0` сохранён byte-for-byte; `v0_6_1/manifest.json` отдельно закрывает Block 2 sources, parent import shim и ruleset. Loader исполняет только проверенные source bytes |
-| Тройки Contract | обе используют ruleset SHA-256 `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b` и Tide interface `0.6`; прежний manifest `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`, Block 2 manifest `dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2` |
+| Неизменяемые исполнители | `v0_6_0` и `v0_6_1` сохранены byte-for-byte; `v0_6_2/manifest.json` отдельно закрывает security fix, Block 2 sources, parent import shim и ruleset. Loader исполняет только проверенные source bytes |
+| Тройки Contract | все используют ruleset SHA-256 `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b` и Tide interface `0.6`; manifest: `v0_6_0` — `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`, `v0_6_1` — `dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2`, `v0_6_2` — `975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7` |
 | Канонические байты | ruleset и manifest записаны как compact UTF-8 JSON без BOM и завершающего перевода строки; JSON принимает только целые значения длиной не более 640 десятичных цифр, отклоняет lone Unicode surrogates и нормализует oversized либо чрезмерно вложенный input в протокольную ошибку |
 | Воспроизведение | общий store разрешает runtime triple и передаёт executor точную reference verifier; каждое разрешённое runtime-использование получает свежую проверенную closure вне обычного `sys.modules`, а публичные facades удерживают стабильную проверенную вселенную классов и исключений; выбранный executor пересобирает raw batch/incremental state своими классами, требует exact integer schema version, уникальные revision identities/idempotency keys и покрытие каждого события confirmed boundary, затем применяет события в одном глобальном GitHub-порядке |
 | GitHub-граница | сохраняется по неизменяемому `repository_id`; mutable `owner/name` остаётся в boundary и удалён из сохраняемого Event, `complete` — строгий boolean, opaque cursor не сортируется, положительный `read_sequence` задаёт порядок, но не разрешает регрессию `captured_at`; равный sequence сначала сравнивает точный batch hash независимо от capture time, принятый hash отличает retry от устойчивого конфликта, неполная попытка не занимает sequence, shadow-report хранит все attempted boundaries |
@@ -43,14 +44,14 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 | Проверка | Команда или источник | Результат |
 | --- | --- | --- |
-| Блоки 1–2 | `python -m pytest tests/vnext -q` | PASS: `154 passed`, `18 skipped` на Windows; два skips — Linux-only rename-race regressions, 16 — сохранённые Hello World сценарии до установки аутентифицированного канонического snapshot |
+| Блоки 1–2 | `python -m pytest tests/vnext -q` | PASS: `159 passed`, `18 skipped` на Windows; два skips — Linux-only rename-race regressions, 16 — сохранённые Hello World сценарии до установки аутентифицированного канонического snapshot |
 | Identity / Hello World | `python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py tests/vnext/test_hello_world_gate.py -q` | PASS: `26 passed`, `16 skipped`; активная регрессия доказывает fail-closed до snapshot; packaging smoke — `1 passed` |
 | Статика блоков 1–2 | `ruff check src/wea_vnext tests/vnext` | PASS |
 | Python 3.10 type-contract | `pyright src/wea_vnext` с `pythonVersion = "3.10"` | PASS: `0 errors`, `0 warnings` для product-области; adversarial tests намеренно создают несовместимые subclass/property и динамические raw-объекты и проверяются runtime suite плюс Ruff |
 | Установленный пакет | `tests/vnext/test_packaging.py` и отдельный wheel smoke | PASS: ruleset и manifest присутствуют; старая тройка воспроизводится из установленного wheel |
 | Импорт и байткод | `python -m compileall -q src/wea_vnext`; `python -m pytest tests/test_import_paths.py -q` | PASS; `2 passed` |
 | Экономика v1 | `python scripts/check_invariant.py` | PASS: balances `19025`, escrow `0`, прежний mint `9025` |
-| Полный suite ветки | `PYTHONPATH=src python -m pytest -q --tb=short` | PASS: `4439 passed`, `18 skipped`, `11 xfailed`; прежние 28 baseline failures разобраны как устаревшие или явно изолированные debt-контракты |
+| Полный suite ветки | `PYTHONPATH=src python -m pytest -q --tb=short` | PASS после authoritative-boundary hardening `v0_6_2`: `4444 passed`, `18 skipped`, `11 xfailed`; прежние 28 baseline failures разобраны как устаревшие или явно изолированные debt-контракты |
 | Claim/lifecycle/Tide/docs/start | затронутый focused pytest lane | PASS: `126 passed`; общий claim отклоняется, публичная команда и scheduled writers отсутствуют, исторический claim не скрывает open work, Duel-путь сохранён |
 | Test hygiene | полный baseline contract review | Устаревшие тесты обновлены под принятое поведение; восемь strict-xfail `v1_known_debt`, два strict-xfail `v1_reconciliation` и один фактический ledger orphan остаются явным долгом. Ложный xfail исправленного submit exploit превращён в обычную зелёную регрессию |
 | Ledger и diff | `python scripts/check_invariant.py`; `git diff --check` | PASS |
@@ -122,7 +123,11 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 Следующий review воспроизвёл создание самосогласованного подставного Contract с `issue_number = 1` и произвольным `issue_id`, который доходил до mint intent. Executor `v0_6_1` теперь fail closed: пока evidence-gate открыт, в нём отсутствуют permanent Issue ID и hash одобренного vNext body, поэтому ни один системный Contract не активируется. После аутентифицированного snapshot эти два значения должны войти в новую immutable executor closure; попытка другого Issue или body будет отклонена. `[REVIEW][CHECK]`
 
-Финальный adversarial review интеграции 2026-07-27 отменил прежний вывод о полной fail-closed защите Block 2. Воспроизведено: экспортированный `SystemHelloWorldContract.__post_init__.__globals__` позволяет изменить `_CANONICAL_HELLO_WORLD` и создать attacker-selected Contract при исходном sentinel `None`. Это показывает, что manifest verification защищает bytes/loading, но не является security boundary против произвольного Python-кода в том же процессе. До явного решения trust model либо process-isolated execution это блокирующий пробел. `[REVIEW][CHECK]`
+Финальный adversarial review интеграции 2026-07-27 отменил прежний вывод о полной fail-closed защите Block 2. Воспроизведено: экспортированный `SystemHelloWorldContract.__post_init__.__globals__` позволял изменить `_CANONICAL_HELLO_WORLD` и создать attacker-selected Contract при исходном sentinel `None`. Fix не меняет опубликованный `v0_6_1`: новый immutable `v0_6_2` вообще не содержит canonical sentinel и безусловно отклоняет System Contract после проверки runtime/Issue #1. Публичный facade переключён на `v0_6_2`; source и установленный wheel regressions подменяют прежнее имя global и всё равно получают `HelloWorldError`. Manifest hashes `v0_6_0` и `v0_6_1` остались прежними. `[REVIEW][CHECK]`
+
+Независимый review первого fix затем обошёл dataclass `__post_init__` через `object.__new__` и провёл объект точного типа до `mint-planned`. Fix перенесён на shared authoritative boundary: `v0_6_2` безусловно отклоняет `create_hello_world_submission`, `create_agent0_hello_world_decision`, `accept_unique_hello_world` и `restore_v1_hello_world` до чтения caller state. Четыре active regressions используют raw allocation для каждого entry point; wheel smoke отдельно доказывает, что acceptance не возвращает transition или mint intent. Focused gate — `32 passed`, полный vNext — `159 passed, 18 skipped`. `[REVIEW][CHECK]`
+
+Повторный fresh-context review окончательного `v0_6_2` проверил constructor/globals/raw-allocation paths, все authoritative Hello World entry points, неизменность старых executor, manifest closure, wheel и тесты; findings list пуст. `[REVIEW][CHECK]`
 
 Тот же review подтвердил два evidence-пробела будущего mint path: Agent0 decision и submission строятся из caller-полей, а `ControlDisclosure.confirm` не доказывает существование публичной revision внутри принятой GitHub boundary. Пока canonical snapshot отсутствует, штатный mint остаётся закрыт, но Block 2 нельзя закрыть или публиковать как готовый до derivation этих записей из принятых `GitHubEvent` и глобальной одноразовости evidence IDs. `[REVIEW][CHECK]`
 
@@ -136,6 +141,7 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 - Параллельная live-реализация не добавлена: v1 Tide/Agent0 loop остановлены оператором, а vNext по-прежнему не имеет GitHub или ledger adapter. `[CHAT][CHECK]`
 - Увеличение объёма принято как цена fail-closed manifest boundary, рекурсивной неизменяемости, boundaries по immutable repository ID, настоящего wheel/upgrade proof и platform-specific атомарного anchoring shadow writer; дальнейшее сокращение ослабило бы проверенный контракт. `[DERIVED][REVIEW]`
 - Lean cut общего claim выполнен в порядке delete/reuse: удалены 430 строк CLI/preflight/fast-writer/workflow surface, а обычный Work intake использует уже принятый Deliverable contract. Исторические ledger readers не удалены, потому что они нужны для migration evidence; Duel routing не объединён с общим Work, потому что это отдельный защищённый профиль. Новых зависимостей и будущей универсализации не добавлено. После cut повторно прошли `126` затронутых тестов, полный suite, doc-sync и invariant. `[CHECK][REVIEW]`
+- `v0_6_2` добавляет полную 14-файловую immutable closure (3202 строки исходников и manifest), хотя смысловой fix находится в `identity_hello_world.py`. Повторно использовать Python-модули `v0_6_1` нельзя без semantic dependency, чей verifier ещё намеренно отсутствует; копия closure сохраняет replay-изоляцию и не добавляет dependency. Это защищённая, а не случайная дубликация. `[DERIVED][CHECK]`
 
 ## Границы изменений
 
@@ -150,4 +156,6 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 ## Решение
 
-`Not ready — Block 2 open`: помимо полного snapshot Issue #1 и factual reconciliation требуются явный in-process trust model либо process-isolated semantic boundary, а decision/submission/disclosure должны выводиться из подтверждённых GitHub events. Переход к блоку 3 и merge интеграции в `main` запрещены до закрытия этих пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`
+`Ready — SystemHelloWorldContract security fix`: `v0_6_2` навсегда fail closed на construction и всех четырёх authoritative entry points; globals mutation и raw allocation не создают transition или mint intent в source либо установленном wheel. Старые executor и их manifest hashes сохранены, focused/full checks зелёные, повторный независимый review не вернул findings. `[CHECK][REVIEW]`
+
+`Not ready — Block 2 open`: полный snapshot Issue #1 и factual reconciliation отсутствуют, а decision/submission/disclosure ещё должны выводиться из подтверждённых GitHub events. Переход к блоку 3 и merge интеграции в `main` запрещены до закрытия этих evidence-пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`

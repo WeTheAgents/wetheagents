@@ -6,7 +6,7 @@ from typing import Any
 
 from .engine import installed_executor, load_executor
 
-_MODULES = load_executor(installed_executor("0.6.1").reference).import_modules(
+_MODULES = load_executor(installed_executor("0.6.2").reference).import_modules(
     ("declarations", "identity", "identity_hello_world", "identity_migration")
 )
 _MODULE = _MODULES["identity"]

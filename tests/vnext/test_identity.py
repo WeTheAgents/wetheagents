@@ -32,12 +32,20 @@ NOW = datetime(2026, 7, 22, 12, tzinfo=timezone.utc)
 
 def test_block_2_preserves_the_exact_block_1_executor_triple() -> None:
     old = installed_executor("0.6.0").reference
-    current = installed_executor("0.6.1").reference
+    initial_block_2 = installed_executor("0.6.1").reference
+    current = installed_executor("0.6.2").reference
 
     assert old.executor_manifest_hash == (
         "8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3"
     )
+    assert initial_block_2.executor_manifest_hash == (
+        "dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2"
+    )
+    assert current.executor_manifest_hash == (
+        "975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7"
+    )
     assert current != old
+    assert current != initial_block_2
 
 
 def _registry(*, revoked_at: datetime | None = None) -> IdentityRegistry:

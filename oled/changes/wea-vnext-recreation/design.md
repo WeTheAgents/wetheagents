@@ -177,6 +177,7 @@ Tide хранит внешнее подтверждение отдельно и 
 | `src/wea_vnext/engine.py` | проверка трёх хешей и выбор неизменяемого исполняемого пакета |
 | `src/wea_vnext/executors/v0_6_0/` | неизменяемая смысловая замкнутость блока 1; её исходные bytes и manifest triple сохраняются для прежнего replay |
 | `src/wea_vnext/executors/v0_6_1/` | следующая неизменяемая замкнутость: Block 1 core плюс versioned Identity, системный Hello World и чистая сверка v1 |
+| `src/wea_vnext/executors/v0_6_2/` | security successor Block 2: сохраняет семантику `v0_6_1`, но без изменяемого canonical Hello World sentinel; этот executor навсегда fail closed, а snapshot активируется только новой будущей версией |
 | `src/wea_vnext/executors/v0_6_x/manifest.json` | SHA-256 всех файлов конкретного пакета и rules JSON, версия интерфейса, Python ABI и точные версии смысловых зависимостей |
 | `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `migration.py` | тонкие фасады CLI и будущего Tide, которые используют одну проверенную Identity-вселенную выбранного исполняемого пакета без собственных правил |
 | `src/wea_vnext/store.py` | повторное воспроизведение, описание транзакции и проекции состояния |

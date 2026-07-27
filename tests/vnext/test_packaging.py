@@ -109,14 +109,18 @@ def test_wheel_resources_upgrade_isolation_and_preimport_verification(
     assert "wea_vnext/executors/v0_6_1/manifest.json" in names
     assert "wea_vnext/executors/v0_6_1/identity_hello_world.py" in names
     assert "wea_vnext/executors/v0_6_1/identity_migration.py" in names
+    assert "wea_vnext/executors/v0_6_2/manifest.json" in names
+    assert "wea_vnext/executors/v0_6_2/identity_hello_world.py" in names
+    assert "wea_vnext/executors/v0_6_2/identity_migration.py" in names
     assert "wea_vnext/hello_world.py" in names
     assert "wea_vnext/migration.py" in names
 
     block_2_import_code = """
 import hashlib
 import importlib
+from wea_vnext.engine import installed_executor
 ordinary_hello_world = importlib.import_module(
-    'wea_vnext.executors.v0_6_1.identity_hello_world'
+    'wea_vnext.executors.v0_6_2.identity_hello_world'
 )
 assert ordinary_hello_world._WEA_VERIFIER_CAPABILITY is None
 from wea_vnext.hello_world import SystemHelloWorldContract
@@ -126,6 +130,40 @@ from wea_vnext.identity import IdentityRegistry
 from wea_vnext.migration import V1IdentityEvidence
 assert not hasattr(identity_facade._MODULE, '_WEA_VERIFIER_CAPABILITY')
 assert not hasattr(hello_world_facade._MODULE, '_WEA_VERIFIER_CAPABILITY')
+runtime = installed_executor('0.6.2').reference
+body = 'attacker-selected-body'
+body_hash = hashlib.sha256(body.encode()).hexdigest()
+method_globals = SystemHelloWorldContract.__post_init__.__globals__
+method_globals['_CANONICAL_HELLO_WORLD'] = ('attacker-selected-issue', body_hash)
+try:
+    SystemHelloWorldContract(
+        contract_id='attacker-selected-contract',
+        issue_id='attacker-selected-issue',
+        issue_number=1,
+        body=body,
+        body_hash=body_hash,
+        ruleset_hash=runtime.ruleset_hash,
+        tide_interface_version=runtime.tide_interface_version,
+        executor_manifest_hash=runtime.executor_manifest_hash,
+    )
+except hello_world_facade.HelloWorldError:
+    pass
+else:
+    raise AssertionError('exported class globals activated Hello World')
+raw_contract = object.__new__(SystemHelloWorldContract)
+try:
+    hello_world_facade.accept_unique_hello_world(
+        state=None,
+        contract=raw_contract,
+        submission=None,
+        participant=None,
+        decision=None,
+        registry=None,
+    )
+except hello_world_facade.HelloWorldError:
+    pass
+else:
+    raise AssertionError('raw allocated contract reached a mint transition')
 try:
     ordinary_hello_world.SystemHelloWorldContract(
         contract_id='forged',
