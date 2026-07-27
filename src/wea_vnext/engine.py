@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import inspect
 import json
 import re
 import sys
 import threading
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from importlib import abc as importlib_abc
 from importlib import resources
@@ -122,6 +123,19 @@ class ExecutorHandle:
             verified,
         )
 
+    def import_modules(self, relative_names: Iterable[str]) -> Mapping[str, Any]:
+        """Return several submodules from one manifest-verified source closure."""
+        verified = self.verify()
+        if verified.reference != self.reference:
+            raise RuntimeMismatchError(
+                "installed executor changed after its handle was resolved"
+            )
+        return _load_verified_submodules(
+            self.descriptor.module_name,
+            tuple(relative_names),
+            verified,
+        )
+
     def verify(self) -> VerifiedManifest:
         return _verify_installed_manifest(self.descriptor.module_name)
 
@@ -155,7 +169,15 @@ _RULESET_PATH = re.compile(r"rulesets/[0-9]+(?:\.[0-9]+)*\.json")
 _MAX_JSON_INTEGER_DIGITS = 640
 _EXECUTOR_LOAD_LOCK = threading.RLock()
 _MISSING_BINDING = object()
-_PUBLIC_EXECUTOR_SUBMODULES = frozenset({"declarations", "identity", "projection"})
+_PUBLIC_EXECUTOR_SUBMODULES = frozenset(
+    {
+        "declarations",
+        "identity",
+        "identity_hello_world",
+        "identity_migration",
+        "projection",
+    }
+)
 _MANIFEST_KEYS = {
     "executor_version",
     "files",
@@ -379,10 +401,12 @@ class _VerifiedSourceLoader(importlib_abc.Loader):
         fullname: str,
         source: _VerifiedSource,
         loaded: dict[str, ModuleType],
+        verifier_capability: object,
     ) -> None:
         self.fullname = fullname
         self.source = source
         self.loaded = loaded
+        self.verifier_capability = verifier_capability
 
     def create_module(self, spec: Any) -> None:
         return None
@@ -393,6 +417,7 @@ class _VerifiedSourceLoader(importlib_abc.Loader):
             raise ManifestError(f"manifest hash changed while loading {self.fullname}")
         filename = str(self.source.resource)
         code = compile(raw, filename, "exec", dont_inherit=True)
+        module.__dict__["_WEA_VERIFIER_CAPABILITY"] = self.verifier_capability
         exec(code, module.__dict__)
         self.loaded[self.fullname] = module
 
@@ -402,9 +427,11 @@ class _VerifiedSourceFinder(importlib_abc.MetaPathFinder):
         self,
         sources: dict[str, _VerifiedSource],
         loaded: dict[str, ModuleType],
+        verifier_capability: object,
     ) -> None:
         self.sources = sources
         self.loaded = loaded
+        self.verifier_capability = verifier_capability
 
     def find_spec(
         self,
@@ -416,7 +443,12 @@ class _VerifiedSourceFinder(importlib_abc.MetaPathFinder):
         source = self.sources.get(fullname)
         if source is None:
             return None
-        loader = _VerifiedSourceLoader(fullname, source, self.loaded)
+        loader = _VerifiedSourceLoader(
+            fullname,
+            source,
+            self.loaded,
+            self.verifier_capability,
+        )
         return importlib_util.spec_from_loader(
             fullname,
             loader,
@@ -505,7 +537,8 @@ def _load_verified_executor(
             sys.modules.pop(name, None)
 
         loaded: dict[str, ModuleType] = {}
-        finder = _VerifiedSourceFinder(sources, loaded)
+        verifier_capability = object()
+        finder = _VerifiedSourceFinder(sources, loaded, verifier_capability)
         sys.meta_path.insert(0, finder)
         try:
             imported = importlib.import_module(module_name)
@@ -519,7 +552,13 @@ def _load_verified_executor(
                 raise ManifestError(
                     "executor root did not come from the verified loader"
                 )
-            _bind_verified_runtime(imported, verified.reference)
+            _bind_verified_runtime(
+                imported,
+                verified.reference,
+                verifier_capability,
+            )
+            for module in loaded.values():
+                module.__dict__.pop("_WEA_VERIFIER_CAPABILITY", None)
         finally:
             sys.meta_path.remove(finder)
             for name in sources:
@@ -557,11 +596,50 @@ def _load_verified_submodule(
     return _ReadOnlyModule(module)
 
 
-def _bind_verified_runtime(module: ModuleType, reference: RuntimeReference) -> None:
+def _load_verified_submodules(
+    module_name: str,
+    relative_names: tuple[str, ...],
+    verified: VerifiedManifest,
+) -> Mapping[str, Any]:
+    """Return multiple read-only submodules backed by one verified closure."""
+    if not relative_names or len(relative_names) != len(set(relative_names)):
+        raise ManifestError("executor submodule names must be unique")
+    for relative_name in relative_names:
+        if not relative_name or any(
+            not part.isidentifier() for part in relative_name.split(".")
+        ):
+            raise ManifestError("executor submodule name is invalid")
+        if relative_name not in _PUBLIC_EXECUTOR_SUBMODULES:
+            raise ManifestError("executor submodule is internal")
+    loaded = _load_verified_executor(module_name, verified)
+    result: dict[str, Any] = {}
+    for relative_name in relative_names:
+        fullname = f"{module_name}.{relative_name}"
+        module = loaded.modules.get(fullname)
+        if module is None:
+            raise ManifestError("executor submodule is outside the verified closure")
+        result[relative_name] = _ReadOnlyModule(module)
+    return MappingProxyType(result)
+
+
+def _bind_verified_runtime(
+    module: ModuleType,
+    reference: RuntimeReference,
+    verifier_capability: object,
+) -> None:
     binder = getattr(module, "_bind_verified_runtime", None)
     if not callable(binder):
         raise ManifestError("executor does not expose runtime provenance binding")
-    binder(reference)
+    try:
+        parameter_count = len(inspect.signature(binder).parameters)
+    except (TypeError, ValueError) as exc:
+        raise ManifestError("executor runtime binder signature is invalid") from exc
+    if parameter_count == 1:
+        binder(reference)
+    elif parameter_count == 2:
+        binder(reference, verifier_capability)
+    else:
+        raise ManifestError("executor runtime binder signature is invalid")
 
 
 def installed_executor(version: str = "0.6.0") -> ExecutorDescriptor:

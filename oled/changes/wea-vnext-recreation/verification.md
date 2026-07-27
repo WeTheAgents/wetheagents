@@ -1,6 +1,6 @@
 # WEA vNext: проверка пакета поведения 0.6
 
-Статус блока 1: реализован и готов к следующему блоку (`Ready for Block 2`). Состояние WEA vNext: не подключена к live (`Not live`). Готовность относится только к внутреннему протокольному ядру; переключение v1, миграция и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
+Статус блока 1: `Ready for Block 2` (исторический gate пройден). Внутренняя кодовая часть блока 2 реализована. Блок 2 остаётся открытым до полного read-only snapshot Issue #1 и фактической сверки v1 evidence. WEA vNext не подключена к live (`Not live`); переключение v1, миграция и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
 
 Статус свежих команд: `Complete`.
 
@@ -12,15 +12,16 @@
 | --- | --- | --- |
 | `outcome.md`, `spec.md` | 0.6 | одобренное поведение |
 | `design.md`, `schema.md`, `delta.md`, `migration.md` | 0.7 | техническая модель и восстановление |
-| `tasks.md` | 1.0 | блок 1 отмечен выполненным; блоки 2–9 открыты |
-| исполнитель | `v0_6_0` | неизменяемая смысловая замкнутость блока 1 |
+| `tasks.md` | 1.0 | блок 1 выполнен; код блока 2 выполнен, evidence-gates блока 2 открыты |
+| исполнитель Block 1 | `v0_6_0` | сохранённая неизменяемая смысловая замкнутость и прежняя replay triple |
+| исполнитель Block 2 | `v0_6_1` | новая неизменяемая замкнутость Identity и Hello World |
 
-Design 0.7 не меняет 55 сценариев Spec 0.6. Реализация блока 1 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
+Design 0.7 не меняет 55 сценариев Spec 0.6. Реализация блоков 1–2 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
 
 ## Полномочия и границы
 
-- Оператор одобрил поведение 0.6 и поручил Agent0 начать только блок 1. `[CHAT]`
-- Работа выполнена в отдельном `worktree` и ветке `codex/wea-vnext-block1-protocol-core` от локально закреплённого `origin/main` `940c230`. Повторный `git fetch origin` не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации; основание совпало с зафиксированным handoff. `[CHAT][CHECK]`
+- Оператор одобрил продолжение в этом чате и реализацию блока 2 после локальной интеграции блока 1. `[CHAT]`
+- Блок 1 локально объединён в `codex/wea-vnext-integration`; блок 2 выполнен в отдельном worktree и ветке `codex/wea-vnext-block2-identity-hello-world`. Повторный `git fetch origin` не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации; cached `origin/main` оставался `940c230`. `[CHAT][CHECK]`
 - `scripts/tide.py`, рабочий ledger, GitHub Issues, labels, workflows и код v1 не менялись. Теневой вывод разрешён только в `.wea_runs/vnext-shadow/`. `[CHECK]`
 - Миграция, bootstrap, отключение v1 и публикация vNext не выполнялись. `[CHAT][CHECK]`
 
@@ -29,8 +30,8 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Обязательство | Доказательство |
 | --- | --- |
 | Чистое ядро | `src/wea_vnext/` содержит модели, канонизацию, правила, переход, replay и только локальный shadow writer |
-| Неизменяемый исполнитель | `executors/v0_6_0/manifest.json` закрывает все смысловые Python-файлы, parent import shim и ruleset; loader исполняет проверенные source bytes, а manifest и ruleset повторно сверяются перед либо во время использования |
-| Тройка Contract | ruleset SHA-256 `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b`, Tide interface `0.6`, manifest SHA-256 `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3` |
+| Неизменяемые исполнители | `v0_6_0` сохранён byte-for-byte; `v0_6_1/manifest.json` отдельно закрывает Block 2 sources, parent import shim и ruleset. Loader исполняет только проверенные source bytes |
+| Тройки Contract | обе используют ruleset SHA-256 `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b` и Tide interface `0.6`; прежний manifest `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`, Block 2 manifest `dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2` |
 | Канонические байты | ruleset и manifest записаны как compact UTF-8 JSON без BOM и завершающего перевода строки; JSON принимает только целые значения длиной не более 640 десятичных цифр, отклоняет lone Unicode surrogates и нормализует oversized либо чрезмерно вложенный input в протокольную ошибку |
 | Воспроизведение | общий store разрешает runtime triple и передаёт executor точную reference verifier; каждое разрешённое runtime-использование получает свежую проверенную closure вне обычного `sys.modules`, а публичные facades удерживают стабильную проверенную вселенную классов и исключений; выбранный executor пересобирает raw batch/incremental state своими классами, требует exact integer schema version, уникальные revision identities/idempotency keys и покрытие каждого события confirmed boundary, затем применяет события в одном глобальном GitHub-порядке |
 | GitHub-граница | сохраняется по неизменяемому `repository_id`; mutable `owner/name` остаётся в boundary и удалён из сохраняемого Event, `complete` — строгий boolean, opaque cursor не сортируется, положительный `read_sequence` задаёт порядок, но не разрешает регрессию `captured_at`; равный sequence сначала сравнивает точный batch hash независимо от capture time, принятый hash отличает retry от устойчивого конфликта, неполная попытка не занимает sequence, shadow-report хранит все attempted boundaries |
@@ -42,17 +43,18 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 | Проверка | Команда или источник | Результат |
 | --- | --- | --- |
-| Блок 1 | `python -m pytest tests/vnext -q` | PASS: `128 passed`, `2 skipped` на Windows; skips — Linux-only rename-race regressions |
-| Статика блока 1 | `ruff check src/wea_vnext tests/vnext` | PASS |
+| Блоки 1–2 | `python -m pytest tests/vnext -q` | PASS: `154 passed`, `18 skipped` на Windows; два skips — Linux-only rename-race regressions, 16 — сохранённые Hello World сценарии до установки аутентифицированного канонического snapshot |
+| Identity / Hello World | `python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py tests/vnext/test_hello_world_gate.py -q` | PASS: `26 passed`, `16 skipped`; активная регрессия доказывает fail-closed до snapshot; packaging smoke — `1 passed` |
+| Статика блоков 1–2 | `ruff check src/wea_vnext tests/vnext` | PASS |
 | Python 3.10 type-contract | `pyright src/wea_vnext` с `pythonVersion = "3.10"` | PASS: `0 errors`, `0 warnings` для product-области; adversarial tests намеренно создают несовместимые subclass/property и динамические raw-объекты и проверяются runtime suite плюс Ruff |
 | Установленный пакет | `tests/vnext/test_packaging.py` и отдельный wheel smoke | PASS: ruleset и manifest присутствуют; старая тройка воспроизводится из установленного wheel |
 | Импорт и байткод | `python -m compileall -q src/wea_vnext`; `python -m pytest tests/test_import_paths.py -q` | PASS; `2 passed` |
 | Экономика v1 | `python scripts/check_invariant.py` | PASS: balances `19025`, escrow `0`, прежний mint `9025` |
-| Полный suite ветки | `PYTHONPATH=src python -m pytest -q --tb=no --ignore=tests/test_check_task_escrow_sync.py` | `4400 passed`, `28 failed`, `2 skipped`, `2 xfailed`; набор 28 имён падений не изменился и целиком присутствует в чистом baseline |
+| Полный suite ветки | `PYTHONPATH=src python -m pytest -q --tb=no --ignore=tests/test_check_task_escrow_sync.py` | `4426 passed`, `28 failed`, `18 skipped`, `2 xfailed`; 16 Hello World happy-path тестов сохранены, но ждут frozen Issue #1 evidence, а набор 28 имён падений не изменился и целиком присутствует в чистом baseline |
 | Чистый baseline | та же команда и `PYTHONPATH` в отдельном detached `worktree` на `origin/main` `940c230` | `4271 passed`, `29 failed`, `2 xfailed`; дополнительный baseline-only сбой — heartbeat CLI |
 | Известный collection blocker | полный `python -m pytest -q` | pre-existing: `tests/test_check_task_escrow_sync.py` импортирует отсутствующий `run_checks`; оба файла совпадают с `origin/main` |
 | Ledger и diff | `python scripts/check_invariant.py`; `git diff --check` | PASS |
-| Граф кода | повторная moderate-индексация `codebase_memory` текущего worktree | 20844 узла, 71056 связей во всём repository graph; versioned replay, raw snapshot transport, bulk transition, manifest verifier и atomic shadow publication остаются разделены |
+| Граф кода | повторная moderate-индексация `codebase_memory` текущего worktree | 17126 узлов, 54368 связей в отфильтрованном repository graph; Identity, Hello World, migration и verifier входят в versioned closure |
 
 ## Независимая проверка и исправления
 
@@ -106,6 +108,20 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 Последующий review опроверг две части того промежуточного вывода: равный `read_sequence` с более ранним `captured_at` уходил в `boundary-stale` до сравнения batch hash, а будущий manifest с непустыми dependency pins принимался без проверки установленных версий и байтов зависимостей. Сравнение равного sequence теперь предшествует проверке capture-time regression и сохраняет устойчивый blocker; verifier отклоняет любые непустые `semantic_dependencies`, пока полноценная dependency verification не реализована. Две направленные регрессии, повторная синхронизация manifest и свежий `codex exec review` довели пакет до `128 passed`, `2 skipped` и статуса `CLEAN`; текущая тройка равна `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b / 0.6 / 8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`. `[REVIEW][CHECK]`
 
+## Проверка блока 2 и исправления
+
+Первый свежий независимый review блока 2 нашёл шесть проблем: Hello World Contract можно было сконструировать с caller-supplied runtime triple; v1 source IDs можно было повторно предъявить для разных accounts; common-control authority и disclosure не были привязаны к registry/Contract/Work и exact public content; `tasks.md` преждевременно переносил обязательную Issue #1 сверку в блок 9; handoff/verification оставались на статусе блока 1; packaging smoke имел Ruff-ошибку. Runtime затем был привязан к exact closure, evidence IDs стали глобально одноразовыми, disclosure начал повторно выводить authority из registry и принимать только канонический revision snapshot, а OLED-граница честно оставила блок 2 открытым. `[REVIEW][CHECK]`
+
+Обязательный `codex exec review` воспроизвёл прямой вызов binder и затем заметил нарушение immutable replay: Block 2 первоначально менял уже опубликованный `v0_6_0`. Loader теперь внедряет уникальную per-load capability до исполнения проверенных source bytes; обычный import не получает mint authority. Старый `v0_6_0` восстановлен byte-for-byte с manifest `8d2a71…`, а Block 2 вынесен в новый `v0_6_1`. Финальный fresh-context review дополнительно закрыл exact-length CLI selection, фильтрацию Agent-role при параллельной system binding, общую facade closure для declarations/Identity, самостоятельную проверку migration plan hash/registry/order, связь Hello World record с source-specific evidence и детерминированный Work ID. После исправлений reviewer сообщил `CLEAN`; `40` Identity/Hello World тестов, packaging smoke и полный пакет проходят. `[REVIEW][CHECK]`
+
+Следующий mandatory review показал, что verifier capability оставалась доступна через приватный facade attribute и могла быть скопирована в обычный executor import вместе с поддельной runtime triple. Loader теперь удаляет capability из всех module globals сразу после bind; facade modules выдаются одной общей closure без циклического re-export из `identity.py`. Wheel regression начинает с прямого импорта `identity_hello_world`, подтверждает отсутствие capability и отклонение forged Contract. `[REVIEW][CHECK]`
+
+Повторный полный review затем нашёл две отсутствовавшие границы одобрения: boolean уникальности принимался от caller без Agent0 evidence, а разные объекты Issue #1 могли создать несколько системных Contract в одном state. Mint теперь требует точную декларацию решения, постоянные comment/revision IDs и действующую versioned binding роли `agent0`; state содержит один канонический Contract и отклоняет переход, запись или v1 restoration другого Contract. Decision evidence входит в одноразовый mint-use record. `[REVIEW][CHECK]`
+
+Последний review обнаружил, что отдельный `register_account` никогда не мог корректно завершить первую регистрацию: registry требовал уже существующую Agent binding. Этот тупиковый публичный путь удалён; единственный onboarding теперь атомарно фиксирует account, Agent binding и control-group binding через `register_agent`, как требует контракт Identity. `[REVIEW][CHECK]`
+
+Следующий review воспроизвёл создание самосогласованного подставного Contract с `issue_number = 1` и произвольным `issue_id`, который доходил до mint intent. Executor `v0_6_1` теперь fail closed: пока evidence-gate открыт, в нём отсутствуют permanent Issue ID и hash одобренного vNext body, поэтому ни один системный Contract не активируется. После аутентифицированного snapshot эти два значения должны войти в новую immutable executor closure; попытка другого Issue или body будет отклонена. `[REVIEW][CHECK]`
+
 ## Self-roast и lean cut
 
 - Фактическая поверхность — 20 product-файлов, из них 18 Python-файлов с 2656 непустыми строками, против защищённой оценки 800–1000. Превышение верхней оценки на 1656 строк вызвало повторный cut-pass; дополнительный объём после него — platform containment и изоляция verifier-owned module namespace. `[CHECK]`
@@ -120,11 +136,11 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 ## Ограничения
 
-- Блоки 2–9 ещё не реализованы; Identity-примитив блока 1 не означает выполненную миграцию участников или Hello World. `[CHECK]`
+- Кодовая часть блока 2 не означает выполненную миграцию: обязательные snapshot Issue #1 и factual reconciliation ещё отсутствуют. Блоки 3–9 не реализованы. `[CHECK][REVIEW]`
 - Все 28 текущих падений общего suite и отдельный collection blocker существуют на чистом `origin/main`; чистый baseline имеет дополнительный heartbeat CLI-сбой. Они не вызваны блоком 1 и не исправлялись вне scope. `[CHECK]`
 - OD-11 и OD-14 нужны перед соответствующими внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
 - OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. `[DOC][DERIVED]`
 
 ## Решение
 
-`Ready for Block 2`: внутреннее ядро блока 1 выполнено, его контрактные и package-инварианты проверены, а v1 не изменена. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, миграцию или переключение. `[CHAT][CHECK][REVIEW]`
+`Block 2 open — external evidence required`: внутренний Identity/Hello World runtime реализован и проверяется, но переход к блоку 3 запрещён до полного snapshot Issue #1 и factual reconciliation. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`

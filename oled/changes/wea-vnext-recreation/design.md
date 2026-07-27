@@ -32,7 +32,7 @@ Issue Form собирает поля, включая `author_agent_id`; CLI по
 
 `[DERIVED][REVIEW]` Согласие автора хранится отдельным неизменяемым снимком: comment ID, ревизия, полный текст и hash, `author_agent_id`, GitHub account ID и версия mapping на `effective_at`. Декларация Agent0 имеет собственные actor IDs и ссылается на автора как на subject; эти роли не смешиваются.
 
-`[CHAT][DERIVED]` Для обычной задачи Tide одним переходом проверяет привязку Agent ID автора, точное согласие, Triage и баланс этого же автора, помещает полный bank в escrow, фиксирует body и hash, создаёт Contract и Task и открывает первый этап. Отдельной записи резерва и стороннего плательщика нет; нехватка средств или несовпавшее согласие не создают ни одного объекта. Дальнейшая передача результата не создаёт события WEA. `[CHAT][REVIEW]` Постоянный Contract вида `system_hello_world` — единственное системное исключение: он существует только для Issue #1, не имеет автора задачи, плательщика, согласия, Triage или возврата, хранит bank и `review_fee` `0` и не создаёт escrow или нулевой переход ledger.
+`[CHAT][DERIVED]` Для обычной задачи Tide одним переходом проверяет привязку Agent ID автора, точное согласие, Triage и баланс этого же автора, помещает полный bank в escrow, фиксирует body и hash, создаёт Contract и Task и открывает первый этап. Отдельной записи резерва и стороннего плательщика нет; нехватка средств или несовпавшее согласие не создают ни одного объекта. Дальнейшая передача результата не создаёт события WEA. `[CHAT][REVIEW]` Постоянный Contract вида `system_hello_world` — единственное системное исключение: он существует только для Issue #1, не имеет автора задачи, плательщика, согласия, Triage или возврата, хранит bank и `review_fee` `0` и не создаёт escrow или нулевой переход ledger. До закрытия evidence-gate executor fail closed; permanent Issue ID и hash одобренного body входят только в новую immutable closure после аутентифицированного snapshot, поэтому один `issue_number = 1` полномочий не создаёт.
 
 Профиль выбирает `full-build`, `spec-only`, `direct-pr` или `duel`. `reject` не создаёт Task или движение bank задачи; незавершённый escrow платной Triage возвращается в treasury отдельным переходом роли. `[DERIVED][REVIEW]`
 
@@ -175,15 +175,18 @@ Tide хранит внешнее подтверждение отдельно и 
 | Поверхность | Ответственность |
 | --- | --- |
 | `src/wea_vnext/engine.py` | проверка трёх хешей и выбор неизменяемого исполняемого пакета |
-| `src/wea_vnext/executors/v0_6_0/` | полный смысл версии: canonical, rules, declarations, identity, events, model, transition, money, deadlines и projection schema |
-| `src/wea_vnext/executors/v0_6_0/manifest.json` | SHA-256 всех файлов пакета и rules JSON, версия интерфейса, Python ABI и точные версии смысловых зависимостей |
-| `src/wea_vnext/declarations.py`, `identity.py` | тонкие фасады CLI, которые вызывают выбранный исполняемый пакет без собственных правил |
+| `src/wea_vnext/executors/v0_6_0/` | неизменяемая смысловая замкнутость блока 1; её исходные bytes и manifest triple сохраняются для прежнего replay |
+| `src/wea_vnext/executors/v0_6_1/` | следующая неизменяемая замкнутость: Block 1 core плюс versioned Identity, системный Hello World и чистая сверка v1 |
+| `src/wea_vnext/executors/v0_6_x/manifest.json` | SHA-256 всех файлов конкретного пакета и rules JSON, версия интерфейса, Python ABI и точные версии смысловых зависимостей |
+| `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `migration.py` | тонкие фасады CLI и будущего Tide, которые используют одну проверенную Identity-вселенную выбранного исполняемого пакета без собственных правил |
 | `src/wea_vnext/store.py` | повторное воспроизведение, описание транзакции и проекции состояния |
 | `src/wea_vnext/projection.py` | повторяемые labels, подтверждения и закрытие Issue |
 | `src/wea_vnext/migration.py` | сверка v1, bootstrap и доказательства переключения |
 | `scripts/tide_vnext.py` | тонкий адаптер GitHub и ledger для нового ядра |
 
 CLI импортирует `declarations`, `identity` и чтение подтверждённого состояния из этого пакета. Он может публиковать декларацию в GitHub, но не применяет переход и не пишет ledger. `scripts/tide_vnext.py` передаёт ядру полные страницы GitHub, записывает принятый transaction и после коммита выполняет его проекции. `[DERIVED]`
+
+`[DERIVED][CHECK][REVIEW]` Внутри исполнителя `identity.py` хранит account/Agent/control-group timelines и общий resolver. Common-control disclosure привязана к точным Contract ID и Work ID, повторно сверяет обе authority с registry и принимает только канонический публичный snapshot с revision ID; до этого selection и settlement запрещены. `identity_hello_world.py` хранит единственный системный Contract, реестр снимков и атомарный mint intent; его runtime triple принимается только через уникальную per-load capability, которую manifest verifier внедряет до исполнения проверенных source bytes. `identity_migration.py` строит только канонический план из замороженных v1-доказательств и запрещает повторное использование comment/revision/ledger/idempotency/alias IDs между строками. Root-фасады `hello_world.py` и `migration.py` переиспользуют ту же проверенную Identity closure, поэтому dataclass и exception identity не расходятся. Migration facade не читает GitHub или ledger и не выполняет записи.
 
 `rulesets/0.6.json` входит в исполняемый пакет через настройки `pyproject.toml` и читается через `importlib.resources`. Загрузчик отклоняет повторные JSON-ключи, BOM, дробные или нецелые значения WEA и нечисловые константы. Unicode не нормализуется скрыто: hash зависит от точных строк набора правил. `[DERIVED]`
 

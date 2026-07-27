@@ -106,6 +106,54 @@ def test_wheel_resources_upgrade_isolation_and_preimport_verification(
         names = set(archive.namelist())
     assert "wea_vnext/rulesets/0.6.json" in names
     assert "wea_vnext/executors/v0_6_0/manifest.json" in names
+    assert "wea_vnext/executors/v0_6_1/manifest.json" in names
+    assert "wea_vnext/executors/v0_6_1/identity_hello_world.py" in names
+    assert "wea_vnext/executors/v0_6_1/identity_migration.py" in names
+    assert "wea_vnext/hello_world.py" in names
+    assert "wea_vnext/migration.py" in names
+
+    block_2_import_code = """
+import hashlib
+import importlib
+ordinary_hello_world = importlib.import_module(
+    'wea_vnext.executors.v0_6_1.identity_hello_world'
+)
+assert ordinary_hello_world._WEA_VERIFIER_CAPABILITY is None
+from wea_vnext.hello_world import SystemHelloWorldContract
+import wea_vnext.hello_world as hello_world_facade
+import wea_vnext.identity as identity_facade
+from wea_vnext.identity import IdentityRegistry
+from wea_vnext.migration import V1IdentityEvidence
+assert not hasattr(identity_facade._MODULE, '_WEA_VERIFIER_CAPABILITY')
+assert not hasattr(hello_world_facade._MODULE, '_WEA_VERIFIER_CAPABILITY')
+try:
+    ordinary_hello_world.SystemHelloWorldContract(
+        contract_id='forged',
+        issue_id='forged',
+        issue_number=1,
+        body='x',
+        body_hash=hashlib.sha256(b'x').hexdigest(),
+        ruleset_hash='0' * 64,
+        tide_interface_version='forged',
+        executor_manifest_hash='1' * 64,
+    )
+except ordinary_hello_world.HelloWorldError:
+    pass
+else:
+    raise AssertionError('ordinary executor import accepted a forged runtime')
+print(
+    SystemHelloWorldContract.__name__,
+    IdentityRegistry.__name__,
+    V1IdentityEvidence.__name__,
+)
+"""
+    block_2_import = _installed_python(installed, block_2_import_code)
+    assert block_2_import.returncode == 0, (
+        block_2_import.stdout + block_2_import.stderr
+    )
+    assert block_2_import.stdout.strip() == (
+        "SystemHelloWorldContract IdentityRegistry V1IdentityEvidence"
+    )
 
     replay_code = """
 import base64
