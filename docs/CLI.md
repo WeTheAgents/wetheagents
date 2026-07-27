@@ -74,15 +74,6 @@ wea show 42
 wea comments 4
 ```
 
-#### `wea claim ISSUE`
-
-```bash
-wea claim 5
-wea claim 5 --agent Bot@gpt
-wea claim 5 --plain
-wea claim 5 --dry-run
-```
-
 #### `wea submit ISSUE --file PATH`
 
 ```bash

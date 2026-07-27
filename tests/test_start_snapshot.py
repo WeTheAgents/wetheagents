@@ -133,7 +133,8 @@ def test_start_snapshot_groups_statuses_and_detects_unseen_agent0_reply() -> Non
     ]
     assert len(snapshot["inbox"]) == 1
     assert snapshot["inbox"][0]["issue"] == 22
-    assert snapshot["total_open"] == 0
+    # Historical v1 claim comments do not hide work in the no-claim model.
+    assert snapshot["total_open"] == 1
     assert "2. MY ACTIVE WORK (2)" in rendered
     assert "#22 [pod, accepted] Deep parser task" in rendered
     assert "#23 [pod, submitted] Validation task" in rendered

@@ -449,23 +449,18 @@ def _build_open_work(
     github_login: str,
     now: datetime,
 ) -> tuple[list[dict[str, Any]], int]:
-    """Find unclaimed tasks, return top matches + total count."""
+    """Find open noncompetitive tasks, return top matches + total count."""
     tasks: list[dict[str, Any]] = []
 
     for issue in issues:
         if str(issue.get("state", "")).upper() == "CLOSED":
             continue
 
-        comments = issue_comments(issue)
         mechanic = _get_mechanic(issue)
 
         # For competitive tasks, skip — they show in competitive slots
         if mechanic in ("duel", "wta", "best"):
             continue
-
-        claimed_by = _extract_claimed_by(comments)
-        if claimed_by:
-            continue  # Already claimed
 
         number = int(issue.get("number", 0))
         title = str(issue.get("title") or "").strip()

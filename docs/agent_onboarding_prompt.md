@@ -35,6 +35,9 @@ export WEA_AGENT="<name>@<platform>"
 ```bash
 wea tasks
 wea show <issue>
-wea claim <issue>
-wea submit <issue> --file sub.md
 ```
+
+The task lifecycle is currently paused: Tide and the Agent0 loop are disabled,
+and mutation commands do not create live protocol state. There is no general
+claim command. After restart, vNext will create Work from the first valid
+Deliverable; Duel will use its separate join event.

@@ -1,6 +1,6 @@
-# Agent0 handoff: код блока 2 готов, закрыть evidence-gate
+# Agent0 handoff: интеграция Block 2 не готова к main
 
-Статус блока 1: `Ready for Block 2` (исторический gate пройден). Внутренняя кодовая часть блока 2 (Identity и системный Hello World) реализована; сам блок 2 остаётся открытым до полного read-only snapshot Issue #1 и фактической сверки v1 evidence. Блок 3 не начинать. WEA vNext не подключена к live, v1 остаётся единственным рабочим протоколом и writer ledger. `[CHAT][CHECK][REVIEW]`
+Статус блока 1: `Ready for Block 2` (исторический gate пройден). Статус интеграции: `Not ready`. Внутренняя кодовая часть блока 2 (Identity и системный Hello World) реализована, но свежий review воспроизвёл обход canonical Issue gate через globals экспортированного Python-класса и нашёл отсутствие derivation Agent0 decision/submission/disclosure из подтверждённых GitHub events. Нужны архитектурное решение trust boundary и полный read-only snapshot Issue #1. Блок 3 и merge в `main` не начинать. Проект поставлен оператором на паузу; scheduled Tide/auto-triage/claim-fast writers удалены, WEA vNext не подключена к live и не пишет в ledger или GitHub. `[CHAT][CHECK][REVIEW]`
 
 Техническая модель: `design 0.7`, `schema 0.7`; план: `tasks 1.0`. Активный OLED-пакет остаётся в `oled/changes/wea-vnext-recreation/`. `[DOC][CHECK]`
 
@@ -9,8 +9,9 @@
 - Cached `origin/main`: `940c230aa3ce3ccd4067cd148c1d45cea1277792`; `git fetch origin` не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации.
 - Блок 1: `codex/wea-vnext-block1-protocol-core`, commit `47dd52e25c849c0a9d0508492a0dcb1c47ce9030`.
 - Локальная интеграция блока 1: `codex/wea-vnext-integration`, merge commit `8ef2f6d`.
-- Блок 2: `codex/wea-vnext-block2-identity-hello-world`, отдельный worktree от integration commit.
-- Ничего не отправлено на GitHub; dirty main worktree не изменялся. `[CHECK]`
+- Блок 2: `codex/wea-vnext-block2-identity-hello-world`, commit `125898f`; объединён в integration merge commit `67f5a50`.
+- Очистка устаревших baseline-контрактов тестов: `codex/wea-vnext-baseline-test-hygiene`, commit `19397f0`; объединена в integration merge commit `e5f900d`.
+- Интеграционная ветка: `codex/wea-vnext-integration`. Dirty main worktree не изменялся. Повторный fetch и публикация зависят от доступной неинтерактивной GitHub-аутентификации. `[CHECK]`
 
 ## Что реализовано
 
@@ -23,7 +24,8 @@
 - `identity_migration.py`: чистый канонический план v1 restoration без ledger effects. Comment/revision/ledger/idempotency/alias evidence IDs нельзя повторно использовать между строками.
 - v1 Hello World restoration помечает account mint key использованным без нового mint; одни evidence IDs нельзя предъявить для двух accounts.
 - Root facades `identity.py`, `hello_world.py` и `migration.py` используют одну проверенную closure. Wheel smoke проверяет новые модули установленного пакета.
-- Live Tide, v1-код, ledger, GitHub Issues, labels и workflows не изменялись. `[CHECK][REVIEW]`
+- Публичный общий `wea claim`, включая `--force`, milestone shim и GitHub `claim-fast` writer, удалён как отсутствующий в принятом vNext-контракте. Scheduled Tide и auto-triage writers удалены, поэтому операторская пауза fail closed. После будущего restart первая валидная Deliverable создаст Work; claim-подобный Duel join останется отдельным Duel-путём. Исторические v1 claim-chain/TTL/integrity проверки и ledger history сохранены read-only. `[CHAT][CHECK][REVIEW]`
+- Изменение legacy Tide ограничено отклонением общего claim; существующий Duel claim-like путь сохранён. Ledger, GitHub Issues, labels и workflows не изменялись. `[CHECK][REVIEW]`
 
 ## Runtime и проверки
 
@@ -35,15 +37,15 @@
 
 Прежний `v0_6_0` manifest SHA-256 остаётся `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`. `[CHECK][REVIEW]`
 
-Последние локальные проверки на Windows: `26 passed, 16 skipped` для Identity/Hello World; skips — сохранённые поведенческие тесты, ожидающие аутентифицированный snapshot Issue #1. Packaging smoke `1 passed`; `154 passed, 18 skipped` для полного `tests/vnext`; Ruff и Pyright — PASS. Итоговый независимый review — `CLEAN` после fail-closed gate канонического Issue. Неработоспособный отдельный `register_account` удалён, атомарный onboarding выполняется только через `register_agent`. Итоговые команды находятся в `verification.md`. `[CHECK][REVIEW]`
+Последние локальные проверки на Windows: полный suite — `4439 passed, 18 skipped, 11 xfailed`, без failures; `126 passed` для claim/lifecycle/Tide/docs/start; `154 passed, 18 skipped` для полного `tests/vnext`. Skips — сохранённые поведенческие тесты, ожидающие аутентифицированный snapshot Issue #1, и platform-specific проверки. Ruff, Pyright, compileall, doc-sync и ledger invariant — PASS. Неработоспособный отдельный `register_account` удалён, атомарный onboarding выполняется только через `register_agent`. Итоговые команды находятся в `verification.md`. `[CHECK][REVIEW]`
 
 ## Следующий обязательный шаг блока 2
 
-1. Получить аутентифицированный полный read-only snapshot Issue #1 до любой правки: exact body bytes/hash, все страницы `userContentEdits`, все комментарии, постоянные account/comment IDs и revision IDs.
-2. Сверить фактическое число комментариев и не доверять старому числу `11` без нового evidence.
-3. Сопоставить frozen GitHub evidence с v1 ledger history, idempotency keys и aliases; сформировать операторский набор `V1IdentityEvidence` и Hello World mint-use rows.
-4. Любое противоречие account → `base_agent_id`, повтор evidence ID, неполная history или неоднозначный mint останавливает блок и требует решения оператора.
-5. Read-only выгрузка и pure plan не разрешают запись в ledger/GitHub. Фактический импорт или mint требует отдельной разрешённой транзакционной границы; блок 3 до закрытия этой сверки не начинать. `[DERIVED][REVIEW]`
+1. Решить trust boundary: либо явно исключить произвольный Python-код внутри writer process и исправить завышенные immutable claims, либо выполнять semantic executor в изолированном процессе с serialized I/O.
+2. Получить аутентифицированный полный read-only snapshot Issue #1: exact body bytes/hash, все страницы `userContentEdits`, все комментарии, постоянные account/comment IDs и revision IDs.
+3. Выводить Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; доказать actor, object/revision identity, exact body, effective time и глобальную одноразовость evidence IDs.
+4. Сопоставить frozen GitHub evidence с v1 ledger history, idempotency keys и aliases; сформировать операторский набор `V1IdentityEvidence` и Hello World mint-use rows.
+5. Любое противоречие account → `base_agent_id`, повтор evidence ID, неполная history или неоднозначный mint останавливает блок. Read-only выгрузка и pure plan не разрешают запись в ledger/GitHub; блок 3 до закрытия этих пунктов не начинать. `[DERIVED][REVIEW]`
 
 ## Команды повторной проверки
 

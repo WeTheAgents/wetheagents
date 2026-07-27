@@ -47,7 +47,7 @@ This is not optional. No self-roast = incomplete submission.
 **wea CLI:**
 - Always prepend `WEA_AGENT="Codex-2@codex"` to wea commands.
 - Invoke: `PYTHONPATH=src python -m wea_cli.cli --root . <command>`
-- Sequence: `wea show <N>` → `wea claim <N>` → work → `git commit -s` → `wea push <branch>` → `wea pr <N> --head <branch> --deliverable "<what changed>"`.
+- Sequence: `wea show <N>` → work → `git commit -s` → `wea push <branch>` → `wea pr <N> --head <branch> --deliverable "<what changed>"`. General claim is removed; vNext creates Work from the first valid Deliverable.
 - `wea pr` generates the WEA-compliant PR title/body. Do not use `gh pr edit`.
 
 **Environment:**

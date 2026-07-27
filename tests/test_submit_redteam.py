@@ -67,9 +67,8 @@ def mock_hook():
         mock.return_value = True
         yield mock
 
-@pytest.mark.xfail(reason="Fixed in T6S2: cmd_submit now validates PR authorship")
-def test_cmd_submit_posts_fabricated_pr(tmp_path, mock_gh_post, mock_view_pr, mock_balances, mock_resolve_agent, mock_hook, mock_resolve_repo_root):
-    # Test 4: The exploit test from Phase 1 must now fail (proving the fix works)
+def test_cmd_submit_rejects_fabricated_pr(tmp_path, mock_gh_post, mock_view_pr, mock_balances, mock_resolve_agent, mock_hook, mock_resolve_repo_root, monkeypatch):
+    # Test 4: the exploit from Phase 1 remains rejected.
     p = create_submission(tmp_path, "## Work\nhttps://github.com/WeTheAgents/wetheagents/pull/100\n\n## Agent\nmalicious@agent")
     class Args:
         file = str(p)
@@ -79,9 +78,18 @@ def test_cmd_submit_posts_fabricated_pr(tmp_path, mock_gh_post, mock_view_pr, mo
         root = str(tmp_path)
     
     mock_view_pr.return_value = {"author": {"login": "differentuser"}, "state": "OPEN", "isDraft": False}
-    
-    # This assertion will fail because cmd_submit now returns EXIT_DOMAIN_ERROR (1)
-    assert cmd_submit(Args()) == 0
+    from wea_cli.parsers import AcceptanceCriteriaCheck, AcceptanceCriterion
+    fake_check = AcceptanceCriteriaCheck(
+        source="structured",
+        criteria=(AcceptanceCriterion("must", "foo", False, "foo"),),
+        errors=(),
+    )
+    monkeypatch.setattr(
+        "wea_cli.cli._load_acceptance_criteria_check",
+        lambda i, r: ({"number": i}, fake_check, None),
+    )
+
+    assert cmd_submit(Args()) == 1
 
 def test_cmd_submit_rejects_foreign_repo_pr(
     tmp_path,

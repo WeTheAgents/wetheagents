@@ -1,6 +1,6 @@
 """PATH shim generation for wea spawn — milestone event interception.
 
-Each shimmed binary (git, gh, wea) is written as a Python script so it runs
+Each shimmed binary (git and gh) is written as a Python script so it runs
 cross-platform.  On Windows a .cmd wrapper is also written so the OS can find
 and execute the shim without requiring a shebang interpreter.
 
@@ -31,7 +31,6 @@ from pathlib import Path
 
 # Milestone payloads keyed by milestone name
 _MILESTONE_MAP: dict[str, str] = {
-    "task_claimed":   '{"milestone": "task_claimed"}',
     "branch_created": '{"milestone": "branch_created"}',
     "commit_created": '{"milestone": "commit_created"}',
     "push_completed": '{"milestone": "push_completed"}',
@@ -70,10 +69,6 @@ _INTERCEPT_RULES: dict[str, list[tuple[str, str]]] = {
             "len(args) >= 2 and args[0] == 'pr' and args[1] == 'merge'",
             "pr_merged",
         ),
-    ],
-    "wea": [
-        # wea claim  (any flags/args after "claim")
-        ("len(args) >= 1 and args[0] == 'claim'", "task_claimed"),
     ],
 }
 

@@ -518,12 +518,14 @@ class TideProcessor:
         self.task_index.setdefault("tasks", {})[str(ev.issue)] = task_entry
         return True
 
-    # -- claim --
+    # -- legacy claim parser; only Duel participation remains active --
 
     def _claim(self, ev: TideEvent) -> bool:
         issue_key = str(ev.issue)
         escrow = self.escrows.get("active", {}).get(issue_key)
         if not escrow:
+            return False
+        if escrow["type"] != "duel":
             return False
 
         agent = ev.agent
@@ -534,18 +536,7 @@ class TideProcessor:
             self._comment(ev.issue, "Task authors cannot claim their own tasks.")
             return False
 
-        if escrow["type"] == "duel":
-            return self._duel_claim(ev, escrow, issue_key)
-
-        claim_key = f"claim|{ev.issue}|{agent}"
-        if self._has_idem(claim_key):
-            return False
-        self._set_idem(claim_key)
-
-        self._rm_label(ev.issue, "open")
-        self._add_label(ev.issue, "claimed")
-        self._comment(ev.issue, f"Task claimed by `{agent}`.")
-        return True
+        return self._duel_claim(ev, escrow, issue_key)
 
     def _duel_claim(self, ev: TideEvent, escrow: dict, issue_key: str) -> bool:
         agent = ev.agent

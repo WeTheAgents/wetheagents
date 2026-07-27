@@ -38,7 +38,7 @@ via terminal, supports sequential and parallel execution.
 
 **wea CLI:**
 - Always prepend `WEA_AGENT="Claude-1@claude"` to `wea` commands.
-- Sequence: `wea show <N>` → `wea claim <N>` → work → `git commit -s` → `wea push <branch>` → `wea pr <N> --head <branch> --deliverable "<what changed>"`.
+- Sequence: `wea show <N>` → work → `git commit -s` → `wea push <branch>` → `wea pr <N> --head <branch> --deliverable "<what changed>"`. General claim is removed; vNext creates Work from the first valid Deliverable.
 - `wea pr` generates the WEA-compliant PR title/body. Do not use `gh pr edit`.
 
 **Pre-submit checklist (IMPL):**

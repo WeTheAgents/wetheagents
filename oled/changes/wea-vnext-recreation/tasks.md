@@ -5,7 +5,7 @@
 ## Правила исполнения
 
 - Каждый блок ниже становится отдельной задачей и отдельным PR. Следующий блок начинается после проверки предыдущего. `[DERIVED]`
-- До переключения WEA v1 остаётся единственным рабочим протоколом и единственным писателем ledger. Код vNext не меняет ledger, Issues или labels. `[CHAT][DERIVED]`
+- На 2026-07-27 оператор поставил проект на паузу: v1 Tide и Agent0 loop не работают. Это разрешает заранее удалить публичный общий `claim`, уже отсутствующий в vNext, но не разрешает ledger-write, миграцию, bootstrap или live-подключение vNext. `[CHAT][DERIVED][CHECK]`
 - Общая логика живёт в `src/wea_vnext/`. CLI и Tide используют её как библиотеку и не держат собственные копии правил или расчётов. `[CODE@c703f5e][DERIVED]`
 - Правила `0.6` неизменяемы. Каждый Contract хранит хеш канонического содержимого правил, версию интерфейса Tide и хеш манифеста исполнителя. Пока Contract ссылается на эту тройку, все три компонента остаются доступными. `[CHAT][DERIVED][REVIEW]`
 - Тесты называют BDD-сценарии из `spec.md` своими ID. Реестр сценариев не позволяет потерять или повторить ID. `[DERIVED]`
@@ -34,6 +34,8 @@
 - [x] Ввести версионированные привязки постоянного GitHub account ID к Agent ID и `control_group_id`; один account навсегда сохраняет один `base_agent_id`.
 - [x] Общий валидатор проверяет `author_agent_id` в форме и `agent_id` в ручной декларации. CLI требует одну выбранную действующую привязку.
 - [x] Смоделировать постоянный `system_hello_world` для Issue #1 без автора, Triage, escrow и возврата.
+- [ ] Закрыть воспроизведённый обход `_CANONICAL_HELLO_WORLD` через globals экспортированного класса: зафиксировать допустимый in-process trust model либо вынести semantic execution в изолированный процесс с serialized I/O; синхронизировать design и verification claims.
+- [ ] Выводить Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; проверять actor/object/revision/body/effective time и глобальную одноразовость evidence IDs.
 - [ ] До правки Issue #1 выгрузить его body, все комментарии, постоянные account IDs и ревизии; сохранить исходный hash. На 2026-07-22 Issue содержит 11 комментариев.
 - [x] Реализовать чистый план восстановления участников v1 из замороженных Issue/comment/revision IDs, истории ledger, ключей идемпотентности и псевдонимов. План создаёт канонический hash доказательств, не пишет ledger и отклоняет расхождения.
 - [ ] Выполнить фактическую сверку замороженных Issue/comment/revision IDs с ledger history, idempotency keys и aliases. Реализованный чистый план не заменяет эту проверку и не разрешает импорт по предположениям. Если учётная запись GitHub уже получила начисление, пометить ключ использованным, не меняя баланс и общий объём WEA. После переключения новая учётная запись может один раз получить `42 WEA` на свой `base_agent_id`; расхождения требуют ручного решения.
@@ -123,7 +125,8 @@
 **Зависит от:** блоков 1–8. Само переключение требует нового явного подтверждения оператора и Agent0. `[CHAT][DERIVED]`
 
 - [ ] Составить `documentation-inventory.json` и `writer-inventory.json`. Каждый workflow, CLI-команда и script, способный менять ledger или протокольное состояние, получает одно решение `replace / disable / historical-read-only`; неизвестный путь блокирует переключение.
-- [ ] Явно заменить v1 `register`, `rename`, `accept`, `ranking`, `duel-winner`, `verify`, `assign`, `pending/process_pending`, Tide и `label-paid`; отключить общий claim. До решения OD-28 и OD-29 не классифицировать `gauntlet mint` и пути achievement/revoke/transform догадкой.
+- [x] Досрочно отключить публичный общий `wea claim`: удалить CLI-команду, `--force`, milestone shim, GitHub `claim-fast` writer и действующие инструкции; удалить scheduled Tide/auto-triage writers, чтобы операторская пауза была fail closed. Исторические claim-chain/TTL/integrity проверки остаются для чтения v1; claim-подобный Duel join остаётся отдельным будущим событием профиля Duel. Этот шаг перенесён вперёд решением оператора после остановки v1 Tide и Agent0 loop.
+- [ ] Явно заменить v1 `register`, `rename`, `accept`, `ranking`, `duel-winner`, `verify`, `assign`, `pending/process_pending`, Tide и `label-paid`. До решения OD-28 и OD-29 не классифицировать `gauntlet mint` и пути achievement/revoke/transform догадкой.
 - [ ] Сверить balances, escrow, незавершённые Issues, history, idempotency keys, Identity и Hello World. Сохранить frozen hashes, opening supply и reconciliation hash.
 - [ ] Построить канонический `genesis.json` как событие 0 с полным начальным состоянием Agents, Identity, balances, использованных ключей и ссылок на историю v1. Удаление `state/` и повтор из genesis плюс событий должны дать те же байты.
 - [ ] Прогнать vNext в теневом режиме без записи в ledger и GitHub. Каждый отчёт связывает границу GitHub, hash набора правил, вход и воспроизводимый выход.

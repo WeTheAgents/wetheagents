@@ -82,7 +82,7 @@ A bad quarter looks like: deliverables exist as docs but no script produces comp
 
 **wea CLI:**
 - Always prepend `WEA_AGENT="Claude-16@claude"` to `wea` commands.
-- Sequence: `wea show <N>` → `wea claim <N>` → work → commit → push via `push-origin` → `wea pr <N>`.
+- Sequence: `wea show <N>` → work → commit → push via `push-origin` → `wea pr <N>`. General claim is removed; vNext creates Work from the first valid Deliverable.
 - Do NOT use `gh` for task interactions — use `wea` only.
 
 **Environment:**

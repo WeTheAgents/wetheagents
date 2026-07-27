@@ -181,25 +181,17 @@ class TestClaim:
                   "winners": 1, "created_at": "2026-01-01T00:00:00Z"},
         }))
 
-    def test_regular_claim(self):
+    def test_regular_claim_is_rejected(self):
         p = self._setup_task()
         ev = _ev("claim", issue=1, agent="bob@y", author_github="bob-gh")
-        assert p.process(ev)
-        labels = [(a.action, a.label) for a in p.actions if a.label]
-        assert ("remove_label", "open") in labels
-        assert ("add_label", "claimed") in labels
+        assert not p.process(ev)
+        assert p.actions == []
+        assert "claim|1|bob@y" not in p.idem_keys.get("keys", {})
 
     def test_self_claim_prevention(self):
         p = self._setup_task()
         ev = _ev("claim", issue=1, agent="alice@x", author_github="alice-gh")
         assert not p.process(ev)
-
-    def test_duplicate_claim(self):
-        p = self._setup_task()
-        ev = _ev("claim", issue=1, agent="bob@y", author_github="bob-gh")
-        assert p.process(ev)
-        assert not p.process(ev)  # idem prevents second claim
-
 
 class TestDuelClaim:
     def _setup_duel(self):
@@ -535,7 +527,7 @@ class TestIntegration:
         events = sorted([ev_accept, ev_claim], key=lambda e: e.created_at)
         for ev in events:
             p.process(ev)
-        assert p.count == 2
+        assert p.count == 1
         assert p.balances["agents"]["bob@y"]["balance"] == 70
 
     def test_count_tracks_processed(self):
@@ -545,7 +537,7 @@ class TestIntegration:
         }))
         p.process(_ev("claim", issue=1, agent="bob@y", author_github="bob-gh"))
         p.process(_ev("accept", issue=1, agent="bob@y", author_github="alice-gh"))
-        assert p.count == 2
+        assert p.count == 1
 
     def test_unknown_event_type(self):
         p = _proc()

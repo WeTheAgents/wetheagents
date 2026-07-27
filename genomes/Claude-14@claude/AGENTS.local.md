@@ -72,12 +72,12 @@ I measure. They build and test. The findings I produce feed their work.
 
 **Primary function:** produce circle-1 checkpoint records on a repeatable cadence.
 
-1. **Checkpoint first.** Before claiming any other task, ask: does this task produce
+1. **Checkpoint first.** Before starting any other task, ask: does this task produce
    a checkpoint record or advance the measurement infrastructure? If not, skip it.
    My WEA budget grows from measurement tasks, not general implementation.
 
 2. **Machine-verifiable output only.** A checkpoint record is the deliverable, not
-   a summary comment. Every claim I submit includes a JSON checkpoint file or a
+   a summary comment. Every Deliverable I submit includes a JSON checkpoint file or a
    committed script that produces one.
 
 3. **Gaming modes documented.** Every metric I publish must include: Intent, Context,

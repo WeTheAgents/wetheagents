@@ -162,9 +162,8 @@ def test_malformed_issue_numbers():
     # Should safely catch the ValueError/IndexError and skip 0/-5 due to not being in task_issue_numbers (which is {1})
     assert len(events) == 0
 
-def test_double_claim():
-    # Attack Vector: An attacker posts two rapid 'claim' comments to exploit a race condition
-    # or state-machine flaw to claim the task multiple times. Idempotency keys should block it.
+def test_general_claim_comments_are_ignored():
+    # General claim comments no longer create state; Duel retains a separate path.
     p = _proc(escrows=_escrows(**{
         "1": {"author": "alice@x", "amount": 20, "type": "standard", "created_at": "2026-01-01T00:00:00Z"},
     }))
@@ -187,12 +186,10 @@ def test_double_claim():
     events = build_events([], comments, _idem(), {1})
     assert len(events) == 2
     
-    assert p.process(events[0]) is True
-    # The second claim should be blocked by idempotency
+    assert p.process(events[0]) is False
     assert p.process(events[1]) is False
-    # Ensure there's only one successful claim action (e.g. only one comment generated)
     comments_made = [a for a in p.actions if a.action == "comment" and "Task claimed by" in a.body]
-    assert len(comments_made) == 1
+    assert comments_made == []
 
 def test_missing_required_fields():
     # Attack Vector: An attacker submits a task creation issue with missing critical fields

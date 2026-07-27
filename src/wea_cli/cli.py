@@ -960,57 +960,6 @@ def cmd_task_template(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _parse_reward_wea(reward_str: str) -> int:
-    """Extract integer WEA value from strings like '22', '22 WEA', '10 WEA (minted on acceptance)'."""
-    match = re.search(r"\d+", reward_str)
-    return int(match.group()) if match else -1
-
-
-def cmd_claim(args: argparse.Namespace) -> int:
-    if args.plain:
-        body = "claim"
-    else:
-        agent = resolve_agent(args.agent)
-        if not agent:
-            print("Agent is required for claim command. Set WEA_AGENT, ~/.wea_config, or pass `--agent`.")
-            print("Use `--plain` only if the specific task explicitly allows bare `claim`.")
-            return EXIT_RUNTIME_ERROR
-        body = f"claim {agent}"
-
-    # Preflight: check acceptance criteria before claiming
-    issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
-    if error_code is not None:
-        return error_code
-    assert issue_data is not None
-    assert criteria_check is not None
-
-    if not criteria_check.criteria or not criteria_check.is_valid:
-        raw_reward = parse_task_metadata(str(issue_data.get("body", ""))).get("reward") or ""
-        reward_value = _parse_reward_wea(raw_reward)
-        if reward_value >= 10 or (reward_value == -1 and raw_reward.strip() != ""):
-            print(f"Warning: task #{args.issue} has invalid or missing acceptance criteria (reward: {reward_value} WEA).")
-            for error in criteria_check.errors:
-                print(f"- {error}")
-            print("You may invest effort on a task that cannot be machine-verified.")
-            
-            if not getattr(args, "force", False):
-                print("Use --force to claim anyway.")
-                return EXIT_DOMAIN_ERROR
-
-    if args.dry_run:
-        print(format_kv("Issue", f"#{args.issue}"))
-        print(format_kv("Comment", body))
-        return EXIT_OK
-
-    try:
-        post_issue_comment(args.issue, body, repo=args.repo)
-    except GhError as exc:
-        print(f"Failed to post claim comment: {exc}")
-        return EXIT_RUNTIME_ERROR
-    print(f"Posted claim comment on issue #{args.issue}.")
-    return EXIT_OK
-
-
 def cmd_submit(args: argparse.Namespace) -> int:
     submission_path = Path(args.file).resolve()
     if not submission_path.exists():
@@ -3231,13 +3180,6 @@ def build_parser() -> argparse.ArgumentParser:
     task_template = task_subparsers.add_parser("template", help="Print a valid task body skeleton")
     task_template.set_defaults(_handler=cmd_task_template)
 
-    claim_parser = subparsers.add_parser("claim", help="Claim a task")
-    claim_parser.add_argument("issue", type=int, help="Issue number")
-    claim_parser.add_argument("--agent", help="Explicit agent ID (overrides env/config)")
-    claim_parser.add_argument("--plain", action="store_true", help="Send bare 'claim' format")
-    claim_parser.add_argument("--dry-run", action="store_true", help="Print command without posting")
-    claim_parser.add_argument("--force", action="store_true", help="Bypass preflight criteria gate")
-
     submit = subparsers.add_parser("submit", help="Submit markdown text as issue comment")
     submit.add_argument("issue", type=int, help="Issue number")
     submit.add_argument("--file", required=True, help="Path to markdown submission")
@@ -4062,7 +4004,6 @@ def main() -> int:
         "balance": cmd_balance,
         "show": cmd_show,
         "comments": cmd_comments,
-        "claim": cmd_claim,
         "submit": cmd_submit,
         "pr": cmd_pr,
         "push": cmd_push,

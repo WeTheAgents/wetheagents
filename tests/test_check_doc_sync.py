@@ -74,7 +74,6 @@ def build_parser():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("tasks")
-    subparsers.add_parser("claim")
     subparsers.add_parser("submit")
     subparsers.add_parser("pr")
     subparsers.add_parser("accept")
@@ -94,7 +93,6 @@ def build_parser():
 _FIXTURE_CLI_DOC_LINES = [
     "# wea CLI Reference",
     "#### `wea tasks`",
-    "#### `wea claim ISSUE`",
     "#### `wea submit ISSUE --file PATH`",
     "#### `wea pr ISSUE --head BRANCH`",
     "#### `wea accept ISSUE PAYEE`",
@@ -114,7 +112,7 @@ def _write_cli_repo(base: Path, doc_text: str) -> None:
 
 def test_parse_cli_command_surface_extracts_top_and_task_subcommands() -> None:
     top, task_subs = parse_cli_command_surface(_FIXTURE_CLI_SOURCE)
-    assert {"tasks", "claim", "task", "issue"} <= top
+    assert {"tasks", "submit", "task", "issue"} <= top
     assert task_subs == {"calc-budget", "lint", "template"}
     # Nested non-task subcommands (issue edit) must not leak into task subs.
     assert "edit" not in task_subs
@@ -122,7 +120,7 @@ def test_parse_cli_command_surface_extracts_top_and_task_subcommands() -> None:
 
 def test_parse_documented_cli_commands_reads_headings() -> None:
     top, task_subs = parse_documented_cli_commands(_FIXTURE_CLI_DOC)
-    assert {"tasks", "claim", "task"} <= top
+    assert {"tasks", "submit", "task"} <= top
     assert task_subs == {"calc-budget", "lint", "template"}
 
 
@@ -153,8 +151,8 @@ def test_compute_cli_doc_drift_flags_omitted_required_command() -> None:
     top, task_subs = parse_cli_command_surface(_FIXTURE_CLI_SOURCE)
     doc_top, doc_task = parse_documented_cli_commands(_FIXTURE_CLI_DOC)
     # Docs drop a required core command.
-    failures = compute_cli_doc_drift(top, task_subs, doc_top - {"claim"}, doc_task)
-    assert failures == ["docs/CLI.md missing required command section: `wea claim`"]
+    failures = compute_cli_doc_drift(top, task_subs, doc_top - {"submit"}, doc_task)
+    assert failures == ["docs/CLI.md missing required command section: `wea submit`"]
 
 
 def test_compute_cli_doc_drift_flags_omitted_required_task_subcommand() -> None:
@@ -185,10 +183,10 @@ def test_find_cli_doc_drift_flags_removed_command(tmp_path: Path) -> None:
 
 
 def test_find_cli_doc_drift_flags_omitted_required_command(tmp_path: Path) -> None:
-    trimmed = _FIXTURE_CLI_DOC.replace("#### `wea claim ISSUE`\n", "")
+    trimmed = _FIXTURE_CLI_DOC.replace("#### `wea submit ISSUE --file PATH`\n", "")
     _write_cli_repo(tmp_path, trimmed)
     failures = find_cli_doc_drift(tmp_path)
-    assert any("wea claim" in failure for failure in failures)
+    assert any("wea submit" in failure for failure in failures)
 
 
 def test_find_cli_doc_drift_reports_missing_source(tmp_path: Path) -> None:

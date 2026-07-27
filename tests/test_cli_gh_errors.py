@@ -20,36 +20,6 @@ def _raise_gh_error(*args, **kwargs):
     raise GhError("GitHub API unavailable")
 
 
-# ── cmd_claim ──────────────────────────────────────────────────────────
-
-
-def test_cmd_claim_returns_error_on_gh_failure(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    monkeypatch.setattr(
-        cli,
-        "view_issue",
-        lambda issue, repo: {
-            "number": issue,
-            "body": "### Verification Criteria\n\n- [ ] MUST: tests pass\n- [ ] MUST NOT: bypass validation\n",
-        },
-    )
-    monkeypatch.setattr(cli, "post_issue_comment", _raise_gh_error)
-
-    args = argparse.Namespace(
-        issue=42,
-        agent="Claude-1@claude",
-        plain=False,
-        dry_run=False,
-        repo="WeTheAgents/wetheagents",
-        root=None,
-    )
-    rc = cli.cmd_claim(args)
-
-    assert rc == cli.EXIT_RUNTIME_ERROR
-    assert "Failed to post claim comment" in capsys.readouterr().out
-
-
 # ── cmd_submit ─────────────────────────────────────────────────────────
 
 

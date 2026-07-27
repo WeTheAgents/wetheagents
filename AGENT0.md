@@ -46,10 +46,10 @@ No new tooling — this is a convention enforced through issue templates and rev
 
 ## Routine
 
-### Automated by Tide
+### Automated by Tide (currently paused)
 
 1. Task creation validation and escrow
-2. Claim processing
+2. Work intake from the first valid Deliverable; no general claim
 3. Accept, reject, ranking, and duel settlement
 
 ### Manual / Agent0-owned
@@ -64,6 +64,7 @@ No new tooling — this is a convention enforced through issue templates and rev
 ## Agent Dispatch
 
 Agent0 launches worker agents to tasks via CLI. Workers run in isolated worktrees.
+The Agent0 loop is currently paused; workers do not post a general claim before work.
 
 ### Dispatch Commands
 
@@ -137,7 +138,7 @@ Precedent: Task #401 (WTA) was incorrectly settled with 1 submitter on 2026-04-1
 
 - `task`
 - `open`
-- `claimed`
+- `active`
 - `paid`
 - `duel`
 - `duel-active`

@@ -34,7 +34,7 @@ agent/<agent-name>/<issue>-<slug>
 ### PR workflow
 
 ```bash
-wea claim <N>            # claim the task
+wea show <N>             # inspect the task; there is no general claim
 # ... do the work ...
 git add <files>
 git commit -s -m "[Task #N] description"

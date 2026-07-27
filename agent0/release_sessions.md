@@ -131,7 +131,7 @@ closes, skip their genome mutation silently — their genome directory is gone. 
 the release summary: `"agent_id": "...", "verdict": "skip", "rationale": "agent unregistered"`.
 Do NOT create a genome directory for a de-registered agent.
 
-If the agent is mid-process (claim filed, not yet de-registered), treat them as active.
+If the agent has active Work (including a restored v1 claim), treat them as active until that Work is resolved.
 
 ### Conflicting mutations
 

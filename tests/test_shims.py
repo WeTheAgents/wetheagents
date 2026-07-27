@@ -404,7 +404,7 @@ def test_create_shim_dir_creates_files(tmp_path: Path) -> None:
     assert shim_dir.name == ".shims"
     assert shim_dir.parent == run_dir
 
-    for binary in ("git", "gh", "wea"):
+    for binary in ("git", "gh"):
         py_file = shim_dir / f"{binary}.py"
         assert py_file.exists(), f"Missing shim: {py_file}"
         content = py_file.read_text(encoding="utf-8")
@@ -461,36 +461,3 @@ def test_gh_pr_merge_emits_pr_merged(tmp_path: Path, setup: dict) -> None:
     caps = _read_captures(capture_file)
     assert len(caps) == 1
     assert caps[0]["payload"] == {"milestone": "pr_merged"}
-
-
-# ---------------------------------------------------------------------------
-# Test 12: wea claim → task_claimed milestone
-# ---------------------------------------------------------------------------
-
-
-def test_wea_claim_emits_task_claimed(tmp_path: Path, setup: dict) -> None:
-    """Shim emits 'task_claimed' for 'wea claim <issue>'."""
-    run_dir = setup["run_dir"]
-    shim_dir = setup["shim_dir"]
-    fake_bin_dir = setup["fake_bin_dir"]
-    capture_file = setup["capture_file"]
-
-    # The wea shim invokes the "real" wea which is our capture wea.
-    # We need a second fake wea that acts as the real binary AND captures
-    # the trace emit call.  The shim_dir already has wea.py — that's the shim.
-    # The fake_bin_dir's wea is the capture one (already written by _write_fake_wea).
-    _write_fake_wea(fake_bin_dir, capture_file)
-
-    result = _run_shim(
-        shim_dir, fake_bin_dir, "wea", ["claim", "42"],
-        run_dir=run_dir,
-    )
-
-    assert result.returncode == 0
-    caps = _read_captures(capture_file)
-    # There will be 2 records: one from the real wea claim (which is our fake wea
-    # that just exits 0 for non-trace-emit invocations), and one from the trace emit.
-    # The trace emit record is the one with event_type == "milestone".
-    milestone_caps = [c for c in caps if c.get("event_type") == "milestone"]
-    assert len(milestone_caps) == 1
-    assert milestone_caps[0]["payload"] == {"milestone": "task_claimed"}

@@ -20,9 +20,9 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 ## Полномочия и границы
 
-- Оператор одобрил продолжение в этом чате и реализацию блока 2 после локальной интеграции блока 1. `[CHAT]`
-- Блок 1 локально объединён в `codex/wea-vnext-integration`; блок 2 выполнен в отдельном worktree и ветке `codex/wea-vnext-block2-identity-hello-world`. Повторный `git fetch origin` не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации; cached `origin/main` оставался `940c230`. `[CHAT][CHECK]`
-- `scripts/tide.py`, рабочий ledger, GitHub Issues, labels, workflows и код v1 не менялись. Теневой вывод разрешён только в `.wea_runs/vnext-shadow/`. `[CHECK]`
+- Оператор одобрил продолжение в этом чате, реализацию блока 2, очистку устаревших baseline-тестов и досрочное удаление общего claim после остановки проекта. `[CHAT]`
+- Блоки 1–2 и test-hygiene локально объединены в `codex/wea-vnext-integration`. Повторный `git fetch origin` не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации; cached `origin/main` оставался `940c230`. `[CHAT][CHECK]`
+- Проект на паузе: scheduled v1 Tide и auto-triage writers удалены, Agent0 loop не работает. Публичный общий `wea claim`, `--force`, milestone shim, GitHub `claim-fast` writer и действующие инструкции удалены; после будущего restart первая валидная Deliverable создаст Work, а Duel join останется отдельным путём. Исторические claim-аудиты и ledger history сохранены read-only. Рабочий ledger, GitHub Issues и labels не менялись. Теневой вывод разрешён только в `.wea_runs/vnext-shadow/`. `[CHAT][CHECK]`
 - Миграция, bootstrap, отключение v1 и публикация vNext не выполнялись. `[CHAT][CHECK]`
 
 ## Реализованный контракт блока 1
@@ -50,9 +50,9 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Установленный пакет | `tests/vnext/test_packaging.py` и отдельный wheel smoke | PASS: ruleset и manifest присутствуют; старая тройка воспроизводится из установленного wheel |
 | Импорт и байткод | `python -m compileall -q src/wea_vnext`; `python -m pytest tests/test_import_paths.py -q` | PASS; `2 passed` |
 | Экономика v1 | `python scripts/check_invariant.py` | PASS: balances `19025`, escrow `0`, прежний mint `9025` |
-| Полный suite ветки | `PYTHONPATH=src python -m pytest -q --tb=no --ignore=tests/test_check_task_escrow_sync.py` | `4426 passed`, `28 failed`, `18 skipped`, `2 xfailed`; 16 Hello World happy-path тестов сохранены, но ждут frozen Issue #1 evidence, а набор 28 имён падений не изменился и целиком присутствует в чистом baseline |
-| Чистый baseline | та же команда и `PYTHONPATH` в отдельном detached `worktree` на `origin/main` `940c230` | `4271 passed`, `29 failed`, `2 xfailed`; дополнительный baseline-only сбой — heartbeat CLI |
-| Известный collection blocker | полный `python -m pytest -q` | pre-existing: `tests/test_check_task_escrow_sync.py` импортирует отсутствующий `run_checks`; оба файла совпадают с `origin/main` |
+| Полный suite ветки | `PYTHONPATH=src python -m pytest -q --tb=short` | PASS: `4439 passed`, `18 skipped`, `11 xfailed`; прежние 28 baseline failures разобраны как устаревшие или явно изолированные debt-контракты |
+| Claim/lifecycle/Tide/docs/start | затронутый focused pytest lane | PASS: `126 passed`; общий claim отклоняется, публичная команда и scheduled writers отсутствуют, исторический claim не скрывает open work, Duel-путь сохранён |
+| Test hygiene | полный baseline contract review | Устаревшие тесты обновлены под принятое поведение; восемь strict-xfail `v1_known_debt`, два strict-xfail `v1_reconciliation` и один фактический ledger orphan остаются явным долгом. Ложный xfail исправленного submit exploit превращён в обычную зелёную регрессию |
 | Ledger и diff | `python scripts/check_invariant.py`; `git diff --check` | PASS |
 | Граф кода | повторная moderate-индексация `codebase_memory` текущего worktree | 17126 узлов, 54368 связей в отфильтрованном repository graph; Identity, Hello World, migration и verifier входят в versioned closure |
 
@@ -122,25 +122,32 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 Следующий review воспроизвёл создание самосогласованного подставного Contract с `issue_number = 1` и произвольным `issue_id`, который доходил до mint intent. Executor `v0_6_1` теперь fail closed: пока evidence-gate открыт, в нём отсутствуют permanent Issue ID и hash одобренного vNext body, поэтому ни один системный Contract не активируется. После аутентифицированного snapshot эти два значения должны войти в новую immutable executor closure; попытка другого Issue или body будет отклонена. `[REVIEW][CHECK]`
 
+Финальный adversarial review интеграции 2026-07-27 отменил прежний вывод о полной fail-closed защите Block 2. Воспроизведено: экспортированный `SystemHelloWorldContract.__post_init__.__globals__` позволяет изменить `_CANONICAL_HELLO_WORLD` и создать attacker-selected Contract при исходном sentinel `None`. Это показывает, что manifest verification защищает bytes/loading, но не является security boundary против произвольного Python-кода в том же процессе. До явного решения trust model либо process-isolated execution это блокирующий пробел. `[REVIEW][CHECK]`
+
+Тот же review подтвердил два evidence-пробела будущего mint path: Agent0 decision и submission строятся из caller-полей, а `ControlDisclosure.confirm` не доказывает существование публичной revision внутри принятой GitHub boundary. Пока canonical snapshot отсутствует, штатный mint остаётся закрыт, но Block 2 нельзя закрыть или публиковать как готовый до derivation этих записей из принятых `GitHubEvent` и глобальной одноразовости evidence IDs. `[REVIEW][CHECK]`
+
+Операционные замечания review исправлены: удалены scheduled Tide/auto-triage и `claim-fast` writers, активные docs теперь явно называют task lifecycle paused, а `wea start` больше не скрывает open Work из-за исторического общего claim. Hard-pinned facades разных executor versions не признаны отдельным дефектом: они не объединяются в один Contract transition, а runtime selection остаётся обязанностью manifest store; это ограничение продолжает проверяться до появления live adapter. `[REVIEW][CHECK]`
+
 ## Self-roast и lean cut
 
 - Фактическая поверхность — 20 product-файлов, из них 18 Python-файлов с 2656 непустыми строками, против защищённой оценки 800–1000. Превышение верхней оценки на 1656 строк вызвало повторный cut-pass; дополнительный объём после него — platform containment и изоляция verifier-owned module namespace. `[CHECK]`
 - Новых зависимостей нет: executor использует только стандартную библиотеку, а `semantic_dependencies` пуст. `[CHECK]`
 - Безопасно удалить отдельные модули canonical, rules, events, model, transition, money, deadlines, declarations, identity или projection нельзя: каждый прямо назван смысловой замкнутостью design 0.7 и входит в manifest. Общий replay и сериализация перенесены внутрь executor; root `store.py` оставлен транспортным. `[DERIVED][REVIEW]`
-- Параллельная реализация не добавлена: live v1 остаётся единственной рабочей системой, а vNext не имеет GitHub или ledger adapter. `[CHECK]`
+- Параллельная live-реализация не добавлена: v1 Tide/Agent0 loop остановлены оператором, а vNext по-прежнему не имеет GitHub или ledger adapter. `[CHAT][CHECK]`
 - Увеличение объёма принято как цена fail-closed manifest boundary, рекурсивной неизменяемости, boundaries по immutable repository ID, настоящего wheel/upgrade proof и platform-specific атомарного anchoring shadow writer; дальнейшее сокращение ослабило бы проверенный контракт. `[DERIVED][REVIEW]`
+- Lean cut общего claim выполнен в порядке delete/reuse: удалены 430 строк CLI/preflight/fast-writer/workflow surface, а обычный Work intake использует уже принятый Deliverable contract. Исторические ledger readers не удалены, потому что они нужны для migration evidence; Duel routing не объединён с общим Work, потому что это отдельный защищённый профиль. Новых зависимостей и будущей универсализации не добавлено. После cut повторно прошли `126` затронутых тестов, полный suite, doc-sync и invariant. `[CHECK][REVIEW]`
 
 ## Границы изменений
 
-Намеренный код находится в `src/wea_vnext/`, тесты — в `tests/vnext/`, package-data — в `pyproject.toml`, а обновлённый handoff и доказательства — в активном `oled/changes/wea-vnext-recreation/`. Рабочий Tide, ledger и GitHub-поверхности отсутствуют в stage set. `[CHECK]`
+Код блоков 1–2 находится в `src/wea_vnext/`, тесты — в `tests/vnext/`, package-data — в `pyproject.toml`, а обновлённый handoff и доказательства — в активном `oled/changes/wea-vnext-recreation/`. Дополнительная legacy-дельта удаляет только общий claim и приводит активные инструкции и тестовые контракты к уже принятой модели Work; Duel-путь сохранён. Ledger и GitHub-поверхности отсутствуют в stage set. `[CHECK]`
 
 ## Ограничения
 
 - Кодовая часть блока 2 не означает выполненную миграцию: обязательные snapshot Issue #1 и factual reconciliation ещё отсутствуют. Блоки 3–9 не реализованы. `[CHECK][REVIEW]`
-- Все 28 текущих падений общего suite и отдельный collection blocker существуют на чистом `origin/main`; чистый baseline имеет дополнительный heartbeat CLI-сбой. Они не вызваны блоком 1 и не исправлялись вне scope. `[CHECK]`
+- Одиннадцать xfail остаются намеренно видимым legacy-долгом: восемь strict `v1_known_debt`, два strict `v1_reconciliation` и один фактический orphan `escrow_return|22|cursor-3@cursor`. Их не маскировали изменениями production-логики. `[CHECK]`
 - OD-11 и OD-14 нужны перед соответствующими внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
 - OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. `[DOC][DERIVED]`
 
 ## Решение
 
-`Block 2 open — external evidence required`: внутренний Identity/Hello World runtime реализован и проверяется, но переход к блоку 3 запрещён до полного snapshot Issue #1 и factual reconciliation. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`
+`Not ready — Block 2 open`: помимо полного snapshot Issue #1 и factual reconciliation требуются явный in-process trust model либо process-isolated semantic boundary, а decision/submission/disclosure должны выводиться из подтверждённых GitHub events. Переход к блоку 3 и merge интеграции в `main` запрещены до закрытия этих пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`

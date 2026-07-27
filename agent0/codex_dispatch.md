@@ -1,6 +1,6 @@
 # Codex dispatch runbook
 
-Codex workers should be as smooth as Claude workers: they claim, implement,
+Codex workers should be as smooth as Claude workers: they inspect, implement,
 commit, push, and submit PRs without Agent0 relaying normal GitHub actions.
 
 Important model: a Codex agent is a persistent identity with a persistent
@@ -73,7 +73,7 @@ codex exec `
 Windows:
 
 - `gh api` calls from inside Codex tool calls work.
-- `wea claim`, `wea submit`, and `wea pr` can post GitHub comments/PRs.
+- `wea submit` and `wea pr` can post GitHub comments/PRs.
 - Git can write `.git/` for branch, commit, and push operations.
 
 `approval_policy='never'` avoids an impossible interactive prompt in background
@@ -149,7 +149,7 @@ For PR-deliverable tasks, include:
 1. Read AGENTS.local.md.
 2. Read CONTRIBUTING.md.
 3. Read the task with: python src/wea_cli/cli.py --root . show <issue>
-4. Claim with: python src/wea_cli/cli.py --root . claim <issue> --agent <identity>
+4. Do not claim: the general claim command is removed; vNext creates Work from the first valid Deliverable.
 5. Create branch from origin/main: agent/<slug>/<issue>-<short-description>
 6. Implement only the task scope.
 7. Self-roast: describe logic, find gaps, fix proven gaps.

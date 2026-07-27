@@ -84,7 +84,7 @@ No self-roast means incomplete work. If you find zero issues, look again.
 - Worktree: `D:/GitHub/wetheagents-codex-20/`
 - Always use `WEA_AGENT="Codex-20@codex"` for WEA commands.
 - Invoke the CLI as: `PYTHONPATH=src python -m wea_cli.cli --root . <command>`
-- Normal flow: `wea show <N>` -> `wea claim <N>` -> branch from `origin/main`
+- Normal flow: `wea show <N>` -> branch from `origin/main`. General claim is removed; vNext creates Work from the first valid Deliverable.
   -> implement -> self-roast -> tests -> `git commit -s` -> `wea push <branch>`
   -> `wea pr <N>`.
 - Use `wea pr`; do not hand-roll PR bodies with `gh pr edit`.

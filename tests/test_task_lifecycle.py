@@ -158,16 +158,12 @@ def _assert_standard_escrowed(proc: TideProcessor) -> None:
     assert proc.count == 0
 
 
-def _assert_standard_claimed(proc: TideProcessor) -> None:
+def _assert_standard_claim_rejected(proc: TideProcessor) -> None:
     _assert_balances(proc, alice=80, bob=50, carol=30)
     assert proc.escrows["active"]["101"]["amount"] == 20
-    _assert_idem_keys(
-        proc,
-        raw={"escrow|101|alice@x", "claim|101|bob@y"},
-        hashed=set(),
-    )
+    _assert_idem_keys(proc, raw={"escrow|101|alice@x"}, hashed=set())
     _assert_task_status(proc, 101, status="open", mechanic="standard")
-    assert proc.count == 1
+    assert proc.count == 0
 
 
 def _assert_standard_paid(proc: TideProcessor) -> None:
@@ -175,11 +171,11 @@ def _assert_standard_paid(proc: TideProcessor) -> None:
     assert "101" not in proc.escrows["active"]
     _assert_idem_keys(
         proc,
-        raw={"escrow|101|alice@x", "claim|101|bob@y"},
+        raw={"escrow|101|alice@x"},
         hashed={"payment|101|bob@y"},
     )
     _assert_task_status(proc, 101, status="paid", mechanic="standard")
-    assert proc.count == 2
+    assert proc.count == 1
 
 
 def _run_standard_lifecycle(stop_after: str) -> TideProcessor:
@@ -195,9 +191,9 @@ def _run_standard_lifecycle(stop_after: str) -> TideProcessor:
         author_github="bob-gh",
         created_at="2026-04-01T10:05:00Z",
     )
-    assert proc.process(claim) is True
-    _assert_standard_claimed(proc)
-    if stop_after == "claim":
+    assert proc.process(claim) is False
+    _assert_standard_claim_rejected(proc)
+    if stop_after == "claim_rejected":
         return proc
 
     accept = _ev(
@@ -241,28 +237,12 @@ def _assert_every_good_created(proc: TideProcessor) -> None:
     assert proc.count == 1
 
 
-def _assert_every_good_claimed(proc: TideProcessor) -> None:
+def _assert_every_good_claims_rejected(proc: TideProcessor) -> None:
     _assert_balances(proc, alice=90, bob=50, carol=30)
     assert proc.escrows["active"]["202"]["amount"] == 10
-    _assert_idem_keys(
-        proc,
-        raw={"escrow|202|alice@x", "claim|202|bob@y", "claim|202|carol@z"},
-        hashed=set(),
-    )
+    _assert_idem_keys(proc, raw={"escrow|202|alice@x"}, hashed=set())
     _assert_task_status(proc, 202, status="open", mechanic="every_good", accepted_agents=[])
-    assert proc.count == 3
-
-
-def _assert_every_good_first_claim(proc: TideProcessor) -> None:
-    _assert_balances(proc, alice=90, bob=50, carol=30)
-    assert proc.escrows["active"]["202"]["amount"] == 10
-    _assert_idem_keys(
-        proc,
-        raw={"escrow|202|alice@x", "claim|202|bob@y"},
-        hashed=set(),
-    )
-    _assert_task_status(proc, 202, status="open", mechanic="every_good", accepted_agents=[])
-    assert proc.count == 2
+    assert proc.count == 1
 
 
 def _assert_every_good_first_payment(proc: TideProcessor) -> None:
@@ -277,11 +257,11 @@ def _assert_every_good_first_payment(proc: TideProcessor) -> None:
     }
     _assert_idem_keys(
         proc,
-        raw={"escrow|202|alice@x", "claim|202|bob@y", "claim|202|carol@z"},
+        raw={"escrow|202|alice@x"},
         hashed={"payment|202|bob@y"},
     )
     _assert_task_status(proc, 202, status="open", mechanic="every_good", accepted_agents=["bob@y"])
-    assert proc.count == 4
+    assert proc.count == 2
 
 
 def _assert_every_good_paid(proc: TideProcessor) -> None:
@@ -289,7 +269,7 @@ def _assert_every_good_paid(proc: TideProcessor) -> None:
     assert "202" not in proc.escrows["active"]
     _assert_idem_keys(
         proc,
-        raw={"escrow|202|alice@x", "claim|202|bob@y", "claim|202|carol@z"},
+        raw={"escrow|202|alice@x"},
         hashed={"payment|202|bob@y", "payment|202|carol@z"},
     )
     _assert_task_status(
@@ -299,7 +279,7 @@ def _assert_every_good_paid(proc: TideProcessor) -> None:
         mechanic="every_good",
         accepted_agents=["bob@y", "carol@z"],
     )
-    assert proc.count == 5
+    assert proc.count == 3
 
 
 def _run_every_good_lifecycle(stop_after: str) -> TideProcessor:
@@ -336,11 +316,10 @@ def _run_every_good_lifecycle(stop_after: str) -> TideProcessor:
         created_at="2026-04-01T11:06:00Z",
         comment_id=101,
     )
-    assert proc.process(bob_claim) is True
-    _assert_every_good_first_claim(proc)
-    assert proc.process(carol_claim) is True
-    _assert_every_good_claimed(proc)
-    if stop_after == "claims":
+    assert proc.process(bob_claim) is False
+    assert proc.process(carol_claim) is False
+    _assert_every_good_claims_rejected(proc)
+    if stop_after == "claims_rejected":
         return proc
 
     first_accept = _ev(
@@ -369,11 +348,17 @@ def _run_every_good_lifecycle(stop_after: str) -> TideProcessor:
     return proc
 
 
-@pytest.mark.parametrize("stop_after", ["escrow", "claim", "accept", "replay"], ids=str)
+@pytest.mark.parametrize(
+    "stop_after", ["escrow", "claim_rejected", "accept", "replay"], ids=str
+)
 def test_standard_task_lifecycle(stop_after: str) -> None:
     _run_standard_lifecycle(stop_after)
 
 
-@pytest.mark.parametrize("stop_after", ["create", "claims", "first_accept", "second_accept"], ids=str)
+@pytest.mark.parametrize(
+    "stop_after",
+    ["create", "claims_rejected", "first_accept", "second_accept"],
+    ids=str,
+)
 def test_every_good_task_lifecycle(stop_after: str) -> None:
     _run_every_good_lifecycle(stop_after)

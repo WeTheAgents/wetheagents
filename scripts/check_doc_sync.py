@@ -54,7 +54,7 @@ CLI_DOC_REL = "docs/CLI.md"
 # Top-level commands docs/CLI.md must always document. Intentionally a small,
 # stable core — the agent task lifecycle. Growing this set is a deliberate act.
 REQUIRED_DOCUMENTED_COMMANDS = frozenset(
-    {"tasks", "claim", "submit", "pr", "accept", "balance", "show"}
+    {"tasks", "submit", "pr", "accept", "balance", "show"}
 )
 
 # `wea task` subcommands docs/CLI.md must document (the nested-command sample).
