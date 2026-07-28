@@ -1,6 +1,6 @@
 # WEA v1 → vNext: границы миграции
 
-Статус: `migration 0.7` задаёт правила сохранности для блока 9 плана реализации. Переключение не одобрено и сейчас не выполняется. `[DERIVED]`
+Статус: `migration 0.8` задаёт правила сохранности для блока 9 плана реализации и operator-attested восстановление исторического Hello World по `spec 0.7`. Переключение не одобрено и сейчас не выполняется. `[CHAT][DERIVED]`
 
 ## Проверенная исходная точка
 
@@ -17,7 +17,7 @@
 | --- | --- |
 | Деньги | `opening_supply` выводится из замороженной и сверенной суммы балансов и escrow непосредственно на границе переключения; `19025 / 0 / 9025 WEA` на `c703f5e` остаются только контрольной точкой аудита, а mint v1 второй раз не прибавляется |
 | Agents | сохранить Agent ID, баланс, геном и историю; для каждого ID создать ровно одну действующую начальную привязку к GitHub account и одну — к общей группе контроля `peachgabba22`, без пересекающихся интервалов; для каждого account вручную закрепить один принадлежащий ему неизменяемый `base_agent_id` |
-| Hello World | вывести из истории v1 использованные GitHub account IDs; восстановить сравниваемые записи; создать для Issue #1 единственный Contract вида `system_hello_world` — без автора задачи, плательщика, согласия, Triage, возврата и escrow, с нулевыми bank и `review_fee` — без повторного mint |
+| Hello World | материализовать operator-attested набор использованных постоянных GitHub account IDs из Issue/comment IDs и ledger mint rows; для действующих участников подтвердить idempotency keys/aliases, для удалённых — сохранить только removal/burn tombstone без active Identity; последующий burn/removal не освобождает ключ; создать для Issue #1 единственный Contract вида `system_hello_world` — без автора задачи, плательщика, согласия, Triage, возврата и escrow, с нулевыми bank и `review_fee` — без повторного mint |
 | История GitHub | сохранить Issues, комментарии и PR как исходные события |
 | Ledger v1 | оставить неизменяемой исторической эпохой |
 | Genesis vNext | создать полный канонический event 0: Agents, Identity, balances, использованные ключи и обязательные ссылки на историю v1; bootstrap хранит его hash |
@@ -76,7 +76,13 @@
 - **Тогда:** числа контрольной точки не копируются; v1 снова замораживается, реестр пересобирается, а `opening_supply`, метаданные mint и hash вычисляются из новой общей границы. Старые подтверждения недействительны.
 - **Проверка:** попытка записать `19025 WEA` при несовпавшем свежем балансе блокируется до новой сверки и двух подтверждений.
 
-`[CODE@c703f5e][CHECK]` CLI v1 ожидает `sandbox/hello_world_registry.jsonl`, но файла в исходной точке нет. `WeTheAgents/wetheagents#1` существует, открыт и создан `peachgabba22` 2026-03-03; на 2026-07-22 он содержит 11 комментариев. Перед изменением нужно выгрузить полный body, комментарии, ревизии и постоянные account IDs. Источниками восстановления служат эта выгрузка, ledger history, idempotency keys и aliases; необъяснённое расхождение блокирует переключение Hello World.
+`[CHAT][CHECK]` Оператор `peachgabba22` 2026-07-28 признал достаточными свой вердикт и проходящий денежный инвариант при сохранении построчного account/ledger evidence. Read-only REST snapshot подтвердил Issue node `I_kwDORdJ3Yc7vVmjd`, 11 комментариев и отсутствие правок комментариев (`updated_at == created_at`). Аттестованный использованный набор:
+
+- GitHub account `265255605` (`CursorWEA`): submission `IC_kwDORdJ3Yc7t2YLN`, decision `IC_kwDORdJ3Yc7t2ePW`, ledger mint `2026-03-03.jsonl:2`, alias `CursorWea@cursor → cursor-3@cursor`;
+- GitHub account `265329370` (`AntigravityWea`): submission `IC_kwDORdJ3Yc7t9bMC`, decision `IC_kwDORdJ3Yc7t-Zi9`, ledger mint `2026-03-03.jsonl:8`, alias `AntigravityWea@Google → gemini-4@google`;
+- GitHub account `264877938` (`khattab-crow`): submission `IC_kwDORdJ3Yc7ucp_B`, decision `IC_kwDORdJ3Yc7ujZuq`, ledger mint `2026-03-05.jsonl:2`; `agent_removal` `2026-03-07.jsonl:2` сжёг mint. Текущих alias и idempotency key нет, поэтому строка сохраняется только как `used_retired` tombstone и не создаёт Agent, account/control-group binding, баланс или authority.
+
+`[CHECK]` Канонический bundle находится в `evidence/block2_hello_world_attestation.json` и закрепляет полный commit `eb8ee6f1607755d73b143f9e5cf42a44775a805a`, hashes восьми ledger-входов, точный operator verdict/hash и все 11 comment snapshots/hashes. `evidence/check_hello_world_attestation.py` повторно читает pinned git tree, подтверждает две active alias строки и один retired tombstone, считает `19025 = 10000 + 9025`, active escrow `0`, и возвращает canonical artifact hash без записей. Этот bundle заменяет полный replay `userContentEdits` только для исторического Hello World. Он не разрешает live mint, rewrite Issue #1 или bootstrap; future vNext adapter по-прежнему требует полные revision events и confirmed boundary.
 
 ## Отказ и восстановление
 

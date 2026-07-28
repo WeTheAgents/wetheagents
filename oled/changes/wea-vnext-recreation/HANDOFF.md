@@ -1,71 +1,65 @@
-# Agent0 handoff: inactive vNext в main, Block 2 evidence открыт
+# Agent0 handoff: Ready for Block 3
 
-В `main` опубликован проверенный, но неактивный внутренний пакет WEA vNext: Block 1 завершён, внутренняя кодовая часть Block 2 реализована. Block 2 не закрыт — нет аутентифицированного полного snapshot Issue #1 и factual reconciliation с v1 evidence. Block 3, live Tide, ledger/GitHub writes, migration и bootstrap не разрешены. OLED-пакет остаётся активным. `[CHAT][CHECK][REVIEW]`
+Block 1 завершён. Внутренний код Identity/System Hello World Block 2 уже находится в `main` и остаётся неактивным. Оператор `peachgabba22` 2026-07-28 постановил, что для единовременного исторического закрытия Hello World достаточно его явного вердикта и совпадающего общего WEA-инварианта при сохранении точного account/comment/ledger evidence; полный replay всех `userContentEdits` не требуется. Durable evidence реализован, локальные проверки и fresh-context review завершены. Block 2 закрыт; Block 3 ещё не начат. `[CHAT][CHECK][REVIEW]`
 
-Статус Block 1: `Ready for Block 2`. Техническая модель: `design 0.7`; schema `0.7`; план `tasks 1.0`. `[CHECK]`
+Статус Block 2: `Ready for Block 3`. Техническая модель: `design 0.8`; schema `0.8`; план `tasks 1.0`. WEA vNext: `Not live`.
 
-Постоянная карта границы: `docs/VNEXT_BOUNDARY.md`. Если непонятно, где менять логику, сначала использовать её, затем `spec.md` и сценарный ID; исторический Contract всегда replay по сохранённой тройке, а не по «последней» версии executor.
+## Репозиторий и рабочая граница
 
-## Репозиторий и интеграция
+- Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-block2-verdict-2026-07-28`.
+- Branch: `codex/wea-vnext-block2-verdict-2026-07-28`.
+- Текущая base ветки: `32c6851c060348fbfe989d8c1da9cf7db0c79d25` (`origin/main` после финального fetch; новый upstream commit меняет только BTC snapshot).
+- Pinned ledger evidence commit: `eb8ee6f1607755d73b143f9e5cf42a44775a805a`; его восемь входов остаются exact read-only source closure аттестации.
+- GitHub auth переключён на `peachgabba22`; authenticated read Issue #1 и comments проходит.
+- Frozen executors `v0_6_0`, `v0_6_1`, `v0_6_2` не изменены.
+- Ledger и GitHub не изменялись; live adapter, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap отсутствуют.
 
-- Рабочая ветка: `codex/wea-vnext-integration`.
-- Boundary commit: `d79aa42961671e6acc0812a5f06569e7a6d05acd`.
-- Свежий интегрированный `origin/main`: `3d310081f398c2927a46278b472e84dec2a54105`.
-- Merge commit перед финальным handoff: `bb3f40d`.
-- Publish target: commit, содержащий этот handoff; проверить через `git rev-parse origin/main` после fetch.
-- Другой локальный worktree с checkout `main` содержит пользовательские незакоммиченные файлы и намеренно не изменялся. Remote `main` — источник истины для продолжения. `[CHECK]`
+## Что добавлено для исторического gate
 
-## Что находится в main
+- `evidence/block2_hello_world_attestation.json` — exact operator verdict/hash, permanent Issue/account/comment IDs, current Issue body hash, все 11 comment body hashes, pinned source commit и hashes восьми ledger-входов, точные mint/burn rows, invariant и нулевые effects.
+- `evidence/check_hello_world_attestation.py` — read-only standard-library validator. Он читает только pinned git tree, отклоняет duplicate JSON keys и unsafe/missing evidence, повторно считает invariant и печатает canonical artifact SHA-256.
+- `tests/vnext/test_hello_world_attestation.py` — 25 non-skipped regressions: canonical pass/no ledger effects, strict schema version type, missing/rehashed verdict, altered-and-rehashed exact Issue/comment body bytes and IDs, closed object schemas, exact source manifest и Hello World idem keys, invariant mismatch и запрет любых active-authority полей retired tombstone.
 
-- Immutable executors `v0_6_0`, `v0_6_1` и security successor `v0_6_2`; старые executor closures при boundary-hardening не менялись.
-- Manifest-verified replay, deterministic state transition, shadow-only storage и реестр всех 55 BDD-сценариев Block 1.
-- Versioned Identity, common-control disclosure, fail-closed System Hello World и pure v1 migration plan внутренней части Block 2.
-- `installed_executor(version)` без default и с canonical dotted-semver validation. Исторические тесты явно называют `0.6.0`; candidate facades declarations/identity/Hello World/migration/projection используют одну closure `0.6.2`.
-- PR guard `.github/workflows/guard-vnext-boundary.yml` запускает narrow boundary tripwire на disposable `windows-latest` runner.
-- Legacy baseline-тесты пересмотрены: устаревшие контракты удалены или переписаны под принятую pause/no-general-claim семантику; production code не утяжелялся ради старых ожиданий.
+## Исторический результат
 
-## Точная граница v1 / vNext
+- GitHub account `265255605` (`CursorWEA`) — active alias `CursorWea@cursor → cursor-3@cursor`, mint `ledger/history/2026-03-03.jsonl:2`, submission `IC_kwDORdJ3Yc7t2YLN`, decision `IC_kwDORdJ3Yc7t2ePW`.
+- GitHub account `265329370` (`AntigravityWea`) — active alias `AntigravityWea@Google → gemini-4@google`, mint `ledger/history/2026-03-03.jsonl:8`, submission `IC_kwDORdJ3Yc7t9bMC`, decision `IC_kwDORdJ3Yc7t-Zi9`.
+- GitHub account `264877938` (`khattab-crow`) — mint `ledger/history/2026-03-05.jsonl:2`, submission `IC_kwDORdJ3Yc7ucp_B`, decision `IC_kwDORdJ3Yc7ujZuq`, removal/burn `ledger/history/2026-03-07.jsonl:2`. Это только `used_retired` mint tombstone: alias, Agent/account/control-group binding, баланс и authority не создаются.
+- Canonical artifact SHA-256 текущего bundle: `9c046e0fc1951e7d1c114dc91f8d5217ef2b91e4aec3b4c6bc67f448e776e323` (sorted-key compact UTF-8 JSON, `ensure_ascii=false`).
+- WEA invariant: balances `19025` + active escrow `0` = base `10000` + trajectory mint `9025`.
 
-- Наличие `src/wea_vnext/` в `main` не активирует vNext. `scripts/tide_vnext.py`, `ledger/vnext/` и vNext epoch отсутствуют.
-- Scheduled v1 Tide, Agent0 loop, auto-triage и claim-fast остановлены/удалены. Однако прямые legacy CLI и maintenance writers ещё вызываемы: текущая пауза операторская, не общий code-enforced epoch guard. Не запускать эти mutation paths.
-- Общий claim удалён; после будущего restart первая валидная Deliverable создаёт Work. Duel join остаётся отдельной механикой.
-- Автор будущего Final пишет выбор обычным текстом; только формальная декларация Agent0 меняет protocol state. Legacy `accept`/`ranking`/transform syntax не является активной vNext-инструкцией.
-- Boundary tripwire ловит literal vNext references в CLI/scripts/workflows/package entry points и отсутствие известных adapter/namespace. Он не доказывает отсутствие dynamic/renamed writer. Полный writer inventory и behavioral no-write proof остаются обязательным Block 9 activation gate.
+## Свежие локальные проверки
 
-## Свежие проверки после integration
+- Attestation validator: PASS, 3 mint uses / 1 retired tombstone / `19025 = 19025`.
+- Attestation tests: `25 passed`, `0 skipped`.
+- Full vNext: `193 passed`, `18 skipped`.
+- Runtime boundary: `9 passed`.
+- Full repository suite with `PYTHONPATH=src`: `4478 passed`, `18 skipped`, `11 xfailed`.
+- Ledger invariant, ledger schema, doc sync, Ruff, compileall, diff check: PASS.
+- Pyright validator: `0 errors`, `0 warnings`.
+- Initial fresh-context review found three blockers, the first follow-up found five adversarial pinning/schema gaps, and the next pass found three strictness/test/hash gaps. All eleven were fixed. The final fresh-context review found only stale test counts; after their refresh the package is clean.
 
-- Полный suite: `4453 passed, 18 skipped, 11 xfailed`.
-- `tests/vnext`: `168 passed, 18 skipped`.
-- Boundary regression: `9 passed`.
-- Ruff: PASS.
-- Pyright `src/wea_vnext`: `0 errors, 0 warnings`.
-- Compileall: PASS.
-- Ledger invariant: PASS, `19025 = 10000 + 9025`; active escrow `0`.
-- Ledger schema и doc sync: PASS.
-- Frozen executors: `git diff --exit-code a22edf2 -- src/wea_vnext/executors` — PASS.
-- HTML manifest и внутренние ссылки пересобраны и проверены.
-- Последняя независимая fresh-context boundary проверка: `[]`. `[CHECK][REVIEW]`
+## Protected boundary
 
-## Следующий обязательный шаг: завершить Block 2
+- Historical operator attestation is not a fallback for live vNext.
+- Future Hello World submission, Agent0 decision and common-control disclosure still come only from accepted `GitHubEvent` revisions inside a confirmed complete boundary.
+- `v0_6_2` remains permanently fail closed for System Hello World. A future immutable executor is required before activation.
+- No ledger write, GitHub write, mint, balance correction, Issue rewrite, migration, bootstrap or live connection is authorized by this handoff.
+- OD-11, OD-14, OD-28 and OD-29 remain open at their existing later gates.
 
-1. Получить аутентифицированный полный read-only snapshot GitHub Issue #1: exact body bytes/hash, все страницы `userContentEdits`, все комментарии, постоянные account/comment IDs и revision IDs.
-2. Выводить Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; доказать actor, object/revision identity, exact body, effective time и глобальную одноразовость evidence IDs.
-3. Сопоставить frozen GitHub evidence с v1 ledger history, idempotency keys и aliases; сформировать операторский набор `V1IdentityEvidence` и Hello World mint-use rows.
-4. Повторить независимый review и verification. До закрытия этих пунктов не начинать Block 3 и не добавлять live adapter или writer.
+## Next action
 
-Любое противоречие account → `base_agent_id`, повтор evidence ID, неполная history или неоднозначный mint останавливает Block 2. Read-only capture и pure plan разрешены; записи в ledger/GitHub — нет. OD-11, OD-14, OD-28 и OD-29 остаются открытыми и не закрываются предположением. `[DERIVED][REVIEW]`
-
-## Быстрый повтор gate
+Start Block 3 only in a fresh worktree/branch from current `origin/main`. Its scope is Draft, Triage and atomic ordinary Contract for S-02A/S-02C/S-02H/S-02I; do not modify `v0_6_0…v0_6_2` or add live writers. Re-run the quick gate below before carrying this handoff forward.
 
 ```powershell
 $env:PYTHONPATH='src'
-python -m pytest tests/vnext -q --tb=short
-python -m pytest -q --tb=short
-ruff check src/wea_vnext tests/vnext
-pyright src/wea_vnext
-python -m compileall -q src/wea_vnext
+python oled/changes/wea-vnext-recreation/evidence/check_hello_world_attestation.py
+python -m pytest tests/vnext/test_hello_world_attestation.py -q
+python -m pytest tests/vnext -q
 python scripts/check_invariant.py
 python scripts/check_ledger_schema.py
 python scripts/check_doc_sync.py
+ruff check oled/changes/wea-vnext-recreation/evidence/check_hello_world_attestation.py tests/vnext/test_hello_world_attestation.py src/wea_vnext tests/vnext
+pyright oled/changes/wea-vnext-recreation/evidence/check_hello_world_attestation.py
 git diff --check
 ```
