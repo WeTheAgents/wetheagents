@@ -1,6 +1,6 @@
-# WEA vNext: проверка пакета поведения 0.6
+# WEA vNext: проверка пакета поведения 0.7
 
-Статус блока 1: `Ready for Block 2` (исторический gate пройден). Внутренняя кодовая часть блока 2 реализована. Блок 2 остаётся открытым до полного read-only snapshot Issue #1 и фактической сверки v1 evidence. WEA vNext остаётся `Not live`. Оператор отдельно разрешил объединить неактивный fail-closed пакет в `main` после закрытия boundary debt; это не делает Block 2 готовым и не разрешает live Tide, переключение v1, миграцию или внешние записи. `[CHAT][CHECK][REVIEW]`
+Блоки 1–2 завершены. Block 2 закрывает исторический evidence-gate через операторский verdict, read-only Issue/comment snapshot, pinned ledger evidence, retired tombstone и пересчитанный WEA-инвариант. Полный replay `userContentEdits` не требуется только для этой исторической аттестации; live GitHubEvent boundary не ослаблена. Fresh-context review завершён, пакет имеет статус `Ready for Block 3`. WEA vNext остаётся `Not live`; live Tide, переключение v1, migration/bootstrap и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
 
 Статус свежих команд: `Complete`.
 
@@ -12,14 +12,15 @@ Post-merge-base полный gate: `Complete`.
 
 | Артефакт | Версия | Роль |
 | --- | --- | --- |
-| `outcome.md`, `spec.md` | 0.6 | одобренное поведение |
-| `design.md`, `schema.md`, `delta.md`, `migration.md` | 0.7 | техническая модель и восстановление |
-| `tasks.md` | 1.0 | блок 1 выполнен; код блока 2 выполнен, evidence-gates блока 2 открыты |
+| `outcome.md`, `spec.md` | 0.7 | одобренное поведение и authority исторической аттестации |
+| `design.md`, `schema.md`, `migration.md` | 0.8 | техническая модель, evidence bundle и восстановление |
+| `delta.md` | 0.7 | классификация v1/vNext без изменения этой дельтой |
+| `tasks.md` | 1.0 | блоки 1–2 реализованы и проверены; Block 3 следующий |
 | исполнитель Block 1 | `v0_6_0` | сохранённая неизменяемая смысловая замкнутость и прежняя replay triple |
 | первоначальный исполнитель Block 2 | `v0_6_1` | сохранённая неизменяемая замкнутость Identity и Hello World до security fix |
 | текущий исполнитель Block 2 | `v0_6_2` | security successor без изменяемого canonical Hello World sentinel; навсегда fail closed |
 
-Design 0.7 не меняет 55 сценариев Spec 0.6. Реализация блоков 1–2 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
+Spec 0.7 сохраняет 55 сценариев и уточняет параметризованную ветку S-09: две active alias строки и один retired tombstone без Identity-authority. Реализация блоков 1–2 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
 
 ## Полномочия и границы
 
@@ -50,6 +51,11 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Блоки 1–2 | `python -m pytest tests/vnext -q` | PASS: `159 passed`, `18 skipped` на Windows; два skips — Linux-only rename-race regressions, 16 — сохранённые Hello World сценарии до установки аутентифицированного канонического snapshot |
 | Boundary-hardening | `python -m pytest tests/vnext/test_runtime_boundary.py -q` | PASS: `9 passed`; версия executor обязательна и канонична, пять facades используют объекты одной `v0_6_2` closure, текущие CLI/scripts/package entry points не содержат буквальных ссылок на vNext, кроме выделенного PR guard workflow; live adapter и `ledger/vnext/` отсутствуют |
 | Блоки 1–2 после boundary-hardening | `python -m pytest tests/vnext -q` | PASS: `168 passed`, `18 skipped` |
+| Block 2 attestation bundle | `python oled/changes/wea-vnext-recreation/evidence/check_hello_world_attestation.py` | PASS: canonical artifact SHA-256 `9c046e0fc1951e7d1c114dc91f8d5217ef2b91e4aec3b4c6bc67f448e776e323`; 3 mint uses, 1 retired tombstone; `19025 = 19025`; ledger/GitHub effects `0` |
+| Block 2 non-skipped regressions | `python -m pytest tests/vnext/test_hello_world_attestation.py -q` | PASS: `25 passed`, `0 skipped`; exact schema-version type, exact REST body bytes, altered-and-rehashed Issue/unselected comment bodies, rehashed verdict, closed schemas, manifest/idem completeness, invariant mismatch и retired authority покрыты; ledger tree не меняется |
+| Текущий полный vNext | `python -m pytest tests/vnext -q` | PASS: `193 passed`, `18 skipped`; все 25 evidence-тестов не skipped |
+| Текущий полный repository suite | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4478 passed`, `18 skipped`, `11 xfailed` |
+| Attestation static checks | `ruff check ...`; `pyright evidence/check_hello_world_attestation.py`; `compileall` | PASS: Ruff clean; Pyright `0 errors, 0 warnings`; compileall clean |
 | Полный post-integration suite | `python -m pytest -q --tb=short` после merge `origin/main` `3d310081f398c2927a46278b472e84dec2a54105` | PASS: `4453 passed`, `18 skipped`, `11 xfailed`; failures отсутствуют |
 | Integrity после integration | `check_invariant.py`; `check_ledger_schema.py`; `check_doc_sync.py`; `ruff`; `pyright`; `compileall`; `git diff --check` | PASS; экономика `19025 = 10000 + 9025`, schema/doc sync чисты, типы `0 errors / 0 warnings` |
 | Identity / Hello World | `python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py tests/vnext/test_hello_world_gate.py -q` | PASS: `26 passed`, `16 skipped`; активная регрессия доказывает fail-closed до snapshot; packaging smoke — `1 passed` |
@@ -63,6 +69,14 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Test hygiene | полный baseline contract review | Устаревшие тесты обновлены под принятое поведение; восемь strict-xfail `v1_known_debt`, два strict-xfail `v1_reconciliation` и один фактический ledger orphan остаются явным долгом. Ложный xfail исправленного submit exploit превращён в обычную зелёную регрессию |
 | Ledger и diff | `python scripts/check_invariant.py`; `git diff --check` | PASS |
 | Граф кода | повторная moderate-индексация `codebase_memory` текущего worktree | 17126 узлов, 54368 связей в отфильтрованном repository graph; Identity, Hello World, migration и verifier входят в versioned closure |
+
+## Кандидат закрытия Block 2 от 2026-07-28
+
+Первый fresh-context review новой operator-authority дельты не принял одно только описание. Он потребовал канонический durable bundle, pure validator, non-skipped regressions и отдельную модель удалённого участника. Первый follow-up затем нашёл пять pinning/schema пробелов: self-consistent verdict/hash, незакреплённые Issue/comment поля, открытые retired-поля, произвольный idem key и неполный source manifest. Следующий pass потребовал strict integer schema version, regressions для altered-and-rehashed body bytes и настоящий canonical digest. Реализация добавила exact REST body bytes в base64, external checker constants для canonical section hashes, закрытые schemas каждого объекта, точные восемь source paths и Hello World idem sets, плюс 25 тестов. Bundle закрепляет exact verdict/hash, Issue ID/body bytes/hash, все 11 comment IDs/body bytes/hashes, три account IDs, commit/hashes ledger-входов и точные mint/burn rows. `CursorWEA` и `AntigravityWea` проходят как active aliases; `khattab-crow` проходит только как `used_retired` tombstone и не создаёт Identity-authority. `[CHAT][CHECK][REVIEW]`
+
+Validator читает только pinned git tree `eb8ee6f1607755d73b143f9e5cf42a44775a805a`, проверяет hashes и post-reset state, повторно считает общий WEA-инвариант и объявляет нулевые effects. Первое размещение в `scripts/` было отвергнуто существующим runtime-boundary test; validator перенесён внутрь OLED evidence, поэтому pre-activation CLI/scripts/workflows surface осталась чистой. `[CHECK]`
+
+Финальный fresh-context review подтвердил integrity gates и отсутствие live/executor/ledger дельты; единственное замечание относилось к устаревшим числам тестов в документации. После синхронизации `25 / 193 / 4478` текущий пакет готов к Block 3. `[CHECK][REVIEW]`
 
 ## Независимая проверка и исправления
 
@@ -140,7 +154,7 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 Повторный fresh-context review окончательного `v0_6_2` проверил constructor/globals/raw-allocation paths, все authoritative Hello World entry points, неизменность старых executor, manifest closure, wheel и тесты; findings list пуст. `[REVIEW][CHECK]`
 
-Тот же review подтвердил два evidence-пробела будущего mint path: Agent0 decision и submission строятся из caller-полей, а `ControlDisclosure.confirm` не доказывает существование публичной revision внутри принятой GitHub boundary. Пока canonical snapshot отсутствует, штатный mint остаётся закрыт, но Block 2 нельзя закрыть или публиковать как готовый до derivation этих записей из принятых `GitHubEvent` и глобальной одноразовости evidence IDs. `[REVIEW][CHECK]`
+Тот же review подтвердил два evidence-пробела будущего live mint path: Agent0 decision и submission строятся из caller-полей, а `ControlDisclosure.confirm` не доказывает существование публичной revision внутри принятой GitHub boundary. `v0_6_2` поэтому навсегда остаётся закрыт. Эти пробелы относятся к event-processing блока 4 и live activation; после решения оператора 2026-07-28 они не блокируют отдельную историческую аттестацию v1 через exact verdict, pinned bundle и invariant. `[REVIEW][CHECK][CHAT]`
 
 Операционные замечания review исправлены: удалены scheduled Tide/auto-triage и `claim-fast` writers, активные docs теперь явно называют task lifecycle operator-paused и предупреждают о сохраняющихся direct legacy writers, а `wea start` больше не скрывает open Work из-за исторического общего claim. Pre-live facade ambiguity также закрыта: `installed_executor` требует явную версию, а declarations/Identity/Hello World/migration/projection получают классы одной закреплённой closure. Исторический replay по-прежнему выбирает runtime по сохранённой тройке. `[REVIEW][CHECK]`
 
@@ -160,7 +174,7 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 ## Ограничения
 
-- Кодовая часть блока 2 не означает выполненную миграцию: обязательные snapshot Issue #1 и factual reconciliation ещё отсутствуют. Блоки 3–9 не реализованы. `[CHECK][REVIEW]`
+- Кодовая часть блока 2 и historical attestation не означают выполненную миграцию или live activation. Durable Issue/comment snapshot и factual reconciliation теперь существуют, но будущие live submission/decision/disclosure всё ещё требуют accepted GitHubEvent revisions и confirmed boundary. Блоки 3–9 не реализованы. `[CHECK][REVIEW]`
 - Одиннадцать xfail остаются намеренно видимым legacy-долгом: восемь strict `v1_known_debt`, два strict `v1_reconciliation` и один фактический orphan `escrow_return|22|cursor-3@cursor`. Их не маскировали изменениями production-логики. `[CHECK]`
 - OD-11 и OD-14 нужны перед соответствующими внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
 - OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. `[DOC][DERIVED]`
@@ -171,4 +185,4 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 `Ready — inactive main integration`: независимый boundary review чист, свежий `origin/main` интегрирован без конфликтов, полный post-integration suite и integrity gates прошли. В `main` публикуется только неактивный внутренний пакет; live adapter, `ledger/vnext/`, migration/bootstrap и внешние записи отсутствуют. `[CHECK][REVIEW]`
 
-`Not ready — Block 2 open`: полный snapshot Issue #1 и factual reconciliation отсутствуют, а decision/submission/disclosure ещё должны выводиться из подтверждённых GitHub events. Оператор разрешил merge неактивного кода в `main`, но переход к блоку 3 и публикация поведения как готового запрещены до закрытия evidence-пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`
+`Ready — Block 2 historical attestation`: операторский verdict, durable snapshot/reconciliation bundle, pure validator и 25 non-skipped regressions закрывают исторический evidence-gate; fresh-context review не оставил содержательных findings. Block 3 может начинаться в отдельной ветке, но это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, migration/bootstrap или переключение. `[CHAT][CHECK][REVIEW]`

@@ -25,8 +25,9 @@ from markdown_it import MarkdownIt
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "WEA_vNext_REVIEW.html"
 BASE_SHA = "940c230"
-PACKAGE_REVISION = "0.6"
-DESIGN_REVISION = "0.7"
+PACKAGE_REVISION = "0.7"
+DESIGN_REVISION = "0.8"
+DELTA_REVISION = "0.7"
 TASKS_REVISION = "1.0"
 
 
@@ -102,7 +103,7 @@ VERSION_MARKERS = {
     "tasks.md": (r"`tasks ([^`]+)`", TASKS_REVISION),
     "schema.md": (r"Статус: `schema ([^`]+)`", DESIGN_REVISION),
     "migration.md": (r"Статус: `migration ([^`]+)`", DESIGN_REVISION),
-    "delta.md": (r"Статус: `delta ([^`]+)`", DESIGN_REVISION),
+    "delta.md": (r"Статус: `delta ([^`]+)`", DELTA_REVISION),
     "verification.md": (
         r"# WEA vNext: проверка пакета поведения ([0-9.]+)",
         PACKAGE_REVISION,
@@ -129,8 +130,16 @@ def validate_package_contract() -> None:
     tasks = texts.get("tasks.md", "")
     handoff = texts.get("HANDOFF.md", "")
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
-    block_one_complete = "Ready for Block 2" in verification
-    if block_one_complete:
+    block_two_complete = "Ready for Block 3" in verification
+    block_one_complete = block_two_complete or "Ready for Block 2" in verification
+    if block_two_complete:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "блоки 1–2 реализованы и проверены" not in tasks:
+            errors.append("tasks.md: Block 2 completion marker is missing")
+        if "Ready for Block 3" not in handoff:
+            errors.append("HANDOFF.md: Block 3 handoff status is missing")
+    elif block_one_complete:
         if "Not live" not in verification:
             errors.append("verification.md: live-runtime boundary is missing")
     else:
@@ -147,12 +156,12 @@ def validate_package_contract() -> None:
         errors.append("verification.md: contains a future evidence placeholder")
     if "блокирующих решений нет" not in decisions:
         errors.append("open-decisions.md: blocking-decision status disagrees with readiness")
-    if block_one_complete:
+    if not block_two_complete and block_one_complete:
         if "блок 1 `tasks 1.0` реализован" not in tasks:
             errors.append("tasks.md: Block 1 completion marker is missing")
         if "Ready for Block 2" not in handoff:
             errors.append("HANDOFF.md: Block 2 handoff status is missing")
-    else:
+    elif not block_two_complete:
         if "готов к реализации" not in tasks:
             errors.append("tasks.md: implementation boundary disagrees with readiness")
         if "Ready for implementation" not in handoff:
@@ -550,9 +559,11 @@ def nav_document(document: Document, title: str, headings: list[dict[str, str | 
 
 def build() -> None:
     validate_package_contract()
-    block_one_complete = "Ready for Block 2" in (
+    verification_text = (
         ROOT / "verification.md"
     ).read_text(encoding="utf-8")
+    block_two_complete = "Ready for Block 3" in verification_text
+    block_one_complete = block_two_complete or "Ready for Block 2" in verification_text
     source_digest, manifest_rows = source_manifest()
     attention_sections: list[str] = []
     sections: list[str] = []
@@ -592,6 +603,16 @@ def build() -> None:
         package_status = "Ожидает полной вычитки"
         primary_href = "#doc-decisions"
         primary_label = "Решить открытые вопросы"
+    elif block_two_complete:
+        hero_kicker = "Кандидат · блоки 1–2 проверены"
+        hero_lead = (
+            "Исторический Hello World закрыт операторским verdict и проверяемым "
+            "read-only evidence. Live Tide, ledger и GitHub не подключены; handoff "
+            "ограничен Draft, Triage и обычным Contract."
+        )
+        package_status = "Блок 2 закрыт; vNext не подключена"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть handoff блока 3"
     elif block_one_complete:
         hero_kicker = "Кандидат · блок 1 проверен"
         hero_lead = (

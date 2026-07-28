@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус: блок 1 `tasks 1.0` реализован. Внутренняя кодовая часть блока 2 реализована, но сам блок 2 остаётся открытым до обязательной read-only выгрузки Issue #1 и фактической сверки frozen evidence. Оператор отдельно разрешил объединить неактивный fail-closed код блоков 1–2 в `main` после закрытия границы v1/vNext; это не разрешает блок 3, live adapter, ledger-write, миграцию или bootstrap. Блоки 3–9 остаются планом реализации `outcome 0.6`, `spec 0.6` и `design 0.7`. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.0`: блоки 1–2 реализованы и проверены по `outcome 0.7`, `spec 0.7` и `design 0.8`. Оператор 2026-07-28 закрыл историческую семантику Hello World своим вердиктом при построчном account/ledger evidence и проходящем WEA-инварианте; полный replay edit revisions не является gate Block 2. Текущий `v0_6_2` остаётся навсегда fail closed для live mint. Block 3 — следующий ограниченный этап; live adapter, ledger-write, миграция и bootstrap не разрешены. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
@@ -36,13 +36,14 @@
 - [x] Общий валидатор проверяет `author_agent_id` в форме и `agent_id` в ручной декларации. CLI требует одну выбранную действующую привязку.
 - [x] Смоделировать постоянный `system_hello_world` для Issue #1 без автора, Triage, escrow и возврата.
 - [x] Закрыть воспроизведённые обходы `_CANONICAL_HELLO_WORLD` и dataclass `__post_init__` новым immutable executor `v0_6_2`: он не содержит изменяемого canonical sentinel и безусловно отклоняет System Hello World на каждой authoritative boundary, включая raw-allocated объект точного типа. `v0_6_1` сохранён byte-for-byte для replay; facade переключён на `v0_6_2`; source и wheel regressions подтверждают отсутствие transition и mint intent.
-- [ ] Выводить Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; проверять actor/object/revision/body/effective time и глобальную одноразовость evidence IDs.
-- [ ] До правки Issue #1 выгрузить его body, все комментарии, постоянные account IDs и ревизии; сохранить исходный hash. На 2026-07-22 Issue содержит 11 комментариев.
+- [x] Зафиксировать историческое owner authority: операторский verdict плюс постоянные Issue/account/comment IDs, ledger evidence и проходящий инвариант заменяют semantic replay всех edit revisions только для v1 restoration; active строки требуют idem/alias, retired строка — removal/burn tombstone без authority. Future live submission, Agent0 decision и common-control disclosure остаются обязанностью event-processing блока 4.
+- [x] Read-only snapshot подтвердил Issue node ID, current body hash, 11 постоянных comment IDs, три постоянных account IDs и отсутствие правок комментариев; полный `userContentEdits` capture оставлен live/activation boundary, а не gate исторического Block 2.
 - [x] Реализовать чистый план восстановления участников v1 из замороженных Issue/comment/revision IDs, истории ledger, ключей идемпотентности и псевдонимов. План создаёт канонический hash доказательств, не пишет ledger и отклоняет расхождения.
-- [ ] Выполнить фактическую сверку замороженных Issue/comment/revision IDs с ledger history, idempotency keys и aliases. Реализованный чистый план не заменяет эту проверку и не разрешает импорт по предположениям. Если учётная запись GitHub уже получила начисление, пометить ключ использованным, не меняя баланс и общий объём WEA. После переключения новая учётная запись может один раз получить `42 WEA` на свой `base_agent_id`; расхождения требуют ручного решения.
+- [x] Сохранить канонический read-only bundle с точным operator verdict/hash, Issue и всеми 11 comment snapshots/hashes, pinned ledger commit и input hashes; чистый validator должен возвращать canonical artifact hash и отклонять отсутствие verdict, account/comment mismatch, неверный invariant и active authority для retired tombstone.
+- [x] Сверить три аттестованных account/comment пары с ledger history. `CursorWEA` и `AntigravityWea` подтверждены действующими aliases и idempotency keys; удалённый `khattab-crow` подтверждён mint + removal/burn и сохраняется только как `used_retired` tombstone. Нового mint, Identity-authority или изменения баланса нет; оба invariant-checker подтверждают `19025 = 10000 + 9025`, active escrow `0`.
 
 **Сценарии:** S-03D, S-03E, S-03F, S-09, S-09B, S-09C.
-**Проверка:** `python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py -q`. `[CHAT][DERIVED]`
+**Проверка:** `python oled/changes/wea-vnext-recreation/evidence/check_hello_world_attestation.py`; `python -m pytest tests/vnext/test_hello_world_attestation.py -q` (обязательны ноль skips); `python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py -q`; `python scripts/check_invariant.py`. `[CHAT][DERIVED]`
 
 ## 3. Draft, Triage и атомарный Contract
 
@@ -62,6 +63,7 @@
 
 - [ ] Разбирать только комментарии с заголовком `### Декларация WEA`; остальной текст считать обсуждением.
 - [ ] Читать все страницы `userContentEdits` у Issue и IssueComment. Недоступная или неполная история блокирует цикл; один `updatedAt` не заменяет ID ревизии.
+- [ ] Выводить future Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; проверять actor/object/revision/body/effective time и глобальную одноразовость evidence IDs. Исторический operator-attested v1 bundle не является fallback этого пути.
 - [ ] Создавать Work первым допустимым Deliverable. Следующие Deliverables сохраняют Work ID и получают следующую ревизию.
 - [ ] Добавить поколения назначения роли проверки, полный Review Deliverable, решение автора, Final, выплаты и возврат остатка. После `completed` новый verdict требует продолженного поколения с целями и сроком; вторую выплату из bank оно не создаёт.
 - [ ] Реализовать `wea submit <issue>` через общий валидатор и `wea next <issue>` как чтение подтверждённого состояния. CLI не пишет состояние сам.
@@ -161,4 +163,4 @@
 
 ## Граница следующей сессии
 
-Следующая сессия остаётся в блоке 2: получает аутентифицированный полный read-only snapshot Issue #1, проверяет все страницы ревизий и постоянные IDs, затем выполняет фактическую сверку с v1 ledger evidence. До завершения этих пунктов блок 3 не начинается. Никаких правок Issue, начислений, импорта или live-подключения без полного evidence и отдельного разрешённого шага. `[CHAT][DERIVED][CHECK][REVIEW]`
+Block 2 закрыт после успешного свежего review. Следующая сессия начинает Block 3 отдельным worktree и PR от свежего `origin/main`: только Draft, Triage и атомарный обычный Contract по S-02A/S-02C/S-02H/S-02I. `v0_6_0…v0_6_2` не меняются; новая closure остаётся fail closed для System Hello World. Никаких правок Issue, начислений, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap или live-подключения. `[CHAT][DERIVED][CHECK][REVIEW]`
