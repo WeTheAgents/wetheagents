@@ -397,6 +397,61 @@ def test_s_02a_insufficient_author_balance_leaves_every_activation_object_absent
     assert state.contracts == state.tasks == state.escrows == state.ledger == ()
 
 
+def test_task_escrow_cannot_collide_with_registered_identity_without_balance() -> None:
+    draft = _draft()
+    triage = _triage()
+    state = _state(draft, triage, _consent(draft, triage))
+    collision_id = f"task-escrow:{ordinary_contract_id(draft.issue_id)}"
+    registry = _registry()
+    collision_registry = IdentityRegistry(
+        accounts=(
+            *registry.accounts,
+            GitHubAccount("account-collision", "collision", collision_id),
+        ),
+        bindings=(
+            *registry.bindings,
+            Binding(
+                "binding-collision",
+                "agent",
+                "account-collision",
+                collision_id,
+                1,
+                NOW - timedelta(days=1),
+            ),
+        ),
+        control_group_bindings=(
+            *registry.control_group_bindings,
+            ControlGroupBinding(
+                "group-collision",
+                collision_id,
+                "owner-collision",
+                1,
+                NOW - timedelta(days=1),
+            ),
+        ),
+    )
+
+    with pytest.raises(IntakeError, match="escrow_id"):
+        activate_contract(
+            state,
+            ContractCandidate(
+                ordinary_contract_id(draft.issue_id),
+                draft,
+                draft.profile,
+                triage.revision_id,
+            ),
+            consent_id="consent-1",
+            payer_agent_id="agent-author",
+            payer_github_account_id="account-author",
+            effective_at=NOW,
+            readiness_id="ready-consent-1",
+            registry=collision_registry,
+        )
+
+    assert state.balance("agent-author") == 10
+    assert state.contracts == state.tasks == state.escrows == state.ledger == ()
+
+
 def test_s_02c_third_party_payer_is_rejected_without_escrow() -> None:
     draft = _draft()
     triage = _triage()

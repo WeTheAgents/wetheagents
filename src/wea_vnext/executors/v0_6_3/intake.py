@@ -2195,6 +2195,16 @@ def activate_contract(
         refund_agent_id=draft.author_agent_id,
         amount_wea=draft.bank_wea,
     )
+    reserved_account_ids = {
+        *(item.account_id for item in state.balances),
+        *(item.github_account_id for item in registry.accounts),
+        *(item.base_agent_id for item in registry.accounts),
+        *(item.subject_id for item in registry.bindings),
+    }
+    if escrow.escrow_id in reserved_account_ids:
+        raise IntakeError(
+            "escrow_id", "cannot collide with a balance or identity account"
+        )
     debit = LedgerTransition(
         transition_id=f"contract-bank:{candidate.contract_id}",
         kind="contract-bank",

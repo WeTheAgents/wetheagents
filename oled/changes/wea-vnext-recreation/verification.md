@@ -19,7 +19,7 @@ Post-merge-base полный gate: `Complete`.
 | исполнитель Block 1 | `v0_6_0` | сохранённая неизменяемая смысловая замкнутость и прежняя replay triple |
 | первоначальный исполнитель Block 2 | `v0_6_1` | сохранённая неизменяемая замкнутость Identity и Hello World до security fix |
 | текущий исполнитель Block 2 | `v0_6_2` | security successor без изменяемого canonical Hello World sentinel; навсегда fail closed |
-| текущий исполнитель Block 3 | `v0_6_3` | Draft, versioned Triage authority/payment slot и атомарный ordinary Contract; manifest `f964a448deae8dad602b2faca3a2b4f91fb29ac35eab345682dd9138b12c4e27` |
+| текущий исполнитель Block 3 | `v0_6_3` | Draft, versioned Triage authority/payment slot и атомарный ordinary Contract; manifest `46cf69d39af1fcb4265ef0a51683a0af2156e4649da52c369d5a8a142abf84df` |
 
 Spec 0.7 сохраняет 55 сценариев и уточняет параметризованную ветку S-09: две active alias строки и один retired tombstone без Identity-authority. Реализация блоков 1–3 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
 
@@ -69,9 +69,9 @@ Spec 0.7 сохраняет 55 сценариев и уточняет парам
 | Block 2 non-skipped regressions | `python -m pytest tests/vnext/test_hello_world_attestation.py -q` | PASS: `25 passed`, `0 skipped`; exact schema-version type, exact REST body bytes, altered-and-rehashed Issue/unselected comment bodies, rehashed verdict, closed schemas, manifest/idem completeness, invariant mismatch и retired authority покрыты; ledger tree не меняется |
 | Текущий полный vNext | `python -m pytest tests/vnext -q` | PASS: `193 passed`, `18 skipped`; все 25 evidence-тестов не skipped |
 | Текущий полный repository suite | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4478 passed`, `18 skipped`, `11 xfailed` |
-| Block 3 focused | `python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py -q` | PASS: `41 passed`; Draft, Triage authority/payment/idempotency, exact consent/override/readiness и atomic Contract покрыты |
-| Block 3 full vNext | `python -m pytest tests/vnext -q` | PASS: `234 passed`, `18 skipped` после финального authority-hardening |
-| Block 3 full repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4519 passed`, `18 skipped`, `11 xfailed` после финального authority-hardening |
+| Block 3 focused | `python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py -q` | PASS: `42 passed`; Draft, Triage authority/payment/idempotency, exact consent/override/readiness, escrow namespace и atomic Contract покрыты |
+| Block 3 full vNext | `python -m pytest tests/vnext -q` | PASS: `235 passed`, `18 skipped` после финального escrow-namespace hardening |
+| Block 3 full repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4520 passed`, `18 skipped`, `11 xfailed` после финального escrow-namespace hardening |
 | Attestation static checks | `ruff check ...`; `pyright evidence/check_hello_world_attestation.py`; `compileall` | PASS: Ruff clean; Pyright `0 errors, 0 warnings`; compileall clean |
 | Полный post-integration suite | `python -m pytest -q --tb=short` после merge `origin/main` `3d310081f398c2927a46278b472e84dec2a54105` | PASS: `4453 passed`, `18 skipped`, `11 xfailed`; failures отсутствуют |
 | Integrity после integration | `check_invariant.py`; `check_ledger_schema.py`; `check_doc_sync.py`; `ruff`; `pyright`; `compileall`; `git diff --check` | PASS; экономика `19025 = 10000 + 9025`, schema/doc sync чисты, типы `0 errors / 0 warnings` |
@@ -211,4 +211,4 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 `Ready — Block 2 historical attestation`: операторский verdict, durable snapshot/reconciliation bundle, pure validator и 25 non-skipped regressions закрывают исторический evidence-gate; fresh-context review не оставил содержательных findings. Block 3 может начинаться в отдельной ветке, но это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, migration/bootstrap или переключение. `[CHAT][CHECK][REVIEW]`
 
-`Ready — Block 3 contract core`: Draft остаётся read-only; Triage имеет одну versioned role/payment slot с exact Agent0/reviewer authority и treasury-only settlement; ordinary Contract детерминирован по Issue и создаётся атомарно с одним author debit, escrow и Task. Три adversarial review-прохода закрыли все найденные money/authority и escrow-namespace gaps, полный suite и invariant зелёные. Block 4 может начинаться отдельно, но live writer, GitHubEvent adapter, `ledger/vnext/`, migration/bootstrap и переключение не разрешены. `[CHECK][REVIEW]`
+`Ready — Block 3 contract core`: Draft остаётся read-only; Triage имеет одну versioned role/payment slot с exact Agent0/reviewer authority и treasury-only settlement; ordinary Contract детерминирован по Issue и создаётся атомарно с одним author debit, escrow и Task. Три adversarial review-прохода и обязательный PR review закрыли все найденные money/authority и escrow-namespace gaps, включая task escrow collision с зарегистрированным identity principal без balance row; полный suite и invariant зелёные. Block 4 может начинаться отдельно, но live writer, GitHubEvent adapter, `ledger/vnext/`, migration/bootstrap и переключение не разрешены. `[CHECK][REVIEW]`

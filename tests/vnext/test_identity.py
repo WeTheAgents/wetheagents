@@ -46,7 +46,7 @@ def test_block_3_preserves_every_prior_executor_triple() -> None:
         "975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7"
     )
     assert current.executor_manifest_hash == (
-        "f964a448deae8dad602b2faca3a2b4f91fb29ac35eab345682dd9138b12c4e27"
+        "46cf69d39af1fcb4265ef0a51683a0af2156e4649da52c369d5a8a142abf84df"
     )
     assert current != old
     assert current != initial_block_2
