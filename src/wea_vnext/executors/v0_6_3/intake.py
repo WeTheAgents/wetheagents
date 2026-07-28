@@ -1041,6 +1041,7 @@ class IntakeState:
                 or triages[0].role_id != completion.role_id
                 or triages[0].assignment_generation != completion.assignment_generation
                 or assignment.reviewer_agent_id != completion.reviewer_agent_id
+                or completion.effective_at < triages[0].effective_at
             ):
                 raise IntakeError("triage completion", "evidence does not match")
         contracts = {item.contract_id: item for item in self.contracts}
@@ -1106,26 +1107,93 @@ class IntakeState:
             ]
             if not (len(consent) == len(readiness) == len(triage) == 1):
                 raise IntakeError("activation", "evidence must resolve exactly once")
-            if not any(
-                item.role_id == contract.triage_role_id
-                and item.triage_revision_id == contract.triage_revision_id
+            completions = [
+                item
                 for item in self.triage_completions
-            ):
+                if item.role_id == contract.triage_role_id
+                and item.triage_revision_id == contract.triage_revision_id
+            ]
+            if len(completions) != 1:
                 raise IntakeError("activation", "completed Triage evidence is missing")
+            consent_record = consent[0]
+            readiness_record = readiness[0]
+            triage_record = triage[0]
+            completion_record = completions[0]
             evidence_matches = (
-                consent[0].revision_id == contract.consent_revision_id
-                and consent[0].snapshot_hash == contract.consent_snapshot_hash
-                and readiness[0].consent_id == contract.consent_id
-                and triage[0].role_id == contract.triage_role_id
-                and triage[0].snapshot_hash == contract.triage_snapshot_hash
-                and readiness[0].override_id == contract.override_id
+                contract.issue_id
+                == consent_record.issue_id
+                == readiness_record.issue_id
+                == triage_record.issue_id
+                and contract.issue_revision_id
+                == consent_record.issue_revision_id
+                == triage_record.issue_revision_id
+                and contract.body_hash
+                == consent_record.body_hash
+                == triage_record.body_hash
+                and contract.author_agent_id == consent_record.author_agent_id
+                and contract.payer_agent_id == consent_record.author_agent_id
+                and contract.bank_wea == consent_record.bank_wea
+                and contract.profile
+                == consent_record.profile
+                == consent_record.route
+                and contract.mechanic == consent_record.mechanic
+                and contract.mechanic_terms.config_hash
+                == consent_record.mechanic_config_hash
+                and contract.ruleset_hash == consent_record.ruleset_hash
+                and contract.tide_interface_version
+                == consent_record.tide_interface_version
+                and contract.executor_manifest_hash
+                == consent_record.executor_manifest_hash
+                and consent_record.revision_id == contract.consent_revision_id
+                and consent_record.snapshot_hash == contract.consent_snapshot_hash
+                and consent_record.triage_role_id
+                == readiness_record.triage_role_id
+                == triage_record.role_id
+                == contract.triage_role_id
+                and consent_record.triage_revision_id
+                == readiness_record.triage_revision_id
+                == triage_record.revision_id
+                == contract.triage_revision_id
+                and consent_record.triage_snapshot_hash
+                == readiness_record.triage_snapshot_hash
+                == triage_record.snapshot_hash
+                == contract.triage_snapshot_hash
+                and readiness_record.consent_id == contract.consent_id
+                and readiness_record.consent_revision_id == consent_record.revision_id
+                and readiness_record.override_id
+                == consent_record.override_id
+                == contract.override_id
+                and triage_record.effective_at
+                <= completion_record.effective_at
+                <= consent_record.effective_at
+                <= readiness_record.effective_at
             )
             if not evidence_matches:
                 raise IntakeError("activation", "evidence does not match the Contract")
-            if contract.override_id is not None and not any(
-                item.override_id == contract.override_id for item in self.overrides
-            ):
-                raise IntakeError("activation", "operator override is missing")
+            if contract.override_id is None:
+                if triage_record.route != contract.profile:
+                    raise IntakeError(
+                        "activation", "Triage route does not match Contract"
+                    )
+            else:
+                overrides = [
+                    item
+                    for item in self.overrides
+                    if item.override_id == contract.override_id
+                ]
+                if len(overrides) != 1:
+                    raise IntakeError("activation", "operator override is missing")
+                override = overrides[0]
+                if not (
+                    override.issue_id == contract.issue_id
+                    and override.triage_role_id == triage_record.role_id
+                    and override.triage_revision_id == triage_record.revision_id
+                    and override.triage_snapshot_hash == triage_record.snapshot_hash
+                    and override.original_route == triage_record.route
+                    and override.new_route == contract.profile
+                    and override.effective_at < consent_record.effective_at
+                ):
+                    raise IntakeError("activation", "operator override does not match")
             first_stage = load_ruleset().content["profiles"][contract.profile][
                 "stages"
             ][0]

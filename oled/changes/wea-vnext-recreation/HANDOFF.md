@@ -9,7 +9,7 @@ Blocks 1–3 завершены. Block 3 добавляет неактивную
 - Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-block3-2026-07-28`.
 - Branch: `codex/wea-vnext-block3-contract-core-2026-07-28`.
 - Base: `6a623cd631793a53430da135196903116866cb95` (`origin/main`, merge Block 2).
-- Текущий executor: `v0_6_3`, manifest SHA-256 `46cf69d39af1fcb4265ef0a51683a0af2156e4649da52c369d5a8a142abf84df`.
+- Текущий executor: `v0_6_3`, manifest SHA-256 `b1152140a3d47ab5ff884410438156077d205436cf1b10ad106134e34fdcd0ab`.
 - Frozen manifests: `v0_6_0` — `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`; `v0_6_1` — `dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2`; `v0_6_2` — `975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7`.
 - Ledger, GitHub, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap и live adapters не изменялись.
 
@@ -24,11 +24,11 @@ Blocks 1–3 завершены. Block 3 добавляет неактивную
 
 ## Проверка и review
 
-- Focused Block 3: `42 passed`.
-- Full vNext: `235 passed`, `18 skipped`.
-- Full repository: `4520 passed`, `18 skipped`, `11 xfailed`.
+- Focused Block 3: `44 passed`.
+- Full vNext: `237 passed`, `18 skipped`.
+- Full repository: `4522 passed`, `18 skipped`, `11 xfailed`.
 - Packaging/runtime: `10 passed`; WEA invariant `19025 = 19025`; ledger schema, Ruff, Pyright и diff check — PASS.
-- Первый независимый review нашёл шесть money/authority gaps; второй — caller-selected treasury source, отсутствующую reviewer authority, неверный порядок assignment/Triage, неидемпотентный старый completion replay и stale boundary docs; третий воспроизвёл caller-selected Triage escrow/account collision. Финальный PR review расширил ту же защиту на task escrow и зарегистрированные identity principals без balance row. Все причины исправлены и получили регрессии; повторный review не оставил actionable findings.
+- Первый независимый review нашёл шесть money/authority gaps; второй — caller-selected treasury source, отсутствующую reviewer authority, неверный порядок assignment/Triage, неидемпотентный старый completion replay и stale boundary docs; третий воспроизвёл caller-selected Triage escrow/account collision. PR review расширил ту же защиту на task escrow и зарегистрированные identity principals без balance row, затем закрыл forged restored Contract terms и completion-before-Triage chronology на уровне `IntakeState`. Все причины исправлены и получили регрессии; финальный повторный review не оставил actionable findings.
 
 ## Protected boundary
 

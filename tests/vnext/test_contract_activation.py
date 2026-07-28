@@ -364,6 +364,35 @@ def test_exact_activation_atomically_creates_one_debit_escrow_contract_and_task(
         replace(result.state, tasks=())
 
 
+def test_restored_state_rejects_contract_terms_not_bound_to_consent() -> None:
+    draft = _draft()
+    triage = _triage()
+    result = _activate(_state(draft, triage, _consent(draft, triage)), draft)
+    forged_body = "Different unconsented body"
+    forged_contract = replace(
+        result.contract,
+        issue_revision_id="issue-revision-forged",
+        body=forged_body,
+        body_hash=_hash(forged_body),
+    )
+
+    with pytest.raises(IntakeError, match="evidence does not match"):
+        replace(result.state, contracts=(forged_contract,))
+
+
+def test_restored_state_rejects_completion_that_precedes_triage() -> None:
+    draft = _draft()
+    triage = _triage()
+    state = _triaged_state(draft, triage)
+    early_completion = replace(
+        state.triage_completions[0],
+        effective_at=triage.effective_at - timedelta(seconds=1),
+    )
+
+    with pytest.raises(IntakeError, match="triage completion"):
+        replace(state, triage_completions=(early_completion,))
+
+
 def test_same_issue_cannot_be_reactivated_under_a_caller_chosen_contract_id() -> None:
     draft = _draft()
     triage = _triage()
