@@ -239,7 +239,7 @@ def test_full_build_waits_for_every_selected_branch_before_author_decision() -> 
 
 
 def test_engine_verifies_the_contract_triple_and_manifest_closure() -> None:
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
     handle = load_executor(descriptor.reference)
 
     assert handle.reference == descriptor.reference
@@ -283,7 +283,7 @@ def test_manifest_normalizes_malformed_json_failures(raw: bytes) -> None:
 def test_deeply_nested_future_manifest_does_not_block_current_executor(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    current = installed_executor()
+    current = installed_executor("0.6.0")
     package = tmp_path / "wea_vnext"
     shutil.copytree(Path("src/wea_vnext"), package)
     future = package / "executors" / "v9_9_9"
@@ -299,7 +299,7 @@ def test_deeply_nested_future_manifest_does_not_block_current_executor(
 def test_deep_future_executor_tree_does_not_block_current_executor(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    current = installed_executor()
+    current = installed_executor("0.6.0")
     package = tmp_path / "wea_vnext"
     shutil.copytree(Path("src/wea_vnext"), package)
     future = package / "executors" / "v9_9_9"
@@ -514,7 +514,7 @@ def test_executor_handle_rejects_replacement_before_module_access(
     package = tmp_path / "wea_vnext"
     shutil.copytree(Path("src/wea_vnext"), package)
     monkeypatch.setattr(engine, "_resource_root", lambda: package)
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
     handle = load_executor(descriptor.reference)
 
     source_path = package / "executors" / "v0_6_0" / "__init__.py"
@@ -541,7 +541,7 @@ def test_executor_handle_rejects_replacement_before_module_access(
 def test_executor_handle_returns_only_fresh_verified_submodules(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    handle = load_executor(installed_executor().reference)
+    handle = load_executor(installed_executor("0.6.0").reference)
     verified_module = handle.import_module("declarations")
     fullname = f"{handle.descriptor.module_name}.declarations"
     replacement = ModuleType(fullname)
@@ -556,7 +556,7 @@ def test_executor_handle_returns_only_fresh_verified_submodules(
 
 
 def test_executor_handle_does_not_expose_a_mutable_module_namespace() -> None:
-    handle = load_executor(installed_executor().reference)
+    handle = load_executor(installed_executor("0.6.0").reference)
     first = handle.module
     original_replay = first.replay
 
@@ -573,7 +573,7 @@ def test_executor_handle_does_not_expose_a_mutable_module_namespace() -> None:
 
 
 def test_executor_callable_mutation_cannot_poison_a_later_load() -> None:
-    handle = load_executor(installed_executor().reference)
+    handle = load_executor(installed_executor("0.6.0").reference)
     poisoned = handle.module
     poisoned.serialize_report.__globals__["canonical_dumps"] = (
         lambda _value: b"UNVERIFIED"
@@ -588,7 +588,7 @@ def test_executor_callable_mutation_cannot_poison_a_later_load() -> None:
 def test_verified_loader_restores_ordinary_parent_package_bindings() -> None:
     ordinary_rules = executor_rules
 
-    _ = load_executor(installed_executor().reference).module
+    _ = load_executor(installed_executor("0.6.0").reference).module
 
     assert wea_vnext.executors is executor_namespace
     assert executor_namespace.v0_6_0 is executor_root
@@ -703,7 +703,7 @@ def test_identity_binding_requires_exact_string_ids(field: str, value: object) -
 
 
 def test_adding_an_executor_does_not_change_resolution_of_existing_contract() -> None:
-    current = installed_executor()
+    current = installed_executor("0.6.0")
     fake_reference = current.reference._replace(
         ruleset_hash="1" * 64,
         executor_manifest_hash="2" * 64,

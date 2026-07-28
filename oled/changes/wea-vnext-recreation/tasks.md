@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус: блок 1 `tasks 1.0` реализован. Внутренняя кодовая часть блока 2 реализована, но сам блок 2 остаётся открытым до обязательной read-only выгрузки Issue #1 и фактической сверки frozen evidence. Блок 3 не разрешён. Блоки 3–9 остаются планом реализации `outcome 0.6`, `spec 0.6` и `design 0.7`. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус: блок 1 `tasks 1.0` реализован. Внутренняя кодовая часть блока 2 реализована, но сам блок 2 остаётся открытым до обязательной read-only выгрузки Issue #1 и фактической сверки frozen evidence. Оператор отдельно разрешил объединить неактивный fail-closed код блоков 1–2 в `main` после закрытия границы v1/vNext; это не разрешает блок 3, live adapter, ledger-write, миграцию или bootstrap. Блоки 3–9 остаются планом реализации `outcome 0.6`, `spec 0.6` и `design 0.7`. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
@@ -23,8 +23,9 @@
 - [x] Добавить полный порядок GitHub-событий, idempotency key и границу чтения по неизменяемому repository ID. Opaque cursor не определяет порядок: положительный `read_sequence` двигает boundary, а batch hash выявляет расхождение одной границы до проверки capture-time regression и сохраняет blocker. Тестовые примеры покрывают rename/case, отдельные `UserContentEdit.id`, включая `A → B → A`; неполное чтение не двигает границу и допускает полный retry с тем же sequence.
 - [x] Хранить теневой результат только в `.wea_runs/vnext-shadow/`. Повторное воспроизведение одного набора событий должно давать те же байты; установка второго исполнителя не меняет результат первого. Финальное создание файла остаётся привязанным к проверенному repo root при конкурентной замене junction/symlink parent.
 - [x] Добавить `tests/vnext/scenarios.py`, который регистрирует все 55 ID из `spec.md` и падает при пропуске или повторе.
+- [x] Сделать границу v1/vNext явной до публикации внутреннего кода: `installed_executor` всегда требует каноническую dotted-версию, публичные facades используют одну явно закреплённую closure, а `docs/VNEXT_BOUNDARY.md` описывает владение и replay. Узкий PR-tripwire проверяет буквальные ссылки vNext в текущих CLI/scripts/workflows/package entry points, live adapter и `ledger/vnext/`; он не доказывает отсутствие динамического или переименованного writer и не заменяет полный writer inventory и no-write gate блока 9. Текущая пауза direct legacy writers остаётся операторской.
 
-**Проверка:** `python -m pytest tests/vnext/test_ruleset.py tests/vnext/test_replay.py tests/vnext/test_scenario_registry.py -q` и `ruff check src/wea_vnext tests/vnext`. `[CODE@c703f5e][DERIVED]`
+**Проверка:** `python -m pytest tests/vnext/test_ruleset.py tests/vnext/test_replay.py tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q` и `ruff check src/wea_vnext tests/vnext`. `[CODE@c703f5e][DERIVED]`
 
 ## 2. Identity и системный Hello World
 

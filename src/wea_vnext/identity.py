@@ -1,4 +1,4 @@
-"""Verified identity facade for the default immutable executor."""
+"""Verified identity facade for the explicitly pinned candidate executor."""
 
 from __future__ import annotations
 
@@ -6,8 +6,18 @@ from typing import Any
 
 from .engine import installed_executor, load_executor
 
-_MODULES = load_executor(installed_executor("0.6.2").reference).import_modules(
-    ("declarations", "identity", "identity_hello_world", "identity_migration")
+_FACADE_EXECUTOR_VERSION = "0.6.2"
+
+_MODULES = load_executor(
+    installed_executor(_FACADE_EXECUTOR_VERSION).reference
+).import_modules(
+    (
+        "declarations",
+        "identity",
+        "identity_hello_world",
+        "identity_migration",
+        "projection",
+    )
 )
 _MODULE = _MODULES["identity"]
 Binding = _MODULE.Binding

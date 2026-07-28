@@ -164,6 +164,9 @@ class ExecutorRegistry:
 
 
 _SHA256 = re.compile(r"[0-9a-f]{64}")
+_EXECUTOR_VERSION = re.compile(
+    r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
+)
 _EXECUTOR_PACKAGE = re.compile(r"v[0-9]+(?:_[0-9]+)+")
 _RULESET_PATH = re.compile(r"rulesets/[0-9]+(?:\.[0-9]+)*\.json")
 _MAX_JSON_INTEGER_DIGITS = 640
@@ -642,12 +645,16 @@ def _bind_verified_runtime(
         raise ManifestError("executor runtime binder signature is invalid")
 
 
-def installed_executor(version: str = "0.6.0") -> ExecutorDescriptor:
+def installed_executor(version: str) -> ExecutorDescriptor:
     """Return a freshly verified descriptor for an installed executor."""
+    if type(version) is not str or not _EXECUTOR_VERSION.fullmatch(version):
+        raise RuntimeMismatchError("executor version must be canonical dotted semver")
     module_name = f"wea_vnext.executors.v{version.replace('.', '_')}"
     if module_name not in _installed_modules():
         raise RuntimeMismatchError(f"executor {version} is not installed")
     verified = _verify_installed_manifest(module_name)
+    if verified.executor_version != version:
+        raise RuntimeMismatchError("installed executor version does not match request")
     return ExecutorDescriptor(reference=verified.reference, module_name=module_name)
 
 

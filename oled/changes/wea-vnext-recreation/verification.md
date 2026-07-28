@@ -1,8 +1,10 @@
 # WEA vNext: проверка пакета поведения 0.6
 
-Статус блока 1: `Ready for Block 2` (исторический gate пройден). Внутренняя кодовая часть блока 2 реализована. Блок 2 остаётся открытым до полного read-only snapshot Issue #1 и фактической сверки v1 evidence. WEA vNext не подключена к live (`Not live`); переключение v1, миграция и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
+Статус блока 1: `Ready for Block 2` (исторический gate пройден). Внутренняя кодовая часть блока 2 реализована. Блок 2 остаётся открытым до полного read-only snapshot Issue #1 и фактической сверки v1 evidence. WEA vNext остаётся `Not live`. Оператор отдельно разрешил объединить неактивный fail-closed пакет в `main` после закрытия boundary debt; это не делает Block 2 готовым и не разрешает live Tide, переключение v1, миграцию или внешние записи. `[CHAT][CHECK][REVIEW]`
 
 Статус свежих команд: `Complete`.
+
+Post-merge-base полный gate: `Pending`.
 
 Статус независимой проверки: `CLEAN`.
 
@@ -22,8 +24,9 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 ## Полномочия и границы
 
 - Оператор одобрил продолжение в этом чате, реализацию блока 2, очистку устаревших baseline-тестов и досрочное удаление общего claim после остановки проекта. `[CHAT]`
-- Блоки 1–2 и test-hygiene локально объединены в `codex/wea-vnext-integration`. Повторный `git fetch origin` не прошёл из-за отсутствия неинтерактивной GitHub-аутентификации; cached `origin/main` оставался `940c230`. `[CHAT][CHECK]`
-- Проект на паузе: scheduled v1 Tide и auto-triage writers удалены, Agent0 loop не работает. Публичный общий `wea claim`, `--force`, milestone shim, GitHub `claim-fast` writer и действующие инструкции удалены; после будущего restart первая валидная Deliverable создаст Work, а Duel join останется отдельным путём. Исторические claim-аудиты и ledger history сохранены read-only. Рабочий ledger, GitHub Issues и labels не менялись. Теневой вывод разрешён только в `.wea_runs/vnext-shadow/`. `[CHAT][CHECK]`
+- Оператор 2026-07-28 отдельно разрешил после boundary-hardening объединить неактивный код блоков 1–2 в `main`, сохранив открытыми evidence-gates блока 2 и все запреты live/migration/bootstrap. `[CHAT]`
+- Блоки 1–2 и test-hygiene локально объединены в `codex/wea-vnext-integration`. Свежий authenticated fetch через сохранённый GCM-профиль подтвердил `origin/main` `3d310081f398c2927a46278b472e84dec2a54105`; dirty локальный main-worktree не используется для интеграции. `[CHECK]`
+- Проект под операторской паузой: scheduled v1 Tide и auto-triage writers удалены, Agent0 loop не работает. Прямые legacy CLI/scripts writers всё ещё существуют и до writer inventory/epoch guard блока 9 запрещены процедурно, а не все технически. Публичный общий `wea claim`, `--force`, milestone shim, GitHub `claim-fast` writer и действующие инструкции удалены; после будущего restart первая валидная Deliverable создаст Work, а Duel join останется отдельным путём. Исторические claim-аудиты и ledger history сохранены. Рабочий ledger, GitHub Issues и labels не менялись. Теневой вывод разрешён только в `.wea_runs/vnext-shadow/`. `[CHAT][CHECK][REVIEW]`
 - Миграция, bootstrap, отключение v1 и публикация vNext не выполнялись. `[CHAT][CHECK]`
 
 ## Реализованный контракт блока 1
@@ -45,6 +48,8 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Проверка | Команда или источник | Результат |
 | --- | --- | --- |
 | Блоки 1–2 | `python -m pytest tests/vnext -q` | PASS: `159 passed`, `18 skipped` на Windows; два skips — Linux-only rename-race regressions, 16 — сохранённые Hello World сценарии до установки аутентифицированного канонического snapshot |
+| Boundary-hardening | `python -m pytest tests/vnext/test_runtime_boundary.py -q` | PASS: `9 passed`; версия executor обязательна и канонична, пять facades используют объекты одной `v0_6_2` closure, текущие CLI/scripts/package entry points не содержат буквальных ссылок на vNext, кроме выделенного PR guard workflow; live adapter и `ledger/vnext/` отсутствуют |
+| Блоки 1–2 после boundary-hardening | `python -m pytest tests/vnext -q` | PASS: `168 passed`, `18 skipped` |
 | Identity / Hello World | `python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py tests/vnext/test_hello_world_gate.py -q` | PASS: `26 passed`, `16 skipped`; активная регрессия доказывает fail-closed до snapshot; packaging smoke — `1 passed` |
 | Статика блоков 1–2 | `ruff check src/wea_vnext tests/vnext` | PASS |
 | Python 3.10 type-contract | `pyright src/wea_vnext` с `pythonVersion = "3.10"` | PASS: `0 errors`, `0 warnings` для product-области; adversarial tests намеренно создают несовместимые subclass/property и динамические raw-объекты и проверяются runtime suite плюс Ruff |
@@ -58,6 +63,10 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Граф кода | повторная moderate-индексация `codebase_memory` текущего worktree | 17126 узлов, 54368 связей в отфильтрованном repository graph; Identity, Hello World, migration и verifier входят в versioned closure |
 
 ## Независимая проверка и исправления
+
+Fresh-context boundary review 2026-07-28 нашёл четыре несоответствия: новая авторизация merge не была отражена в verification/HTML; операторская пауза ошибочно называлась полным fail-closed v1; phase test сканировал слишком узкую поверхность; общая facade closure проверялась только по имени версии. Документация теперь честно отделяет scheduled pause от ещё вызываемых direct writers, а тест сравнивает object identity всех пяти facades. `[REVIEW][CHECK]`
+
+Повторный review потребовал убрать legacy-команды из активной инструкции, назвать scan узким tripwire вместо доказательства activation boundary, исполнять его на PR, строго отклонять malformed version aliases, использовать disposable GitHub-hosted runner и структурно проверять все package entry-point tables. Все пункты исправлены; workflow не исполняет недоверенный PR-код на постоянном runner, Python 3.10 получает `tomli` fallback, а документация сохраняет полный writer inventory/no-write proof за Block 9. Финальная повторная проверка вернула пустой findings list. `[REVIEW][CHECK]`
 
 Первый независимый adversarial review нашёл девять замечаний: повторное открытие Finite intake, изменяемые rules/payload, неатомарный revision conflict, ранний импорт непроверенного executor, replay вне manifest closure, одну общую GitHub-границу, неканонический manifest, небезопасный linked shadow parent и недостаточный packaging-тест. Все девять причин исправлены и получили регрессии. `[REVIEW][CHECK]`
 
@@ -131,7 +140,7 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 Тот же review подтвердил два evidence-пробела будущего mint path: Agent0 decision и submission строятся из caller-полей, а `ControlDisclosure.confirm` не доказывает существование публичной revision внутри принятой GitHub boundary. Пока canonical snapshot отсутствует, штатный mint остаётся закрыт, но Block 2 нельзя закрыть или публиковать как готовый до derivation этих записей из принятых `GitHubEvent` и глобальной одноразовости evidence IDs. `[REVIEW][CHECK]`
 
-Операционные замечания review исправлены: удалены scheduled Tide/auto-triage и `claim-fast` writers, активные docs теперь явно называют task lifecycle paused, а `wea start` больше не скрывает open Work из-за исторического общего claim. Hard-pinned facades разных executor versions не признаны отдельным дефектом: они не объединяются в один Contract transition, а runtime selection остаётся обязанностью manifest store; это ограничение продолжает проверяться до появления live adapter. `[REVIEW][CHECK]`
+Операционные замечания review исправлены: удалены scheduled Tide/auto-triage и `claim-fast` writers, активные docs теперь явно называют task lifecycle operator-paused и предупреждают о сохраняющихся direct legacy writers, а `wea start` больше не скрывает open Work из-за исторического общего claim. Pre-live facade ambiguity также закрыта: `installed_executor` требует явную версию, а declarations/Identity/Hello World/migration/projection получают классы одной закреплённой closure. Исторический replay по-прежнему выбирает runtime по сохранённой тройке. `[REVIEW][CHECK]`
 
 ## Self-roast и lean cut
 
@@ -158,4 +167,6 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 
 `Ready — SystemHelloWorldContract security fix`: `v0_6_2` навсегда fail closed на construction и всех четырёх authoritative entry points; globals mutation и raw allocation не создают transition или mint intent в source либо установленном wheel. Старые executor и их manifest hashes сохранены, focused/full checks зелёные, повторный независимый review не вернул findings. `[CHECK][REVIEW]`
 
-`Not ready — Block 2 open`: полный snapshot Issue #1 и factual reconciliation отсутствуют, а decision/submission/disclosure ещё должны выводиться из подтверждённых GitHub events. Переход к блоку 3 и merge интеграции в `main` запрещены до закрытия этих evidence-пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`
+`Not ready — boundary publish gate`: повторный независимый review, интеграция свежего `origin/main` и полный post-integration suite ещё не завершены. `[CHECK]`
+
+`Not ready — Block 2 open`: полный snapshot Issue #1 и factual reconciliation отсутствуют, а decision/submission/disclosure ещё должны выводиться из подтверждённых GitHub events. Оператор разрешил merge неактивного кода в `main`, но переход к блоку 3 и публикация поведения как готового запрещены до закрытия evidence-пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`

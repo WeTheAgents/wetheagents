@@ -1,10 +1,10 @@
-"""Verified projection-schema facade for the default immutable executor."""
+"""Verified projection facade from the shared candidate executor closure."""
 
 from __future__ import annotations
 
-from .engine import installed_executor, load_executor
+from .identity import _MODULES
 
-_MODULE = load_executor(installed_executor().reference).import_module("projection")
+_MODULE = _MODULES["projection"]
 ProjectionIntent = _MODULE.ProjectionIntent
 
 

@@ -143,7 +143,7 @@ def test_replay_orders_events_and_preserves_a_to_b_to_a_revisions() -> None:
     event_a1 = _event(revision="edit-A1", at=T0, body="A")
     event_b = _event(revision="edit-B", at=T0 + timedelta(seconds=1), body="B")
     event_a2 = _event(revision="edit-A2", at=T0 + timedelta(seconds=2), body="A")
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
 
     ordered = replay([_batch(event_a1, event_b, event_a2)], descriptor.reference)
     scrambled = replay([_batch(event_a2, event_a1, event_b)], descriptor.reference)
@@ -162,7 +162,7 @@ def test_replay_orders_events_and_preserves_a_to_b_to_a_revisions() -> None:
 
 def test_adding_a_future_executor_does_not_change_existing_replay_bytes() -> None:
     event = _event(revision="edit-A", at=T0, body="A")
-    current = installed_executor()
+    current = installed_executor("0.6.0")
     future_reference = current.reference._replace(
         ruleset_hash="1" * 64,
         executor_manifest_hash="2" * 64,
@@ -190,7 +190,7 @@ def test_adding_a_future_executor_does_not_change_existing_replay_bytes() -> Non
 
 def test_duplicate_event_is_idempotent() -> None:
     event = _event(revision="edit-A", at=T0, body="A")
-    report = replay([_batch(event, event)], installed_executor().reference)
+    report = replay([_batch(event, event)], installed_executor("0.6.0").reference)
 
     assert len(report.state.events) == 1
     assert [effect.outcome for effect in report.effects].count("accepted") == 1
@@ -205,7 +205,7 @@ def test_same_immutable_revision_id_cannot_resolve_to_different_content() -> Non
         body="different bytes",
     )
 
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
     forward = replay([_batch(first, conflicting)], descriptor.reference)
     reverse = replay([_batch(conflicting, first)], descriptor.reference)
 
@@ -236,7 +236,7 @@ def test_same_revision_with_different_semantics_fails_closed(
     }
     first = _event(**baseline)
     conflicting = _event(**(baseline | changed))
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
 
     forward = replay([_batch(first, conflicting)], descriptor.reference)
     reverse = replay([_batch(conflicting, first)], descriptor.reference)
@@ -250,7 +250,7 @@ def test_same_revision_with_different_semantics_fails_closed(
 def test_event_payload_is_recursively_immutable() -> None:
     payload = {"declaration": {"targets": ["one"]}}
     event = _event(revision="edit-A", at=T0, body="A", payload=payload)
-    report = replay([_batch(event)], installed_executor().reference)
+    report = replay([_batch(event)], installed_executor("0.6.0").reference)
     original_bytes = report.state_bytes
 
     payload["declaration"]["targets"].append("two")
@@ -263,7 +263,7 @@ def test_event_payload_is_recursively_immutable() -> None:
 def test_incomplete_read_applies_nothing_and_does_not_advance_boundary() -> None:
     first = _event(revision="edit-A", at=T0, body="A")
     second = _event(revision="edit-B", at=T0 + timedelta(seconds=1), body="B")
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
     complete = replay([_batch(first, cursor="cursor-1")], descriptor.reference)
     partial = replay(
         [
@@ -292,7 +292,7 @@ def test_complete_retry_after_incomplete_read_can_confirm_same_sequence() -> Non
     second = _event(revision="edit-B", at=T0 + timedelta(seconds=1), body="B")
     incomplete = _batch(first, complete=False, read_sequence=1)
     complete = _batch(first, second, complete=True, read_sequence=1)
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
 
     forward = replay([incomplete, complete], reference)
     reverse = replay([complete, incomplete], reference)
@@ -323,7 +323,7 @@ def test_incomplete_read_blocks_a_later_sequence_in_the_same_replay() -> None:
         read_sequence=2,
     )
 
-    report = replay([incomplete, later], installed_executor().reference)
+    report = replay([incomplete, later], installed_executor("0.6.0").reference)
 
     assert report.state.events == ()
     assert report.state.boundaries == ()
@@ -335,7 +335,7 @@ def test_incomplete_read_blocks_a_later_sequence_in_the_same_replay() -> None:
 
 
 def test_incremental_complete_retry_resolves_an_incomplete_read_blocker() -> None:
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
     incomplete = _batch(
         _event(revision="edit-A", at=T0, body="A"),
@@ -436,7 +436,7 @@ def test_replay_canonicalizes_batches_and_keeps_one_boundary_per_repository() ->
             repository_id=OTHER_REPOSITORY_ID,
         ),
     )
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
 
     forward = replay(batches, descriptor.reference)
     reverse = replay(reversed(batches), descriptor.reference)
@@ -478,7 +478,7 @@ def test_replay_applies_events_globally_before_capture_order() -> None:
             repository_id=OTHER_REPOSITORY_ID,
         ),
     )
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
 
     forward = replay(batches, descriptor.reference)
     reverse = replay(reversed(batches), descriptor.reference)
@@ -505,7 +505,7 @@ def test_replay_one_thousand_events_stays_below_checkpoint_threshold() -> None:
     )
 
     started = perf_counter()
-    report = replay([_batch(*events)], installed_executor().reference)
+    report = replay([_batch(*events)], installed_executor("0.6.0").reference)
     elapsed = perf_counter() - started
 
     assert len(report.state.events) == 1000
@@ -530,7 +530,7 @@ def test_opaque_cursors_use_explicit_read_sequence_in_both_input_orders() -> Non
             read_sequence=2,
         ),
     )
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
 
     forward = replay(batches, descriptor.reference)
     reverse = replay(reversed(batches), descriptor.reference)
@@ -545,7 +545,7 @@ def test_opaque_cursors_use_explicit_read_sequence_in_both_input_orders() -> Non
 def test_sequential_boundary_cannot_regress_by_read_sequence() -> None:
     event = _event(revision="edit-A", at=T0, body="A")
     captured_at = T0 + timedelta(minutes=1)
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
     executor = load_executor(descriptor.reference).module
     state = executor.initial_state(descriptor.reference)
 
@@ -585,7 +585,7 @@ def test_higher_sequence_cannot_regress_capture_time() -> None:
         cursor="cursor-2",
     )
 
-    report = replay([first, regressive], installed_executor().reference)
+    report = replay([first, regressive], installed_executor("0.6.0").reference)
 
     assert report.state.boundaries[0].read_sequence == 1
     assert report.state.boundaries[0].captured_at == first.boundary.captured_at
@@ -597,7 +597,7 @@ def test_higher_sequence_cannot_regress_capture_time() -> None:
 
 
 def test_protocol_state_requires_a_boundary_covering_every_event() -> None:
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     event = _event(revision="edit-uncovered", at=T0, body="uncovered")
     fields = {
         "schema_version": 1,
@@ -645,7 +645,7 @@ def test_repository_rename_uses_immutable_repository_id() -> None:
                 read_sequence=2,
             ),
         ],
-        installed_executor().reference,
+        installed_executor("0.6.0").reference,
     )
 
     assert len(report.state.events) == 1
@@ -672,7 +672,7 @@ def test_event_state_discards_mutable_repository_path() -> None:
         before_rename,
         repository="WeTheAgents/renamed",
     )
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
 
     forward = replay([batch], reference)
     reverse = replay([reversed_batch], reference)
@@ -685,7 +685,7 @@ def test_event_state_discards_mutable_repository_path() -> None:
 def test_divergent_batches_at_one_read_sequence_fail_closed() -> None:
     first = _batch(_event(revision="edit-A", at=T0, body="A"))
     second = _batch(_event(revision="edit-B", at=T0, body="B"))
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
 
     forward = replay([first, second], descriptor.reference)
     reverse = replay([second, first], descriptor.reference)
@@ -708,7 +708,7 @@ def test_divergent_read_sequence_blocks_later_boundary_for_repository() -> None:
         captured_at=T0 + timedelta(hours=2),
         read_sequence=2,
     )
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
 
     forward = replay([first, divergent, later], descriptor.reference)
     reverse = replay([later, divergent, first], descriptor.reference)
@@ -726,7 +726,7 @@ def test_divergent_read_sequence_blocks_later_boundary_for_repository() -> None:
 def test_confirmed_boundary_rejects_later_divergent_batch() -> None:
     first = _batch(_event(revision="edit-A", at=T0, body="A"))
     divergent = _batch(_event(revision="edit-B", at=T0, body="B"))
-    descriptor = installed_executor()
+    descriptor = installed_executor("0.6.0")
     executor = load_executor(descriptor.reference).module
     state = executor.initial_state(descriptor.reference)
 
@@ -749,7 +749,7 @@ def test_incremental_boundary_conflict_blocks_later_sequences() -> None:
         captured_at=T0 + timedelta(hours=2),
         read_sequence=2,
     )
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
 
     accepted = executor.apply_batch(executor.initial_state(reference), first)
@@ -778,7 +778,7 @@ def test_earlier_capture_for_same_sequence_is_a_durable_conflict() -> None:
         captured_at=T0 + timedelta(hours=3),
         read_sequence=2,
     )
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
 
     accepted = executor.apply_batch(executor.initial_state(reference), first)
@@ -793,7 +793,7 @@ def test_earlier_capture_for_same_sequence_is_a_durable_conflict() -> None:
 
 
 def test_executor_does_not_expose_standalone_event_application() -> None:
-    handle = load_executor(installed_executor().reference)
+    handle = load_executor(installed_executor("0.6.0").reference)
 
     with pytest.raises(ValueError, match="internal"):
         handle.import_module("transition")
@@ -835,7 +835,7 @@ def test_replay_rebuilds_foreign_subclasses_inside_selected_executor() -> None:
         boundary=canonical_batch.boundary,
         events=(foreign_event,),
     )
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
 
     canonical_report = replay([canonical_batch], reference)
     foreign_report = replay([foreign_batch], reference)
@@ -862,7 +862,7 @@ def test_replay_uses_the_verifier_owned_runtime_reference() -> None:
         def executor_manifest_hash(self) -> str:
             return "f" * 64
 
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     foreign = ForeignRuntimeReference(*reference)
 
     report = replay([], foreign)
@@ -876,7 +876,7 @@ def test_replay_uses_the_verifier_owned_runtime_reference() -> None:
 
 
 def test_incremental_api_rebuilds_foreign_protocol_state() -> None:
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
     canonical_state = executor.initial_state(reference)
 
@@ -909,7 +909,7 @@ def test_incremental_api_rebuilds_foreign_protocol_state() -> None:
 
 
 def test_incremental_api_rejects_state_from_another_runtime() -> None:
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
     state = executor.initial_state(reference)
     foreign_state = replace(
@@ -926,7 +926,7 @@ def test_incremental_api_rejects_state_from_another_runtime() -> None:
 
 
 def test_protocol_state_rejects_boolean_schema_version() -> None:
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
 
     with pytest.raises(ValueError, match="schema_version"):
@@ -934,7 +934,7 @@ def test_protocol_state_rejects_boolean_schema_version() -> None:
 
 
 def test_protocol_state_rejects_a_stale_incomplete_read_blocker() -> None:
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
     applied = executor.apply_batch(
         executor.initial_state(reference),
@@ -958,7 +958,7 @@ def test_protocol_state_rejects_a_stale_incomplete_read_blocker() -> None:
 
 
 def test_protocol_state_rejects_conflicting_existing_revisions() -> None:
-    reference = installed_executor().reference
+    reference = installed_executor("0.6.0").reference
     executor = load_executor(reference).module
     first = _event(revision="same-revision", at=T0, body="A")
     conflicting = _event(revision="same-revision", at=T0, body="B")
@@ -993,12 +993,12 @@ def test_replay_rejects_naive_foreign_datetime_subclass() -> None:
     batch.events = ()
 
     with pytest.raises(ValueError, match="timezone-aware"):
-        replay([batch], installed_executor().reference)
+        replay([batch], installed_executor("0.6.0").reference)
 
 
 def test_shadow_writer_has_one_fixed_repo_local_namespace(tmp_path) -> None:
     event = _event(revision="edit-A", at=T0, body="A")
-    report = replay([_batch(event)], installed_executor().reference)
+    report = replay([_batch(event)], installed_executor("0.6.0").reference)
 
     path = write_shadow_report(tmp_path, "run-001", report)
 
@@ -1008,7 +1008,7 @@ def test_shadow_writer_has_one_fixed_repo_local_namespace(tmp_path) -> None:
 
     other_report = replay(
         [_batch(_event(revision="edit-B", at=T0, body="B"))],
-        installed_executor().reference,
+        installed_executor("0.6.0").reference,
     )
     with pytest.raises(FileExistsError, match="different bytes"):
         write_shadow_report(tmp_path, "run-001", other_report)
@@ -1019,7 +1019,7 @@ def test_shadow_writer_has_one_fixed_repo_local_namespace(tmp_path) -> None:
 def test_shadow_writer_does_not_publish_a_partial_report(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
     destination = tmp_path / ".wea_runs" / "vnext-shadow" / "retry.json"
     original_fsync = vnext_store.os.fsync
     failed = False
@@ -1049,7 +1049,7 @@ def test_shadow_writer_pins_temp_file_through_publication(
 ) -> None:
     if os.name != "nt":
         pytest.skip("Windows pathname replacement regression")
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
     destination = tmp_path / ".wea_runs" / "vnext-shadow" / "pinned.json"
     original_link = vnext_store.os.link
     attempted = False
@@ -1075,7 +1075,7 @@ def test_shadow_writer_pins_temp_file_through_publication(
     ["NUL", "nul.report", "CON", "COM1", "LPT9.trace"],
 )
 def test_shadow_writer_rejects_windows_device_names(tmp_path, run_id: str) -> None:
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
 
     with pytest.raises(ValueError, match="reserved Windows device"):
         write_shadow_report(tmp_path, run_id, report)
@@ -1091,7 +1091,7 @@ def test_shadow_report_preserves_an_incomplete_attempted_boundary() -> None:
         captured_at=T0 + timedelta(minutes=1),
     )
 
-    report = replay([attempted], installed_executor().reference)
+    report = replay([attempted], installed_executor("0.6.0").reference)
     payload = json.loads(report.report_bytes)
 
     assert payload["read_attempts"] == [
@@ -1120,7 +1120,7 @@ def test_shadow_writer_rejects_linked_parent_before_external_creation(tmp_path) 
             pytest.skip(f"directory junctions unavailable: {created.stderr}")
     else:
         os.symlink(outside, link, target_is_directory=True)
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
 
     with pytest.raises(ValueError, match="links or junctions"):
         write_shadow_report(tmp_path, "run-001", report)
@@ -1133,7 +1133,7 @@ def test_shadow_writer_pins_parent_during_final_creation(
 ) -> None:
     outside = tmp_path.parent / f"{tmp_path.name}-race-outside"
     outside.mkdir()
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
     original_open = vnext_store._open_relative_windows
     attempted = False
 
@@ -1178,7 +1178,7 @@ def test_windows_shadow_writer_pins_runs_before_creating_shadow(
     outside = tmp_path.parent / f"{tmp_path.name}-runs-race-outside"
     outside.mkdir()
     moved_runs = outside / "moved-runs"
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
     original_open = vnext_store._open_relative_windows_directory
     attempted = False
 
@@ -1272,7 +1272,7 @@ def test_posix_shadow_writer_resolves_final_create_beneath_pinned_root(
     outside = tmp_path.parent / f"{tmp_path.name}-posix-race-outside"
     outside.mkdir()
     moved_shadow = outside / "moved-shadow"
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
     original_open = vnext_store._open_beneath_posix
     attempted = False
     shadow_descriptor: int | None = None
@@ -1331,7 +1331,7 @@ def test_posix_shadow_writer_rejects_move_immediately_before_final_link(
     outside = tmp_path.parent / f"{tmp_path.name}-posix-link-race-outside"
     outside.mkdir()
     moved_shadow = outside / "moved-shadow"
-    report = replay([], installed_executor().reference)
+    report = replay([], installed_executor("0.6.0").reference)
     original_link = vnext_store._link_pinned_posix
     ready = Event()
     proceed = Event()

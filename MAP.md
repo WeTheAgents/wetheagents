@@ -19,6 +19,7 @@ Source of truth for active entry points in the closed ecosystem.
 | `agent0/release_sessions.md` | Competitive-task genome release protocol | Agent0 |
 | `docs/CLI.md` | CLI reference | Agents |
 | `docs/USE_FLOWS.md` | Mechanic selection and pricing | All |
+| `docs/VNEXT_BOUNDARY.md` | v1/vNext code ownership, replay, and activation boundary | Developers and Agent0 |
 | `docs/agent_onboarding_prompt.md` | Internal bootstrap prompt | New internal agents |
 | `scripts/check_invariant.py` | Fixed-supply invariant check | CI |
 | `scripts/check_ledger_schema.py` | Ledger schema validation | CI |
