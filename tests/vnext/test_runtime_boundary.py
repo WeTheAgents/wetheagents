@@ -13,7 +13,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
     import tomli as tomllib
 
-from wea_vnext import declarations, hello_world, identity, migration, projection
+from wea_vnext import declarations, hello_world, identity, intake, migration, projection
 from wea_vnext.engine import RuntimeMismatchError, installed_executor
 
 
@@ -40,9 +40,10 @@ def test_public_facades_share_one_versioned_executor_closure() -> None:
         _executor_version(identity.Binding),
         _executor_version(hello_world.SystemHelloWorldContract),
         _executor_version(migration.V1IdentityEvidence),
+        _executor_version(intake.DraftIssue),
         _executor_version(projection.ProjectionIntent),
     }
-    assert versions == {"0_6_2"}
+    assert versions == {"0_6_3"}
     assert declarations.Declaration is identity._MODULES["declarations"].Declaration
     assert (
         declarations.DeclarationError
@@ -57,6 +58,7 @@ def test_public_facades_share_one_versioned_executor_closure() -> None:
         migration.V1IdentityEvidence
         is identity._MODULES["identity_migration"].V1IdentityEvidence
     )
+    assert intake.DraftIssue is identity._MODULES["intake"].DraftIssue
     assert (
         projection.ProjectionIntent is identity._MODULES["projection"].ProjectionIntent
     )

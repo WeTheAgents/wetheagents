@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.0`: блоки 1–2 реализованы и проверены по `outcome 0.7`, `spec 0.7` и `design 0.8`. Оператор 2026-07-28 закрыл историческую семантику Hello World своим вердиктом при построчном account/ledger evidence и проходящем WEA-инварианте; полный replay edit revisions не является gate Block 2. Текущий `v0_6_2` остаётся навсегда fail closed для live mint. Block 3 — следующий ограниченный этап; live adapter, ledger-write, миграция и bootstrap не разрешены. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.0`: блоки 1–3 реализованы и проверены по `outcome 0.7`, `spec 0.7` и `design 0.8`. Текущий `v0_6_3` добавляет только неактивные Draft, Triage и ordinary Contract semantics; System Hello World остаётся fail closed. Block 4 — следующий ограниченный этап; live adapter, ledger-write, миграция и bootstrap не разрешены. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
@@ -49,10 +49,10 @@
 
 **Зависит от:** блоков 1–2.
 
-- [ ] Обновить общий валидатор и тестовые примеры для Issue Form, CLI и Tide. Формально корректный Issue остаётся Draft и не создаёт Task или escrow.
-- [ ] Записать Triage/Negativa как бесплатную либо отдельно оплаченную treasury-роль. Повтор после правки body не получает вторую выплату.
-- [ ] Проверить точные ревизии Triage, исключения оператора и согласия автора.
-- [ ] Одним переходом списать полный bank у автора, создать escrow, Contract и Task. Любая ошибка оставляет все четыре объекта отсутствующими.
+- [x] Обновить общий валидатор и тестовые примеры для Issue Form, CLI и Tide. Формально корректный Issue остаётся Draft и не создаёт Task или escrow.
+- [x] Записать Triage/Negativa как бесплатную либо отдельно оплаченную treasury-роль. Повтор после правки body не получает вторую выплату.
+- [x] Проверить точные ревизии Triage, исключения оператора и согласия автора.
+- [x] Одним переходом списать полный bank у автора, создать escrow, Contract и Task. Любая ошибка оставляет все четыре объекта отсутствующими.
 
 **Сценарии:** S-02A, S-02C, S-02H, S-02I.
 **Проверка:** `python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py -q`. `[CHAT][DERIVED]`
@@ -163,4 +163,4 @@
 
 ## Граница следующей сессии
 
-Block 2 закрыт после успешного свежего review. Следующая сессия начинает Block 3 отдельным worktree и PR от свежего `origin/main`: только Draft, Triage и атомарный обычный Contract по S-02A/S-02C/S-02H/S-02I. `v0_6_0…v0_6_2` не меняются; новая closure остаётся fail closed для System Hello World. Никаких правок Issue, начислений, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap или live-подключения. `[CHAT][DERIVED][CHECK][REVIEW]`
+Block 3 закрыт после adversarial review и повторной проверки. Следующая сессия начинает Block 4 отдельным worktree и PR от свежего `origin/main`: первый полный `direct-pr` path с accepted GitHubEvent revisions и confirmed boundary. `v0_6_0…v0_6_3` не меняются; новая closure по-прежнему fail closed для System Hello World. Никаких live-write, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap или переключения без отдельного gate. `[CHAT][DERIVED][CHECK][REVIEW]`

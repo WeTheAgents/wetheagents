@@ -16,7 +16,7 @@ from wea_vnext.hello_world import (
 
 
 def test_s_09c_fails_closed_until_canonical_issue_snapshot_is_installed() -> None:
-    runtime = installed_executor("0.6.2").reference
+    runtime = installed_executor("0.6.3").reference
     body = "Submit mechanically unique Work."
 
     with pytest.raises(HelloWorldError, match="canonical Issue #1 snapshot"):
@@ -33,7 +33,7 @@ def test_s_09c_fails_closed_until_canonical_issue_snapshot_is_installed() -> Non
 
 
 def test_s_09c_exported_class_globals_cannot_install_canonical_snapshot() -> None:
-    runtime = installed_executor("0.6.2").reference
+    runtime = installed_executor("0.6.3").reference
     body = "attacker-selected-body"
     body_hash = hashlib.sha256(body.encode("utf-8")).hexdigest()
     method_globals = SystemHelloWorldContract.__post_init__.__globals__

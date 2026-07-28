@@ -18,7 +18,9 @@
 | Work | детерминированный Work ID, Contract ID, Agent ID, этап, поколение этапа, статус, Deliverable IDs, основание закрытия/снятия; отдельной записи ветки нет |
 | Deliverable | Work ID, этап, ревизия, GitHub ID, `created_at`, `updated_at`, текст и hash, PR или подтверждение |
 | Review Deliverable | role ID, reviewer Agent ID, поколение назначения, цели Work/Deliverable с hash, verdict, GitHub ID, неизменяемый revision ID и время; полный набор выводится из покрытия всех обязательных целей |
-| Вывод Triage до Contract | role ID, Agent ID, Issue ID, точная ревизия body и hash, маршрут, риски, GitHub ID и время |
+| Назначение Triage до Contract | детерминированные role/treasury-escrow ID без пересечения с balance account namespace, generation, reviewer Agent ID, GitHub account и binding/version, Agent0 account и binding/version, comment revision, snapshot/hash, время и idempotency key |
+| Вывод Triage до Contract | role ID/generation, reviewer Agent ID, GitHub account и binding/version, Issue ID, точная ревизия body и hash, маршрут, риски, comment revision, snapshot/hash и время |
+| Завершение Triage до Contract | role ID/generation, точная Triage revision, reviewer Agent ID, Agent0 account и binding/version, comment revision, snapshot/hash, время и idempotency key |
 | Согласие автора | Contract candidate ID, author Agent ID, GitHub account ID, comment ID и ревизия, полный снимок и hash, версия mapping, точные условия, `effective_at` |
 | Источник решения автора | Contract ID, author Agent ID и постоянный GitHub account ID, версия mapping, comment ID и неизменяемый revision ID, `source_effective_at`, полный снимок и hash |
 | Декларация и выбор | вид, `actor_kind` и `actor_binding_id`, необязательные ID затронутых Agent/Work/role, исходный GitHub ID и неизменяемый revision ID, `effective_at`, необязательный `source_decision_id`, ключ события |

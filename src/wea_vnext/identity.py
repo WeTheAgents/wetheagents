@@ -6,7 +6,7 @@ from typing import Any
 
 from .engine import installed_executor, load_executor
 
-_FACADE_EXECUTOR_VERSION = "0.6.2"
+_FACADE_EXECUTOR_VERSION = "0.6.3"
 
 _MODULES = load_executor(
     installed_executor(_FACADE_EXECUTOR_VERSION).reference
@@ -16,6 +16,7 @@ _MODULES = load_executor(
         "identity",
         "identity_hello_world",
         "identity_migration",
+        "intake",
         "projection",
     )
 )

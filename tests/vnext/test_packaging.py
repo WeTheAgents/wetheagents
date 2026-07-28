@@ -112,7 +112,10 @@ def test_wheel_resources_upgrade_isolation_and_preimport_verification(
     assert "wea_vnext/executors/v0_6_2/manifest.json" in names
     assert "wea_vnext/executors/v0_6_2/identity_hello_world.py" in names
     assert "wea_vnext/executors/v0_6_2/identity_migration.py" in names
+    assert "wea_vnext/executors/v0_6_3/manifest.json" in names
+    assert "wea_vnext/executors/v0_6_3/intake.py" in names
     assert "wea_vnext/hello_world.py" in names
+    assert "wea_vnext/intake.py" in names
     assert "wea_vnext/migration.py" in names
 
     block_2_import_code = """
@@ -130,7 +133,7 @@ from wea_vnext.identity import IdentityRegistry
 from wea_vnext.migration import V1IdentityEvidence
 assert not hasattr(identity_facade._MODULE, '_WEA_VERIFIER_CAPABILITY')
 assert not hasattr(hello_world_facade._MODULE, '_WEA_VERIFIER_CAPABILITY')
-runtime = installed_executor('0.6.2').reference
+runtime = installed_executor('0.6.3').reference
 body = 'attacker-selected-body'
 body_hash = hashlib.sha256(body.encode()).hexdigest()
 method_globals = SystemHelloWorldContract.__post_init__.__globals__

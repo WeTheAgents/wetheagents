@@ -130,9 +130,17 @@ def validate_package_contract() -> None:
     tasks = texts.get("tasks.md", "")
     handoff = texts.get("HANDOFF.md", "")
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
-    block_two_complete = "Ready for Block 3" in verification
+    block_three_complete = "Ready for Block 4" in verification
+    block_two_complete = block_three_complete or "Ready for Block 3" in verification
     block_one_complete = block_two_complete or "Ready for Block 2" in verification
-    if block_two_complete:
+    if block_three_complete:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "блоки 1–3 реализованы и проверены" not in tasks:
+            errors.append("tasks.md: Block 3 completion marker is missing")
+        if "Ready for Block 4" not in handoff:
+            errors.append("HANDOFF.md: Block 4 handoff status is missing")
+    elif block_two_complete:
         if "Not live" not in verification:
             errors.append("verification.md: live-runtime boundary is missing")
         if "блоки 1–2 реализованы и проверены" not in tasks:
@@ -562,7 +570,8 @@ def build() -> None:
     verification_text = (
         ROOT / "verification.md"
     ).read_text(encoding="utf-8")
-    block_two_complete = "Ready for Block 3" in verification_text
+    block_three_complete = "Ready for Block 4" in verification_text
+    block_two_complete = block_three_complete or "Ready for Block 3" in verification_text
     block_one_complete = block_two_complete or "Ready for Block 2" in verification_text
     source_digest, manifest_rows = source_manifest()
     attention_sections: list[str] = []
@@ -603,6 +612,16 @@ def build() -> None:
         package_status = "Ожидает полной вычитки"
         primary_href = "#doc-decisions"
         primary_label = "Решить открытые вопросы"
+    elif block_three_complete:
+        hero_kicker = "Кандидат · блоки 1–3 проверены"
+        hero_lead = (
+            "Draft, Triage и атомарный ordinary Contract реализованы в неактивной "
+            "immutable closure. Live Tide, ledger и GitHub не подключены; handoff "
+            "ограничен первым полным direct-pr path."
+        )
+        package_status = "Блок 3 закрыт; vNext не подключена"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть handoff блока 4"
     elif block_two_complete:
         hero_kicker = "Кандидат · блоки 1–2 проверены"
         hero_lead = (

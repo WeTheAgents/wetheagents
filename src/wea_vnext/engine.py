@@ -178,6 +178,7 @@ _PUBLIC_EXECUTOR_SUBMODULES = frozenset(
         "identity",
         "identity_hello_world",
         "identity_migration",
+        "intake",
         "projection",
     }
 )
