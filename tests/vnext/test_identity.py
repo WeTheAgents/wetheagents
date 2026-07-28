@@ -46,11 +46,45 @@ def test_block_3_preserves_every_prior_executor_triple() -> None:
         "975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7"
     )
     assert current.executor_manifest_hash == (
-        "d025d845fe2b55d899a274af300bbfcee14a0e42964303a3c76b79371f359c4b"
+        "238306466be80b500f3a7e41e9d0775529ea7c0f97dde9e2fb34a742c8951371"
     )
     assert current != old
     assert current != initial_block_2
     assert current != final_block_2
+
+
+def test_identity_reserved_namespaces_are_not_module_mutable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module_globals = IdentityRegistry.__post_init__.__globals__
+    monkeypatch.setitem(module_globals, "_RESERVED_AGENT_IDS", frozenset())
+    monkeypatch.setitem(module_globals, "_RESERVED_AGENT_PREFIXES", ())
+
+    with pytest.raises(IdentityError, match="reserved system account"):
+        IdentityRegistry(
+            accounts=(GitHubAccount("account-treasury", "owner", "treasury"),),
+            bindings=(
+                Binding(
+                    "binding-treasury",
+                    "agent",
+                    "account-treasury",
+                    "treasury",
+                    1,
+                    NOW,
+                ),
+            ),
+            control_group_bindings=(
+                ControlGroupBinding("group-treasury", "treasury", "owner", 1, NOW),
+            ),
+        )
+
+
+def test_registry_construction_seal_is_not_exposed_through_module_globals() -> None:
+    module_globals = IdentityRegistry.__post_init__.__globals__
+
+    assert "_REGISTRY_SEALS" not in module_globals
+    assert "_remember_registry_seal" not in module_globals
+    assert "_registry_seal" not in module_globals
 
 
 def _registry(*, revoked_at: datetime | None = None) -> IdentityRegistry:
@@ -561,9 +595,7 @@ def _v1_evidence(
 
 
 def test_s_09_v1_identity_restoration_uses_all_durable_sources_without_money() -> None:
-    plan = restore_v1_identity(
-        (_v1_evidence("agent-alt"), _v1_evidence("agent-base"))
-    )
+    plan = restore_v1_identity((_v1_evidence("agent-alt"), _v1_evidence("agent-base")))
 
     assert len(plan.registry.accounts) == 1
     assert plan.registry.accounts[0].base_agent_id == "agent-base"

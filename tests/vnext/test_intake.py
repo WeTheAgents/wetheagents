@@ -10,6 +10,7 @@ from wea_vnext.identity import (
     Binding,
     ControlGroupBinding,
     GitHubAccount,
+    IdentityError,
     IdentityRegistry,
 )
 from wea_vnext.intake import (
@@ -257,6 +258,225 @@ def test_additional_review_stage_must_use_an_allowed_profile_extension_point() -
         )
 
 
+@pytest.mark.parametrize(
+    ("field", "destination"),
+    (
+        ("on_approved_stage", "pr-intake"),
+        ("on_changes_stage", "final"),
+    ),
+)
+def test_additional_review_stage_uses_exact_versioned_successors(
+    field: str, destination: str
+) -> None:
+    stage = {
+        "duration_seconds": 3600,
+        "extension_point": "after-implementation-review",
+        "on_approved_stage": "author-decision",
+        "on_changes_stage": "author-decision",
+        "stage_id": "security-review",
+        "targets": ["agent-security"],
+    }
+    stage[field] = destination
+    terms = MechanicTerms(
+        mechanic="pod",
+        review_fee_wea=2,
+        payout_vector=(2,),
+        config={
+            "mode": "finite",
+            "payout_wea": 2,
+            "slots": 1,
+            "additional_review_stages": [stage],
+        },
+    )
+
+    with pytest.raises(IntakeError, match=field):
+        validate_draft(
+            replace(_draft(), bank_wea=4, terms=terms),
+            effective_at=NOW,
+            registry=_registry(),
+        )
+
+
+def test_additional_review_stage_accepts_the_exact_versioned_successors() -> None:
+    terms = MechanicTerms(
+        mechanic="pod",
+        review_fee_wea=2,
+        payout_vector=(2,),
+        config={
+            "mode": "finite",
+            "payout_wea": 2,
+            "slots": 1,
+            "additional_review_stages": [
+                {
+                    "duration_seconds": 3600,
+                    "extension_point": "after-implementation-review",
+                    "on_approved_stage": "author-decision",
+                    "on_changes_stage": "author-decision",
+                    "stage_id": "security-review",
+                    "targets": ["agent-security"],
+                }
+            ],
+        },
+    )
+
+    assert (
+        validate_draft(
+            replace(_draft(), bank_wea=4, terms=terms),
+            effective_at=NOW,
+            registry=_registry(),
+        ).status
+        == "draft"
+    )
+
+
+def test_additional_review_stage_id_cannot_shadow_a_profile_stage() -> None:
+    terms = MechanicTerms(
+        mechanic="pod",
+        review_fee_wea=2,
+        payout_vector=(2,),
+        config={
+            "mode": "finite",
+            "payout_wea": 2,
+            "slots": 1,
+            "additional_review_stages": [
+                {
+                    "duration_seconds": 3600,
+                    "extension_point": "after-implementation-review",
+                    "on_approved_stage": "author-decision",
+                    "on_changes_stage": "author-decision",
+                    "stage_id": "implementation-review",
+                    "targets": ["agent-security"],
+                }
+            ],
+        },
+    )
+
+    with pytest.raises(IntakeError, match="stage_id"):
+        validate_draft(
+            replace(_draft(), bank_wea=4, terms=terms),
+            effective_at=NOW,
+            registry=_registry(),
+        )
+
+
+@pytest.mark.parametrize(
+    "reserved_agent_id",
+    [
+        "treasury",
+        "task-escrow:existing-contract",
+        "triage-escrow:existing-role",
+    ],
+)
+def test_ledger_principal_namespaces_are_reserved_from_agent_identity(
+    reserved_agent_id: str,
+) -> None:
+    registry = _registry()
+    accounts = tuple(
+        replace(item, base_agent_id=reserved_agent_id)
+        if item.github_account_id == "account-author"
+        else item
+        for item in registry.accounts
+    )
+    bindings = tuple(
+        replace(item, subject_id=reserved_agent_id)
+        if item.binding_id == "author-binding"
+        else item
+        for item in registry.bindings
+    )
+    groups = tuple(
+        replace(item, agent_id=reserved_agent_id)
+        if item.binding_id == "group-author"
+        else item
+        for item in registry.control_group_bindings
+    )
+
+    with pytest.raises(IdentityError, match="reserved system account"):
+        IdentityRegistry(
+            accounts=accounts,
+            bindings=bindings,
+            control_group_bindings=groups,
+        )
+
+
+def test_assignment_mutated_after_validation_is_rejected() -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="free",
+    )
+    assignment = _assignment()
+    object.__setattr__(assignment, "snapshot", "forged assignment snapshot")
+
+    with pytest.raises(IntakeError, match="snapshot_hash"):
+        assign_triage(IntakeState(), role, assignment, registry=_registry())
+
+
+def test_registry_rejects_a_caller_recomputed_integrity_marker() -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="free",
+    )
+    registry = _registry()
+    object.__setattr__(registry.accounts[0], "owner", "forged-owner")
+    object.__setattr__(registry, "_integrity_hash", registry.state_hash)
+
+    with pytest.raises(IntakeError, match="changed after validation"):
+        assign_triage(IntakeState(), role, _assignment(), registry=registry)
+
+
+def test_restored_triage_must_belong_to_its_roles_issue() -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="free",
+    )
+
+    with pytest.raises(IntakeError, match="Triage"):
+        IntakeState(
+            triage_roles=(role,),
+            triage_assignments=(_assignment(),),
+            triages=(replace(_triage(), issue_id="issue-other"),),
+        )
+
+
+@pytest.mark.parametrize("principal_source", ["balance", "registry"])
+def test_triage_role_id_cannot_collide_with_an_account_principal(
+    principal_source: str,
+) -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="free",
+    )
+    state = IntakeState()
+    registry = _registry()
+    if principal_source == "balance":
+        state = IntakeState(balances=(AccountBalance(role.role_id, 0),))
+    else:
+        registry = IdentityRegistry(
+            accounts=(
+                *registry.accounts,
+                GitHubAccount("account-collision", "collision", role.role_id),
+            ),
+            bindings=(
+                *registry.bindings,
+                Binding(
+                    "binding-collision",
+                    "agent",
+                    "account-collision",
+                    role.role_id,
+                    1,
+                    NOW - timedelta(days=1),
+                ),
+            ),
+            control_group_bindings=registry.control_group_bindings,
+        )
+
+    with pytest.raises(IntakeError, match="role_id"):
+        assign_triage(state, role, _assignment(), registry=registry)
+
+
 def _triage(
     *,
     body: str = "Exact Issue body",
@@ -354,7 +574,192 @@ def test_free_triage_and_body_revision_retry_never_create_a_payout() -> None:
     assert len(state.triages) == 2
     assert len(state.triage_completions) == 2
     assert state.escrows == state.ledger == ()
-    assert assign_triage(state, role, assignment, registry=_registry()) is state
+    assert assign_triage(state, role, assignment, registry=_registry()) == state
+
+
+def test_assignment_replay_rejects_changed_role_funding() -> None:
+    free_role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="free",
+    )
+    assignment = _assignment()
+    state = assign_triage(
+        IntakeState(balances=(AccountBalance("treasury", 2),)),
+        free_role,
+        assignment,
+        registry=_registry(),
+    )
+    paid_role = TriageRole(
+        role_id=free_role.role_id,
+        issue_id=free_role.issue_id,
+        funding_source="treasury",
+        amount_wea=1,
+        escrow_id=triage_escrow_id(free_role.issue_id),
+    )
+
+    with pytest.raises(IntakeError, match="role_id"):
+        assign_triage(state, paid_role, assignment, registry=_registry())
+
+    assert state.balance("treasury") == 2
+    assert state.escrows == state.ledger == ()
+
+
+def test_one_assignment_source_revision_cannot_fund_two_roles() -> None:
+    first_role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="treasury",
+        amount_wea=1,
+        escrow_id=triage_escrow_id("issue-42"),
+    )
+    state = assign_triage(
+        IntakeState(balances=(AccountBalance("treasury", 3),)),
+        first_role,
+        _assignment(),
+        registry=_registry(),
+    )
+    second_role = TriageRole(
+        role_id=triage_role_id("issue-43"),
+        issue_id="issue-43",
+        funding_source="treasury",
+        amount_wea=1,
+        escrow_id=triage_escrow_id("issue-43"),
+    )
+    reused_source = replace(
+        _assignment(),
+        assignment_id="assignment-other-role",
+        role_id=second_role.role_id,
+        idempotency_key="triage-assignment:issue-43:1",
+    )
+
+    with pytest.raises(IntakeError, match="source revision"):
+        assign_triage(state, second_role, reused_source, registry=_registry())
+
+    assert state.balance("treasury") == 2
+    assert len(state.escrows) == len(state.ledger) == 1
+
+
+def test_reassignment_must_follow_prior_triage_and_completion_evidence() -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="treasury",
+        amount_wea=1,
+        escrow_id=triage_escrow_id("issue-42"),
+    )
+    state = assign_triage(
+        IntakeState(balances=(AccountBalance("treasury", 2),)),
+        role,
+        _assignment(),
+        registry=_registry(),
+    )
+    triage = _triage()
+    state = record_triage(state, triage, registry=_registry())
+    state = complete_triage(
+        state, _completion(triage, suffix="first"), registry=_registry()
+    )
+    snapshot = "Backdated reassignment"
+    backdated = replace(
+        _assignment(),
+        assignment_id="assignment-backdated",
+        generation=2,
+        comment_id="assignment-comment-backdated",
+        revision_id="assignment-revision-backdated",
+        snapshot=snapshot,
+        snapshot_hash=_hash(snapshot),
+        effective_at=NOW - timedelta(minutes=1),
+        idempotency_key="triage-assignment:issue-42:2",
+    )
+
+    with pytest.raises(IntakeError, match="prior role evidence"):
+        assign_triage(state, role, backdated, registry=_registry())
+
+    assert len(state.triage_assignments) == 1
+    assert len(state.triage_completions) == 1
+    assert len([item for item in state.ledger if item.kind == "triage-payout"]) == 1
+
+
+def test_reassignment_requires_the_prior_generation_to_be_terminal() -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="free",
+    )
+    state = assign_triage(IntakeState(), role, _assignment(), registry=_registry())
+    state = record_triage(state, _triage(), registry=_registry())
+    snapshot = "Agent0 reassigns before completing prior work"
+    premature = replace(
+        _assignment(),
+        assignment_id="assignment-2",
+        generation=2,
+        comment_id="assignment-comment-2",
+        revision_id="assignment-revision-2",
+        snapshot=snapshot,
+        snapshot_hash=_hash(snapshot),
+        effective_at=NOW + timedelta(minutes=2),
+        idempotency_key="triage-assignment:issue-42:2",
+    )
+
+    with pytest.raises(IntakeError, match="prior generation must be terminal"):
+        assign_triage(state, role, premature, registry=_registry())
+
+    with pytest.raises(IntakeError, match="prior generation must be terminal"):
+        IntakeState(
+            triage_roles=state.triage_roles,
+            triage_assignments=tuple(
+                sorted(
+                    (*state.triage_assignments, premature),
+                    key=lambda item: item.assignment_id,
+                )
+            ),
+            triages=state.triages,
+        )
+
+
+def test_paid_completion_reauthorizes_restored_assignment_and_triage() -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="treasury",
+        amount_wea=1,
+        escrow_id=triage_escrow_id("issue-42"),
+    )
+    state = assign_triage(
+        IntakeState(balances=(AccountBalance("treasury", 2),)),
+        role,
+        _assignment(),
+        registry=_registry(),
+    )
+    triage = _triage()
+    state = record_triage(state, triage, registry=_registry())
+    forged_assignment = replace(
+        state.triage_assignments[0],
+        reviewer_agent_id="ghost",
+        reviewer_github_account_id="ghost-account",
+        reviewer_binding_id="ghost-binding",
+    )
+    forged_triage = replace(
+        triage,
+        reviewer_agent_id="ghost",
+        reviewer_github_account_id="ghost-account",
+        reviewer_binding_id="ghost-binding",
+    )
+    restored = replace(
+        state,
+        triage_assignments=(forged_assignment,),
+        triages=(forged_triage,),
+    )
+    completion = replace(
+        _completion(forged_triage, suffix="ghost"),
+        reviewer_agent_id="ghost",
+    )
+
+    with pytest.raises(IntakeError, match="reviewer"):
+        complete_triage(restored, completion, registry=_registry())
+
+    assert not any(item.account_id == "ghost" for item in restored.balances)
+    assert not any(item.kind == "triage-payout" for item in restored.ledger)
 
 
 def test_triage_role_is_the_single_deterministic_payment_slot_for_an_issue() -> None:
@@ -496,7 +901,71 @@ def test_exact_completion_replay_remains_idempotent_after_reassignment() -> None
     )
     state = assign_triage(state, role, second_assignment, registry=_registry())
 
-    assert complete_triage(state, completion, registry=_registry()) is state
+    assert complete_triage(state, completion, registry=_registry()) == state
+
+
+def test_same_timestamp_completions_use_canonical_source_order_for_paid_role() -> None:
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="treasury",
+        amount_wea=1,
+        escrow_id=triage_escrow_id("issue-42"),
+    )
+    state = assign_triage(
+        IntakeState(balances=(AccountBalance("treasury", 2),)),
+        role,
+        _assignment(),
+        registry=_registry(),
+    )
+    first_triage = _triage()
+    state = record_triage(state, first_triage, registry=_registry())
+    first_completion = replace(
+        _completion(first_triage, suffix="z"),
+        comment_id="comment-a-completion",
+        revision_id="revision-a-completion",
+    )
+    state = complete_triage(state, first_completion, registry=_registry())
+
+    second_assignment = replace(
+        _assignment(),
+        assignment_id="assignment-2",
+        generation=2,
+        reviewer_agent_id="agent-author",
+        reviewer_github_account_id="account-author",
+        reviewer_binding_id="binding-author",
+        comment_id="comment-b-assignment",
+        revision_id="revision-b-assignment",
+        snapshot="Agent0 reassigns Triage",
+        snapshot_hash=_hash("Agent0 reassigns Triage"),
+        effective_at=first_completion.effective_at,
+        idempotency_key="triage-assignment:issue-42:2",
+    )
+    state = assign_triage(state, role, second_assignment, registry=_registry())
+    second_triage = replace(
+        _triage(revision_id="triage-revision-2"),
+        assignment_generation=2,
+        reviewer_agent_id="agent-author",
+        reviewer_github_account_id="account-author",
+        reviewer_binding_id="binding-author",
+        comment_id="comment-c-triage",
+        snapshot="second Triage",
+        snapshot_hash=_hash("second Triage"),
+        effective_at=first_completion.effective_at,
+    )
+    state = record_triage(state, second_triage, registry=_registry())
+    second_completion = replace(
+        _completion(second_triage, suffix="a"),
+        comment_id="comment-d-completion",
+        revision_id="revision-d-completion",
+        effective_at=first_completion.effective_at,
+    )
+
+    state = complete_triage(state, second_completion, registry=_registry())
+
+    assert len(state.triage_completions) == 2
+    assert state.balance("agent-reviewer") == 1
+    assert not any(item.account_id == "agent-author" for item in state.balances)
 
 
 def test_treasury_triage_has_its_own_atomic_escrow_and_no_task_bank() -> None:
@@ -575,44 +1044,68 @@ def test_treasury_triage_has_its_own_atomic_escrow_and_no_task_bank() -> None:
         )
 
     registry = _registry()
-    collision_registry = IdentityRegistry(
-        accounts=(
-            *registry.accounts,
-            GitHubAccount("account-collision", "collision", collision_id),
-        ),
-        bindings=(
-            *registry.bindings,
-            Binding(
-                "binding-collision",
-                "agent",
-                "account-collision",
-                collision_id,
-                1,
-                NOW - timedelta(days=1),
+    with pytest.raises(IdentityError, match="reserved system account"):
+        IdentityRegistry(
+            accounts=(
+                *registry.accounts,
+                GitHubAccount("account-collision", "collision", collision_id),
             ),
-        ),
-        control_group_bindings=(
-            *registry.control_group_bindings,
-            ControlGroupBinding(
-                "group-collision",
-                collision_id,
-                "owner-collision",
-                1,
-                NOW - timedelta(days=1),
+            bindings=(
+                *registry.bindings,
+                Binding(
+                    "binding-collision",
+                    "agent",
+                    "account-collision",
+                    collision_id,
+                    1,
+                    NOW - timedelta(days=1),
+                ),
             ),
-        ),
-    )
-    with pytest.raises(IntakeError, match="escrow_id"):
-        assign_triage(
-            initial,
-            role,
-            _assignment(),
-            registry=collision_registry,
+            control_group_bindings=(
+                *registry.control_group_bindings,
+                ControlGroupBinding(
+                    "group-collision",
+                    collision_id,
+                    "owner-collision",
+                    1,
+                    NOW - timedelta(days=1),
+                ),
+            ),
         )
 
     with pytest.raises(IntakeError, match="treasury_balance"):
         assign_triage(
             IntakeState(balances=(AccountBalance("treasury", 0),)),
+            role,
+            _assignment(),
+            registry=_registry(),
+        )
+
+
+def test_treasury_principal_is_not_redirected_by_module_globals(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(
+        TriageRole.__post_init__.__globals__,
+        "_TRIAGE_TREASURY_ACCOUNT_ID",
+        "agent-author",
+    )
+    role = TriageRole(
+        role_id=triage_role_id("issue-42"),
+        issue_id="issue-42",
+        funding_source="treasury",
+        amount_wea=1,
+        escrow_id=triage_escrow_id("issue-42"),
+    )
+
+    with pytest.raises(IntakeError, match="treasury_balance"):
+        assign_triage(
+            IntakeState(
+                balances=(
+                    AccountBalance("agent-author", 10),
+                    AccountBalance("treasury", 0),
+                )
+            ),
             role,
             _assignment(),
             registry=_registry(),

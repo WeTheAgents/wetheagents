@@ -11,6 +11,7 @@ from wea_vnext.identity import (
     Binding,
     ControlGroupBinding,
     GitHubAccount,
+    IdentityError,
     IdentityRegistry,
 )
 from wea_vnext.intake import (
@@ -22,6 +23,7 @@ from wea_vnext.intake import (
     IntakeError,
     IntakeState,
     MechanicTerms,
+    OrdinaryContract,
     RouteOverride,
     TriageAssignment,
     TriageCompletion,
@@ -355,13 +357,80 @@ def test_exact_activation_atomically_creates_one_debit_escrow_contract_and_task(
     assert result.task.stage == "pr-intake"
     again = _activate(result.state, draft)
     assert again.created is False
-    assert again.state is result.state
+    assert again.state == result.state
     assert len(again.state.ledger) == 1
 
     with pytest.raises(FrozenInstanceError):
         result.contract.bank_wea = 4  # type: ignore[misc]
     with pytest.raises(IntakeError, match="atomic"):
         replace(result.state, tasks=())
+
+
+def test_activation_runtime_is_owned_by_the_verified_facade(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_runtime = (
+        "1" * 64,
+        "forged-interface",
+        "2" * 64,
+    )
+    monkeypatch.setitem(
+        OrdinaryContract.__post_init__.__globals__, "_VERIFIED_RUNTIME", fake_runtime
+    )
+    draft = _draft()
+    triage = _triage()
+
+    result = _activate(_state(draft, triage, _consent(draft, triage)), draft)
+
+    assert result.contract.executor_manifest_hash == (
+        installed_executor("0.6.3").reference.executor_manifest_hash
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "forged_value"),
+    (
+        ("task_id", "task:forged"),
+        ("transition_id", "contract-bank:forged"),
+    ),
+)
+def test_restored_state_requires_deterministic_activation_record_ids(
+    field: str,
+    forged_value: str,
+) -> None:
+    draft = _draft()
+    triage = _triage()
+    result = _activate(_state(draft, triage, _consent(draft, triage)), draft)
+
+    if field == "task_id":
+        with pytest.raises(IntakeError, match="money does not match"):
+            replace(result.state, tasks=(replace(result.task, task_id=forged_value),))
+    else:
+        with pytest.raises(IntakeError, match="money does not match"):
+            replace(
+                result.state,
+                ledger=(replace(result.debit, transition_id=forged_value),),
+            )
+
+
+def test_state_construction_seal_is_not_exposed_through_module_globals() -> None:
+    module_globals = IntakeState.__post_init__.__globals__
+
+    assert "_STATE_SEALS" not in module_globals
+    assert "_remember_state_seal" not in module_globals
+    assert "_state_seal" not in module_globals
+
+
+def test_activation_rejects_a_balance_mutated_after_state_validation() -> None:
+    draft = _draft()
+    triage = _triage()
+    consent = _consent(draft, triage)
+    state = _state(draft, triage, consent, balance=1)
+    object.__setattr__(state.balances[0], "amount_wea", 10)
+    object.__setattr__(state, "_integrity_hash", state.state_hash)
+
+    with pytest.raises(IntakeError, match="changed after validation"):
+        _activate(state, draft)
 
 
 def test_restored_state_rejects_contract_terms_not_bound_to_consent() -> None:
@@ -401,6 +470,21 @@ def test_restored_state_rejects_task_escrow_with_foreign_funding_source() -> Non
 
     with pytest.raises(IntakeError, match="money does not match"):
         replace(result.state, escrows=(forged_escrow,))
+
+
+def test_restored_state_requires_the_deterministic_task_escrow_id() -> None:
+    draft = _draft()
+    triage = _triage()
+    result = _activate(_state(draft, triage, _consent(draft, triage)), draft)
+    forged_escrow = replace(result.escrow, escrow_id="agent-reviewer")
+    forged_debit = replace(result.debit, credit_account_id="agent-reviewer")
+
+    with pytest.raises(IntakeError, match="money does not match"):
+        replace(
+            result.state,
+            escrows=(forged_escrow,),
+            ledger=(forged_debit,),
+        )
 
 
 @pytest.mark.parametrize("record_kind", ("assignment", "completion"))
@@ -476,49 +560,33 @@ def test_task_escrow_cannot_collide_with_registered_identity_without_balance() -
     state = _state(draft, triage, _consent(draft, triage))
     collision_id = f"task-escrow:{ordinary_contract_id(draft.issue_id)}"
     registry = _registry()
-    collision_registry = IdentityRegistry(
-        accounts=(
-            *registry.accounts,
-            GitHubAccount("account-collision", "collision", collision_id),
-        ),
-        bindings=(
-            *registry.bindings,
-            Binding(
-                "binding-collision",
-                "agent",
-                "account-collision",
-                collision_id,
-                1,
-                NOW - timedelta(days=1),
+    with pytest.raises(IdentityError, match="reserved system account"):
+        IdentityRegistry(
+            accounts=(
+                *registry.accounts,
+                GitHubAccount("account-collision", "collision", collision_id),
             ),
-        ),
-        control_group_bindings=(
-            *registry.control_group_bindings,
-            ControlGroupBinding(
-                "group-collision",
-                collision_id,
-                "owner-collision",
-                1,
-                NOW - timedelta(days=1),
+            bindings=(
+                *registry.bindings,
+                Binding(
+                    "binding-collision",
+                    "agent",
+                    "account-collision",
+                    collision_id,
+                    1,
+                    NOW - timedelta(days=1),
+                ),
             ),
-        ),
-    )
-
-    with pytest.raises(IntakeError, match="escrow_id"):
-        activate_contract(
-            state,
-            ContractCandidate(
-                ordinary_contract_id(draft.issue_id),
-                draft,
-                draft.profile,
-                triage.revision_id,
+            control_group_bindings=(
+                *registry.control_group_bindings,
+                ControlGroupBinding(
+                    "group-collision",
+                    collision_id,
+                    "owner-collision",
+                    1,
+                    NOW - timedelta(days=1),
+                ),
             ),
-            consent_id="consent-1",
-            payer_agent_id="agent-author",
-            payer_github_account_id="account-author",
-            effective_at=NOW,
-            readiness_id="ready-consent-1",
-            registry=collision_registry,
         )
 
     assert state.balance("agent-author") == 10
@@ -733,3 +801,54 @@ def test_route_override_requires_exact_operator_binding_version() -> None:
             ),
             registry=_registry(),
         )
+
+
+def test_same_timestamp_override_and_consent_use_canonical_event_order() -> None:
+    draft = _draft(profile="direct-pr")
+    triage = _triage(route="spec-only")
+    state = _triaged_state(draft, triage)
+    same_time = CONSENT_AT
+    override = replace(
+        _override(triage, effective_at=same_time),
+        comment_id="comment-a-override",
+        revision_id="revision-a-override",
+    )
+    state = record_route_override(state, override, registry=_registry())
+    consent = replace(
+        _consent(
+            draft,
+            triage,
+            consent_id="consent-same-time",
+            effective_at=same_time,
+            override_id=override.override_id,
+        ),
+        comment_id="comment-z-consent",
+        revision_id="revision-z-consent",
+    )
+    state = record_author_consent(state, consent, registry=_registry())
+    state = record_contract_readiness(
+        state, _readiness(consent, triage), registry=_registry()
+    )
+
+    assert _activate(state, draft, consent.consent_id).contract.override_id == (
+        override.override_id
+    )
+
+    reversed_override = replace(
+        override,
+        override_id="override-reversed",
+        comment_id="comment-z-override",
+        revision_id="revision-z-override",
+    )
+    reversed_state = record_route_override(
+        _triaged_state(draft, triage), reversed_override, registry=_registry()
+    )
+    reversed_consent = replace(
+        consent,
+        consent_id="consent-reversed",
+        comment_id="comment-a-consent",
+        revision_id="revision-a-consent",
+        override_id=reversed_override.override_id,
+    )
+    with pytest.raises(IntakeError, match="override must precede consent"):
+        record_author_consent(reversed_state, reversed_consent, registry=_registry())

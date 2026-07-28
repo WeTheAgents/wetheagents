@@ -3,12 +3,42 @@
 from __future__ import annotations
 
 import hashlib
+import weakref
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
+from typing import Any
 
 from .canonical import canonical_hash
 from .declarations import Declaration, DeclarationError, parse_declaration
+
+
+def _registry_seal_functions() -> tuple[Any, Any]:
+    """Create construction seals without leaving their store module-mutable."""
+    seals: dict[int, tuple[weakref.ReferenceType[Any], str]] = {}
+
+    def remember(registry: Any, digest: str) -> None:
+        identity = id(registry)
+
+        def forget(reference: weakref.ReferenceType[Any]) -> None:
+            current = seals.get(identity)
+            if current is not None and current[0] is reference:
+                seals.pop(identity, None)
+
+        reference = weakref.ref(registry, forget)
+        seals[identity] = (reference, digest)
+
+    def seal(registry: Any) -> str | None:
+        sealed = seals.get(id(registry))
+        if sealed is None or sealed[0]() is not registry:
+            return None
+        return sealed[1]
+
+    return remember, seal
+
+
+_remember_registry_seal, _registry_seal = _registry_seal_functions()
+del _registry_seal_functions
 
 
 class IdentityError(ValueError):
@@ -351,7 +381,10 @@ class IdentityRegistry:
     bindings: tuple[Binding, ...] = ()
     control_group_bindings: tuple[ControlGroupBinding, ...] = ()
 
-    def __post_init__(self) -> None:
+    def __post_init__(
+        self,
+        _remember_seal: Any = _remember_registry_seal,  # noqa: RUF033
+    ) -> None:
         if any(type(item) is not GitHubAccount for item in self.accounts):
             raise IdentityError("accounts must use verified GitHubAccount records")
         if any(type(item) is not Binding for item in self.bindings):
@@ -394,6 +427,11 @@ class IdentityRegistry:
         self._validate_binding_timelines(bindings)
         self._validate_group_timelines(groups)
         self._validate_accounts()
+        _remember_seal(self, canonical_hash(self.to_data()))
+
+    def _assert_unchanged(self, _get_seal: Any = _registry_seal) -> None:
+        if _get_seal(self) != canonical_hash(self.to_data()):
+            raise IdentityError("registry changed after validation")
 
     def _validate_unique_ids(self) -> None:
         account_ids = [item.github_account_id for item in self.accounts]
@@ -461,6 +499,16 @@ class IdentityRegistry:
                     raise IdentityError("control-group binding intervals overlap")
 
     def _validate_accounts(self) -> None:
+        agent_ids = {
+            *(item.base_agent_id for item in self.accounts),
+            *(item.subject_id for item in self.bindings if item.actor_kind == "agent"),
+            *(item.agent_id for item in self.control_group_bindings),
+        }
+        if "treasury" in agent_ids or any(
+            agent_id.startswith(("task-escrow:", "triage-escrow:"))
+            for agent_id in agent_ids
+        ):
+            raise IdentityError("reserved system account cannot be an Agent ID")
         known_accounts = {item.github_account_id for item in self.accounts}
         for binding in self.bindings:
             if binding.github_account_id not in known_accounts:
@@ -516,9 +564,7 @@ class IdentityRegistry:
             raise IdentityError("Agent binding does not belong to the GitHub account")
         if control_group_binding.agent_id != account_binding.subject_id:
             raise IdentityError("control-group binding does not belong to the Agent ID")
-        existing_accounts = {
-            item.github_account_id: item for item in self.accounts
-        }
+        existing_accounts = {item.github_account_id: item for item in self.accounts}
         existing_account = existing_accounts.get(account.github_account_id)
         if existing_account is not None:
             if existing_account.base_agent_id != account.base_agent_id:
@@ -575,6 +621,9 @@ class IdentityRegistry:
         }
 
 
+del _remember_registry_seal, _registry_seal
+
+
 def resolve_binding(
     bindings: Iterable[Binding],
     *,
@@ -615,9 +664,7 @@ def resolve_control_group_binding(
         if binding.agent_id == agent_id and binding.active_at(effective_at)
     ]
     if len(matches) != 1:
-        raise IdentityError(
-            "control-group binding must resolve to exactly one version"
-        )
+        raise IdentityError("control-group binding must resolve to exactly one version")
     return matches[0]
 
 
@@ -633,9 +680,7 @@ def authorize_agent(
     registry.account(github_account_id)
     account_binding = resolve_binding(
         tuple(
-            binding
-            for binding in registry.bindings
-            if binding.actor_kind == "agent"
+            binding for binding in registry.bindings if binding.actor_kind == "agent"
         ),
         github_account_id=github_account_id,
         subject_id=agent_id,

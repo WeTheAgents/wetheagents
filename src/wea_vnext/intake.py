@@ -30,7 +30,7 @@ TriageCompletion = _MODULE.TriageCompletion
 
 
 def validate_draft(*args: Any, **kwargs: Any) -> Any:
-    return _MODULE.validate_draft(*args, **kwargs)
+    return _MODULE.call_verified("validate_draft", *args, **kwargs)
 
 
 def assign_triage(*args: Any, **kwargs: Any) -> Any:
@@ -58,7 +58,7 @@ def record_contract_readiness(*args: Any, **kwargs: Any) -> Any:
 
 
 def activate_contract(*args: Any, **kwargs: Any) -> Any:
-    return _MODULE.activate_contract(*args, **kwargs)
+    return _MODULE.call_verified("activate_contract", *args, **kwargs)
 
 
 def ordinary_contract_id(*args: Any, **kwargs: Any) -> Any:

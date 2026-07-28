@@ -9,14 +9,14 @@ Blocks 1–3 завершены. Block 3 добавляет неактивную
 - Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-block3-2026-07-28`.
 - Branch: `codex/wea-vnext-block3-contract-core-2026-07-28`.
 - Base: `6a623cd631793a53430da135196903116866cb95` (`origin/main`, merge Block 2).
-- Текущий executor: `v0_6_3`, manifest SHA-256 `d025d845fe2b55d899a274af300bbfcee14a0e42964303a3c76b79371f359c4b`.
+- Текущий executor: `v0_6_3`, manifest SHA-256 `238306466be80b500f3a7e41e9d0775529ea7c0f97dde9e2fb34a742c8951371`.
 - Frozen manifests: `v0_6_0` — `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`; `v0_6_1` — `dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2`; `v0_6_2` — `975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7`.
 - Ledger, GitHub, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap и live adapters не изменялись.
 
 ## Реализованный контракт Block 3
 
 - Один source-independent validator принимает Draft из Issue Form, CLI или будущего Tide. Валидный Draft остаётся read-only и не создаёт Contract, Task, escrow или debit.
-- Все обычные mechanic terms сверяются с versioned rules/money functions: exact mode, slots/winners, payout vector, review fee и разрешённые additional review stages.
+- Все обычные mechanic terms сверяются с versioned rules/money functions: exact mode, slots/winners, payout vector, review fee и разрешённые additional review stages; их stage IDs не пересекаются с профилем, а оба выхода совпадают с exact successors versioned transition graph.
 - Для Issue существует одна детерминированная Triage role/payment slot. Agent0 assignment и completion имеют versioned authority, exact revision/snapshot/hash/time и idempotency key; reviewer identity также проверяется по GitHub account и binding version.
 - Бесплатная Triage не двигает деньги. Treasury Triage списывает только account `treasury`, платит reviewer после отдельного Agent0 completion и никогда не платит второй раз при новой body revision или reassignment.
 - Route override требует точную более раннюю operator binding/version; author consent и Agent0 readiness закрепляют exact Issue/body/mechanic/runtime/Triage evidence.
@@ -24,11 +24,11 @@ Blocks 1–3 завершены. Block 3 добавляет неактивную
 
 ## Проверка и review
 
-- Focused Block 3: `47 passed`.
-- Full vNext: `240 passed`, `18 skipped`.
-- Full repository: `4525 passed`, `18 skipped`, `11 xfailed`.
+- Focused Block 3: `100 passed`.
+- Full vNext: `268 passed`, `18 skipped`.
+- Full repository: `4553 passed`, `18 skipped`, `11 xfailed`.
 - Packaging/runtime: `10 passed`; WEA invariant `19025 = 19025`; ledger schema, Ruff, Pyright и diff check — PASS.
-- Первый независимый review нашёл шесть money/authority gaps; второй — caller-selected treasury source, отсутствующую reviewer authority, неверный порядок assignment/Triage, неидемпотентный старый completion replay и stale boundary docs; третий воспроизвёл caller-selected Triage escrow/account collision. PR review расширил ту же защиту на task escrow и зарегистрированные identity principals без balance row, затем закрыл forged restored Contract terms, completion-before-Triage chronology, повторную authority-проверку восстановленной Triage и точный task-escrow funding source. Все причины исправлены и получили регрессии; финальный повторный review не оставил actionable findings.
+- Первый независимый review нашёл шесть money/authority gaps; второй — caller-selected treasury source, отсутствующую reviewer authority, неверный порядок assignment/Triage, неидемпотентный старый completion replay и stale boundary docs; третий воспроизвёл caller-selected Triage escrow/account collision. PR review расширил ту же защиту на task escrow и зарегистрированные identity principals без balance row, затем закрыл forged restored Contract terms, completion-before-Triage chronology, повторную authority-проверку восстановленной Triage и точный task-escrow funding source. Следующие mandatory passes закрыли mutation-after-validation для caller-owned state/registry, системный `treasury` в Agent namespace, exact review successors/IDs, revalidation входных evidence records, связь restored Triage с Issue роли, role/account namespace и сравнение role content до idempotent replay. Затем construction seals состояния и registry были вынесены из caller-owned объектов. Следующие passes закрыли повторное использование одной `(comment_id, revision_id)` для нескольких treasury movements, backdated reassignment, позднюю регистрацию Agent ID в deterministic escrow namespace, reassignment до terminal completion и одинаковые GitHub timestamps без canonical tie-breakers. Последующие passes потребовали reauthorize восстановленные assignment/Triage перед paid completion, закрепить exact task escrow и activation record IDs, использовать общий canonical source key при выборе первого completion и убрать mutable globals из verifier-owned runtime, treasury/identity namespace и construction seals. Все причины получили регрессии; финальный повторный `codex exec review` не нашёл actionable findings.
 
 ## Protected boundary
 
@@ -43,7 +43,7 @@ Blocks 1–3 завершены. Block 3 добавляет неактивную
 
 ```powershell
 $env:PYTHONPATH='src'
-python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py -q
+python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py tests/vnext/test_identity.py -q
 python -m pytest tests/vnext -q
 python -m pytest -q --tb=short
 python scripts/check_invariant.py
