@@ -457,6 +457,8 @@ class _VerifiedSourceLoader(importlib_abc.Loader):
         filename = str(self.source.resource)
         code = compile(raw, filename, "exec", dont_inherit=True)
         module.__dict__["_WEA_VERIFIER_CAPABILITY"] = self.verifier_capability
+        # Source bytes are manifest-pinned and rehashed immediately before compile.
+        # nosemgrep: python.lang.security.audit.exec-detected.exec-detected
         exec(code, module.__dict__)
         self.loaded[self.fullname] = module
 
