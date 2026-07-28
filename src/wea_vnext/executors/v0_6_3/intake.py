@@ -1087,8 +1087,10 @@ class IntakeState:
                 escrows[0].amount_wea != contract.bank_wea
                 or debits[0].amount_wea != contract.bank_wea
                 or escrows[0].refund_agent_id != contract.author_agent_id
+                or escrows[0].source_account_id != contract.payer_agent_id
                 or escrows[0].settlement_transition_id is not None
                 or debits[0].debit_account_id != contract.author_agent_id
+                or debits[0].debit_account_id != escrows[0].source_account_id
                 or debits[0].credit_account_id != escrows[0].escrow_id
             ):
                 raise IntakeError("activation", "money does not match the Contract")
@@ -2089,6 +2091,77 @@ def activate_contract(
     if len(completions) != 1:
         raise IntakeError("triage_completion", "must resolve exactly once")
     completion = completions[0]
+    assignment_matches = [
+        item
+        for item in state.triage_assignments
+        if item.role_id == triage.role_id
+        and item.generation == triage.assignment_generation
+    ]
+    if len(assignment_matches) != 1:
+        raise IntakeError("triage_assignment", "must resolve exactly once")
+    assignment = assignment_matches[0]
+    assignment_agent0 = _authorize_system_role(
+        registry=registry,
+        actor_kind="agent0",
+        github_account_id=assignment.agent0_github_account_id,
+        binding_id=assignment.agent0_binding_id,
+        effective_at=assignment.effective_at,
+    )
+    _expect(
+        "assignment.agent0_binding_version",
+        assignment.agent0_binding_version,
+        assignment_agent0.version,
+    )
+    completion_agent0 = _authorize_system_role(
+        registry=registry,
+        actor_kind="agent0",
+        github_account_id=completion.agent0_github_account_id,
+        binding_id=completion.agent0_binding_id,
+        effective_at=completion.effective_at,
+    )
+    _expect(
+        "completion.agent0_binding_version",
+        completion.agent0_binding_version,
+        completion_agent0.version,
+    )
+    for evidence_name, reviewer_agent_id, reviewer_github_account_id, (
+        reviewer_binding_id,
+        reviewer_binding_version,
+    ), evidence_at in (
+        (
+            "assignment",
+            assignment.reviewer_agent_id,
+            assignment.reviewer_github_account_id,
+            (assignment.reviewer_binding_id, assignment.reviewer_binding_version),
+            assignment.effective_at,
+        ),
+        (
+            "triage",
+            triage.reviewer_agent_id,
+            triage.reviewer_github_account_id,
+            (triage.reviewer_binding_id, triage.reviewer_binding_version),
+            triage.effective_at,
+        ),
+    ):
+        try:
+            reviewer = authorize_agent(
+                github_account_id=reviewer_github_account_id,
+                agent_id=reviewer_agent_id,
+                effective_at=evidence_at,
+                registry=registry,
+            )
+        except IdentityError as exc:
+            raise IntakeError(f"{evidence_name}.reviewer", str(exc)) from exc
+        _expect(
+            f"{evidence_name}.reviewer_binding_id",
+            reviewer_binding_id,
+            reviewer.account_binding_id,
+        )
+        _expect(
+            f"{evidence_name}.reviewer_binding_version",
+            reviewer_binding_version,
+            reviewer.account_binding_version,
+        )
     for field, actual, expected in (
         ("triage.issue_id", triage.issue_id, draft.issue_id),
         (

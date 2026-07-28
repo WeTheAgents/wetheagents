@@ -852,7 +852,7 @@
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-block3-2026-07-28</code>.</li>
 <li>Branch: <code>codex/wea-vnext-block3-contract-core-2026-07-28</code>.</li>
 <li>Base: <code>6a623cd631793a53430da135196903116866cb95</code> (<code>origin/main</code>, merge Block 2).</li>
-<li>Текущий executor: <code>v0_6_3</code>, manifest SHA-256 <code>b1152140a3d47ab5ff884410438156077d205436cf1b10ad106134e34fdcd0ab</code>.</li>
+<li>Текущий executor: <code>v0_6_3</code>, manifest SHA-256 <code>d025d845fe2b55d899a274af300bbfcee14a0e42964303a3c76b79371f359c4b</code>.</li>
 <li>Frozen manifests: <code>v0_6_0</code> — <code>8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3</code>; <code>v0_6_1</code> — <code>dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2</code>; <code>v0_6_2</code> — <code>975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7</code>.</li>
 <li>Ledger, GitHub, <code>scripts/tide_vnext.py</code>, <code>ledger/vnext/</code>, migration/bootstrap и live adapters не изменялись.</li>
 </ul>
@@ -867,11 +867,11 @@
 </ul>
 <h3 id="handoff-проверка-и-review">Проверка и review</h3>
 <ul>
-<li>Focused Block 3: <code>44 passed</code>.</li>
-<li>Full vNext: <code>237 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4522 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li>Focused Block 3: <code>47 passed</code>.</li>
+<li>Full vNext: <code>240 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4525 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Packaging/runtime: <code>10 passed</code>; WEA invariant <code>19025 = 19025</code>; ledger schema, Ruff, Pyright и diff check — PASS.</li>
-<li>Первый независимый review нашёл шесть money/authority gaps; второй — caller-selected treasury source, отсутствующую reviewer authority, неверный порядок assignment/Triage, неидемпотентный старый completion replay и stale boundary docs; третий воспроизвёл caller-selected Triage escrow/account collision. PR review расширил ту же защиту на task escrow и зарегистрированные identity principals без balance row, затем закрыл forged restored Contract terms и completion-before-Triage chronology на уровне <code>IntakeState</code>. Все причины исправлены и получили регрессии; финальный повторный review не оставил actionable findings.</li>
+<li>Первый независимый review нашёл шесть money/authority gaps; второй — caller-selected treasury source, отсутствующую reviewer authority, неверный порядок assignment/Triage, неидемпотентный старый completion replay и stale boundary docs; третий воспроизвёл caller-selected Triage escrow/account collision. PR review расширил ту же защиту на task escrow и зарегистрированные identity principals без balance row, затем закрыл forged restored Contract terms, completion-before-Triage chronology, повторную authority-проверку восстановленной Triage и точный task-escrow funding source. Все причины исправлены и получили регрессии; финальный повторный review не оставил actionable findings.</li>
 </ul>
 <h3 id="handoff-protected-boundary">Protected boundary</h3>
 <ul>
@@ -3793,7 +3793,7 @@ git diff --check
 <tr>
 <td>текущий исполнитель Block 3</td>
 <td><code>v0_6_3</code></td>
-<td>Draft, versioned Triage authority/payment slot и атомарный ordinary Contract; manifest <code>b1152140a3d47ab5ff884410438156077d205436cf1b10ad106134e34fdcd0ab</code></td>
+<td>Draft, versioned Triage authority/payment slot и атомарный ordinary Contract; manifest <code>d025d845fe2b55d899a274af300bbfcee14a0e42964303a3c76b79371f359c4b</code></td>
 </tr>
 </tbody>
 </table></div>
@@ -3937,17 +3937,17 @@ git diff --check
 <tr>
 <td>Block 3 focused</td>
 <td><code>python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py -q</code></td>
-<td>PASS: <code>44 passed</code>; Draft, Triage authority/payment/idempotency, exact consent/override/readiness, escrow namespace, restored-state evidence и atomic Contract покрыты</td>
+<td>PASS: <code>47 passed</code>; Draft, Triage authority/payment/idempotency, exact consent/override/readiness, escrow namespace/provenance, restored-state authority/evidence и atomic Contract покрыты</td>
 </tr>
 <tr>
 <td>Block 3 full vNext</td>
 <td><code>python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>237 passed</code>, <code>18 skipped</code> после финального restored-state hardening</td>
+<td>PASS: <code>240 passed</code>, <code>18 skipped</code> после финального restored-state authority hardening</td>
 </tr>
 <tr>
 <td>Block 3 full repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4522 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code> после финального restored-state hardening</td>
+<td>PASS: <code>4525 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code> после финального restored-state authority hardening</td>
 </tr>
 <tr>
 <td>Attestation static checks</td>
@@ -4092,7 +4092,7 @@ git diff --check
 <p><code>Ready — SystemHelloWorldContract security fix</code>: <code>v0_6_2</code> навсегда fail closed на construction и всех четырёх authoritative entry points; globals mutation и raw allocation не создают transition или mint intent в source либо установленном wheel. Старые executor и их manifest hashes сохранены, focused/full checks зелёные, повторный независимый review не вернул findings. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <p><code>Ready — inactive main integration</code>: независимый boundary review чист, свежий <code>origin/main</code> интегрирован без конфликтов, полный post-integration suite и integrity gates прошли. В <code>main</code> публикуется только неактивный внутренний пакет; live adapter, <code>ledger/vnext/</code>, migration/bootstrap и внешние записи отсутствуют. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <p><code>Ready — Block 2 historical attestation</code>: операторский verdict, durable snapshot/reconciliation bundle, pure validator и 25 non-skipped regressions закрывают исторический evidence-gate; fresh-context review не оставил содержательных findings. Block 3 может начинаться в отдельной ветке, но это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, migration/bootstrap или переключение. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<p><code>Ready — Block 3 contract core</code>: Draft остаётся read-only; Triage имеет одну versioned role/payment slot с exact Agent0/reviewer authority и treasury-only settlement; ordinary Contract детерминирован по Issue и создаётся атомарно с одним author debit, escrow и Task. Три adversarial review-прохода и обязательные PR review закрыли все найденные money/authority и escrow-namespace gaps, включая task escrow collision с зарегистрированным identity principal без balance row, forged restored Contract terms и completion-before-Triage chronology; полный suite и invariant зелёные. Block 4 может начинаться отдельно, но live writer, GitHubEvent adapter, <code>ledger/vnext/</code>, migration/bootstrap и переключение не разрешены. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p><code>Ready — Block 3 contract core</code>: Draft остаётся read-only; Triage имеет одну versioned role/payment slot с exact Agent0/reviewer authority и treasury-only settlement; ordinary Contract детерминирован по Issue и создаётся атомарно с одним author debit, escrow и Task. Три adversarial review-прохода и обязательные PR review закрыли все найденные money/authority и escrow-namespace gaps, включая task escrow collision с зарегистрированным identity principal без balance row, forged restored Contract terms, completion-before-Triage chronology, восстановленную Triage authority и funding provenance task escrow; полный suite и invariant зелёные. Block 4 может начинаться отдельно, но live writer, GitHubEvent adapter, <code>ledger/vnext/</code>, migration/bootstrap и переключение не разрешены. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 </div>
     </section>
 
@@ -4100,13 +4100,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>1ad46982bf8248c7f7b337749ad30fc5385316c2501548e4627cfcbe1b6ed390</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>b42ab1b8ccfb995a1e6c0a5341c3f8f8522a1303528ace354d4f106440c4defc</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>5e2c2a633ca6c71e4490bfaf867e68bdfe27ef84a70c5f51d6b3d247be497ac8</code></td></tr><tr><td><code>tasks.md</code></td><td><code>a8345d3ffba89316dc21fa7b2a62c25948c4a493146978a57176611ccab306d4</code></td></tr><tr><td><code>design.md</code></td><td><code>8f0c65c925f4c3bffeac6e652f5b981db025cea45a6c68d8d839a2c95d625e1a</code></td></tr><tr><td><code>outcome.md</code></td><td><code>78cf08fb19d385a955945c5ebf5fe116766af09808235bb40dddc4c60c8498f4</code></td></tr><tr><td><code>spec.md</code></td><td><code>e40378e135b941d34138d0698335bfb8104ca7f370f4ab43a7a29c0bbe17d54c</code></td></tr><tr><td><code>schema.md</code></td><td><code>f69cadeb3e2c82401e32c4fd4dc2cf213910f3913a5ed5f3639e9f1a8b33bdb1</code></td></tr><tr><td><code>migration.md</code></td><td><code>fa4bd7c2d5a5a4df465598700535850ebff2bb3944d6b28fc49fab359e58d525</code></td></tr><tr><td><code>delta.md</code></td><td><code>973f738f732469dc540f8a7c09599e6acb72bb0114de66ec0560e806e27c4268</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>7b69fe904a0b68b2a6f41c708450d2119390f5e68828644efbbfd15042cf112d</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>b205bbc816ff2ff54cecd294d70c8f5831343dffd4f362e2f6e1df8766524568</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>d85bb4a6ef4fad93a961f51a001ad5c5c0d066e24be0bf5647d5431aa6e0e35e</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>451ce685e861ae6ff0f623e26c94e9e8be053b4a8dae00bef286c4154a76b489</code></td></tr><tr><td><code>tasks.md</code></td><td><code>a8345d3ffba89316dc21fa7b2a62c25948c4a493146978a57176611ccab306d4</code></td></tr><tr><td><code>design.md</code></td><td><code>8f0c65c925f4c3bffeac6e652f5b981db025cea45a6c68d8d839a2c95d625e1a</code></td></tr><tr><td><code>outcome.md</code></td><td><code>78cf08fb19d385a955945c5ebf5fe116766af09808235bb40dddc4c60c8498f4</code></td></tr><tr><td><code>spec.md</code></td><td><code>e40378e135b941d34138d0698335bfb8104ca7f370f4ab43a7a29c0bbe17d54c</code></td></tr><tr><td><code>schema.md</code></td><td><code>f69cadeb3e2c82401e32c4fd4dc2cf213910f3913a5ed5f3639e9f1a8b33bdb1</code></td></tr><tr><td><code>migration.md</code></td><td><code>fa4bd7c2d5a5a4df465598700535850ebff2bb3944d6b28fc49fab359e58d525</code></td></tr><tr><td><code>delta.md</code></td><td><code>973f738f732469dc540f8a7c09599e6acb72bb0114de66ec0560e806e27c4268</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>7b69fe904a0b68b2a6f41c708450d2119390f5e68828644efbbfd15042cf112d</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>ff7863bdb62e994b86a10b233f81253f7e5a0442c1148e2d2d6f0bc42cd523e6</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>d85bb4a6ef4fad93a961f51a001ad5c5c0d066e24be0bf5647d5431aa6e0e35e</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -4228,7 +4228,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.7",
           "- Основа: 940c230",
-          "- Хеш исходных файлов: 1ad46982bf8248c7f7b337749ad30fc5385316c2501548e4627cfcbe1b6ed390",
+          "- Хеш исходных файлов: b42ab1b8ccfb995a1e6c0a5341c3f8f8522a1303528ace354d4f106440c4defc",
           ""
         ];
         cards

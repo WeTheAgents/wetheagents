@@ -393,6 +393,50 @@ def test_restored_state_rejects_completion_that_precedes_triage() -> None:
         replace(state, triage_completions=(early_completion,))
 
 
+def test_restored_state_rejects_task_escrow_with_foreign_funding_source() -> None:
+    draft = _draft()
+    triage = _triage()
+    result = _activate(_state(draft, triage, _consent(draft, triage)), draft)
+    forged_escrow = replace(result.escrow, source_account_id="agent-attacker")
+
+    with pytest.raises(IntakeError, match="money does not match"):
+        replace(result.state, escrows=(forged_escrow,))
+
+
+@pytest.mark.parametrize("record_kind", ("assignment", "completion"))
+def test_activation_reauthorizes_restored_triage_agent0_evidence(
+    record_kind: str,
+) -> None:
+    draft = _draft()
+    triage = _triage()
+    state = _state(draft, triage, _consent(draft, triage))
+    if record_kind == "assignment":
+        state = replace(
+            state,
+            triage_assignments=(
+                replace(
+                    state.triage_assignments[0],
+                    agent0_github_account_id="account-author",
+                    agent0_binding_id="author-binding",
+                ),
+            ),
+        )
+    else:
+        state = replace(
+            state,
+            triage_completions=(
+                replace(
+                    state.triage_completions[0],
+                    agent0_github_account_id="account-author",
+                    agent0_binding_id="author-binding",
+                ),
+            ),
+        )
+
+    with pytest.raises(IntakeError, match="agent0"):
+        _activate(state, draft)
+
+
 def test_same_issue_cannot_be_reactivated_under_a_caller_chosen_contract_id() -> None:
     draft = _draft()
     triage = _triage()
