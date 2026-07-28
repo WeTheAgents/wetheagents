@@ -4,7 +4,7 @@
 
 Статус свежих команд: `Complete`.
 
-Post-merge-base полный gate: `Pending`.
+Post-merge-base полный gate: `Complete`.
 
 Статус независимой проверки: `CLEAN`.
 
@@ -50,6 +50,8 @@ Design 0.7 не меняет 55 сценариев Spec 0.6. Реализаци�
 | Блоки 1–2 | `python -m pytest tests/vnext -q` | PASS: `159 passed`, `18 skipped` на Windows; два skips — Linux-only rename-race regressions, 16 — сохранённые Hello World сценарии до установки аутентифицированного канонического snapshot |
 | Boundary-hardening | `python -m pytest tests/vnext/test_runtime_boundary.py -q` | PASS: `9 passed`; версия executor обязательна и канонична, пять facades используют объекты одной `v0_6_2` closure, текущие CLI/scripts/package entry points не содержат буквальных ссылок на vNext, кроме выделенного PR guard workflow; live adapter и `ledger/vnext/` отсутствуют |
 | Блоки 1–2 после boundary-hardening | `python -m pytest tests/vnext -q` | PASS: `168 passed`, `18 skipped` |
+| Полный post-integration suite | `python -m pytest -q --tb=short` после merge `origin/main` `3d310081f398c2927a46278b472e84dec2a54105` | PASS: `4453 passed`, `18 skipped`, `11 xfailed`; failures отсутствуют |
+| Integrity после integration | `check_invariant.py`; `check_ledger_schema.py`; `check_doc_sync.py`; `ruff`; `pyright`; `compileall`; `git diff --check` | PASS; экономика `19025 = 10000 + 9025`, schema/doc sync чисты, типы `0 errors / 0 warnings` |
 | Identity / Hello World | `python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py tests/vnext/test_hello_world_gate.py -q` | PASS: `26 passed`, `16 skipped`; активная регрессия доказывает fail-closed до snapshot; packaging smoke — `1 passed` |
 | Статика блоков 1–2 | `ruff check src/wea_vnext tests/vnext` | PASS |
 | Python 3.10 type-contract | `pyright src/wea_vnext` с `pythonVersion = "3.10"` | PASS: `0 errors`, `0 warnings` для product-области; adversarial tests намеренно создают несовместимые subclass/property и динамические raw-объекты и проверяются runtime suite плюс Ruff |
@@ -167,6 +169,6 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 `Ready — SystemHelloWorldContract security fix`: `v0_6_2` навсегда fail closed на construction и всех четырёх authoritative entry points; globals mutation и raw allocation не создают transition или mint intent в source либо установленном wheel. Старые executor и их manifest hashes сохранены, focused/full checks зелёные, повторный независимый review не вернул findings. `[CHECK][REVIEW]`
 
-`Not ready — boundary publish gate`: повторный независимый review, интеграция свежего `origin/main` и полный post-integration suite ещё не завершены. `[CHECK]`
+`Ready — inactive main integration`: независимый boundary review чист, свежий `origin/main` интегрирован без конфликтов, полный post-integration suite и integrity gates прошли. В `main` публикуется только неактивный внутренний пакет; live adapter, `ledger/vnext/`, migration/bootstrap и внешние записи отсутствуют. `[CHECK][REVIEW]`
 
 `Not ready — Block 2 open`: полный snapshot Issue #1 и factual reconciliation отсутствуют, а decision/submission/disclosure ещё должны выводиться из подтверждённых GitHub events. Оператор разрешил merge неактивного кода в `main`, но переход к блоку 3 и публикация поведения как готового запрещены до закрытия evidence-пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. `[CHAT][CHECK][REVIEW]`

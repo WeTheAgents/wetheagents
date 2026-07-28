@@ -734,7 +734,7 @@
         <a href="#doc-handoff">Следующая сессия</a>
         <span>HANDOFF.md</span>
       </summary>
-      <ul class="nav-subsections"><li class="nav-level-2"><a href="#handoff-репозиторий-и-ветки" data-nav-text="репозиторий и ветки">Репозиторий и ветки</a></li><li class="nav-level-2"><a href="#handoff-что-реализовано" data-nav-text="что реализовано">Что реализовано</a></li><li class="nav-level-2"><a href="#handoff-runtime-и-проверки" data-nav-text="runtime и проверки">Runtime и проверки</a></li><li class="nav-level-2"><a href="#handoff-следующий-обязательный-шаг-блока-2" data-nav-text="следующий обязательный шаг блока 2">Следующий обязательный шаг блока 2</a></li><li class="nav-level-2"><a href="#handoff-команды-повторной-проверки" data-nav-text="команды повторной проверки">Команды повторной проверки</a></li><li class="nav-level-2"><a href="#handoff-когда-остановиться" data-nav-text="когда остановиться">Когда остановиться</a></li></ul>
+      <ul class="nav-subsections"><li class="nav-level-2"><a href="#handoff-репозиторий-и-интеграция" data-nav-text="репозиторий и интеграция">Репозиторий и интеграция</a></li><li class="nav-level-2"><a href="#handoff-что-находится-в-main" data-nav-text="что находится в main">Что находится в main</a></li><li class="nav-level-2"><a href="#handoff-точная-граница-v1-vnext" data-nav-text="точная граница v1 / vnext">Точная граница v1 / vNext</a></li><li class="nav-level-2"><a href="#handoff-свежие-проверки-после-integration" data-nav-text="свежие проверки после integration">Свежие проверки после integration</a></li><li class="nav-level-2"><a href="#handoff-следующий-обязательный-шаг-завершить-block-2" data-nav-text="следующий обязательный шаг: завершить block 2">Следующий обязательный шаг: завершить Block 2</a></li><li class="nav-level-2"><a href="#handoff-быстрый-повтор-gate" data-nav-text="быстрый повтор gate">Быстрый повтор gate</a></li></ul>
     </details>
 
     <details class="nav-document" data-nav-document="tasks">
@@ -841,65 +841,73 @@
     <section class="document-section" id="doc-handoff" data-source="HANDOFF.md">
       <header class="document-header">
         <p class="eyebrow">Требует внимания</p>
-        <h2>Agent0 handoff: интеграция Block 2 не готова к main</h2>
+        <h2>Agent0 handoff: inactive vNext в main, Block 2 evidence открыт</h2>
         <p class="source-file">Исходный Markdown-файл: <code>HANDOFF.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус блока 1: <code>Ready for Block 2</code> (исторический gate пройден). Статус интеграции: <code>Not ready</code>. Воспроизведённый обход canonical Issue gate через globals экспортированного Python-класса закрыт новым immutable executor <code>v0_6_2</code>: он навсегда fail closed и не содержит изменяемого sentinel; <code>v0_6_1</code> сохранён byte-for-byte. Block 2 остаётся открытым, потому что Agent0 decision/submission/disclosure ещё не выводятся из подтверждённых GitHub events и отсутствует полный read-only snapshot Issue #1. Блок 3 и merge в <code>main</code> не начинать. Проект поставлен оператором на паузу; scheduled Tide/auto-triage/claim-fast writers удалены, WEA vNext не подключена к live и не пишет в ledger или GitHub. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<p>Техническая модель: <code>design 0.7</code>, <code>schema 0.7</code>; план: <code>tasks 1.0</code>. Активный OLED-пакет остаётся в <code>oled/changes/wea-vnext-recreation/</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-doc" href="#evidence-doc" title="Следует из существующей документации">[DOC]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
-<h3 id="handoff-репозиторий-и-ветки">Репозиторий и ветки</h3>
+<p>В <code>main</code> опубликован проверенный, но неактивный внутренний пакет WEA vNext: Block 1 завершён, внутренняя кодовая часть Block 2 реализована. Block 2 не закрыт — нет аутентифицированного полного snapshot Issue #1 и factual reconciliation с v1 evidence. Block 3, live Tide, ledger/GitHub writes, migration и bootstrap не разрешены. OLED-пакет остаётся активным. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p>Статус Block 1: <code>Ready for Block 2</code>. Техническая модель: <code>design 0.7</code>; schema <code>0.7</code>; план <code>tasks 1.0</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Постоянная карта границы: <code>docs/VNEXT_BOUNDARY.md</code>. Если непонятно, где менять логику, сначала использовать её, затем <code>spec.md</code> и сценарный ID; исторический Contract всегда replay по сохранённой тройке, а не по «последней» версии executor.</p>
+<h3 id="handoff-репозиторий-и-интеграция">Репозиторий и интеграция</h3>
 <ul>
-<li>Свежий <code>origin/main</code>: <code>2337eeca75432baffc13be6bbf9c687b6cf98423</code>; <code>git fetch origin</code> прошёл 2026-07-27. Integration основана на <code>940c230</code> и отстаёт на четыре <code>btc-snapshot</code> commit; перед будущим publish требуется интеграция свежего main и повтор проверок.</li>
-<li>Блок 1: <code>codex/wea-vnext-block1-protocol-core</code>, commit <code>47dd52e25c849c0a9d0508492a0dcb1c47ce9030</code>.</li>
-<li>Локальная интеграция блока 1: <code>codex/wea-vnext-integration</code>, merge commit <code>8ef2f6d</code>.</li>
-<li>Блок 2: <code>codex/wea-vnext-block2-identity-hello-world</code>, commit <code>125898f</code>; объединён в integration merge commit <code>67f5a50</code>.</li>
-<li>Очистка устаревших baseline-контрактов тестов: <code>codex/wea-vnext-baseline-test-hygiene</code>, commit <code>19397f0</code>; объединена в integration merge commit <code>e5f900d</code>.</li>
-<li>Удаление общего claim и fail-closed pause legacy writers: integration commit <code>98413ec</code>.</li>
-<li>Security successor System Hello World <code>v0_6_2</code>: integration commit <code>4043290</code>.</li>
-<li>Интеграционная ветка: <code>codex/wea-vnext-integration</code>. Dirty main worktree не изменялся; ничего не отправлено на GitHub. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
+<li>Рабочая ветка: <code>codex/wea-vnext-integration</code>.</li>
+<li>Boundary commit: <code>d79aa42961671e6acc0812a5f06569e7a6d05acd</code>.</li>
+<li>Свежий интегрированный <code>origin/main</code>: <code>3d310081f398c2927a46278b472e84dec2a54105</code>.</li>
+<li>Merge commit перед финальным handoff: <code>bb3f40d</code>.</li>
+<li>Publish target: commit, содержащий этот handoff; проверить через <code>git rev-parse origin/main</code> после fetch.</li>
+<li>Другой локальный worktree с checkout <code>main</code> содержит пользовательские незакоммиченные файлы и намеренно не изменялся. Remote <code>main</code> — источник истины для продолжения. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></li>
 </ul>
-<h3 id="handoff-что-реализовано">Что реализовано</h3>
+<h3 id="handoff-что-находится-в-main">Что находится в main</h3>
 <ul>
-<li><code>identity.py</code>: постоянный GitHub account ID, versioned account/Agent и control-group bindings, неизменяемый <code>base_agent_id</code>, общий resolver для Issue Form, ручной декларации и CLI.</li>
-<li>Block 1 executor <code>v0_6_0</code> и первоначальный Block 2 executor <code>v0_6_1</code> сохранены byte-for-byte. Security fix выпущен отдельным <code>v0_6_2</code>, поэтому прежние Contracts продолжают replay своих closure.</li>
-<li>Common-control gate отклоняет участие того же Agent ID; authority повторно выводится из точного registry. Для общей группы selection и settlement разрешаются только после exact public disclosure, привязанной к Contract ID, Work ID и revision ID.</li>
-<li><code>identity_hello_world.py</code>: постоянный <code>system_hello_world</code> только для Issue #1, нулевые bank/review/escrow/task effects, один account mint key и <code>42 WEA</code> только на <code>base_agent_id</code> после уникальной Work. Текущий executor <code>v0_6_2</code> навсегда fail closed; permanent Issue ID и hash одобренного body могут появиться только в новой immutable версии после аутентифицированного snapshot.</li>
-<li>Hello World state закрепляет один канонический системный Contract. Mint требует точную revision декларации Agent0, действующую versioned binding роли <code>agent0</code> и решение о механической уникальности; caller-supplied boolean не является authority.</li>
-<li>System Contract принимает runtime triple только через per-load verifier capability внутри manifest-verified executor closure; после bind loader удаляет capability из module globals. Caller-supplied hashes, прямой импорт или вызов приватного binder не дают mint authority.</li>
-<li><code>identity_migration.py</code>: чистый канонический план v1 restoration без ledger effects. Comment/revision/ledger/idempotency/alias evidence IDs нельзя повторно использовать между строками.</li>
-<li>v1 Hello World restoration помечает account mint key использованным без нового mint; одни evidence IDs нельзя предъявить для двух accounts.</li>
-<li>Root facades <code>identity.py</code>, <code>hello_world.py</code> и <code>migration.py</code> используют одну проверенную closure. Wheel smoke проверяет новые модули установленного пакета.</li>
-<li>Публичный общий <code>wea claim</code>, включая <code>--force</code>, milestone shim и GitHub <code>claim-fast</code> writer, удалён как отсутствующий в принятом vNext-контракте. Scheduled Tide и auto-triage writers удалены, поэтому операторская пауза fail closed. После будущего restart первая валидная Deliverable создаст Work; claim-подобный Duel join останется отдельным Duel-путём. Исторические v1 claim-chain/TTL/integrity проверки и ledger history сохранены read-only. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
-<li>Изменение legacy Tide ограничено отклонением общего claim; существующий Duel claim-like путь сохранён. Ledger, GitHub Issues, labels и workflows не изменялись. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
+<li>Immutable executors <code>v0_6_0</code>, <code>v0_6_1</code> и security successor <code>v0_6_2</code>; старые executor closures при boundary-hardening не менялись.</li>
+<li>Manifest-verified replay, deterministic state transition, shadow-only storage и реестр всех 55 BDD-сценариев Block 1.</li>
+<li>Versioned Identity, common-control disclosure, fail-closed System Hello World и pure v1 migration plan внутренней части Block 2.</li>
+<li><code>installed_executor(version)</code> без default и с canonical dotted-semver validation. Исторические тесты явно называют <code>0.6.0</code>; candidate facades declarations/identity/Hello World/migration/projection используют одну closure <code>0.6.2</code>.</li>
+<li>PR guard <code>.github/workflows/guard-vnext-boundary.yml</code> запускает narrow boundary tripwire на disposable <code>windows-latest</code> runner.</li>
+<li>Legacy baseline-тесты пересмотрены: устаревшие контракты удалены или переписаны под принятую pause/no-general-claim семантику; production code не утяжелялся ради старых ожиданий.</li>
 </ul>
-<h3 id="handoff-runtime-и-проверки">Runtime и проверки</h3>
-<p>Тройка текущего Block 2 executor <code>v0_6_2</code>:</p>
+<h3 id="handoff-точная-граница-v1-vnext">Точная граница v1 / vNext</h3>
 <ul>
-<li>ruleset SHA-256: <code>21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b</code>;</li>
-<li>Tide interface: <code>0.6</code>;</li>
-<li>executor manifest SHA-256: <code>975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7</code>.</li>
+<li>Наличие <code>src/wea_vnext/</code> в <code>main</code> не активирует vNext. <code>scripts/tide_vnext.py</code>, <code>ledger/vnext/</code> и vNext epoch отсутствуют.</li>
+<li>Scheduled v1 Tide, Agent0 loop, auto-triage и claim-fast остановлены/удалены. Однако прямые legacy CLI и maintenance writers ещё вызываемы: текущая пауза операторская, не общий code-enforced epoch guard. Не запускать эти mutation paths.</li>
+<li>Общий claim удалён; после будущего restart первая валидная Deliverable создаёт Work. Duel join остаётся отдельной механикой.</li>
+<li>Автор будущего Final пишет выбор обычным текстом; только формальная декларация Agent0 меняет protocol state. Legacy <code>accept</code>/<code>ranking</code>/transform syntax не является активной vNext-инструкцией.</li>
+<li>Boundary tripwire ловит literal vNext references в CLI/scripts/workflows/package entry points и отсутствие известных adapter/namespace. Он не доказывает отсутствие dynamic/renamed writer. Полный writer inventory и behavioral no-write proof остаются обязательным Block 9 activation gate.</li>
 </ul>
-<p>Прежние manifest SHA-256 остаются: <code>v0_6_0</code> — <code>8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3</code>, <code>v0_6_1</code> — <code>dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<p>Последние локальные проверки на Windows после authoritative-boundary hardening: полный suite — <code>4444 passed, 18 skipped, 11 xfailed</code>, без failures; полный <code>tests/vnext</code> — <code>159 passed, 18 skipped</code>; focused source/wheel gate — <code>32 passed</code>; claim/lifecycle/Tide/docs/start до successor — <code>126 passed</code>. Skips — сохранённые поведенческие тесты, ожидающие аутентифицированный snapshot Issue #1, и platform-specific проверки. Ruff, Pyright, compileall, doc-sync и ledger invariant — PASS. Повторный fresh-context review <code>v0_6_2</code> вернул пустой findings list. Итоговые команды находятся в <code>verification.md</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<h3 id="handoff-следующий-обязательный-шаг-блока-2">Следующий обязательный шаг блока 2</h3>
+<h3 id="handoff-свежие-проверки-после-integration">Свежие проверки после integration</h3>
+<ul>
+<li>Полный suite: <code>4453 passed, 18 skipped, 11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>168 passed, 18 skipped</code>.</li>
+<li>Boundary regression: <code>9 passed</code>.</li>
+<li>Ruff: PASS.</li>
+<li>Pyright <code>src/wea_vnext</code>: <code>0 errors, 0 warnings</code>.</li>
+<li>Compileall: PASS.</li>
+<li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>; active escrow <code>0</code>.</li>
+<li>Ledger schema и doc sync: PASS.</li>
+<li>Frozen executors: <code>git diff --exit-code a22edf2 -- src/wea_vnext/executors</code> — PASS.</li>
+<li>HTML manifest и внутренние ссылки пересобраны и проверены.</li>
+<li>Последняя независимая fresh-context boundary проверка: <code>[]</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
+</ul>
+<h3 id="handoff-следующий-обязательный-шаг-завершить-block-2">Следующий обязательный шаг: завершить Block 2</h3>
 <ol>
-<li>Получить аутентифицированный полный read-only snapshot Issue #1: exact body bytes/hash, все страницы <code>userContentEdits</code>, все комментарии, постоянные account/comment IDs и revision IDs.</li>
+<li>Получить аутентифицированный полный read-only snapshot GitHub Issue #1: exact body bytes/hash, все страницы <code>userContentEdits</code>, все комментарии, постоянные account/comment IDs и revision IDs.</li>
 <li>Выводить Hello World submission, Agent0 decision и common-control disclosure только из принятых <code>GitHubEvent</code> внутри confirmed boundary; доказать actor, object/revision identity, exact body, effective time и глобальную одноразовость evidence IDs.</li>
 <li>Сопоставить frozen GitHub evidence с v1 ledger history, idempotency keys и aliases; сформировать операторский набор <code>V1IdentityEvidence</code> и Hello World mint-use rows.</li>
-<li>Любое противоречие account → <code>base_agent_id</code>, повтор evidence ID, неполная history или неоднозначный mint останавливает блок. Read-only выгрузка и pure plan не разрешают запись в ledger/GitHub; блок 3 до закрытия этих пунктов не начинать. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
+<li>Повторить независимый review и verification. До закрытия этих пунктов не начинать Block 3 и не добавлять live adapter или writer.</li>
 </ol>
-<h3 id="handoff-команды-повторной-проверки">Команды повторной проверки</h3>
-<pre><code class="language-powershell">python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py -q
-python -m pytest tests/vnext -q
+<p>Любое противоречие account → <code>base_agent_id</code>, повтор evidence ID, неполная history или неоднозначный mint останавливает Block 2. Read-only capture и pure plan разрешены; записи в ledger/GitHub — нет. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a> и <a class="xref" href="#decision-od-29">OD-29</a> остаются открытыми и не закрываются предположением. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<h3 id="handoff-быстрый-повтор-gate">Быстрый повтор gate</h3>
+<pre><code class="language-powershell">$env:PYTHONPATH='src'
+python -m pytest tests/vnext -q --tb=short
+python -m pytest -q --tb=short
 ruff check src/wea_vnext tests/vnext
 pyright src/wea_vnext
-python -m pytest tests/vnext/test_packaging.py -q
 python -m compileall -q src/wea_vnext
 python scripts/check_invariant.py
+python scripts/check_ledger_schema.py
+python scripts/check_doc_sync.py
 git diff --check
 </code></pre>
-<h3 id="handoff-когда-остановиться">Когда остановиться</h3>
-<p>Остановиться, если нет полного revision history, невозможно доказать постоянный GitHub account ID, один account связан с противоречащими <code>base_agent_id</code>, старый mint нельзя однозначно восстановить либо дальнейший шаг требует внешнего движения WEA. Не закрывать <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a> или <a class="xref" href="#decision-od-29">OD-29</a> предположением. OLED-пакет не архивировать до реализации и проверки всего runtime. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
 </div>
     </section>
 
@@ -3716,7 +3724,7 @@ git diff --check
       <div class="markdown-body">
 <p>Статус блока 1: <code>Ready for Block 2</code> (исторический gate пройден). Внутренняя кодовая часть блока 2 реализована. Блок 2 остаётся открытым до полного read-only snapshot Issue #1 и фактической сверки v1 evidence. WEA vNext остаётся <code>Not live</code>. Оператор отдельно разрешил объединить неактивный fail-closed пакет в <code>main</code> после закрытия boundary debt; это не делает Block 2 готовым и не разрешает live Tide, переключение v1, миграцию или внешние записи. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
-<p>Post-merge-base полный gate: <code>Pending</code>.</p>
+<p>Post-merge-base полный gate: <code>Complete</code>.</p>
 <p>Статус независимой проверки: <code>CLEAN</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
@@ -3842,6 +3850,16 @@ git diff --check
 <td>PASS: <code>168 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
+<td>Полный post-integration suite</td>
+<td><code>python -m pytest -q --tb=short</code> после merge <code>origin/main</code> <code>3d310081f398c2927a46278b472e84dec2a54105</code></td>
+<td>PASS: <code>4453 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>; failures отсутствуют</td>
+</tr>
+<tr>
+<td>Integrity после integration</td>
+<td><code>check_invariant.py</code>; <code>check_ledger_schema.py</code>; <code>check_doc_sync.py</code>; <code>ruff</code>; <code>pyright</code>; <code>compileall</code>; <code>git diff --check</code></td>
+<td>PASS; экономика <code>19025 = 10000 + 9025</code>, schema/doc sync чисты, типы <code>0 errors / 0 warnings</code></td>
+</tr>
+<tr>
 <td>Identity / Hello World</td>
 <td><code>python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py tests/vnext/test_hello_world_gate.py -q</code></td>
 <td>PASS: <code>26 passed</code>, <code>16 skipped</code>; активная регрессия доказывает fail-closed до snapshot; packaging smoke — <code>1 passed</code></td>
@@ -3959,7 +3977,7 @@ git diff --check
 </ul>
 <h3 id="verification-решение">Решение</h3>
 <p><code>Ready — SystemHelloWorldContract security fix</code>: <code>v0_6_2</code> навсегда fail closed на construction и всех четырёх authoritative entry points; globals mutation и raw allocation не создают transition или mint intent в source либо установленном wheel. Старые executor и их manifest hashes сохранены, focused/full checks зелёные, повторный независимый review не вернул findings. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<p><code>Not ready — boundary publish gate</code>: повторный независимый review, интеграция свежего <code>origin/main</code> и полный post-integration suite ещё не завершены. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p><code>Ready — inactive main integration</code>: независимый boundary review чист, свежий <code>origin/main</code> интегрирован без конфликтов, полный post-integration suite и integrity gates прошли. В <code>main</code> публикуется только неактивный внутренний пакет; live adapter, <code>ledger/vnext/</code>, migration/bootstrap и внешние записи отсутствуют. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <p><code>Not ready — Block 2 open</code>: полный snapshot Issue #1 и factual reconciliation отсутствуют, а decision/submission/disclosure ещё должны выводиться из подтверждённых GitHub events. Оператор разрешил merge неактивного кода в <code>main</code>, но переход к блоку 3 и публикация поведения как готового запрещены до закрытия evidence-пробелов. Это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, миграцию или переключение. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 </div>
     </section>
@@ -3968,13 +3986,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>33ed0a686a36b68dc1118ebda10a10a11ede07970c3c122da5c98562bc73e4ef</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>8026af969b482f8c4e4ae9572424673277ece3aa2dd3d4150a71760fbd30524a</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>fb5cbf37449934da3041ae177ead195ac97b411653cb312e283a62a0f26980b9</code></td></tr><tr><td><code>tasks.md</code></td><td><code>887f52e444b03b7aa8f72d7a7a198a861f793d48db88e93a774631426f08cf16</code></td></tr><tr><td><code>design.md</code></td><td><code>dce076fa57cb9405ffc92d6aaf62d6ff00e6ac82395dded802f4e175d3e0360b</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c81d95a5cff39e40da107fabc56e0a6b1486e4b96690aa699a64781477ce9357</code></td></tr><tr><td><code>spec.md</code></td><td><code>7fea61d67ce3cc21f5fa9e68cf38cf7b9db3d5bf6cc205a736684952aae888f2</code></td></tr><tr><td><code>schema.md</code></td><td><code>674bdc707a3ad130b9d15f4fec0d61988959f85875220dde274bcd9f16c9cd6f</code></td></tr><tr><td><code>migration.md</code></td><td><code>146d56c1c0c4780fc6e4e5bd414c526f49ee951c79af28d08d3d2ca217790fa1</code></td></tr><tr><td><code>delta.md</code></td><td><code>9bd13bac3035128aefc83a1529911c60a210144e901fc7aa7860e5298bdd5d31</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>ba11a08885a6110bf29e7bc9d864c3a1c737fb300b90e4330c12aafc33e263a4</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>877b59a98fc11c4a1cf81cf02ede6ffcd231770a9980c6d02a3e1eade425ed8c</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>9f3ef366c6835c89162e243dcfe0a2b8f2217b96c4160e9076f4b437ac0d6d98</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>ab57497b90223cf736bae46358b9f3af68072b582992b3f86e938e42cf2695cf</code></td></tr><tr><td><code>tasks.md</code></td><td><code>887f52e444b03b7aa8f72d7a7a198a861f793d48db88e93a774631426f08cf16</code></td></tr><tr><td><code>design.md</code></td><td><code>dce076fa57cb9405ffc92d6aaf62d6ff00e6ac82395dded802f4e175d3e0360b</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c81d95a5cff39e40da107fabc56e0a6b1486e4b96690aa699a64781477ce9357</code></td></tr><tr><td><code>spec.md</code></td><td><code>7fea61d67ce3cc21f5fa9e68cf38cf7b9db3d5bf6cc205a736684952aae888f2</code></td></tr><tr><td><code>schema.md</code></td><td><code>674bdc707a3ad130b9d15f4fec0d61988959f85875220dde274bcd9f16c9cd6f</code></td></tr><tr><td><code>migration.md</code></td><td><code>146d56c1c0c4780fc6e4e5bd414c526f49ee951c79af28d08d3d2ca217790fa1</code></td></tr><tr><td><code>delta.md</code></td><td><code>9bd13bac3035128aefc83a1529911c60a210144e901fc7aa7860e5298bdd5d31</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>ba11a08885a6110bf29e7bc9d864c3a1c737fb300b90e4330c12aafc33e263a4</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>a9d8f1735e1f35d1e0f9039f0b837bd23c524ae2d5cce7d530b9aeeaf70df8d9</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>9f3ef366c6835c89162e243dcfe0a2b8f2217b96c4160e9076f4b437ac0d6d98</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -4096,7 +4114,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.6",
           "- Основа: 940c230",
-          "- Хеш исходных файлов: 33ed0a686a36b68dc1118ebda10a10a11ede07970c3c122da5c98562bc73e4ef",
+          "- Хеш исходных файлов: 8026af969b482f8c4e4ae9572424673277ece3aa2dd3d4150a71760fbd30524a",
           ""
         ];
         cards

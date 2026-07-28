@@ -1,66 +1,71 @@
-# Agent0 handoff: интеграция Block 2 не готова к main
+# Agent0 handoff: inactive vNext в main, Block 2 evidence открыт
 
-Статус блока 1: `Ready for Block 2` (исторический gate пройден). Статус интеграции: `Not ready`. Воспроизведённый обход canonical Issue gate через globals экспортированного Python-класса закрыт новым immutable executor `v0_6_2`: он навсегда fail closed и не содержит изменяемого sentinel; `v0_6_1` сохранён byte-for-byte. Block 2 остаётся открытым, потому что Agent0 decision/submission/disclosure ещё не выводятся из подтверждённых GitHub events и отсутствует полный read-only snapshot Issue #1. Блок 3 и merge в `main` не начинать. Проект поставлен оператором на паузу; scheduled Tide/auto-triage/claim-fast writers удалены, WEA vNext не подключена к live и не пишет в ledger или GitHub. `[CHAT][CHECK][REVIEW]`
+В `main` опубликован проверенный, но неактивный внутренний пакет WEA vNext: Block 1 завершён, внутренняя кодовая часть Block 2 реализована. Block 2 не закрыт — нет аутентифицированного полного snapshot Issue #1 и factual reconciliation с v1 evidence. Block 3, live Tide, ledger/GitHub writes, migration и bootstrap не разрешены. OLED-пакет остаётся активным. `[CHAT][CHECK][REVIEW]`
 
-Техническая модель: `design 0.7`, `schema 0.7`; план: `tasks 1.0`. Активный OLED-пакет остаётся в `oled/changes/wea-vnext-recreation/`. `[DOC][CHECK]`
+Статус Block 1: `Ready for Block 2`. Техническая модель: `design 0.7`; schema `0.7`; план `tasks 1.0`. `[CHECK]`
 
-## Репозиторий и ветки
+Постоянная карта границы: `docs/VNEXT_BOUNDARY.md`. Если непонятно, где менять логику, сначала использовать её, затем `spec.md` и сценарный ID; исторический Contract всегда replay по сохранённой тройке, а не по «последней» версии executor.
 
-- Свежий `origin/main`: `2337eeca75432baffc13be6bbf9c687b6cf98423`; `git fetch origin` прошёл 2026-07-27. Integration основана на `940c230` и отстаёт на четыре `btc-snapshot` commit; перед будущим publish требуется интеграция свежего main и повтор проверок.
-- Блок 1: `codex/wea-vnext-block1-protocol-core`, commit `47dd52e25c849c0a9d0508492a0dcb1c47ce9030`.
-- Локальная интеграция блока 1: `codex/wea-vnext-integration`, merge commit `8ef2f6d`.
-- Блок 2: `codex/wea-vnext-block2-identity-hello-world`, commit `125898f`; объединён в integration merge commit `67f5a50`.
-- Очистка устаревших baseline-контрактов тестов: `codex/wea-vnext-baseline-test-hygiene`, commit `19397f0`; объединена в integration merge commit `e5f900d`.
-- Удаление общего claim и fail-closed pause legacy writers: integration commit `98413ec`.
-- Security successor System Hello World `v0_6_2`: integration commit `4043290`.
-- Интеграционная ветка: `codex/wea-vnext-integration`. Dirty main worktree не изменялся; ничего не отправлено на GitHub. `[CHECK]`
+## Репозиторий и интеграция
 
-## Что реализовано
+- Рабочая ветка: `codex/wea-vnext-integration`.
+- Boundary commit: `d79aa42961671e6acc0812a5f06569e7a6d05acd`.
+- Свежий интегрированный `origin/main`: `3d310081f398c2927a46278b472e84dec2a54105`.
+- Merge commit перед финальным handoff: `bb3f40d`.
+- Publish target: commit, содержащий этот handoff; проверить через `git rev-parse origin/main` после fetch.
+- Другой локальный worktree с checkout `main` содержит пользовательские незакоммиченные файлы и намеренно не изменялся. Remote `main` — источник истины для продолжения. `[CHECK]`
 
-- `identity.py`: постоянный GitHub account ID, versioned account/Agent и control-group bindings, неизменяемый `base_agent_id`, общий resolver для Issue Form, ручной декларации и CLI.
-- Block 1 executor `v0_6_0` и первоначальный Block 2 executor `v0_6_1` сохранены byte-for-byte. Security fix выпущен отдельным `v0_6_2`, поэтому прежние Contracts продолжают replay своих closure.
-- Common-control gate отклоняет участие того же Agent ID; authority повторно выводится из точного registry. Для общей группы selection и settlement разрешаются только после exact public disclosure, привязанной к Contract ID, Work ID и revision ID.
-- `identity_hello_world.py`: постоянный `system_hello_world` только для Issue #1, нулевые bank/review/escrow/task effects, один account mint key и `42 WEA` только на `base_agent_id` после уникальной Work. Текущий executor `v0_6_2` навсегда fail closed; permanent Issue ID и hash одобренного body могут появиться только в новой immutable версии после аутентифицированного snapshot.
-- Hello World state закрепляет один канонический системный Contract. Mint требует точную revision декларации Agent0, действующую versioned binding роли `agent0` и решение о механической уникальности; caller-supplied boolean не является authority.
-- System Contract принимает runtime triple только через per-load verifier capability внутри manifest-verified executor closure; после bind loader удаляет capability из module globals. Caller-supplied hashes, прямой импорт или вызов приватного binder не дают mint authority.
-- `identity_migration.py`: чистый канонический план v1 restoration без ledger effects. Comment/revision/ledger/idempotency/alias evidence IDs нельзя повторно использовать между строками.
-- v1 Hello World restoration помечает account mint key использованным без нового mint; одни evidence IDs нельзя предъявить для двух accounts.
-- Root facades `identity.py`, `hello_world.py` и `migration.py` используют одну проверенную closure. Wheel smoke проверяет новые модули установленного пакета.
-- Публичный общий `wea claim`, включая `--force`, milestone shim и GitHub `claim-fast` writer, удалён как отсутствующий в принятом vNext-контракте. Scheduled Tide и auto-triage writers удалены, поэтому операторская пауза fail closed. После будущего restart первая валидная Deliverable создаст Work; claim-подобный Duel join останется отдельным Duel-путём. Исторические v1 claim-chain/TTL/integrity проверки и ledger history сохранены read-only. `[CHAT][CHECK][REVIEW]`
-- Изменение legacy Tide ограничено отклонением общего claim; существующий Duel claim-like путь сохранён. Ledger, GitHub Issues, labels и workflows не изменялись. `[CHECK][REVIEW]`
+## Что находится в main
 
-## Runtime и проверки
+- Immutable executors `v0_6_0`, `v0_6_1` и security successor `v0_6_2`; старые executor closures при boundary-hardening не менялись.
+- Manifest-verified replay, deterministic state transition, shadow-only storage и реестр всех 55 BDD-сценариев Block 1.
+- Versioned Identity, common-control disclosure, fail-closed System Hello World и pure v1 migration plan внутренней части Block 2.
+- `installed_executor(version)` без default и с canonical dotted-semver validation. Исторические тесты явно называют `0.6.0`; candidate facades declarations/identity/Hello World/migration/projection используют одну closure `0.6.2`.
+- PR guard `.github/workflows/guard-vnext-boundary.yml` запускает narrow boundary tripwire на disposable `windows-latest` runner.
+- Legacy baseline-тесты пересмотрены: устаревшие контракты удалены или переписаны под принятую pause/no-general-claim семантику; production code не утяжелялся ради старых ожиданий.
 
-Тройка текущего Block 2 executor `v0_6_2`:
+## Точная граница v1 / vNext
 
-- ruleset SHA-256: `21538935ed5e0b3662589a3f631e8d7220ddc0bc12f7a182cb6c592b7848fa9b`;
-- Tide interface: `0.6`;
-- executor manifest SHA-256: `975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7`.
+- Наличие `src/wea_vnext/` в `main` не активирует vNext. `scripts/tide_vnext.py`, `ledger/vnext/` и vNext epoch отсутствуют.
+- Scheduled v1 Tide, Agent0 loop, auto-triage и claim-fast остановлены/удалены. Однако прямые legacy CLI и maintenance writers ещё вызываемы: текущая пауза операторская, не общий code-enforced epoch guard. Не запускать эти mutation paths.
+- Общий claim удалён; после будущего restart первая валидная Deliverable создаёт Work. Duel join остаётся отдельной механикой.
+- Автор будущего Final пишет выбор обычным текстом; только формальная декларация Agent0 меняет protocol state. Legacy `accept`/`ranking`/transform syntax не является активной vNext-инструкцией.
+- Boundary tripwire ловит literal vNext references в CLI/scripts/workflows/package entry points и отсутствие известных adapter/namespace. Он не доказывает отсутствие dynamic/renamed writer. Полный writer inventory и behavioral no-write proof остаются обязательным Block 9 activation gate.
 
-Прежние manifest SHA-256 остаются: `v0_6_0` — `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`, `v0_6_1` — `dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2`. `[CHECK][REVIEW]`
+## Свежие проверки после integration
 
-Последние локальные проверки на Windows после authoritative-boundary hardening: полный suite — `4444 passed, 18 skipped, 11 xfailed`, без failures; полный `tests/vnext` — `159 passed, 18 skipped`; focused source/wheel gate — `32 passed`; claim/lifecycle/Tide/docs/start до successor — `126 passed`. Skips — сохранённые поведенческие тесты, ожидающие аутентифицированный snapshot Issue #1, и platform-specific проверки. Ruff, Pyright, compileall, doc-sync и ledger invariant — PASS. Повторный fresh-context review `v0_6_2` вернул пустой findings list. Итоговые команды находятся в `verification.md`. `[CHECK][REVIEW]`
+- Полный suite: `4453 passed, 18 skipped, 11 xfailed`.
+- `tests/vnext`: `168 passed, 18 skipped`.
+- Boundary regression: `9 passed`.
+- Ruff: PASS.
+- Pyright `src/wea_vnext`: `0 errors, 0 warnings`.
+- Compileall: PASS.
+- Ledger invariant: PASS, `19025 = 10000 + 9025`; active escrow `0`.
+- Ledger schema и doc sync: PASS.
+- Frozen executors: `git diff --exit-code a22edf2 -- src/wea_vnext/executors` — PASS.
+- HTML manifest и внутренние ссылки пересобраны и проверены.
+- Последняя независимая fresh-context boundary проверка: `[]`. `[CHECK][REVIEW]`
 
-## Следующий обязательный шаг блока 2
+## Следующий обязательный шаг: завершить Block 2
 
-1. Получить аутентифицированный полный read-only snapshot Issue #1: exact body bytes/hash, все страницы `userContentEdits`, все комментарии, постоянные account/comment IDs и revision IDs.
+1. Получить аутентифицированный полный read-only snapshot GitHub Issue #1: exact body bytes/hash, все страницы `userContentEdits`, все комментарии, постоянные account/comment IDs и revision IDs.
 2. Выводить Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; доказать actor, object/revision identity, exact body, effective time и глобальную одноразовость evidence IDs.
 3. Сопоставить frozen GitHub evidence с v1 ledger history, idempotency keys и aliases; сформировать операторский набор `V1IdentityEvidence` и Hello World mint-use rows.
-4. Любое противоречие account → `base_agent_id`, повтор evidence ID, неполная history или неоднозначный mint останавливает блок. Read-only выгрузка и pure plan не разрешают запись в ledger/GitHub; блок 3 до закрытия этих пунктов не начинать. `[DERIVED][REVIEW]`
+4. Повторить независимый review и verification. До закрытия этих пунктов не начинать Block 3 и не добавлять live adapter или writer.
 
-## Команды повторной проверки
+Любое противоречие account → `base_agent_id`, повтор evidence ID, неполная history или неоднозначный mint останавливает Block 2. Read-only capture и pure plan разрешены; записи в ledger/GitHub — нет. OD-11, OD-14, OD-28 и OD-29 остаются открытыми и не закрываются предположением. `[DERIVED][REVIEW]`
+
+## Быстрый повтор gate
 
 ```powershell
-python -m pytest tests/vnext/test_identity.py tests/vnext/test_hello_world.py -q
-python -m pytest tests/vnext -q
+$env:PYTHONPATH='src'
+python -m pytest tests/vnext -q --tb=short
+python -m pytest -q --tb=short
 ruff check src/wea_vnext tests/vnext
 pyright src/wea_vnext
-python -m pytest tests/vnext/test_packaging.py -q
 python -m compileall -q src/wea_vnext
 python scripts/check_invariant.py
+python scripts/check_ledger_schema.py
+python scripts/check_doc_sync.py
 git diff --check
 ```
-
-## Когда остановиться
-
-Остановиться, если нет полного revision history, невозможно доказать постоянный GitHub account ID, один account связан с противоречащими `base_agent_id`, старый mint нельзя однозначно восстановить либо дальнейший шаг требует внешнего движения WEA. Не закрывать OD-11, OD-14, OD-28 или OD-29 предположением. OLED-пакет не архивировать до реализации и проверки всего runtime. `[DERIVED]`
