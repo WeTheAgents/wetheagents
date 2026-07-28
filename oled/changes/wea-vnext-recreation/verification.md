@@ -1,6 +1,6 @@
 # WEA vNext: проверка пакета поведения 0.7
 
-Блоки 1–2 завершены. Block 2 закрывает исторический evidence-gate через операторский verdict, read-only Issue/comment snapshot, pinned ledger evidence, retired tombstone и пересчитанный WEA-инвариант. Полный replay `userContentEdits` не требуется только для этой исторической аттестации; live GitHubEvent boundary не ослаблена. Fresh-context review завершён, пакет имеет статус `Ready for Block 3`. WEA vNext остаётся `Not live`; live Tide, переключение v1, migration/bootstrap и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
+Блоки 1–3 завершены. Block 3 добавляет неактивные Draft, Triage/Negativa и атомарный ordinary Contract в immutable executor `v0_6_3`; старые executor сохранены, а System Hello World остаётся fail closed. Fresh-context review завершён, пакет имеет статус `Ready for Block 4`. WEA vNext остаётся `Not live`; live Tide, переключение v1, migration/bootstrap и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
 
 Статус свежих команд: `Complete`.
 
@@ -15,12 +15,26 @@ Post-merge-base полный gate: `Complete`.
 | `outcome.md`, `spec.md` | 0.7 | одобренное поведение и authority исторической аттестации |
 | `design.md`, `schema.md`, `migration.md` | 0.8 | техническая модель, evidence bundle и восстановление |
 | `delta.md` | 0.7 | классификация v1/vNext без изменения этой дельтой |
-| `tasks.md` | 1.0 | блоки 1–2 реализованы и проверены; Block 3 следующий |
+| `tasks.md` | 1.0 | блоки 1–3 реализованы и проверены; Block 4 следующий |
 | исполнитель Block 1 | `v0_6_0` | сохранённая неизменяемая смысловая замкнутость и прежняя replay triple |
 | первоначальный исполнитель Block 2 | `v0_6_1` | сохранённая неизменяемая замкнутость Identity и Hello World до security fix |
 | текущий исполнитель Block 2 | `v0_6_2` | security successor без изменяемого canonical Hello World sentinel; навсегда fail closed |
+| текущий исполнитель Block 3 | `v0_6_3` | Draft, versioned Triage authority/payment slot и атомарный ordinary Contract; manifest `238306466be80b500f3a7e41e9d0775529ea7c0f97dde9e2fb34a742c8951371` |
 
-Spec 0.7 сохраняет 55 сценариев и уточняет параметризованную ветку S-09: две active alias строки и один retired tombstone без Identity-authority. Реализация блоков 1–2 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
+Spec 0.7 сохраняет 55 сценариев и уточняет параметризованную ветку S-09: две active alias строки и один retired tombstone без Identity-authority. Реализация блоков 1–3 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
+
+## Реализованный контракт блока 3
+
+| Обязательство | Доказательство |
+| --- | --- |
+| Read-only Draft | `validate_draft` повторно выводит author authority, проверяет exact ruleset-derived mechanic terms и не изменяет `IntakeState` |
+| Triage authority | одна детерминированная role/payment slot на Issue; Agent0 assignment/completion и reviewer output закрепляют GitHub account, binding/version, revision, snapshot/hash, effective time и idempotency |
+| Triage money | бесплатная роль не двигает WEA; paid role списывает только `treasury`, создаёт отдельный escrow и после Agent0 completion один раз кредитует reviewer; body retry/reassignment не платит повторно |
+| Exact acceptance | operator override, author consent и Agent0 readiness повторно сверяются с active versioned bindings и одной точной Triage revision |
+| Atomic Contract | ID детерминирован по Issue; author — единственный payer/refund recipient; debit, task escrow, immutable Contract и Task создаются одной заменой state или не создаются вовсе |
+| Runtime boundary | публичные facades закреплены на `v0_6_3`; `v0_6_0…v0_6_2` неизменны; live adapter и `ledger/vnext/` отсутствуют |
+
+Сценарии S-02A/S-02C/S-02H/S-02I покрыты focused tests. Механические regressions дополнительно отклоняют caller-selected treasury source, `treasury` в Agent namespace, неизвестного/чужого reviewer, неверные binding versions, Triage до assignment, второй Contract/debit, mutation-after-validation, повторную Triage payment, произвольные payout vectors/review stages и stage IDs, пересекающиеся с профилем. `[CHECK][REVIEW]`
 
 ## Полномочия и границы
 
@@ -55,6 +69,9 @@ Spec 0.7 сохраняет 55 сценариев и уточняет парам
 | Block 2 non-skipped regressions | `python -m pytest tests/vnext/test_hello_world_attestation.py -q` | PASS: `25 passed`, `0 skipped`; exact schema-version type, exact REST body bytes, altered-and-rehashed Issue/unselected comment bodies, rehashed verdict, closed schemas, manifest/idem completeness, invariant mismatch и retired authority покрыты; ledger tree не меняется |
 | Текущий полный vNext | `python -m pytest tests/vnext -q` | PASS: `193 passed`, `18 skipped`; все 25 evidence-тестов не skipped |
 | Текущий полный repository suite | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4478 passed`, `18 skipped`, `11 xfailed` |
+| Block 3 focused | `python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py tests/vnext/test_identity.py -q` | PASS: `100 passed`; Draft, Triage authority/payment/idempotency, exact consent/override/readiness, source-revision uniqueness, terminal generation chronology, ledger-principal namespace, canonical same-timestamp order, restored-state relationships, verifier-owned runtime/seals и atomic Contract покрыты |
+| Block 3 full vNext | `python -m pytest tests/vnext -q` | PASS: `268 passed`, `18 skipped` после полного transition-record, external state/registry seal, immutable authority globals и exact review-transition hardening |
+| Block 3 full repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4553 passed`, `18 skipped`, `11 xfailed` после полного Block 3 authority/namespace hardening |
 | Attestation static checks | `ruff check ...`; `pyright evidence/check_hello_world_attestation.py`; `compileall` | PASS: Ruff clean; Pyright `0 errors, 0 warnings`; compileall clean |
 | Полный post-integration suite | `python -m pytest -q --tb=short` после merge `origin/main` `3d310081f398c2927a46278b472e84dec2a54105` | PASS: `4453 passed`, `18 skipped`, `11 xfailed`; failures отсутствуют |
 | Integrity после integration | `check_invariant.py`; `check_ledger_schema.py`; `check_doc_sync.py`; `ruff`; `pyright`; `compileall`; `git diff --check` | PASS; экономика `19025 = 10000 + 9025`, schema/doc sync чисты, типы `0 errors / 0 warnings` |
@@ -79,6 +96,26 @@ Validator читает только pinned git tree `eb8ee6f1607755d73b143f9e5cf
 Финальный fresh-context review подтвердил integrity gates и отсутствие live/executor/ledger дельты; единственное замечание относилось к устаревшим числам тестов в документации. После синхронизации `25 / 193 / 4478` текущий пакет готов к Block 3. `[CHECK][REVIEW]`
 
 ## Независимая проверка и исправления
+
+Первый fresh-context review Block 3 нашёл шесть money/authority blockers: caller-selected Contract ID допускал второй debit; paid Triage не имела Agent0 assignment/completion authority и не кредитовала reviewer balance; mechanic vectors и additional review stages не сверялись с ruleset; один Issue мог получить несколько paid role IDs; operator/readiness evidence не хранили binding version. Contract/role IDs теперь детерминированы, Triage имеет одну payment slot и отдельные versioned declarations, payout атомарно кредитует reviewer, а mechanic terms выводятся versioned money functions. Все причины получили отрицательные regressions. `[REVIEW][CHECK]`
+
+Повторный независимый review воспроизвёл caller-selected treasury debit, выплату bare reviewer ID без GitHub/binding authority, Triage до назначения, потерю idempotency старого completion после reassignment и stale facade docs. Treasury source теперь внутренняя константа и state invariant, assignment/output проверяют exact reviewer account/binding/version и порядок времени, exact completion replay возвращает прежний state до current-generation gate, а design/boundary docs закрепляют `v0_6_3`. `[REVIEW][CHECK]`
+
+Финальный release review нашёл последний namespace bypass: caller мог выбрать `escrow_id`, совпадающий с reviewer account, и превратить funding/payout в неотделённые проводки. Triage escrow ID теперь детерминирован по immutable Issue ID, constructor отклоняет иной ID, а state/transition boundary запрещает пересечение escrow с существующими balances и всеми известными registry account/Agent endpoints, включая reviewer без прежней balance row. Regressions покрывают исходный `agent-reviewer` exploit и обе collision-ветки детерминированного ID. `[REVIEW][CHECK]`
+
+Последний mandatory PR review нашёл ещё три P1: caller мог после validation изменить вложенный balance и провести необеспеченный debit; Agent ID `treasury` превращал системный balance в обычный author bank; additional review stage мог открыть intake или пропустить author decision произвольными выходами. Authoritative intake теперь проверяет construction snapshot, пересобирает и повторно валидирует exact state/registry records; IdentityRegistry запрещает `treasury` в Agent namespace; extension exits выводятся только из `review-approved / review-changes` versioned transition graph, а stage ID не пересекается с profile stages. Шесть новых regressions покрывают exploit и допустимый control case; повторный review является последним merge gate. `[REVIEW][CHECK]`
+
+Следующий mandatory pass нашёл две P1 и две P2 на соседней границе: новые caller-owned assignment/Triage/completion/override/consent/readiness records могли быть изменены после constructor validation; restored Triage не проверяла Issue своей роли; role ID мог совпасть с balance или identity principal; exact assignment replay возвращался до сравнения funding role. Каждый входной record теперь пересобирается через собственный validator, state invariant связывает Triage с Issue роли, role/escrow IDs проверяются против account namespace для обоих funding modes, а role content сравнивается до idempotent return. Пять новых regression cases покрывают все четыре причины. `[REVIEW][CHECK]`
+
+Последний mandatory pass воспроизвёл обход этой защиты: caller мог изменить financial state и переписать plain `_integrity_hash` на новый `state_hash`; тот же дефект существовал у registry. Construction seals теперь принадлежат verifier-loaded module closure и хранятся вне caller-owned `IntakeState`/`IdentityRegistry`; marker, добавленный через `object.__setattr__`, не участвует в доверии. Две точные регрессии покрывают forged balance и forged registry после пересчёта прежнего marker; повторный чистый review остаётся последним merge gate. `[REVIEW][CHECK]`
+
+Следующий mandatory review нашёл две границы детерминированности денег: одна immutable `(comment_id, revision_id)` могла под другими semantic/idempotency IDs назначить вторую treasury-роль, а более поздно загруженная reassignment могла иметь время до уже сохранённых Triage/completion прежнего поколения. State invariant теперь требует глобально уникальную source revision для всех intake declarations, непрерывные поколения и время нового assignment позже всех прежних role evidence; transition проверяет ту же chronology до изменения денег. Две регрессии воспроизводят второй escrow и backdated paid-role outcome; повторный чистый review остаётся последним merge gate. `[REVIEW][CHECK]`
+
+Последующий mandatory review воспроизвёл ещё три replay/order gaps. Identity registry допускал поздний Agent ID с префиксом уже существующего `task-escrow:` или `triage-escrow:`; reassignment могла открыть поколение 2 до terminal completion поколения 1 и навсегда сделать его completion недопустимым; отдельные comments с одинаковым `effective_at` сравнивались только по времени. Ledger-principal prefixes теперь зарезервированы на уровне Identity, новое поколение требует завершения всех Triage revisions предыдущего, а все intake evidence сравниваются по canonical `(effective_at, comment_id, revision_id)`. Четыре новых regression cases покрывают оба escrow prefixes, orphan generation и оба направления same-timestamp ordering; повторный чистый review остаётся последним merge gate. `[REVIEW][CHECK]`
+
+Следующий mandatory review нашёл три соседние границы восстановленного состояния. Paid completion доверял самосогласованным assignment/Triage без повторной проверки Agent0 и reviewer bindings; task escrow можно было переименовать в зарегистрированный Agent principal при согласованной подмене debit; выбор первого paid completion использовал `completion_id` вместо общего source order. Completion boundary теперь reauthorize оба сохранённых evidence records, restored activation требует exact `task-escrow:{contract_id}`, а payout invariant применяет canonical `(effective_at, comment_id, revision_id)`. Три точные регрессии воспроизводят treasury payout на неизвестного Agent, task-bank namespace bypass и допустимую same-timestamp reassignment sequence; повторный чистый review остаётся последним merge gate. `[REVIEW][CHECK]`
+
+Последний mandatory review воспроизвёл три mutable-authority globals: exported class `__globals__` позволяли перенаправить treasury debit на author, подменить runtime triple будущего Contract и снять reserved Agent namespaces. Verifier теперь передаёт runtime reference только через закрытый read-only facade call; treasury и reserved namespaces закреплены literal-инвариантами; construction seals хранятся в closure и удалены из module globals. Restored activation дополнительно требует deterministic Task и debit IDs. Семь regressions покрывают все три exploit-класса, скрытие обоих seal stores и exact activation IDs. Финальный повторный `codex exec review` проверил полный diff от `origin/main`, запустил vNext suite (`268 passed`, `18 skipped`) и не нашёл actionable findings. `[REVIEW][CHECK]`
 
 Fresh-context boundary review 2026-07-28 нашёл четыре несоответствия: новая авторизация merge не была отражена в verification/HTML; операторская пауза ошибочно называлась полным fail-closed v1; phase test сканировал слишком узкую поверхность; общая facade closure проверялась только по имени версии. Документация теперь честно отделяет scheduled pause от ещё вызываемых direct writers, а тест сравнивает object identity всех пяти facades. `[REVIEW][CHECK]`
 
@@ -167,6 +204,8 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 - Увеличение объёма принято как цена fail-closed manifest boundary, рекурсивной неизменяемости, boundaries по immutable repository ID, настоящего wheel/upgrade proof и platform-specific атомарного anchoring shadow writer; дальнейшее сокращение ослабило бы проверенный контракт. `[DERIVED][REVIEW]`
 - Lean cut общего claim выполнен в порядке delete/reuse: удалены 430 строк CLI/preflight/fast-writer/workflow surface, а обычный Work intake использует уже принятый Deliverable contract. Исторические ledger readers не удалены, потому что они нужны для migration evidence; Duel routing не объединён с общим Work, потому что это отдельный защищённый профиль. Новых зависимостей и будущей универсализации не добавлено. После cut повторно прошли `126` затронутых тестов, полный suite, doc-sync и invariant. `[CHECK][REVIEW]`
 - `v0_6_2` добавляет полную 14-файловую immutable closure (3202 строки исходников и manifest), хотя смысловой fix находится в `identity_hello_world.py`. Повторно использовать Python-модули `v0_6_1` нельзя без semantic dependency, чей verifier ещё намеренно отсутствует; копия closure сохраняет replay-изоляцию и не добавляет dependency. Это защищённая, а не случайная дубликация. `[DERIVED][CHECK]`
+- `v0_6_3` снова копирует полную immutable closure, потому что `semantic_dependencies` намеренно остаётся пустым до отдельного verifier. Новая смысловая поверхность сосредоточена в `intake.py`; после cut общий mechanic validator, deterministic ID helpers и единые state invariants заменили дублируемые проверки. Отдельные assignment/output/completion records, authority snapshots и atomic money groups не удалены, потому что каждый закрывает воспроизведённый payout или double-debit path. `[DERIVED][CHECK][REVIEW]`
+- Последнее review-исправление меняет только два product-файла и добавляет около 185 net-строк: общий authoritative-boundary rebuild для state, registry и входных evidence records, один reserved system ID, account-namespace checks и проверку уже существующего versioned transition graph. Новая зависимость или универсальная abstraction не вводится; удалить эти проверки без возврата доказанных money/authority bypass нельзя. `[DERIVED][CHECK][REVIEW]`
 
 ## Границы изменений
 
@@ -174,7 +213,7 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 ## Ограничения
 
-- Кодовая часть блока 2 и historical attestation не означают выполненную миграцию или live activation. Durable Issue/comment snapshot и factual reconciliation теперь существуют, но будущие live submission/decision/disclosure всё ещё требуют accepted GitHubEvent revisions и confirmed boundary. Блоки 3–9 не реализованы. `[CHECK][REVIEW]`
+- Код блоков 1–3 и historical attestation не означает выполненную миграцию или live activation. Будущие live submission/decision/disclosure и обычные `direct-pr` declarations всё ещё требуют accepted GitHubEvent revisions и confirmed boundary. Блоки 4–9 не реализованы. `[CHECK][REVIEW]`
 - Одиннадцать xfail остаются намеренно видимым legacy-долгом: восемь strict `v1_known_debt`, два strict `v1_reconciliation` и один фактический orphan `escrow_return|22|cursor-3@cursor`. Их не маскировали изменениями production-логики. `[CHECK]`
 - OD-11 и OD-14 нужны перед соответствующими внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
 - OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. `[DOC][DERIVED]`
@@ -186,3 +225,5 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 `Ready — inactive main integration`: независимый boundary review чист, свежий `origin/main` интегрирован без конфликтов, полный post-integration suite и integrity gates прошли. В `main` публикуется только неактивный внутренний пакет; live adapter, `ledger/vnext/`, migration/bootstrap и внешние записи отсутствуют. `[CHECK][REVIEW]`
 
 `Ready — Block 2 historical attestation`: операторский verdict, durable snapshot/reconciliation bundle, pure validator и 25 non-skipped regressions закрывают исторический evidence-gate; fresh-context review не оставил содержательных findings. Block 3 может начинаться в отдельной ветке, но это решение не разрешает live Tide, ledger writer, GitHub-проекцию, mint, migration/bootstrap или переключение. `[CHAT][CHECK][REVIEW]`
+
+`Ready — Block 3 contract core`: Draft остаётся read-only; Triage имеет одну versioned role/payment slot с exact Agent0/reviewer authority и treasury-only settlement; ordinary Contract детерминирован по Issue и создаётся атомарно с одним author debit, escrow и Task. Adversarial и обязательные PR review закрыли все найденные money/authority, state-integrity, transition и escrow-namespace gaps, включая task escrow collision с зарегистрированным identity principal без balance row, forged restored Contract terms, completion-before-Triage chronology, восстановленную Triage authority, funding provenance task escrow, mutation-after-validation, reserved treasury и exact additional-review successors; полный suite и invariant зелёные. Block 4 может начинаться отдельно, но live writer, GitHubEvent adapter, `ledger/vnext/`, migration/bootstrap и переключение не разрешены. `[CHECK][REVIEW]`

@@ -22,11 +22,11 @@ The detailed behavior contract remains in
 | `src/wea_cli/`, `scripts/`, current `ledger/` | v1 runtime and history | Do not add new vNext protocol rules. Preserve audit and migration evidence. Direct writers remain callable until the Block 9 inventory and epoch guard, so the current pause is operational, not a complete code-enforced boundary. |
 | `src/wea_vnext/engine.py`, `store.py` | version selection, manifest verification, replay transport, shadow storage | No business rules. Executor selection is always explicit. |
 | `src/wea_vnext/executors/v0_6_x/` | immutable protocol behavior | Never edit a released executor closure. Copy the complete closure to a new version, change it there, and create a new manifest. |
-| `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `migration.py`, `projection.py` | public candidate facades | Delegate through one explicitly pinned executor closure; do not duplicate rules. |
+| `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `intake.py`, `migration.py`, `projection.py` | public candidate facades | Delegate through one explicitly pinned executor closure; do not duplicate rules. |
 | `tests/vnext/` | vNext behavior, isolation, and replay contracts | Pin the executor version being tested. Historical replay tests never follow a moving default. |
 | `oled/changes/wea-vnext-recreation/` | accepted target behavior and implementation gates | Start here when intended future behavior is unclear. |
 
-The candidate facades currently share executor `0.6.2`. That pin does not make
+The candidate facades currently share executor `0.6.3`. That pin does not make
 the executor live and does not override the runtime triple stored by a Contract.
 
 ## If the logic is uncertain

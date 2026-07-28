@@ -112,7 +112,7 @@ def _identity_two_accounts() -> IdentityRegistry:
 
 
 def _contract(**changes: object) -> SystemHelloWorldContract:
-    runtime = installed_executor("0.6.2").reference
+    runtime = installed_executor("0.6.3").reference
     values: dict[str, object] = {
         "contract_id": "contract-system-hello-world",
         "issue_id": "I_kwDOIssueOne",

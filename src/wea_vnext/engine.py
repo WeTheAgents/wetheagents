@@ -70,13 +70,33 @@ class _LoadedExecutor:
 class _ReadOnlyModule:
     """Expose verified attributes without exposing a mutable module namespace."""
 
-    __slots__ = ("__module",)
+    __slots__ = ("__module", "__reference", "__verified_calls")
 
-    def __init__(self, module: ModuleType) -> None:
+    def __init__(self, module: ModuleType, reference: RuntimeReference) -> None:
         object.__setattr__(self, "_ReadOnlyModule__module", module)
+        object.__setattr__(self, "_ReadOnlyModule__reference", reference)
+        verified_calls: dict[str, Any] = {}
+        if module.__name__.endswith(".intake"):
+            for name in ("activate_contract", "validate_draft"):
+                candidate = module.__dict__.pop(name, None)
+                if not callable(candidate):
+                    raise ManifestError(
+                        "intake runtime call is outside the verified closure"
+                    )
+                verified_calls[name] = candidate
+        object.__setattr__(
+            self,
+            "_ReadOnlyModule__verified_calls",
+            MappingProxyType(verified_calls),
+        )
 
     def __getattribute__(self, name: str) -> Any:
-        if name in {"__dict__", "_ReadOnlyModule__module"}:
+        if name in {
+            "__dict__",
+            "_ReadOnlyModule__module",
+            "_ReadOnlyModule__reference",
+            "_ReadOnlyModule__verified_calls",
+        }:
             raise AttributeError("verified executor namespace is private")
         try:
             return object.__getattribute__(self, name)
@@ -91,6 +111,21 @@ class _ReadOnlyModule:
     def __dir__(self) -> list[str]:
         module = object.__getattribute__(self, "_ReadOnlyModule__module")
         return dir(module)
+
+    def call_verified(self, name: str, *args: Any, **kwargs: Any) -> Any:
+        """Invoke an authority-bearing entry point with verifier-owned runtime."""
+        calls = object.__getattribute__(self, "_ReadOnlyModule__verified_calls")
+        function = calls.get(name)
+        if function is None:
+            raise AttributeError("verified runtime call is not available")
+        if "_verified_runtime_reference" in kwargs:
+            raise TypeError("verified runtime is supplied by the manifest verifier")
+        reference = object.__getattribute__(self, "_ReadOnlyModule__reference")
+        return function(
+            *args,
+            **kwargs,
+            _verified_runtime_reference=reference,
+        )
 
 
 @dataclass(frozen=True)
@@ -178,6 +213,7 @@ _PUBLIC_EXECUTOR_SUBMODULES = frozenset(
         "identity",
         "identity_hello_world",
         "identity_migration",
+        "intake",
         "projection",
     }
 )
@@ -421,6 +457,8 @@ class _VerifiedSourceLoader(importlib_abc.Loader):
         filename = str(self.source.resource)
         code = compile(raw, filename, "exec", dont_inherit=True)
         module.__dict__["_WEA_VERIFIER_CAPABILITY"] = self.verifier_capability
+        # Source bytes are manifest-pinned and rehashed immediately before compile.
+        # nosemgrep: python.lang.security.audit.exec-detected.exec-detected
         exec(code, module.__dict__)
         self.loaded[self.fullname] = module
 
@@ -503,7 +541,10 @@ def _load_verified_module(
     module_name: str, verified: VerifiedManifest
 ) -> _ReadOnlyModule:
     """Return a read-only view of one verifier-owned executor instance."""
-    return _ReadOnlyModule(_load_verified_executor(module_name, verified).root)
+    return _ReadOnlyModule(
+        _load_verified_executor(module_name, verified).root,
+        verified.reference,
+    )
 
 
 def _load_verified_executor(
@@ -596,7 +637,7 @@ def _load_verified_submodule(
     module = loaded.modules.get(fullname)
     if module is None:
         raise ManifestError("executor submodule is outside the verified closure")
-    return _ReadOnlyModule(module)
+    return _ReadOnlyModule(module, verified.reference)
 
 
 def _load_verified_submodules(
@@ -621,7 +662,7 @@ def _load_verified_submodules(
         module = loaded.modules.get(fullname)
         if module is None:
             raise ManifestError("executor submodule is outside the verified closure")
-        result[relative_name] = _ReadOnlyModule(module)
+        result[relative_name] = _ReadOnlyModule(module, verified.reference)
     return MappingProxyType(result)
 
 

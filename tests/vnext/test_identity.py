@@ -30,10 +30,11 @@ from wea_vnext.migration import (
 NOW = datetime(2026, 7, 22, 12, tzinfo=timezone.utc)
 
 
-def test_block_2_preserves_the_exact_block_1_executor_triple() -> None:
+def test_block_3_preserves_every_prior_executor_triple() -> None:
     old = installed_executor("0.6.0").reference
     initial_block_2 = installed_executor("0.6.1").reference
-    current = installed_executor("0.6.2").reference
+    final_block_2 = installed_executor("0.6.2").reference
+    current = installed_executor("0.6.3").reference
 
     assert old.executor_manifest_hash == (
         "8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3"
@@ -41,11 +42,49 @@ def test_block_2_preserves_the_exact_block_1_executor_triple() -> None:
     assert initial_block_2.executor_manifest_hash == (
         "dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2"
     )
-    assert current.executor_manifest_hash == (
+    assert final_block_2.executor_manifest_hash == (
         "975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7"
+    )
+    assert current.executor_manifest_hash == (
+        "238306466be80b500f3a7e41e9d0775529ea7c0f97dde9e2fb34a742c8951371"
     )
     assert current != old
     assert current != initial_block_2
+    assert current != final_block_2
+
+
+def test_identity_reserved_namespaces_are_not_module_mutable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    module_globals = IdentityRegistry.__post_init__.__globals__
+    monkeypatch.setitem(module_globals, "_RESERVED_AGENT_IDS", frozenset())
+    monkeypatch.setitem(module_globals, "_RESERVED_AGENT_PREFIXES", ())
+
+    with pytest.raises(IdentityError, match="reserved system account"):
+        IdentityRegistry(
+            accounts=(GitHubAccount("account-treasury", "owner", "treasury"),),
+            bindings=(
+                Binding(
+                    "binding-treasury",
+                    "agent",
+                    "account-treasury",
+                    "treasury",
+                    1,
+                    NOW,
+                ),
+            ),
+            control_group_bindings=(
+                ControlGroupBinding("group-treasury", "treasury", "owner", 1, NOW),
+            ),
+        )
+
+
+def test_registry_construction_seal_is_not_exposed_through_module_globals() -> None:
+    module_globals = IdentityRegistry.__post_init__.__globals__
+
+    assert "_REGISTRY_SEALS" not in module_globals
+    assert "_remember_registry_seal" not in module_globals
+    assert "_registry_seal" not in module_globals
 
 
 def _registry(*, revoked_at: datetime | None = None) -> IdentityRegistry:
@@ -556,9 +595,7 @@ def _v1_evidence(
 
 
 def test_s_09_v1_identity_restoration_uses_all_durable_sources_without_money() -> None:
-    plan = restore_v1_identity(
-        (_v1_evidence("agent-alt"), _v1_evidence("agent-base"))
-    )
+    plan = restore_v1_identity((_v1_evidence("agent-alt"), _v1_evidence("agent-base")))
 
     assert len(plan.registry.accounts) == 1
     assert plan.registry.accounts[0].base_agent_id == "agent-base"
