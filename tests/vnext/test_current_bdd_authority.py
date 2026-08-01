@@ -7,7 +7,9 @@ import pytest
 from .current_bdd_support import (
     activated_runtime,
     apply_event,
+    assign_role,
     decision,
+    digest,
     github_state,
     lifecycle_event,
     modules,
@@ -17,6 +19,51 @@ from .current_bdd_support import (
     stage,
     state_with_plan,
 )
+
+
+def test_s_01c_validator_cannot_impersonate_a_participant_or_role() -> None:
+    duel = stage(
+        key="duel",
+        depth="explore",
+        mode="duel",
+        allocation_wea=20,
+    )
+    state = activated_runtime(plan_stages=(duel,), total_bank_wea=20)
+    contract_id = (
+        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
+    )
+    forged_join = lifecycle_event(
+        state,
+        "duel_join",
+        {"contract_id": contract_id, "position": "a"},
+        sequence=1,
+        actor_kind="validator",
+        actor_id="forged-agent",
+        actor_account_id="unbound-account",
+    )
+    with pytest.raises(modules()["intake"].PlanError, match="exact actor kind"):
+        apply_event(state, forged_join)
+    assert modules()["lifecycle"].project_runtime(state).current_stage.works == ()
+
+    state = assign_role(state, generation=1, sequence=1)
+    before = state.state_hash
+    forged_result = lifecycle_event(
+        state,
+        "role_result",
+        {
+            "generation": 1,
+            "result_hash": digest("forged-role-result"),
+            "role_id": "review-role",
+            "target_id": "target-a",
+        },
+        sequence=2,
+        actor_kind="validator",
+        actor_id="agent-alpha",
+        actor_account_id="account-alpha",
+    )
+    with pytest.raises(modules()["intake"].PlanError, match="exact actor kind"):
+        apply_event(state, forged_result)
+    assert state.state_hash == before
 
 
 def test_s_01c_lifecycle_rejects_a_registry_mutated_after_validation() -> None:

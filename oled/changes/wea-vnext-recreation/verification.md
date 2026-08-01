@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Implementation verified — independent PR review clean`.
+Decision: `Implementation verified — independent PR review pending`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `CLEAN`.
+Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 10 clean; no actionable defects`.
+Текущий review gate: `Pass 11 fixed; pass 12 pending`.
 
 ## Версии
 
@@ -23,7 +23,7 @@ Decision: `Implementation verified — independent PR review clean`.
 
 Ruleset `0.8` SHA-256: `0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522`.
 
-Executor `v0_8_0` manifest SHA-256: `e40c6568144213c3903c5a52cc299c5e9275e8760f88e77b288c75c2abc35482`.
+Executor `v0_8_0` manifest SHA-256: `2053447538796cbb737ff406eadf3436b7ec12e8158d36940a82be4ae558c339`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -53,12 +53,12 @@ Executor `v0_8_0` manifest SHA-256: `e40c6568144213c3903c5a52cc299c5e9275e8760f8
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `392 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4677 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `393 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4678 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Pass 6 was clean. Passes 7–9 found six more defects. All 19 have regression fixes. Pass 10 found no actionable defect. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Passes 6 and 10 were clean. Passes 7–9 and 11 found seven more defects. All 20 have regression fixes. Pass 12 is pending. |
 
 ## Historical verification baseline through Block 3
 

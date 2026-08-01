@@ -1,8 +1,8 @@
-# Agent0 handoff: Spec 0.9 review-clean
+# Agent0 handoff: Spec 0.9 review pending
 
 The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Status: `Implementation verified — independent PR review clean`.
+Status: `Implementation verified — independent PR review pending`.
 
 ## Repository boundary
 
@@ -10,7 +10,7 @@ Status: `Implementation verified — independent PR review clean`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
 - Ruleset `0.8` SHA-256: `0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522`.
-- Executor `v0_8_0` manifest SHA-256: `e40c6568144213c3903c5a52cc299c5e9275e8760f88e77b288c75c2abc35482`.
+- Executor `v0_8_0` manifest SHA-256: `2053447538796cbb737ff406eadf3436b7ec12e8158d36940a82be4ae558c339`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -38,12 +38,12 @@ Status: `Implementation verified — independent PR review clean`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `392 passed`, `18 skipped`.
-- Full repository: `4677 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `393 passed`, `18 skipped`.
+- Full repository: `4678 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. Passes 1–5 closed 13 defects. Pass 6 was clean. Passes 7–9 found six more defects. All 19 have regression fixes. Pass 10 found no actionable defect.
+- Draft PR: `#941`. Passes 1–5 closed 13 defects. Pass 6 and pass 10 were clean. Passes 7–9 and 11 found seven more defects. All 20 have regression fixes ready for pass 12.
 
 ## Hard stop boundary
 
@@ -51,4 +51,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Use PR `#941` as the review-clean delivery. A merge MUST NOT start live Tide, migration, bootstrap, funding, or cutover work.
+Run review pass 12 on the exact published head. Fix every actionable finding before PR `#941` becomes ready.

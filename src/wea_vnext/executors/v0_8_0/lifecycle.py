@@ -1143,6 +1143,16 @@ def _authorize_event(
         registry._assert_unchanged()
     except IdentityError as exc:
         raise PlanError("identity: registry changed after validation") from exc
+    exact_actor_kinds = {
+        "duel_join": "agent",
+        "duel_move": "agent",
+        "risk_warning": "role",
+        "role_result": "role",
+        "work_revision": "agent",
+    }
+    required_actor_kind = exact_actor_kinds.get(event.kind)
+    if required_actor_kind is not None and event.actor_kind != required_actor_kind:
+        raise PlanError("authority: lifecycle event requires its exact actor kind")
     if event.actor_kind in {"author", "agent", "role"}:
         try:
             authority = authorize_agent(
