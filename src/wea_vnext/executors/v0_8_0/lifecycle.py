@@ -1531,10 +1531,12 @@ def _normalized_prior_art_key(
     return canonical_dumps(value).decode("utf-8")
 
 
-def _validate_normalized_frontier_work(
+def _validate_normalized_work(
     stage: StageState,
     work: WorkState,
     revision: WorkRevision,
+    *,
+    enforce_novelty: bool,
     _get10_validator: Any = validate_get10_candidate,
 ) -> bool:
     if revision.normalized_output is None:
@@ -1550,31 +1552,32 @@ def _validate_normalized_frontier_work(
         needs_author = get10_result.needs_author
     elif validator == ("prefixed-text-normalized-code", "1"):
         if not output.startswith("valid:"):
-            raise PlanError("matrix: normalized Frontier Work is invalid")
+            raise PlanError("matrix: normalized Work is invalid")
         value = " ".join(output.removeprefix("valid:").split())
         if not value:
-            raise PlanError("matrix: normalized Frontier Work is invalid")
+            raise PlanError("matrix: normalized Work is invalid")
         normalized = f"valid:{value}"
         needs_author = False
     else:
         raise PlanError("matrix: normalized validator implementation is unavailable")
-    prior_art = {
-        _normalized_prior_art_key(item, validator)
-        for item in config.get("prior_art", [])
-    }
-    accepted_art = {
-        _normalized_prior_art_key(candidate.normalized_output, validator)
-        for candidate_work in stage.works
-        if candidate_work.work_id != work.work_id
-        and candidate_work.accepted_revision_id is not None
-        for candidate in candidate_work.revisions
-        if candidate.revision_id == candidate_work.accepted_revision_id
-        and candidate.normalized_output is not None
-    }
-    if normalized in prior_art or normalized in accepted_art:
-        raise PlanError("matrix: Frontier Work repeats accepted prior art")
+    if enforce_novelty:
+        prior_art = {
+            _normalized_prior_art_key(item, validator)
+            for item in config.get("prior_art", [])
+        }
+        accepted_art = {
+            _normalized_prior_art_key(candidate.normalized_output, validator)
+            for candidate_work in stage.works
+            if candidate_work.work_id != work.work_id
+            and candidate_work.accepted_revision_id is not None
+            for candidate in candidate_work.revisions
+            if candidate.revision_id == candidate_work.accepted_revision_id
+            and candidate.normalized_output is not None
+        }
+        if normalized in prior_art or normalized in accepted_art:
+            raise PlanError("matrix: Frontier Work repeats accepted prior art")
     if get10_result is not None and not get10_result.valid:
-        raise PlanError("matrix: normalized Frontier Work is invalid")
+        raise PlanError("matrix: normalized Work is invalid")
     return needs_author
 
 
@@ -1629,13 +1632,15 @@ def _work_acceptance(
     acceptance = config.get("acceptance")
     normalized_needs_author = False
     if (
-        stage.contract.mode == "frontier"
-        and deferred_result is None
+        deferred_result is None
         and type(acceptance) is dict
         and acceptance.get("kind") == "normalized_validator"
     ):
-        normalized_needs_author = _validate_normalized_frontier_work(
-            stage, work, revision
+        normalized_needs_author = _validate_normalized_work(
+            stage,
+            work,
+            revision,
+            enforce_novelty=stage.contract.mode == "frontier",
         )
         if normalized_needs_author and verdict != "needs_author":
             raise PlanError("matrix: normalized result requires the exact author")

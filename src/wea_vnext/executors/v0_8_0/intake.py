@@ -1792,7 +1792,7 @@ class PlanIntakeState:
                         raise PlanError("authority: declined Plan cannot be amended")
                     if revision.proposer_kind == "triage" and not any(
                         item.outcome == "request_revision"
-                        and item.effective_at <= revision.effective_at
+                        and _source_order(item) < _source_order(revision)
                         for item in parent_decisions
                     ):
                         raise PlanError(
@@ -2438,7 +2438,7 @@ def record_plan_revision(
         if revision.proposer_kind == "triage" and not any(
             decision.plan_revision_id == latest.revision_id
             and decision.outcome == "request_revision"
-            and decision.effective_at <= revision.effective_at
+            and _source_order(decision) < _source_order(revision)
             for decision in state.decisions
         ):
             raise PlanError(

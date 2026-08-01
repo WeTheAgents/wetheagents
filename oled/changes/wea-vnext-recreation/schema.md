@@ -84,7 +84,7 @@ An open `risk_pause` admits active-stage Work revisions, exact control-disclosur
 15. Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move.
 16. The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.
 17. Each materialized Stage Contract has one deterministic Task. The Task closes as `completed` when the stage completes. The active Task closes as `stopped` when the Plan stops.
-18. A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator and compares the output with configured prior art and paid Work before payment.
+18. A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator before payment. Frontier also compares the output with configured prior art and paid Work.
 19. A terminal Plan has no active role and no available role escrow. A complete timely result requires an Agent0 decision first. A terminal transition rejects another active role and returns its role escrow to treasury.
 
 ### Compatibility and storage boundary

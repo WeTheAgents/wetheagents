@@ -8,7 +8,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 13 fixed; pass 14 pending`.
+Текущий review gate: `Pass 14 fixed; pass 15 pending`.
 
 ## Версии
 
@@ -23,7 +23,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Ruleset `0.8` SHA-256: `f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b`.
 
-Executor `v0_8_0` manifest SHA-256: `dc114f85c0832096f9a856bddfa9aae7254be2a4389352a9f1258b3f660c1898`.
+Executor `v0_8_0` manifest SHA-256: `ea83ed02c9c80fb7fff8828bc407c0487c46341007d3a253b4f14fb8e398d629`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -53,12 +53,12 @@ Executor `v0_8_0` manifest SHA-256: `dc114f85c0832096f9a856bddfa9aae7254be2a4389
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `402 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4687 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `404 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4689 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Passes 6 and 10 were clean. All 26 defects have regression fixes. Pass 14 is pending. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Pass 14 found skipped Flat PoD validator execution and an equal-time Triage request-order gap. Passes 6 and 10 were clean. All 28 defects have regression fixes. Pass 15 is pending. |
 
 ## Historical verification baseline through Block 3
 

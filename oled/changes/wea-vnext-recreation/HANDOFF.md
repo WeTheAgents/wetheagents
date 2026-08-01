@@ -10,7 +10,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
 - Ruleset `0.8` SHA-256: `f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b`.
-- Executor `v0_8_0` manifest SHA-256: `dc114f85c0832096f9a856bddfa9aae7254be2a4389352a9f1258b3f660c1898`.
+- Executor `v0_8_0` manifest SHA-256: `ea83ed02c9c80fb7fff8828bc407c0487c46341007d3a253b4f14fb8e398d629`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -40,12 +40,12 @@ Status: `Implementation verified — independent PR review pending`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `402 passed`, `18 skipped`.
-- Full repository: `4687 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `404 passed`, `18 skipped`.
+- Full repository: `4689 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Passes 6 and 10 were clean. All 26 defects have regression fixes ready for pass 14.
+- Draft PR: `#941`. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Pass 14 found two validator and source-order defects. Passes 6 and 10 were clean. All 28 defects have regression fixes ready for pass 15.
 
 ## Hard stop boundary
 
@@ -53,4 +53,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Run review pass 14 on the exact published head. Fix every actionable finding before PR `#941` becomes ready.
+Run review pass 15 on the exact published head. Fix every actionable finding before PR `#941` becomes ready.

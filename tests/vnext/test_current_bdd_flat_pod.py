@@ -132,3 +132,56 @@ def test_s_69_flat_pod_closes_immediately_when_the_last_slot_is_paid() -> None:
     assert projection.current_stage.status == "completed"
     assert projection.current_stage.phase == "closed"
     assert projection.escrow.paid_wea == 2
+
+
+def test_s_69_flat_pod_runs_the_pinned_normalized_validator() -> None:
+    validator = ("prefixed-text-normalized-code", "1")
+    flat = stage(
+        key="validated-answer",
+        depth="explore",
+        mode="flat_pod",
+        allocation_wea=2,
+        payout_vector=[2],
+        slots=1,
+        acceptance={
+            "kind": "normalized_validator",
+            "validator_id": validator[0],
+            "version": validator[1],
+        },
+    )
+    state = activated_runtime(plan_stages=(flat,), total_bank_wea=2)
+    state, invalid_work, invalid_revision = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=1,
+        content="invalid normalized output",
+    )
+    before = state.state_hash
+    with pytest.raises(modules()["intake"].PlanError, match="normalized Work"):
+        accept_work(
+            state,
+            work_id=invalid_work,
+            revision_id=invalid_revision,
+            sequence=2,
+            validator=validator,
+        )
+    assert state.state_hash == before
+
+    state, valid_work, valid_revision = submit_work(
+        state,
+        agent_id="agent-beta",
+        account_id="account-beta",
+        sequence=3,
+        content="valid:normalized output",
+    )
+    accepted = accept_work(
+        state,
+        work_id=valid_work,
+        revision_id=valid_revision,
+        sequence=4,
+        validator=validator,
+    )
+    projection = modules()["lifecycle"].project_runtime(accepted)
+    assert projection.plan_status == "completed"
+    assert projection.balance("agent-beta") == 2

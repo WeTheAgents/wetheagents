@@ -34,7 +34,7 @@
 ### Group B — Work and atomic mode settlement
 
 - [x] Add sealed append-only runtime state, exact accepted GitHub sources, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.
-- [x] Implement Flat PoD acceptance with validator-first/author fallback, one equal slot per Work, atomic payout, immediate slot-cap close, close/expiry refund, and failure rollback.
+- [x] Implement Flat PoD acceptance with hash-bound pinned-validator replay or author fallback, one equal slot per Work, atomic payout, immediate slot-cap close, close/expiry refund, and failure rollback.
 - [x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.
 - [x] Implement Frontier snapshot uniqueness, hash-bound normalized output, pinned validator replay, configured and paid prior-art comparison, exact-revision `needs_author`, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.
 - [x] Implement Work scope and immutable cross-stage selected input records.

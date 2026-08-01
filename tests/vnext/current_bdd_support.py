@@ -1075,8 +1075,7 @@ def submit_work(
     )
     acceptance = projection.current_stage.contract.config.get("acceptance")
     uses_normalized_validator = (
-        projection.current_stage.contract.mode == "frontier"
-        and acceptance is not None
+        acceptance is not None
         and acceptance.get("kind") == "normalized_validator"
     )
     source_content = content or (

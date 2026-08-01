@@ -125,6 +125,7 @@ The author can stop an active or paused Plan. Tide MUST preserve legal settlemen
 - **GIVEN:** Triage publishes one exact Plan proposal for the problem revision and maximum bank.
 - **WHEN:** The author approves it, approves an amended revision, requests another Triage proposal, or declines the task.
 - **THEN:** Tide can activate only an exactly approved revision. A request or decline leaves the Issue as a Draft without task money.
+- **THEN:** A new Triage proposal must follow the author's request in canonical source order.
 - **THEN:** Agent0 and Tide cannot activate an unapproved revision. No operator route override exists.
 - **EVIDENCE:** `test_current_bdd_plan_decision.py` proves all four author outcomes and both invalid activation attempts.
 
@@ -391,6 +392,7 @@ At expiry or accepted `birdie`, Tide MUST close intake and refund every unused s
 - **GIVEN:** A Flat PoD Contract has three equal slots, an open intake boundary, and a pinned validator or author acceptance authority.
 - **WHEN:** Tide processes valid decisions, a replay, another Work revision, ineligible Work, late Work, and a simulated payment failure.
 - **THEN:** Each accepted Work gets one equal slot and one atomic payment. No other event consumes a slot or moves money.
+- **THEN:** A normalized-validator decision runs the pinned validator against the hash-bound output before payment.
 - **THEN:** The last slot closes the stage in the same transition. A payment failure creates no acceptance or cursor change.
 - **THEN:** Other close paths preserve paid slots and refund unused slots.
 - **EVIDENCE:** `test_current_bdd_flat_pod.py` proves slot identity, atomic payment, invalid events, close paths, refunds, and replay idempotency.
@@ -465,6 +467,7 @@ Reviewer binding SHALL быть exact и действующим уже в мом
 - **Дано:** Triage опубликовала допустимый проект Plan для точной problem revision и max bank.
 - **Когда:** автор утверждает его, утверждает собственную допустимую правку, просит новый проект или отказывается.
 - **Тогда:** только первая или вторая ветка может активировать точную утверждённую revision; остальные оставляют Issue Draft без task bank.
+- **Тогда:** новая Triage revision должна следовать после `request_revision` в каноническом GitHub-порядке, включая равное время.
 - **Проверка:** `tests/vnext/test_resolution_plan_intake.py` проверяет четыре ветки и неизменяемую feedback chain.
 
 ### S-57. Совет Negativa не является veto
