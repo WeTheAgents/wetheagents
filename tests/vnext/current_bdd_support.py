@@ -1073,13 +1073,24 @@ def submit_work(
     revision_id = lifecycle.work_revision_id(
         identifier, 1 if existing is None else len(existing.revisions) + 1
     )
+    acceptance = projection.current_stage.contract.config.get("acceptance")
+    uses_normalized_validator = (
+        projection.current_stage.contract.mode == "frontier"
+        and acceptance is not None
+        and acceptance.get("kind") == "normalized_validator"
+    )
+    source_content = content or (
+        f"valid:{revision_id}" if uses_normalized_validator else revision_id
+    )
+    normalized_output = source_content if uses_normalized_validator else None
     event = lifecycle_event(
         state,
         "work_revision",
         {
-            "content_hash": digest(content or revision_id),
+            "content_hash": digest(source_content),
             "contract_id": contract_id,
             "eligible": eligible,
+            "normalized_output": normalized_output,
             "revision_id": revision_id,
             "snapshot": snapshot,
         },

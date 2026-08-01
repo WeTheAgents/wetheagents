@@ -11,6 +11,7 @@ from typing import Any
 
 from .canonical import canonical_dumps, canonical_hash, freeze_json, thaw_json
 from .deadlines import apply_pause_offset, duel_windows, materialize_deadline
+from .get10 import validate_candidate as validate_get10_candidate
 from .identity import (
     ControlDisclosure,
     IdentityAuthority,
@@ -39,6 +40,7 @@ from .intake import (
     _verified_runtime,
     initial_stage_deadlines,
     stage_contract_id,
+    stage_task_id,
 )
 from .rules import load_ruleset
 
@@ -314,6 +316,7 @@ class WorkRevision:
     effective_at: datetime
     eligible: bool
     snapshot_identity: tuple[str, str, str] | None = None
+    normalized_output: str | None = None
 
 
 @dataclass(frozen=True)
@@ -328,9 +331,10 @@ class WorkAuthority:
     def __post_init__(self) -> None:
         for field in ("created_event_id", "work_id", "contract_id"):
             _text(field, getattr(self, field))
-        if type(self.author) is not IdentityAuthority or type(
-            self.participant
-        ) is not IdentityAuthority:
+        if (
+            type(self.author) is not IdentityAuthority
+            or type(self.participant) is not IdentityAuthority
+        ):
             raise PlanError("identity: Work authority requires exact identity records")
         if self.author.effective_at != self.participant.effective_at:
             raise PlanError("identity: Work authority times do not match")
@@ -343,8 +347,7 @@ class WorkAuthority:
                 or self.disclosure.author_agent_id != self.author.agent_id
                 or self.disclosure.participant_agent_id != self.participant.agent_id
                 or self.disclosure.control_group_id != self.author.control_group_id
-                or self.disclosure.control_group_id
-                != self.participant.control_group_id
+                or self.disclosure.control_group_id != self.participant.control_group_id
                 or self.disclosure.author_group_binding_id
                 != self.author.control_group_binding_id
                 or self.disclosure.author_group_binding_version
@@ -387,6 +390,8 @@ class WorkState:
     authority: WorkAuthority
     accepted_revision_id: str | None = None
     needs_author: bool = False
+    deferred_revision_id: str | None = None
+    validation_result: str | None = None
 
     @property
     def eligible(self) -> bool:
@@ -484,6 +489,40 @@ class StageState:
 
 
 @dataclass(frozen=True)
+class StageTaskState:
+    task_id: str
+    contract_id: str
+    plan_id: str
+    stage_key: str
+    status: str
+    close_result: str | None
+    activated_at: datetime
+    last_transition_id: str
+
+    def __post_init__(self) -> None:
+        for field in (
+            "task_id",
+            "contract_id",
+            "plan_id",
+            "stage_key",
+            "last_transition_id",
+        ):
+            _text(field, getattr(self, field))
+        if self.task_id != stage_task_id(self.contract_id):
+            raise PlanError("state: child Task ID is not deterministic")
+        if self.status not in {"active", "paused", "closed"}:
+            raise PlanError("state: child Task status is invalid")
+        if (
+            self.status == "closed"
+            and self.close_result not in {"completed", "stopped"}
+        ) or (self.status != "closed" and self.close_result is not None):
+            raise PlanError("state: child Task close result is invalid")
+        object.__setattr__(
+            self, "activated_at", _utc("activated_at", self.activated_at)
+        )
+
+
+@dataclass(frozen=True)
 class RuntimeProjection:
     plan_id: str
     plan_status: str
@@ -491,6 +530,7 @@ class RuntimeProjection:
     balances: tuple[AccountBalance, ...]
     escrow: ProgramEscrow
     stages: tuple[StageState, ...]
+    tasks: tuple[StageTaskState, ...]
     roles: tuple[RoleState, ...]
     pauses: tuple[PauseState, ...]
     settlements: tuple[Settlement, ...]
@@ -508,6 +548,14 @@ class RuntimeProjection:
     def current_stage(self) -> StageState:
         return next(
             item for item in self.stages if item.stage_index == self.current_stage_index
+        )
+
+    @property
+    def current_task(self) -> StageTaskState:
+        return next(
+            item
+            for item in self.tasks
+            if item.contract_id == self.current_stage.contract.contract_id
         )
 
 
@@ -669,9 +717,7 @@ class ResolutionPlanRuntimeState:
                 "activation_state_hash": self.activation.state.state_hash,
                 "plan_id": self.activation.plan.plan_id,
                 "events": [item.to_data() for item in self.events],
-                "work_authorities": [
-                    item.to_data() for item in self.work_authorities
-                ],
+                "work_authorities": [item.to_data() for item in self.work_authorities],
             }
         )
 
@@ -710,6 +756,7 @@ class _Model:
     escrow_paid: int
     escrow_refunded: int
     stages: dict[int, StageState]
+    tasks: dict[int, StageTaskState]
     roles: dict[tuple[str, int], RoleState]
     pauses: list[PauseState]
     settlements: list[Settlement]
@@ -734,6 +781,16 @@ def _initial_model(
         phase="join" if activation.contract.mode == "duel" else "intake",
         deadlines=activation.contract.deadlines,
     )
+    first_task = StageTaskState(
+        task_id=activation.task.task_id,
+        contract_id=activation.task.contract_id,
+        plan_id=activation.task.plan_id,
+        stage_key=activation.task.stage_key,
+        status="active",
+        close_result=None,
+        activated_at=activation.task.activated_at,
+        last_transition_id=activation.debit.transition_id,
+    )
     return _Model(
         plan_status="active",
         current_stage_index=0,
@@ -743,6 +800,7 @@ def _initial_model(
         escrow_paid=0,
         escrow_refunded=0,
         stages={0: first},
+        tasks={0: first_task},
         roles={},
         pauses=[],
         settlements=[],
@@ -846,6 +904,53 @@ def _replace_stage(model: _Model, stage: StageState, **changes: object) -> Stage
     updated = replace(stage, **changes)
     model.stages[stage.stage_index] = updated
     return updated
+
+
+def _replace_task(
+    model: _Model, task: StageTaskState, **changes: object
+) -> StageTaskState:
+    updated = replace(task, **changes)
+    index = next(
+        index
+        for index, candidate in model.tasks.items()
+        if candidate.task_id == task.task_id
+    )
+    model.tasks[index] = updated
+    return updated
+
+
+def _set_current_task_status(model: _Model, event: LifecycleEvent, status: str) -> None:
+    task = model.tasks.get(model.current_stage_index)
+    if task is None:
+        raise PlanError("state: current stage has no child Task")
+    if task.status == "closed" or task.status == status:
+        return
+    _replace_task(
+        model,
+        task,
+        status=status,
+        close_result=None,
+        last_transition_id=event.event_id,
+    )
+
+
+def _close_current_task(
+    model: _Model, event: LifecycleEvent, close_result: str
+) -> None:
+    task = model.tasks.get(model.current_stage_index)
+    if task is None:
+        raise PlanError("state: current stage has no child Task")
+    if task.status == "closed":
+        if task.close_result != close_result:
+            raise PlanError("state: child Task is already closed differently")
+        return
+    _replace_task(
+        model,
+        task,
+        status="closed",
+        close_result=close_result,
+        last_transition_id=event.event_id,
+    )
 
 
 def _work(stage: StageState, identifier: str) -> WorkState:
@@ -959,6 +1064,7 @@ def _close_stage(
     *,
     selected_revision_id: str | None,
 ) -> None:
+    _close_current_task(model, event, "completed")
     stage = _replace_stage(
         model,
         stage,
@@ -1071,6 +1177,16 @@ def _materialize_next(
         status="active",
         phase="join" if template.mode == "duel" else "intake",
         deadlines=contract.deadlines,
+    )
+    model.tasks[next_index] = StageTaskState(
+        task_id=stage_task_id(contract.contract_id),
+        contract_id=contract.contract_id,
+        plan_id=contract.plan_id,
+        stage_key=contract.stage_key,
+        status="active",
+        close_result=None,
+        activated_at=event.effective_at,
+        last_transition_id=event.event_id,
     )
     model.current_stage_index = next_index
 
@@ -1212,9 +1328,7 @@ def _authorize_event(
         "body_resume",
         "control_disclosure",
         "mode_expiry",
-    } and (
-        event.actor_kind != "tide"
-    ):
+    } and (event.actor_kind != "tide"):
         raise PlanError("authority: Tide boundary is required")
     if event.kind == "role_result":
         data = thaw_json(event.payload)
@@ -1260,7 +1374,14 @@ def _authorize_event(
 def _work_revision(model: _Model, event: LifecycleEvent) -> None:
     data = _payload(
         event,
-        {"content_hash", "contract_id", "eligible", "revision_id", "snapshot"},
+        {
+            "content_hash",
+            "contract_id",
+            "eligible",
+            "normalized_output",
+            "revision_id",
+            "snapshot",
+        },
     )
     if not _active_contract_accepts_work(model):
         raise PlanError("state: Plan does not accept Work")
@@ -1310,12 +1431,30 @@ def _work_revision(model: _Model, event: LifecycleEvent) -> None:
             raise PlanError("matrix: Frontier snapshot already exists")
     elif data["snapshot"] is not None:
         raise PlanError("declaration: snapshot identity belongs only to Frontier")
+    content_hash = _hash("content_hash", data["content_hash"])
+    config = thaw_json(stage.contract.config)
+    acceptance = config.get("acceptance")
+    normalized_output = data["normalized_output"]
+    if type(acceptance) is dict and acceptance.get("kind") == "normalized_validator":
+        normalized_output = _text("normalized_output", normalized_output)
+        if (
+            hashlib.sha256(normalized_output.encode("utf-8")).hexdigest()
+            != content_hash
+        ):
+            raise PlanError(
+                "evidence_boundary: normalized output does not match Work content hash"
+            )
+    elif normalized_output is not None:
+        raise PlanError(
+            "declaration: normalized output requires a pinned normalized validator"
+        )
     revision = WorkRevision(
         revision_id=expected_revision,
-        content_hash=_hash("content_hash", data["content_hash"]),
+        content_hash=content_hash,
         effective_at=event.effective_at,
         eligible=type(data["eligible"]) is bool and data["eligible"],
         snapshot_identity=snapshot_identity,
+        normalized_output=normalized_output,
     )
     work = WorkState(
         work_id=identifier,
@@ -1326,7 +1465,9 @@ def _work_revision(model: _Model, event: LifecycleEvent) -> None:
         accepted_revision_id=(
             None if existing is None else existing.accepted_revision_id
         ),
-        needs_author=False if existing is None else existing.needs_author,
+        needs_author=False,
+        deferred_revision_id=None,
+        validation_result=None,
     )
     works = (
         (*stage.works, work)
@@ -1366,6 +1507,71 @@ def _acceptance_authority(
         raise PlanError("matrix: acceptance authority is invalid")
 
 
+def _normalized_prior_art_key(
+    value: object, validator: tuple[object, object]
+) -> str:
+    expression = (
+        value.get("expression")
+        if type(value) is dict and type(value.get("expression")) is str
+        else value
+    )
+    if type(expression) is str:
+        if validator == ("get10-normalized-code", "1"):
+            return "".join(expression.split())
+        return " ".join(expression.split())
+    return canonical_dumps(value).decode("utf-8")
+
+
+def _validate_normalized_frontier_work(
+    stage: StageState,
+    work: WorkState,
+    revision: WorkRevision,
+    _get10_validator: Any = validate_get10_candidate,
+) -> bool:
+    if revision.normalized_output is None:
+        raise PlanError("evidence_boundary: normalized validator has no bound output")
+    config = thaw_json(stage.contract.config)
+    acceptance = config["acceptance"]
+    validator = (acceptance.get("validator_id"), acceptance.get("version"))
+    output = revision.normalized_output
+    get10_result = None
+    if validator == ("get10-normalized-code", "1"):
+        get10_result = _get10_validator(output)
+        normalized = get10_result.normalized_expression
+        needs_author = get10_result.needs_author
+    elif validator == ("prefixed-text-normalized-code", "1"):
+        if not output.startswith("valid:"):
+            raise PlanError("matrix: normalized Frontier Work is invalid")
+        value = " ".join(output.removeprefix("valid:").split())
+        if not value:
+            raise PlanError("matrix: normalized Frontier Work is invalid")
+        normalized = f"valid:{value}"
+        needs_author = False
+    else:
+        raise PlanError("matrix: normalized validator implementation is unavailable")
+    prior_art = {
+        _normalized_prior_art_key(item, validator)
+        for item in config.get("prior_art", [])
+    }
+    accepted_art = {
+        _normalized_prior_art_key(candidate.normalized_output, validator)
+        for candidate_work in stage.works
+        if candidate_work.work_id != work.work_id
+        and candidate_work.accepted_revision_id is not None
+        for candidate in candidate_work.revisions
+        if candidate.revision_id == candidate_work.accepted_revision_id
+        and candidate.normalized_output is not None
+    }
+    if normalized in prior_art or normalized in accepted_art:
+        raise PlanError("matrix: Frontier Work repeats accepted prior art")
+    if get10_result is not None and not get10_result.valid:
+        raise PlanError("matrix: normalized Frontier Work is invalid")
+    return needs_author
+
+
+del validate_get10_candidate
+
+
 def _work_acceptance(
     model: _Model, activation: PlanActivation, event: LifecycleEvent
 ) -> None:
@@ -1390,18 +1596,48 @@ def _work_acceptance(
     ):
         raise PlanError("matrix: Work acceptance does not apply to this mode")
     work = _work(stage, _text("work_id", data["work_id"]))
-    _acceptance_authority(stage, event, needs_author=work.needs_author)
     revision = next(
         (item for item in work.revisions if item.revision_id == data["revision_id"]),
         None,
     )
     if revision is None or not revision.eligible:
         raise PlanError("matrix: accepted Work revision must be eligible")
+    _acceptance_authority(
+        stage,
+        event,
+        needs_author=(
+            work.needs_author and work.deferred_revision_id == revision.revision_id
+        ),
+    )
     verdict = data["verdict"]
+    config = thaw_json(stage.contract.config)
+    acceptance = config.get("acceptance")
+    normalized_needs_author = False
+    if (
+        stage.contract.mode == "frontier"
+        and not work.needs_author
+        and type(acceptance) is dict
+        and acceptance.get("kind") == "normalized_validator"
+    ):
+        normalized_needs_author = _validate_normalized_frontier_work(
+            stage, work, revision
+        )
+        if normalized_needs_author and verdict != "needs_author":
+            raise PlanError("matrix: normalized result requires the exact author")
     if verdict == "needs_author":
         if event.actor_kind != "validator":
             raise PlanError("authority: only validator can defer to author")
-        updated = _replace_work(stage, work, needs_author=True)
+        updated = _replace_work(
+            stage,
+            work,
+            needs_author=True,
+            deferred_revision_id=revision.revision_id,
+            validation_result=(
+                "valid-needs-author"
+                if normalized_needs_author
+                else "validator-needs-author"
+            ),
+        )
         _replace_stage(model, stage, works=updated.works)
         return
     if verdict != "accept":
@@ -1427,7 +1663,14 @@ def _work_acceptance(
         basis_id=work.work_id,
     )
     updated = _replace_work(
-        stage, work, accepted_revision_id=revision.revision_id, needs_author=False
+        stage,
+        work,
+        accepted_revision_id=revision.revision_id,
+        needs_author=False,
+        deferred_revision_id=None,
+        validation_result=(
+            "author-accepted" if event.actor_kind == "author" else "valid-novel"
+        ),
     )
     stage = _replace_stage(
         model,
@@ -1538,6 +1781,7 @@ def _close_additive(
         stage.stage_index < len(model.future_stages) - 1
         and selected_revision_id is None
     ):
+        _close_current_task(model, event, "completed")
         pause = PauseState(
             pause_id=f"{event.event_id}:progression-pause",
             kind="progression_pause",
@@ -1843,6 +2087,7 @@ def _stop_duel(
         phase="closed",
         refunded_wea=amount,
     )
+    _close_current_task(model, event, "stopped")
     model.plan_status = "stopped"
     assessment = _activation_assessment(activation)
     model.triage_feedback.append(
@@ -1991,9 +2236,7 @@ def _control_disclosure(model: _Model, event: LifecycleEvent) -> None:
         raise PlanError("identity: Work has no pending common-control disclosure")
     try:
         confirmed = disclosure.confirm(
-            revision_id=_text(
-                "disclosure_revision_id", data["disclosure_revision_id"]
-            ),
+            revision_id=_text("disclosure_revision_id", data["disclosure_revision_id"]),
             snapshot=disclosure.expected_snapshot,
         )
     except IdentityError as exc:
@@ -2202,6 +2445,7 @@ def _body_pause(model: _Model, event: LifecycleEvent) -> None:
         cause_id=_text("issue_revision_id", data["issue_revision_id"]),
     )
     model.pauses.append(pause)
+    _set_current_task_status(model, event, "paused")
     model.plan_status = "paused"
 
 
@@ -2275,6 +2519,8 @@ def _body_resume(model: _Model, event: LifecycleEvent) -> None:
         )
         else "active"
     )
+    if model.plan_status == "active":
+        _set_current_task_status(model, event, "active")
 
 
 def _risk_warning(model: _Model, event: LifecycleEvent) -> None:
@@ -2314,6 +2560,7 @@ def _risk_pause(model: _Model, event: LifecycleEvent) -> None:
             cause_id=warning_id,
         )
     )
+    _set_current_task_status(model, event, "paused")
     model.plan_status = "paused"
 
 
@@ -2335,6 +2582,7 @@ def _author_continue(
             pause, ended_at=event.effective_at
         )
     model.plan_status = "active"
+    _set_current_task_status(model, event, "active")
     current = _current(model)
     if (
         current.status == "completed"
@@ -2424,6 +2672,7 @@ def _suffix_replan(
             pause, ended_at=event.effective_at
         )
     model.plan_status = "active"
+    _set_current_task_status(model, event, "active")
     if current.status == "completed":
         _materialize_next(model, activation, event, current)
 
@@ -2468,6 +2717,7 @@ def _author_stop(
     current = _current(model)
     if current.status == "active":
         _replace_stage(model, current, status="stopped", phase="closed")
+        _close_current_task(model, event, "stopped")
     model.plan_status = "stopped"
     assessment = _activation_assessment(activation)
     model.triage_feedback.append(
@@ -2499,6 +2749,7 @@ def _downstream_blocker(
         )
     )
     model.plan_status = "paused"
+    _set_current_task_status(model, event, "paused")
     model.pauses.append(
         PauseState(
             pause_id=f"{event.event_id}:pause",
@@ -2607,6 +2858,7 @@ def _projection(
         ),
         escrow=escrow,
         stages=tuple(model.stages[index] for index in sorted(model.stages)),
+        tasks=tuple(model.tasks[index] for index in sorted(model.tasks)),
         roles=tuple(model.roles[index] for index in sorted(model.roles)),
         pauses=tuple(model.pauses),
         settlements=tuple(model.settlements),
@@ -2692,9 +2944,7 @@ def _require_control_disclosure_evidence(
         },
     )
     source_id = _text("disclosure_source_id", data["disclosure_source_id"])
-    revision_id = _text(
-        "disclosure_revision_id", data["disclosure_revision_id"]
-    )
+    revision_id = _text("disclosure_revision_id", data["disclosure_revision_id"])
     if source_id == event.source_id or revision_id == event.source_revision_id:
         raise PlanError("evidence_boundary: disclosure needs a separate public source")
     matches = [
@@ -2742,9 +2992,7 @@ def _require_control_disclosure_evidence(
     if len(source_matches) != 1:
         raise PlanError("evidence_boundary: exact accepted GitHub revision is missing")
     disclosure_effective_at = source_matches[0].effective_at
-    if not (
-        disclosure.effective_at <= disclosure_effective_at <= event.effective_at
-    ):
+    if not (disclosure.effective_at <= disclosure_effective_at <= event.effective_at):
         raise PlanError(
             "evidence_boundary: disclosure source is outside its Work boundary"
         )
@@ -2900,9 +3148,7 @@ def apply_lifecycle_event(
     _require_issue_body_evidence(state, current, event, github_state)
     _require_control_disclosure_evidence(state, current, event, github_state)
     _authorize_event(current, state.activation, event, registry)
-    candidate_authorities = _candidate_work_authorities(
-        state, current, event, registry
-    )
+    candidate_authorities = _candidate_work_authorities(state, current, event, registry)
     candidate_events = (*state.events, event)
     _projection(state.activation, candidate_events, candidate_authorities)
     return _verified_runtime_state(
@@ -2978,9 +3224,7 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
         elif pending_disclosures and is_author:
             action = "wait for the public common-control disclosure"
             if stage.phase == "decision":
-                boundary = _stage_deadline(
-                    stage, "author_decision"
-                ).effective_due_at
+                boundary = _stage_deadline(stage, "author_decision").effective_due_at
             elif stage.contract.mode == "duel" and stage.phase == "moves":
                 number = max((item[0] for item in stage.duel_moves), default=0) + 1
                 boundary = next(
@@ -2990,8 +3234,7 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
                 )
             else:
                 boundary = (
-                    stage.birdie_at
-                    or _stage_deadline(stage, "intake").effective_due_at
+                    stage.birdie_at or _stage_deadline(stage, "intake").effective_due_at
                 )
         elif stage.contract.mode == "ranked" and stage.phase == "decision":
             action = (
@@ -3068,6 +3311,7 @@ __all__ = [
     "RuntimeProjection",
     "Settlement",
     "StageState",
+    "StageTaskState",
     "TriageFeedback",
     "WorkAuthority",
     "WorkRevision",

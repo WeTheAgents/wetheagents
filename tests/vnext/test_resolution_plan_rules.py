@@ -92,12 +92,19 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
     assert rules["modes"]["duel"]["move_order"] == (
         "strictly-increasing-accepted-numbers-with-expired-slot-skips"
     )
+    assert rules["modes"]["frontier"]["normalized_validation"] == (
+        "bound-output-replay-with-pinned-validator"
+    )
+    assert rules["modes"]["frontier"]["prior_art_index"] == (
+        "configured-and-accepted-normalized-output"
+    )
+    assert rules["task_state"]["materialization"] == (
+        "one-per-materialized-stage-contract"
+    )
     assert rules["roles"]["warning_pause"] == (
         "agent0-from-active-assigned-triage-or-review-generation"
     )
-    assert rules["roles"]["result_authority"] == (
-        "frozen-agent-and-github-account"
-    )
+    assert rules["roles"]["result_authority"] == ("frozen-agent-and-github-account")
 
 
 @pytest.mark.parametrize(
@@ -240,3 +247,28 @@ def test_raw_allocated_exact_stage_cannot_bypass_money_validation() -> None:
 
     with pytest.raises(intake.PlanError, match="payouts"):
         replace(plan_revision(), stages=(raw,), total_bank_wea=100)
+
+
+def test_unknown_normalized_validator_is_rejected_before_plan_activation() -> None:
+    intake = current_modules()["intake"]
+
+    with pytest.raises(intake.PlanError, match="acceptance authority"):
+        intake.PlanStage(
+            key="unknown-validator",
+            depth="explore",
+            mode="frontier",
+            schedule=intake.StageSchedule(intake_seconds=60),
+            allocation_wea=1,
+            config={
+                "acceptance": {
+                    "kind": "normalized_validator",
+                    "validator_id": "unavailable-validator",
+                    "version": "1",
+                },
+                "incentive": "linear",
+                "payout_vector": [1],
+                "prior_art": [],
+                "snapshot_identity": "model+genome+runtime",
+            },
+            expected_output="One normalized result",
+        )

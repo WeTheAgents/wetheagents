@@ -58,6 +58,7 @@ RoleState = _LIFECYCLE.RoleState
 RuntimeProjection = _LIFECYCLE.RuntimeProjection
 Settlement = _LIFECYCLE.Settlement
 StageState = _LIFECYCLE.StageState
+StageTaskState = _LIFECYCLE.StageTaskState
 TriageFeedback = _LIFECYCLE.TriageFeedback
 WorkRevision = _LIFECYCLE.WorkRevision
 WorkState = _LIFECYCLE.WorkState
@@ -68,6 +69,7 @@ GET10_PAYOUT_VECTOR = _GET10.GET10_PAYOUT_VECTOR
 GET10_PRIOR_ART = _GET10.GET10_PRIOR_ART
 GET10_VALIDATOR_ID = _GET10.GET10_VALIDATOR_ID
 GET10_VALIDATOR_VERSION = _GET10.GET10_VALIDATOR_VERSION
+Get10Validation = _GET10.Get10Validation
 
 
 def load_ruleset() -> Any:
@@ -178,6 +180,10 @@ def new_epoch_config(*args: Any, **kwargs: Any) -> Any:
     return _GET10.new_epoch_config(*args, **kwargs)
 
 
+def validate_get10_candidate(*args: Any, **kwargs: Any) -> Any:
+    return _GET10.validate_candidate(*args, **kwargs)
+
+
 __all__ = [
     "GET10_ISSUE_NUMBER",
     "GET10_PAYOUT_VECTOR",
@@ -191,6 +197,7 @@ __all__ = [
     "ControlGroupBinding",
     "DraftIssue",
     "Get10PriorArt",
+    "Get10Validation",
     "GitHubAccount",
     "GitHubEvent",
     "GitHubEventBatch",
@@ -222,6 +229,7 @@ __all__ = [
     "StageSchedule",
     "StageState",
     "StageTask",
+    "StageTaskState",
     "TriageAssessment",
     "TriageFeedback",
     "WorkRevision",
@@ -251,6 +259,7 @@ __all__ = [
     "triage_assessment_id",
     "triage_assignment_id",
     "triage_completion_id",
+    "validate_get10_candidate",
     "work_id",
     "work_revision_id",
 ]

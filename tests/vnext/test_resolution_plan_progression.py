@@ -38,6 +38,9 @@ def test_s_65_missing_selector_pauses_without_creating_future_child() -> None:
     projection = modules()["lifecycle"].project_runtime(state)
     assert projection.plan_status == "paused"
     assert len(projection.stages) == 1
+    assert len(projection.tasks) == 1
+    assert projection.current_task.status == "closed"
+    assert projection.current_task.close_result == "completed"
     assert projection.escrow.paid_wea == 1
     assert projection.escrow.available_wea == 5
     assert projection.pauses[-1].kind == "progression_pause"

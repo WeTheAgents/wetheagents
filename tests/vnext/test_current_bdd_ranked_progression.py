@@ -67,6 +67,13 @@ def test_s_04a_ranked_underfill_pays_one_rank_and_materializes_next_child() -> N
     assert projection.escrow.available_wea == 10
     assert projection.current_stage.stage_key == "spec"
     assert projection.current_stage.contract.resolved_inputs[0].revision_id == revision
+    assert len(projection.tasks) == 2
+    assert projection.tasks[0].status == "closed"
+    assert projection.tasks[0].close_result == "completed"
+    assert projection.current_task.status == "active"
+    assert projection.current_task.task_id == modules()["intake"].stage_task_id(
+        projection.current_stage.contract.contract_id
+    )
 
 
 def test_s_04a_ranked_progression_preserves_the_selected_eligible_revision() -> None:
@@ -131,3 +138,5 @@ def test_s_04a_ranked_progression_preserves_the_selected_eligible_revision() -> 
     projection = modules()["lifecycle"].project_runtime(state)
     assert projection.current_stage.stage_key == "spec"
     assert projection.current_stage.contract.resolved_inputs[0].revision_id == selected
+    assert [item.status for item in projection.tasks] == ["closed", "active"]
+    assert projection.tasks[0].close_result == "completed"

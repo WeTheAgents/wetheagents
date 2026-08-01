@@ -36,7 +36,7 @@
 - [x] Add sealed append-only runtime state, exact accepted GitHub sources, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.
 - [x] Implement Flat PoD acceptance with validator-first/author fallback, one equal slot per Work, atomic payout, immediate slot-cap close, close/expiry refund, and failure rollback.
 - [x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.
-- [x] Implement Frontier snapshot uniqueness, novelty evidence, validator/`needs_author`, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.
+- [x] Implement Frontier snapshot uniqueness, hash-bound normalized output, pinned validator replay, configured and paid prior-art comparison, exact-revision `needs_author`, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.
 - [x] Implement Work scope and immutable cross-stage selected input records.
 - [x] Freeze author and participant authority on first Work. Require exact public common-control disclosure before selection or settlement in every mode.
 
@@ -48,7 +48,7 @@
 
 ### Group C — progression, pauses, roles, stop, and replan
 
-- [x] Materialize the next child from one exact accepted revision without author debit or approval; ambiguous selectors pause without money movement.
+- [x] Materialize the next child Contract and its deterministic Task from one exact accepted revision without author debit or approval; close each completed or stopped Task with its exact result; ambiguous selectors pause without money movement.
 - [x] Implement exact current Issue-revision evidence for `body_integrity_pause` and resume. Offset only deadlines that were open at pause start.
 - [x] Implement Agent0 `risk_pause` from one exact active Triage/review role generation. Reject stale, inactive, unassigned, and unrelated role warnings.
 - [x] Keep submissions open during `risk_pause`. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.

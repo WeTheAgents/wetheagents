@@ -6,13 +6,14 @@ from .current_bdd_support import (
     accept_work,
     activated_runtime,
     apply_event,
+    digest,
     lifecycle_event,
     modules,
     stage,
     submit_work,
 )
 
-VALIDATOR = ("normalized-code", "1")
+VALIDATOR = ("prefixed-text-normalized-code", "1")
 
 
 def _frontier():
@@ -74,6 +75,89 @@ def test_s_61_frontier_pays_only_valid_novel_unique_snapshots() -> None:
             validator=VALIDATOR,
         )
     assert state.state_hash == before
+
+
+def test_s_61_normalized_output_is_bound_and_cannot_repeat_paid_prior_art() -> None:
+    state = activated_runtime(plan_stages=(_frontier(),), total_bank_wea=6)
+    lifecycle = modules()["lifecycle"]
+    contract_id = lifecycle.project_runtime(state).current_stage.contract.contract_id
+    identifier = lifecycle.work_id(contract_id, "agent-alpha")
+    revision = lifecycle.work_revision_id(identifier, 1)
+    forged = lifecycle_event(
+        state,
+        "work_revision",
+        {
+            "content_hash": digest("source-value"),
+            "contract_id": contract_id,
+            "eligible": True,
+            "normalized_output": "different-value",
+            "revision_id": revision,
+            "snapshot": {"model": "m1", "genome": "g1", "runtime": "r1"},
+        },
+        sequence=1,
+        actor_kind="agent",
+        actor_id="agent-alpha",
+        actor_account_id="account-alpha",
+    )
+    with pytest.raises(modules()["intake"].PlanError, match="does not match"):
+        apply_event(state, forged)
+
+    state, first_work, first_revision = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=2,
+        content="valid:same normalized value",
+        snapshot={"model": "m1", "genome": "g1", "runtime": "r1"},
+    )
+    state = accept_work(
+        state,
+        work_id=first_work,
+        revision_id=first_revision,
+        sequence=3,
+        validator=VALIDATOR,
+    )
+    state, second_work, second_revision = submit_work(
+        state,
+        agent_id="agent-beta",
+        account_id="account-beta",
+        sequence=4,
+        content="valid:same normalized value",
+        snapshot={"model": "m2", "genome": "g2", "runtime": "r2"},
+    )
+    before = state.state_hash
+    with pytest.raises(modules()["intake"].PlanError, match="prior art"):
+        accept_work(
+            state,
+            work_id=second_work,
+            revision_id=second_revision,
+            sequence=5,
+            validator=VALIDATOR,
+        )
+    projection = lifecycle.project_runtime(state)
+    assert state.state_hash == before
+    assert projection.escrow.paid_wea == 1
+
+
+def test_s_61_pinned_validator_rejects_invalid_normalized_content() -> None:
+    state = activated_runtime(plan_stages=(_frontier(),), total_bank_wea=6)
+    state, identifier, revision = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=1,
+        content="arbitrary content without the valid prefix",
+        snapshot={"model": "m1", "genome": "g1", "runtime": "r1"},
+    )
+    with pytest.raises(modules()["intake"].PlanError, match="invalid"):
+        accept_work(
+            state,
+            work_id=identifier,
+            revision_id=revision,
+            sequence=2,
+            validator=VALIDATOR,
+        )
+    assert modules()["lifecycle"].project_runtime(state).escrow.paid_wea == 0
 
 
 def test_s_62_validator_defers_semantic_novelty_to_exact_author() -> None:

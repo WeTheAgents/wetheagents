@@ -509,10 +509,11 @@ def _acceptance_config(value: object) -> Mapping[str, Any]:
     if (
         kind == "normalized_validator"
         and set(config) == {"kind", "validator_id", "version"}
-        and type(config["validator_id"]) is str
-        and config["validator_id"]
-        and type(config["version"]) is str
-        and config["version"]
+        and (config["validator_id"], config["version"])
+        in {
+            ("get10-normalized-code", "1"),
+            ("prefixed-text-normalized-code", "1"),
+        }
     ):
         return freeze_json(config)
     raise PlanError("matrix: acceptance authority is invalid")

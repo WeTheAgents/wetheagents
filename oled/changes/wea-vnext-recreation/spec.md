@@ -523,7 +523,7 @@ Frontier SHALL иметь конечный exact payout vector, выбранны
 - **Дано:** Frontier имеет accepted prior art и следующий exact payout.
 - **Когда:** новый snapshot подаёт valid novel Work, повторяет prior art либо повторно подаёт тот же snapshot.
 - **Тогда:** только valid novel Work занимает и получает следующий slot; остальные не расходуют slot или escrow.
-- **Проверка:** `tests/vnext/test_frontier.py` проверяет novelty index, snapshot identity и payout cursor.
+- **Проверка:** `tests/vnext/test_frontier.py` проверяет связь normalized output с content hash, prior-art index, snapshot identity и payout cursor.
 
 ### S-62. Validator сначала, автор при неоднозначности
 
@@ -590,7 +590,7 @@ Issue #10 SHALL оставаться закрытым для paid intake до н
 - **Дано:** исторические шесть Works и отсутствующий новый escrow Issue #10.
 - **Когда:** состояние читается до activation и после author approval нового exact Contract.
 - **Тогда:** до activation paid intake закрыт; после неё открыты ровно семь новых slots на `589 WEA`, все шесть Works остаются prior art, а validator выдаёт принятые legacy classifications.
-- **Проверка:** `tests/vnext/test_get10_frontier.py` плюс read-only Issue/ledger evidence fixture.
+- **Проверка:** `tests/vnext/test_get10_frontier.py` проверяет pinned classifier, mechanical validity, prior-art rejection и author verdict. Read-only Issue/ledger evidence fixture проверяет исторические записи.
 
 ## Stale dependents после принятия Spec 0.8
 

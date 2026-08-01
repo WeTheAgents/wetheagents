@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522"
+    "f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -137,7 +137,9 @@ def _validate_modes(value: object) -> None:
             "atomic_slot_payment",
             "finite",
             "incentives",
+            "normalized_validation",
             "novelty",
+            "prior_art_index",
             "snapshot_identity_fields",
         },
     )
@@ -146,7 +148,9 @@ def _validate_modes(value: object) -> None:
         "atomic_slot_payment": True,
         "finite": True,
         "incentives": ["fibonacci", "linear"],
+        "normalized_validation": "bound-output-replay-with-pinned-validator",
         "novelty": "valid-and-distinct-from-accepted-prior-art",
+        "prior_art_index": "configured-and-accepted-normalized-output",
         "snapshot_identity_fields": ["model", "genome", "runtime"],
     }:
         raise RulesetError("Frontier rules are inconsistent")
@@ -308,6 +312,7 @@ def _validate(content: dict[str, Any]) -> None:
         raise RulesetError("lifecycle authority rules are inconsistent")
     if content["task_state"] != {
         "close_results": ["completed", "stopped"],
+        "materialization": "one-per-materialized-stage-contract",
         "statuses": ["active", "closed", "paused"],
     }:
         raise RulesetError("task state table is inconsistent")

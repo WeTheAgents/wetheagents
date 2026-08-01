@@ -36,6 +36,8 @@ def test_s_02b_stop_preserves_legal_settlement_and_refunds_unused_bank() -> None
     assert projection.balance("agent-alpha") == 2
     assert projection.escrow.paid_wea == 2
     assert projection.escrow.refunded_wea == 4
+    assert projection.current_task.status == "closed"
+    assert projection.current_task.close_result == "stopped"
 
     before = stopped.state_hash
     with pytest.raises(modules()["intake"].PlanError, match="terminal"):

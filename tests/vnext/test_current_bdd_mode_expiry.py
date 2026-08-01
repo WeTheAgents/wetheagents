@@ -51,6 +51,7 @@ def test_s_06c_expiry_waits_until_after_the_inclusive_deadline() -> None:
                 "content_hash": digest("deadline work"),
                 "contract_id": contract_id,
                 "eligible": True,
+                "normalized_output": None,
                 "revision_id": revision_id,
                 "snapshot": None,
             },

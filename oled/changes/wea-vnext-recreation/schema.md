@@ -13,8 +13,9 @@ This delta replaces incompatible schema `0.9` fields for new Resolution Plans. H
 | Runtime State | exact verified activation aggregate, ordered verified lifecycle events, frozen Work authorities, canonical replay hash, construction seal |
 | Lifecycle Event | deterministic event ID, Plan ID, kind, actor kind/ID/authority, accepted GitHub source revision/snapshot/hash, effective time, idempotency key, canonical typed payload |
 | Work | deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, acceptance evidence |
-| Work Revision | revision ID/index, Work/Contract/Agent IDs, content hash, immutable snapshot identity, source evidence and effective time |
+| Work Revision | revision ID/index, Work/Contract/Agent IDs, content hash, immutable snapshot identity, optional normalized output for the pinned validator, source evidence and effective time |
 | Stage Runtime | stage/Contract/Task IDs, status, phase, base/effective opens and due times, mode cursor, selected revision, paid/refunded amount |
+| Stage Task Runtime | deterministic Task ID, Stage Contract ID, Plan/stage refs, `active/paused/closed`, `completed/stopped` close result, activation time, last transition ID |
 | Role Assignment | role/generation IDs, assigned Agent ID and GitHub account, exact targets, duration and due times, funding `free/treasury`, optional role escrow |
 | Role Result | role/generation, frozen Agent ID and GitHub account authority, exact target subset, result IDs/hashes/times, completeness, last required result time |
 | Pause | kind `body_integrity_pause/risk_pause/progression_pause`, exact Issue revision or role-generation warning evidence, start/end, author decision, affected open deadline IDs and one-time offsets |
@@ -82,6 +83,8 @@ An open `risk_pause` admits active-stage Work revisions, exact control-disclosur
 14. Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.
 15. Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move.
 16. The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.
+17. Each materialized Stage Contract has one deterministic Task. The Task closes as `completed` when the stage completes. The active Task closes as `stopped` when the Plan stops.
+18. A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator and compares the output with configured prior art and paid Work before payment.
 
 ### Compatibility and storage boundary
 
