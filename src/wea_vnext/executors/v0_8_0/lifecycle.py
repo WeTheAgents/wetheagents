@@ -783,14 +783,24 @@ def _active_pause(model: _Model, kind: str) -> PauseState | None:
     )
 
 
-def _active_contract_is_usable(model: _Model) -> bool:
-    """A risk pause blocks progression, but it does not freeze active work."""
+def _active_contract_accepts_work(model: _Model) -> bool:
+    """A risk pause does not freeze revisions in the active Contract."""
     if _active_body_pause(model) is not None:
         return False
     if model.plan_status == "active":
         return True
     return (
         model.plan_status == "paused" and _active_pause(model, "risk_pause") is not None
+    )
+
+
+def _progression_is_usable(model: _Model) -> bool:
+    """Settlement and stage progression require every pause to be resolved."""
+    return (
+        model.plan_status == "active"
+        and _active_body_pause(model) is None
+        and _active_pause(model, "risk_pause") is None
+        and _active_pause(model, "progression_pause") is None
     )
 
 
@@ -1096,7 +1106,7 @@ def _work_revision(model: _Model, event: LifecycleEvent) -> None:
         event,
         {"content_hash", "contract_id", "eligible", "revision_id", "snapshot"},
     )
-    if not _active_contract_is_usable(model):
+    if not _active_contract_accepts_work(model):
         raise PlanError("state: Plan does not accept Work")
     stage = _stage_for_contract(model, _text("contract_id", data["contract_id"]))
     if (
@@ -1200,7 +1210,7 @@ def _work_acceptance(
         event,
         {"contract_id", "novel", "revision_id", "verdict", "work_id"},
     )
-    if not _active_contract_is_usable(model):
+    if not _progression_is_usable(model):
         raise PlanError("state: Plan does not accept Work decisions")
     stage = _stage_for_contract(model, _text("contract_id", data["contract_id"]))
     acceptance_phase = stage.phase == "intake" or (
@@ -1267,7 +1277,7 @@ def _ranked_order(
     model: _Model, activation: PlanActivation, event: LifecycleEvent
 ) -> None:
     data = _payload(event, {"contract_id", "ordered_work_ids", "selected_revision_id"})
-    if not _active_contract_is_usable(model):
+    if not _progression_is_usable(model):
         raise PlanError("state: Plan is not active")
     stage = _stage_for_contract(model, _text("contract_id", data["contract_id"]))
     if (
@@ -1380,7 +1390,7 @@ def _close_additive(
 
 def _birdie(model: _Model, event: LifecycleEvent) -> None:
     data = _payload(event, {"contract_id", "work_id"})
-    if not _active_contract_is_usable(model):
+    if not _progression_is_usable(model):
         raise PlanError("state: birdie requires an active Plan")
     stage = _stage_for_contract(model, data["contract_id"])
     if stage.contract.mode not in {"ranked", "flat_pod"}:
@@ -1420,7 +1430,7 @@ def _mode_expiry(
 ) -> None:
     data = _payload(event, {"contract_id"})
     stage = _stage_for_contract(model, data["contract_id"])
-    if stage.status != "active" or not _active_contract_is_usable(model):
+    if stage.status != "active" or not _progression_is_usable(model):
         raise PlanError("state: mode expiry requires an active stage")
     if stage.contract.mode == "ranked" and stage.phase == "intake":
         due = _stage_deadline(stage, "intake").effective_due_at
@@ -1499,7 +1509,7 @@ def _duel_join(model: _Model, event: LifecycleEvent) -> None:
         stage.contract.mode != "duel"
         or stage.phase != "join"
         or stage.status != "active"
-        or not _active_contract_is_usable(model)
+        or not _active_contract_accepts_work(model)
     ):
         raise PlanError("matrix: Duel join does not apply")
     if event.effective_at > stage.deadlines[0].effective_due_at:
@@ -1557,7 +1567,7 @@ def _duel_move(model: _Model, event: LifecycleEvent) -> None:
     if (
         stage.contract.mode != "duel"
         or stage.phase != "moves"
-        or not _active_contract_is_usable(model)
+        or not _active_contract_accepts_work(model)
     ):
         raise PlanError("matrix: Duel move does not apply")
     number = _positive_int("move_number", data["move_number"])
@@ -1766,7 +1776,7 @@ def _duel_decision(
     if (
         stage.contract.mode != "duel"
         or stage.phase != "decision"
-        or not _active_contract_is_usable(model)
+        or not _progression_is_usable(model)
         or event.effective_at
         > _stage_deadline(stage, "author_decision").effective_due_at
     ):
@@ -1798,7 +1808,7 @@ def _role_assignment(
             "target_ids",
         },
     )
-    if model.plan_status in {"completed", "stopped"} or _active_body_pause(model):
+    if not _progression_is_usable(model):
         raise PlanError("state: role assignment is outside the active boundary")
     role_id = _text("role_id", data["role_id"])
     generation = _positive_int("generation", data["generation"])
@@ -1970,7 +1980,7 @@ def _role_resolution(
 
 def _body_pause(model: _Model, event: LifecycleEvent) -> None:
     data = _payload(event, {"cause_id"})
-    if _active_body_pause(model) is not None or model.plan_status != "active":
+    if _active_body_pause(model) is not None:
         raise PlanError("state: body integrity pause is already active")
     pause = PauseState(
         pause_id=f"{event.event_id}:pause",
@@ -2044,7 +2054,14 @@ def _body_resume(model: _Model, event: LifecycleEvent) -> None:
                 ),
                 pause_ids=(*role.pause_ids, pause.pause_id),
             )
-    model.plan_status = "active"
+    model.plan_status = (
+        "paused"
+        if any(
+            _active_pause(model, kind) is not None
+            for kind in ("risk_pause", "progression_pause")
+        )
+        else "active"
+    )
 
 
 def _risk_warning(model: _Model, event: LifecycleEvent) -> None:
@@ -2081,6 +2098,8 @@ def _author_continue(
     model: _Model, activation: PlanActivation, event: LifecycleEvent
 ) -> None:
     _payload(event, set())
+    if _active_body_pause(model) is not None:
+        raise PlanError("state: body integrity pause must be resolved first")
     open_pauses = [
         item
         for item in model.pauses
@@ -2289,7 +2308,7 @@ def _apply_event(
             stage.contract.mode != "frontier"
             or stage.phase != "intake"
             or stage.status != "active"
-            or not _active_contract_is_usable(model)
+            or not _progression_is_usable(model)
             or event.effective_at > _stage_deadline(stage, "intake").effective_due_at
         ):
             raise PlanError("matrix: Frontier close does not apply")

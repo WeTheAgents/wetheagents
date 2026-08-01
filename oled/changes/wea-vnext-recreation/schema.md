@@ -61,6 +61,8 @@ A Duel config stores `admission`, `invitations`, two positions, and three rounds
 
 Derived event groups are atomic. A Flat PoD acceptance group contains Work acceptance, slot cursor, payout, and financial hashes. A Ranked settlement group contains complete order, payouts, underfill refunds, stage close, and selected input. A stop group contains the final legal prefix, unused escrow refund, active closure, and terminal Plan status.
 
+An open `risk_pause` admits only active-stage Work revisions, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A `body_resume` event closes only the body pause. It preserves every open risk or progression pause.
+
 ### Lifecycle invariants
 
 1. The activation aggregate is verified before the first lifecycle event.
@@ -74,6 +76,7 @@ Derived event groups are atomic. A Flat PoD acceptance group contains Work accep
 9. A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.
 10. Triage Release exists only after successful Plan completion. A stopped, declined, or blocked Plan can create linked negative feedback instead.
 11. `next_action` is derived from projection and never appears as a lifecycle event.
+12. A risk pause does not move deadlines. Only `body_integrity_pause` can add a one-time deadline offset.
 
 ### Compatibility and storage boundary
 

@@ -75,13 +75,25 @@ Ranked and Flat PoD support `birdie` only for an exact existing eligible Work be
 
 After a completed stage, Tide resolves each `selected_work_of` input to exactly one accepted immutable revision. A valid selector atomically creates the next child Contract and Task from the frozen template and existing program escrow. It creates no author debit, new Plan approval, or second escrow.
 
-An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning from an assigned Triage/review role plus an exact Agent0 declaration creates `risk_pause`. A warning alone and any unassigned warning change nothing. A risk pause blocks only progression to the next child. It does not freeze valid Work, role, mode, or settlement events in the current active child. Only the author may:
+An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning from an assigned Triage/review role plus an exact Agent0 declaration creates `risk_pause`. A warning alone and any unassigned warning change nothing.
+
+A risk pause permits new Work revisions and valid Duel joins or moves in the active child. Existing deadlines continue to run. The pause blocks these actions:
+
+- Work acceptance and birdie.
+- Mode expiry or close.
+- Ranked order, Frontier close, and Duel decision.
+- Mode settlement, stage completion, Plan completion, and child materialization.
+- A new role assignment.
+
+An assigned role that existed before the pause can submit evidence. Agent0 can resolve that role under its frozen terms. A separate role settlement cannot settle the mode or close the stage.
+
+A `body_resume` event preserves any open risk or progression pause. The author must first restore body integrity. Only the author can then:
 
 - continue the approved suffix;
 - approve an append-only replacement suffix that leaves completed and active Contracts byte-identical;
 - stop the Plan.
 
-`body_integrity_pause` starts when the active Issue body no longer matches the child Contract. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop.
+`body_integrity_pause` starts when the active Issue body no longer matches the child Contract. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop. A `body_resume` event does not resolve any other pause.
 
 Stop is an ordered event boundary. Tide first preserves every legal settlement and complete timely role result before that boundary. It rejects later Work/role evidence, refunds all unused program escrow once, closes active work, and records Plan status `stopped`. Stop creates no final reward.
 

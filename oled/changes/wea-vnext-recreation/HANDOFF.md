@@ -10,7 +10,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
 - Ruleset `0.8` SHA-256: `e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1`.
-- Executor `v0_8_0` manifest SHA-256: `5d3aca055c7290c39eae0ddc7b18e5dae1fa5ac81afbf438350ade5a66f69b56`.
+- Executor `v0_8_0` manifest SHA-256: `a6393175b79e5c45eccc777cb3b9e68b29bce1d8e57e86a901742af2ea941dd8`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -19,7 +19,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Each Plan stage chooses a depth (`Explore`, `Spec`, or `Implement`) and a mode (`Ranked`, `Flat PoD`, `Frontier`, or `Duel`) allowed by the exact matrix.
 - Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules.
 - One accepted immutable revision feeds the next child Contract. Ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.
-- Body-integrity pause, Agent0 risk pause, frozen assigned-role terms, treasury role escrow, role generations, replacement races, and ordered stop behavior are explicit.
+- A risk pause keeps active-stage submissions open but blocks stage decisions and settlement. Body resume preserves it. Frozen pre-pause roles still follow their own terms.
 - Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.
 - Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.
 - `next_action` is a pure projection. It reports the exact current actor, action, and effective boundary without writes.
@@ -35,12 +35,12 @@ Status: `Implementation verified — independent PR review pending`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `375 passed`, `18 skipped`.
-- Full repository: `4660 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `379 passed`, `18 skipped`.
+- Full repository: `4664 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. Review pass 1 closed two P1 timing defects. Pass 2 closed four P1 authority/progression defects. Pass 3 is pending.
+- Draft PR: `#941`. Review pass 1 closed two P1 timing defects. Pass 2 closed four P1 authority and selection defects. Pass 3 closed two P1 pause defects. Pass 4 is pending.
 
 ## Hard stop boundary
 

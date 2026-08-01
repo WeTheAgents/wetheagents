@@ -49,7 +49,8 @@
 
 - [x] Materialize the next child from one exact accepted revision without author debit or approval; ambiguous selectors pause without money movement.
 - [x] Implement `body_integrity_pause` and one-time offsets only for deadlines open at pause start.
-- [x] Implement assigned-role warnings, Agent0 `risk_pause`, author-only continue/suffix replan/stop, and byte-identical completed/active prefixes.
+- [x] Implement Agent0 `risk_pause`: submissions continue, stage decisions wait, deadlines keep running, body resume preserves the pause, and only the author resolves it.
+- [x] Permit only frozen pre-pause role evidence and resolution during `risk_pause`. Reject new role assignments and keep role settlement separate from stage settlement.
 - [x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, `free/treasury` settlement, and replacement races.
 - [x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.
 

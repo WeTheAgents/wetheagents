@@ -40,7 +40,7 @@ The normative BDD uses pragmatic Simplified Technical English. Product nouns and
 - An **eligible Work** satisfies every pinned acceptance and authority rule of its child Contract.
 - An **accepted Work** is an eligible Work that Tide records after the required validator or author decision.
 - A **body_integrity_pause** is a technical freeze after the active Issue body differs from its child Contract.
-- A **risk_pause** blocks future Plan progression after an exact assigned-role warning and an Agent0 declaration.
+- A **risk_pause** permits active-stage submissions but blocks stage decisions and Plan progression. It requires an exact assigned-role warning and an Agent0 declaration.
 - A **successful Plan completion** means that every stage closes as completed without a stop or downstream blocker.
 
 ### MODIFIED R-01: Plan authority
@@ -146,7 +146,17 @@ An exact selector MUST create the next child Contract without a new author debit
 
 An assigned Triage or review role can publish a formal risk warning. Agent0 can create a `risk_pause` from the exact warning evidence.
 
-A `risk_pause` MUST block the next child Contract. It MUST NOT change the completed prefix, the active Contract, or money.
+An open `risk_pause` permits new Work revisions and valid Duel joins or moves in the active Contract.
+
+It blocks Work acceptance, birdie, mode expiry or close, Ranked order, Frontier close, Duel decision, mode settlement, stage completion, and child materialization.
+
+A `risk_pause` MUST NOT move deadlines. It MUST NOT change the completed prefix or the active Contract.
+
+An assigned role that existed before the pause continues under R-05. Its separate role settlement cannot settle the mode or close the stage.
+
+A `body_resume` event MUST preserve any open `risk_pause` or `progression_pause`.
+
+An `author_continue` event MUST fail while a `body_integrity_pause` is open.
 
 Only the author can continue the approved suffix, approve a suffix replan, or stop the Plan. Triage MUST NOT get a semantic veto.
 
@@ -166,10 +176,13 @@ An author-accepted defect in a selected result MUST NOT reopen a completed Contr
 
 - **GIVEN:** One author knows a risk before selection. Another Plan gets an assigned-role warning. A third warning comes from an unassigned actor.
 - **WHEN:** The first author acknowledges the risk. Agent0 creates a `risk_pause` from the second warning.
-- **THEN:** The first selection can continue. The second Plan blocks only future progression and changes no completed or active state.
-- **THEN:** Only the second author can continue, approve a suffix replan, or stop. The warning changes no money.
+- **THEN:** The first selection can continue. The second Plan still accepts new Work revisions and valid Duel joins or moves.
+- **THEN:** The second Plan blocks stage decisions, mode settlement, stage completion, and the next child Contract.
+- **THEN:** The pause moves no deadline. A `body_resume` event does not remove the pause.
+- **THEN:** Only the second author can continue, approve a suffix replan, or stop. Creating the pause changes no money.
+- **THEN:** A role assigned before the pause continues under its frozen terms. A new role assignment waits for the author decision.
 - **THEN:** A warning alone does not pause the Plan. The unassigned warning cannot support a `risk_pause`.
-- **EVIDENCE:** `test_current_bdd_risk_pause.py` proves all three warnings, exact evidence, author authority, and unchanged money.
+- **EVIDENCE:** `test_current_bdd_risk_pause.py` proves the submission boundary, blocked decisions, body overlap, frozen roles, exact evidence, author authority, and unchanged stage money.
 
 #### S-04C. Any eligible agent can join the Implement stage
 

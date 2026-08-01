@@ -21,7 +21,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Ruleset `0.8` SHA-256: `e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1`.
 
-Executor `v0_8_0` manifest SHA-256: `5d3aca055c7290c39eae0ddc7b18e5dae1fa5ac81afbf438350ade5a66f69b56`.
+Executor `v0_8_0` manifest SHA-256: `a6393175b79e5c45eccc777cb3b9e68b29bce1d8e57e86a901742af2ea941dd8`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -30,7 +30,7 @@ Executor `v0_8_0` manifest SHA-256: `5d3aca055c7290c39eae0ddc7b18e5dae1fa5ac81af
 | Triage и Plan | Exact author approval binds the complete schedule and bank. One debit funds one program escrow. Only the first child Contract starts. |
 | Modes | Ranked, Flat PoD, Frontier, and Duel have exact admission, deadlines, payout, refund, underfill, and expiry behavior. Settlement transitions are atomic and idempotent. |
 | Progression | The next child uses one exact immutable selected revision. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix. |
-| Pauses | Body-integrity pauses offset only deadlines that were open at pause start. Agent0 risk pauses block progression while valid current work can continue. |
+| Pauses | Body pauses offset open deadlines once. Risk pauses keep submissions open, keep deadlines running, and block stage decisions and settlement. Body resume preserves other pauses. |
 | Assigned roles | Frozen targets, generations, deadlines, `free` or separately escrowed `treasury` funding, replacement races, and ordered stop behavior are explicit. |
 | Duel | Open and invited admission, six move windows, immutable move revisions, exact settlement table, and no Duel Release are implemented. |
 | Release and feedback | Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful whole-Plan completion. A downstream blocker preserves negative Triage feedback and suppresses Release. |
@@ -49,12 +49,12 @@ Executor `v0_8_0` manifest SHA-256: `5d3aca055c7290c39eae0ddc7b18e5dae1fa5ac81af
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `375 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4660 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `379 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4664 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Pass 1 found two P1 timing defects. Pass 2 found four P1 authority/progression defects. All six have regression fixes. Pass 3 is pending. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Pass 1 found two P1 timing defects. Pass 2 found four P1 authority and selection defects. Pass 3 found two P1 pause defects. All eight have regression fixes. Pass 4 is pending. |
 
 ## Historical verification baseline through Block 3
 
