@@ -146,6 +146,9 @@ def validate_package_contract() -> None:
     spec_implementation_review_pending = (
         decision == "Implementation verified — independent PR review pending"
     )
+    spec_implementation_review_clean = (
+        decision == "Implementation verified — independent PR review clean"
+    )
     spec_reconciliation_complete = decision == "Ready after Spec 0.9 reconciliation"
     spec_reconciliation_pending = (
         decision == "Not ready — Spec 0.9 reconciliation pending"
@@ -154,6 +157,7 @@ def validate_package_contract() -> None:
     block_four_complete = decision == "Ready after Block 4"
     block_four_implemented = (
         spec_implementation_review_pending
+        or spec_implementation_review_clean
         or spec_reconciliation_complete
         or spec_reconciliation_pending
         or bdd_rewrite_pending
@@ -168,6 +172,15 @@ def validate_package_contract() -> None:
         if "Spec 0.9 reference runtime implemented and verified" not in tasks:
             errors.append("tasks.md: Spec 0.9 completion marker is missing")
         if "Spec 0.9 review pending" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 review status is missing")
+        if "BDD alignment: 100%" not in verification:
+            errors.append("verification.md: exact BDD alignment is missing")
+    elif spec_implementation_review_clean:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
+            errors.append("tasks.md: Spec 0.9 completion marker is missing")
+        if "Spec 0.9 review-clean" not in handoff:
             errors.append("HANDOFF.md: Spec 0.9 review status is missing")
         if "BDD alignment: 100%" not in verification:
             errors.append("verification.md: exact BDD alignment is missing")
@@ -232,6 +245,9 @@ def validate_package_contract() -> None:
     if spec_implementation_review_pending:
         if "Статус независимой проверки: `Pending`" not in verification:
             errors.append("verification.md: pending review status is missing")
+    elif spec_implementation_review_clean:
+        if "Статус независимой проверки: `CLEAN`" not in verification:
+            errors.append("verification.md: clean review status is missing")
     elif spec_reconciliation_pending:
         if "Статус независимой проверки Spec 0.9:" not in verification:
             errors.append("verification.md: Spec 0.9 review status is missing")
@@ -675,6 +691,9 @@ def build() -> None:
     spec_implementation_review_pending = (
         decision == "Implementation verified — independent PR review pending"
     )
+    spec_implementation_review_clean = (
+        decision == "Implementation verified — independent PR review clean"
+    )
     spec_reconciliation_complete = decision == "Ready after Spec 0.9 reconciliation"
     spec_reconciliation_pending = (
         decision == "Not ready — Spec 0.9 reconciliation pending"
@@ -683,6 +702,7 @@ def build() -> None:
     block_four_complete = decision == "Ready after Block 4"
     block_four_implemented = (
         spec_implementation_review_pending
+        or spec_implementation_review_clean
         or spec_reconciliation_complete
         or spec_reconciliation_pending
         or bdd_rewrite_pending
@@ -718,6 +738,11 @@ def build() -> None:
         decision_guide = (
             "Все решения текущего reference runtime приняты и локально доказаны. "
             "Остаётся независимая проверка опубликованного PR."
+        )
+    elif spec_implementation_review_clean:
+        decision_guide = (
+            "Все решения reference runtime приняты и независимо проверены. "
+            "Отложенные вопросы относятся только к будущей live-активации."
         )
     elif spec_reconciliation_complete:
         decision_guide = (
@@ -755,6 +780,18 @@ def build() -> None:
         package_status = "Spec 0.9 verified · PR review pending · Not live"
         primary_href = "#doc-handoff"
         primary_label = "Открыть review handoff"
+        core_status_label = "Расхождений BDD"
+        core_status_count = "0"
+    elif spec_implementation_review_clean:
+        hero_kicker = "Spec 0.9 · independent review clean"
+        hero_lead = (
+            "Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Независимый review не нашёл "
+            "actionable defects. Live-системы не подключены."
+        )
+        package_status = "Spec 0.9 verified · PR review clean · Not live"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть review-clean handoff"
         core_status_label = "Расхождений BDD"
         core_status_count = "0"
     elif spec_reconciliation_complete:

@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Implementation verified — independent PR review pending`.
+Decision: `Implementation verified — independent PR review clean`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `Pending`.
+Статус независимой проверки: `CLEAN`.
 
-Текущий review gate: `Pass 9 fixed; pass 10 pending`.
+Текущий review gate: `Pass 10 clean; no actionable defects`.
 
 ## Версии
 
@@ -58,7 +58,7 @@ Executor `v0_8_0` manifest SHA-256: `e40c6568144213c3903c5a52cc299c5e9275e8760f8
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Pass 6 was clean. Pass 7 found one P1 Duel-order defect. Pass 8 found two settlement/action defects. Pass 9 found three authority-context defects. All 19 have regression fixes. Pass 10 is pending. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Pass 6 was clean. Passes 7–9 found six more defects. All 19 have regression fixes. Pass 10 found no actionable defect. |
 
 ## Historical verification baseline through Block 3
 

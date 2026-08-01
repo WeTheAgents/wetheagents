@@ -1,8 +1,8 @@
-# Agent0 handoff: Spec 0.9 review pending
+# Agent0 handoff: Spec 0.9 review-clean
 
 The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Status: `Implementation verified — independent PR review pending`.
+Status: `Implementation verified — independent PR review clean`.
 
 ## Repository boundary
 
@@ -43,7 +43,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. Passes 1–5 closed 13 defects. Pass 6 was clean. Passes 7–9 found six more defects. All 19 have regression fixes ready for pass 10.
+- Draft PR: `#941`. Passes 1–5 closed 13 defects. Pass 6 was clean. Passes 7–9 found six more defects. All 19 have regression fixes. Pass 10 found no actionable defect.
 
 ## Hard stop boundary
 
@@ -51,4 +51,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Push the pass 9 fixes. Run `codex exec review` again and fix every actionable finding. Then publish the review-clean handoff and artifact.
+Use PR `#941` as the review-clean delivery. A merge MUST NOT start live Tide, migration, bootstrap, funding, or cutover work.
