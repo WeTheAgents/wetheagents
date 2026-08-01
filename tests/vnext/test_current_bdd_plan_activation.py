@@ -61,3 +61,23 @@ def test_s_02c_third_party_payer_cannot_activate_any_effect() -> None:
 
     assert state.state_hash == before
     assert state.plans == state.escrows == state.contracts == state.ledger == ()
+
+
+def test_s_02c_created_activation_must_match_its_sealed_state_group() -> None:
+    intake = modules()["intake"]
+    lifecycle = modules()["lifecycle"]
+    state, draft, plan, approval = _approved(author_balance=150)
+    valid = activate_plan(state, draft, plan, approval)
+    forged = intake.PlanActivation(
+        intake.PlanIntakeState(),
+        True,
+        valid.draft,
+        valid.plan,
+        valid.escrow,
+        valid.contract,
+        valid.task,
+        valid.debit,
+    )
+
+    with pytest.raises(intake.PlanError, match="activation group"):
+        lifecycle.start_runtime(forged)

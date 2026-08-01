@@ -21,6 +21,7 @@ from .intake import (
     AccountBalance,
     PlanActivation,
     PlanError,
+    PlanIntakeState,
     PlanStage,
     ProgramEscrow,
     ResolvedWorkInput,
@@ -480,6 +481,73 @@ del _runtime_state_seals
 _RUNTIME_STATE_CAPABILITY = object()
 
 
+def _assert_activation_group(activation: PlanActivation) -> None:
+    if type(activation) is not PlanActivation or type(activation.created) is not bool:
+        raise PlanError("evidence_boundary: activation must use exact verified type")
+    if type(activation.state) is not PlanIntakeState:
+        raise PlanError("evidence_boundary: activation state has an invalid type")
+    activation.state._assert_unchanged()
+    plan_matches = [
+        item
+        for item in activation.state.plans
+        if item.plan_id == activation.plan.plan_id
+    ]
+    escrow_matches = [
+        item
+        for item in activation.state.escrows
+        if item.plan_id == activation.plan.plan_id
+    ]
+    contract_matches = [
+        item
+        for item in activation.state.contracts
+        if item.plan_id == activation.plan.plan_id
+    ]
+    task_matches = [
+        item
+        for item in activation.state.tasks
+        if item.plan_id == activation.plan.plan_id
+    ]
+    debit_matches = [
+        item
+        for item in activation.state.ledger
+        if item.basis_id == activation.plan.plan_id
+    ]
+    revision_matches = [
+        item
+        for item in activation.state.plan_revisions
+        if item.revision_id == activation.plan.plan_revision_id
+    ]
+    if any(
+        len(items) != 1
+        for items in (
+            plan_matches,
+            escrow_matches,
+            contract_matches,
+            task_matches,
+            debit_matches,
+            revision_matches,
+        )
+    ):
+        raise PlanError("evidence_boundary: activation group is not in verified state")
+    if (
+        activation.plan != plan_matches[0]
+        or activation.escrow != escrow_matches[0]
+        or activation.contract != contract_matches[0]
+        or activation.task != task_matches[0]
+        or activation.debit != debit_matches[0]
+    ):
+        raise PlanError("evidence_boundary: activation group does not match state")
+    revision = revision_matches[0]
+    if (
+        activation.draft.repository_id != revision.repository_id
+        or activation.draft.issue_id != revision.issue_id
+        or activation.draft.issue_revision_id != revision.issue_revision_id
+        or activation.draft.body_hash != revision.body_hash
+        or activation.draft.author_agent_id != revision.author_agent_id
+    ):
+        raise PlanError("evidence_boundary: activation Draft does not match state")
+
+
 @dataclass(frozen=True)
 class ResolutionPlanRuntimeState:
     activation: PlanActivation
@@ -490,6 +558,7 @@ class ResolutionPlanRuntimeState:
             raise PlanError(
                 "evidence_boundary: activation must use exact verified type"
             )
+        _assert_activation_group(self.activation)
         if type(self.events) is not tuple or any(
             type(item) is not LifecycleEvent for item in self.events
         ):
@@ -534,11 +603,7 @@ def _verified_runtime_state(
 
 
 def start_runtime(activation: PlanActivation) -> ResolutionPlanRuntimeState:
-    if type(activation) is not PlanActivation:
-        raise PlanError("evidence_boundary: activation must use exact verified type")
-    activation.state._assert_unchanged()
-    if not activation.created and activation.plan not in activation.state.plans:
-        raise PlanError("evidence_boundary: activation is not in verified state")
+    _assert_activation_group(activation)
     return ResolutionPlanRuntimeState(activation=activation)
 
 
@@ -930,6 +995,10 @@ def _authorize_event(
 ) -> None:
     if type(registry) is not IdentityRegistry:
         raise PlanError("identity: registry must use exact verified type")
+    try:
+        registry._assert_unchanged()
+    except IdentityError as exc:
+        raise PlanError("identity: registry changed after validation") from exc
     if event.actor_kind in {"author", "agent", "role"}:
         try:
             authority = authorize_agent(
@@ -989,9 +1058,16 @@ def _authorize_event(
     ):
         raise PlanError("authority: Tide boundary is required")
     if event.kind == "role_result":
-        role_id = thaw_json(event.payload).get("role_id")
-        matches = [item for item in projection.roles if item.role_id == role_id]
-        if not matches or event.actor_id != matches[-1].assigned_agent_id:
+        data = thaw_json(event.payload)
+        role_id = data.get("role_id")
+        generation = data.get("generation")
+        matches = [
+            item
+            for item in projection.roles
+            if item.role_id == role_id
+            and item.generation == generation
+        ]
+        if len(matches) != 1 or event.actor_id != matches[0].assigned_agent_id:
             raise PlanError("authority: role result requires the assigned actor")
     if event.kind == "role_assignment":
         data = thaw_json(event.payload)
@@ -1217,6 +1293,7 @@ def _ranked_order(
     for rank, identifier in enumerate(ordered):
         work = _work(stage, identifier)
         revision = next(item for item in reversed(work.revisions) if item.eligible)
+        accepted_revision_id = selected if rank == 0 else revision.revision_id
         amount = vector[rank]
         _settle(
             model,
@@ -1229,7 +1306,7 @@ def _ranked_order(
             basis_id=work.work_id,
         )
         works = [
-            replace(item, accepted_revision_id=revision.revision_id)
+            replace(item, accepted_revision_id=accepted_revision_id)
             if item.work_id == identifier
             else item
             for item in works

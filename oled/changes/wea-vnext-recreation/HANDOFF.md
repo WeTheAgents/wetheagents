@@ -10,7 +10,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
 - Ruleset `0.8` SHA-256: `e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1`.
-- Executor `v0_8_0` manifest SHA-256: `cca6bf1a20ff621fa3377b79fc15a972387454788152456cf9ef9a4d6a0359de`.
+- Executor `v0_8_0` manifest SHA-256: `5d3aca055c7290c39eae0ddc7b18e5dae1fa5ac81afbf438350ade5a66f69b56`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -35,12 +35,12 @@ Status: `Implementation verified — independent PR review pending`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `371 passed`, `18 skipped`.
-- Full repository: `4656 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `375 passed`, `18 skipped`.
+- Full repository: `4660 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. First independent review found and closed two P1 timing defects: pre-activation lifecycle events and expiry at an inclusive deadline. Second review is pending.
+- Draft PR: `#941`. Review pass 1 closed two P1 timing defects. Pass 2 closed four P1 authority/progression defects. Pass 3 is pending.
 
 ## Hard stop boundary
 
