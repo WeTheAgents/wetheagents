@@ -23,7 +23,7 @@
 - [x] Add canonical `rulesets/0.8.json` with exact depth × mode rules, schedule shapes, acceptance authority, role funding, pause kinds, release gate, and no profiles/Infinite/hidden fee.
 - [x] Copy the complete closure to `executors/v0_8_0/`; update only successor version constants, rules validation, `StageSchedule`, `PlanStage`, `StageContract` deadlines, and manifest coverage.
 - [x] Re-pin `resolution_plan.py` to exact executor `0.8.0`; keep old facades and closures unchanged.
-- [x] Prove exact author/payer authority, insufficient funds, complete Plan/schedule binding, one debit, one program escrow, only first child materialized, and replay atomicity.
+- [x] Prove exact author/payer authority, strict Plan-to-decision source order, complete Plan/schedule binding, one debit, one escrow, first-child-only materialization, and replay atomicity.
 
 **Scenarios:** S-01C, S-02A, S-02C, S-02H, S-02I, S-05C, plus inherited S-56…S-59.
 
@@ -33,7 +33,7 @@
 
 ### Group B — Work and atomic mode settlement
 
-- [x] Add sealed append-only runtime state, typed lifecycle events, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.
+- [x] Add sealed append-only runtime state, exact accepted GitHub sources, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.
 - [x] Implement Flat PoD acceptance with validator-first/author fallback, one equal slot per Work, atomic payout, close/expiry refund, and failure rollback.
 - [x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.
 - [x] Implement Frontier snapshot uniqueness, novelty evidence, validator/`needs_author`, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.

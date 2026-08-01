@@ -19,15 +19,16 @@ Decision: `Implementation verified — independent PR review pending`.
 | historical successor | ruleset `0.7`, executor `v0_7_0` | Immutable Resolution Plan intake and activation slice |
 | current successor | ruleset/interface `0.8`, executor `v0_8_0` | Manifest-pinned execution of all current Spec `0.9` behavior |
 
-Ruleset `0.8` SHA-256: `e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1`.
+Ruleset `0.8` SHA-256: `3460578b4ccf4e00e5dd981742ad0386590b76dd52db1f354d4a618beb7d059b`.
 
-Executor `v0_8_0` manifest SHA-256: `a6393175b79e5c45eccc777cb3b9e68b29bce1d8e57e86a901742af2ea941dd8`.
+Executor `v0_8_0` manifest SHA-256: `3041e4732ec5585c5c3c1df78d711724c4ad8d2e1aeba249c4ee91b432045ce0`.
 
 ## Реализованный контракт Spec 0.9
 
 | Обязательство | Доказательство |
 | --- | --- |
-| Triage и Plan | Exact author approval binds the complete schedule and bank. One debit funds one program escrow. Only the first child Contract starts. |
+| Triage и Plan | Exact author approval follows the Plan source and binds the complete schedule and bank. One debit funds one program escrow. Only the first child Contract starts. |
+| Authority evidence | Each lifecycle event matches one accepted GitHub source under a complete confirmed read boundary. Source revisions are globally single-use. |
 | Modes | Ranked, Flat PoD, Frontier, and Duel have exact admission, deadlines, payout, refund, underfill, and expiry behavior. Settlement transitions are atomic and idempotent. |
 | Progression | The next child uses one exact immutable selected revision. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix. |
 | Pauses | Body pauses offset open deadlines once. Risk pauses keep submissions open, keep deadlines running, and block stage decisions and settlement. Body resume preserves other pauses. |
@@ -49,12 +50,12 @@ Executor `v0_8_0` manifest SHA-256: `a6393175b79e5c45eccc777cb3b9e68b29bce1d8e57
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `379 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4664 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `382 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4667 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Pass 1 found two P1 timing defects. Pass 2 found four P1 authority and selection defects. Pass 3 found two P1 pause defects. All eight have regression fixes. Pass 4 is pending. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Pass 1 found two P1 timing defects. Pass 2 found four P1 authority and selection defects. Pass 3 found two P1 pause defects. Pass 4 found two P1 source-authority defects. All ten have regression fixes. Pass 5 is pending. |
 
 ## Historical verification baseline through Block 3
 

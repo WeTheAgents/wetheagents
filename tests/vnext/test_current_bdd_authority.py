@@ -8,6 +8,7 @@ from .current_bdd_support import (
     activated_runtime,
     apply_event,
     decision,
+    github_state,
     lifecycle_event,
     modules,
     record_decision,
@@ -41,8 +42,50 @@ def test_s_01c_lifecycle_rejects_a_registry_mutated_after_validation() -> None:
 
     with pytest.raises(modules()["intake"].PlanError, match="registry changed"):
         modules()["lifecycle"].call_verified(
-            "apply_lifecycle_event", state, event, registry=tampered
+            "apply_lifecycle_event",
+            state,
+            event,
+            registry=tampered,
+            github_state=github_state(event),
         )
+
+    assert modules()["lifecycle"].project_runtime(state).plan_status == "active"
+
+
+def test_s_01c_lifecycle_requires_exact_accepted_github_source() -> None:
+    ranked = stage(
+        key="rank",
+        depth="explore",
+        mode="ranked",
+        allocation_wea=5,
+        payout_vector=[5],
+    )
+    state = activated_runtime(plan_stages=(ranked,), total_bank_wea=5)
+    event = lifecycle_event(
+        state,
+        "author_stop",
+        {},
+        sequence=1,
+        actor_kind="author",
+        actor_id="agent-author",
+        actor_account_id="account-author",
+    )
+    conflicting_source = lifecycle_event(
+        state,
+        "author_stop",
+        {"forged": True},
+        sequence=1,
+        actor_kind="author",
+        actor_id="agent-author",
+        actor_account_id="account-author",
+    )
+
+    for evidence in (github_state(), github_state(conflicting_source)):
+        with pytest.raises(
+            modules()["intake"].PlanError,
+            match=r"GitHub revision is missing|content does not match",
+        ):
+            apply_event(state, event, evidence_state=evidence)
 
     assert modules()["lifecycle"].project_runtime(state).plan_status == "active"
 

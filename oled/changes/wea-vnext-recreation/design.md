@@ -45,7 +45,7 @@ An assigned role is not a hidden stage. Its deadline starts from its own assignm
 
 The new closure adds `lifecycle.py`. Its durable semantic input is an ordered tuple of verified `LifecycleEvent` records. Each event contains a deterministic ID, Plan ID, kind, actor identity, exact source revision, effective time, idempotency key, and canonical payload.
 
-`ResolutionPlanRuntimeState` contains the verified activation aggregate and the accepted lifecycle events. Callers cannot construct a non-empty verified state directly. Public transition functions reconstruct caller-owned records, authorize exact GitHub evidence, replay the accepted prefix, validate the proposed event, and return a new state only after all invariants pass.
+`ResolutionPlanRuntimeState` contains the verified activation aggregate and the accepted lifecycle events. Callers cannot construct a non-empty verified state directly. Each new event requires one exact accepted GitHub source under a complete confirmed read boundary. Public transition functions reconstruct records, authorize evidence, replay the prefix, and return a new state only after all invariants pass.
 
 `project_runtime(state)` is the only source of current mutable meaning. It derives:
 
@@ -112,7 +112,7 @@ The feedback chain is `problem revision → Triage proposal → author decision/
 ### D-47. Protected boundaries, recovery, and ceiling
 
 - **Money:** every payout/refund is a ledger transition with a predecessor financial hash. `deposited = paid + refunded + available` always holds. Task-funded hidden roles and fees are impossible.
-- **Authority:** author, Agent0, assigned role, validator, and participant transitions require exact active bindings plus accepted GitHub source revisions under a complete confirmed read boundary.
+- **Authority:** all lifecycle transitions require an exact accepted GitHub source under a complete confirmed read boundary. Actor transitions also require their exact active bindings.
 - **Atomicity:** event construction, derived state, balances, escrow counters, status, cursor, and idempotency set appear together or remain absent.
 - **Replay:** deterministic IDs make identical replay a no-op and conflicting reuse an error. Projection from activation plus events must reproduce byte-identical canonical state.
 - **Isolation:** historical closure hashes are captured before implementation and checked after it.

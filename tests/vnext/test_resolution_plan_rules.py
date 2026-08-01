@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import pytest
 
+from .current_bdd_support import modules as current_modules
 from .resolution_plan_support import modules, plan_revision
 
 
@@ -29,6 +30,33 @@ def test_s_59_ruleset_has_exact_matrix_without_profiles_or_infinite() -> None:
         "matrix",
         "money",
     )
+
+
+def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> None:
+    lifecycle = current_modules()["rules"].load_ruleset().content["lifecycle"]
+
+    assert lifecycle["source_evidence"] == (
+        "latest-accepted-github-revision-under-complete-confirmed-read-boundary"
+    )
+    assert lifecycle["risk_pause"] == {
+        "admitted_events": (
+            "duel_join",
+            "duel_move",
+            "role_resolution",
+            "role_result",
+            "work_revision",
+        ),
+        "blocked_event_groups": (
+            "child-materialization",
+            "mode-settlement",
+            "new-role-assignment",
+            "stage-completion",
+            "stage-decision",
+        ),
+        "body_resume_closes": False,
+        "deadline_offset": False,
+        "role_scope": "pre-pause-only",
+    }
 
 
 @pytest.mark.parametrize(

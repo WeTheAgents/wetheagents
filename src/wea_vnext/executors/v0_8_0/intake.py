@@ -1804,7 +1804,7 @@ class PlanIntakeState:
                 or decision.plan_id != revision.plan_id
                 or decision.plan_content_hash != revision.content_hash
                 or decision.author_agent_id != revision.author_agent_id
-                or decision.effective_at < revision.effective_at
+                or _source_order(decision) <= _source_order(revision)
             ):
                 raise PlanError("evidence_boundary: decision does not match exact Plan")
 
@@ -2491,6 +2491,10 @@ def record_author_plan_decision(
     ):
         raise PlanError(
             "evidence_boundary: decision content_hash does not match exact Plan"
+        )
+    if _source_order(decision) <= _source_order(revision):
+        raise PlanError(
+            "evidence_boundary: author decision evidence must follow Plan revision"
         )
     _authorize_decision(decision, revision, registry)
     assessment = next(

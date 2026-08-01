@@ -49,16 +49,22 @@ Only the author MUST approve a Plan revision. Agent0 MUST NOT replace an author 
 
 Tide MUST reject a declaration from an actor without the required role. A rejected declaration MUST NOT create state or move money.
 
+Each lifecycle event MUST match one exact accepted GitHub source revision. A complete confirmed read boundary MUST cover that revision.
+
+One source revision MUST NOT authorize more than one intake or lifecycle event.
+
 #### S-01C. An invalid role gets no authority
 
-- **GIVEN:** An agent approves a Plan for the author, Agent0 publishes an operator-only decision, or an unknown account claims operator identity.
+- **GIVEN:** A declaration has an invalid role, a missing source revision, or a source revision with different content.
 - **WHEN:** Tide processes each declaration.
-- **THEN:** Tide rejects the declaration. Tide creates no Plan, child Contract, Task, debit, or escrow.
-- **EVIDENCE:** `test_current_bdd_authority.py` proves all three invalid authority forms and proves no state or money change.
+- **THEN:** Tide rejects the declaration. Tide creates no Plan, lifecycle transition, child Contract, Task, debit, settlement, or escrow.
+- **EVIDENCE:** `test_current_bdd_authority.py` proves actor authority, exact source evidence, and no state or money change.
 
 ### MODIFIED R-02: Plan approval, schedule, pause, and stop
 
 The author MUST approve one exact Plan revision. The approval MUST bind all Plan fields, the complete bank, the Triage revision, and the ruleset identity.
+
+The approval source MUST follow the Plan source in canonical GitHub order. Equal times MUST use the source IDs as a deterministic tie-break.
 
 Each Ranked stage MUST define an `intake_duration` and an `author_decision_duration`. Each Flat PoD or Frontier stage MUST define an `intake_duration`.
 
@@ -97,7 +103,7 @@ The author can stop an active or paused Plan. Tide MUST preserve legal settlemen
 
 #### S-02H. Author approval binds the exact Plan and schedule
 
-- **GIVEN:** The author approval differs from the candidate Plan in one bound value, or one required duration is missing or not positive.
+- **GIVEN:** The approval differs from one bound value, has an invalid duration, or its source does not follow the Plan source.
 - **WHEN:** Tide applies the approval.
 - **THEN:** Tide rejects the activation and names the different value. Tide creates no activation effect.
 - **EVIDENCE:** Parameterized cases change one of these values at a time:
@@ -105,7 +111,7 @@ The author can stop an active or paused Plan. Tide MUST preserve legal settlemen
   - The Plan revision, Plan hash, or total bank differs.
   - The stage order, depth, mode, parameters, payout, or expected output differs.
   - A dependency, selector, ruleset identity, or Triage revision differs.
-- **EVIDENCE:** `test_current_bdd_plan_approval.py` proves one debit and one activation after an exact replay.
+- **EVIDENCE:** `test_current_bdd_plan_approval.py` proves source order, one debit, and one activation after an exact replay.
 - **EVIDENCE:** The same test proves that Tide creates only first-stage deadlines at activation and creates later deadlines with each later child Contract.
 
 #### S-02I. The author controls the Triage proposal

@@ -879,8 +879,8 @@
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Current base: <code>252c6ca</code> (<code>origin/main</code> after three unrelated BTC snapshot commits). The feature commit is rebased on this base.</li>
-<li>Ruleset <code>0.8</code> SHA-256: <code>e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>a6393175b79e5c45eccc777cb3b9e68b29bce1d8e57e86a901742af2ea941dd8</code>.</li>
+<li>Ruleset <code>0.8</code> SHA-256: <code>3460578b4ccf4e00e5dd981742ad0386590b76dd52db1f354d4a618beb7d059b</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>3041e4732ec5585c5c3c1df78d711724c4ad8d2e1aeba249c4ee91b432045ce0</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
@@ -890,6 +890,7 @@
 <li>Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules.</li>
 <li>One accepted immutable revision feeds the next child Contract. Ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.</li>
 <li>A risk pause keeps active-stage submissions open but blocks stage decisions and settlement. Body resume preserves it. Frozen pre-pause roles still follow their own terms.</li>
+<li>Each lifecycle event requires an accepted GitHub source under a complete confirmed read boundary. An approval source must follow its exact Plan source.</li>
 <li>Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.</li>
 <li>Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.</li>
 <li><code>next_action</code> is a pure projection. It reports the exact current actor, action, and effective boundary without writes.</li>
@@ -905,12 +906,12 @@
 </ul>
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
-<li><code>tests/vnext</code>: <code>379 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4664 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>382 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4667 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>Draft PR: <code>#941</code>. Review pass 1 closed two P1 timing defects. Pass 2 closed four P1 authority and selection defects. Pass 3 closed two P1 pause defects. Pass 4 is pending.</li>
+<li>Draft PR: <code>#941</code>. Review pass 1 closed two P1 timing defects. Pass 2 closed four P1 authority and selection defects. Pass 3 closed two P1 pause defects. Pass 4 closed two P1 source-authority defects. Pass 5 is pending.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
@@ -963,14 +964,14 @@
 <li>[x] Add canonical <code>rulesets/0.8.json</code> with exact depth × mode rules, schedule shapes, acceptance authority, role funding, pause kinds, release gate, and no profiles/Infinite/hidden fee.</li>
 <li>[x] Copy the complete closure to <code>executors/v0_8_0/</code>; update only successor version constants, rules validation, <code>StageSchedule</code>, <code>PlanStage</code>, <code>StageContract</code> deadlines, and manifest coverage.</li>
 <li>[x] Re-pin <code>resolution_plan.py</code> to exact executor <code>0.8.0</code>; keep old facades and closures unchanged.</li>
-<li>[x] Prove exact author/payer authority, insufficient funds, complete Plan/schedule binding, one debit, one program escrow, only first child materialized, and replay atomicity.</li>
+<li>[x] Prove exact author/payer authority, strict Plan-to-decision source order, complete Plan/schedule binding, one debit, one escrow, first-child-only materialization, and replay atomicity.</li>
 </ul>
 <p><strong>Scenarios:</strong> S-01C, S-02A, S-02C, S-02H, S-02I, S-05C, plus inherited S-56…S-59.</p>
 <p><strong>Files:</strong> <code>rulesets/0.8.json</code>, <code>executors/v0_8_0/{rules,intake,manifest}.py/json</code>, <code>resolution_plan.py</code>, <code>test_current_bdd_{authority,plan_activation,plan_approval,plan_decision,plan_bank}.py</code>, packaging/runtime tests.</p>
 <p><strong>Checkpoint:</strong> focused tests are green; historical hash comparison is exact; no live path references <code>0.8.0</code>.</p>
 <h4 id="tasks-group-b-work-and-atomic-mode-settlement">Group B — Work and atomic mode settlement</h4>
 <ul>
-<li>[x] Add sealed append-only runtime state, typed lifecycle events, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.</li>
+<li>[x] Add sealed append-only runtime state, exact accepted GitHub sources, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.</li>
 <li>[x] Implement Flat PoD acceptance with validator-first/author fallback, one equal slot per Work, atomic payout, close/expiry refund, and failure rollback.</li>
 <li>[x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.</li>
 <li>[x] Implement Frontier snapshot uniqueness, novelty evidence, validator/<code>needs_author</code>, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.</li>
@@ -1356,7 +1357,7 @@ git diff --check
 <p>An assigned role is not a hidden stage. Its deadline starts from its own assignment time and frozen positive duration.</p>
 <h4 id="design-d-42-append-only-lifecycle-and-derived-projection">D-42. Append-only lifecycle and derived projection</h4>
 <p>The new closure adds <code>lifecycle.py</code>. Its durable semantic input is an ordered tuple of verified <code>LifecycleEvent</code> records. Each event contains a deterministic ID, Plan ID, kind, actor identity, exact source revision, effective time, idempotency key, and canonical payload.</p>
-<p><code>ResolutionPlanRuntimeState</code> contains the verified activation aggregate and the accepted lifecycle events. Callers cannot construct a non-empty verified state directly. Public transition functions reconstruct caller-owned records, authorize exact GitHub evidence, replay the accepted prefix, validate the proposed event, and return a new state only after all invariants pass.</p>
+<p><code>ResolutionPlanRuntimeState</code> contains the verified activation aggregate and the accepted lifecycle events. Callers cannot construct a non-empty verified state directly. Each new event requires one exact accepted GitHub source under a complete confirmed read boundary. Public transition functions reconstruct records, authorize evidence, replay the prefix, and return a new state only after all invariants pass.</p>
 <p><code>project_runtime(state)</code> is the only source of current mutable meaning. It derives:</p>
 <ul>
 <li>current author and escrow balances;</li>
@@ -1406,7 +1407,7 @@ git diff --check
 <h4 id="design-d-47-protected-boundaries-recovery-and-ceiling">D-47. Protected boundaries, recovery, and ceiling</h4>
 <ul>
 <li><strong>Money:</strong> every payout/refund is a ledger transition with a predecessor financial hash. <code>deposited = paid + refunded + available</code> always holds. Task-funded hidden roles and fees are impossible.</li>
-<li><strong>Authority:</strong> author, Agent0, assigned role, validator, and participant transitions require exact active bindings plus accepted GitHub source revisions under a complete confirmed read boundary.</li>
+<li><strong>Authority:</strong> all lifecycle transitions require an exact accepted GitHub source under a complete confirmed read boundary. Actor transitions also require their exact active bindings.</li>
 <li><strong>Atomicity:</strong> event construction, derived state, balances, escrow counters, status, cursor, and idempotency set appear together or remain absent.</li>
 <li><strong>Replay:</strong> deterministic IDs make identical replay a no-op and conflicting reuse an error. Projection from activation plus events must reproduce byte-identical canonical state.</li>
 <li><strong>Isolation:</strong> historical closure hashes are captured before implementation and checked after it.</li>
@@ -2152,15 +2153,18 @@ git diff --check
 <h4 id="spec-modified-r-01-plan-authority">MODIFIED R-01: Plan authority</h4>
 <p>Only the author MUST approve a Plan revision. Agent0 MUST NOT replace an author decision with an operator decision.</p>
 <p>Tide MUST reject a declaration from an actor without the required role. A rejected declaration MUST NOT create state or move money.</p>
+<p>Each lifecycle event MUST match one exact accepted GitHub source revision. A complete confirmed read boundary MUST cover that revision.</p>
+<p>One source revision MUST NOT authorize more than one intake or lifecycle event.</p>
 <h5 id="spec-s-01c">S-01C. An invalid role gets no authority</h5>
 <ul>
-<li><strong>GIVEN:</strong> An agent approves a Plan for the author, Agent0 publishes an operator-only decision, or an unknown account claims operator identity.</li>
+<li><strong>GIVEN:</strong> A declaration has an invalid role, a missing source revision, or a source revision with different content.</li>
 <li><strong>WHEN:</strong> Tide processes each declaration.</li>
-<li><strong>THEN:</strong> Tide rejects the declaration. Tide creates no Plan, child Contract, Task, debit, or escrow.</li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_authority.py</code> proves all three invalid authority forms and proves no state or money change.</li>
+<li><strong>THEN:</strong> Tide rejects the declaration. Tide creates no Plan, lifecycle transition, child Contract, Task, debit, settlement, or escrow.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_authority.py</code> proves actor authority, exact source evidence, and no state or money change.</li>
 </ul>
 <h4 id="spec-modified-r-02-plan-approval-schedule-pause-and-stop">MODIFIED R-02: Plan approval, schedule, pause, and stop</h4>
 <p>The author MUST approve one exact Plan revision. The approval MUST bind all Plan fields, the complete bank, the Triage revision, and the ruleset identity.</p>
+<p>The approval source MUST follow the Plan source in canonical GitHub order. Equal times MUST use the source IDs as a deterministic tie-break.</p>
 <p>Each Ranked stage MUST define an <code>intake_duration</code> and an <code>author_decision_duration</code>. Each Flat PoD or Frontier stage MUST define an <code>intake_duration</code>.</p>
 <p>Each Duel stage MUST define a <code>join_duration</code>, six move durations, and an <code>author_decision_duration</code>. Every duration MUST be a positive exact value.</p>
 <p>Tide MUST create absolute deadlines at child Contract creation. Tide MUST derive Duel move deadlines from the second valid join.</p>
@@ -2192,7 +2196,7 @@ git diff --check
 </ul>
 <h5 id="spec-s-02h">S-02H. Author approval binds the exact Plan and schedule</h5>
 <ul>
-<li><strong>GIVEN:</strong> The author approval differs from the candidate Plan in one bound value, or one required duration is missing or not positive.</li>
+<li><strong>GIVEN:</strong> The approval differs from one bound value, has an invalid duration, or its source does not follow the Plan source.</li>
 <li><strong>WHEN:</strong> Tide applies the approval.</li>
 <li><strong>THEN:</strong> Tide rejects the activation and names the different value. Tide creates no activation effect.</li>
 <li><strong>EVIDENCE:</strong> Parameterized cases change one of these values at a time:
@@ -2203,7 +2207,7 @@ git diff --check
 <li>A dependency, selector, ruleset identity, or Triage revision differs.</li>
 </ul>
 </li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_plan_approval.py</code> proves one debit and one activation after an exact replay.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_plan_approval.py</code> proves source order, one debit, and one activation after an exact replay.</li>
 <li><strong>EVIDENCE:</strong> The same test proves that Tide creates only first-stage deadlines at activation and creates later deadlines with each later child Contract.</li>
 </ul>
 <h5 id="spec-s-02i">S-02I. The author controls the Triage proposal</h5>
@@ -3785,10 +3789,10 @@ git diff --check
 <tbody>
 <tr>
 <td><code>S-01C</code></td>
-<td>Неверная роль не получает authority</td>
+<td>Неверная роль или source не получает authority</td>
 <td>Проверяет поддельное исключение старого маршрута и ложное подтверждение оператора.</td>
-<td>Маршрутных исключений больше нет: Triage предлагает Plan, автор решает, а оператор не подменяет это решение.</td>
-<td>Сохранить negative authority test, но проверять три актуальные подделки: агент утверждает Plan за автора; Agent0 выдаёт operator-only решение; неизвестный account заявляет operator identity. Во всех случаях — без Plan, Contract и денег.</td>
+<td>Каждый intake и lifecycle event требует exact actor authority и accepted GitHub source под confirmed boundary.</td>
+<td>Проверять invalid actor, missing source и source с другим content. Во всех случаях нет Plan, lifecycle transition, Contract или money change.</td>
 </tr>
 <tr>
 <td><code>S-02A</code></td>
@@ -3815,8 +3819,8 @@ git diff --check
 <td><code>S-02H</code></td>
 <td>Точное согласие автора</td>
 <td>Consent связывает Issue/body, bank, профиль, механику, ruleset и Triage.</td>
-<td>Профиля нет; approval связывает точную Plan revision и весь набор stage templates/allocations.</td>
-<td>Параметризовать несовпадения по Issue/problem revision+hash, Plan revision+hash, total bank, stage order, depth, mode, params/payout, expected output, dependency/selector, ruleset triple и Triage revision. Точное повторение даёт один debit и одну activation.</td>
+<td>Профиля нет. Approval связывает точную Plan revision и строго следует ей по canonical GitHub order.</td>
+<td>Проверять все bound values и source order. Backdated или same-time-earlier approval отклоняется. Exact replay даёт один debit и одну activation.</td>
 </tr>
 <tr>
 <td><code>S-02I</code></td>
@@ -4031,7 +4035,7 @@ git diff --check
 </tr>
 <tr>
 <td>Lifecycle Event</td>
-<td>deterministic event ID, Plan ID, kind, actor kind/ID/authority, source revision/snapshot/hash, effective time, idempotency key, canonical typed payload</td>
+<td>deterministic event ID, Plan ID, kind, actor kind/ID/authority, accepted GitHub source revision/snapshot/hash, effective time, idempotency key, canonical typed payload</td>
 </tr>
 <tr>
 <td>Work</td>
@@ -4168,7 +4172,7 @@ git diff --check
 <h4 id="schema-lifecycle-invariants">Lifecycle invariants</h4>
 <ol>
 <li>The activation aggregate is verified before the first lifecycle event.</li>
-<li>One event ID and one idempotency key have one canonical meaning.</li>
+<li>One event ID, source revision, and idempotency key have one canonical meaning. A complete confirmed read boundary covers each lifecycle source.</li>
 <li><code>deposited = paid + refunded + available</code>; every counter is a non-boolean integer and never negative. A treasury role has <code>reserved = paid + refunded + available</code> in its separate escrow.</li>
 <li>One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot.</li>
 <li>A Ranked order is continuous, contains no duplicate Work, contains only eligible Works, and has no rank beyond the payout vector.</li>
@@ -4214,7 +4218,7 @@ git diff --check
 </tr>
 <tr>
 <td>Author Plan Decision</td>
-<td>deterministic decision ID/idempotency key from exact Plan + source revision, exact Plan revision/hash, <code>approve/request_revision/decline</code>, author authority, source revision/snapshot/hash/time</td>
+<td>deterministic decision ID/key, exact Plan revision/hash, outcome, author authority, and accepted source revision/hash/time after the Plan source</td>
 </tr>
 <tr>
 <td>Program Escrow</td>
@@ -5758,8 +5762,8 @@ git diff --check
 </tr>
 </tbody>
 </table></div>
-<p>Ruleset <code>0.8</code> SHA-256: <code>e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>a6393175b79e5c45eccc777cb3b9e68b29bce1d8e57e86a901742af2ea941dd8</code>.</p>
+<p>Ruleset <code>0.8</code> SHA-256: <code>3460578b4ccf4e00e5dd981742ad0386590b76dd52db1f354d4a618beb7d059b</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>3041e4732ec5585c5c3c1df78d711724c4ad8d2e1aeba249c4ee91b432045ce0</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5771,7 +5775,11 @@ git diff --check
 <tbody>
 <tr>
 <td>Triage и Plan</td>
-<td>Exact author approval binds the complete schedule and bank. One debit funds one program escrow. Only the first child Contract starts.</td>
+<td>Exact author approval follows the Plan source and binds the complete schedule and bank. One debit funds one program escrow. Only the first child Contract starts.</td>
+</tr>
+<tr>
+<td>Authority evidence</td>
+<td>Each lifecycle event matches one accepted GitHub source under a complete confirmed read boundary. Source revisions are globally single-use.</td>
 </tr>
 <tr>
 <td>Modes</td>
@@ -5828,12 +5836,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>379 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>382 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4664 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4667 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5853,7 +5861,7 @@ git diff --check
 <tr>
 <td>Independent review</td>
 <td><code>codex exec review --base origin/main</code> on draft PR #941</td>
-<td>Pass 1 found two P1 timing defects. Pass 2 found four P1 authority and selection defects. Pass 3 found two P1 pause defects. All eight have regression fixes. Pass 4 is pending.</td>
+<td>Pass 1 found two P1 timing defects. Pass 2 found four P1 authority and selection defects. Pass 3 found two P1 pause defects. Pass 4 found two P1 source-authority defects. All ten have regression fixes. Pass 5 is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6133,13 +6141,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>4d7292f95c6f0b7e669d7496773c2e40b6124f2b37b9b5cfc6dc6ac9a42f624b</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>08fcd1454ade63e96a511d212a9bc6141739dfd2df3e4c03715a256b6ec3962c</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>3e5214b44de099d826a95cdcf26f2e00a16b93cad1f38102b2ced3f8958882fb</code></td></tr><tr><td><code>tasks.md</code></td><td><code>08bb7e81013c4fd9b23a77fd9fcaa5e6b74cf8d4ea16efc3ad57a30c58183980</code></td></tr><tr><td><code>design.md</code></td><td><code>ae84e71a97a2283efa6da3d067714adc45a41976b7a7296e759e29bee432e8d1</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c16e3af5ce207b77d431fbcd292d36b672b3a1ea72936ca40e6de728d33e39d8</code></td></tr><tr><td><code>spec.md</code></td><td><code>6eb808260cf4f9d24200738906a9c08e052602e5c5cf32a2072aee51d9d1a1e5</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>1de12c486ef58eb312dcc3907b8e4174b7e2d2c3ff30c88516110ff89f296358</code></td></tr><tr><td><code>schema.md</code></td><td><code>f0bd7411b2fab0dd54e139662dd92129a4b71dad18020f83958fce0455ee43de</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>98fe37d2bef093ea42822fdd58a7cbc6e14a5aec82e298980c71f0f0784f715e</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>4aafc96c152d1324bcf134f3d46b3073d62ec81dce842d8db51a6c2fdc58b015</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>327765dab94f0af35abb6974954fcf5e87c5943e86bdb85ae957c3d393fc7a3a</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>1536b01f459448f70c1596b35394d0f795d5810468c0d2d071eabdb997ee5d90</code></td></tr><tr><td><code>tasks.md</code></td><td><code>b565827831e8257f6a15e452bbbc1d905a26d6de2f3ca43c70550ef3d72d8818</code></td></tr><tr><td><code>design.md</code></td><td><code>fb291e2568d6bb77630a51a60cb46cfcfd51c17a79052fabdfd8b18474abcfbc</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c16e3af5ce207b77d431fbcd292d36b672b3a1ea72936ca40e6de728d33e39d8</code></td></tr><tr><td><code>spec.md</code></td><td><code>73b9f8b68e89947295e95ab7bca7f35fe743b7b1d26436b7bfdc41e5068ff5d3</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>5bdbce708dc44900e813927a89fdf5451b26ae2d06eda2a87f595f62a767fd0f</code></td></tr><tr><td><code>schema.md</code></td><td><code>2644877ab7a76af13d1b8907a54e5b276b61f012ba42eb25d043f2c9673938fb</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>98fe37d2bef093ea42822fdd58a7cbc6e14a5aec82e298980c71f0f0784f715e</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>3b7f12babca59f3613df2a587f4a0d63c717d79cd9e6612912bf10341dd9d311</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>327765dab94f0af35abb6974954fcf5e87c5943e86bdb85ae957c3d393fc7a3a</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6261,7 +6269,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: 4d7292f95c6f0b7e669d7496773c2e40b6124f2b37b9b5cfc6dc6ac9a42f624b",
+          "- Хеш исходных файлов: 08fcd1454ade63e96a511d212a9bc6141739dfd2df3e4c03715a256b6ec3962c",
           ""
         ];
         cards

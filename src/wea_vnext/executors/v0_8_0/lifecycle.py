@@ -24,11 +24,14 @@ from .intake import (
     PlanIntakeState,
     PlanStage,
     ProgramEscrow,
+    ProtocolState,
     ResolvedWorkInput,
     SelectedWorkInput,
     StageContract,
     StageDeadline,
     StageSchedule,
+    _rebuild_github_state,
+    _require_github_event,
     _snapshot_runtime,
     _verified_runtime,
     initial_stage_deadlines,
@@ -2399,6 +2402,7 @@ def apply_lifecycle_event(
     event: LifecycleEvent,
     *,
     registry: IdentityRegistry,
+    github_state: ProtocolState,
     _verified_runtime_reference: Any,
 ) -> ResolutionPlanRuntimeState:
     if type(state) is not ResolutionPlanRuntimeState:
@@ -2407,10 +2411,42 @@ def apply_lifecycle_event(
     if _snapshot_runtime(_verified_runtime_reference) != _verified_runtime():
         raise PlanError("runtime: call does not belong to executor 0.8.0")
     event = _rebuild(event, LifecycleEvent, "lifecycle event")
+    github_state = _rebuild_github_state(github_state)
     if event.plan_id != state.activation.plan.plan_id:
         raise PlanError("evidence_boundary: lifecycle event belongs to another Plan")
     if event.effective_at < state.activation.plan.activated_at:
         raise PlanError("evidence_boundary: lifecycle event predates Plan activation")
+    _require_github_event(
+        github_state,
+        repository_id=state.activation.draft.repository_id,
+        object_kind="issue_comment",
+        object_id=event.source_id,
+        revision_id=event.source_revision_id,
+        actor_account_id=event.actor_account_id,
+        body=event.source_snapshot,
+        body_hash=event.source_snapshot_hash,
+        effective_at=event.effective_at,
+        must_be_latest=True,
+    )
+    intake_source_revisions = {
+        state.activation.draft.issue_revision_id,
+        *(
+            item.source_revision_id
+            for item in state.activation.state.plan_revisions
+        ),
+        *(item.source_revision_id for item in state.activation.state.decisions),
+        *(
+            source_revision_id
+            for item in state.activation.state.triage_assessments
+            for source_revision_id in (
+                item.assignment_source_revision_id,
+                item.source_revision_id,
+                item.completion_source_revision_id,
+            )
+        ),
+    }
+    if event.source_revision_id in intake_source_revisions:
+        raise PlanError("evidence_boundary: source revision is globally single-use")
     for existing in state.events:
         if (
             existing.event_id == event.event_id

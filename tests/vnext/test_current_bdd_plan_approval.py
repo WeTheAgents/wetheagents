@@ -5,10 +5,14 @@ from dataclasses import replace
 import pytest
 
 from .current_bdd_support import (
+    decision,
     modules,
     plan_revision,
+    record_decision,
+    replace_decision,
     replace_plan_revision,
     stages,
+    state_with_plan,
 )
 
 
@@ -60,3 +64,18 @@ def test_s_02h_schedule_is_part_of_the_exact_plan_hash() -> None:
     changed = replace_plan_revision(first, stages=(changed_stage, *first.stages[1:]))
 
     assert first.content_hash != changed.content_hash
+
+
+def test_s_02h_author_decision_source_must_follow_the_plan_source() -> None:
+    state, draft, _, plan = state_with_plan()
+    approval = replace_decision(
+        decision(plan),
+        effective_at=plan.effective_at,
+        source_comment_id="author-comment-before-plan",
+        source_revision_id="author-source-before-plan",
+    )
+
+    with pytest.raises(modules()["intake"].PlanError, match="must follow"):
+        record_decision(state, draft, approval)
+
+    assert state.decisions == ()

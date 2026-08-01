@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1"
+    "3460578b4ccf4e00e5dd981742ad0386590b76dd52db1f354d4a618beb7d059b"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -249,6 +249,28 @@ def _validate(content: dict[str, Any]) -> None:
             "progression_pause",
             "risk_pause",
         ],
+        "risk_pause": {
+            "admitted_events": [
+                "duel_join",
+                "duel_move",
+                "role_resolution",
+                "role_result",
+                "work_revision",
+            ],
+            "blocked_event_groups": [
+                "child-materialization",
+                "mode-settlement",
+                "new-role-assignment",
+                "stage-completion",
+                "stage-decision",
+            ],
+            "body_resume_closes": False,
+            "deadline_offset": False,
+            "role_scope": "pre-pause-only",
+        },
+        "source_evidence": (
+            "latest-accepted-github-revision-under-complete-confirmed-read-boundary"
+        ),
         "stop_authority": "author",
         "suffix_replan_authority": "author",
     }:

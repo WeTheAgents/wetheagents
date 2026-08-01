@@ -642,6 +642,16 @@ def github_state(*records: Any) -> Any:
                 body=record.snapshot,
                 actor_account_id=record.author_github_account_id,
             )
+        elif type(record) is modules()["lifecycle"].LifecycleEvent:
+            add_event(
+                repository_id="repository-1",
+                object_kind="issue_comment",
+                object_id=record.source_id,
+                revision_id=record.source_revision_id,
+                effective_at=record.effective_at,
+                body=record.source_snapshot,
+                actor_account_id=record.actor_account_id,
+            )
         else:  # pragma: no cover - helper misuse
             raise AssertionError(f"unsupported evidence record: {type(record)!r}")
 
@@ -835,9 +845,15 @@ def lifecycle_event(
     )
 
 
-def apply_event(state: Any, event: Any) -> Any:
+def apply_event(
+    state: Any, event: Any, *, evidence_state: Any | None = None
+) -> Any:
     return modules()["lifecycle"].call_verified(
-        "apply_lifecycle_event", state, event, registry=registry()
+        "apply_lifecycle_event",
+        state,
+        event,
+        registry=registry(),
+        github_state=evidence_state or github_state(event),
     )
 
 

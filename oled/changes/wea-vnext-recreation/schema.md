@@ -11,7 +11,7 @@ This delta replaces incompatible schema `0.9` fields for new Resolution Plans. H
 | Stage Schedule | mode, positive intake/join/decision durations as applicable, exactly six positive Duel move durations |
 | Stage Contract | all schema `0.9` fields plus schedule, materialized initial absolute deadlines, acceptance authority, ruleset/interface/manifest triple |
 | Runtime State | exact verified activation aggregate, ordered verified lifecycle events, canonical replay hash, construction seal |
-| Lifecycle Event | deterministic event ID, Plan ID, kind, actor kind/ID/authority, source revision/snapshot/hash, effective time, idempotency key, canonical typed payload |
+| Lifecycle Event | deterministic event ID, Plan ID, kind, actor kind/ID/authority, accepted GitHub source revision/snapshot/hash, effective time, idempotency key, canonical typed payload |
 | Work | deterministic Contract + Agent ID, ordered immutable revisions, eligibility status, accepted revision, acceptance authority and validator evidence |
 | Work Revision | revision ID/index, Work/Contract/Agent IDs, content hash, immutable snapshot identity, source evidence and effective time |
 | Stage Runtime | stage/Contract/Task IDs, status, phase, base/effective opens and due times, mode cursor, selected revision, paid/refunded amount |
@@ -66,7 +66,7 @@ An open `risk_pause` admits only active-stage Work revisions, valid Duel joins o
 ### Lifecycle invariants
 
 1. The activation aggregate is verified before the first lifecycle event.
-2. One event ID and one idempotency key have one canonical meaning.
+2. One event ID, source revision, and idempotency key have one canonical meaning. A complete confirmed read boundary covers each lifecycle source.
 3. `deposited = paid + refunded + available`; every counter is a non-boolean integer and never negative. A treasury role has `reserved = paid + refunded + available` in its separate escrow.
 4. One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot.
 5. A Ranked order is continuous, contains no duplicate Work, contains only eligible Works, and has no rank beyond the payout vector.
@@ -93,7 +93,7 @@ Schema `1.0` exists only inside the full `v0_8_0` closure. Ruleset `0.7`, execut
 | Plan Stage | stable stage key/index, depth, mode, mode parameters, allocation, expected output, ordered symbolic/resolved inputs |
 | Symbolic input | kind `selected_work_of`, source stage key; raw future Work/revision отсутствует |
 | Resolution Plan Revision | deterministic Plan ID, append-only revision number/ID, parent revision, proposer kind `triage/author`, proposer authority, exact Draft/Triage refs, ordered Stage records, full bank, canonical content hash, source revision/snapshot/hash/time |
-| Author Plan Decision | deterministic decision ID/idempotency key from exact Plan + source revision, exact Plan revision/hash, `approve/request_revision/decline`, author authority, source revision/snapshot/hash/time |
+| Author Plan Decision | deterministic decision ID/key, exact Plan revision/hash, outcome, author authority, and accepted source revision/hash/time after the Plan source |
 | Program Escrow | deterministic `plan-escrow:<plan-id>` ID, author/payer, deposited/paid/refunded integer WEA, current status; `available = deposited - paid - refunded` |
 | Stage Contract | deterministic ID from Plan + stage key, Plan revision/hash, stage index/key, author/payer, depth/mode/config, allocation, exact resolved inputs, ruleset/interface/manifest triple |
 | Stage Task | deterministic ID from Stage Contract, current stage pointer, `active/paused/closed`, close result and last transition key |
