@@ -103,3 +103,32 @@ def test_s_69_invalid_or_failed_acceptance_changes_no_state_or_money() -> None:
     projection = modules()["lifecycle"].project_runtime(state)
     assert projection.escrow.paid_wea == 0
     assert projection.balance("agent-alpha") == 0
+
+
+def test_s_69_flat_pod_closes_immediately_when_the_last_slot_is_paid() -> None:
+    flat = stage(
+        key="answer",
+        depth="explore",
+        mode="flat_pod",
+        allocation_wea=2,
+        payout_vector=[2],
+        slots=1,
+    )
+    state = activated_runtime(plan_stages=(flat,), total_bank_wea=2)
+    state, identifier, revision = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=1,
+    )
+    state = accept_work(
+        state,
+        work_id=identifier,
+        revision_id=revision,
+        sequence=2,
+    )
+    projection = modules()["lifecycle"].project_runtime(state)
+    assert projection.plan_status == "completed"
+    assert projection.current_stage.status == "completed"
+    assert projection.current_stage.phase == "closed"
+    assert projection.escrow.paid_wea == 2

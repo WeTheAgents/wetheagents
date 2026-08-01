@@ -34,7 +34,7 @@
 ### Group B — Work and atomic mode settlement
 
 - [x] Add sealed append-only runtime state, exact accepted GitHub sources, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.
-- [x] Implement Flat PoD acceptance with validator-first/author fallback, one equal slot per Work, atomic payout, close/expiry refund, and failure rollback.
+- [x] Implement Flat PoD acceptance with validator-first/author fallback, one equal slot per Work, atomic payout, immediate slot-cap close, close/expiry refund, and failure rollback.
 - [x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.
 - [x] Implement Frontier snapshot uniqueness, novelty evidence, validator/`needs_author`, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.
 - [x] Implement Work scope and immutable cross-stage selected input records.
@@ -48,8 +48,9 @@
 ### Group C — progression, pauses, roles, stop, and replan
 
 - [x] Materialize the next child from one exact accepted revision without author debit or approval; ambiguous selectors pause without money movement.
-- [x] Implement `body_integrity_pause` and one-time offsets only for deadlines open at pause start.
-- [x] Implement Agent0 `risk_pause`: submissions continue, stage decisions wait, deadlines keep running, body resume preserves the pause, and only the author resolves it.
+- [x] Implement exact current Issue-revision evidence for `body_integrity_pause` and resume. Offset only deadlines that were open at pause start.
+- [x] Implement Agent0 `risk_pause` from one exact active Triage/review role generation. Reject stale, inactive, unassigned, and unrelated role warnings.
+- [x] Keep submissions open during `risk_pause`. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.
 - [x] Permit only frozen pre-pause role evidence and resolution during `risk_pause`. Reject new role assignments and keep role settlement separate from stage settlement.
 - [x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, `free/treasury` settlement, and replacement races.
 - [x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.

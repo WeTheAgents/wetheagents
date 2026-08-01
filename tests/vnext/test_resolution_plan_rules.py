@@ -38,6 +38,11 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
     assert lifecycle["source_evidence"] == (
         "latest-accepted-github-revision-under-complete-confirmed-read-boundary"
     )
+    assert lifecycle["body_integrity_pause"] == {
+        "deadline_offset": "open-at-pause-once",
+        "pause_evidence": "latest-current-changed-issue-body",
+        "resume_evidence": "latest-current-exact-contract-body-after-pause",
+    }
     assert lifecycle["risk_pause"] == {
         "admitted_events": (
             "duel_join",
@@ -57,6 +62,11 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
         "deadline_offset": False,
         "role_scope": "pre-pause-only",
     }
+    rules = current_modules()["rules"].load_ruleset().content
+    assert rules["modes"]["flat_pod"]["slot_cap_close"] == "immediate"
+    assert rules["roles"]["warning_pause"] == (
+        "agent0-from-active-assigned-triage-or-review-generation"
+    )
 
 
 @pytest.mark.parametrize(

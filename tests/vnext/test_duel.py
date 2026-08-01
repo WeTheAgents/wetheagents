@@ -6,6 +6,7 @@ import pytest
 
 from .current_bdd_support import (
     activated_runtime,
+    apply_body_transition,
     apply_event,
     author_event,
     digest,
@@ -360,25 +361,19 @@ def test_s_08d_body_pause_offsets_active_and_future_duel_windows_once() -> None:
     state = _join(state, "agent-beta", "account-beta", "b", 2)
     pause_at = state.activation.plan.activated_at + timedelta(minutes=3)
     resume_at = pause_at + timedelta(minutes=2)
-    state = apply_event(
+    state = apply_body_transition(
         state,
-        lifecycle_event(
-            state,
-            "body_pause",
-            {"cause_id": "issue-body-mismatch"},
-            sequence=3,
-            effective_at=pause_at,
-        ),
+        "body_pause",
+        body="Changed Issue body",
+        sequence=3,
+        effective_at=pause_at,
     )
-    state = apply_event(
+    state = apply_body_transition(
         state,
-        lifecycle_event(
-            state,
-            "body_resume",
-            {},
-            sequence=5,
-            effective_at=resume_at,
-        ),
+        "body_resume",
+        body=state.activation.draft.body,
+        sequence=5,
+        effective_at=resume_at,
     )
     deadlines = {
         item.kind: item

@@ -5,6 +5,7 @@ import pytest
 from .current_bdd_support import (
     accept_work,
     activated_runtime,
+    apply_body_transition,
     apply_event,
     assign_role,
     author_event,
@@ -34,7 +35,7 @@ def test_s_04b_risk_pause_blocks_payment_until_the_author_continues() -> None:
         lifecycle_event(
             state,
             "risk_warning",
-            {"role_id": "review-role", "warning_id": "warning-pay"},
+            {"generation": 1, "role_id": "review-role", "warning_id": "warning-pay"},
             sequence=2,
             actor_kind="role",
             actor_id="agent-alpha",
@@ -99,7 +100,11 @@ def test_s_04b_body_resume_preserves_an_open_risk_pause() -> None:
         lifecycle_event(
             state,
             "risk_warning",
-            {"role_id": "review-role", "warning_id": "warning-overlap"},
+            {
+                "generation": 1,
+                "role_id": "review-role",
+                "warning_id": "warning-overlap",
+            },
             sequence=2,
             actor_kind="role",
             actor_id="agent-alpha",
@@ -118,22 +123,21 @@ def test_s_04b_body_resume_preserves_an_open_risk_pause() -> None:
             actor_account_id="account-agent0",
         ),
     )
-    state = apply_event(
+    state = apply_body_transition(
         state,
-        lifecycle_event(
-            state,
-            "body_pause",
-            {"cause_id": "changed-body"},
-            sequence=4,
-        ),
+        "body_pause",
+        body="Changed Issue body",
+        sequence=4,
     )
 
     with pytest.raises(modules()["intake"].PlanError, match="body integrity"):
         apply_event(state, author_event(state, "author_continue", {}, sequence=5))
 
-    state = apply_event(
+    state = apply_body_transition(
         state,
-        lifecycle_event(state, "body_resume", {}, sequence=5),
+        "body_resume",
+        body=state.activation.draft.body,
+        sequence=5,
     )
     projection = modules()["lifecycle"].project_runtime(state)
     assert projection.plan_status == "paused"
@@ -170,7 +174,7 @@ def test_s_04b_risk_pause_keeps_only_frozen_role_obligations_open() -> None:
         lifecycle_event(
             state,
             "risk_warning",
-            {"role_id": "review-role", "warning_id": "warning-role"},
+            {"generation": 1, "role_id": "review-role", "warning_id": "warning-role"},
             sequence=3,
             actor_kind="role",
             actor_id="agent-alpha",
@@ -215,7 +219,7 @@ def test_s_04b_risk_pause_keeps_duel_joins_and_moves_open() -> None:
         lifecycle_event(
             state,
             "risk_warning",
-            {"role_id": "review-role", "warning_id": "warning-duel"},
+            {"generation": 1, "role_id": "review-role", "warning_id": "warning-duel"},
             sequence=2,
             actor_kind="role",
             actor_id="agent-alpha",
@@ -293,7 +297,7 @@ def test_s_04b_assigned_warning_needs_agent0_and_keeps_author_decision() -> None
     warning = lifecycle_event(
         state,
         "risk_warning",
-        {"role_id": "review-role", "warning_id": "warning-1"},
+        {"generation": 1, "role_id": "review-role", "warning_id": "warning-1"},
         sequence=2,
         actor_kind="role",
         actor_id="agent-alpha",
@@ -348,12 +352,60 @@ def test_s_04b_unassigned_warning_cannot_support_a_risk_pause() -> None:
     warning = lifecycle_event(
         state,
         "risk_warning",
-        {"role_id": "missing-role", "warning_id": "warning-x"},
+        {"generation": 1, "role_id": "missing-role", "warning_id": "warning-x"},
         sequence=1,
         actor_kind="role",
         actor_id="agent-beta",
         actor_account_id="account-beta",
     )
-    with pytest.raises(modules()["intake"].PlanError, match="assigned"):
+    with pytest.raises(modules()["intake"].PlanError, match="exact active"):
         apply_event(state, warning)
     assert modules()["lifecycle"].project_runtime(state).plan_status == "active"
+
+
+def test_s_04b_stale_role_generation_cannot_publish_a_risk_warning() -> None:
+    ranked = stage(
+        key="rank",
+        depth="explore",
+        mode="ranked",
+        allocation_wea=5,
+        payout_vector=[5],
+    )
+    state = activated_runtime(plan_stages=(ranked,), total_bank_wea=5)
+    state = assign_role(state, sequence=1)
+    state = submit_role_result(state, sequence=2)
+    state = resolve_role(state, sequence=3)
+    warning = lifecycle_event(
+        state,
+        "risk_warning",
+        {"generation": 1, "role_id": "review-role", "warning_id": "stale"},
+        sequence=4,
+        actor_kind="role",
+        actor_id="agent-alpha",
+        actor_account_id="account-alpha",
+    )
+    with pytest.raises(modules()["intake"].PlanError, match="exact active"):
+        apply_event(state, warning)
+
+
+def test_s_04b_non_review_role_cannot_publish_a_risk_warning() -> None:
+    ranked = stage(
+        key="rank",
+        depth="explore",
+        mode="ranked",
+        allocation_wea=5,
+        payout_vector=[5],
+    )
+    state = activated_runtime(plan_stages=(ranked,), total_bank_wea=5)
+    state = assign_role(state, role_kind="implementation", sequence=1)
+    warning = lifecycle_event(
+        state,
+        "risk_warning",
+        {"generation": 1, "role_id": "review-role", "warning_id": "wrong-kind"},
+        sequence=2,
+        actor_kind="role",
+        actor_id="agent-alpha",
+        actor_account_id="account-alpha",
+    )
+    with pytest.raises(modules()["intake"].PlanError, match="Triage or review"):
+        apply_event(state, warning)

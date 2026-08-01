@@ -652,6 +652,8 @@ def github_state(*records: Any) -> Any:
                 body=record.source_snapshot,
                 actor_account_id=record.actor_account_id,
             )
+        elif type(record) is intake.GitHubEvent:
+            events[record.revision_identity] = record
         else:  # pragma: no cover - helper misuse
             raise AssertionError(f"unsupported evidence record: {type(record)!r}")
 
@@ -845,9 +847,7 @@ def lifecycle_event(
     )
 
 
-def apply_event(
-    state: Any, event: Any, *, evidence_state: Any | None = None
-) -> Any:
+def apply_event(state: Any, event: Any, *, evidence_state: Any | None = None) -> Any:
     return modules()["lifecycle"].call_verified(
         "apply_lifecycle_event",
         state,
@@ -855,6 +855,59 @@ def apply_event(
         registry=registry(),
         github_state=evidence_state or github_state(event),
     )
+
+
+def body_transition_event(
+    state: Any,
+    kind: str,
+    *,
+    body: str,
+    sequence: int,
+    effective_at: datetime | None = None,
+) -> tuple[Any, Any]:
+    if kind not in {"body_pause", "body_resume"}:  # pragma: no cover - helper misuse
+        raise AssertionError(kind)
+    transition_at = effective_at or (
+        state.activation.plan.activated_at + timedelta(minutes=sequence)
+    )
+    revision_id = f"issue-body-revision-{sequence:04d}"
+    issue_event = modules()["intake"].GitHubEvent.from_revision(
+        repository="owner/repository",
+        repository_id=state.activation.draft.repository_id,
+        object_kind="issue",
+        object_id=state.activation.draft.issue_id,
+        revision_id=revision_id,
+        effective_at=transition_at - timedelta(seconds=1),
+        body=body,
+        actor_account_id="account-author",
+        payload={},
+    )
+    event = lifecycle_event(
+        state,
+        kind,
+        {"issue_revision_id": revision_id},
+        sequence=sequence,
+        effective_at=transition_at,
+    )
+    return event, github_state(issue_event, event)
+
+
+def apply_body_transition(
+    state: Any,
+    kind: str,
+    *,
+    body: str,
+    sequence: int,
+    effective_at: datetime | None = None,
+) -> Any:
+    event, evidence = body_transition_event(
+        state,
+        kind,
+        body=body,
+        sequence=sequence,
+        effective_at=effective_at,
+    )
+    return apply_event(state, event, evidence_state=evidence)
 
 
 def stage(

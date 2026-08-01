@@ -76,7 +76,7 @@ def test_s_04d_and_s_66_replan_changes_only_unstarted_suffix() -> None:
         lifecycle_event(
             state,
             "risk_warning",
-            {"role_id": "review-role", "warning_id": "defect-1"},
+            {"generation": 1, "role_id": "review-role", "warning_id": "defect-1"},
             sequence=14,
             actor_kind="role",
             actor_id="agent-alpha",

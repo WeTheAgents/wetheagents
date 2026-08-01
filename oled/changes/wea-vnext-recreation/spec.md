@@ -39,7 +39,7 @@ The normative BDD uses pragmatic Simplified Technical English. Product nouns and
 - A **role** is an assigned evidence record with exact targets, duration, generation, and funding terms.
 - An **eligible Work** satisfies every pinned acceptance and authority rule of its child Contract.
 - An **accepted Work** is an eligible Work that Tide records after the required validator or author decision.
-- A **body_integrity_pause** is a technical freeze after the active Issue body differs from its child Contract.
+- A **body_integrity_pause** is a technical freeze after the latest accepted Issue body differs from its child Contract.
 - A **risk_pause** permits active-stage submissions but blocks stage decisions and Plan progression. It requires an exact assigned-role warning and an Agent0 declaration.
 - A **successful Plan completion** means that every stage closes as completed without a stop or downstream blocker.
 
@@ -72,7 +72,11 @@ Each Duel stage MUST define a `join_duration`, six move durations, and an `autho
 
 Tide MUST create absolute deadlines at child Contract creation. Tide MUST derive Duel move deadlines from the second valid join.
 
-A `body_integrity_pause` MUST move each deadline that was open at `pause_started_at`. The pause MUST move each affected deadline one time.
+A `body_pause` event MUST name the current accepted changed Issue revision. A `body_resume` event MUST name the current accepted Issue revision.
+
+The resume revision MUST follow the pause start and match the exact frozen Contract body. A `body_integrity_pause` MUST move each open deadline.
+
+The pause MUST move each affected deadline one time.
 
 The author MUST fund the complete Plan bank. One atomic activation MUST create the debit, program escrow, Plan, Task, and first child Contract.
 
@@ -128,6 +132,7 @@ The author can stop an active or paused Plan. Tide MUST preserve legal settlemen
 - **WHEN:** Agent0 resolves the complete result and Tide applies the later stop.
 - **THEN:** The role result keeps the outcome from its frozen terms. Then Tide stops the Plan and refunds unused program escrow.
 - **THEN:** A new or incomplete result after the pause changes no role, Plan, child Contract, payment, or refund.
+- **THEN:** A changed Issue revision can open the pause. Only a current exact-body revision after the pause start can close it.
 - **EVIDENCE:** `test_current_bdd_body_pause.py` proves the order `role_result → pause → resolution → stop` and proves idempotent money transitions.
 
 ### MODIFIED R-03: Work belongs to one child Contract
@@ -150,7 +155,7 @@ Ranked underfill MUST pay only eligible assigned ranks. Tide MUST refund missing
 
 An exact selector MUST create the next child Contract without a new author debit or approval. The selector MUST resolve to one accepted immutable revision.
 
-An assigned Triage or review role can publish a formal risk warning. Agent0 can create a `risk_pause` from the exact warning evidence.
+An exact active generation of an assigned Triage or review role can publish a formal risk warning. Agent0 can create a `risk_pause` from that evidence.
 
 An open `risk_pause` permits new Work revisions and valid Duel joins or moves in the active Contract.
 
@@ -180,14 +185,14 @@ An author-accepted defect in a selected result MUST NOT reopen a completed Contr
 
 #### S-04B. A risk warning cannot remove the author decision
 
-- **GIVEN:** One author knows a risk before selection. Another Plan gets an assigned-role warning. A third warning comes from an unassigned actor.
+- **GIVEN:** One author knows a risk before selection. Another Plan gets an active review-role warning. Other warnings use stale or invalid roles.
 - **WHEN:** The first author acknowledges the risk. Agent0 creates a `risk_pause` from the second warning.
 - **THEN:** The first selection can continue. The second Plan still accepts new Work revisions and valid Duel joins or moves.
 - **THEN:** The second Plan blocks stage decisions, mode settlement, stage completion, and the next child Contract.
 - **THEN:** The pause moves no deadline. A `body_resume` event does not remove the pause.
 - **THEN:** Only the second author can continue, approve a suffix replan, or stop. Creating the pause changes no money.
 - **THEN:** A role assigned before the pause continues under its frozen terms. A new role assignment waits for the author decision.
-- **THEN:** A warning alone does not pause the Plan. The unassigned warning cannot support a `risk_pause`.
+- **THEN:** A warning alone does not pause the Plan. A stale, inactive, unassigned, or non-review role cannot publish valid warning evidence.
 - **EVIDENCE:** `test_current_bdd_risk_pause.py` proves the submission boundary, blocked decisions, body overlap, frozen roles, exact evidence, author authority, and unchanged stage money.
 
 #### S-04C. Any eligible agent can join the Implement stage
@@ -357,14 +362,17 @@ Tide MUST accept the Work, move one slot allocation, and pay the Work in one ato
 
 A replay, another revision of the same Work, an ineligible Work, or late Work MUST NOT consume a slot or move money.
 
-At slot cap, expiry, or accepted `birdie`, Tide MUST close intake and refund every unused slot. Tide MUST preserve completed slot payments.
+The acceptance that fills the slot cap MUST close the stage in the same transition. Tide MUST NOT wait for the intake deadline.
+
+At expiry or accepted `birdie`, Tide MUST close intake and refund every unused slot. Tide MUST preserve completed slot payments.
 
 #### S-69. Flat PoD pays one equal slot per accepted Work
 
 - **GIVEN:** A Flat PoD Contract has three equal slots, an open intake boundary, and a pinned validator or author acceptance authority.
 - **WHEN:** Tide processes valid decisions, a replay, another Work revision, ineligible Work, late Work, and a simulated payment failure.
 - **THEN:** Each accepted Work gets one equal slot and one atomic payment. No other event consumes a slot or moves money.
-- **THEN:** A payment failure creates no acceptance or cursor change. Close preserves paid slots and refunds unused slots.
+- **THEN:** The last slot closes the stage in the same transition. A payment failure creates no acceptance or cursor change.
+- **THEN:** Other close paths preserve paid slots and refund unused slots.
 - **EVIDENCE:** `test_current_bdd_flat_pod.py` proves slot identity, atomic payment, invalid events, close paths, refunds, and replay idempotency.
 
 ### ADDED R-19: Complete Ranked settlement

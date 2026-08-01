@@ -4,9 +4,10 @@ from datetime import timedelta
 
 from .current_bdd_support import (
     activated_runtime,
+    apply_body_transition,
     apply_event,
     assign_role,
-    lifecycle_event,
+    body_transition_event,
     modules,
     stage,
 )
@@ -26,18 +27,20 @@ def test_s_05h_role_deadline_starts_at_assignment_and_moves_once() -> None:
     assert role.base_due_at == state.activation.plan.activated_at + timedelta(
         minutes=15
     )
-    state = apply_event(
+    state = apply_body_transition(
         state,
-        lifecycle_event(
-            state,
-            "body_pause",
-            {"cause_id": "changed-body"},
-            sequence=6,
-        ),
+        "body_pause",
+        body="Changed Issue body",
+        sequence=6,
     )
-    resume = lifecycle_event(state, "body_resume", {}, sequence=8)
-    state = apply_event(state, resume)
+    resume, resume_evidence = body_transition_event(
+        state,
+        "body_resume",
+        body=state.activation.draft.body,
+        sequence=8,
+    )
+    state = apply_event(state, resume, evidence_state=resume_evidence)
     moved = modules()["lifecycle"].project_runtime(state).roles[0]
     assert moved.effective_due_at == role.base_due_at + timedelta(minutes=2)
-    assert apply_event(state, resume) == state
+    assert apply_event(state, resume, evidence_state=resume_evidence) == state
     assert len(modules()["lifecycle"].project_runtime(state).stages) == 1

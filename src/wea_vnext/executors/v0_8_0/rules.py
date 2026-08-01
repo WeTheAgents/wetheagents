@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "3460578b4ccf4e00e5dd981742ad0386590b76dd52db1f354d4a618beb7d059b"
+    "35e732faf6778e8ccbd0cef19406812bc2f483c66acd270330475b1c81fa9dd0"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -114,6 +114,7 @@ def _validate_modes(value: object) -> None:
             "birdie",
             "finite",
             "payout",
+            "slot_cap_close",
         },
     )
     if flat != {
@@ -123,6 +124,7 @@ def _validate_modes(value: object) -> None:
         "birdie": True,
         "finite": True,
         "payout": "equal",
+        "slot_cap_close": "immediate",
     }:
         raise RulesetError("Flat PoD rules are inconsistent")
     frontier = _exact_dict(
@@ -227,7 +229,7 @@ def _validate(content: dict[str, Any]) -> None:
         "funding": ["free", "treasury"],
         "hidden_plan_fee": False,
         "timeliness": "last-required-result",
-        "warning_pause": "agent0-from-assigned-role",
+        "warning_pause": "agent0-from-active-assigned-triage-or-review-generation",
     }:
         raise RulesetError("assigned-role rules are inconsistent")
     if content["release"] != {
@@ -238,6 +240,11 @@ def _validate(content: dict[str, Any]) -> None:
     }:
         raise RulesetError("Release rules are inconsistent")
     if content["lifecycle"] != {
+        "body_integrity_pause": {
+            "deadline_offset": "open-at-pause-once",
+            "pause_evidence": "latest-current-changed-issue-body",
+            "resume_evidence": "latest-current-exact-contract-body-after-pause",
+        },
         "event_order": [
             "effective_at",
             "source_id",

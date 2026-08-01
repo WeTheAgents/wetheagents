@@ -3,8 +3,6 @@ from __future__ import annotations
 from .current_bdd_support import (
     accept_work,
     activated_runtime,
-    apply_event,
-    lifecycle_event,
     modules,
     stage,
     submit_work,
@@ -37,15 +35,6 @@ def test_s_65_missing_selector_pauses_without_creating_future_child() -> None:
         sequence=1,
     )
     state = accept_work(state, work_id=identifier, revision_id=revision, sequence=2)
-    contract_id = (
-        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
-    )
-    state = apply_event(
-        state,
-        lifecycle_event(
-            state, "mode_expiry", {"contract_id": contract_id}, sequence=11
-        ),
-    )
     projection = modules()["lifecycle"].project_runtime(state)
     assert projection.plan_status == "paused"
     assert len(projection.stages) == 1

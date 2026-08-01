@@ -9,17 +9,18 @@ Status: `Implementation verified — independent PR review pending`.
 - Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
-- Ruleset `0.8` SHA-256: `3460578b4ccf4e00e5dd981742ad0386590b76dd52db1f354d4a618beb7d059b`.
-- Executor `v0_8_0` manifest SHA-256: `3041e4732ec5585c5c3c1df78d711724c4ad8d2e1aeba249c4ee91b432045ce0`.
+- Ruleset `0.8` SHA-256: `35e732faf6778e8ccbd0cef19406812bc2f483c66acd270330475b1c81fa9dd0`.
+- Executor `v0_8_0` manifest SHA-256: `a3c3b8b35fe6f8ac5cef0375732469a319d3564a1c263ff8c523f9ad3d69873b`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
 
 - Triage proposes a complete Resolution Plan and budget split. The author approves, requests revision, or declines. Exact schedules and the full bank are part of approval.
 - Each Plan stage chooses a depth (`Explore`, `Spec`, or `Implement`) and a mode (`Ranked`, `Flat PoD`, `Frontier`, or `Duel`) allowed by the exact matrix.
-- Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules.
+- Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Flat PoD closes when its last slot is paid.
 - One accepted immutable revision feeds the next child Contract. Ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.
-- A risk pause keeps active-stage submissions open but blocks stage decisions and settlement. Body resume preserves it. Frozen pre-pause roles still follow their own terms.
+- Body pause and resume require exact current Issue revisions. A risk pause keeps submissions open but blocks stage decisions and settlement. Body resume preserves it.
+- Frozen pre-pause roles still follow their own terms. Only an exact active Triage or review generation can publish a risk warning.
 - Each lifecycle event requires an accepted GitHub source under a complete confirmed read boundary. An approval source must follow its exact Plan source.
 - Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.
 - Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.
@@ -36,12 +37,12 @@ Status: `Implementation verified — independent PR review pending`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `382 passed`, `18 skipped`.
-- Full repository: `4667 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `386 passed`, `18 skipped`.
+- Full repository: `4671 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. Review pass 1 closed two P1 timing defects. Pass 2 closed four P1 authority and selection defects. Pass 3 closed two P1 pause defects. Pass 4 closed two P1 source-authority defects. Pass 5 is pending.
+- Draft PR: `#941`. Passes 1–4 closed ten P1 defects. Pass 5 closed one P1 and two P2 lifecycle defects. Pass 6 is pending.
 
 ## Hard stop boundary
 
@@ -49,4 +50,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Create the dedicated PR, run `codex exec review`, fix all actionable findings, repeat until clean, then regenerate this handoff, `verification.md`, and `WEA_vNext_REVIEW.html` from the final commit.
+Push the pass 5 fixes. Run `codex exec review` again and fix every actionable finding. Then publish the review-clean handoff and artifact.

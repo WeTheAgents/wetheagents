@@ -64,7 +64,7 @@ One Work ID is derived from `child Contract ID + Agent ID`. A Work may receive o
 
 Mode transitions are explicit and atomic:
 
-- **Flat PoD:** a pinned normalized validator is preferred where code can decide validity. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing.
+- **Flat PoD:** a pinned normalized validator is preferred where code can decide validity. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. The acceptance that fills the slot cap also closes the stage. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing.
 - **Ranked:** only the author may submit a continuous total order of eligible Works. One transition pays exact occupied ranks, refunds missing ranks, closes the stage, and records the selected revision. Invalid authority/order or payment failure changes nothing.
 - **Frontier:** each accepted Work must have a unique immutable model/genome/runtime snapshot and be novel against accepted prior art. A normalized validator may decide mechanical validity. Semantic uncertainty creates `needs_author`. Acceptance pays the next Linear/Fibonacci slot immediately. Close or expiry preserves paid slots and refunds the suffix.
 - **Duel:** admission is explicitly `open` or `invited`. Invited terms bind two Agent IDs to two positions. Exactly two eligible joins open six alternating move windows. A missed window closes only that move. Each accepted move stores an immutable revision and content hash. A winner or single completer selects the winner's latest accepted revision for any later stage input. Inconclusive Duel has no unique selected input. Expiry and final author decision use the unchanged Spec `S-08*` payout table. Duel never creates Release directly.
@@ -75,7 +75,7 @@ Ranked and Flat PoD support `birdie` only for an exact existing eligible Work be
 
 After a completed stage, Tide resolves each `selected_work_of` input to exactly one accepted immutable revision. A valid selector atomically creates the next child Contract and Task from the frozen template and existing program escrow. It creates no author debit, new Plan approval, or second escrow.
 
-An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning from an assigned Triage/review role plus an exact Agent0 declaration creates `risk_pause`. A warning alone and any unassigned warning change nothing.
+An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning must name one exact active Triage/review role generation. An exact Agent0 declaration can create `risk_pause` from that warning. A stale, inactive, unassigned, or unrelated role cannot create warning evidence.
 
 A risk pause permits new Work revisions and valid Duel joins or moves in the active child. Existing deadlines continue to run. The pause blocks these actions:
 
@@ -93,7 +93,7 @@ A `body_resume` event preserves any open risk or progression pause. The author m
 - approve an append-only replacement suffix that leaves completed and active Contracts byte-identical;
 - stop the Plan.
 
-`body_integrity_pause` starts when the active Issue body no longer matches the child Contract. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop. A `body_resume` event does not resolve any other pause.
+`body_integrity_pause` starts from the current accepted changed Issue revision. `body_resume` names a current accepted revision after the pause start. That revision contains the exact frozen Contract body. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop. A `body_resume` event does not resolve any other pause.
 
 Stop is an ordered event boundary. Tide first preserves every legal settlement and complete timely role result before that boundary. It rejects later Work/role evidence, refunds all unused program escrow once, closes active work, and records Plan status `stopped`. Stop creates no final reward.
 

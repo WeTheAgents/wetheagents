@@ -17,7 +17,7 @@ This delta replaces incompatible schema `0.9` fields for new Resolution Plans. H
 | Stage Runtime | stage/Contract/Task IDs, status, phase, base/effective opens and due times, mode cursor, selected revision, paid/refunded amount |
 | Role Assignment | role/generation IDs, assigned Agent/authority, exact target set, positive duration, base/effective due time, funding `free/treasury`, optional fully funded role escrow |
 | Role Result | role/generation, exact target subset, result IDs/hashes/times, completeness, last required result time |
-| Pause | kind `body_integrity_pause/risk_pause/progression_pause`, exact cause/warning evidence, start/end, author decision, affected open deadline IDs and one-time offsets |
+| Pause | kind `body_integrity_pause/risk_pause/progression_pause`, exact Issue revision or role-generation warning evidence, start/end, author decision, affected open deadline IDs and one-time offsets |
 | Settlement | transition ID, kind `payout/refund/treasury`, recipient/source, positive WEA, reason, exact Work/rank/slot/role ref, prior/result financial hashes |
 | Release Invitation | deterministic ID, recipient, source kind/ref, eligibility evidence, terminal Plan prerequisite for Triage |
 | Feedback Outcome | Triage assessment/agent, linked Plan/stage/blocker/terminal event, polarity, exact reason/source evidence |
@@ -59,16 +59,16 @@ A Duel config stores `admission`, `invitations`, two positions, and three rounds
 | Pause / stop | `body_pause`, `risk_warning`, `risk_pause`, `author_continue`, `author_stop` | exact technical evidence, assigned role, Agent0, or author |
 | Outcome | `settlement`, `release_invitation`, `triage_feedback`, `plan_complete` | Tide-derived from accepted source events |
 
-Derived event groups are atomic. A Flat PoD acceptance group contains Work acceptance, slot cursor, payout, and financial hashes. A Ranked settlement group contains complete order, payouts, underfill refunds, stage close, and selected input. A stop group contains the final legal prefix, unused escrow refund, active closure, and terminal Plan status.
+Derived event groups are atomic. A Flat PoD acceptance group contains Work acceptance, slot cursor, payout, financial hashes, and cap closure when full. A Ranked settlement group contains complete order, payouts, underfill refunds, stage close, and selected input. A stop group contains the final legal prefix, unused escrow refund, active closure, and terminal Plan status.
 
-An open `risk_pause` admits only active-stage Work revisions, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A `body_resume` event closes only the body pause. It preserves every open risk or progression pause.
+An open `risk_pause` admits only active-stage Work revisions, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A warning names one exact active Triage or review generation. A `body_pause` names the current accepted changed Issue revision. A `body_resume` names a current accepted revision after the pause start. The resume revision contains the exact frozen Contract body. It closes only the body pause and preserves every open risk or progression pause.
 
 ### Lifecycle invariants
 
 1. The activation aggregate is verified before the first lifecycle event.
 2. One event ID, source revision, and idempotency key have one canonical meaning. A complete confirmed read boundary covers each lifecycle source.
 3. `deposited = paid + refunded + available`; every counter is a non-boolean integer and never negative. A treasury role has `reserved = paid + refunded + available` in its separate escrow.
-4. One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot.
+4. One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot. A full Flat PoD closes immediately.
 5. A Ranked order is continuous, contains no duplicate Work, contains only eligible Works, and has no rank beyond the payout vector.
 6. A selected input names exactly one accepted immutable revision in a completed prior Contract.
 7. New suffix records cannot change bytes of completed or active Contracts.
@@ -77,6 +77,8 @@ An open `risk_pause` admits only active-stage Work revisions, valid Duel joins o
 10. Triage Release exists only after successful Plan completion. A stopped, declined, or blocked Plan can create linked negative feedback instead.
 11. `next_action` is derived from projection and never appears as a lifecycle event.
 12. A risk pause does not move deadlines. Only `body_integrity_pause` can add a one-time deadline offset.
+13. Only an exact active Triage or review role generation can publish a risk warning.
+14. Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.
 
 ### Compatibility and storage boundary
 

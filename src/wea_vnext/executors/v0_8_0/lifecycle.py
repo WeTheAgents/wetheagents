@@ -1077,8 +1077,7 @@ def _authorize_event(
         matches = [
             item
             for item in projection.roles
-            if item.role_id == role_id
-            and item.generation == generation
+            if item.role_id == role_id and item.generation == generation
         ]
         if len(matches) != 1 or event.actor_id != matches[0].assigned_agent_id:
             raise PlanError("authority: role result requires the assigned actor")
@@ -1268,12 +1267,14 @@ def _work_acceptance(
     updated = _replace_work(
         stage, work, accepted_revision_id=revision.revision_id, needs_author=False
     )
-    _replace_stage(
+    stage = _replace_stage(
         model,
         stage,
         works=updated.works,
         paid_wea=stage.paid_wea + amount,
     )
+    if len(accepted) + 1 == len(vector):
+        _close_additive(model, activation, event, stage, None)
 
 
 def _ranked_order(
@@ -1982,14 +1983,14 @@ def _role_resolution(
 
 
 def _body_pause(model: _Model, event: LifecycleEvent) -> None:
-    data = _payload(event, {"cause_id"})
+    data = _payload(event, {"issue_revision_id"})
     if _active_body_pause(model) is not None:
         raise PlanError("state: body integrity pause is already active")
     pause = PauseState(
         pause_id=f"{event.event_id}:pause",
         kind="body_integrity_pause",
         started_at=event.effective_at,
-        cause_id=_text("cause_id", data["cause_id"]),
+        cause_id=_text("issue_revision_id", data["issue_revision_id"]),
     )
     model.pauses.append(pause)
     model.plan_status = "paused"
@@ -2021,7 +2022,7 @@ def _offset_deadline(
 
 
 def _body_resume(model: _Model, event: LifecycleEvent) -> None:
-    _payload(event, set())
+    _payload(event, {"issue_revision_id"})
     pause = _active_body_pause(model)
     if pause is None:
         raise PlanError("state: no body integrity pause is active")
@@ -2068,15 +2069,25 @@ def _body_resume(model: _Model, event: LifecycleEvent) -> None:
 
 
 def _risk_warning(model: _Model, event: LifecycleEvent) -> None:
-    data = _payload(event, {"role_id", "warning_id"})
+    data = _payload(event, {"generation", "role_id", "warning_id"})
     role_id = _text("role_id", data["role_id"])
-    roles = [item for item in model.roles.values() if item.role_id == role_id]
-    if not roles or event.actor_id != roles[-1].assigned_agent_id:
-        raise PlanError("authority: warning requires an assigned role")
+    generation = _positive_int("generation", data["generation"])
+    role = model.roles.get((role_id, generation))
+    if (
+        role is None
+        or role.status != "active"
+        or role.role_kind not in {"triage", "review"}
+        or event.actor_kind != "role"
+        or event.actor_id != role.assigned_agent_id
+        or event.actor_account_id != role.assigned_account_id
+    ):
+        raise PlanError(
+            "authority: warning requires the exact active Triage or review role"
+        )
     warning_id = _text("warning_id", data["warning_id"])
     if warning_id in model.warnings:
         raise PlanError("evidence_boundary: warning ID already exists")
-    model.warnings[warning_id] = role_id
+    model.warnings[warning_id] = f"{role_id}:{generation}"
 
 
 def _risk_pause(model: _Model, event: LifecycleEvent) -> None:
@@ -2397,6 +2408,57 @@ def project_runtime(state: ResolutionPlanRuntimeState) -> RuntimeProjection:
     return _projection(state.activation, state.events)
 
 
+def _require_issue_body_evidence(
+    state: ResolutionPlanRuntimeState,
+    projection: RuntimeProjection,
+    event: LifecycleEvent,
+    github_state: ProtocolState,
+) -> None:
+    if event.kind not in {"body_pause", "body_resume"}:
+        return
+    data = thaw_json(event.payload)
+    if type(data) is not dict or set(data) != {"issue_revision_id"}:
+        raise PlanError(f"declaration: {event.kind} payload has invalid keys")
+    revision_id = _text("issue_revision_id", data["issue_revision_id"])
+    issue_events = [
+        item
+        for item in github_state.events
+        if item.repository_id == state.activation.draft.repository_id
+        and item.object_kind == "issue"
+        and item.object_id == state.activation.draft.issue_id
+    ]
+    matches = [item for item in issue_events if item.revision_id == revision_id]
+    if len(matches) != 1:
+        raise PlanError("evidence_boundary: exact Issue body revision is missing")
+    revision = matches[0]
+    if revision != max(issue_events, key=lambda item: item.canonical_order_key):
+        raise PlanError("evidence_boundary: Issue body revision is not current")
+    if revision.effective_at > event.effective_at:
+        raise PlanError("evidence_boundary: Issue body evidence is from the future")
+    exact_body = (
+        revision.body == state.activation.draft.body
+        and revision.content_hash == state.activation.draft.body_hash
+    )
+    if event.kind == "body_pause":
+        if revision.effective_at < state.activation.plan.activated_at or exact_body:
+            raise PlanError(
+                "evidence_boundary: body pause requires a current changed Issue body"
+            )
+        return
+    pause = next(
+        (
+            item
+            for item in reversed(projection.pauses)
+            if item.kind == "body_integrity_pause" and item.ended_at is None
+        ),
+        None,
+    )
+    if pause is None or revision.effective_at < pause.started_at or not exact_body:
+        raise PlanError(
+            "evidence_boundary: body resume requires a current restored Issue body"
+        )
+
+
 def apply_lifecycle_event(
     state: ResolutionPlanRuntimeState,
     event: LifecycleEvent,
@@ -2430,10 +2492,7 @@ def apply_lifecycle_event(
     )
     intake_source_revisions = {
         state.activation.draft.issue_revision_id,
-        *(
-            item.source_revision_id
-            for item in state.activation.state.plan_revisions
-        ),
+        *(item.source_revision_id for item in state.activation.state.plan_revisions),
         *(item.source_revision_id for item in state.activation.state.decisions),
         *(
             source_revision_id
@@ -2460,6 +2519,7 @@ def apply_lifecycle_event(
     if state.events and event.order_key <= state.events[-1].order_key:
         raise PlanError("evidence_boundary: lifecycle event must append in exact order")
     current = project_runtime(state)
+    _require_issue_body_evidence(state, current, event, github_state)
     _authorize_event(current, state.activation, event, registry)
     candidate_events = (*state.events, event)
     _projection(state.activation, candidate_events)

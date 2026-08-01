@@ -10,7 +10,7 @@
 | ADD | approved per-stage durations and materialized absolute deadlines | add schedule schema and deadline projection |
 | ADD | child-scoped Work and exact immutable cross-stage revision inputs | add lifecycle Work/revision records and selector reducer |
 | ADD | atomic Flat PoD, Ranked, Frontier, and Duel settlement | add mode reducers and financial event groups |
-| ADD | body, risk, and progression pauses with author-only continue/replan/stop | body pause offsets deadlines. Risk pause keeps submissions open but blocks stage decisions and settlement |
+| ADD | body, risk, and progression pauses with author-only continue/replan/stop | body pause/resume use exact latest Issue revisions. Risk warnings use an exact active Triage/review generation. Risk pause keeps submissions open but blocks stage decisions and settlement |
 | ADD | frozen assigned-role targets, generations, timing, and `free/treasury` funding | add role lifecycle without hidden Plan fees |
 | MODIFY | Release follows valid Implement/role outcomes; Triage Release waits for successful whole Plan | add terminal gate and negative Triage feedback |
 | ADD | pure read-only `next_action` projection | expose through pre-live Resolution Plan facade |
