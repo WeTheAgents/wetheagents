@@ -190,6 +190,65 @@ def test_s_62_validator_defers_semantic_novelty_to_exact_author() -> None:
     assert modules()["lifecycle"].project_runtime(accepted).escrow.paid_wea == 1
 
 
+def test_s_62_later_revision_preserves_exact_deferred_author_decision() -> None:
+    state = activated_runtime(plan_stages=(_frontier(),), total_bank_wea=6)
+    snapshot = {"model": "m1", "genome": "g1", "runtime": "r1"}
+    state, identifier, first_revision = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=1,
+        content="valid:first candidate",
+        snapshot=snapshot,
+    )
+    state = accept_work(
+        state,
+        work_id=identifier,
+        revision_id=first_revision,
+        sequence=2,
+        verdict="needs_author",
+        validator=VALIDATOR,
+    )
+    state, _, second_revision = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=3,
+        content="valid:second candidate",
+        snapshot={"model": "m2", "genome": "g2", "runtime": "r2"},
+    )
+    work = modules()["lifecycle"].project_runtime(state).current_stage.works[0]
+    assert second_revision != first_revision
+    assert work.deferred_validations == (
+        (first_revision, "validator-needs-author"),
+    )
+    assert work.needs_author is True
+
+    state = accept_work(
+        state,
+        work_id=identifier,
+        revision_id=second_revision,
+        sequence=4,
+        verdict="needs_author",
+        validator=VALIDATOR,
+    )
+    work = modules()["lifecycle"].project_runtime(state).current_stage.works[0]
+    assert work.deferred_validations == (
+        (first_revision, "validator-needs-author"),
+        (second_revision, "validator-needs-author"),
+    )
+
+    accepted = accept_work(
+        state,
+        work_id=identifier,
+        revision_id=first_revision,
+        sequence=5,
+    )
+    projection = modules()["lifecycle"].project_runtime(accepted)
+    assert projection.escrow.paid_wea == 1
+    assert projection.current_stage.works[0].accepted_revision_id == first_revision
+
+
 def test_s_63_author_closes_frontier_and_refunds_unused_suffix() -> None:
     state = activated_runtime(plan_stages=(_frontier(),), total_bank_wea=6)
     state, identifier, revision = submit_work(

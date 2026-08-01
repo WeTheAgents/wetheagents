@@ -389,13 +389,16 @@ class WorkState:
     revisions: tuple[WorkRevision, ...]
     authority: WorkAuthority
     accepted_revision_id: str | None = None
-    needs_author: bool = False
-    deferred_revision_id: str | None = None
-    validation_result: str | None = None
+    deferred_validations: tuple[tuple[str, str], ...] = ()
+    validation_results: tuple[tuple[str, str], ...] = ()
 
     @property
     def eligible(self) -> bool:
         return bool(self.revisions and self.revisions[-1].eligible)
+
+    @property
+    def needs_author(self) -> bool:
+        return bool(self.deferred_validations)
 
 
 @dataclass(frozen=True)
@@ -1064,6 +1067,11 @@ def _close_stage(
     *,
     selected_revision_id: str | None,
 ) -> None:
+    final_stage = stage.stage_index == len(model.future_stages) - 1
+    if final_stage:
+        _close_active_roles_for_terminal(
+            model, activation, event, terminal_status="rejected"
+        )
     _close_current_task(model, event, "completed")
     stage = _replace_stage(
         model,
@@ -1072,7 +1080,7 @@ def _close_stage(
         phase="closed",
         selected_revision_id=selected_revision_id,
     )
-    if stage.stage_index == len(model.future_stages) - 1:
+    if final_stage:
         model.plan_status = "completed"
         _finalize_success(model, activation, event)
         return
@@ -1465,9 +1473,10 @@ def _work_revision(model: _Model, event: LifecycleEvent) -> None:
         accepted_revision_id=(
             None if existing is None else existing.accepted_revision_id
         ),
-        needs_author=False,
-        deferred_revision_id=None,
-        validation_result=None,
+        deferred_validations=(
+            () if existing is None else existing.deferred_validations
+        ),
+        validation_results=(() if existing is None else existing.validation_results),
     )
     works = (
         (*stage.works, work)
@@ -1602,12 +1611,18 @@ def _work_acceptance(
     )
     if revision is None or not revision.eligible:
         raise PlanError("matrix: accepted Work revision must be eligible")
+    deferred_result = next(
+        (
+            result
+            for revision_id, result in work.deferred_validations
+            if revision_id == revision.revision_id
+        ),
+        None,
+    )
     _acceptance_authority(
         stage,
         event,
-        needs_author=(
-            work.needs_author and work.deferred_revision_id == revision.revision_id
-        ),
+        needs_author=deferred_result is not None,
     )
     verdict = data["verdict"]
     config = thaw_json(stage.contract.config)
@@ -1615,7 +1630,7 @@ def _work_acceptance(
     normalized_needs_author = False
     if (
         stage.contract.mode == "frontier"
-        and not work.needs_author
+        and deferred_result is None
         and type(acceptance) is dict
         and acceptance.get("kind") == "normalized_validator"
     ):
@@ -1627,15 +1642,25 @@ def _work_acceptance(
     if verdict == "needs_author":
         if event.actor_kind != "validator":
             raise PlanError("authority: only validator can defer to author")
+        result = (
+            "valid-needs-author"
+            if normalized_needs_author
+            else "validator-needs-author"
+        )
         updated = _replace_work(
             stage,
             work,
-            needs_author=True,
-            deferred_revision_id=revision.revision_id,
-            validation_result=(
-                "valid-needs-author"
-                if normalized_needs_author
-                else "validator-needs-author"
+            deferred_validations=(
+                *work.deferred_validations,
+                (revision.revision_id, result),
+            ),
+            validation_results=(
+                *tuple(
+                    item
+                    for item in work.validation_results
+                    if item[0] != revision.revision_id
+                ),
+                (revision.revision_id, result),
             ),
         )
         _replace_stage(model, stage, works=updated.works)
@@ -1666,10 +1691,19 @@ def _work_acceptance(
         stage,
         work,
         accepted_revision_id=revision.revision_id,
-        needs_author=False,
-        deferred_revision_id=None,
-        validation_result=(
-            "author-accepted" if event.actor_kind == "author" else "valid-novel"
+        deferred_validations=(),
+        validation_results=(
+            *tuple(
+                item
+                for item in work.validation_results
+                if item[0] != revision.revision_id
+            ),
+            (
+                revision.revision_id,
+                "author-accepted"
+                if event.actor_kind == "author"
+                else "valid-novel",
+            ),
         ),
     )
     stage = _replace_stage(
@@ -2069,6 +2103,9 @@ def _stop_duel(
     stage: StageState,
     reason: str,
 ) -> None:
+    _close_active_roles_for_terminal(
+        model, activation, event, terminal_status="stopped"
+    )
     amount = stage.contract.allocation_wea
     _settle(
         model,
@@ -2387,6 +2424,32 @@ def _close_role_funding(
     )
 
 
+def _close_active_roles_for_terminal(
+    model: _Model,
+    activation: PlanActivation,
+    event: LifecycleEvent,
+    *,
+    terminal_status: str,
+) -> None:
+    if any(
+        role.status == "active" and role.timely_complete
+        for role in model.roles.values()
+    ):
+        raise PlanError("state: complete timely role result must be resolved first")
+    for key, role in sorted(model.roles.items()):
+        if role.status == "active":
+            _close_role_funding(
+                model,
+                activation,
+                event,
+                key,
+                role,
+                status=terminal_status,
+                recipient="treasury",
+                kind="treasury-refund",
+            )
+
+
 def _role_resolution(
     model: _Model, activation: PlanActivation, event: LifecycleEvent
 ) -> None:
@@ -2683,23 +2746,9 @@ def _author_stop(
     _payload(event, set())
     if model.plan_status in {"completed", "stopped"}:
         raise PlanError("state: Plan is already closed")
-    if any(
-        role.status == "active" and role.timely_complete
-        for role in model.roles.values()
-    ):
-        raise PlanError("state: complete timely role result must be resolved first")
-    for key, role in sorted(model.roles.items()):
-        if role.status == "active":
-            _close_role_funding(
-                model,
-                activation,
-                event,
-                key,
-                role,
-                status="stopped",
-                recipient="treasury",
-                kind="treasury-refund",
-            )
+    _close_active_roles_for_terminal(
+        model, activation, event, terminal_status="stopped"
+    )
     available = (
         activation.escrow.deposited_wea - model.escrow_paid - model.escrow_refunded
     )

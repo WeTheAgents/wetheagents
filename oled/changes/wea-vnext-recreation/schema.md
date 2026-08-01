@@ -12,7 +12,7 @@ This delta replaces incompatible schema `0.9` fields for new Resolution Plans. H
 | Stage Contract | all schema `0.9` fields plus schedule, materialized initial absolute deadlines, acceptance authority, ruleset/interface/manifest triple |
 | Runtime State | exact verified activation aggregate, ordered verified lifecycle events, frozen Work authorities, canonical replay hash, construction seal |
 | Lifecycle Event | deterministic event ID, Plan ID, kind, actor kind/ID/authority, accepted GitHub source revision/snapshot/hash, effective time, idempotency key, canonical typed payload |
-| Work | deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, acceptance evidence |
+| Work | deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, per-revision validator deferrals/results, acceptance evidence |
 | Work Revision | revision ID/index, Work/Contract/Agent IDs, content hash, immutable snapshot identity, optional normalized output for the pinned validator, source evidence and effective time |
 | Stage Runtime | stage/Contract/Task IDs, status, phase, base/effective opens and due times, mode cursor, selected revision, paid/refunded amount |
 | Stage Task Runtime | deterministic Task ID, Stage Contract ID, Plan/stage refs, `active/paused/closed`, `completed/stopped` close result, activation time, last transition ID |
@@ -85,6 +85,7 @@ An open `risk_pause` admits active-stage Work revisions, exact control-disclosur
 16. The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.
 17. Each materialized Stage Contract has one deterministic Task. The Task closes as `completed` when the stage completes. The active Task closes as `stopped` when the Plan stops.
 18. A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator and compares the output with configured prior art and paid Work before payment.
+19. A terminal Plan has no active role and no available role escrow. A complete timely result requires an Agent0 decision first. A terminal transition rejects another active role and returns its role escrow to treasury.
 
 ### Compatibility and storage boundary
 

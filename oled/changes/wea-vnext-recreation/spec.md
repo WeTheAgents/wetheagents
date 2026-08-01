@@ -262,18 +262,19 @@ Incomplete role evidence MUST NOT complete a role, block a stop, create a paymen
 
 #### S-05E. A stop waits for one timely complete role result
 
-- **GIVEN:** An assigned role submits its complete target set before `due_at`. Agent0 has not resolved it before the author stop request.
-- **WHEN:** Tide orders the role result and stop declaration.
+- **GIVEN:** An assigned role submits its complete target set before `due_at`. Agent0 has not resolved it before a terminal Plan transition.
+- **WHEN:** Tide orders the role result and an author stop, a successful final-stage decision, or an automatic Duel stop.
 - **THEN:** Agent0 must resolve the complete result first. Then Tide applies a new stop declaration.
 - **THEN:** The role follows its frozen terms. The stop refunds unused program escrow without a second payment or refund.
-- **EVIDENCE:** `test_current_bdd_role_stop_order.py` proves accepted and rejected role results and idempotent stop settlement.
+- **EVIDENCE:** `test_current_bdd_role_stop_order.py` and `test_duel.py` prove accepted and rejected role results and idempotent terminal settlement.
 
 #### S-05F. Incomplete role evidence does not block a stop
 
-- **GIVEN:** An assigned actor submits results for only part of the frozen target set before the stop boundary.
-- **WHEN:** Tide processes the author stop declaration.
-- **THEN:** The partial evidence does not complete the role. It creates no payment or Release invitation and does not block the stop.
-- **EVIDENCE:** `test_current_bdd_role_stop_order.py` proves incomplete target sets and the final program escrow refund.
+- **GIVEN:** An assigned actor submits results for only part of the frozen target set before a terminal Plan boundary.
+- **WHEN:** Tide processes an author stop, a successful final-stage decision, or an automatic Duel stop.
+- **THEN:** The partial evidence does not complete the role. It creates no payment or Release invitation and does not block the terminal transition.
+- **THEN:** Tide closes the role and returns its available role escrow to treasury.
+- **EVIDENCE:** `test_current_bdd_role_stop_order.py` and `test_duel.py` prove incomplete target sets, role escrow refunds, and final program escrow settlement.
 
 #### S-05G. Role evidence after a stop changes nothing
 
@@ -530,6 +531,7 @@ Frontier SHALL иметь конечный exact payout vector, выбранны
 - **Дано:** один Contract имеет deterministic normalized-code validator, а второй требует semantic novelty judgement.
 - **Когда:** Tide проверяет Work.
 - **Тогда:** первый использует pinned validator result; второй получает `needs_author` без выплаты до exact author verdict.
+- **Тогда:** более поздняя ревизия того же Work не удаляет `needs_author` для исходной exact revision.
 - **Проверка:** `tests/vnext/test_frontier.py` проверяет обе ветки и отсутствие автоматической выплаты в `needs_author`.
 
 ### S-63. Автор закрывает Frontier

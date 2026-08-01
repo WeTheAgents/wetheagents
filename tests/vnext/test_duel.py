@@ -8,6 +8,7 @@ from .current_bdd_support import (
     activated_runtime,
     apply_body_transition,
     apply_event,
+    assign_role,
     author_event,
     common_control_registry,
     confirm_control_disclosure,
@@ -168,6 +169,35 @@ def test_s_08a_duel_no_completers_refunds_and_has_no_release() -> None:
     assert projection.plan_status == "stopped"
     assert projection.escrow.refunded_wea == 20
     assert projection.releases == ()
+
+
+def test_s_08a_duel_stop_refunds_an_active_role_escrow() -> None:
+    state = assign_role(
+        _duel_state(),
+        targets=("a", "b"),
+        funding="treasury",
+        amount_wea=3,
+        sequence=1,
+    )
+    contract_id = (
+        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
+    )
+    stopped = apply_event(
+        state,
+        lifecycle_event(
+            state, "mode_expiry", {"contract_id": contract_id}, sequence=11
+        ),
+    )
+    projection = modules()["lifecycle"].project_runtime(stopped)
+    assert projection.plan_status == "stopped"
+    assert projection.roles[0].status == "stopped"
+    assert projection.roles[0].escrow_available_wea == 0
+    assert projection.balance("treasury") == 100
+    assert [item.kind for item in projection.settlements] == [
+        "treasury-reserve",
+        "treasury-refund",
+        "refund",
+    ]
 
 
 def test_s_08b_duel_rejects_duplicate_position_and_out_of_order_move() -> None:

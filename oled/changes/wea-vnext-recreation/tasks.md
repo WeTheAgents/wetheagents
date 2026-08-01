@@ -53,7 +53,7 @@
 - [x] Implement Agent0 `risk_pause` from one exact active Triage/review role generation. Reject stale, inactive, unassigned, and unrelated role warnings.
 - [x] Keep submissions open during `risk_pause`. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.
 - [x] Permit only frozen pre-pause role evidence and resolution during `risk_pause`. Reject new role assignments and keep role settlement separate from stage settlement.
-- [x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, `free/treasury` settlement, and replacement races.
+- [x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, `free/treasury` settlement, replacement races, and terminal closure of every active role escrow.
 - [x] Bind each role result and downstream blocker to the assigned generation's frozen Agent ID and GitHub account.
 - [x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.
 

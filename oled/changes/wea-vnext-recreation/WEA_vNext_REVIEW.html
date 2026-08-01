@@ -880,7 +880,7 @@
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Current base: <code>252c6ca</code> (<code>origin/main</code> after three unrelated BTC snapshot commits). The feature commit is rebased on this base.</li>
 <li>Ruleset <code>0.8</code> SHA-256: <code>f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>3e1cbc47fe22415d156ed55269bfd287a5bbd988f591b2f8898f4e321206d3e4</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>dc114f85c0832096f9a856bddfa9aae7254be2a4389352a9f1258b3f660c1898</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
@@ -910,17 +910,17 @@
 </ul>
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
-<li><code>tests/vnext</code>: <code>398 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4683 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>402 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4687 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Pass 6 and pass 10 were clean. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. All 23 have regression fixes ready for pass 13.</li>
+<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Passes 6 and 10 were clean. All 26 defects have regression fixes ready for pass 14.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
 <h3 id="handoff-next-action">Next action</h3>
-<p>Run review pass 13 on the exact published head. Fix every actionable finding before PR <code>#941</code> becomes ready.</p>
+<p>Run review pass 14 on the exact published head. Fix every actionable finding before PR <code>#941</code> becomes ready.</p>
 </div>
     </section>
 
@@ -992,7 +992,7 @@
 <li>[x] Implement Agent0 <code>risk_pause</code> from one exact active Triage/review role generation. Reject stale, inactive, unassigned, and unrelated role warnings.</li>
 <li>[x] Keep submissions open during <code>risk_pause</code>. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.</li>
 <li>[x] Permit only frozen pre-pause role evidence and resolution during <code>risk_pause</code>. Reject new role assignments and keep role settlement separate from stage settlement.</li>
-<li>[x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, <code>free/treasury</code> settlement, and replacement races.</li>
+<li>[x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, <code>free/treasury</code> settlement, replacement races, and terminal closure of every active role escrow.</li>
 <li>[x] Bind each role result and downstream blocker to the assigned generation's frozen Agent ID and GitHub account.</li>
 <li>[x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.</li>
 </ul>
@@ -1407,7 +1407,7 @@ git diff --check
 <p><code>body_integrity_pause</code> starts from the current accepted changed Issue revision. <code>body_resume</code> names a current accepted revision after the pause start. That revision contains the exact frozen Contract body. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop. A <code>body_resume</code> event does not resolve any other pause.</p>
 <p>Stop is an ordered event boundary. Tide first preserves every legal settlement and complete timely role result before that boundary. It rejects later Work/role evidence, refunds all unused program escrow once, closes active work, and records Plan status <code>stopped</code>. Stop creates no final reward.</p>
 <h4 id="design-d-45-assigned-roles-release-and-feedback">D-45. Assigned roles, Release, and feedback</h4>
-<p>Every role assignment freezes target IDs, duration, generation, Agent ID, GitHub account, and funding source. Current funding is <code>free</code> or <code>treasury</code>. A paid Plan review must be an explicit child stage. A role result must match both frozen actor fields. Treasury funding atomically reserves the full role amount in a separate role escrow at assignment. Accepted completion pays that escrow once. Rejection or Plan stop returns it to treasury. The last required result time decides timeliness. A later Agent0 resolution does not make a complete timely result late. Partial evidence never completes, pays, blocks stop, or creates Release.</p>
+<p>Every role assignment freezes target IDs, duration, generation, Agent ID, GitHub account, and funding source. Current funding is <code>free</code> or <code>treasury</code>. A paid Plan review must be an explicit child stage. A role result must match both frozen actor fields. Treasury funding atomically reserves the full role amount in a separate role escrow at assignment. Accepted completion pays that escrow once. Rejection or Plan stop returns it to treasury. The last required result time decides timeliness. A later Agent0 resolution does not make a complete timely result late. A complete timely result must receive an Agent0 decision before any terminal Plan transition. A terminal transition rejects an incomplete or late active role and returns its escrow to treasury. No terminal Plan keeps an active role or role escrow. Partial evidence never completes, pays, blocks stop, or creates Release.</p>
 <p>Non-Triage completed roles and valid completed Implement Work may create Release invitations under the pinned eligibility rules. Triage completion alone creates no Release. A Triage Agent receives Release only after every stage completes successfully. Decline, stop, or a downstream blocker creates no Triage Release. A blocker found after Triage is stored as negative linked feedback.</p>
 <p>The feedback chain is <code>problem revision → Triage proposal → author decision/amendment → execution events → replan/terminal outcome</code>. Semantic advice remains evidence, never an implicit veto.</p>
 <h4 id="design-d-46-read-only-next-action-projection">D-46. Read-only next-action projection</h4>
@@ -2336,18 +2336,19 @@ git diff --check
 </ul>
 <h5 id="spec-s-05e">S-05E. A stop waits for one timely complete role result</h5>
 <ul>
-<li><strong>GIVEN:</strong> An assigned role submits its complete target set before <code>due_at</code>. Agent0 has not resolved it before the author stop request.</li>
-<li><strong>WHEN:</strong> Tide orders the role result and stop declaration.</li>
+<li><strong>GIVEN:</strong> An assigned role submits its complete target set before <code>due_at</code>. Agent0 has not resolved it before a terminal Plan transition.</li>
+<li><strong>WHEN:</strong> Tide orders the role result and an author stop, a successful final-stage decision, or an automatic Duel stop.</li>
 <li><strong>THEN:</strong> Agent0 must resolve the complete result first. Then Tide applies a new stop declaration.</li>
 <li><strong>THEN:</strong> The role follows its frozen terms. The stop refunds unused program escrow without a second payment or refund.</li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_role_stop_order.py</code> proves accepted and rejected role results and idempotent stop settlement.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_role_stop_order.py</code> and <code>test_duel.py</code> prove accepted and rejected role results and idempotent terminal settlement.</li>
 </ul>
 <h5 id="spec-s-05f">S-05F. Incomplete role evidence does not block a stop</h5>
 <ul>
-<li><strong>GIVEN:</strong> An assigned actor submits results for only part of the frozen target set before the stop boundary.</li>
-<li><strong>WHEN:</strong> Tide processes the author stop declaration.</li>
-<li><strong>THEN:</strong> The partial evidence does not complete the role. It creates no payment or Release invitation and does not block the stop.</li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_role_stop_order.py</code> proves incomplete target sets and the final program escrow refund.</li>
+<li><strong>GIVEN:</strong> An assigned actor submits results for only part of the frozen target set before a terminal Plan boundary.</li>
+<li><strong>WHEN:</strong> Tide processes an author stop, a successful final-stage decision, or an automatic Duel stop.</li>
+<li><strong>THEN:</strong> The partial evidence does not complete the role. It creates no payment or Release invitation and does not block the terminal transition.</li>
+<li><strong>THEN:</strong> Tide closes the role and returns its available role escrow to treasury.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_role_stop_order.py</code> and <code>test_duel.py</code> prove incomplete target sets, role escrow refunds, and final program escrow settlement.</li>
 </ul>
 <h5 id="spec-s-05g">S-05G. Role evidence after a stop changes nothing</h5>
 <ul>
@@ -2653,6 +2654,7 @@ git diff --check
 <li><strong>Дано:</strong> один Contract имеет deterministic normalized-code validator, а второй требует semantic novelty judgement.</li>
 <li><strong>Когда:</strong> Tide проверяет Work.</li>
 <li><strong>Тогда:</strong> первый использует pinned validator result; второй получает <code>needs_author</code> без выплаты до exact author verdict.</li>
+<li><strong>Тогда:</strong> более поздняя ревизия того же Work не удаляет <code>needs_author</code> для исходной exact revision.</li>
 <li><strong>Проверка:</strong> <code>tests/vnext/test_frontier.py</code> проверяет обе ветки и отсутствие автоматической выплаты в <code>needs_author</code>.</li>
 </ul>
 <h4 id="spec-s-63">S-63. Автор закрывает Frontier</h4>
@@ -4066,7 +4068,7 @@ git diff --check
 </tr>
 <tr>
 <td>Work</td>
-<td>deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, acceptance evidence</td>
+<td>deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, per-revision validator deferrals/results, acceptance evidence</td>
 </tr>
 <tr>
 <td>Work Revision</td>
@@ -4225,6 +4227,7 @@ git diff --check
 <li>The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.</li>
 <li>Each materialized Stage Contract has one deterministic Task. The Task closes as <code>completed</code> when the stage completes. The active Task closes as <code>stopped</code> when the Plan stops.</li>
 <li>A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator and compares the output with configured prior art and paid Work before payment.</li>
+<li>A terminal Plan has no active role and no available role escrow. A complete timely result requires an Agent0 decision first. A terminal transition rejects another active role and returns its role escrow to treasury.</li>
 </ol>
 <h4 id="schema-compatibility-and-storage-boundary">Compatibility and storage boundary</h4>
 <p>Schema <code>1.0</code> exists only inside the full <code>v0_8_0</code> closure. Ruleset <code>0.7</code>, executor <code>v0_7_0</code>, and schema <code>0.9</code> remain unchanged. There is no record conversion, public durable deserializer, live writer, bootstrap, or ledger migration in this delivery. Test and shadow state may be discarded and replayed.</p>
@@ -5762,7 +5765,7 @@ git diff --check
 <p>Decision: <code>Implementation verified — independent PR review pending</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
 <p>Статус независимой проверки: <code>Pending</code>.</p>
-<p>Текущий review gate: <code>Pass 12 fixed; pass 13 pending</code>.</p>
+<p>Текущий review gate: <code>Pass 13 fixed; pass 14 pending</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5806,7 +5809,7 @@ git diff --check
 </tbody>
 </table></div>
 <p>Ruleset <code>0.8</code> SHA-256: <code>f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>3e1cbc47fe22415d156ed55269bfd287a5bbd988f591b2f8898f4e321206d3e4</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>dc114f85c0832096f9a856bddfa9aae7254be2a4389352a9f1258b3f660c1898</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5883,12 +5886,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>398 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>402 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4683 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4687 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5908,7 +5911,7 @@ git diff --check
 <tr>
 <td>Independent review</td>
 <td><code>codex exec review --base origin/main</code> on draft PR #941</td>
-<td>Passes 1–5 found 13 defects. Passes 6 and 10 were clean. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. All 23 have regression fixes. Pass 13 is pending.</td>
+<td>Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Passes 6 and 10 were clean. All 26 defects have regression fixes. Pass 14 is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6188,13 +6191,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>ac4ddab030da6255d1fa2e0a3366342357e959e4961ca847f53b360c22998156</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>6d515d79eea7bf6dff64d114bc90c1ef8ba5805bd55a0ef27f9def6dc9c634eb</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>e125bdaa7fbe9bb9b09b0113814b06ab60ae2af40c0ccb5dbc7a8abe0580a283</code></td></tr><tr><td><code>tasks.md</code></td><td><code>85dc5b7ba5321e232df9115d79a030cd1395f68aea9b62c7aec74a69ada28f13</code></td></tr><tr><td><code>design.md</code></td><td><code>6cfa9b38053b09a3f4fe54a582e0e112bbeda70bd247aefbba7c3d607f52bf13</code></td></tr><tr><td><code>outcome.md</code></td><td><code>46701133daa71aaf74068c47266d6737c873cfe1f04cf428d467b282dffd5a08</code></td></tr><tr><td><code>spec.md</code></td><td><code>bd40415a4c91fa102f10b5d34f611d26bbba77ca4968dbc5a81344726539b861</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>dbf89f95e2b8b20fcac69a3a31f81cebf1a5d77fa88e6febf1d7d3e746686e5e</code></td></tr><tr><td><code>schema.md</code></td><td><code>7833cb8d38352d4d15c8af4e4c9fa4122de217304ddd539dbd36b55897b963b1</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>3e3b1473bb4bdffac4d28b0c15543cd4132f4c8b3dc98f040df23c1858779401</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>944d392c14d7bc09e9c403ef1dfa90b925056baf71e56f783f38d9e6f6bbea58</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>7f444d2893963027e82073f1287e767c142c4b0929bb4ba151bfafeec11d33a9</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>a69268a3045064f1035d8a892a21a6d355f4b1269d854d1445493d5eecec9176</code></td></tr><tr><td><code>tasks.md</code></td><td><code>137b483c6109ea32dd4896e049307a2f27efc7add0c9c2342ac57171aae0c301</code></td></tr><tr><td><code>design.md</code></td><td><code>cf2aff7775350bb65398bf1d0a9bd537673b68cab2abba646032296333f1876b</code></td></tr><tr><td><code>outcome.md</code></td><td><code>46701133daa71aaf74068c47266d6737c873cfe1f04cf428d467b282dffd5a08</code></td></tr><tr><td><code>spec.md</code></td><td><code>08f37ccd70052255144c68ffedc68c493941105efc8e6e39f12713640a7a9d5f</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>dbf89f95e2b8b20fcac69a3a31f81cebf1a5d77fa88e6febf1d7d3e746686e5e</code></td></tr><tr><td><code>schema.md</code></td><td><code>bad25f95bef6993600ce3429dd93301b75b6e37cb1fec483a5a68acdafa396dd</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>3e3b1473bb4bdffac4d28b0c15543cd4132f4c8b3dc98f040df23c1858779401</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>6379e9810a53717397d1d87ce16db755d2538b8ff0fe91392be798b428fceffb</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>7f444d2893963027e82073f1287e767c142c4b0929bb4ba151bfafeec11d33a9</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6316,7 +6319,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: ac4ddab030da6255d1fa2e0a3366342357e959e4961ca847f53b360c22998156",
+          "- Хеш исходных файлов: 6d515d79eea7bf6dff64d114bc90c1ef8ba5805bd55a0ef27f9def6dc9c634eb",
           ""
         ];
         cards
