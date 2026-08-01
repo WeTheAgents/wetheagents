@@ -45,7 +45,7 @@ Durations are positive integer seconds. Boolean values are invalid integers.
 
 Each materialized deadline stores `deadline_id`, kind, base anchor, effective open, approved duration, `base_due_at`, `effective_due_at`, and applied pause IDs. A later phase deadline appears only when its anchor event exists. One pause ID can affect one deadline at most once.
 
-A Duel config stores `admission`, `invitations`, two positions, and three rounds. `open` requires an empty invitation list. `invited` requires exactly two different Agent IDs, with one fixed position for each Agent. Each Duel move stores its number, actor, effective time, deterministic Work revision ID, and content hash.
+A Duel config stores `admission`, `invitations`, two positions, and three rounds. `open` requires an empty invitation list. `invited` requires exactly two different Agent IDs, with one fixed position for each Agent. Each Duel move stores its number, actor, effective time, deterministic Work revision ID, and content hash. Accepted move numbers increase. An expired empty slot does not need a synthetic move record.
 
 ### Event kinds and payload ownership
 
@@ -79,6 +79,7 @@ An open `risk_pause` admits only active-stage Work revisions, valid Duel joins o
 12. A risk pause does not move deadlines. Only `body_integrity_pause` can add a one-time deadline offset.
 13. Only an exact active Triage or review role generation can publish a risk warning.
 14. Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.
+15. Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move.
 
 ### Compatibility and storage boundary
 

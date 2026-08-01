@@ -72,6 +72,8 @@ Each Duel stage MUST define a `join_duration`, six move durations, and an `autho
 
 Tide MUST create absolute deadlines at child Contract creation. Tide MUST derive Duel move deadlines from the second valid join.
 
+Accepted Duel move numbers MUST increase. An expired unfilled move slot does not block a later open slot.
+
 A `body_pause` event MUST name the current accepted changed Issue revision. A `body_resume` event MUST name the current accepted Issue revision.
 
 The resume revision MUST follow the pause start and match the exact frozen Contract body. A `body_integrity_pause` MUST move each open deadline.

@@ -1575,7 +1575,8 @@ def _duel_move(model: _Model, event: LifecycleEvent) -> None:
     ):
         raise PlanError("matrix: Duel move does not apply")
     number = _positive_int("move_number", data["move_number"])
-    if number > 6 or any(item[0] == number for item in stage.duel_moves):
+    last_accepted_number = max((item[0] for item in stage.duel_moves), default=0)
+    if number > 6 or number <= last_accepted_number:
         raise PlanError("state: Duel move order is invalid")
     expected_agent = stage.duel_participants[(number - 1) % 2][0]
     if event.actor_id != expected_agent:

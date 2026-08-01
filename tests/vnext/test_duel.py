@@ -182,6 +182,50 @@ def test_s_08b_duel_rejects_duplicate_position_and_out_of_order_move() -> None:
         apply_event(state, event)
     assert state.state_hash == before
 
+    boundary = next(
+        item.effective_due_at
+        for item in modules()["lifecycle"]
+        .project_runtime(state)
+        .current_stage.deadlines
+        if item.kind == "move-1"
+    )
+    move_two = lifecycle_event(
+        state,
+        "duel_move",
+        {
+            "content_hash": digest("move two at shared boundary"),
+            "contract_id": contract_id,
+            "move_number": 2,
+            "revision_id": modules()["lifecycle"].work_revision_id(identifier, 1),
+        },
+        sequence=4,
+        actor_kind="agent",
+        actor_id="agent-beta",
+        actor_account_id="account-beta",
+        effective_at=boundary,
+    )
+    state = apply_event(state, move_two)
+    alpha_work = modules()["lifecycle"].work_id(contract_id, "agent-alpha")
+    reverse_move = lifecycle_event(
+        state,
+        "duel_move",
+        {
+            "content_hash": digest("reverse move one"),
+            "contract_id": contract_id,
+            "move_number": 1,
+            "revision_id": modules()["lifecycle"].work_revision_id(alpha_work, 1),
+        },
+        sequence=5,
+        actor_kind="agent",
+        actor_id="agent-alpha",
+        actor_account_id="account-alpha",
+        effective_at=boundary,
+    )
+    before_reverse = state.state_hash
+    with pytest.raises(modules()["intake"].PlanError, match="move order"):
+        apply_event(state, reverse_move)
+    assert state.state_hash == before_reverse
+
 
 def test_s_08_single_completer_gets_90_percent_and_selected_output() -> None:
     state = _join(_duel_state(), "agent-alpha", "account-alpha", "a", 1)

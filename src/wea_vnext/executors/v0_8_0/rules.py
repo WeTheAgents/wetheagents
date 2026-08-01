@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "35e732faf6778e8ccbd0cef19406812bc2f483c66acd270330475b1c81fa9dd0"
+    "eb5eb18c66bc2a0a4fb53925627e387567b56a303ddc7bae24574fad43b519d7"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -157,6 +157,7 @@ def _validate_modes(value: object) -> None:
             "bank_multiple_wea",
             "birdie",
             "minimum_bank_wea",
+            "move_order",
             "outcome_percentages",
             "positions",
             "rounds",
@@ -170,6 +171,10 @@ def _validate_modes(value: object) -> None:
     _positive_integer(duel["minimum_bank_wea"], field="duel.minimum_bank_wea")
     if duel["positions"] != 2 or duel["rounds"] != 3:
         raise RulesetError("Duel must contain two positions and three rounds")
+    if duel["move_order"] != (
+        "strictly-increasing-accepted-numbers-with-expired-slot-skips"
+    ):
+        raise RulesetError("Duel move order is inconsistent")
     outcomes = _exact_dict(
         duel["outcome_percentages"],
         field="duel.outcome_percentages",

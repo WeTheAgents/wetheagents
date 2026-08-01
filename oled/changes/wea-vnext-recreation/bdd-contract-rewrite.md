@@ -60,7 +60,7 @@
 
 Ещё 31 baseline-сценарий можно перенести без изменения наблюдаемого поведения после терминологической и version-scope вычитки: `S-01`, `S-01B`, `S-02D`…`S-02G`, `S-03A`, `S-03C`…`S-03F`, `S-05B`, `S-06`, `S-06B`, `S-06D`, `S-07C`, `S-08`, `S-08A`…`S-08G`, `S-09`, `S-09B`, `S-09C`, `S-11A`, `S-11B`, `S-13B`, `S-13C`. `[CHECK]`
 
-`S-08*` сохраняет payout и six-move semantics Duel, но окружающий requirement должен называть его `Explore/Duel child Contract`, а не отдельным task profile. Это редакционная правка области применимости, не новый исход сценария.
+`S-08*` сохраняет payout и six-move semantics Duel, но окружающий requirement должен называть его `Explore/Duel child Contract`, а не отдельным task profile. Accepted move numbers строго возрастают. Пропущенный и истёкший slot не требует synthetic move record и не блокирует следующий open slot. Это редакционная правка области применимости, не новый исход сценария.
 
 ## Что меняется вместе с принятыми строками
 

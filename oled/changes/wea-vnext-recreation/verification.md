@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Ready after Spec 0.9 reconciliation`.
+Decision: `Implementation verified — independent PR review pending`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `CLEAN`.
+Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 6 clean`.
+Текущий review gate: `Pass 7 fixed; pass 8 pending`.
 
 ## Версии
 
@@ -21,9 +21,9 @@ Decision: `Ready after Spec 0.9 reconciliation`.
 | historical successor | ruleset `0.7`, executor `v0_7_0` | Immutable Resolution Plan intake and activation slice |
 | current successor | ruleset/interface `0.8`, executor `v0_8_0` | Manifest-pinned execution of all current Spec `0.9` behavior |
 
-Ruleset `0.8` SHA-256: `35e732faf6778e8ccbd0cef19406812bc2f483c66acd270330475b1c81fa9dd0`.
+Ruleset `0.8` SHA-256: `eb5eb18c66bc2a0a4fb53925627e387567b56a303ddc7bae24574fad43b519d7`.
 
-Executor `v0_8_0` manifest SHA-256: `a3c3b8b35fe6f8ac5cef0375732469a319d3564a1c263ff8c523f9ad3d69873b`.
+Executor `v0_8_0` manifest SHA-256: `578ff950e6f08ab6933f427bd87958e263fba2684b11367b3498e36abaafa129`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -35,7 +35,7 @@ Executor `v0_8_0` manifest SHA-256: `a3c3b8b35fe6f8ac5cef0375732469a319d3564a1c2
 | Progression | The next child uses one exact immutable selected revision. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix. |
 | Pauses | Body pause and resume require exact current Issue revisions. Body pauses offset open deadlines once. Risk pauses keep submissions open, keep deadlines running, and block stage decisions and settlement. Body resume preserves other pauses. |
 | Assigned roles | Frozen targets, generations, deadlines, `free` or separately escrowed `treasury` funding, replacement races, and ordered stop behavior are explicit. Only an exact active Triage or review generation can publish a risk warning. |
-| Duel | Open and invited admission, six move windows, immutable move revisions, exact settlement table, and no Duel Release are implemented. |
+| Duel | Open and invited admission, six move windows, increasing accepted move numbers, expired-slot skips, immutable revisions, exact settlement, and no Duel Release are implemented. |
 | Release and feedback | Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful whole-Plan completion. A downstream blocker preserves negative Triage feedback and suppresses Release. |
 | Read-only projection | `next_action` reports the exact Plan, stage, Contract, mode, actor, action, and effective boundary without writes. |
 | Get 10 | Issue #10 remains historical prior art. The validator classifies all six accepted expressions; identity-wrapper examples are valid arithmetic but are not novel Frontier progress. No Issue or ledger write occurred. |
@@ -57,7 +57,7 @@ Executor `v0_8_0` manifest SHA-256: `a3c3b8b35fe6f8ac5cef0375732469a319d3564a1c2
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 1–4 found ten P1 defects. Pass 5 found one P1 and two P2 lifecycle defects. All 13 have regression fixes. Pass 6 found no actionable regression. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Pass 6 was clean. Pass 7 found one P1 Duel-order defect. All 14 have regression fixes. Pass 8 is pending. |
 
 ## Historical verification baseline through Block 3
 
