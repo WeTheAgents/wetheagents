@@ -9,6 +9,8 @@ from .current_bdd_support import (
     apply_body_transition,
     apply_event,
     author_event,
+    common_control_registry,
+    confirm_control_disclosure,
     digest,
     lifecycle_event,
     modules,
@@ -26,7 +28,15 @@ def _duel_state():
     return activated_runtime(plan_stages=(duel,), total_bank_wea=20)
 
 
-def _join(state, agent_id, account_id, position, sequence):
+def _join(
+    state,
+    agent_id,
+    account_id,
+    position,
+    sequence,
+    *,
+    identity_registry=None,
+):
     contract_id = (
         modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
     )
@@ -41,10 +51,19 @@ def _join(state, agent_id, account_id, position, sequence):
             actor_id=agent_id,
             actor_account_id=account_id,
         ),
+        identity_registry=identity_registry,
     )
 
 
-def _move(state, agent_id, account_id, number, sequence):
+def _move(
+    state,
+    agent_id,
+    account_id,
+    number,
+    sequence,
+    *,
+    identity_registry=None,
+):
     lifecycle = modules()["lifecycle"]
     projection = lifecycle.project_runtime(state)
     contract_id = projection.current_stage.contract.contract_id
@@ -72,6 +91,7 @@ def _move(state, agent_id, account_id, number, sequence):
             actor_id=agent_id,
             actor_account_id=account_id,
         ),
+        identity_registry=identity_registry,
     )
 
 
@@ -260,6 +280,95 @@ def test_s_08_single_completer_gets_90_percent_and_selected_output() -> None:
     assert projection.escrow.refunded_wea == 2
     selected = projection.current_stage.selected_revision_id
     assert selected == projection.current_stage.works[0].revisions[-1].revision_id
+
+
+def test_s_03f_common_control_blocks_duel_selection_and_settlement() -> None:
+    identity_registry = common_control_registry("agent-alpha")
+    state = _join(
+        _duel_state(),
+        "agent-alpha",
+        "account-alpha",
+        "a",
+        1,
+        identity_registry=identity_registry,
+    )
+    state = _join(
+        state,
+        "agent-beta",
+        "account-beta",
+        "b",
+        2,
+        identity_registry=identity_registry,
+    )
+    for number, sequence in ((1, 3), (3, 5), (5, 7)):
+        state = _move(
+            state,
+            "agent-alpha",
+            "account-alpha",
+            number,
+            sequence,
+            identity_registry=identity_registry,
+        )
+    projection = modules()["lifecycle"].project_runtime(state)
+    contract_id = projection.current_stage.contract.contract_id
+    alpha_work = next(
+        item
+        for item in projection.current_stage.works
+        if item.agent_id == "agent-alpha"
+    )
+    assert alpha_work.authority.disclosure is not None
+    expiry = _move_expiry(state, contract_id)
+    state = apply_event(
+        state,
+        expiry,
+        identity_registry=identity_registry,
+    )
+    decision = lifecycle_event(
+        state,
+        "duel_decision",
+        {
+            "contract_id": contract_id,
+            "outcome": "single_completer",
+            "winner_agent_id": "agent-alpha",
+        },
+        sequence=17,
+        actor_kind="author",
+        actor_id="agent-author",
+        actor_account_id="account-author",
+        effective_at=expiry.effective_at + timedelta(seconds=5),
+    )
+    with pytest.raises(modules()["intake"].PlanError, match="common-control"):
+        apply_event(state, decision, identity_registry=identity_registry)
+    assert modules()["lifecycle"].project_runtime(state).escrow.paid_wea == 0
+
+    state = confirm_control_disclosure(
+        state,
+        work_id=alpha_work.work_id,
+        sequence=18,
+        identity_registry=identity_registry,
+        effective_at=expiry.effective_at + timedelta(seconds=10),
+    )
+    state = apply_event(
+        state,
+        lifecycle_event(
+            state,
+            "duel_decision",
+            {
+                "contract_id": contract_id,
+                "outcome": "single_completer",
+                "winner_agent_id": "agent-alpha",
+            },
+            sequence=19,
+            actor_kind="author",
+            actor_id="agent-author",
+            actor_account_id="account-author",
+            effective_at=expiry.effective_at + timedelta(seconds=20),
+        ),
+        identity_registry=identity_registry,
+    )
+    projection = modules()["lifecycle"].project_runtime(state)
+    assert projection.plan_status == "completed"
+    assert projection.balance("agent-alpha") == 18
 
 
 def test_s_08e_inconclusive_duel_splits_bank_equally() -> None:

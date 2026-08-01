@@ -143,13 +143,22 @@ One Work MUST contain all accepted revisions from one Agent ID in one child Cont
 
 The next stage MUST receive an exact accepted Work revision as input. Each participating Agent ID MUST get a separate Work in the next child Contract.
 
+The first valid Work event MUST freeze the exact author and participant account authorities. The snapshot MUST include both control-group binding IDs and versions.
+
+If both authorities share one control group, Tide MUST require one exact public disclosure. Selection and settlement MUST fail until Tide confirms the disclosure source revision.
+
+A later identity or control-group change MUST NOT rewrite the Work authority snapshot.
+
+An open `risk_pause` can accept exact disclosure evidence. This event MUST NOT accept Work, settle money, or move the stage.
+
 #### S-03B. A Work continues only inside its child Contract
 
 - **GIVEN:** One Agent ID submits several valid revisions to one active child Contract.
 - **WHEN:** Tide accepts the revisions and later creates the next child Contract from the selected revision.
 - **THEN:** The revisions remain in one Work in the first Contract. The selected revision becomes an immutable input of the next Contract.
 - **THEN:** A submission to the next Contract creates or continues a Work that belongs only to that Contract.
-- **EVIDENCE:** `test_current_bdd_work_scope.py` proves both Work IDs, the revision order, and the exact cross-stage input.
+- **THEN:** Compatible S-03F applies to Ranked, Flat PoD, Frontier, and Duel Work.
+- **EVIDENCE:** `test_current_bdd_work_scope.py` and `test_duel.py` prove Work scope, frozen authority, disclosure gates, and exact cross-stage input.
 
 ### MODIFIED R-04: Stage selection, risk, and defects
 
@@ -159,7 +168,7 @@ An exact selector MUST create the next child Contract without a new author debit
 
 An exact active generation of an assigned Triage or review role can publish a formal risk warning. Agent0 can create a `risk_pause` from that evidence.
 
-An open `risk_pause` permits new Work revisions and valid Duel joins or moves in the active Contract.
+An open `risk_pause` permits new Work revisions, exact control-disclosure evidence, and valid Duel joins or moves in the active Contract.
 
 It blocks Work acceptance, birdie, mode expiry or close, Ranked order, Frontier close, Duel decision, mode settlement, stage completion, and child materialization.
 
@@ -216,6 +225,8 @@ An author-accepted defect in a selected result MUST NOT reopen a completed Contr
 
 Every assigned role MUST have frozen targets, duration, generation, and funding terms before work starts. Current funding terms are `free` or `treasury`.
 
+A role result MUST match the frozen Agent ID and frozen GitHub account.
+
 A paid Plan review MUST use an explicit child stage. The current ruleset MUST NOT create a hidden task-funded role or review fee.
 
 Tide MUST create a role deadline from the assignment time and the role duration. A body pause MUST move an open role deadline one time.
@@ -226,11 +237,12 @@ Incomplete role evidence MUST NOT complete a role, block a stop, create a paymen
 
 #### S-05A. A completed assigned role keeps one settlement
 
-- **GIVEN:** One role has two assignment generations and frozen funding terms. Both generations submit complete valid results before their deadlines.
+- **GIVEN:** One role has two assignment generations and frozen funding terms. Both generations submit complete results from the frozen actor before their deadlines.
 - **WHEN:** Agent0 resolves the results and the author later stops the Plan.
 - **THEN:** Tide records each generation outcome. Tide creates no more than one payment allowed by the frozen role terms.
+- **THEN:** A result from a later account binding changes nothing.
 - **THEN:** The stop preserves the legal role settlement and refunds unused program escrow.
-- **EVIDENCE:** `test_current_bdd_role_generations.py` proves `free`, `treasury`, replacement, completion, stop, and single-settlement replay.
+- **EVIDENCE:** `test_current_bdd_role_generations.py` proves frozen actor authority, funding, replacement, completion, stop, and single-settlement replay.
 
 #### S-05C. The Plan has no hidden review fee
 
@@ -344,16 +356,18 @@ A declined task, stopped Plan, or downstream blocker MUST NOT create a Triage Re
 
 When an assigned role controls the next action, the output MUST show the exact role ID and generation. It MUST select the earliest role deadline.
 
+When common-control evidence blocks selection or settlement, the output MUST show the exact Work ID and control group ID.
+
 Equal role deadlines MUST use role ID and generation as deterministic tie-breaks. The command MUST remain read-only.
 
 #### S-13. `wea next` shows the next exact action
 
-- **GIVEN:** Tide records an active child stage. The actor has zero, one, or several active assigned roles.
+- **GIVEN:** Tide records an active child stage. The actor has active roles or one Work with pending common-control evidence.
 - **WHEN:** A participant runs `wea next` and reads the latest Tide confirmation.
-- **THEN:** Both outputs show identical Plan, stage, Contract, depth, mode, actor, role ID, generation, action, and Tide boundary values.
+- **THEN:** Both outputs show identical Plan revision, stage, Contract, depth, mode, actor, role, Work-control, action, and boundary values.
 - **THEN:** A role-owned action uses the earliest deadline. Equal deadlines use role ID and generation as tie-breaks.
 - **THEN:** The command creates no comment, transition, or ledger record.
-- **EVIDENCE:** `test_current_bdd_next.py` proves stage-owned and role-owned actions, deterministic selection, and read-only behavior.
+- **EVIDENCE:** `test_current_bdd_next.py` and `test_current_bdd_work_scope.py` prove exact context, deterministic selection, disclosure restriction, and read-only behavior.
 
 ### ADDED R-18: Flat PoD settlement
 
@@ -417,13 +431,13 @@ An invalid order or invalid authority MUST create no partial settlement. A repla
 | --- | --- | --- |
 | R-01 | S-01C | `test_current_bdd_authority.py` |
 | R-02 | S-02A…S-02J | Plan activation, approval, stop, schedule, and body-pause contract tests |
-| R-03 | S-03B | `test_current_bdd_work_scope.py` |
+| R-03 | S-03B, S-03F | `test_current_bdd_work_scope.py`, `test_duel.py` |
 | R-04 | S-04A, S-04B, S-04C, S-04D | Ranked progression, risk pause, eligibility, and defect-replan tests |
 | R-05 | S-05A, S-05C, S-05D, S-05E, S-05F, S-05G, S-05H | Assigned-role terms, timing, stop, deadline, and funding tests |
 | R-06 | S-06C | `test_current_bdd_mode_expiry.py` |
 | R-07 | S-07A, S-07B | `test_current_bdd_birdie.py` |
 | R-10 | S-10 | `test_current_bdd_triage_release.py` |
-| R-13 | S-13 | `test_current_bdd_next.py` |
+| R-13 | S-13 | `test_current_bdd_next.py`, `test_current_bdd_work_scope.py` |
 | R-18 | S-69 | `test_current_bdd_flat_pod.py` |
 | R-19 | S-70 | `test_current_bdd_ranked_settlement.py` |
 

@@ -43,8 +43,24 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
         "pause_evidence": "latest-current-changed-issue-body",
         "resume_evidence": "latest-current-exact-contract-body-after-pause",
     }
+    assert lifecycle["common_control"] == {
+        "confirmation": "public-exact-snapshot-before-selection-or-settlement",
+        "snapshot": "first-work-authority",
+    }
+    assert lifecycle["next_action_context"] == (
+        "plan_revision_id",
+        "stage",
+        "contract",
+        "depth",
+        "mode",
+        "actor",
+        "role",
+        "work_control",
+        "boundary",
+    )
     assert lifecycle["risk_pause"] == {
         "admitted_events": (
+            "control_disclosure",
             "duel_join",
             "duel_move",
             "role_resolution",
@@ -78,6 +94,9 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
     )
     assert rules["roles"]["warning_pause"] == (
         "agent0-from-active-assigned-triage-or-review-generation"
+    )
+    assert rules["roles"]["result_authority"] == (
+        "frozen-agent-and-github-account"
     )
 
 

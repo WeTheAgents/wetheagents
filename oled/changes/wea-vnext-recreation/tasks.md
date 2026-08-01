@@ -38,8 +38,9 @@
 - [x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.
 - [x] Implement Frontier snapshot uniqueness, novelty evidence, validator/`needs_author`, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.
 - [x] Implement Work scope and immutable cross-stage selected input records.
+- [x] Freeze author and participant authority on first Work. Require exact public common-control disclosure before selection or settlement in every mode.
 
-**Scenarios:** S-03B, S-04A, S-06C, S-07A, S-07B, S-61…S-64, S-67, S-68, S-69, S-70.
+**Scenarios:** S-03B, S-03F, S-04A, S-06C, S-07A, S-07B, S-61…S-64, S-67, S-68, S-69, S-70.
 
 **Files:** `executors/v0_8_0/lifecycle.py`, `test_current_bdd_{work_scope,ranked_progression,mode_expiry,birdie,flat_pod,ranked_settlement}.py`, existing Frontier/progression tests.
 
@@ -53,6 +54,7 @@
 - [x] Keep submissions open during `risk_pause`. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.
 - [x] Permit only frozen pre-pause role evidence and resolution during `risk_pause`. Reject new role assignments and keep role settlement separate from stage settlement.
 - [x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, `free/treasury` settlement, and replacement races.
+- [x] Bind each role result and downstream blocker to the assigned generation's frozen Agent ID and GitHub account.
 - [x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.
 
 **Scenarios:** S-02B, S-02J, S-04B, S-04D, S-05A, S-05D…S-05H, S-65, S-66, plus compatible pause/deadline scenarios.
@@ -67,7 +69,7 @@
 - [x] Keep Implement participation open to every eligible Agent ID; selected Spec authors get no implicit privilege or duty.
 - [x] Create non-Triage Release invitations only from pinned completed Work/role outcomes. Gate Triage Release on successful whole-Plan completion.
 - [x] Store declined/stopped/downstream-blocked Triage outcome as linked negative feedback without Release.
-- [x] Expose pure `next_action` with exact Plan/stage/Contract/depth/mode/actor/role/deadline boundary and prove zero writes.
+- [x] Expose pure `next_action` with exact Plan revision/stage/Contract/depth/mode/actor/role/Work-control/deadline context and prove zero writes.
 
 **Scenarios:** S-04C, S-08, S-08A…S-08G, S-10, S-13, plus compatible Release/projection scenarios.
 

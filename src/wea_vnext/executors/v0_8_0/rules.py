@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "f28ea6b551ca4a41f04adefb0edce2d20a6c17fddff5bbbb3d1a870b4727fa7b"
+    "0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -235,6 +235,7 @@ def _validate(content: dict[str, Any]) -> None:
     if content["roles"] != {
         "funding": ["free", "treasury"],
         "hidden_plan_fee": False,
+        "result_authority": "frozen-agent-and-github-account",
         "timeliness": "last-required-result",
         "warning_pause": "agent0-from-active-assigned-triage-or-review-generation",
     }:
@@ -252,6 +253,10 @@ def _validate(content: dict[str, Any]) -> None:
             "pause_evidence": "latest-current-changed-issue-body",
             "resume_evidence": "latest-current-exact-contract-body-after-pause",
         },
+        "common_control": {
+            "confirmation": "public-exact-snapshot-before-selection-or-settlement",
+            "snapshot": "first-work-authority",
+        },
         "event_order": [
             "effective_at",
             "source_id",
@@ -263,8 +268,20 @@ def _validate(content: dict[str, Any]) -> None:
             "progression_pause",
             "risk_pause",
         ],
+        "next_action_context": [
+            "plan_revision_id",
+            "stage",
+            "contract",
+            "depth",
+            "mode",
+            "actor",
+            "role",
+            "work_control",
+            "boundary",
+        ],
         "risk_pause": {
             "admitted_events": [
+                "control_disclosure",
                 "duel_join",
                 "duel_move",
                 "role_resolution",

@@ -879,8 +879,8 @@
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Current base: <code>252c6ca</code> (<code>origin/main</code> after three unrelated BTC snapshot commits). The feature commit is rebased on this base.</li>
-<li>Ruleset <code>0.8</code> SHA-256: <code>f28ea6b551ca4a41f04adefb0edce2d20a6c17fddff5bbbb3d1a870b4727fa7b</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>ef941ce93db42898b1ce514b7bbac312511d8e0345e85ee05a106898a0bcd6c2</code>.</li>
+<li>Ruleset <code>0.8</code> SHA-256: <code>0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>e40c6568144213c3903c5a52cc299c5e9275e8760f88e77b288c75c2abc35482</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
@@ -889,12 +889,13 @@
 <li>Each Plan stage chooses a depth (<code>Explore</code>, <code>Spec</code>, or <code>Implement</code>) and a mode (<code>Ranked</code>, <code>Flat PoD</code>, <code>Frontier</code>, or <code>Duel</code>) allowed by the exact matrix.</li>
 <li>Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top <code>K</code> when eligible Work exceeds <code>K</code>. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable.</li>
 <li>One accepted immutable revision feeds the next child Contract. Ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.</li>
+<li>The first Work event freezes exact author and participant account/control-group authority. Shared control blocks every mode selection and settlement until exact public disclosure confirmation.</li>
 <li>Body pause and resume require exact current Issue revisions. A risk pause keeps submissions open but blocks stage decisions and settlement. Body resume preserves it.</li>
-<li>Frozen pre-pause roles still follow their own terms. Only an exact active Triage or review generation can publish a risk warning.</li>
+<li>Frozen pre-pause roles still follow their own terms. Role evidence must match the assigned Agent ID and GitHub account. Only an exact active Triage or review generation can publish a risk warning.</li>
 <li>Each lifecycle event requires an accepted GitHub source under a complete confirmed read boundary. An approval source must follow its exact Plan source.</li>
 <li>Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.</li>
 <li>Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.</li>
-<li><code>next_action</code> is a pure projection. It reports the exact current actor, role ID/generation, action, and effective boundary without writes. It selects the earliest active role deadline with deterministic tie-breaks.</li>
+<li><code>next_action</code> is a pure projection. It reports the exact Plan revision, current actor, role identity, Work-control restriction, action, and effective boundary without writes.</li>
 <li>Get 10 Issue #10 is preserved as prior art. All six accepted expressions are classified; no new epoch, funding, Issue mutation, or ledger write occurred.</li>
 </ul>
 <h3 id="handoff-exact-bdd-contract">Exact BDD contract</h3>
@@ -907,17 +908,17 @@
 </ul>
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
-<li><code>tests/vnext</code>: <code>387 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4672 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>392 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4677 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Pass 6 was clean. Passes 7–8 found three more defects. All 16 have regression fixes ready for pass 9.</li>
+<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Pass 6 was clean. Passes 7–9 found six more defects. All 19 have regression fixes ready for pass 10.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
 <h3 id="handoff-next-action">Next action</h3>
-<p>Push the pass 8 fixes. Run <code>codex exec review</code> again and fix every actionable finding. Then publish the review-clean handoff and artifact.</p>
+<p>Push the pass 9 fixes. Run <code>codex exec review</code> again and fix every actionable finding. Then publish the review-clean handoff and artifact.</p>
 </div>
     </section>
 
@@ -977,8 +978,9 @@
 <li>[x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.</li>
 <li>[x] Implement Frontier snapshot uniqueness, novelty evidence, validator/<code>needs_author</code>, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.</li>
 <li>[x] Implement Work scope and immutable cross-stage selected input records.</li>
+<li>[x] Freeze author and participant authority on first Work. Require exact public common-control disclosure before selection or settlement in every mode.</li>
 </ul>
-<p><strong>Scenarios:</strong> S-03B, S-04A, S-06C, S-07A, S-07B, S-61…S-64, S-67, S-68, S-69, S-70.</p>
+<p><strong>Scenarios:</strong> S-03B, S-03F, S-04A, S-06C, S-07A, S-07B, S-61…S-64, S-67, S-68, S-69, S-70.</p>
 <p><strong>Files:</strong> <code>executors/v0_8_0/lifecycle.py</code>, <code>test_current_bdd_{work_scope,ranked_progression,mode_expiry,birdie,flat_pod,ranked_settlement}.py</code>, existing Frontier/progression tests.</p>
 <p><strong>Checkpoint:</strong> every mode conserves program escrow and simulated payment failure leaves no acceptance, cursor, status, or money effect.</p>
 <h4 id="tasks-group-c-progression-pauses-roles-stop-and-replan">Group C — progression, pauses, roles, stop, and replan</h4>
@@ -989,6 +991,7 @@
 <li>[x] Keep submissions open during <code>risk_pause</code>. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.</li>
 <li>[x] Permit only frozen pre-pause role evidence and resolution during <code>risk_pause</code>. Reject new role assignments and keep role settlement separate from stage settlement.</li>
 <li>[x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, <code>free/treasury</code> settlement, and replacement races.</li>
+<li>[x] Bind each role result and downstream blocker to the assigned generation's frozen Agent ID and GitHub account.</li>
 <li>[x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.</li>
 </ul>
 <p><strong>Scenarios:</strong> S-02B, S-02J, S-04B, S-04D, S-05A, S-05D…S-05H, S-65, S-66, plus compatible pause/deadline scenarios.</p>
@@ -1000,7 +1003,7 @@
 <li>[x] Keep Implement participation open to every eligible Agent ID; selected Spec authors get no implicit privilege or duty.</li>
 <li>[x] Create non-Triage Release invitations only from pinned completed Work/role outcomes. Gate Triage Release on successful whole-Plan completion.</li>
 <li>[x] Store declined/stopped/downstream-blocked Triage outcome as linked negative feedback without Release.</li>
-<li>[x] Expose pure <code>next_action</code> with exact Plan/stage/Contract/depth/mode/actor/role/deadline boundary and prove zero writes.</li>
+<li>[x] Expose pure <code>next_action</code> with exact Plan revision/stage/Contract/depth/mode/actor/role/Work-control/deadline context and prove zero writes.</li>
 </ul>
 <p><strong>Scenarios:</strong> S-04C, S-08, S-08A…S-08G, S-10, S-13, plus compatible Release/projection scenarios.</p>
 <p><strong>Files:</strong> <code>executors/v0_8_0/lifecycle.py</code>, <code>resolution_plan.py</code>, <code>test_current_bdd_{implement_eligibility,triage_release,next}.py</code>, existing Duel tests.</p>
@@ -1372,6 +1375,7 @@ git diff --check
 <p>The activation group from <code>intake.py</code> remains immutable. Lifecycle events add legal suffixes; they never rewrite Plan approval, the completed prefix, accepted Work revisions, or prior ledger transitions.</p>
 <h4 id="design-d-43-work-selection-and-mode-reducers">D-43. Work, selection, and mode reducers</h4>
 <p>One Work ID is derived from <code>child Contract ID + Agent ID</code>. A Work may receive ordered revisions only inside that Contract. An accepted cross-stage input is an exact immutable <code>(Work ID, revision ID, content hash)</code> tuple; a Work ID never continues into another child Contract.</p>
+<p>The first valid Work event freezes exact author and participant account authority at its effective time. The sealed runtime stores both account and control-group binding versions. A shared control group creates a pending canonical public disclosure. Selection and settlement remain blocked until Tide confirms a separate accepted GitHub revision with the exact disclosure snapshot. Later identity changes do not rewrite this authority record.</p>
 <p>Mode transitions are explicit and atomic:</p>
 <ul>
 <li><strong>Flat PoD:</strong> a pinned normalized validator is preferred where code can decide validity. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. The acceptance that fills the slot cap also closes the stage. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing.</li>
@@ -1383,7 +1387,7 @@ git diff --check
 <h4 id="design-d-44-progression-replan-pause-and-stop">D-44. Progression, replan, pause, and stop</h4>
 <p>After a completed stage, Tide resolves each <code>selected_work_of</code> input to exactly one accepted immutable revision. A valid selector atomically creates the next child Contract and Task from the frozen template and existing program escrow. It creates no author debit, new Plan approval, or second escrow.</p>
 <p>An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning must name one exact active Triage/review role generation. An exact Agent0 declaration can create <code>risk_pause</code> from that warning. A stale, inactive, unassigned, or unrelated role cannot create warning evidence.</p>
-<p>A risk pause permits new Work revisions and valid Duel joins or moves in the active child. Existing deadlines continue to run. The pause blocks these actions:</p>
+<p>A risk pause permits new Work revisions, exact control-disclosure evidence, and valid Duel joins or moves in the active child. Existing deadlines continue to run. The pause blocks these actions:</p>
 <ul>
 <li>Work acceptance and birdie.</li>
 <li>Mode expiry or close.</li>
@@ -1401,11 +1405,11 @@ git diff --check
 <p><code>body_integrity_pause</code> starts from the current accepted changed Issue revision. <code>body_resume</code> names a current accepted revision after the pause start. That revision contains the exact frozen Contract body. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop. A <code>body_resume</code> event does not resolve any other pause.</p>
 <p>Stop is an ordered event boundary. Tide first preserves every legal settlement and complete timely role result before that boundary. It rejects later Work/role evidence, refunds all unused program escrow once, closes active work, and records Plan status <code>stopped</code>. Stop creates no final reward.</p>
 <h4 id="design-d-45-assigned-roles-release-and-feedback">D-45. Assigned roles, Release, and feedback</h4>
-<p>Every role assignment freezes target IDs, duration, generation, actor, and funding source. Current funding is <code>free</code> or <code>treasury</code>; a paid Plan review must be an explicit child stage. Treasury funding atomically reserves the full role amount in a separate role escrow at assignment. Accepted completion pays that escrow once. Rejection or Plan stop returns it to treasury. The last required result time decides timeliness. A later Agent0 resolution does not make a complete timely result late. Partial evidence never completes, pays, blocks stop, or creates Release.</p>
+<p>Every role assignment freezes target IDs, duration, generation, Agent ID, GitHub account, and funding source. Current funding is <code>free</code> or <code>treasury</code>. A paid Plan review must be an explicit child stage. A role result must match both frozen actor fields. Treasury funding atomically reserves the full role amount in a separate role escrow at assignment. Accepted completion pays that escrow once. Rejection or Plan stop returns it to treasury. The last required result time decides timeliness. A later Agent0 resolution does not make a complete timely result late. Partial evidence never completes, pays, blocks stop, or creates Release.</p>
 <p>Non-Triage completed roles and valid completed Implement Work may create Release invitations under the pinned eligibility rules. Triage completion alone creates no Release. A Triage Agent receives Release only after every stage completes successfully. Decline, stop, or a downstream blocker creates no Triage Release. A blocker found after Triage is stored as negative linked feedback.</p>
 <p>The feedback chain is <code>problem revision → Triage proposal → author decision/amendment → execution events → replan/terminal outcome</code>. Semantic advice remains evidence, never an implicit veto.</p>
 <h4 id="design-d-46-read-only-next-action-projection">D-46. Read-only next-action projection</h4>
-<p><code>next_action(state, actor_agent_id)</code> is a pure projection. It returns exact Plan, stage, Contract, depth, mode, actor, role ID and generation, required action, and current deadline or Tide boundary. For multiple active roles, it selects the earliest deadline and uses role ID and generation as tie-breaks. It creates no comment, event, ledger row, or idempotency key. Before a live CLI adapter exists, this pure API is the executable contract for <code>wea next</code>.</p>
+<p><code>next_action(state, actor_agent_id)</code> is a pure projection. It returns the exact Plan revision, stage, Contract, depth, mode, actor, required action, and current deadline or Tide boundary. A role-owned action adds the role ID and generation. A common-control restriction adds the Work ID and control group ID. For multiple active roles, it selects the earliest deadline and uses role ID and generation as tie-breaks. It creates no comment, event, ledger row, or idempotency key. Before a live CLI adapter exists, this pure API is the executable contract for <code>wea next</code>.</p>
 <h4 id="design-d-47-protected-boundaries-recovery-and-ceiling">D-47. Protected boundaries, recovery, and ceiling</h4>
 <ul>
 <li><strong>Money:</strong> every payout/refund is a ledger transition with a predecessor financial hash. <code>deposited = paid + refunded + available</code> always holds. Task-funded hidden roles and fees are impossible.</li>
@@ -2235,19 +2239,24 @@ git diff --check
 <h4 id="spec-modified-r-03-work-belongs-to-one-child-contract">MODIFIED R-03: Work belongs to one child Contract</h4>
 <p>One Work MUST contain all accepted revisions from one Agent ID in one child Contract. A Work MUST NOT continue into another child Contract.</p>
 <p>The next stage MUST receive an exact accepted Work revision as input. Each participating Agent ID MUST get a separate Work in the next child Contract.</p>
+<p>The first valid Work event MUST freeze the exact author and participant account authorities. The snapshot MUST include both control-group binding IDs and versions.</p>
+<p>If both authorities share one control group, Tide MUST require one exact public disclosure. Selection and settlement MUST fail until Tide confirms the disclosure source revision.</p>
+<p>A later identity or control-group change MUST NOT rewrite the Work authority snapshot.</p>
+<p>An open <code>risk_pause</code> can accept exact disclosure evidence. This event MUST NOT accept Work, settle money, or move the stage.</p>
 <h5 id="spec-s-03b">S-03B. A Work continues only inside its child Contract</h5>
 <ul>
 <li><strong>GIVEN:</strong> One Agent ID submits several valid revisions to one active child Contract.</li>
 <li><strong>WHEN:</strong> Tide accepts the revisions and later creates the next child Contract from the selected revision.</li>
 <li><strong>THEN:</strong> The revisions remain in one Work in the first Contract. The selected revision becomes an immutable input of the next Contract.</li>
 <li><strong>THEN:</strong> A submission to the next Contract creates or continues a Work that belongs only to that Contract.</li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_work_scope.py</code> proves both Work IDs, the revision order, and the exact cross-stage input.</li>
+<li><strong>THEN:</strong> Compatible S-03F applies to Ranked, Flat PoD, Frontier, and Duel Work.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_work_scope.py</code> and <code>test_duel.py</code> prove Work scope, frozen authority, disclosure gates, and exact cross-stage input.</li>
 </ul>
 <h4 id="spec-modified-r-04-stage-selection-risk-and-defects">MODIFIED R-04: Stage selection, risk, and defects</h4>
 <p>Ranked underfill MUST pay only eligible assigned ranks. Tide MUST refund missing rank allocations.</p>
 <p>An exact selector MUST create the next child Contract without a new author debit or approval. The selector MUST resolve to one accepted immutable revision.</p>
 <p>An exact active generation of an assigned Triage or review role can publish a formal risk warning. Agent0 can create a <code>risk_pause</code> from that evidence.</p>
-<p>An open <code>risk_pause</code> permits new Work revisions and valid Duel joins or moves in the active Contract.</p>
+<p>An open <code>risk_pause</code> permits new Work revisions, exact control-disclosure evidence, and valid Duel joins or moves in the active Contract.</p>
 <p>It blocks Work acceptance, birdie, mode expiry or close, Ranked order, Frontier close, Duel decision, mode settlement, stage completion, and child materialization.</p>
 <p>A <code>risk_pause</code> MUST NOT move deadlines. It MUST NOT change the completed prefix or the active Contract.</p>
 <p>An assigned role that existed before the pause continues under R-05. Its separate role settlement cannot settle the mode or close the stage.</p>
@@ -2293,17 +2302,19 @@ git diff --check
 </ul>
 <h4 id="spec-modified-r-05-assigned-role-terms-and-money">MODIFIED R-05: Assigned role terms and money</h4>
 <p>Every assigned role MUST have frozen targets, duration, generation, and funding terms before work starts. Current funding terms are <code>free</code> or <code>treasury</code>.</p>
+<p>A role result MUST match the frozen Agent ID and frozen GitHub account.</p>
 <p>A paid Plan review MUST use an explicit child stage. The current ruleset MUST NOT create a hidden task-funded role or review fee.</p>
 <p>Tide MUST create a role deadline from the assignment time and the role duration. A body pause MUST move an open role deadline one time.</p>
 <p>The last complete result before the role deadline MUST control timeliness. A later Agent0 decision MUST NOT make that result late.</p>
 <p>Incomplete role evidence MUST NOT complete a role, block a stop, create a payment, or create a Release invitation.</p>
 <h5 id="spec-s-05a">S-05A. A completed assigned role keeps one settlement</h5>
 <ul>
-<li><strong>GIVEN:</strong> One role has two assignment generations and frozen funding terms. Both generations submit complete valid results before their deadlines.</li>
+<li><strong>GIVEN:</strong> One role has two assignment generations and frozen funding terms. Both generations submit complete results from the frozen actor before their deadlines.</li>
 <li><strong>WHEN:</strong> Agent0 resolves the results and the author later stops the Plan.</li>
 <li><strong>THEN:</strong> Tide records each generation outcome. Tide creates no more than one payment allowed by the frozen role terms.</li>
+<li><strong>THEN:</strong> A result from a later account binding changes nothing.</li>
 <li><strong>THEN:</strong> The stop preserves the legal role settlement and refunds unused program escrow.</li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_role_generations.py</code> proves <code>free</code>, <code>treasury</code>, replacement, completion, stop, and single-settlement replay.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_role_generations.py</code> proves frozen actor authority, funding, replacement, completion, stop, and single-settlement replay.</li>
 </ul>
 <h5 id="spec-s-05c">S-05C. The Plan has no hidden review fee</h5>
 <ul>
@@ -2401,15 +2412,16 @@ git diff --check
 <h4 id="spec-modified-r-13-wea-next-shows-the-exact-plan-context">MODIFIED R-13: <code>wea next</code> shows the exact Plan context</h4>
 <p><code>wea next</code> MUST show the exact Plan revision, stage, child Contract, depth, mode, current actor, required action, and Tide boundary.</p>
 <p>When an assigned role controls the next action, the output MUST show the exact role ID and generation. It MUST select the earliest role deadline.</p>
+<p>When common-control evidence blocks selection or settlement, the output MUST show the exact Work ID and control group ID.</p>
 <p>Equal role deadlines MUST use role ID and generation as deterministic tie-breaks. The command MUST remain read-only.</p>
 <h5 id="spec-s-13">S-13. <code>wea next</code> shows the next exact action</h5>
 <ul>
-<li><strong>GIVEN:</strong> Tide records an active child stage. The actor has zero, one, or several active assigned roles.</li>
+<li><strong>GIVEN:</strong> Tide records an active child stage. The actor has active roles or one Work with pending common-control evidence.</li>
 <li><strong>WHEN:</strong> A participant runs <code>wea next</code> and reads the latest Tide confirmation.</li>
-<li><strong>THEN:</strong> Both outputs show identical Plan, stage, Contract, depth, mode, actor, role ID, generation, action, and Tide boundary values.</li>
+<li><strong>THEN:</strong> Both outputs show identical Plan revision, stage, Contract, depth, mode, actor, role, Work-control, action, and boundary values.</li>
 <li><strong>THEN:</strong> A role-owned action uses the earliest deadline. Equal deadlines use role ID and generation as tie-breaks.</li>
 <li><strong>THEN:</strong> The command creates no comment, transition, or ledger record.</li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_next.py</code> proves stage-owned and role-owned actions, deterministic selection, and read-only behavior.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_next.py</code> and <code>test_current_bdd_work_scope.py</code> prove exact context, deterministic selection, disclosure restriction, and read-only behavior.</li>
 </ul>
 <h4 id="spec-added-r-18-flat-pod-settlement">ADDED R-18: Flat PoD settlement</h4>
 <p>Flat PoD MUST define a positive equal payout and a finite slot count. Each accepted eligible Work MUST occupy and receive no more than one slot.</p>
@@ -2507,8 +2519,8 @@ git diff --check
 </tr>
 <tr>
 <td>R-03</td>
-<td>S-03B</td>
-<td><code>test_current_bdd_work_scope.py</code></td>
+<td>S-03B, S-03F</td>
+<td><code>test_current_bdd_work_scope.py</code>, <code>test_duel.py</code></td>
 </tr>
 <tr>
 <td>R-04</td>
@@ -2538,7 +2550,7 @@ git diff --check
 <tr>
 <td>R-13</td>
 <td>S-13</td>
-<td><code>test_current_bdd_next.py</code></td>
+<td><code>test_current_bdd_next.py</code>, <code>test_current_bdd_work_scope.py</code></td>
 </tr>
 <tr>
 <td>R-18</td>
@@ -3888,7 +3900,7 @@ git diff --check
 <td>Завершённая review-роль до остановки</td>
 <td>Несколько review generations делят один подразумеваемый paid slot task bank.</td>
 <td>Review не является автоматическим налогом Plan. Повторная работа и оплата зависят от заранее объявленного role contract/source.</td>
-<td>Сохранить evidence generations и single-settlement idempotency, но явно различить <code>free</code>, <code>treasury-funded</code> и будущую accepted task-funded role. Stop сохраняет только реально созданное платёжное основание.</td>
+<td>Сохранить evidence generations и single-settlement idempotency, но явно различить <code>free</code>, <code>treasury-funded</code> и будущую accepted task-funded role. Result должен совпадать с замороженными Agent ID и GitHub account. Stop сохраняет только реально созданное платёжное основание.</td>
 </tr>
 <tr>
 <td><code>S-05C</code></td>
@@ -3965,7 +3977,7 @@ git diff --check
 <td><code>wea next</code> показывает следующее действие</td>
 <td>Команда показывает встроенный этап <code>Spec redteam</code>, reviewer и Tide boundary.</td>
 <td>Текущий контекст — Plan revision, active child stage, <code>depth/mode</code> и при необходимости назначенная role; redteam не универсальный этап.</td>
-<td>Показывать exact Plan/stage/Contract IDs, depth, mode, текущего actor, role ID/generation, требуемое action и Tide boundary. При нескольких active roles выбирать ранний deadline, затем role ID/generation. Команда остаётся read-only и совпадает с последним Tide confirmation.</td>
+<td>Показывать exact Plan revision/stage/Contract IDs, depth, mode, actor, role ID/generation, Work/control-group restriction, action и Tide boundary. При нескольких active roles выбирать ранний deadline, затем role ID/generation. Команда остаётся read-only и совпадает с последним Tide confirmation.</td>
 </tr>
 </tbody>
 </table></div>
@@ -4000,6 +4012,7 @@ git diff --check
 <h3 id="bdd-contract-rewrite-сценарии-без-смысловой-правки">Сценарии без смысловой правки</h3>
 <p>Новые matrix/Plan-сценарии уже согласованы с текущей логикой: <code>S-56</code>…<code>S-68</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <p>Ещё 31 baseline-сценарий можно перенести без изменения наблюдаемого поведения после терминологической и version-scope вычитки: <code>S-01</code>, <code>S-01B</code>, <code>S-02D</code>…<code>S-02G</code>, <code>S-03A</code>, <code>S-03C</code>…<code>S-03F</code>, <code>S-05B</code>, <code>S-06</code>, <code>S-06B</code>, <code>S-06D</code>, <code>S-07C</code>, <code>S-08</code>, <code>S-08A</code>…<code>S-08G</code>, <code>S-09</code>, <code>S-09B</code>, <code>S-09C</code>, <code>S-11A</code>, <code>S-11B</code>, <code>S-13B</code>, <code>S-13C</code>. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Для <code>S-03F</code> первый Work event замораживает обе authority. Одна группа контроля блокирует selection и settlement до exact public disclosure revision во всех четырёх mode.</p>
 <p><code>S-08*</code> сохраняет payout и six-move semantics Duel, но окружающий requirement должен называть его <code>Explore/Duel child Contract</code>, а не отдельным task profile. Accepted move numbers строго возрастают. Пропущенный и истёкший slot не требует synthetic move record и не блокирует следующий open slot. Это редакционная правка области применимости, не новый исход сценария.</p>
 <h3 id="bdd-contract-rewrite-что-меняется-вместе-с-принятыми-строками">Что меняется вместе с принятыми строками</h3>
 <p>После принятия решений недостаточно поправить только prose. Для 100% соответствия должны быть синхронизированы:</p>
@@ -4043,7 +4056,7 @@ git diff --check
 </tr>
 <tr>
 <td>Runtime State</td>
-<td>exact verified activation aggregate, ordered verified lifecycle events, canonical replay hash, construction seal</td>
+<td>exact verified activation aggregate, ordered verified lifecycle events, frozen Work authorities, canonical replay hash, construction seal</td>
 </tr>
 <tr>
 <td>Lifecycle Event</td>
@@ -4051,7 +4064,7 @@ git diff --check
 </tr>
 <tr>
 <td>Work</td>
-<td>deterministic Contract + Agent ID, ordered immutable revisions, eligibility status, accepted revision, acceptance authority and validator evidence</td>
+<td>deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, acceptance evidence</td>
 </tr>
 <tr>
 <td>Work Revision</td>
@@ -4063,11 +4076,11 @@ git diff --check
 </tr>
 <tr>
 <td>Role Assignment</td>
-<td>role/generation IDs, assigned Agent/authority, exact target set, positive duration, base/effective due time, funding <code>free/treasury</code>, optional fully funded role escrow</td>
+<td>role/generation IDs, assigned Agent ID and GitHub account, exact targets, duration and due times, funding <code>free/treasury</code>, optional role escrow</td>
 </tr>
 <tr>
 <td>Role Result</td>
-<td>role/generation, exact target subset, result IDs/hashes/times, completeness, last required result time</td>
+<td>role/generation, frozen Agent ID and GitHub account authority, exact target subset, result IDs/hashes/times, completeness, last required result time</td>
 </tr>
 <tr>
 <td>Pause</td>
@@ -4148,6 +4161,11 @@ git diff --check
 <td>participating Agent, pinned validator, or author as defined by Contract</td>
 </tr>
 <tr>
+<td>Disclosure</td>
+<td><code>control_disclosure</code></td>
+<td>Tide confirmation of one separate exact accepted public revision</td>
+</tr>
+<tr>
 <td>Ranked / Flat / Frontier</td>
 <td><code>birdie</code>, <code>ranked_order</code>, <code>frontier_close</code>, <code>mode_expiry</code></td>
 <td>author or Tide boundary as specified</td>
@@ -4180,7 +4198,7 @@ git diff --check
 </tbody>
 </table></div>
 <p>Derived event groups are atomic. A Flat PoD acceptance group contains Work acceptance, slot cursor, payout, financial hashes, and cap closure when full. A Ranked settlement group contains complete order, payouts, underfill refunds, stage close, and selected input. A stop group contains the final legal prefix, unused escrow refund, active closure, and terminal Plan status.</p>
-<p>An open <code>risk_pause</code> admits only active-stage Work revisions, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A warning names one exact active Triage or review generation. A <code>body_pause</code> names the current accepted changed Issue revision. A <code>body_resume</code> names a current accepted revision after the pause start. The resume revision contains the exact frozen Contract body. It closes only the body pause and preserves every open risk or progression pause.</p>
+<p>An open <code>risk_pause</code> admits active-stage Work revisions, exact control-disclosure evidence, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A warning names one exact active Triage or review generation. A <code>body_pause</code> names the current accepted changed Issue revision. A <code>body_resume</code> names a current accepted revision after the pause start. The resume revision contains the exact frozen Contract body. It closes only the body pause and preserves every open risk or progression pause.</p>
 <h4 id="schema-lifecycle-invariants">Lifecycle invariants</h4>
 <ol>
 <li>The activation aggregate is verified before the first lifecycle event.</li>
@@ -4190,14 +4208,15 @@ git diff --check
 <li>A Ranked order is continuous, contains only eligible Works, and has no duplicate or rank beyond the payout vector. It contains <code>min(N,K)</code> Works.</li>
 <li>A selected input names exactly one accepted immutable revision in a completed prior Contract.</li>
 <li>New suffix records cannot change bytes of completed or active Contracts.</li>
-<li>A role generation has one frozen target set, actor, duration, and funding source. Partial or late evidence cannot be complete.</li>
+<li>A role generation has one frozen target set, Agent ID, GitHub account, duration, and funding source. Partial, late, or differently authored evidence cannot be complete.</li>
 <li>A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.</li>
 <li>Triage Release exists only after successful Plan completion. A stopped, declined, or blocked Plan can create linked negative feedback instead.</li>
-<li><code>next_action</code> is derived from projection and never appears as a lifecycle event. A role-owned action contains role ID and generation. The earliest deadline wins.</li>
+<li><code>next_action</code> is derived from projection and never appears as a lifecycle event. It identifies the Plan revision. Role and Work-control restrictions contain their exact IDs.</li>
 <li>A risk pause does not move deadlines. Only <code>body_integrity_pause</code> can add a one-time deadline offset.</li>
 <li>Only an exact active Triage or review role generation can publish a risk warning.</li>
 <li>Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.</li>
 <li>Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move.</li>
+<li>The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.</li>
 </ol>
 <h4 id="schema-compatibility-and-storage-boundary">Compatibility and storage boundary</h4>
 <p>Schema <code>1.0</code> exists only inside the full <code>v0_8_0</code> closure. Ruleset <code>0.7</code>, executor <code>v0_7_0</code>, and schema <code>0.9</code> remain unchanged. There is no record conversion, public durable deserializer, live writer, bootstrap, or ledger migration in this delivery. Test and shadow state may be discarded and replayed.</p>
@@ -5735,7 +5754,7 @@ git diff --check
 <p>Decision: <code>Implementation verified — independent PR review pending</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
 <p>Статус независимой проверки: <code>Pending</code>.</p>
-<p>Текущий review gate: <code>Pass 8 fixed; pass 9 pending</code>.</p>
+<p>Текущий review gate: <code>Pass 9 fixed; pass 10 pending</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5778,8 +5797,8 @@ git diff --check
 </tr>
 </tbody>
 </table></div>
-<p>Ruleset <code>0.8</code> SHA-256: <code>f28ea6b551ca4a41f04adefb0edce2d20a6c17fddff5bbbb3d1a870b4727fa7b</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>ef941ce93db42898b1ce514b7bbac312511d8e0345e85ee05a106898a0bcd6c2</code>.</p>
+<p>Ruleset <code>0.8</code> SHA-256: <code>0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>e40c6568144213c3903c5a52cc299c5e9275e8760f88e77b288c75c2abc35482</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5802,6 +5821,10 @@ git diff --check
 <td>Ranked pays an exact author-selected top <code>K</code> when submissions exceed paid ranks. Flat PoD, Frontier, and Duel have exact admission, deadlines, payout, refund, underfill, and expiry behavior. Flat PoD closes in the acceptance that fills its slot cap. Settlement transitions are atomic and idempotent.</td>
 </tr>
 <tr>
+<td>Common control</td>
+<td>The first Work event freezes exact author and participant account/control-group authority. Shared control blocks selection and settlement in every mode until exact public disclosure confirmation.</td>
+</tr>
+<tr>
 <td>Progression</td>
 <td>The next child uses one exact immutable selected revision. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix.</td>
 </tr>
@@ -5811,7 +5834,7 @@ git diff --check
 </tr>
 <tr>
 <td>Assigned roles</td>
-<td>Frozen targets, generations, deadlines, <code>free</code> or separately escrowed <code>treasury</code> funding, replacement races, and ordered stop behavior are explicit. Only an exact active Triage or review generation can publish a risk warning.</td>
+<td>Frozen targets, Agent ID, GitHub account, generations, deadlines, funding, replacement races, and ordered stop behavior are explicit. Only an exact active Triage or review generation can publish a risk warning.</td>
 </tr>
 <tr>
 <td>Duel</td>
@@ -5823,7 +5846,7 @@ git diff --check
 </tr>
 <tr>
 <td>Read-only projection</td>
-<td><code>next_action</code> reports the exact Plan, stage, Contract, mode, actor, role ID/generation, action, and effective boundary without writes. It selects the earliest active role deadline.</td>
+<td><code>next_action</code> reports the exact Plan revision, stage, Contract, mode, actor, role identity, Work-control restriction, action, and effective boundary without writes.</td>
 </tr>
 <tr>
 <td>Get 10</td>
@@ -5852,12 +5875,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>387 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>392 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4672 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4677 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5877,7 +5900,7 @@ git diff --check
 <tr>
 <td>Independent review</td>
 <td><code>codex exec review --base origin/main</code> on draft PR #941</td>
-<td>Passes 1–5 found 13 defects. Pass 6 was clean. Pass 7 found one P1 Duel-order defect. Pass 8 found one P1 Ranked-overfill defect and one P2 role-action identity defect. All 16 have regression fixes. Pass 9 is pending.</td>
+<td>Passes 1–5 found 13 defects. Pass 6 was clean. Pass 7 found one P1 Duel-order defect. Pass 8 found two settlement/action defects. Pass 9 found three authority-context defects. All 19 have regression fixes. Pass 10 is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6157,13 +6180,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>fc89a44a51b4b7b64c6d03fe777bcd719c107ea4525915d179beafffea8defb4</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>740c8b1e92be37e29a83b620a37803bba994335edc2f476309680cdf4994efbc</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>70a09f21979beb11c7e8e25b96e1c1dff72fde60c607b70832d8cf9a7ae0fe1b</code></td></tr><tr><td><code>tasks.md</code></td><td><code>380a71fb94a7e50555618afb86e33257019ff339bf36295ccebb77201a340731</code></td></tr><tr><td><code>design.md</code></td><td><code>a86c85a8aece45f69db0d024a5bd2b1c13c848b2674c529f41fc63eb2ee25053</code></td></tr><tr><td><code>outcome.md</code></td><td><code>46701133daa71aaf74068c47266d6737c873cfe1f04cf428d467b282dffd5a08</code></td></tr><tr><td><code>spec.md</code></td><td><code>1d2401612eb016e786b969fa6d54e55bef0a593937026b4185fa6102c77b111b</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9fcea63decc0d1ee81207fc947a5754204a052c311a54bacdf3d05c81d230e5e</code></td></tr><tr><td><code>schema.md</code></td><td><code>1d83ea33dba8f3f999548f53efd40ee97e6b7e7b29a6ee8faa6367fed89162bb</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>3e3b1473bb4bdffac4d28b0c15543cd4132f4c8b3dc98f040df23c1858779401</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>bc96ec96356d41e3ff890aefeafa8902f8b7ae33842b91719f60df451e118536</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>d669fee290b835dcc4adb450a00e80aba58b9d9810f5f4f972105004b16d29b6</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>2475816df69b61b8408d2278fbdf0e2dcd52d2354a21ef522c02ab6b75bd73e7</code></td></tr><tr><td><code>tasks.md</code></td><td><code>3b8a1f65064d52eba7cdfa59bc367d59c862696cba5ce38b92c2dce0107554e5</code></td></tr><tr><td><code>design.md</code></td><td><code>037fba5c08393eaa3faff0b3ba1898e1a4b299360e9a8f55ee863914e8cecb12</code></td></tr><tr><td><code>outcome.md</code></td><td><code>46701133daa71aaf74068c47266d6737c873cfe1f04cf428d467b282dffd5a08</code></td></tr><tr><td><code>spec.md</code></td><td><code>0933a7e5fd3a80eaea87cf8394fc15aab0f889ed168d98c22a240b5085595f19</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>dbf89f95e2b8b20fcac69a3a31f81cebf1a5d77fa88e6febf1d7d3e746686e5e</code></td></tr><tr><td><code>schema.md</code></td><td><code>7b59802881cb6662b8069cf365cf8a200d6d597c56c811e7fc637e56870d117e</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>3e3b1473bb4bdffac4d28b0c15543cd4132f4c8b3dc98f040df23c1858779401</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>162875d96eb0f8de040b193386ce90590c0628eb6dc21e2ee163373ac53d7860</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>d669fee290b835dcc4adb450a00e80aba58b9d9810f5f4f972105004b16d29b6</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6285,7 +6308,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: fc89a44a51b4b7b64c6d03fe777bcd719c107ea4525915d179beafffea8defb4",
+          "- Хеш исходных файлов: 740c8b1e92be37e29a83b620a37803bba994335edc2f476309680cdf4994efbc",
           ""
         ];
         cards

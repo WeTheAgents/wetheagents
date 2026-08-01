@@ -12,9 +12,12 @@ from typing import Any
 from .canonical import canonical_dumps, canonical_hash, freeze_json, thaw_json
 from .deadlines import apply_pause_offset, duel_windows, materialize_deadline
 from .identity import (
+    ControlDisclosure,
+    IdentityAuthority,
     IdentityError,
     IdentityRegistry,
     authorize_agent,
+    control_disclosure_requirement,
     resolve_binding,
 )
 from .intake import (
@@ -45,6 +48,7 @@ _EVENT_KINDS = {
     "birdie",
     "body_pause",
     "body_resume",
+    "control_disclosure",
     "downstream_blocker",
     "duel_decision",
     "duel_join",
@@ -313,11 +317,74 @@ class WorkRevision:
 
 
 @dataclass(frozen=True)
+class WorkAuthority:
+    created_event_id: str
+    work_id: str
+    contract_id: str
+    author: IdentityAuthority
+    participant: IdentityAuthority
+    disclosure: ControlDisclosure | None
+
+    def __post_init__(self) -> None:
+        for field in ("created_event_id", "work_id", "contract_id"):
+            _text(field, getattr(self, field))
+        if type(self.author) is not IdentityAuthority or type(
+            self.participant
+        ) is not IdentityAuthority:
+            raise PlanError("identity: Work authority requires exact identity records")
+        if self.author.effective_at != self.participant.effective_at:
+            raise PlanError("identity: Work authority times do not match")
+        if self.disclosure is not None:
+            if type(self.disclosure) is not ControlDisclosure:
+                raise PlanError("identity: Work disclosure has an invalid type")
+            if (
+                self.disclosure.work_id != self.work_id
+                or self.disclosure.contract_id != self.contract_id
+                or self.disclosure.author_agent_id != self.author.agent_id
+                or self.disclosure.participant_agent_id != self.participant.agent_id
+                or self.disclosure.control_group_id != self.author.control_group_id
+                or self.disclosure.control_group_id
+                != self.participant.control_group_id
+                or self.disclosure.author_group_binding_id
+                != self.author.control_group_binding_id
+                or self.disclosure.author_group_binding_version
+                != self.author.control_group_binding_version
+                or self.disclosure.participant_group_binding_id
+                != self.participant.control_group_binding_id
+                or self.disclosure.participant_group_binding_version
+                != self.participant.control_group_binding_version
+                or self.disclosure.effective_at != self.author.effective_at
+            ):
+                raise PlanError("identity: Work disclosure does not match authority")
+
+    @property
+    def selection_allowed(self) -> bool:
+        return self.disclosure is None or self.disclosure.selection_allowed
+
+    @property
+    def settlement_allowed(self) -> bool:
+        return self.disclosure is None or self.disclosure.settlement_allowed
+
+    def to_data(self) -> dict[str, object]:
+        return {
+            "author": self.author.to_data(),
+            "contract_id": self.contract_id,
+            "created_event_id": self.created_event_id,
+            "disclosure": None
+            if self.disclosure is None
+            else self.disclosure.to_data(),
+            "participant": self.participant.to_data(),
+            "work_id": self.work_id,
+        }
+
+
+@dataclass(frozen=True)
 class WorkState:
     work_id: str
     contract_id: str
     agent_id: str
     revisions: tuple[WorkRevision, ...]
+    authority: WorkAuthority
     accepted_revision_id: str | None = None
     needs_author: bool = False
 
@@ -447,6 +514,7 @@ class RuntimeProjection:
 @dataclass(frozen=True)
 class NextAction:
     plan_id: str
+    plan_revision_id: str
     stage_key: str
     contract_id: str
     depth: str
@@ -456,6 +524,8 @@ class NextAction:
     boundary_at: datetime | None
     role_id: str | None
     role_generation: int | None
+    work_id: str | None
+    control_group_id: str | None
 
 
 def _runtime_state_seals() -> tuple[Any, Any]:
@@ -557,6 +627,7 @@ def _assert_activation_group(activation: PlanActivation) -> None:
 class ResolutionPlanRuntimeState:
     activation: PlanActivation
     events: tuple[LifecycleEvent, ...] = ()
+    work_authorities: tuple[WorkAuthority, ...] = ()
 
     def __post_init__(self) -> None:
         if type(self.activation) is not PlanActivation:
@@ -576,6 +647,19 @@ class ResolutionPlanRuntimeState:
             _rebuild(item, LifecycleEvent, "lifecycle event") for item in self.events
         )
         object.__setattr__(self, "events", rebuilt)
+        if type(self.work_authorities) is not tuple or any(
+            type(item) is not WorkAuthority for item in self.work_authorities
+        ):
+            raise PlanError("identity: Work authorities require exact records")
+        work_ids = [item.work_id for item in self.work_authorities]
+        event_ids = [item.created_event_id for item in self.work_authorities]
+        if len(work_ids) != len(set(work_ids)) or len(event_ids) != len(set(event_ids)):
+            raise PlanError("identity: Work authority records must be unique")
+        object.__setattr__(
+            self,
+            "work_authorities",
+            tuple(sorted(self.work_authorities, key=lambda item: item.work_id)),
+        )
         _remember_runtime_state(self, self.state_hash)
 
     @property
@@ -585,6 +669,9 @@ class ResolutionPlanRuntimeState:
                 "activation_state_hash": self.activation.state.state_hash,
                 "plan_id": self.activation.plan.plan_id,
                 "events": [item.to_data() for item in self.events],
+                "work_authorities": [
+                    item.to_data() for item in self.work_authorities
+                ],
             }
         )
 
@@ -594,11 +681,14 @@ class ResolutionPlanRuntimeState:
 
 
 def _verified_runtime_state(
-    activation: PlanActivation, events: tuple[LifecycleEvent, ...]
+    activation: PlanActivation,
+    events: tuple[LifecycleEvent, ...],
+    work_authorities: tuple[WorkAuthority, ...],
 ) -> ResolutionPlanRuntimeState:
     state = object.__new__(ResolutionPlanRuntimeState)
     object.__setattr__(state, "activation", activation)
     object.__setattr__(state, "events", events)
+    object.__setattr__(state, "work_authorities", work_authorities)
     object.__setattr__(state, "_verified_marker", _RUNTIME_STATE_CAPABILITY)
     try:
         state.__post_init__()
@@ -627,9 +717,15 @@ class _Model:
     triage_feedback: list[TriageFeedback]
     future_stages: list[PlanStage]
     warnings: dict[str, str]
+    authority_records: dict[str, WorkAuthority]
+    work_authorities: dict[str, WorkAuthority]
+    activated_authority_events: set[str]
 
 
-def _initial_model(activation: PlanActivation) -> _Model:
+def _initial_model(
+    activation: PlanActivation,
+    work_authorities: tuple[WorkAuthority, ...],
+) -> _Model:
     first = StageState(
         stage_index=0,
         stage_key=activation.contract.stage_key,
@@ -654,6 +750,9 @@ def _initial_model(activation: PlanActivation) -> _Model:
         triage_feedback=[],
         future_stages=list(activation.plan.stages),
         warnings={},
+        authority_records={item.created_event_id: item for item in work_authorities},
+        work_authorities={},
+        activated_authority_events=set(),
     )
 
 
@@ -766,6 +865,35 @@ def _replace_work(stage: StageState, work: WorkState, **changes: object) -> Stag
     )
 
 
+def _activate_work_authority(
+    model: _Model,
+    event: LifecycleEvent,
+    *,
+    contract_id: str,
+    work_identifier: str,
+) -> WorkAuthority:
+    current = model.work_authorities.get(work_identifier)
+    if current is not None:
+        return current
+    authority = model.authority_records.get(event.event_id)
+    if (
+        authority is None
+        or authority.work_id != work_identifier
+        or authority.contract_id != contract_id
+    ):
+        raise PlanError("identity: first Work revision lacks frozen authority")
+    model.work_authorities[work_identifier] = authority
+    model.activated_authority_events.add(event.event_id)
+    return authority
+
+
+def _require_disclosed(work: WorkState) -> None:
+    if not work.authority.selection_allowed or not work.authority.settlement_allowed:
+        raise PlanError(
+            "identity: common-control disclosure must precede selection and settlement"
+        )
+
+
 def _active_body_pause(model: _Model) -> PauseState | None:
     return next(
         (
@@ -862,6 +990,7 @@ def _selected_input(stage: StageState, revision_id: str) -> ResolvedWorkInput:
     if len(matches) != 1:
         raise PlanError("evidence_boundary: selector must name one accepted revision")
     work, revision = matches[0]
+    _require_disclosed(work)
     return ResolvedWorkInput(
         source_stage_key=stage.stage_key,
         source_contract_id=stage.contract.contract_id,
@@ -1068,7 +1197,12 @@ def _authorize_event(
         event.actor_kind != "agent0" or event.actor_id != "agent0@system"
     ):
         raise PlanError("authority: exact Agent0 declaration is required")
-    if event.kind in {"mode_expiry", "body_pause", "body_resume"} and (
+    if event.kind in {
+        "body_pause",
+        "body_resume",
+        "control_disclosure",
+        "mode_expiry",
+    } and (
         event.actor_kind != "tide"
     ):
         raise PlanError("authority: Tide boundary is required")
@@ -1081,7 +1215,11 @@ def _authorize_event(
             for item in projection.roles
             if item.role_id == role_id and item.generation == generation
         ]
-        if len(matches) != 1 or event.actor_id != matches[0].assigned_agent_id:
+        if (
+            len(matches) != 1
+            or event.actor_id != matches[0].assigned_agent_id
+            or event.actor_account_id != matches[0].assigned_account_id
+        ):
             raise PlanError("authority: role result requires the assigned actor")
     if event.kind == "role_assignment":
         data = thaw_json(event.payload)
@@ -1101,7 +1239,11 @@ def _authorize_event(
             for item in projection.roles
             if item.role_id == role_id and item.status == "active"
         ]
-        if not matches or event.actor_id != matches[-1].assigned_agent_id:
+        if (
+            not matches
+            or event.actor_id != matches[-1].assigned_agent_id
+            or event.actor_account_id != matches[-1].assigned_account_id
+        ):
             raise PlanError("authority: blocker requires the assigned active role")
 
 
@@ -1126,6 +1268,12 @@ def _work_revision(model: _Model, event: LifecycleEvent) -> None:
         raise PlanError("authority: author cannot submit Work to own Plan")
     identifier = work_id(stage.contract.contract_id, event.actor_id)
     existing = next((item for item in stage.works if item.work_id == identifier), None)
+    authority = _activate_work_authority(
+        model,
+        event,
+        contract_id=stage.contract.contract_id,
+        work_identifier=identifier,
+    )
     revisions = () if existing is None else existing.revisions
     expected_revision = work_revision_id(identifier, len(revisions) + 1)
     if data["revision_id"] != expected_revision:
@@ -1164,6 +1312,7 @@ def _work_revision(model: _Model, event: LifecycleEvent) -> None:
         contract_id=stage.contract.contract_id,
         agent_id=event.actor_id,
         revisions=(*revisions, revision),
+        authority=authority,
         accepted_revision_id=(
             None if existing is None else existing.accepted_revision_id
         ),
@@ -1247,6 +1396,7 @@ def _work_acceptance(
         return
     if verdict != "accept":
         raise PlanError("declaration: Work verdict is invalid")
+    _require_disclosed(work)
     if work.accepted_revision_id is not None:
         raise PlanError("state: one Work can consume at most one slot")
     if stage.contract.mode == "frontier" and data["novel"] is not True:
@@ -1302,6 +1452,8 @@ def _ranked_order(
     expected_count = min(len(eligible), len(vector))
     if len(ordered) != expected_count or not set(ordered).issubset(eligible):
         raise PlanError("matrix: Ranked order must fill each available paid rank")
+    for identifier in ordered:
+        _require_disclosed(_work(stage, identifier))
     selected = _text("selected_revision_id", data["selected_revision_id"])
     winner = _work(stage, ordered[0])
     if selected not in {item.revision_id for item in winner.revisions if item.eligible}:
@@ -1591,6 +1743,12 @@ def _duel_move(model: _Model, event: LifecycleEvent) -> None:
         raise PlanError("state: Duel move is outside its exact window")
     identifier = work_id(stage.contract.contract_id, event.actor_id)
     existing = next((item for item in stage.works if item.work_id == identifier), None)
+    authority = _activate_work_authority(
+        model,
+        event,
+        contract_id=stage.contract.contract_id,
+        work_identifier=identifier,
+    )
     revisions = () if existing is None else existing.revisions
     expected_revision = work_revision_id(identifier, len(revisions) + 1)
     if data["revision_id"] != expected_revision:
@@ -1606,6 +1764,7 @@ def _duel_move(model: _Model, event: LifecycleEvent) -> None:
         contract_id=stage.contract.contract_id,
         agent_id=event.actor_id,
         revisions=(*revisions, revision),
+        authority=authority,
         accepted_revision_id=None
         if existing is None
         else existing.accepted_revision_id,
@@ -1718,6 +1877,10 @@ def _settle_duel(
     else:
         raise PlanError("declaration: no-completer settlement requires Tide expiry")
     vector = table[outcome]
+    for participant in ordered:
+        _require_disclosed(
+            next(item for item in stage.works if item.agent_id == participant)
+        )
     paid = 0
     for index, percentage in enumerate(vector[:2]):
         if percentage and index < len(ordered):
@@ -1797,6 +1960,38 @@ def _duel_decision(
         data["outcome"],
         data["winner_agent_id"],
     )
+
+
+def _control_disclosure(model: _Model, event: LifecycleEvent) -> None:
+    data = _payload(
+        event,
+        {
+            "contract_id",
+            "disclosure_revision_id",
+            "disclosure_source_id",
+            "work_id",
+        },
+    )
+    if not _active_contract_accepts_work(model):
+        raise PlanError("state: Plan does not accept control disclosure evidence")
+    stage = _stage_for_contract(model, _text("contract_id", data["contract_id"]))
+    work = _work(stage, _text("work_id", data["work_id"]))
+    disclosure = work.authority.disclosure
+    if disclosure is None or disclosure.confirmed:
+        raise PlanError("identity: Work has no pending common-control disclosure")
+    try:
+        confirmed = disclosure.confirm(
+            revision_id=_text(
+                "disclosure_revision_id", data["disclosure_revision_id"]
+            ),
+            snapshot=disclosure.expected_snapshot,
+        )
+    except IdentityError as exc:
+        raise PlanError("identity: control disclosure confirmation is invalid") from exc
+    authority = replace(work.authority, disclosure=confirmed)
+    model.work_authorities[work.work_id] = authority
+    updated = _replace_work(stage, work, authority=authority)
+    _replace_stage(model, stage, works=updated.works)
 
 
 def _role_assignment(
@@ -2340,6 +2535,8 @@ def _apply_event(
         _duel_move(model, event)
     elif event.kind == "duel_decision":
         _duel_decision(model, activation, event)
+    elif event.kind == "control_disclosure":
+        _control_disclosure(model, event)
     elif event.kind == "role_assignment":
         _role_assignment(model, activation, event)
     elif event.kind == "role_result":
@@ -2367,11 +2564,15 @@ def _apply_event(
 
 
 def _projection(
-    activation: PlanActivation, events: tuple[LifecycleEvent, ...]
+    activation: PlanActivation,
+    events: tuple[LifecycleEvent, ...],
+    work_authorities: tuple[WorkAuthority, ...],
 ) -> RuntimeProjection:
-    model = _initial_model(activation)
+    model = _initial_model(activation, work_authorities)
     for event in events:
         _apply_event(model, activation, event)
+    if model.activated_authority_events != set(model.authority_records):
+        raise PlanError("identity: Work authority record does not match event history")
     deposited = activation.escrow.deposited_wea
     escrow = ProgramEscrow(
         escrow_id=activation.escrow.escrow_id,
@@ -2409,7 +2610,7 @@ def project_runtime(state: ResolutionPlanRuntimeState) -> RuntimeProjection:
     if type(state) is not ResolutionPlanRuntimeState:
         raise PlanError("evidence_boundary: runtime state must use exact verified type")
     state._assert_unchanged()
-    return _projection(state.activation, state.events)
+    return _projection(state.activation, state.events, state.work_authorities)
 
 
 def _require_issue_body_evidence(
@@ -2463,6 +2664,164 @@ def _require_issue_body_evidence(
         )
 
 
+def _require_control_disclosure_evidence(
+    state: ResolutionPlanRuntimeState,
+    projection: RuntimeProjection,
+    event: LifecycleEvent,
+    github_state: ProtocolState,
+) -> None:
+    if event.kind != "control_disclosure":
+        return
+    data = _payload(
+        event,
+        {
+            "contract_id",
+            "disclosure_revision_id",
+            "disclosure_source_id",
+            "work_id",
+        },
+    )
+    source_id = _text("disclosure_source_id", data["disclosure_source_id"])
+    revision_id = _text(
+        "disclosure_revision_id", data["disclosure_revision_id"]
+    )
+    if source_id == event.source_id or revision_id == event.source_revision_id:
+        raise PlanError("evidence_boundary: disclosure needs a separate public source")
+    matches = [
+        work
+        for stage in projection.stages
+        if stage.contract.contract_id == data["contract_id"]
+        for work in stage.works
+        if work.work_id == data["work_id"]
+    ]
+    if len(matches) != 1:
+        raise PlanError("evidence_boundary: disclosure Work is not in the Plan")
+    disclosure = matches[0].authority.disclosure
+    if disclosure is None or disclosure.confirmed:
+        raise PlanError("identity: Work has no pending common-control disclosure")
+    used_revisions = {
+        state.activation.draft.issue_revision_id,
+        *(item.source_revision_id for item in state.activation.state.plan_revisions),
+        *(item.source_revision_id for item in state.activation.state.decisions),
+        *(
+            source_revision_id
+            for item in state.activation.state.triage_assessments
+            for source_revision_id in (
+                item.assignment_source_revision_id,
+                item.source_revision_id,
+                item.completion_source_revision_id,
+            )
+        ),
+        *(item.source_revision_id for item in state.events),
+        *(
+            thaw_json(item.payload).get("disclosure_revision_id")
+            for item in state.events
+            if item.kind == "control_disclosure"
+        ),
+    }
+    if revision_id in used_revisions:
+        raise PlanError("evidence_boundary: disclosure revision is globally single-use")
+    source_matches = [
+        item
+        for item in github_state.events
+        if item.repository_id == state.activation.draft.repository_id
+        and item.object_kind == "issue_comment"
+        and item.object_id == source_id
+        and item.revision_id == revision_id
+    ]
+    if len(source_matches) != 1:
+        raise PlanError("evidence_boundary: exact accepted GitHub revision is missing")
+    disclosure_effective_at = source_matches[0].effective_at
+    if not (
+        disclosure.effective_at <= disclosure_effective_at <= event.effective_at
+    ):
+        raise PlanError(
+            "evidence_boundary: disclosure source is outside its Work boundary"
+        )
+    _require_github_event(
+        github_state,
+        repository_id=state.activation.draft.repository_id,
+        object_kind="issue_comment",
+        object_id=source_id,
+        revision_id=revision_id,
+        actor_account_id=event.actor_account_id,
+        body=disclosure.expected_snapshot,
+        body_hash=hashlib.sha256(
+            disclosure.expected_snapshot.encode("utf-8")
+        ).hexdigest(),
+        effective_at=disclosure_effective_at,
+        must_be_latest=True,
+    )
+
+
+def _candidate_work_authorities(
+    state: ResolutionPlanRuntimeState,
+    projection: RuntimeProjection,
+    event: LifecycleEvent,
+    registry: IdentityRegistry,
+) -> tuple[WorkAuthority, ...]:
+    if event.kind not in {"duel_move", "work_revision"}:
+        return state.work_authorities
+    data = thaw_json(event.payload)
+    if type(data) is not dict:
+        raise PlanError("declaration: Work payload must be an object")
+    contract_id = _text("contract_id", data.get("contract_id"))
+    stages = [
+        item for item in projection.stages if item.contract.contract_id == contract_id
+    ]
+    if len(stages) != 1:
+        raise PlanError("evidence_boundary: child Contract is not in this Plan")
+    if event.actor_id == state.activation.plan.author_agent_id:
+        raise PlanError("authority: author cannot submit Work to own Plan")
+    identifier = work_id(contract_id, event.actor_id)
+    if any(item.work_id == identifier for item in stages[0].works):
+        return state.work_authorities
+    if any(item.work_id == identifier for item in state.work_authorities):
+        raise PlanError("identity: Work authority precedes its first revision")
+    try:
+        author_bindings = [
+            item
+            for item in registry.bindings
+            if item.actor_kind == "agent"
+            and item.subject_id == state.activation.plan.author_agent_id
+            and item.active_at(event.effective_at)
+        ]
+        if len(author_bindings) != 1:
+            raise IdentityError("Plan author binding is not unique")
+        author = authorize_agent(
+            github_account_id=author_bindings[0].github_account_id,
+            agent_id=state.activation.plan.author_agent_id,
+            effective_at=event.effective_at,
+            registry=registry,
+        )
+        participant = authorize_agent(
+            github_account_id=event.actor_account_id,
+            agent_id=event.actor_id,
+            effective_at=event.effective_at,
+            registry=registry,
+        )
+        disclosure = control_disclosure_requirement(
+            contract_id=contract_id,
+            work_id=identifier,
+            author=author,
+            participant=participant,
+            registry=registry,
+        )
+    except IdentityError as exc:
+        raise PlanError("identity: Work authority cannot be frozen") from exc
+    candidate = WorkAuthority(
+        created_event_id=event.event_id,
+        work_id=identifier,
+        contract_id=contract_id,
+        author=author,
+        participant=participant,
+        disclosure=disclosure,
+    )
+    return tuple(
+        sorted((*state.work_authorities, candidate), key=lambda item: item.work_id)
+    )
+
+
 def apply_lifecycle_event(
     state: ResolutionPlanRuntimeState,
     event: LifecycleEvent,
@@ -2507,6 +2866,11 @@ def apply_lifecycle_event(
                 item.completion_source_revision_id,
             )
         ),
+        *(
+            thaw_json(item.payload).get("disclosure_revision_id")
+            for item in state.events
+            if item.kind == "control_disclosure"
+        ),
     }
     if event.source_revision_id in intake_source_revisions:
         raise PlanError("evidence_boundary: source revision is globally single-use")
@@ -2524,10 +2888,16 @@ def apply_lifecycle_event(
         raise PlanError("evidence_boundary: lifecycle event must append in exact order")
     current = project_runtime(state)
     _require_issue_body_evidence(state, current, event, github_state)
+    _require_control_disclosure_evidence(state, current, event, github_state)
     _authorize_event(current, state.activation, event, registry)
+    candidate_authorities = _candidate_work_authorities(
+        state, current, event, registry
+    )
     candidate_events = (*state.events, event)
-    _projection(state.activation, candidate_events)
-    return _verified_runtime_state(state.activation, candidate_events)
+    _projection(state.activation, candidate_events, candidate_authorities)
+    return _verified_runtime_state(
+        state.activation, candidate_events, candidate_authorities
+    )
 
 
 def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextAction:
@@ -2540,6 +2910,23 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
     is_author = actor_agent_id == state.activation.plan.author_agent_id
     role_id = None
     role_generation = None
+    blocked_work_id = None
+    control_group_id = None
+    pending_disclosures = sorted(
+        (
+            work
+            for work in stage.works
+            if work.authority.disclosure is not None
+            and not work.authority.disclosure.confirmed
+            and (is_author or work.agent_id == actor_agent_id)
+        ),
+        key=lambda item: item.work_id,
+    )
+    if pending_disclosures:
+        blocked_work_id = pending_disclosures[0].work_id
+        disclosure = pending_disclosures[0].authority.disclosure
+        assert disclosure is not None
+        control_group_id = disclosure.control_group_id
     if projection.plan_status in {"completed", "stopped"}:
         action = f"no action; Plan is {projection.plan_status}"
         boundary = None
@@ -2578,6 +2965,24 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             boundary = role.effective_due_at
             role_id = role.role_id
             role_generation = role.generation
+        elif pending_disclosures and is_author:
+            action = "wait for the public common-control disclosure"
+            if stage.phase == "decision":
+                boundary = _stage_deadline(
+                    stage, "author_decision"
+                ).effective_due_at
+            elif stage.contract.mode == "duel" and stage.phase == "moves":
+                number = max((item[0] for item in stage.duel_moves), default=0) + 1
+                boundary = next(
+                    item.effective_due_at
+                    for item in stage.deadlines
+                    if item.kind == f"move-{number}"
+                )
+            else:
+                boundary = (
+                    stage.birdie_at
+                    or _stage_deadline(stage, "intake").effective_due_at
+                )
         elif stage.contract.mode == "ranked" and stage.phase == "decision":
             action = (
                 "publish the exact Ranked order"
@@ -2628,6 +3033,7 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             )
     return NextAction(
         plan_id=projection.plan_id,
+        plan_revision_id=state.activation.plan.plan_revision_id,
         stage_key=stage.stage_key,
         contract_id=stage.contract.contract_id,
         depth=stage.contract.depth,
@@ -2637,6 +3043,8 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
         boundary_at=boundary,
         role_id=role_id,
         role_generation=role_generation,
+        work_id=blocked_work_id,
+        control_group_id=control_group_id,
     )
 
 
@@ -2651,6 +3059,7 @@ __all__ = [
     "Settlement",
     "StageState",
     "TriageFeedback",
+    "WorkAuthority",
     "WorkRevision",
     "WorkState",
     "apply_lifecycle_event",

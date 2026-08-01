@@ -62,6 +62,8 @@ The activation group from `intake.py` remains immutable. Lifecycle events add le
 
 One Work ID is derived from `child Contract ID + Agent ID`. A Work may receive ordered revisions only inside that Contract. An accepted cross-stage input is an exact immutable `(Work ID, revision ID, content hash)` tuple; a Work ID never continues into another child Contract.
 
+The first valid Work event freezes exact author and participant account authority at its effective time. The sealed runtime stores both account and control-group binding versions. A shared control group creates a pending canonical public disclosure. Selection and settlement remain blocked until Tide confirms a separate accepted GitHub revision with the exact disclosure snapshot. Later identity changes do not rewrite this authority record.
+
 Mode transitions are explicit and atomic:
 
 - **Flat PoD:** a pinned normalized validator is preferred where code can decide validity. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. The acceptance that fills the slot cap also closes the stage. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing.
@@ -77,7 +79,7 @@ After a completed stage, Tide resolves each `selected_work_of` input to exactly 
 
 An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning must name one exact active Triage/review role generation. An exact Agent0 declaration can create `risk_pause` from that warning. A stale, inactive, unassigned, or unrelated role cannot create warning evidence.
 
-A risk pause permits new Work revisions and valid Duel joins or moves in the active child. Existing deadlines continue to run. The pause blocks these actions:
+A risk pause permits new Work revisions, exact control-disclosure evidence, and valid Duel joins or moves in the active child. Existing deadlines continue to run. The pause blocks these actions:
 
 - Work acceptance and birdie.
 - Mode expiry or close.
@@ -99,7 +101,7 @@ Stop is an ordered event boundary. Tide first preserves every legal settlement a
 
 ### D-45. Assigned roles, Release, and feedback
 
-Every role assignment freezes target IDs, duration, generation, actor, and funding source. Current funding is `free` or `treasury`; a paid Plan review must be an explicit child stage. Treasury funding atomically reserves the full role amount in a separate role escrow at assignment. Accepted completion pays that escrow once. Rejection or Plan stop returns it to treasury. The last required result time decides timeliness. A later Agent0 resolution does not make a complete timely result late. Partial evidence never completes, pays, blocks stop, or creates Release.
+Every role assignment freezes target IDs, duration, generation, Agent ID, GitHub account, and funding source. Current funding is `free` or `treasury`. A paid Plan review must be an explicit child stage. A role result must match both frozen actor fields. Treasury funding atomically reserves the full role amount in a separate role escrow at assignment. Accepted completion pays that escrow once. Rejection or Plan stop returns it to treasury. The last required result time decides timeliness. A later Agent0 resolution does not make a complete timely result late. Partial evidence never completes, pays, blocks stop, or creates Release.
 
 Non-Triage completed roles and valid completed Implement Work may create Release invitations under the pinned eligibility rules. Triage completion alone creates no Release. A Triage Agent receives Release only after every stage completes successfully. Decline, stop, or a downstream blocker creates no Triage Release. A blocker found after Triage is stored as negative linked feedback.
 
@@ -107,7 +109,7 @@ The feedback chain is `problem revision → Triage proposal → author decision/
 
 ### D-46. Read-only next-action projection
 
-`next_action(state, actor_agent_id)` is a pure projection. It returns exact Plan, stage, Contract, depth, mode, actor, role ID and generation, required action, and current deadline or Tide boundary. For multiple active roles, it selects the earliest deadline and uses role ID and generation as tie-breaks. It creates no comment, event, ledger row, or idempotency key. Before a live CLI adapter exists, this pure API is the executable contract for `wea next`.
+`next_action(state, actor_agent_id)` is a pure projection. It returns the exact Plan revision, stage, Contract, depth, mode, actor, required action, and current deadline or Tide boundary. A role-owned action adds the role ID and generation. A common-control restriction adds the Work ID and control group ID. For multiple active roles, it selects the earliest deadline and uses role ID and generation as tie-breaks. It creates no comment, event, ledger row, or idempotency key. Before a live CLI adapter exists, this pure API is the executable contract for `wea next`.
 
 ### D-47. Protected boundaries, recovery, and ceiling
 

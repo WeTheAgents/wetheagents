@@ -137,6 +137,23 @@ def registry() -> Any:
     )
 
 
+def common_control_registry(*agent_ids: str) -> Any:
+    identity = modules()["identity"]
+    base = registry()
+    selected = set(agent_ids or ("agent-alpha",))
+    groups = tuple(
+        replace(item, control_group_id="owner-author")
+        if item.agent_id in selected
+        else item
+        for item in base.control_group_bindings
+    )
+    return identity.IdentityRegistry(
+        accounts=base.accounts,
+        bindings=base.bindings,
+        control_group_bindings=groups,
+    )
+
+
 def draft(*, max_bank_wea: int = 100) -> Any:
     intake = modules()["intake"]
     return intake.DraftIssue(
@@ -847,13 +864,68 @@ def lifecycle_event(
     )
 
 
-def apply_event(state: Any, event: Any, *, evidence_state: Any | None = None) -> Any:
+def apply_event(
+    state: Any,
+    event: Any,
+    *,
+    evidence_state: Any | None = None,
+    identity_registry: Any | None = None,
+) -> Any:
     return modules()["lifecycle"].call_verified(
         "apply_lifecycle_event",
         state,
         event,
-        registry=registry(),
+        registry=identity_registry or registry(),
         github_state=evidence_state or github_state(event),
+    )
+
+
+def confirm_control_disclosure(
+    state: Any,
+    *,
+    work_id: str,
+    sequence: int,
+    identity_registry: Any | None = None,
+    effective_at: datetime | None = None,
+) -> Any:
+    intake = modules()["intake"]
+    projection = modules()["lifecycle"].project_runtime(state)
+    work = next(
+        item
+        for stage_record in projection.stages
+        for item in stage_record.works
+        if item.work_id == work_id
+    )
+    disclosure = work.authority.disclosure
+    assert disclosure is not None and not disclosure.confirmed
+    event = lifecycle_event(
+        state,
+        "control_disclosure",
+        {
+            "contract_id": work.contract_id,
+            "disclosure_revision_id": f"disclosure-revision-{sequence:04d}",
+            "disclosure_source_id": f"disclosure-source-{sequence:04d}",
+            "work_id": work.work_id,
+        },
+        sequence=sequence,
+        effective_at=effective_at,
+    )
+    evidence = intake.GitHubEvent.from_revision(
+        repository="owner/repository",
+        repository_id="repository-1",
+        object_kind="issue_comment",
+        object_id=f"disclosure-source-{sequence:04d}",
+        revision_id=f"disclosure-revision-{sequence:04d}",
+        effective_at=event.effective_at - timedelta(seconds=1),
+        body=disclosure.expected_snapshot,
+        actor_account_id=event.actor_account_id,
+        payload={},
+    )
+    return apply_event(
+        state,
+        event,
+        evidence_state=github_state(event, evidence),
+        identity_registry=identity_registry,
     )
 
 
@@ -988,6 +1060,7 @@ def submit_work(
     eligible: bool = True,
     content: str | None = None,
     snapshot: dict[str, str] | None = None,
+    identity_registry: Any | None = None,
 ) -> tuple[Any, str, str]:
     lifecycle = modules()["lifecycle"]
     projection = lifecycle.project_runtime(state)
@@ -1015,7 +1088,11 @@ def submit_work(
         actor_id=agent_id,
         actor_account_id=account_id,
     )
-    return apply_event(state, event), identifier, revision_id
+    return (
+        apply_event(state, event, identity_registry=identity_registry),
+        identifier,
+        revision_id,
+    )
 
 
 def accept_work(
@@ -1101,6 +1178,7 @@ def submit_role_result(
     sequence: int,
     assigned_agent_id: str = "agent-alpha",
     assigned_account_id: str = "account-alpha",
+    identity_registry: Any | None = None,
 ) -> Any:
     return apply_event(
         state,
@@ -1118,6 +1196,7 @@ def submit_role_result(
             actor_id=assigned_agent_id,
             actor_account_id=assigned_account_id,
         ),
+        identity_registry=identity_registry,
     )
 
 

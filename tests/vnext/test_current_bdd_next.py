@@ -20,6 +20,7 @@ def test_s_13_next_action_is_exact_and_read_only() -> None:
     before = state.state_hash
     action = modules()["lifecycle"].next_action(state, "agent-alpha")
     assert action.plan_id == state.activation.plan.plan_id
+    assert action.plan_revision_id == state.activation.plan.plan_revision_id
     assert action.stage_key == "rank"
     assert action.depth == "explore"
     assert action.mode == "ranked"
@@ -27,6 +28,8 @@ def test_s_13_next_action_is_exact_and_read_only() -> None:
     assert action.boundary_at is not None
     assert action.role_id is None
     assert action.role_generation is None
+    assert action.work_id is None
+    assert action.control_group_id is None
     assert state.state_hash == before
     assert state.events == ()
 

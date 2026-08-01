@@ -8,7 +8,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 8 fixed; pass 9 pending`.
+Текущий review gate: `Pass 9 fixed; pass 10 pending`.
 
 ## Версии
 
@@ -21,9 +21,9 @@ Decision: `Implementation verified — independent PR review pending`.
 | historical successor | ruleset `0.7`, executor `v0_7_0` | Immutable Resolution Plan intake and activation slice |
 | current successor | ruleset/interface `0.8`, executor `v0_8_0` | Manifest-pinned execution of all current Spec `0.9` behavior |
 
-Ruleset `0.8` SHA-256: `f28ea6b551ca4a41f04adefb0edce2d20a6c17fddff5bbbb3d1a870b4727fa7b`.
+Ruleset `0.8` SHA-256: `0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522`.
 
-Executor `v0_8_0` manifest SHA-256: `ef941ce93db42898b1ce514b7bbac312511d8e0345e85ee05a106898a0bcd6c2`.
+Executor `v0_8_0` manifest SHA-256: `e40c6568144213c3903c5a52cc299c5e9275e8760f88e77b288c75c2abc35482`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -32,12 +32,13 @@ Executor `v0_8_0` manifest SHA-256: `ef941ce93db42898b1ce514b7bbac312511d8e0345e
 | Triage и Plan | Exact author approval follows the Plan source and binds the complete schedule and bank. One debit funds one program escrow. Only the first child Contract starts. |
 | Authority evidence | Each lifecycle event matches one accepted GitHub source under a complete confirmed read boundary. Source revisions are globally single-use. |
 | Modes | Ranked pays an exact author-selected top `K` when submissions exceed paid ranks. Flat PoD, Frontier, and Duel have exact admission, deadlines, payout, refund, underfill, and expiry behavior. Flat PoD closes in the acceptance that fills its slot cap. Settlement transitions are atomic and idempotent. |
+| Common control | The first Work event freezes exact author and participant account/control-group authority. Shared control blocks selection and settlement in every mode until exact public disclosure confirmation. |
 | Progression | The next child uses one exact immutable selected revision. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix. |
 | Pauses | Body pause and resume require exact current Issue revisions. Body pauses offset open deadlines once. Risk pauses keep submissions open, keep deadlines running, and block stage decisions and settlement. Body resume preserves other pauses. |
-| Assigned roles | Frozen targets, generations, deadlines, `free` or separately escrowed `treasury` funding, replacement races, and ordered stop behavior are explicit. Only an exact active Triage or review generation can publish a risk warning. |
+| Assigned roles | Frozen targets, Agent ID, GitHub account, generations, deadlines, funding, replacement races, and ordered stop behavior are explicit. Only an exact active Triage or review generation can publish a risk warning. |
 | Duel | Open and invited admission, six move windows, increasing accepted move numbers, expired-slot skips, immutable revisions, exact settlement, and no Duel Release are implemented. |
 | Release and feedback | Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful whole-Plan completion. A downstream blocker preserves negative Triage feedback and suppresses Release. |
-| Read-only projection | `next_action` reports the exact Plan, stage, Contract, mode, actor, role ID/generation, action, and effective boundary without writes. It selects the earliest active role deadline. |
+| Read-only projection | `next_action` reports the exact Plan revision, stage, Contract, mode, actor, role identity, Work-control restriction, action, and effective boundary without writes. |
 | Get 10 | Issue #10 remains historical prior art. The validator classifies all six accepted expressions; identity-wrapper examples are valid arithmetic but are not novel Frontier progress. No Issue or ledger write occurred. |
 
 ## BDD alignment
@@ -52,12 +53,12 @@ Executor `v0_8_0` manifest SHA-256: `ef941ce93db42898b1ce514b7bbac312511d8e0345e
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `387 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4672 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `392 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4677 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Pass 6 was clean. Pass 7 found one P1 Duel-order defect. Pass 8 found one P1 Ranked-overfill defect and one P2 role-action identity defect. All 16 have regression fixes. Pass 9 is pending. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Pass 6 was clean. Pass 7 found one P1 Duel-order defect. Pass 8 found two settlement/action defects. Pass 9 found three authority-context defects. All 19 have regression fixes. Pass 10 is pending. |
 
 ## Historical verification baseline through Block 3
 

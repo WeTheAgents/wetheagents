@@ -9,8 +9,8 @@ Status: `Implementation verified — independent PR review pending`.
 - Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
-- Ruleset `0.8` SHA-256: `f28ea6b551ca4a41f04adefb0edce2d20a6c17fddff5bbbb3d1a870b4727fa7b`.
-- Executor `v0_8_0` manifest SHA-256: `ef941ce93db42898b1ce514b7bbac312511d8e0345e85ee05a106898a0bcd6c2`.
+- Ruleset `0.8` SHA-256: `0f4a5fd6603fcd000e4f50b8d1da3ad35c43e4da9cbe662265c0b265f48ec522`.
+- Executor `v0_8_0` manifest SHA-256: `e40c6568144213c3903c5a52cc299c5e9275e8760f88e77b288c75c2abc35482`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -19,12 +19,13 @@ Status: `Implementation verified — independent PR review pending`.
 - Each Plan stage chooses a depth (`Explore`, `Spec`, or `Implement`) and a mode (`Ranked`, `Flat PoD`, `Frontier`, or `Duel`) allowed by the exact matrix.
 - Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top `K` when eligible Work exceeds `K`. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable.
 - One accepted immutable revision feeds the next child Contract. Ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.
+- The first Work event freezes exact author and participant account/control-group authority. Shared control blocks every mode selection and settlement until exact public disclosure confirmation.
 - Body pause and resume require exact current Issue revisions. A risk pause keeps submissions open but blocks stage decisions and settlement. Body resume preserves it.
-- Frozen pre-pause roles still follow their own terms. Only an exact active Triage or review generation can publish a risk warning.
+- Frozen pre-pause roles still follow their own terms. Role evidence must match the assigned Agent ID and GitHub account. Only an exact active Triage or review generation can publish a risk warning.
 - Each lifecycle event requires an accepted GitHub source under a complete confirmed read boundary. An approval source must follow its exact Plan source.
 - Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.
 - Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.
-- `next_action` is a pure projection. It reports the exact current actor, role ID/generation, action, and effective boundary without writes. It selects the earliest active role deadline with deterministic tie-breaks.
+- `next_action` is a pure projection. It reports the exact Plan revision, current actor, role identity, Work-control restriction, action, and effective boundary without writes.
 - Get 10 Issue #10 is preserved as prior art. All six accepted expressions are classified; no new epoch, funding, Issue mutation, or ledger write occurred.
 
 ## Exact BDD contract
@@ -37,12 +38,12 @@ Status: `Implementation verified — independent PR review pending`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `387 passed`, `18 skipped`.
-- Full repository: `4672 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `392 passed`, `18 skipped`.
+- Full repository: `4677 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. Passes 1–5 closed 13 defects. Pass 6 was clean. Passes 7–8 found three more defects. All 16 have regression fixes ready for pass 9.
+- Draft PR: `#941`. Passes 1–5 closed 13 defects. Pass 6 was clean. Passes 7–9 found six more defects. All 19 have regression fixes ready for pass 10.
 
 ## Hard stop boundary
 
@@ -50,4 +51,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Push the pass 8 fixes. Run `codex exec review` again and fix every actionable finding. Then publish the review-clean handoff and artifact.
+Push the pass 9 fixes. Run `codex exec review` again and fix every actionable finding. Then publish the review-clean handoff and artifact.

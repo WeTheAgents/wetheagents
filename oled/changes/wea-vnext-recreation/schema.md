@@ -10,13 +10,13 @@ This delta replaces incompatible schema `0.9` fields for new Resolution Plans. H
 | --- | --- |
 | Stage Schedule | mode, positive intake/join/decision durations as applicable, exactly six positive Duel move durations |
 | Stage Contract | all schema `0.9` fields plus schedule, materialized initial absolute deadlines, acceptance authority, ruleset/interface/manifest triple |
-| Runtime State | exact verified activation aggregate, ordered verified lifecycle events, canonical replay hash, construction seal |
+| Runtime State | exact verified activation aggregate, ordered verified lifecycle events, frozen Work authorities, canonical replay hash, construction seal |
 | Lifecycle Event | deterministic event ID, Plan ID, kind, actor kind/ID/authority, accepted GitHub source revision/snapshot/hash, effective time, idempotency key, canonical typed payload |
-| Work | deterministic Contract + Agent ID, ordered immutable revisions, eligibility status, accepted revision, acceptance authority and validator evidence |
+| Work | deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, acceptance evidence |
 | Work Revision | revision ID/index, Work/Contract/Agent IDs, content hash, immutable snapshot identity, source evidence and effective time |
 | Stage Runtime | stage/Contract/Task IDs, status, phase, base/effective opens and due times, mode cursor, selected revision, paid/refunded amount |
-| Role Assignment | role/generation IDs, assigned Agent/authority, exact target set, positive duration, base/effective due time, funding `free/treasury`, optional fully funded role escrow |
-| Role Result | role/generation, exact target subset, result IDs/hashes/times, completeness, last required result time |
+| Role Assignment | role/generation IDs, assigned Agent ID and GitHub account, exact targets, duration and due times, funding `free/treasury`, optional role escrow |
+| Role Result | role/generation, frozen Agent ID and GitHub account authority, exact target subset, result IDs/hashes/times, completeness, last required result time |
 | Pause | kind `body_integrity_pause/risk_pause/progression_pause`, exact Issue revision or role-generation warning evidence, start/end, author decision, affected open deadline IDs and one-time offsets |
 | Settlement | transition ID, kind `payout/refund/treasury`, recipient/source, positive WEA, reason, exact Work/rank/slot/role ref, prior/result financial hashes |
 | Release Invitation | deterministic ID, recipient, source kind/ref, eligibility evidence, terminal Plan prerequisite for Triage |
@@ -52,6 +52,7 @@ A Duel config stores `admission`, `invitations`, two positions, and three rounds
 | Family | Event kinds | Authority |
 | --- | --- | --- |
 | Work | `work_revision`, `validator_result`, `author_acceptance`, `work_acceptance` | participating Agent, pinned validator, or author as defined by Contract |
+| Disclosure | `control_disclosure` | Tide confirmation of one separate exact accepted public revision |
 | Ranked / Flat / Frontier | `birdie`, `ranked_order`, `frontier_close`, `mode_expiry` | author or Tide boundary as specified |
 | Duel | `duel_join`, `duel_move`, `duel_decision`, `mode_expiry` | eligible Agent, author, or Tide boundary |
 | Progression | `stage_complete`, `selector_resolved`, `child_materialized`, `suffix_replan` | Tide-derived transition or author-approved revision |
@@ -61,7 +62,7 @@ A Duel config stores `admission`, `invitations`, two positions, and three rounds
 
 Derived event groups are atomic. A Flat PoD acceptance group contains Work acceptance, slot cursor, payout, financial hashes, and cap closure when full. A Ranked settlement group contains complete order, payouts, underfill refunds, stage close, and selected input. A stop group contains the final legal prefix, unused escrow refund, active closure, and terminal Plan status.
 
-An open `risk_pause` admits only active-stage Work revisions, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A warning names one exact active Triage or review generation. A `body_pause` names the current accepted changed Issue revision. A `body_resume` names a current accepted revision after the pause start. The resume revision contains the exact frozen Contract body. It closes only the body pause and preserves every open risk or progression pause.
+An open `risk_pause` admits active-stage Work revisions, exact control-disclosure evidence, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A warning names one exact active Triage or review generation. A `body_pause` names the current accepted changed Issue revision. A `body_resume` names a current accepted revision after the pause start. The resume revision contains the exact frozen Contract body. It closes only the body pause and preserves every open risk or progression pause.
 
 ### Lifecycle invariants
 
@@ -72,14 +73,15 @@ An open `risk_pause` admits only active-stage Work revisions, valid Duel joins o
 5. A Ranked order is continuous, contains only eligible Works, and has no duplicate or rank beyond the payout vector. It contains `min(N,K)` Works.
 6. A selected input names exactly one accepted immutable revision in a completed prior Contract.
 7. New suffix records cannot change bytes of completed or active Contracts.
-8. A role generation has one frozen target set, actor, duration, and funding source. Partial or late evidence cannot be complete.
+8. A role generation has one frozen target set, Agent ID, GitHub account, duration, and funding source. Partial, late, or differently authored evidence cannot be complete.
 9. A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.
 10. Triage Release exists only after successful Plan completion. A stopped, declined, or blocked Plan can create linked negative feedback instead.
-11. `next_action` is derived from projection and never appears as a lifecycle event. A role-owned action contains role ID and generation. The earliest deadline wins.
+11. `next_action` is derived from projection and never appears as a lifecycle event. It identifies the Plan revision. Role and Work-control restrictions contain their exact IDs.
 12. A risk pause does not move deadlines. Only `body_integrity_pause` can add a one-time deadline offset.
 13. Only an exact active Triage or review role generation can publish a risk warning.
 14. Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.
 15. Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move.
+16. The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.
 
 ### Compatibility and storage boundary
 
