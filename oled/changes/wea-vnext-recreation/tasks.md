@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.2`: **implemented / independent review pending**. Spec 0.9 reference runtime implemented and verified. Pass 20 found verifier-only callables in wrapper attributes. The repair removes those attributes and adds an exact regression. The next independent review is pending. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.2`: **implemented / review clean**. Spec 0.9 reference runtime implemented and verified. Pass 20 found verifier-only callables in wrapper attributes. The repair removes those attributes and adds an exact regression. Pass 21 found no actionable defect. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
@@ -84,7 +84,7 @@
 - [x] Make registry tests parse the normative Spec `0.9` delta and inherited compatibility list without confusing historical duplicate headings.
 - [x] Update package data and manifest tests for ruleset `0.8` and `v0_8_0` while preserving all older wheel/replay cases.
 - [x] Run focused current-BDD tests, all `tests/vnext`, full repository tests, Ruff, Pyright, manifest/canonical checks, ledger schema/invariant checks, and phase-boundary checks.
-- [ ] Perform the final independent `codex exec review`, lean cut, and regenerate `HANDOFF.md`, `verification.md`, and `WEA_vNext_REVIEW.html` from fresh evidence.
+- [x] Perform the final independent `codex exec review`, lean cut, and regenerate `HANDOFF.md`, `verification.md`, and `WEA_vNext_REVIEW.html` from fresh evidence.
 
 **Checkpoint commands:**
 

@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Implementation verified — independent PR review pending`.
+Decision: `Implementation verified — independent PR review clean`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `Pending`.
+Статус независимой проверки: `CLEAN`.
 
-Текущий review gate: `Pass 20 actionable; repair awaiting review`.
+Текущий review gate: `Pass 21 clean`.
 
 ## Версии
 
@@ -58,7 +58,7 @@ Executor `v0_8_0` manifest SHA-256: `17c4c24e7e1e5bbb867a34b42aaa0c074d3d7cd36d9
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on PR #941 | Pass 20 found raw authority calls and the verified runtime reference in introspectable wrapper attributes. The repair moves both out of the wrapper and adds an exact S-01C regression. The next review is pending. |
+| Independent review | `codex exec review --base origin/main` on PR #941 | Pass 20 found raw authority calls and the verified runtime reference in introspectable wrapper attributes. The repair moves both out of the wrapper and adds an exact S-01C regression. Pass 21 found no actionable defect, confirmed internal consistency, and reran the vNext suite: `418 passed`, `18 skipped`. |
 
 ## Historical verification baseline through Block 3
 

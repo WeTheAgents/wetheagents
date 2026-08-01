@@ -1,8 +1,8 @@
-# Agent0 handoff: Spec 0.9 review pending
+# Agent0 handoff: Spec 0.9 review-clean
 
 The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Status: `Implementation verified — independent PR review pending`.
+Status: `Implementation verified — independent PR review clean`.
 
 ## Repository boundary
 
@@ -46,7 +46,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 6, 10, 17, and 19 were clean. Pass 18 found the suffix-replan audit-chain defect. Pass 20 found raw authority calls and the runtime reference in introspectable wrapper attributes. Both repairs now have exact regressions. The next independent review is pending.
+- PR: `#941`. Passes 6, 10, 17, 19, and 21 were clean. Pass 18 found the suffix-replan audit-chain defect. Pass 20 found raw authority calls and the runtime reference in introspectable wrapper attributes. Both repairs now have exact regressions. Pass 21 found no actionable defect and confirmed the vNext suite.
 
 ## Hard stop boundary
 
@@ -54,4 +54,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Run another independent review. Commit and push only after the review is clean. Mark PR `#941` ready only after the published head and GitHub checks are clean. Live migration, bootstrap, and cutover remain separate prohibited work.
+Commit and push the review-clean evidence. Mark PR `#941` ready only after the published head and GitHub checks are clean. Live migration, bootstrap, and cutover remain separate prohibited work.
