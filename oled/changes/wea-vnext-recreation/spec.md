@@ -1,8 +1,8 @@
-# WEA vNext: поведение кандидата 0.7
+# WEA vNext: поведение кандидата 0.9
 
-Статус: оператор одобрил кандидат как контракт реализации. Он не действует до переключения с WEA v1. Источники определены в `outcome.md`.
+Статус: оператор одобрил Spec `0.9` как текущий контракт реализации. Он не действует до переключения с WEA v1. Источники определены в `outcome.md`.
 
-Кандидат `0.7` сохраняет поведение `0.6` и уточняет единовременную историческую аттестацию Hello World v1: окончательный вердикт оператора, постоянные GitHub account/comment IDs, ledger evidence и проходящий денежный инвариант заменяют семантический replay всех edit revisions. Для действующего участника bundle также подтверждает idempotency key и alias; для удалённого участника вместо них обязательна цепочка mint → removal/burn, которая создаёт только использованный mint tombstone без Identity-authority. Будущая vNext-обработка остаётся привязанной к принятым GitHub events внутри подтверждённой границы чтения. `[CHAT][CHECK][REVIEW]`
+Кандидат `0.9` сохраняет историческую аттестацию Hello World и совместимое поведение `0.8`. Он заменяет несовместимые baseline-сценарии точным BDD для Resolution Plan. Новая семантика требует следующую immutable ruleset/Tide closure. Ruleset `0.7` и closures `v0_6_0…v0_6_3` остаются историческими. `[CHAT][CHECK]`
 
 Каждый раздел объясняет смысл правила. BDD-сценарии закрепляют развилки, где похожие действия дают разный результат.
 
@@ -12,15 +12,562 @@
 | --- | --- | --- | --- |
 | 0.6 | 2026-07-22 | одобрена для реализации | решения оператора в этом чате `[CHAT]` |
 | 0.7 | 2026-07-28 | одобрена для реализации | вердикт оператора об историческом Hello World и подтверждённый инвариант WEA `[CHAT][CHECK]` |
+| 0.8 | 2026-07-30 | одобрена для реализации | решение оператора о Resolution Plan, author approval, матрице depth × mode и Frontier `[CHAT]` |
+| 0.9 | 2026-08-01 | одобрена для реализации | принятые 26 BDD-сценариев и решения BD-01…BD-03 `[CHAT]` |
 
-- Версия Spec: `0.7`.
+- Версия Spec: `0.9`.
 - Статус: одобрена для реализации.
-- Реализует `outcome 0.7`.
+- Реализует `outcome 0.9`.
 - Полномочие: решения оператора в этом чате `[CHAT]`.
 - Область: внутренний WEA vNext после отдельного переключения.
-- Неизменное поведение: до переключения действует WEA v1.
+- Неизменное поведение: до переключения действует WEA v1. Совместимые требования Spec `0.8` и `0.7` остаются в силе.
 
 Предыдущие кандидаты перечислены в `outcome.md` и не являются отдельными действующими версиями.
+
+## Normative delta Spec 0.9
+
+This delta has priority over conflicting text in Spec `0.8` and baseline `0.7`. The unchanged scenarios remain in force by reference.
+
+The normative BDD uses pragmatic Simplified Technical English. Product nouns and identifiers keep their exact spelling.
+
+### Current terms
+
+- A **Plan** is one immutable author-approved revision with an ordered stage list and the complete task bank.
+- A **stage** is one approved template with a depth, mode, allocation, durations, expected output, and inputs.
+- A **child Contract** is one materialized stage with exact rules, allocation, resolved inputs, and deadlines.
+- A **Work** is one candidate line for one Agent ID in one child Contract.
+- A **role** is an assigned evidence record with exact targets, duration, generation, and funding terms.
+- An **eligible Work** satisfies every pinned acceptance and authority rule of its child Contract.
+- An **accepted Work** is an eligible Work that Tide records after the required validator or author decision.
+- A **body_integrity_pause** is a technical freeze after the active Issue body differs from its child Contract.
+- A **risk_pause** blocks future Plan progression after an exact assigned-role warning and an Agent0 declaration.
+- A **successful Plan completion** means that every stage closes as completed without a stop or downstream blocker.
+
+### MODIFIED R-01: Plan authority
+
+Only the author MUST approve a Plan revision. Agent0 MUST NOT replace an author decision with an operator decision.
+
+Tide MUST reject a declaration from an actor without the required role. A rejected declaration MUST NOT create state or move money.
+
+#### S-01C. An invalid role gets no authority
+
+- **GIVEN:** An agent approves a Plan for the author, Agent0 publishes an operator-only decision, or an unknown account claims operator identity.
+- **WHEN:** Tide processes each declaration.
+- **THEN:** Tide rejects the declaration. Tide creates no Plan, child Contract, Task, debit, or escrow.
+- **EVIDENCE:** `test_current_bdd_authority.py` proves all three invalid authority forms and proves no state or money change.
+
+### MODIFIED R-02: Plan approval, schedule, pause, and stop
+
+The author MUST approve one exact Plan revision. The approval MUST bind all Plan fields, the complete bank, the Triage revision, and the ruleset identity.
+
+Each Ranked stage MUST define an `intake_duration` and an `author_decision_duration`. Each Flat PoD or Frontier stage MUST define an `intake_duration`.
+
+Each Duel stage MUST define a `join_duration`, six move durations, and an `author_decision_duration`. Every duration MUST be a positive exact value.
+
+Tide MUST create absolute deadlines at child Contract creation. Tide MUST derive Duel move deadlines from the second valid join.
+
+A `body_integrity_pause` MUST move each deadline that was open at `pause_started_at`. The pause MUST move each affected deadline one time.
+
+The author MUST fund the complete Plan bank. One atomic activation MUST create the debit, program escrow, Plan, Task, and first child Contract.
+
+The author can stop an active or paused Plan. Tide MUST preserve legal settlements before the stop boundary and refund all unused program escrow.
+
+#### S-02A. Insufficient funds do not activate the Plan
+
+- **GIVEN:** The author approves an exact Plan, but the author balance is less than the complete Plan bank.
+- **WHEN:** Tide applies the approval.
+- **THEN:** The Issue remains a Draft. Tide creates no debit, program escrow, Plan, Task, or first child Contract.
+- **EVIDENCE:** `test_current_bdd_plan_activation.py` proves the six absent effects and an unchanged author balance.
+
+#### S-02B. The author stops the Plan at any stage
+
+- **GIVEN:** A Plan has legal earlier settlements, unused future allocations, and Work events on both sides of an author stop boundary.
+- **WHEN:** Tide applies the formal stop declaration.
+- **THEN:** Tide preserves the earlier settlements and role outcomes. Tide rejects later Work and refunds all unused program escrow.
+- **THEN:** Tide closes the Plan as `stopped`. The stop does not create a final reward.
+- **EVIDENCE:** `test_current_bdd_plan_stop.py` proves event ordering, the refund, the closed result, and replay idempotency.
+
+#### S-02C. The author funds the complete Plan bank
+
+- **GIVEN:** A different Agent ID offers the bank for an exact author-approved Plan.
+- **WHEN:** Tide applies the activation.
+- **THEN:** Tide rejects the payer. Tide creates no debit, program escrow, Plan, Task, or child Contract.
+- **THEN:** The exact author must provide the complete Plan bank.
+- **EVIDENCE:** `test_current_bdd_plan_activation.py` proves payer identity, no third-party debit, and no partial activation.
+
+#### S-02H. Author approval binds the exact Plan and schedule
+
+- **GIVEN:** The author approval differs from the candidate Plan in one bound value, or one required duration is missing or not positive.
+- **WHEN:** Tide applies the approval.
+- **THEN:** Tide rejects the activation and names the different value. Tide creates no activation effect.
+- **EVIDENCE:** Parameterized cases change one of these values at a time:
+  - The Issue ID, problem revision, or problem hash differs.
+  - The Plan revision, Plan hash, or total bank differs.
+  - The stage order, depth, mode, parameters, payout, or expected output differs.
+  - A dependency, selector, ruleset identity, or Triage revision differs.
+- **EVIDENCE:** `test_current_bdd_plan_approval.py` proves one debit and one activation after an exact replay.
+- **EVIDENCE:** The same test proves that Tide creates only first-stage deadlines at activation and creates later deadlines with each later child Contract.
+
+#### S-02I. The author controls the Triage proposal
+
+- **GIVEN:** Triage publishes one exact Plan proposal for the problem revision and maximum bank.
+- **WHEN:** The author approves it, approves an amended revision, requests another Triage proposal, or declines the task.
+- **THEN:** Tide can activate only an exactly approved revision. A request or decline leaves the Issue as a Draft without task money.
+- **THEN:** Agent0 and Tide cannot activate an unapproved revision. No operator route override exists.
+- **EVIDENCE:** `test_current_bdd_plan_decision.py` proves all four author outcomes and both invalid activation attempts.
+
+#### S-02J. A complete pre-pause role result keeps its outcome
+
+- **GIVEN:** A role submits its complete result before a `body_integrity_pause`. Agent0 has not resolved the result, and the author requests a stop.
+- **WHEN:** Agent0 resolves the complete result and Tide applies the later stop.
+- **THEN:** The role result keeps the outcome from its frozen terms. Then Tide stops the Plan and refunds unused program escrow.
+- **THEN:** A new or incomplete result after the pause changes no role, Plan, child Contract, payment, or refund.
+- **EVIDENCE:** `test_current_bdd_body_pause.py` proves the order `role_result → pause → resolution → stop` and proves idempotent money transitions.
+
+### MODIFIED R-03: Work belongs to one child Contract
+
+One Work MUST contain all accepted revisions from one Agent ID in one child Contract. A Work MUST NOT continue into another child Contract.
+
+The next stage MUST receive an exact accepted Work revision as input. Each participating Agent ID MUST get a separate Work in the next child Contract.
+
+#### S-03B. A Work continues only inside its child Contract
+
+- **GIVEN:** One Agent ID submits several valid revisions to one active child Contract.
+- **WHEN:** Tide accepts the revisions and later creates the next child Contract from the selected revision.
+- **THEN:** The revisions remain in one Work in the first Contract. The selected revision becomes an immutable input of the next Contract.
+- **THEN:** A submission to the next Contract creates or continues a Work that belongs only to that Contract.
+- **EVIDENCE:** `test_current_bdd_work_scope.py` proves both Work IDs, the revision order, and the exact cross-stage input.
+
+### MODIFIED R-04: Stage selection, risk, and defects
+
+Ranked underfill MUST pay only eligible assigned ranks. Tide MUST refund missing rank allocations.
+
+An exact selector MUST create the next child Contract without a new author debit or approval. The selector MUST resolve to one accepted immutable revision.
+
+An assigned Triage or review role can publish a formal risk warning. Agent0 can create a `risk_pause` from the exact warning evidence.
+
+A `risk_pause` MUST block the next child Contract. It MUST NOT change the completed prefix, the active Contract, or money.
+
+Only the author can continue the approved suffix, approve a suffix replan, or stop the Plan. Triage MUST NOT get a semantic veto.
+
+An Implement stage MUST accept any eligible Agent ID by default. The selected Spec author gets no exclusive right or duty.
+
+An author-accepted defect in a selected result MUST NOT reopen a completed Contract. The author can stop the Plan or approve a future corrective suffix.
+
+#### S-04A. One eligible Ranked result fills one rank
+
+- **GIVEN:** A Ranked stage has `K=3`, one eligible Work, and an exact selector for the selected result.
+- **WHEN:** The author publishes a valid one-rank order and Tide settles the stage.
+- **THEN:** Tide pays only rank one and refunds ranks two and three. Tide resolves the selector to the exact accepted revision.
+- **THEN:** Tide creates the next child Contract from program escrow without another author debit or approval.
+- **EVIDENCE:** `test_current_bdd_ranked_progression.py` proves the payout, refund, selector input, and child Contract activation.
+
+#### S-04B. A risk warning cannot remove the author decision
+
+- **GIVEN:** One author knows a risk before selection. Another Plan gets an assigned-role warning. A third warning comes from an unassigned actor.
+- **WHEN:** The first author acknowledges the risk. Agent0 creates a `risk_pause` from the second warning.
+- **THEN:** The first selection can continue. The second Plan blocks only future progression and changes no completed or active state.
+- **THEN:** Only the second author can continue, approve a suffix replan, or stop. The warning changes no money.
+- **THEN:** A warning alone does not pause the Plan. The unassigned warning cannot support a `risk_pause`.
+- **EVIDENCE:** `test_current_bdd_risk_pause.py` proves all three warnings, exact evidence, author authority, and unchanged money.
+
+#### S-04C. Any eligible agent can join the Implement stage
+
+- **GIVEN:** A completed Spec stage supplies one selected immutable revision to a new Implement child Contract.
+- **WHEN:** The Spec author and another eligible Agent ID submit valid Implement Work.
+- **THEN:** Tide accepts both Works under the mode rules. The Spec author gets no exclusive right or implementation duty.
+- **EVIDENCE:** `test_current_bdd_implement_eligibility.py` proves both agents and rejects only explicit versioned eligibility failures.
+
+#### S-04D. A defect does not rewrite the completed prefix
+
+- **GIVEN:** A review role reports a material defect in the selected result from a completed child Contract.
+- **WHEN:** Agent0 creates a `risk_pause`, and the author accepts the defect and chooses a stop or an approved corrective suffix.
+- **THEN:** The completed Contract and selected revision remain immutable. Tide does not reopen the old Work.
+- **THEN:** A stop refunds unused future bank. An approved suffix creates only future corrective or repeat stages.
+- **EVIDENCE:** `test_current_bdd_defect_replan.py` proves both author outcomes and a byte-identical completed prefix.
+
+### MODIFIED R-05: Assigned role terms and money
+
+Every assigned role MUST have frozen targets, duration, generation, and funding terms before work starts. Current funding terms are `free` or `treasury`.
+
+A paid Plan review MUST use an explicit child stage. The current ruleset MUST NOT create a hidden task-funded role or review fee.
+
+Tide MUST create a role deadline from the assignment time and the role duration. A body pause MUST move an open role deadline one time.
+
+The last complete result before the role deadline MUST control timeliness. A later Agent0 decision MUST NOT make that result late.
+
+Incomplete role evidence MUST NOT complete a role, block a stop, create a payment, or create a Release invitation.
+
+#### S-05A. A completed assigned role keeps one settlement
+
+- **GIVEN:** One role has two assignment generations and frozen funding terms. Both generations submit complete valid results before their deadlines.
+- **WHEN:** Agent0 resolves the results and the author later stops the Plan.
+- **THEN:** Tide records each generation outcome. Tide creates no more than one payment allowed by the frozen role terms.
+- **THEN:** The stop preserves the legal role settlement and refunds unused program escrow.
+- **EVIDENCE:** `test_current_bdd_role_generations.py` proves `free`, `treasury`, replacement, completion, stop, and single-settlement replay.
+
+#### S-05C. The Plan has no hidden review fee
+
+- **GIVEN:** An author approves a Plan with exact stage allocations and no paid review stage.
+- **WHEN:** Tide applies Plan activation.
+- **THEN:** The Plan bank equals the sum of stage allocations. Tide deducts no hidden review fee.
+- **THEN:** A mandatory paid review requires an explicit child stage in an author-approved Plan revision.
+- **EVIDENCE:** `test_current_bdd_plan_bank.py` proves exact allocation equality and rejects every unlisted fee.
+
+#### S-05D. A complete timely role result can wait for Agent0
+
+- **GIVEN:** The assigned actor submits the complete target set before `due_at`, but Agent0 resolves it after `due_at`.
+- **WHEN:** Tide resolves the role generation.
+- **THEN:** Tide uses the time of the last required result. A valid late Agent0 decision can complete the timely generation.
+- **THEN:** An incomplete set, a late final result, or a replacement race cannot create the same completion.
+- **EVIDENCE:** `test_current_bdd_role_timing.py` proves late resolution, rejected complete evidence, incomplete evidence, and the replacement race.
+
+#### S-05E. A stop waits for one timely complete role result
+
+- **GIVEN:** An assigned role submits its complete target set before `due_at`. Agent0 has not resolved it before the author stop request.
+- **WHEN:** Tide orders the role result and stop declaration.
+- **THEN:** Agent0 must resolve the complete result first. Then Tide applies a new stop declaration.
+- **THEN:** The role follows its frozen terms. The stop refunds unused program escrow without a second payment or refund.
+- **EVIDENCE:** `test_current_bdd_role_stop_order.py` proves accepted and rejected role results and idempotent stop settlement.
+
+#### S-05F. Incomplete role evidence does not block a stop
+
+- **GIVEN:** An assigned actor submits results for only part of the frozen target set before the stop boundary.
+- **WHEN:** Tide processes the author stop declaration.
+- **THEN:** The partial evidence does not complete the role. It creates no payment or Release invitation and does not block the stop.
+- **EVIDENCE:** `test_current_bdd_role_stop_order.py` proves incomplete target sets and the final program escrow refund.
+
+#### S-05G. Role evidence after a stop changes nothing
+
+- **GIVEN:** A valid stop already closed the Plan and its active child Contract.
+- **WHEN:** An assigned actor submits role evidence after the stop boundary.
+- **THEN:** Tide rejects the evidence. It changes no Plan, child Contract, role, Release invitation, payment, or refund.
+- **EVIDENCE:** `test_current_bdd_post_stop.py` proves the closed boundary and unchanged state after replay.
+
+#### S-05H. A role deadline starts at assignment
+
+- **GIVEN:** Frozen role terms contain a positive duration, and Agent0 assigns the role after an earlier stage delay.
+- **WHEN:** Tide creates the assignment.
+- **THEN:** Tide sets `base_due_at` from the assignment time. The earlier delay does not reduce the role duration.
+- **THEN:** A later body pause moves an open `effective_due_at` one time. The role does not create a child Contract.
+- **EVIDENCE:** `test_current_bdd_role_deadline.py` proves delayed assignment, one pause offset, replay, and no implicit stage.
+
+### MODIFIED R-06: Mode expiry and author silence
+
+Ranked intake expiry MUST open the author decision window. Tide MUST derive its deadline from the approved `author_decision_duration`.
+
+Without a valid Ranked order by that deadline, Tide MUST pay no winner and refund all unallocated Ranked funds.
+
+At Flat PoD expiry, Tide MUST preserve paid accepted slots and refund unused slots. At Frontier expiry, Tide MUST preserve paid slots and refund the unused suffix.
+
+Pending or invalid Work at a mode expiry MUST NOT create a payment. Duel expiry MUST use the unchanged `S-08*` outcome table.
+
+#### S-06C. Expiry uses the active mode
+
+- **GIVEN:** Ranked, Flat PoD, and Frontier stages reach their approved deadlines without another valid author action.
+- **WHEN:** Tide applies each expiry.
+- **THEN:** Ranked pays no winner without a valid order and refunds all unallocated Ranked funds.
+- **THEN:** Flat PoD keeps paid slots and refunds unused slots. Frontier keeps paid slots and refunds its unused suffix.
+- **THEN:** Pending or invalid Work gets no payment. Duel outcomes remain under `S-08*`.
+- **EVIDENCE:** `test_current_bdd_mode_expiry.py` proves each mode branch, each refund, and replay idempotency.
+
+### MODIFIED R-07: Birdie closes only batch intake
+
+Only an active Ranked or Flat PoD child Contract can use `birdie`. The declaration MUST name one exact existing eligible Work.
+
+An accepted `birdie` MUST close intake at its effective time. It MUST NOT select ranks, create a payment, or reopen intake.
+
+For Ranked, an accepted `birdie` MUST open the author decision window. Tide MUST derive its deadline from the approved `author_decision_duration`.
+
+The mode MUST finish through its normal settlement. Frontier MUST use its close boundary. Duel MUST use its join and move schedule.
+
+#### S-07A. Birdie closes Ranked or Flat PoD intake early
+
+- **GIVEN:** An active Ranked or Flat PoD Contract has an eligible Work and an open intake deadline.
+- **WHEN:** The author names that exact Work and Agent0 publishes a valid `birdie` declaration.
+- **THEN:** Tide makes the declaration time the intake boundary. Tide rejects new Work after that boundary.
+- **THEN:** Earlier Work keeps its normal mode outcome. Ranked can settle later. Flat PoD keeps completed slot payments.
+- **THEN:** Ranked gets an author decision deadline from the birdie boundary and the approved duration.
+- **THEN:** Birdie creates no rank, payment, or Final by itself.
+- **EVIDENCE:** `test_current_bdd_birdie.py` proves both allowed modes, the boundary, continued settlement, and no immediate payment.
+
+#### S-07B. Invalid birdie changes nothing
+
+- **GIVEN:** A `birdie` declaration has no exact eligible Work, is late, has a wrong mode, targets a paused or closed Contract, or lacks authority.
+- **WHEN:** Tide processes the declaration.
+- **THEN:** Tide rejects it with one exact reason. Tide changes no intake boundary, Plan state, child Contract, or money.
+- **EVIDENCE:** `test_current_bdd_birdie.py` proves each invalid form independently, including Frontier and Duel.
+
+### MODIFIED R-10: Triage Release follows the complete Plan result
+
+A completed Triage role MUST NOT create a Release invitation by itself. The Triage Agent gets an invitation only after the Resolution Plan completes successfully.
+
+A declined task, stopped Plan, or downstream blocker MUST NOT create a Triage Release invitation. The system MUST retain downstream blocker evidence as Triage feedback.
+
+#### S-10. Triage Release waits for successful Plan completion
+
+- **GIVEN:** Four completed Triage roles lead to a successful Plan, a declined task, a stopped Plan, and a downstream blocker.
+- **WHEN:** Tide records each terminal task outcome.
+- **THEN:** Only the Triage Agent for the successful Plan gets a Release invitation.
+- **THEN:** The blocker case records negative Triage feedback with the exact downstream evidence. It creates no invitation.
+- **EVIDENCE:** `test_current_bdd_triage_release.py` proves all four terminal outcomes and the feedback link.
+
+### MODIFIED R-13: `wea next` shows the exact Plan context
+
+`wea next` MUST show the exact Plan revision, stage, child Contract, depth, mode, current actor, required action, and Tide boundary.
+
+When an assigned role controls the next action, the output MUST show the exact role. The command MUST remain read-only.
+
+#### S-13. `wea next` shows the next exact action
+
+- **GIVEN:** Tide records an active child stage and an optional assigned role as the current action owner.
+- **WHEN:** A participant runs `wea next` and reads the latest Tide confirmation.
+- **THEN:** Both outputs show identical Plan, stage, Contract, depth, mode, actor, role, action, and Tide boundary values.
+- **THEN:** The command creates no comment, transition, or ledger record.
+- **EVIDENCE:** `test_current_bdd_next.py` proves stage-owned and role-owned actions and proves read-only behavior.
+
+### ADDED R-18: Flat PoD settlement
+
+Flat PoD MUST define a positive equal payout and a finite slot count. Each accepted eligible Work MUST occupy and receive no more than one slot.
+
+The Contract MUST name its acceptance authority. It MUST use a pinned normalized validator when normal code validation can decide the result.
+
+When code validation cannot decide the result, only an exact author declaration can accept the Work.
+
+Tide MUST accept the Work, move one slot allocation, and pay the Work in one atomic transition. A failed payment MUST leave all three effects absent.
+
+A replay, another revision of the same Work, an ineligible Work, or late Work MUST NOT consume a slot or move money.
+
+At slot cap, expiry, or accepted `birdie`, Tide MUST close intake and refund every unused slot. Tide MUST preserve completed slot payments.
+
+#### S-69. Flat PoD pays one equal slot per accepted Work
+
+- **GIVEN:** A Flat PoD Contract has three equal slots, an open intake boundary, and a pinned validator or author acceptance authority.
+- **WHEN:** Tide processes valid decisions, a replay, another Work revision, ineligible Work, late Work, and a simulated payment failure.
+- **THEN:** Each accepted Work gets one equal slot and one atomic payment. No other event consumes a slot or moves money.
+- **THEN:** A payment failure creates no acceptance or cursor change. Close preserves paid slots and refunds unused slots.
+- **EVIDENCE:** `test_current_bdd_flat_pod.py` proves slot identity, atomic payment, invalid events, close paths, refunds, and replay idempotency.
+
+### ADDED R-19: Complete Ranked settlement
+
+A valid Ranked order MUST contain each paid rank from one through its final rank. It MUST contain no duplicate, gap, extra rank, or ineligible Work.
+
+Only the author can publish the Ranked decision. Tide MUST pay the exact rank vector and close the stage in one atomic transition.
+
+An invalid order or invalid authority MUST create no partial settlement. A replay MUST NOT create another payment or refund.
+
+#### S-70. Ranked settlement is complete and atomic
+
+- **GIVEN:** A Ranked Contract has `K` eligible Works and an exact payout vector with `K` entries.
+- **WHEN:** The author publishes a valid total order and Tide applies it.
+- **THEN:** Tide pays each Work its exact rank allocation and closes the stage in one atomic transition.
+- **THEN:** A duplicate, gap, extra rank, ineligible Work, or wrong authority leaves all ranks unpaid and the stage unsettled.
+- **THEN:** A payment failure also leaves all ranks unpaid and the stage unsettled.
+- **EVIDENCE:** `test_current_bdd_ranked_settlement.py` proves the valid order, every invalid form, atomic rollback, and replay idempotency.
+
+## Reconciled dependents after Spec 0.9
+
+| Artifact | Current contract | Reconciliation result |
+| --- | --- | --- |
+| `design.md`, `schema.md` | design/schema `1.0` | Define the successor runtime, stage schedules, pauses, settlement sources, Duel revisions, and pure projections. |
+| `delta.md`, `migration.md` | delta/migration `0.9` | Record the behavior change and preserve the no-live-migration boundary. |
+| `tasks.md`, `HANDOFF.md` | tasks `1.2` | Describe one behavior-complete delivery and its verified handoff. |
+| `src/wea_vnext/rulesets/0.8.json`, `src/wea_vnext/executors/v0_8_0/` | ruleset/interface `0.8`, executor `0.8.0` | Implement the current contract in a new immutable successor. Ruleset `0.7` and executor `v0_7_0` stay unchanged. |
+| `tests/vnext/scenarios.py`, contract tests | Spec `0.9` | Register exactly 70 current scenarios: 44 compatible and 26 changed or added scenarios. Historical and accepted-future scopes do not count as current evidence. |
+| `verification.md`, `WEA_vNext_REVIEW.html` | Spec `0.9` | Report fresh reference-runtime evidence and keep the explicit `Not live` boundary. |
+
+## Scenario evidence map Spec 0.9
+
+| Requirement | Scenarios | Required evidence |
+| --- | --- | --- |
+| R-01 | S-01C | `test_current_bdd_authority.py` |
+| R-02 | S-02A…S-02J | Plan activation, approval, stop, schedule, and body-pause contract tests |
+| R-03 | S-03B | `test_current_bdd_work_scope.py` |
+| R-04 | S-04A, S-04B, S-04C, S-04D | Ranked progression, risk pause, eligibility, and defect-replan tests |
+| R-05 | S-05A, S-05C, S-05D, S-05E, S-05F, S-05G, S-05H | Assigned-role terms, timing, stop, deadline, and funding tests |
+| R-06 | S-06C | `test_current_bdd_mode_expiry.py` |
+| R-07 | S-07A, S-07B | `test_current_bdd_birdie.py` |
+| R-10 | S-10 | `test_current_bdd_triage_release.py` |
+| R-13 | S-13 | `test_current_bdd_next.py` |
+| R-18 | S-69 | `test_current_bdd_flat_pod.py` |
+| R-19 | S-70 | `test_current_bdd_ranked_settlement.py` |
+
+The 44 compatible scenarios remain normative by reference. The current set is `S-56` through `S-68` plus the 31 IDs listed in `bdd-contract-rewrite.md`.
+
+## Historical delta Spec 0.8
+
+Эта delta сохраняется для истории и для требований, которые Spec `0.9` наследует по ссылке. При конфликте действует нормативная delta Spec `0.9` выше.
+
+### REMOVED R-02A: жёсткие task-профили
+
+`direct-pr`, `spec-only`, `full-build` и отдельный task-профиль `duel` больше не являются входом, результатом Triage или полем нового Contract. Автор не выбирает профиль заранее. Совместимость со старыми названиями в ruleset `0.7` не предоставляется. `[CHAT]`
+
+### MODIFIED R-01: полномочия Triage и автора
+
+Triage/Negativa SHALL получить problem/body и максимальный общий bank, оценить сложность и риски и опубликовать проект Resolution Plan. Автор SHALL иметь возможность утвердить точную ревизию проекта, изменить её и утвердить изменённую ревизию, запросить новый проект или отказаться от запуска. Без явного author approval Tide MUST NOT резервировать task bank или создавать Plan, Contract либо Task. `[CHAT]`
+
+Для обучения Triage система SHALL сохранять связанную цепочку точных revisions `problem + max bank → Triage proposal → author edits/decision → execution/replan/outcome`. Triage может рекомендовать отказ, но ruleset `0.7` MUST NOT давать ей семантическое veto. До Plan approval Tide SHALL отклонять только формально недопустимые Identity/authority, declaration, matrix, bank/payout и evidence-boundary данные. Новая семантическая категория hard reject требует новой версии ruleset. `[CHAT][DERIVED]`
+
+Reviewer binding SHALL быть exact и действующим уже в момент Agent0 assignment и в момент assessment; Agent0 binding SHALL быть exact на assignment и completion. Каждая child Plan revision SHALL строго следовать parent по каноническому GitHub-порядку `(effective_at, source comment ID, source revision ID)`, включая детерминированный tie-break при равном времени. Backdated либо same-time-earlier revision MUST быть отклонена. `[DERIVED][REVIEW]`
+
+### S-56. Автор сохраняет финальный голос
+
+- **Дано:** Triage опубликовала допустимый проект Plan для точной problem revision и max bank.
+- **Когда:** автор утверждает его, утверждает собственную допустимую правку, просит новый проект или отказывается.
+- **Тогда:** только первая или вторая ветка может активировать точную утверждённую revision; остальные оставляют Issue Draft без task bank.
+- **Проверка:** `tests/vnext/test_resolution_plan_intake.py` проверяет четыре ветки и неизменяемую feedback chain.
+
+### S-57. Совет Negativa не является veto
+
+- **Дано:** Triage считает задачу слабой или рискованной, но exact plan формально допустим.
+- **Когда:** автор явно утверждает exact revision.
+- **Тогда:** Tide принимает её; при неверной authority, несовместимой matrix row, неверной сумме или неполной event boundary Tide отклоняет её без денег.
+- **Проверка:** `tests/vnext/test_resolution_plan_intake.py` различает semantic warning и каждую формальную отрицательную категорию.
+
+### MODIFIED R-02: Resolution Plan и атомарное обеспечение
+
+Resolution Plan SHALL содержать problem revision/hash, author, Triage evidence, полную ordered stage list, полный bank и для каждой стадии stable key, depth, mode, mode parameters, allocation, ожидаемый результат и inputs. Сумма stage allocations MUST точно равняться plan bank; каждый mode SHALL хранить конечное число мест и полный целочисленный payout vector либо точную таблицу исходов Duel. `[CHAT][DERIVED]`
+
+При approval Tide SHALL атомарно проверить author balance и все authority/evidence, списать полный bank ровно один раз, создать один program escrow, Plan и первый дочерний Contract/Task. Любая ошибка MUST оставлять debit, escrow, Plan, Contract и Task отсутствующими. Будущие stage allocations SHALL быть earmarks того же escrow и MUST NOT повторно списывать balance автора. `[CHAT]`
+
+### S-58. Один approval обеспечивает весь Plan
+
+- **Дано:** автор имеет `100 WEA` и утверждает допустимый Plan `20 + 40 + 40`.
+- **Когда:** Tide применяет approval.
+- **Тогда:** balance уменьшается ровно на `100`, program escrow содержит `100`, Plan и первый Contract существуют, а будущие Contracts ещё отсутствуют; сбой любой проверки оставляет все пять эффектов отсутствующими.
+- **Проверка:** `tests/vnext/test_resolution_plan_activation.py` проверяет success, недостаточный balance и fail-closed rollback после каждой границы.
+
+### MODIFIED R-04: совместимая depth × mode матрица
+
+Новый Plan SHALL использовать только следующие строки:
+
+| Depth | Modes |
+| --- | --- |
+| `explore` | `ranked`, `flat_pod`, `frontier`, `duel` |
+| `spec` | `ranked`, `frontier` |
+| `implement` | `ranked`, `frontier` |
+
+`ranked` SHALL принимать `K ≥ 1`: `K=1` означает WTA, `K>1` означает X-Best с exact rank payout vector. При underfill Final SHALL выплатить только существующие eligible ranks и вернуть allocations отсутствующих ranks автору. `flat_pod` SHALL платить одинаковую сумму каждой допустимой additive Work в пределах конечного slot count и SHALL быть недопустим для взаимоисключающих результатов. `duel` SHALL быть допустим только для `explore`, ровно двух защищаемых позиций и принятого шестиходового расписания. `[CHAT]`
+
+### S-59. Матрица не создаёт скрытые профили
+
+- **Дано:** четыре Plan drafts содержат соответственно `implement/ranked K=1`, `spec/frontier`, `explore/flat_pod` additive и `explore/duel` с двумя позициями.
+- **Когда:** Tide валидирует drafts.
+- **Тогда:** все четыре допустимы без profile; `implement/duel`, `spec/flat_pod`, `K=0`, неравный Flat PoD vector и Duel не из двух позиций отклоняются.
+- **Проверка:** `tests/vnext/test_resolution_plan_rules.py` перечисляет каждую разрешённую строку и каждую независимо недопустимую форму.
+
+### S-60. Ranked underfill возвращает незанятые места
+
+- **Дано:** Ranked `K=3` имеет payout vector `[50, 30, 20]`, но только две eligible Work.
+- **Когда:** автор завершает ranking и Tide проводит Final.
+- **Тогда:** две Work получают `50` и `30`, а `20` возвращаются автору без синтетической третьей Work.
+- **Проверка:** `tests/vnext/test_ranked_settlement.py` сверяет balances, escrow и отсутствие третьего winner.
+
+### MODIFIED R-05: Frontier как конечное измерение прогресса
+
+Frontier SHALL иметь конечный exact payout vector, выбранный как Linear или Fibonacci, и полностью обеспечиваться при Plan approval. Следующий slot SHALL оплачиваться только для допустимой Work, содержательно отличной от всего принятого prior art. Один точный immutable snapshot `model + genome + runtime` SHALL занимать не более одного paid slot. `[CHAT]`
+
+Если результат допускает нормализованную кодовую валидацию, Contract SHALL предпочесть её и сохранить validator/version/result. Если механическая проверка не может решить semantic novelty либо validity, состояние SHALL стать `needs_author`, а финальный verdict SHALL принадлежать автору. Автор SHALL иметь право закрыть Frontier; Tide SHALL вернуть неиспользованный payout suffix. `[CHAT]`
+
+### S-61. Frontier продвигает prior art
+
+- **Дано:** Frontier имеет accepted prior art и следующий exact payout.
+- **Когда:** новый snapshot подаёт valid novel Work, повторяет prior art либо повторно подаёт тот же snapshot.
+- **Тогда:** только valid novel Work занимает и получает следующий slot; остальные не расходуют slot или escrow.
+- **Проверка:** `tests/vnext/test_frontier.py` проверяет novelty index, snapshot identity и payout cursor.
+
+### S-62. Validator сначала, автор при неоднозначности
+
+- **Дано:** один Contract имеет deterministic normalized-code validator, а второй требует semantic novelty judgement.
+- **Когда:** Tide проверяет Work.
+- **Тогда:** первый использует pinned validator result; второй получает `needs_author` без выплаты до exact author verdict.
+- **Проверка:** `tests/vnext/test_frontier.py` проверяет обе ветки и отсутствие автоматической выплаты в `needs_author`.
+
+### S-63. Автор закрывает Frontier
+
+- **Дано:** часть конечного Frontier vector уже выплачена, а suffix остаётся в escrow.
+- **Когда:** exact author close declaration принята.
+- **Тогда:** Tide не принимает новые Work, сохраняет предыдущие выплаты и возвращает весь неиспользованный suffix.
+- **Проверка:** `tests/vnext/test_frontier.py` сверяет intake boundary, balances и escrow invariant.
+
+### REMOVED R-07A: Infinite-обязательство
+
+Новый ruleset не создаёт Infinite Contract. Linear и Fibonacci являются вариантами конечного Frontier payout vector, а не обещанием принимать Work, пока существует balance. `[CHAT]`
+
+### ADDED R-14: автоматическое продолжение Plan
+
+На Plan approval future stage input MAY быть символическим selector вида `selected_work_of: <stage-key>`. После завершения предыдущей стадии Tide SHALL разрешить selector в одну точную immutable accepted Work revision и атомарно материализовать следующий Contract из frozen stage template и уже обеспеченного allocation. Автор MUST NOT создавать или заново финансировать этот Contract. `[CHAT]`
+
+Если selector отсутствует, неоднозначен или указывает на недопустимую Work, либо результат стадии существенно меняет риск или усилие продолжения, Tide SHALL поставить Plan на паузу без создания следующего Contract. Triage MAY предложить новую не начатую suffix; только author approval SHALL создать новую append-only Plan revision. Replan MUST NOT изменять завершённые или активный Contract, а остановка SHALL вернуть весь неиспользованный future bank. `[CHAT][DERIVED]`
+
+### S-64. Следующий Contract создаётся без нового author action
+
+- **Дано:** первая стадия завершена, а её selector однозначно разрешается в accepted Work revision.
+- **Когда:** Tide продолжает Plan.
+- **Тогда:** следующий Contract получает exact revision и allocation из program escrow без author debit или нового approval.
+- **Проверка:** `tests/vnext/test_resolution_plan_progression.py` сверяет resolved input, Contract ID, balance и escrow.
+
+### S-65. Неоднозначный selector fail closed
+
+- **Дано:** selector разрешается в ноль, несколько или неeligible Work revisions.
+- **Когда:** Tide пытается продолжить Plan.
+- **Тогда:** новый Contract отсутствует, escrow не меняется, Plan становится paused и сообщает причину для Triage/replan.
+- **Проверка:** `tests/vnext/test_resolution_plan_progression.py` отдельно проверяет три отрицательные формы.
+
+### S-66. Replan меняет только будущую suffix
+
+- **Дано:** одна стадия завершена, текущий Contract активен, а две будущие стадии ещё не начаты.
+- **Когда:** Triage предлагает новую suffix и автор утверждает её либо останавливает Plan.
+- **Тогда:** новая append-only Plan revision сохраняет completed/active ссылки byte-for-byte и заменяет только future templates; stop возвращает их неиспользованный bank.
+- **Проверка:** `tests/vnext/test_resolution_plan_replan.py` проверяет immutable prefix, authority, funding delta и refund.
+
+### MODIFIED R-10: основание Release
+
+Допустимая Implement Work или завершённая назначенная роль SHALL создавать основание Release. Explore и Spec Work, включая Frontier и Duel, MUST NOT создавать такое основание сами. `[CHAT]`
+
+### S-67. Release зависит от depth, а не старого профиля
+
+- **Дано:** один агент завершил Explore Work, второй Spec Work, третий Implement Work и четвёртый назначенную роль.
+- **Когда:** Tide вычисляет invitations.
+- **Тогда:** приглашения получают только третий и четвёртый.
+- **Проверка:** `tests/vnext/test_release_lifecycle.py` проверяет все четыре основания.
+
+### ADDED R-15: Frontier benchmark Issue #10
+
+Issue #10 SHALL оставаться закрытым для paid intake до нового полностью обеспеченного Contract. Все шесть исторических выражений SHALL входить в seen prior art без clawback старых выплат. В новом validator #1 и #3 SHALL быть legacy no-op anti-examples, а #4 и #5 SHALL требовать author novelty verdict после нормализации к `3/0.3`. Новый epoch SHALL использовать семь новых slots с vector `[13, 21, 34, 55, 89, 144, 233]` и bank `589 WEA`, не переименовывая их в исторические slots 7–13. `[CHAT][CHECK]`
+
+### S-68. Get 10 начинает новый Frontier epoch без переписывания истории
+
+- **Дано:** исторические шесть Works и отсутствующий новый escrow Issue #10.
+- **Когда:** состояние читается до activation и после author approval нового exact Contract.
+- **Тогда:** до activation paid intake закрыт; после неё открыты ровно семь новых slots на `589 WEA`, все шесть Works остаются prior art, а validator выдаёт принятые legacy classifications.
+- **Проверка:** `tests/vnext/test_get10_frontier.py` плюс read-only Issue/ledger evidence fixture.
+
+## Stale dependents после принятия Spec 0.8
+
+| Artifact | Прежняя версия | Требуемое согласование |
+| --- | --- | --- |
+| `design.md`, `schema.md` | Spec `0.7` | `oled-design`: заменить profile architecture на Plan/program escrow/child Contract model |
+| `tasks.md`, `HANDOFF.md` | Spec `0.7` | `oled-tasks`: заменить старый Block 4 и зависимости следующих блоков |
+| `src/wea_vnext/executors/v0_6_0…v0_6_3`, tests | Spec `0.6/0.7` | остаются историческими; новая реализация только в новой closure через `oled-execute` |
+| `verification.md`, `WEA_vNext_REVIEW.html` | Spec `0.7` | прежнее evidence не доказывает Spec `0.8`; обновить последним через `oled-verify` |
+
+## Scenario evidence map Spec 0.8
+
+| Requirement | Scenarios | Evidence |
+| --- | --- | --- |
+| R-01 | S-56, S-57 | `test_resolution_plan_intake.py` |
+| R-02 | S-58 | `test_resolution_plan_activation.py` |
+| R-04 | S-59, S-60 | `test_resolution_plan_rules.py`, `test_ranked_settlement.py` |
+| R-05 | S-61…S-63 | `test_frontier.py` |
+| R-07 | S-59, S-61 | rules and Frontier tests prove finite vectors; no Infinite type is accepted |
+| R-14 | S-64…S-66 | progression and replan tests |
+| R-10 | S-67 | `test_release_lifecycle.py` |
+| R-15 | S-68 | `test_get10_frontier.py` and pinned evidence fixture |
+
+## Исторический baseline Spec 0.7
+
+Следующие разделы сохраняются как полный baseline для неизменённых требований и historical replay. При конфликте действует нормативная delta Spec `0.8` выше.
 
 ## Термины
 

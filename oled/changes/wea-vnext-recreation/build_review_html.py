@@ -24,11 +24,12 @@ from markdown_it import MarkdownIt
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "WEA_vNext_REVIEW.html"
-BASE_SHA = "940c230"
-PACKAGE_REVISION = "0.7"
-DESIGN_REVISION = "0.8"
-DELTA_REVISION = "0.7"
-TASKS_REVISION = "1.0"
+BASE_SHA = "252c6ca"
+PACKAGE_REVISION = "0.9"
+DESIGN_REVISION = "1.0"
+MIGRATION_REVISION = "0.9"
+DELTA_REVISION = "0.9"
+TASKS_REVISION = "1.2"
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,12 @@ DOCUMENTS = (
     Document("design", "design.md", "Как это устроить", "Техническое решение"),
     Document("outcome", "outcome.md", "Что строим", "Коротко"),
     Document("spec", "spec.md", "Утверждённое поведение", "Сценарии"),
+    Document(
+        "bdd-contract-rewrite",
+        "bdd-contract-rewrite.md",
+        "Решения BDD",
+        "Журнал принятых различий",
+    ),
     Document("schema", "schema.md", "Записи и инварианты", "Техническое приложение"),
     Document("migration", "migration.md", "Миграция", "Техническое приложение"),
     Document("delta", "delta.md", "Что меняется", "Техническое приложение"),
@@ -92,9 +99,9 @@ CURRENT_DECISION_IDS = set(
 )
 
 VERSION_MARKERS = {
-    "HANDOFF.md": (r"Техническая модель: `design ([^`]+)`", DESIGN_REVISION),
+    "HANDOFF.md": (r"[Dd]esign/schema `([^`]+)`", DESIGN_REVISION),
     "open-decisions.md": (r"Статус кандидата `([^`]+)`", PACKAGE_REVISION),
-    "outcome.md": (r"Кандидат `([^`]+)` закрепляет", PACKAGE_REVISION),
+    "outcome.md": (r"Outcome `([^`]+)` сохраняет", PACKAGE_REVISION),
     "spec.md": (
         r"# WEA vNext: поведение кандидата ([0-9.]+)",
         PACKAGE_REVISION,
@@ -102,7 +109,7 @@ VERSION_MARKERS = {
     "design.md": (r"Статус: `design ([^`]+)`", DESIGN_REVISION),
     "tasks.md": (r"`tasks ([^`]+)`", TASKS_REVISION),
     "schema.md": (r"Статус: `schema ([^`]+)`", DESIGN_REVISION),
-    "migration.md": (r"Статус: `migration ([^`]+)`", DESIGN_REVISION),
+    "migration.md": (r"Статус: `migration ([^`]+)`", MIGRATION_REVISION),
     "delta.md": (r"Статус: `delta ([^`]+)`", DELTA_REVISION),
     "verification.md": (
         r"# WEA vNext: проверка пакета поведения ([0-9.]+)",
@@ -130,10 +137,71 @@ def validate_package_contract() -> None:
     tasks = texts.get("tasks.md", "")
     handoff = texts.get("HANDOFF.md", "")
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
-    block_three_complete = "Ready for Block 4" in verification
+    spec_implementation_review_pending = (
+        "Implementation verified — independent PR review pending" in verification
+    )
+    spec_reconciliation_complete = (
+        "Ready after Spec 0.9 reconciliation" in verification
+    )
+    spec_reconciliation_pending = (
+        "Not ready — Spec 0.9 reconciliation pending" in verification
+    )
+    bdd_rewrite_pending = "Not ready — BDD rewrite pending" in verification
+    block_four_complete = "Ready after Block 4" in verification
+    block_four_implemented = (
+        spec_implementation_review_pending
+        or spec_reconciliation_complete
+        or spec_reconciliation_pending
+        or bdd_rewrite_pending
+        or block_four_complete
+    )
+    block_three_complete = block_four_implemented or "Ready for Block 4" in verification
     block_two_complete = block_three_complete or "Ready for Block 3" in verification
     block_one_complete = block_two_complete or "Ready for Block 2" in verification
-    if block_three_complete:
+    if spec_implementation_review_pending:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
+            errors.append("tasks.md: Spec 0.9 completion marker is missing")
+        if "Spec 0.9 review pending" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 review status is missing")
+        if "BDD alignment: 100%" not in verification:
+            errors.append("verification.md: exact BDD alignment is missing")
+    elif spec_reconciliation_complete:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
+            errors.append("tasks.md: Spec 0.9 completion marker is missing")
+        if "Ready after Spec 0.9 reconciliation" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 handoff status is missing")
+        if "BDD alignment: 100%" not in verification:
+            errors.append("verification.md: exact BDD alignment is missing")
+    elif spec_reconciliation_pending:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "stale после Spec 0.9" not in tasks:
+            errors.append("tasks.md: Spec 0.9 stale marker is missing")
+        if "Spec 0.9 reconciliation pending" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 reconciliation status is missing")
+        if "stale design/tasks/runtime/tests" not in decisions:
+            errors.append("open-decisions.md: reconciliation blocker is missing")
+    elif bdd_rewrite_pending:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "блоки 1–4 реализованы и проверены" not in tasks:
+            errors.append("tasks.md: Block 4 completion marker is missing")
+        if "BDD rewrite pending after Block 4" not in handoff:
+            errors.append("HANDOFF.md: BDD rewrite handoff status is missing")
+        if "BDD rewrite теперь блокирует" not in decisions:
+            errors.append("open-decisions.md: BDD blocker status is missing")
+    elif block_four_complete:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "блоки 1–4 реализованы и проверены" not in tasks:
+            errors.append("tasks.md: Block 4 completion marker is missing")
+        if "Ready after Block 4" not in handoff:
+            errors.append("HANDOFF.md: post-Block-4 handoff status is missing")
+    elif block_three_complete:
         if "Not live" not in verification:
             errors.append("verification.md: live-runtime boundary is missing")
         if "блоки 1–3 реализованы и проверены" not in tasks:
@@ -157,12 +225,19 @@ def validate_package_contract() -> None:
             errors.append("verification.md: runtime status marker is missing")
     if "Статус свежих команд: `Complete`" not in verification:
         errors.append("verification.md: fresh-command evidence is incomplete")
-    expected_review = "`CLEAN`" if block_one_complete else "`Complete`"
-    if f"Статус независимой проверки: {expected_review}" not in verification:
-        errors.append("verification.md: independent review is incomplete")
+    if spec_implementation_review_pending:
+        if "Статус независимой проверки: `Pending`" not in verification:
+            errors.append("verification.md: pending review status is missing")
+    elif spec_reconciliation_pending:
+        if "Статус независимой проверки Spec 0.9:" not in verification:
+            errors.append("verification.md: Spec 0.9 review status is missing")
+    else:
+        expected_review = "`CLEAN`" if block_one_complete else "`Complete`"
+        if f"Статус независимой проверки: {expected_review}" not in verification:
+            errors.append("verification.md: independent review is incomplete")
     if re.search(r"записываются после|выполняется после сборки", verification):
         errors.append("verification.md: contains a future evidence placeholder")
-    if "блокирующих решений нет" not in decisions:
+    if not bdd_rewrite_pending and "блокирующих решений нет" not in decisions:
         errors.append("open-decisions.md: blocking-decision status disagrees with readiness")
     if not block_two_complete and block_one_complete:
         if "блок 1 `tasks 1.0` реализован" not in tasks:
@@ -570,7 +645,26 @@ def build() -> None:
     verification_text = (
         ROOT / "verification.md"
     ).read_text(encoding="utf-8")
-    block_three_complete = "Ready for Block 4" in verification_text
+    spec_implementation_review_pending = (
+        "Implementation verified — independent PR review pending"
+        in verification_text
+    )
+    spec_reconciliation_complete = (
+        "Ready after Spec 0.9 reconciliation" in verification_text
+    )
+    spec_reconciliation_pending = (
+        "Not ready — Spec 0.9 reconciliation pending" in verification_text
+    )
+    bdd_rewrite_pending = "Not ready — BDD rewrite pending" in verification_text
+    block_four_complete = "Ready after Block 4" in verification_text
+    block_four_implemented = (
+        spec_implementation_review_pending
+        or spec_reconciliation_complete
+        or spec_reconciliation_pending
+        or bdd_rewrite_pending
+        or block_four_complete
+    )
+    block_three_complete = block_four_implemented or "Ready for Block 4" in verification_text
     block_two_complete = block_three_complete or "Ready for Block 3" in verification_text
     block_one_complete = block_two_complete or "Ready for Block 2" in verification_text
     source_digest, manifest_rows = source_manifest()
@@ -592,7 +686,27 @@ def build() -> None:
         nav_sections.append(nav_document(document, title, headings))
 
     decision_count = sum(decision_counts.values())
-    if decision_counts["core"]:
+    if spec_implementation_review_pending:
+        decision_guide = (
+            "Все решения текущего reference runtime приняты и локально доказаны. "
+            "Остаётся независимая проверка опубликованного PR."
+        )
+    elif spec_reconciliation_complete:
+        decision_guide = (
+            "Все решения текущего reference runtime приняты и доказаны. "
+            "Отложенные вопросы относятся только к будущей live-активации."
+        )
+    elif spec_reconciliation_pending:
+        decision_guide = (
+            "Все BDD-решения приняты. Журнал различий сохранён для traceability. "
+            "Следующий шаг — design reconciliation, затем новый tasks contract."
+        )
+    elif bdd_rewrite_pending:
+        decision_guide = (
+            "Текущий blocker находится в таблице BDD: принимайте или изменяйте "
+            "сценарии построчно; отложенные OD показаны только для контекста."
+        )
+    elif decision_counts["core"]:
         decision_guide = (
             "Кнопки решений сохраняют выбор только в хранилище этого браузера. "
             "Для обсуждения скачайте или скопируйте решения в формате Markdown."
@@ -603,7 +717,55 @@ def build() -> None:
             "План и handoff готовы для следующего ограниченного блока."
         )
 
-    if decision_counts["core"]:
+    if spec_implementation_review_pending:
+        hero_kicker = "Spec 0.9 · implementation verified"
+        hero_lead = (
+            "Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Пакет ожидает независимую проверку PR; "
+            "live Tide, ledger, migration, bootstrap и GitHub writers не подключены."
+        )
+        package_status = "Spec 0.9 verified · PR review pending · Not live"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть review handoff"
+        core_status_label = "Расхождений BDD"
+        core_status_count = "0"
+    elif spec_reconciliation_complete:
+        hero_kicker = "Spec 0.9 · reference runtime verified"
+        hero_lead = (
+            "Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Live Tide, ledger, migration, "
+            "bootstrap и GitHub writers не подключены."
+        )
+        package_status = "Spec 0.9 verified · Not live"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть verified handoff"
+        core_status_label = "Расхождений BDD"
+        core_status_count = "0"
+    elif spec_reconciliation_pending:
+        hero_kicker = "Spec 0.9 принят · reconciliation pending"
+        hero_lead = (
+            "Оператор принял 24 переписанных и два новых BDD-сценария. "
+            "Design, tasks, ruleset 0.7, runtime и tests ещё описывают Spec 0.8. "
+            "Пакет остаётся Not ready до отдельного согласования и реализации."
+        )
+        package_status = "Not ready · Spec 0.9 reconciliation pending"
+        primary_href = "#doc-spec"
+        primary_label = "Открыть Spec 0.9"
+        core_status_label = "Открытых BDD-решений"
+        core_status_count = "0"
+    elif bdd_rewrite_pending:
+        hero_kicker = "BDD-контракт · построчная проверка"
+        hero_lead = (
+            "Block 4 code slice проверен, но новая матрица изменила смысл 24 старых "
+            "сценариев и требует двух новых. До вашего построчного решения пакет "
+            "не считается согласованным и дальнейшая реализация остановлена."
+        )
+        package_status = "Not ready · BDD rewrite pending"
+        primary_href = "#doc-bdd-contract-rewrite"
+        primary_label = "Открыть таблицу BDD"
+        core_status_label = "BDD-строк к решению"
+        core_status_count = "26"
+    elif decision_counts["core"]:
         hero_kicker = "Кандидат · построчная проверка"
         hero_lead = (
             "Короткий пакет утверждённых правил, оставшихся вопросов и технических "
@@ -612,6 +774,20 @@ def build() -> None:
         package_status = "Ожидает полной вычитки"
         primary_href = "#doc-decisions"
         primary_label = "Решить открытые вопросы"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
+    elif block_four_complete:
+        hero_kicker = "Кандидат · блоки 1–4 проверены"
+        hero_lead = (
+            "Author-approved Resolution Plan и атомарная активация первого child "
+            "Contract реализованы в отдельной immutable closure 0.7. Live Tide, "
+            "ledger и GitHub не подключены; следующие execution slices ещё не начаты."
+        )
+        package_status = "Block 4 закрыт; vNext не подключена"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть post-Block-4 handoff"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     elif block_three_complete:
         hero_kicker = "Кандидат · блоки 1–3 проверены"
         hero_lead = (
@@ -622,6 +798,8 @@ def build() -> None:
         package_status = "Блок 3 закрыт; vNext не подключена"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff блока 4"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     elif block_two_complete:
         hero_kicker = "Кандидат · блоки 1–2 проверены"
         hero_lead = (
@@ -632,6 +810,8 @@ def build() -> None:
         package_status = "Блок 2 закрыт; vNext не подключена"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff блока 3"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     elif block_one_complete:
         hero_kicker = "Кандидат · блок 1 проверен"
         hero_lead = (
@@ -641,6 +821,8 @@ def build() -> None:
         package_status = "Блок 1 готов; vNext не подключена"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff блока 2"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     else:
         hero_kicker = "Кандидат · план реализации"
         hero_lead = (
@@ -650,6 +832,8 @@ def build() -> None:
         package_status = "План готов; код не начат"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
 
     manifest_html = "".join(
         "<tr><td><code>"
@@ -1030,6 +1214,25 @@ def build() -> None:
       line-height: 1.68;
       overflow-wrap: anywhere;
     }
+    #doc-bdd-contract-rewrite .markdown-body { max-width: none; }
+    #doc-bdd-contract-rewrite table {
+      table-layout: fixed;
+      font-size: 12px;
+    }
+    #doc-bdd-contract-rewrite th:first-child,
+    #doc-bdd-contract-rewrite td:first-child {
+      width: 7%;
+      white-space: nowrap;
+      overflow-wrap: normal;
+    }
+    #doc-bdd-contract-rewrite th:nth-child(2),
+    #doc-bdd-contract-rewrite td:nth-child(2) { width: 14%; }
+    #doc-bdd-contract-rewrite th:nth-child(3),
+    #doc-bdd-contract-rewrite td:nth-child(3) { width: 21%; }
+    #doc-bdd-contract-rewrite th:nth-child(4),
+    #doc-bdd-contract-rewrite td:nth-child(4) { width: 25%; }
+    #doc-bdd-contract-rewrite th:nth-child(5),
+    #doc-bdd-contract-rewrite td:nth-child(5) { width: 33%; }
     .markdown-body > p,
     .markdown-body > ul,
     .markdown-body > ol,
@@ -1414,7 +1617,7 @@ def build() -> None:
         <p class="hero-lead">__HERO_LEAD__</p>
         <div class="hero-status" aria-label="Статус пакета">
           <span class="status-pill">__PACKAGE_STATUS__</span>
-          <span class="status-pill">Блокирующих решений: __CORE_DECISION_COUNT__</span>
+          <span class="status-pill">__CORE_STATUS_LABEL__: __CORE_DECISION_COUNT__</span>
           <span class="status-pill">Отложено: __LATE_DECISION_COUNT__</span>
           <span class="status-pill">Кандидат __REVISION__</span>
         </div>
@@ -1762,9 +1965,10 @@ def build() -> None:
         .replace("__HERO_KICKER__", hero_kicker)
         .replace("__HERO_LEAD__", hero_lead)
         .replace("__PACKAGE_STATUS__", package_status)
+        .replace("__CORE_STATUS_LABEL__", core_status_label)
         .replace("__PRIMARY_HREF__", primary_href)
         .replace("__PRIMARY_LABEL__", primary_label)
-        .replace("__CORE_DECISION_COUNT__", str(decision_counts["core"]))
+        .replace("__CORE_DECISION_COUNT__", core_status_count)
         .replace("__LATE_DECISION_COUNT__", str(decision_counts["late"]))
         .replace("__DECISION_GUIDE__", decision_guide)
         .replace("__NAV__", "".join(nav_sections))

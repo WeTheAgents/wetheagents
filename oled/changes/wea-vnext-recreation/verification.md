@@ -1,40 +1,62 @@
-# WEA vNext: проверка пакета поведения 0.7
+# WEA vNext: проверка пакета поведения 0.9
 
-Блоки 1–3 завершены. Block 3 добавляет неактивные Draft, Triage/Negativa и атомарный ordinary Contract в immutable executor `v0_6_3`; старые executor сохранены, а System Hello World остаётся fail closed. Fresh-context review завершён, пакет имеет статус `Ready for Block 4`. WEA vNext остаётся `Not live`; live Tide, переключение v1, migration/bootstrap и внешние записи не разрешены. `[CHAT][CHECK][REVIEW]`
+Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
+
+Decision: `Implementation verified — independent PR review pending`.
 
 Статус свежих команд: `Complete`.
 
-Post-merge-base полный gate: `Complete`.
-
-Статус независимой проверки: `CLEAN`.
+Статус независимой проверки: `Pending`.
 
 ## Версии
 
 | Артефакт | Версия | Роль |
 | --- | --- | --- |
-| `outcome.md`, `spec.md` | 0.7 | одобренное поведение и authority исторической аттестации |
-| `design.md`, `schema.md`, `migration.md` | 0.8 | техническая модель, evidence bundle и восстановление |
-| `delta.md` | 0.7 | классификация v1/vNext без изменения этой дельтой |
-| `tasks.md` | 1.0 | блоки 1–3 реализованы и проверены; Block 4 следующий |
-| исполнитель Block 1 | `v0_6_0` | сохранённая неизменяемая смысловая замкнутость и прежняя replay triple |
-| первоначальный исполнитель Block 2 | `v0_6_1` | сохранённая неизменяемая замкнутость Identity и Hello World до security fix |
-| текущий исполнитель Block 2 | `v0_6_2` | security successor без изменяемого canonical Hello World sentinel; навсегда fail closed |
-| текущий исполнитель Block 3 | `v0_6_3` | Draft, versioned Triage authority/payment slot и атомарный ordinary Contract; manifest `238306466be80b500f3a7e41e9d0775529ea7c0f97dde9e2fb34a742c8951371` |
+| `outcome.md`, `spec.md` | `0.9` | Current accepted behavior and normative BDD authority |
+| `design.md`, `schema.md` | `1.0` | Current technical contract |
+| `delta.md`, `migration.md` | `0.9` | Current change boundary and explicit no-live-migration rule |
+| `tasks.md` | `1.2` | Current executable delivery contract |
+| historical successor | ruleset `0.7`, executor `v0_7_0` | Immutable Resolution Plan intake and activation slice |
+| current successor | ruleset/interface `0.8`, executor `v0_8_0` | Manifest-pinned execution of all current Spec `0.9` behavior |
 
-Spec 0.7 сохраняет 55 сценариев и уточняет параметризованную ветку S-09: две active alias строки и один retired tombstone без Identity-authority. Реализация блоков 1–3 не закрывает OD-11, OD-14, OD-28 или OD-29. `[DERIVED][CHECK]`
+Ruleset `0.8` SHA-256: `e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1`.
 
-## Реализованный контракт блока 3
+Executor `v0_8_0` manifest SHA-256: `b0d81033fa8626c21ec8573fdce39a388ced8d7eccc154faf82cfba6af21c519`.
+
+## Реализованный контракт Spec 0.9
 
 | Обязательство | Доказательство |
 | --- | --- |
-| Read-only Draft | `validate_draft` повторно выводит author authority, проверяет exact ruleset-derived mechanic terms и не изменяет `IntakeState` |
-| Triage authority | одна детерминированная role/payment slot на Issue; Agent0 assignment/completion и reviewer output закрепляют GitHub account, binding/version, revision, snapshot/hash, effective time и idempotency |
-| Triage money | бесплатная роль не двигает WEA; paid role списывает только `treasury`, создаёт отдельный escrow и после Agent0 completion один раз кредитует reviewer; body retry/reassignment не платит повторно |
-| Exact acceptance | operator override, author consent и Agent0 readiness повторно сверяются с active versioned bindings и одной точной Triage revision |
-| Atomic Contract | ID детерминирован по Issue; author — единственный payer/refund recipient; debit, task escrow, immutable Contract и Task создаются одной заменой state или не создаются вовсе |
-| Runtime boundary | публичные facades закреплены на `v0_6_3`; `v0_6_0…v0_6_2` неизменны; live adapter и `ledger/vnext/` отсутствуют |
+| Triage и Plan | Exact author approval binds the complete schedule and bank. One debit funds one program escrow. Only the first child Contract starts. |
+| Modes | Ranked, Flat PoD, Frontier, and Duel have exact admission, deadlines, payout, refund, underfill, and expiry behavior. Settlement transitions are atomic and idempotent. |
+| Progression | The next child uses one exact immutable selected revision. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix. |
+| Pauses | Body-integrity pauses offset only deadlines that were open at pause start. Agent0 risk pauses block progression while valid current work can continue. |
+| Assigned roles | Frozen targets, generations, deadlines, `free` or separately escrowed `treasury` funding, replacement races, and ordered stop behavior are explicit. |
+| Duel | Open and invited admission, six move windows, immutable move revisions, exact settlement table, and no Duel Release are implemented. |
+| Release and feedback | Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful whole-Plan completion. A downstream blocker preserves negative Triage feedback and suppresses Release. |
+| Read-only projection | `next_action` reports the exact Plan, stage, Contract, mode, actor, action, and effective boundary without writes. |
+| Get 10 | Issue #10 remains historical prior art. The validator classifies all six accepted expressions; identity-wrapper examples are valid arithmetic but are not novel Frontier progress. No Issue or ledger write occurred. |
 
-Сценарии S-02A/S-02C/S-02H/S-02I покрыты focused tests. Механические regressions дополнительно отклоняют caller-selected treasury source, `treasury` в Agent namespace, неизвестного/чужого reviewer, неверные binding versions, Triage до assignment, второй Contract/debit, mutation-after-validation, повторную Triage payment, произвольные payout vectors/review stages и stage IDs, пересекающиеся с профилем. `[CHECK][REVIEW]`
+## BDD alignment
+
+- Current registry: exactly `70` IDs.
+- Compatible scenarios: `44` IDs (`S-56` through `S-68` plus 31 baseline IDs).
+- Changed or added scenarios: exactly `26` IDs listed in the normative Spec `0.9` delta.
+- Accepted-future and historical references use separate scopes. They cannot count as current evidence.
+- Contract tests name the normative scenario IDs and cover each changed behavior. Registry tests reject omissions, extras, duplicates, and historical-heading confusion.
+
+## Свежие команды Spec 0.9
+
+| Проверка | Команда | Результат |
+| --- | --- | --- |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `369 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4654 passed`, `18 skipped`, `11 xfailed` |
+| Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
+| v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
+| Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
+| Independent review | `codex exec review` after PR creation | Pending before publication |
+
+## Historical verification baseline through Block 3
 
 ## Полномочия и границы
 
@@ -58,7 +80,7 @@ Spec 0.7 сохраняет 55 сценариев и уточняет парам
 | Версионная изоляция | wheel-тест устанавливает второй stdlib-only executor, затем проверяет повреждённые source, unchecked bytecode cache, malformed manifest (surrogate/oversized integer/deep nesting), bounded source-tree traversal и copied manifest с чужим package version; байты прежнего Contract остаются теми же, а замена manifest, ruleset, выбранного executor или parent import shim отклоняется fail closed; непустые `semantic_dependencies` отклоняются до появления их полного verifier |
 | Сценарии | `tests/vnext/scenarios.py` регистрирует ровно 55 уникальных ID Spec и падает при пропуске, лишнем ID или повторе |
 
-## Свежие команды
+## Historical command ledger through Block 3
 
 | Проверка | Команда или источник | Результат |
 | --- | --- | --- |
@@ -213,12 +235,14 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 ## Ограничения
 
-- Код блоков 1–3 и historical attestation не означает выполненную миграцию или live activation. Будущие live submission/decision/disclosure и обычные `direct-pr` declarations всё ещё требуют accepted GitHubEvent revisions и confirmed boundary. Блоки 4–9 не реализованы. `[CHECK][REVIEW]`
+- Код блоков 1–4 и historical attestation не означает выполненную миграцию или live activation. Block 4 соответствует только Spec `0.8`. Spec `0.9` runtime ещё не спроектирован и не реализован. `[CHECK][REVIEW]`
 - Одиннадцать xfail остаются намеренно видимым legacy-долгом: восемь strict `v1_known_debt`, два strict `v1_reconciliation` и один фактический orphan `escrow_return|22|cursor-3@cursor`. Их не маскировали изменениями production-логики. `[CHECK]`
 - OD-11 и OD-14 нужны перед соответствующими внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
 - OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. `[DOC][DERIVED]`
 
 ## Решение
+
+`Not ready — Spec 0.9 reconciliation pending`: authority и 26 changed/added scenarios приняты, но design, tasks, registry, tests, successor ruleset и runtime остаются stale. Следующий допустимый шаг — `oled-design`, а не implementation. `BDD alignment: not 100%`. `[CHAT][CHECK]`
 
 `Ready — SystemHelloWorldContract security fix`: `v0_6_2` навсегда fail closed на construction и всех четырёх authoritative entry points; globals mutation и raw allocation не создают transition или mint intent в source либо установленном wheel. Старые executor и их manifest hashes сохранены, focused/full checks зелёные, повторный независимый review не вернул findings. `[CHECK][REVIEW]`
 

@@ -77,13 +77,36 @@ class _ReadOnlyModule:
         object.__setattr__(self, "_ReadOnlyModule__reference", reference)
         verified_calls: dict[str, Any] = {}
         if module.__name__.endswith(".intake"):
-            for name in ("activate_contract", "validate_draft"):
+            if all(
+                callable(module.__dict__.get(name))
+                for name in ("activate_contract", "validate_draft")
+            ):
+                authority_calls = ("activate_contract", "validate_draft")
+            elif callable(module.__dict__.get("activate_resolution_plan")):
+                authority_calls = (
+                    "activate_resolution_plan",
+                    "record_author_plan_decision",
+                    "record_plan_revision",
+                    "record_triage_assessment",
+                )
+            else:
+                raise ManifestError(
+                    "intake runtime call is outside the verified closure"
+                )
+            for name in authority_calls:
                 candidate = module.__dict__.pop(name, None)
                 if not callable(candidate):
                     raise ManifestError(
                         "intake runtime call is outside the verified closure"
                     )
                 verified_calls[name] = candidate
+        elif module.__name__.endswith(".lifecycle"):
+            candidate = module.__dict__.pop("apply_lifecycle_event", None)
+            if not callable(candidate):
+                raise ManifestError(
+                    "lifecycle runtime call is outside the verified closure"
+                )
+            verified_calls["apply_lifecycle_event"] = candidate
         object.__setattr__(
             self,
             "_ReadOnlyModule__verified_calls",
@@ -91,7 +114,7 @@ class _ReadOnlyModule:
         )
 
     def __getattribute__(self, name: str) -> Any:
-        if name in {
+        if name.startswith("_") or name in {
             "__dict__",
             "_ReadOnlyModule__module",
             "_ReadOnlyModule__reference",
@@ -110,7 +133,7 @@ class _ReadOnlyModule:
 
     def __dir__(self) -> list[str]:
         module = object.__getattribute__(self, "_ReadOnlyModule__module")
-        return dir(module)
+        return [name for name in dir(module) if not name.startswith("_")]
 
     def call_verified(self, name: str, *args: Any, **kwargs: Any) -> Any:
         """Invoke an authority-bearing entry point with verifier-owned runtime."""
@@ -210,11 +233,14 @@ _MISSING_BINDING = object()
 _PUBLIC_EXECUTOR_SUBMODULES = frozenset(
     {
         "declarations",
+        "get10",
         "identity",
         "identity_hello_world",
         "identity_migration",
         "intake",
+        "lifecycle",
         "projection",
+        "rules",
     }
 )
 _MANIFEST_KEYS = {

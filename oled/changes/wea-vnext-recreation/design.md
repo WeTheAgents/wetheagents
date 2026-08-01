@@ -1,6 +1,242 @@
 # WEA vNext: техническое устройство
 
-Статус: `design 0.8` связывает одобренный `spec 0.7` с планом реализации. Версия 0.8 заменяет обязательный семантический replay всех edit revisions только для единовременной исторической аттестации Hello World v1; live vNext event boundary не меняется. `[CHAT][CHECK][DERIVED]`
+Статус: `design 1.0` принят как исполнимая архитектура для `outcome/spec 0.9`. Он добавляет новый immutable ruleset/executor и полный pure-runtime lifecycle. Live GitHub/ledger adapter, bootstrap и миграция остаются запрещены. `[CHAT][CHECK][DERIVED]`
+
+## История design
+
+| Revision | Implements spec | Status | Material decision |
+| --- | --- | --- | --- |
+| 0.8 | 0.7 | superseded для новых tasks | profile-based Contract и operator-attested Hello World closure |
+| 0.9 | 0.8 | stale после Spec 0.9 | author-approved Resolution Plan, program escrow и первый автоматически созданный child Contract |
+| 1.0 | 0.9 | current / approved for implementation | immutable lifecycle events, derived Plan projection, exact schedules, settlements, roles, pauses, Release and `next` |
+
+## Design delta 1.0: complete Resolution Plan lifecycle
+
+This delta has priority over design `0.9` for new Contracts. Design `0.9`, ruleset `0.7`, and executor `v0_7_0` remain immutable historical evidence.
+
+### D-40. Successor closure and explicit facade
+
+- Add `rulesets/0.8.json`, Tide interface `0.8`, and executor `v0_8_0`.
+- Copy the complete `v0_7_0` semantic closure into `v0_8_0`; add lifecycle sources to the new manifest and keep `semantic_dependencies = {}`.
+- Keep every older ruleset, executor, manifest, and facade byte-for-byte unchanged.
+- Re-pin only the pre-live `resolution_plan.py` facade to exact executor `0.8.0`. The historical `intake.py` facade stays on `0.6.3`.
+- Reject mixed ruleset, interface, manifest, or executor triples before any transition.
+
+This is a major executor line because Spec `0.9` changes money settlement, deadlines, authority, and terminal outcomes. A patch to `v0_7_0` would change replay meaning.
+
+### D-41. Approved stage schedule and materialized deadlines
+
+`PlanStage` gains one canonical `StageSchedule`:
+
+| Mode | Required positive durations |
+| --- | --- |
+| `ranked` | `intake_duration`, `author_decision_duration` |
+| `flat_pod` | `intake_duration` |
+| `frontier` | `intake_duration` |
+| `duel` | `join_duration`, six ordered `move_durations`, `author_decision_duration` |
+
+The schedule is part of the Plan hash and author approval. Unknown, missing, zero, negative, boolean, or mode-incompatible durations fail closed.
+
+At child Contract creation, Tide creates each absolute boundary whose anchor exists. Each deadline keeps its base anchor, effective open, base due time, effective due time, and applied pause IDs. Ranked, Flat PoD, and Frontier receive an intake deadline. Duel receives a join deadline. Ranked decision time starts at intake close or an accepted birdie. Duel move time starts at the second valid join, and each later move starts at the prior move boundary. A later child gets its own deadlines only when that child is materialized.
+
+An assigned role is not a hidden stage. Its deadline starts from its own assignment time and frozen positive duration.
+
+### D-42. Append-only lifecycle and derived projection
+
+The new closure adds `lifecycle.py`. Its durable semantic input is an ordered tuple of verified `LifecycleEvent` records. Each event contains a deterministic ID, Plan ID, kind, actor identity, exact source revision, effective time, idempotency key, and canonical payload.
+
+`ResolutionPlanRuntimeState` contains the verified activation aggregate and the accepted lifecycle events. Callers cannot construct a non-empty verified state directly. Public transition functions reconstruct caller-owned records, authorize exact GitHub evidence, replay the accepted prefix, validate the proposed event, and return a new state only after all invariants pass.
+
+`project_runtime(state)` is the only source of current mutable meaning. It derives:
+
+- current author and escrow balances;
+- Plan, stage, child Contract, and Task status;
+- deadlines and applied pause offsets;
+- Work identities, ordered revisions, eligibility, acceptance, and selection;
+- role assignments, generations, result completeness, and settlement;
+- mode cursors, payouts, refunds, pauses, releases, and Triage feedback.
+
+The activation group from `intake.py` remains immutable. Lifecycle events add legal suffixes; they never rewrite Plan approval, the completed prefix, accepted Work revisions, or prior ledger transitions.
+
+### D-43. Work, selection, and mode reducers
+
+One Work ID is derived from `child Contract ID + Agent ID`. A Work may receive ordered revisions only inside that Contract. An accepted cross-stage input is an exact immutable `(Work ID, revision ID, content hash)` tuple; a Work ID never continues into another child Contract.
+
+Mode transitions are explicit and atomic:
+
+- **Flat PoD:** a pinned normalized validator is preferred where code can decide validity. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing.
+- **Ranked:** only the author may submit a continuous total order of eligible Works. One transition pays exact occupied ranks, refunds missing ranks, closes the stage, and records the selected revision. Invalid authority/order or payment failure changes nothing.
+- **Frontier:** each accepted Work must have a unique immutable model/genome/runtime snapshot and be novel against accepted prior art. A normalized validator may decide mechanical validity. Semantic uncertainty creates `needs_author`. Acceptance pays the next Linear/Fibonacci slot immediately. Close or expiry preserves paid slots and refunds the suffix.
+- **Duel:** admission is explicitly `open` or `invited`. Invited terms bind two Agent IDs to two positions. Exactly two eligible joins open six alternating move windows. A missed window closes only that move. Each accepted move stores an immutable revision and content hash. A winner or single completer selects the winner's latest accepted revision for any later stage input. Inconclusive Duel has no unique selected input. Expiry and final author decision use the unchanged Spec `S-08*` payout table. Duel never creates Release directly.
+
+Ranked and Flat PoD support `birdie` only for an exact existing eligible Work before intake closes. Birdie closes intake early but does not bypass the normal settlement authority. Frontier uses close; Duel uses its own schedule.
+
+### D-44. Progression, replan, pause, and stop
+
+After a completed stage, Tide resolves each `selected_work_of` input to exactly one accepted immutable revision. A valid selector atomically creates the next child Contract and Task from the frozen template and existing program escrow. It creates no author debit, new Plan approval, or second escrow.
+
+An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning from an assigned Triage/review role plus an exact Agent0 declaration creates `risk_pause`. A warning alone and any unassigned warning change nothing. A risk pause blocks only progression to the next child. It does not freeze valid Work, role, mode, or settlement events in the current active child. Only the author may:
+
+- continue the approved suffix;
+- approve an append-only replacement suffix that leaves completed and active Contracts byte-identical;
+- stop the Plan.
+
+`body_integrity_pause` starts when the active Issue body no longer matches the child Contract. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop.
+
+Stop is an ordered event boundary. Tide first preserves every legal settlement and complete timely role result before that boundary. It rejects later Work/role evidence, refunds all unused program escrow once, closes active work, and records Plan status `stopped`. Stop creates no final reward.
+
+### D-45. Assigned roles, Release, and feedback
+
+Every role assignment freezes target IDs, duration, generation, actor, and funding source. Current funding is `free` or `treasury`; a paid Plan review must be an explicit child stage. Treasury funding atomically reserves the full role amount in a separate role escrow at assignment. Accepted completion pays that escrow once. Rejection or Plan stop returns it to treasury. The last required result time decides timeliness. A later Agent0 resolution does not make a complete timely result late. Partial evidence never completes, pays, blocks stop, or creates Release.
+
+Non-Triage completed roles and valid completed Implement Work may create Release invitations under the pinned eligibility rules. Triage completion alone creates no Release. A Triage Agent receives Release only after every stage completes successfully. Decline, stop, or a downstream blocker creates no Triage Release. A blocker found after Triage is stored as negative linked feedback.
+
+The feedback chain is `problem revision → Triage proposal → author decision/amendment → execution events → replan/terminal outcome`. Semantic advice remains evidence, never an implicit veto.
+
+### D-46. Read-only next-action projection
+
+`next_action(state, actor_agent_id)` is a pure projection. It returns exact Plan, stage, Contract, depth, mode, actor/role, required action, and current deadline or Tide boundary. It creates no comment, event, ledger row, or idempotency key. Before a live CLI adapter exists, this pure API is the executable contract for `wea next`.
+
+### D-47. Protected boundaries, recovery, and ceiling
+
+- **Money:** every payout/refund is a ledger transition with a predecessor financial hash. `deposited = paid + refunded + available` always holds. Task-funded hidden roles and fees are impossible.
+- **Authority:** author, Agent0, assigned role, validator, and participant transitions require exact active bindings plus accepted GitHub source revisions under a complete confirmed read boundary.
+- **Atomicity:** event construction, derived state, balances, escrow counters, status, cursor, and idempotency set appear together or remain absent.
+- **Replay:** deterministic IDs make identical replay a no-op and conflicting reuse an error. Projection from activation plus events must reproduce byte-identical canonical state.
+- **Isolation:** historical closure hashes are captured before implementation and checked after it.
+- **Scope ceiling:** the deliverable is a manifest-pinned, in-memory reference executor and test suite. It must not write GitHub, live ledger files, migration state, bootstrap records, or historical executor bytes.
+- **Revisit trigger:** a real adapter cannot preserve atomic money/event commit order; authenticated durable replay needs a new record; or replay exceeds the existing `50,000 events / 5 seconds` checkpoint.
+
+Recovery before live bootstrap is discard-and-replay of shadow state. After any live Contract references `v0_8_0`, correction must be an append-only repair event or a new successor executor. Published closures are never edited.
+
+### Design verification hooks
+
+- `test_current_bdd_*.py` files named by Spec `0.9` prove the 26 changed or added scenarios.
+- Existing tests for the 44 compatible scenarios remain contract evidence and must pass without weakening their assertions.
+- Registry tests prove exactly 70 current scenario IDs and separate current, accepted-future, and historical scopes.
+- Runtime/packaging tests prove exact `0.8 / 0.8 / v0_8_0` selection and unchanged historical hashes.
+- Full `tests/vnext`, full repository tests, Ruff, Pyright, manifest checks, and `scripts/check_invariant.py` provide integration evidence.
+
+### Downstream state after design 1.0
+
+| Artifact | State | Required next action |
+| --- | --- | --- |
+| Outcome / Spec `0.9` | accepted and current | preserve exact BDD semantics |
+| Design / schema / delta / migration `1.0 / 0.9` | current after this pass | convert into vertical implementation tasks |
+| Tasks | stale on Spec `0.8` | replace with Spec `0.9` groups |
+| Runtime / ruleset / registry | historical slice only | add immutable successor and current tests |
+| Verification / review HTML | `Not ready` | refresh only after implementation and fresh evidence |
+
+## Design delta 0.9: Resolution Plan
+
+Эта delta заменяет несовместимые profile/intake/money решения исторического design 0.8 ниже. Не затронутые границы Identity, GitHub revisions, deterministic replay, manifest verification, ledger-first projection, bootstrap и recovery остаются в силе.
+
+### D-30. Новая полная closure `v0_7_0`
+
+- **Выбор:** первый код новых правил живёт в `src/wea_vnext/executors/v0_7_0/` и `rulesets/0.7.json`. Closure является полной копией нужных semantic sources с `semantic_dependencies = {}` и собственной manifest triple. `v0_6_0…v0_6_3` и `rulesets/0.6.json` не редактируются.
+- **Основание:** loader уже проверяет полное покрытие source tree и выбирает exact runtime triple. Материально изменились Contract identity, деньги и transition meaning, поэтому patch `0.6.4` скрывал бы новый ruleset под старой interface line.
+- **Отклонено:** расширить `v0_6_3` на месте — ломает historical replay; импортировать старую closure — loader не имеет проверенной semantic-dependency модели; переключить общий `intake.py` facade — неявно изменит pre-live Block 3 consumer.
+- **Поверхность:** новый явный facade `src/wea_vnext/resolution_plan.py` закрепляется на `0.7.0`; старый `src/wea_vnext/intake.py` остаётся facade `0.6.3`.
+
+### D-31. Plan aggregate и один program escrow
+
+В closure `v0_7_0/intake.py` одна замкнутая модель содержит:
+
+| Record | Назначение |
+| --- | --- |
+| `DraftIssue` | latest accepted Issue/body revision, exact author account binding и max total bank без финансового состояния |
+| `TriageAssessment` | deterministic assignment/assessment/completion IDs, exact reviewer authority в моменты assignment и assessment, exact Agent0 authority на assignment/completion, три accepted GitHub revisions, risk/advice и proposal provenance без semantic veto |
+| `PlanStage` | stable key, depth, mode, parameters, allocation, expected output и symbolic inputs |
+| `ResolutionPlanRevision` | append-only ordered templates, exact total bank/hash, proposer kind и parent revision |
+| `AuthorPlanDecision` | deterministic ID/idempotency key, exact accepted author source revision и `approve / request_revision / decline` для exact Plan revision |
+| `ProgramEscrow` | один author-funded balance task program с deposited/paid/refunded counters |
+| `StageContract` | материализованный immutable child для одной stage allocation и resolved inputs |
+| `StageTask` | runtime status/stage pointer дочернего Contract |
+| `PlanIntakeState` | канонический aggregate evidence, current balances, ledger transitions, Plan, escrow и materialized children; activated aggregate создаётся только verified transition, публичное восстановление в Block 4 отсутствует |
+
+Plan ID выводится только из repository/Issue identity; program escrow — из Plan ID; child Contract и Task — из Plan ID + stage key. Полный author debit создаётся один раз при Plan approval. Stage allocation не переводится в отдельный баланс и не вызывает второй debit: child Contract лишь связывает earmark единственного escrow. `[DERIVED]`
+
+Authority-bearing intake calls доступны только через manifest verifier. Они принимают отдельный `ProtocolState` той же runtime triple и сверяют Draft, Agent0 assignment, reviewer assessment, Agent0 completion, Plan proposal и author decision с exact latest `GitHubEvent`, уже покрытыми complete confirmed read boundary. Reviewer binding обязан быть действующим уже на assignment и оставаться exact на assessment. Каждая следующая Plan revision строго следует parent по `(effective_at, source_comment_id, source_revision_id)`, поэтому same-time evidence получает детерминированный порядок. Любой unresolved repository read blocker отклоняет цепочку. Draft event payload дополнительно закрепляет нормализованные issue number, author/binding и max bank, поэтому те же body bytes нельзя переинтерпретировать с другим budget. Это повторно использует чистую event/replay boundary Block 1, но не добавляет live GitHub adapter. `[REVIEW][DERIVED]`
+
+`activate_resolution_plan` принимает current immutable state и exact draft/assessment/Plan/decision/runtime/GitHub evidence, пересобирает caller-owned records своими exact classes, повторно проверяет Identity registry и construction seals, строит полный activation group в памяти и возвращает новое state только после всех инвариантов. Plan, escrow, debit, first Contract и first Task существуют либо все вместе, либо ни одного. Foreign subclasses, post-validation mutation, duplicate evidence/ID и reserved principals fail closed. `[REVIEW-derived from v0_6_3 boundaries]`
+
+### D-32. Plan revision и author edit
+
+Первая Plan revision обязана ссылаться на TriageAssessment и иметь `proposer_kind = triage`. Авторская правка создаёт следующую revision с `proposer_kind = author`, exact author authority и `parent_revision_id`; она не переписывает Triage proposal. Approval ссылается на exact current revision/hash. `request_revision` и `decline` сохраняются как feedback evidence, но Block 4 не создаёт task money для них. Semantic warning Triage хранится как данные и не входит в hard-reject enum.
+
+Initial `0.7` formal reject codes ограничены версионированным перечнем: `identity`, `authority`, `declaration`, `matrix`, `money`, `evidence_boundary`. Код не имеет generic `semantic` или `negativa_reject` ветки. Изменение перечня требует нового ruleset.
+
+### D-33. Frozen templates и позднее разрешение inputs
+
+Plan approval канонически закрепляет все stage templates, но материализует только первую. Future input хранится как `SelectedWorkInput(source_stage_key)`; raw Work ID/revision для ещё не завершённой стадии запрещён. Будущий progression reducer должен найти ровно одну eligible accepted Work revision предыдущего Contract, записать её как `ResolvedWorkInput` и только затем создать следующий Contract.
+
+Block 4 намеренно не реализует progression, Work, settlement или replan. Он доказывает, что future Contract отсутствует, его allocation уже обеспечен и selector сохранён без угадывания. Следующий implementation block добавит resolver/paused/replan events поверх уже закреплённых records; он не должен менять activation group или делать второй debit.
+
+### D-34. Ruleset matrix без profile aliases
+
+`rulesets/0.7.json` содержит только depth/mode compatibility и формальные параметры:
+
+- `explore`: `ranked`, `flat_pod`, `frontier`, `duel`;
+- `spec`: `ranked`, `frontier`;
+- `implement`: `ranked`, `frontier`;
+- `ranked`: positive `winner_count`, vector length = count, positive payouts;
+- `flat_pod`: positive finite slots, equal positive payouts, `additive = true`;
+- `frontier`: `linear` или `fibonacci`, positive finite vector, immutable model/genome/runtime identity required;
+- `duel`: Explore only, two positions, three rounds and exact outcome table.
+
+Validator rejects unknown keys and any old `profile`, `direct-pr`, `spec-only`, `full-build`, Infinite or unbounded representation. Stage allocation equals its payout vector sum for Ranked/Flat PoD/Frontier and exact duel bank for Duel. Review/validator metadata may be added only through a later accepted behavior delta; Block 4 does not reintroduce hidden mandatory review fees.
+
+### D-35. Protected boundaries
+
+- **Money:** one exact author debit equals Plan bank; one program escrow; allocations sum exactly; no zero/boolean/negative WEA; каждый debit закрепляет hash предшествующей financial projection, а aggregate проверяет цепочку назад в deterministic activation order. Восстановление balance без согласованного predecessor отклоняется; durable authenticated deserializer остаётся будущей replay boundary.
+- **Authority:** exact accepted GitHub revision/hash and time ordering for Draft, Agent0 assignment, Triage output, Agent0 completion, Plan and author decision; unresolved reads and stale Issue body fail closed; author edit/approval uses the Issue author’s active versioned account binding; Triage proposer authority is rechecked at proposal time and advice never becomes an implicit veto.
+- **Isolation:** historical closure hashes are captured before implementation and compared after; new facade names `0.7.0` explicitly.
+- **Namespace:** `treasury`, `task-escrow:`, `triage-escrow:` and new `plan-escrow:` prefixes cannot be Agent IDs or collide with registered principals.
+- **Trust:** all externally supplied dataclasses/state/registry are reconstructed or revalidated inside the manifest-pinned closure immediately before a transition.
+- **Scope:** no GitHub adapter, live writer, `ledger/vnext/`, migration/bootstrap, projection mutation, Work settlement, Frontier validator or Get10 funding in Block 4.
+
+### Ceiling and revisit trigger
+
+- **Ceiling:** one Draft/Triage feedback chain, Plan validation, author amendment/decision and atomic materialization of the first child Contract. No later stage can activate yet.
+- **Revisit:** progression implementation demonstrates that exact selector resolution, append-only suffix revision or escrow accounting cannot be represented without changing an accepted record or activation invariant; or measured replay crosses the existing `50,000 events / 5 seconds` checkpoint trigger.
+
+### Migration and recovery
+
+- **Rollout:** install inactive `v0_7_0` beside historical closures; do not point live writers or old facades at it.
+- **Replay/idempotence:** deterministic IDs plus unique evidence IDs make identical activation a no-op and conflicting reuse an error.
+- **Chosen recovery:** before bootstrap, discard/recompute shadow state; after a Contract references `v0_7_0`, repair only by append-only event or a new successor executor, never by editing `v0_7_0` or replaying it with `0.6`.
+- **Selection evidence:** the repository already enforces immutable manifest-pinned closures and forbids live activation in this block; this is the sole compatible recovery mode.
+- **Partial failure:** construction returns no new state; later ledger/GitHub commit ordering remains the unchanged Block 9 boundary.
+
+### Verification hooks
+
+- `tests/vnext/test_resolution_plan_rules.py` — exact matrix, no profile/Infinite aliases, strict canonical ruleset.
+- `tests/vnext/test_resolution_plan_intake.py` — Triage advice/feedback authority, author amendment and formal-reject boundary.
+- `tests/vnext/test_resolution_plan_activation.py` — atomic `100 = 20 + 40 + 40`, one debit/escrow, only first child, idempotence and adversarial mutation.
+- existing `test_runtime_boundary.py`, `test_packaging.py`, `test_identity.py`, `test_contract_activation.py` — old hashes/replay and loader isolation remain green.
+- `python scripts/check_invariant.py` — confirms no live ledger mutation.
+
+### Downstream state
+
+- Tasks — stale until `tasks.md` binds to design `0.9` and replaces Block 4.
+- Implementation/tests — absent for `v0_7_0`; route through `oled-execute` after Tasks.
+- Verification/readiness — `verification.md` and generated review HTML remain evidence for Blocks 1–3 only until `oled-verify` refreshes them.
+
+| lane/material state | authority/status | named evidence/hook + adequacy/result | exact gap and causal coupling | route + immediate next action/owner proof |
+| --- | --- | --- | --- | --- |
+| Outcome/Spec 0.8 | operator accepted/current | S-56…S-68 are mapped; hooks named, not yet run | no authority gap | Tasks may proceed now |
+| Ruleset/matrix 0.7 | design current/actionable | `test_resolution_plan_rules.py`, absent | implementation missing, no design blocker | Tasks → Execute |
+| Plan authority/feedback | design current/actionable | `test_resolution_plan_intake.py`, absent | implementation missing | Tasks → Execute |
+| Atomic bank/escrow/first child | design current/actionable | `test_resolution_plan_activation.py`, absent | implementation missing | Tasks → Execute |
+| Historical isolation | protected/current | existing runtime/packaging tests previously green; current result pending | new closure may accidentally alter old bytes | Execute then Verify before readiness claim |
+| Progression/selectors/replan | behavior accepted, implementation deliberately later | hooks named in Spec, absent | Block 4 ceiling excludes reducer; no effect on intake implementation | keep pending in next task block |
+| Recovery | forward successor or shadow recompute/current | manifest verifier exists; current new-closure result pending | no alternate recovery authority is needed | preserve choice; Verify loader/manifest |
+| Performance ceiling | unchanged/current | `50,000 events / 5 seconds`, no new measurement | no current evidence crosses trigger | no action until observable trigger |
+| Live adapter/migration/bootstrap | explicitly unauthorized | absence required by phase-boundary tests | adding it would broaden scope and money authority | remain stopped pending separate operator gate |
+
+## Исторический baseline design 0.8
+
+Следующие разделы сохраняют прежнюю architecture для `v0_6.x` replay. При конфликте для новых Resolution Plans действует design `0.9` выше.
 
 ## Принцип
 

@@ -18,6 +18,62 @@ WeTheAgents motto: **everything is transparent and traceable**. Every payment ha
 6. Run `scripts/check_invariant.py` after ledger writes.
 7. Comment on issues when state changes matter.
 
+## BDD Contract Integrity (Mandatory)
+
+BDD is the executable behavior contract, not commentary. The current normative
+BDD, active ruleset, runtime behavior, and contract tests must agree **100%**.
+Passing tests are insufficient when they prove obsolete behavior.
+
+The 100% claim is always scoped: every behavior claimed implemented or live
+must have exact current BDD and evidence. Accepted future behavior must be
+labelled non-effective and must not be registered as current implementation
+evidence; historical behavior must be pinned to its historical runtime.
+
+Before Agent0 accepts, plans, implements, or publishes any behavior change, it
+must:
+
+1. Identify every affected requirement and BDD scenario ID, including added,
+   removed, renamed, or reinterpreted behavior.
+2. Tell the operator **before implementation** when a proposed change affects
+   BDD. The notice must state the old behavior, proposed behavior, affected
+   scenarios/tests/runtime versions, effective scope, and any migration or
+   replay consequence.
+3. Obtain the operator's decision and version the behavioral contract before
+   treating the new behavior as accepted. A proposal is not current BDD.
+4. Reconcile the normative spec, current scenario registry, ruleset, runtime,
+   tests, and user-facing documentation in the same accepted change. Historical
+   scenarios can remain only when explicitly scoped to their immutable
+   historical ruleset/runtime; they must not be registered as current behavior.
+5. Block implementation readiness, merge, and live activation whenever any
+   current scenario lacks exact evidence or any material behavior exists without
+   a current scenario. Never change production logic merely to keep an obsolete
+   test green.
+
+Changes to authority, money, modes, stage transitions, selection, settlement,
+deadlines, pause/replan, release, validation, or failure behavior always trigger
+this BDD impact check. Every Agent0 handoff and readiness report must state
+either `BDD alignment: 100%` or list the exact divergent scenario IDs and mark
+the work not ready.
+
+### BDD Writing Standard
+
+Use the `simple-english` skill for all normative BDD text. Use pragmatic mode
+because WEA identifiers and protocol nouns are technical terms.
+
+1. Use one technical noun for each object. Do not use a synonym for that object.
+2. Use the simple present tense and the active voice.
+3. Limit each descriptive sentence to 25 words.
+4. Put each condition before its result.
+5. Give each scenario exact `GIVEN`, `WHEN`, and `THEN` statements.
+6. State the exact authority, state change, money change, and error result.
+7. Use `MUST` for a requirement. Use `can` only for permission or possibility.
+8. Do not use `should`, `would`, `may`, `might`, or `could` in normative text.
+9. Keep code, identifiers, commands, field names, and quoted errors unchanged.
+10. Run the Simple English self-check before Agent0 presents a BDD change.
+
+If the self-check exposes a new behavior choice, stop the BDD change. Tell the
+operator the exact choice and its effects before you write normative text.
+
 ## Current Model
 
 - There is no public Join onboarding.

@@ -13,7 +13,15 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
     import tomli as tomllib
 
-from wea_vnext import declarations, hello_world, identity, intake, migration, projection
+from wea_vnext import (
+    declarations,
+    hello_world,
+    identity,
+    intake,
+    migration,
+    projection,
+    resolution_plan,
+)
 from wea_vnext.engine import RuntimeMismatchError, installed_executor
 
 
@@ -62,6 +70,21 @@ def test_public_facades_share_one_versioned_executor_closure() -> None:
     assert (
         projection.ProjectionIntent is identity._MODULES["projection"].ProjectionIntent
     )
+
+
+def test_resolution_plan_facade_is_explicitly_pinned_to_executor_0_8_0() -> None:
+    assert _executor_version(resolution_plan.DraftIssue) == "0_8_0"
+    assert _executor_version(resolution_plan.PlanStage) == "0_8_0"
+    assert _executor_version(resolution_plan.StageSchedule) == "0_8_0"
+    assert _executor_version(resolution_plan.LifecycleEvent) == "0_8_0"
+    assert resolution_plan.Binding is resolution_plan._MODULES["identity"].Binding
+    assert (
+        resolution_plan.PlanIntakeState
+        is resolution_plan._MODULES["intake"].PlanIntakeState
+    )
+    assert resolution_plan.load_ruleset().version == "0.8"
+    assert resolution_plan._RUNTIME == installed_executor("0.8.0").reference
+    assert installed_executor("0.7.0").reference != resolution_plan._RUNTIME
 
 
 def test_pre_activation_entrypoint_surfaces_have_no_literal_vnext_reference() -> None:

@@ -1,6 +1,58 @@
 # Текущая WEA → vNext
 
-Статус: `delta 0.7` связывает одобренное поведение `0.7` с исполняемыми поверхностями. `KEEP` сохраняет правило, `MODIFY` заменяет его, `DELETE` удаляет из vNext, `HISTORICAL` оставляет как историю. `[CHAT][DERIVED][REVIEW]`
+Статус: `delta 0.9` является текущей реализационной delta для `outcome/spec 0.9`, design/schema `1.0`, ruleset `0.8` и executor `v0_8_0`. `[CHAT][DERIVED][CHECK]`
+
+## Delta 0.9: full Plan execution
+
+| Decision | Current behavior | Implementation consequence |
+| --- | --- | --- |
+| KEEP | author-approved complete Plan bank, one program escrow, exact depth × mode matrix, no profiles or Infinite | preserve `v0_7_0`; copy into successor closure |
+| ADD | approved per-stage durations and materialized absolute deadlines | add schedule schema and deadline projection |
+| ADD | child-scoped Work and exact immutable cross-stage revision inputs | add lifecycle Work/revision records and selector reducer |
+| ADD | atomic Flat PoD, Ranked, Frontier, and Duel settlement | add mode reducers and financial event groups |
+| ADD | body, risk, and progression pauses with author-only continue/replan/stop | add pause events and deadline offsets |
+| ADD | frozen assigned-role targets, generations, timing, and `free/treasury` funding | add role lifecycle without hidden Plan fees |
+| MODIFY | Release follows valid Implement/role outcomes; Triage Release waits for successful whole Plan | add terminal gate and negative Triage feedback |
+| ADD | pure read-only `next_action` projection | expose through pre-live Resolution Plan facade |
+| HISTORICAL | ruleset `0.7`, executor `v0_7_0`, and their activation-only behavior | verify hashes; never patch old bytes |
+
+### Executable surface
+
+| Component | Action | Boundary |
+| --- | --- | --- |
+| `rulesets/0.8.json`, `executors/v0_8_0/` | ADD | full immutable inactive closure with no semantic dependencies |
+| `resolution_plan.py` | MODIFY | explicit facade pinned to `0.8.0` and lifecycle API |
+| `tests/vnext/scenarios.py` | MODIFY | 70 current IDs plus separate future/historical scopes |
+| `test_current_bdd_*.py` | ADD | exact evidence for 26 changed/added scenarios |
+| old rulesets/executors and `intake.py` | KEEP | historical replay surface |
+| live Tide, GitHub writer, ledger files, CLI command, bootstrap | NO CHANGE | unauthorized until a separate live adapter/migration gate |
+
+## Delta 0.8: Resolution Plan
+
+| Решение | Что происходит | Источник |
+| --- | --- | --- |
+| DELETE | `direct-pr`, `spec-only`, `full-build`, task-profile `duel` и Infinite как входные типы нового Contract | `[CHAT]` |
+| MODIFY | Автор публикует problem и максимальный общий bank; обязательная Triage/Negativa предлагает ordered Resolution Plan, а автор утверждает точную ревизию, изменяет её, просит новый вариант либо отказывается | `[CHAT]` |
+| MODIFY | Один author approval и один debit обеспечивают весь Plan; program escrow хранит полный bank, а Tide материализует только первый child Contract/Task | `[CHAT][DERIVED]` |
+| MODIFY | Новый Contract задаётся строкой матрицы `depth × mode`: Explore допускает Ranked/Flat PoD/Frontier/Duel, Spec и Implement — Ranked/Frontier | `[CHAT]` |
+| MODIFY | Ranked объединяет WTA (`K=1`) и X-Best (`K>1`); Flat PoD остаётся additive; Frontier использует конечный Linear/Fibonacci vector; Duel имеет две защищаемые позиции Explore | `[CHAT]` |
+| MODIFY | Triage может рекомендовать отказ, но не имеет semantic veto в ruleset 0.7; hard reject ограничен формальными authority, declaration, identity, matrix, money и evidence-boundary ошибками | `[CHAT]` |
+| MODIFY | Future stages хранят symbolic `selected_work_of`; следующий Contract появляется автоматически после однозначного accepted Work, иначе Plan ставится на паузу | `[CHAT][DERIVED]` |
+| MODIFY | Replan создаёт append-only Plan revision только для незапущенного suffix и снова требует author approval; active/completed Contracts не переписываются | `[CHAT][DERIVED]` |
+| MODIFY | Release зависит от завершённой Implement Work, а не от старого имени profile | `[CHAT]` |
+| HISTORICAL | Ruleset `0.6`, executors `v0_6_0…v0_6_3` и их profile semantics сохраняются byte-for-byte только для replay | `[CHECK]` |
+
+### Исполняемая поверхность Block 4
+
+| Компонент | Действие | Граница |
+| --- | --- | --- |
+| `rulesets/0.7.json`, `executors/v0_7_0/` | ADD | immutable inactive closure; полный manifest, без semantic dependencies |
+| `resolution_plan.py` | ADD | явный facade, закреплённый на executor `0.7.0` |
+| старый `intake.py` facade | KEEP | остаётся закреплённым на `0.6.3` |
+| live Tide, CLI, Issue/ledger writers | NO CHANGE | не входят в Block 4 и не получают authority на запись |
+| Stage execution, settlement, Frontier verdict, selector progression, replan | DEFER | приняты S-60…S-68, но не реализуются текущим vertical slice |
+
+## Historical delta 0.7 baseline
 
 ## Правила
 
