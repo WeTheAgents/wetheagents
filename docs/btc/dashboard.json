@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-31T10:24:30.951Z",
+  "updated_at": "2026-08-01T09:46:41.847Z",
   "score": {
     "bullish": 2,
     "bearish": 2,
@@ -9,10 +9,10 @@
     "color": "red"
   },
   "btc_price": {
-    "usd": 63726,
-    "eur": 55396,
-    "change_24h": -1.2608442913249982,
-    "change_7d": -2.0110870948592607
+    "usd": 63051,
+    "eur": 54653,
+    "change_24h": -0.935400359642225,
+    "change_7d": -1.967810970581512
   },
   "tiers": {
     "t1": [
@@ -28,7 +28,7 @@
         "history": [],
         "source": "Farside Investors",
         "source_updated": null,
-        "fetched_at": "2026-07-31T10:24:15.960Z",
+        "fetched_at": "2026-08-01T09:46:26.854Z",
         "error": "curl: proxy not configured for \"US\"",
         "education": {
           "what": "Net daily inflows/outflows into US spot Bitcoin ETFs (like BlackRock's IBIT). Positive = new money entering; negative = redemptions.",
@@ -41,14 +41,10 @@
         "tier": "t1",
         "state": "ok",
         "signal": "neutral",
-        "value": 25,
-        "display_value": "25 — Extreme Fear",
-        "context": "25 — Extreme Fear. Neutral range, waiting for a shift.",
+        "value": 27,
+        "display_value": "27 — Fear",
+        "context": "27 — Fear. Neutral range, waiting for a shift.",
         "history": [
-          {
-            "ts": "2026-07-02",
-            "value": 19
-          },
           {
             "ts": "2026-07-03",
             "value": 21
@@ -164,11 +160,15 @@
           {
             "ts": "2026-07-31",
             "value": 25
+          },
+          {
+            "ts": "2026-08-01",
+            "value": 27
           }
         ],
         "source": "alternative.me",
-        "source_updated": "2026-07-31",
-        "fetched_at": "2026-07-31T10:24:16.191Z",
+        "source_updated": "2026-08-01",
+        "fetched_at": "2026-08-01T09:46:27.233Z",
         "error": null,
         "education": {
           "what": "The Crypto Fear & Greed Index (0–100) aggregates volatility, momentum, social media, and surveys into a single sentiment score.",
@@ -181,14 +181,10 @@
         "tier": "t1",
         "state": "ok",
         "signal": "bearish",
-        "value": 303743315853.85,
+        "value": 303772988673.6,
         "display_value": "$304B",
         "context": "Market cap $304B, down -1.7% over 30d — liquidity draining.",
         "history": [
-          {
-            "ts": "2026-07-02",
-            "value": 309047871878
-          },
           {
             "ts": "2026-07-03",
             "value": 308735924861
@@ -303,12 +299,16 @@
           },
           {
             "ts": "2026-07-31",
-            "value": 303743315853.85
+            "value": 303743315854
+          },
+          {
+            "ts": "2026-08-01",
+            "value": 303772988673.6
           }
         ],
         "source": "DefiLlama",
-        "source_updated": "2026-07-31",
-        "fetched_at": "2026-07-31T10:24:16.270Z",
+        "source_updated": "2026-08-01",
+        "fetched_at": "2026-08-01T09:46:27.191Z",
         "error": null,
         "education": {
           "what": "Total market cap of major stablecoins (USDT, USDC, DAI, etc.) — the 'dry powder' sitting on the sidelines.",
@@ -322,24 +322,24 @@
         "state": "ok",
         "signal": "neutral",
         "value": {
-          "current": 63730,
+          "current": 63048,
           "closestUp": {
             "target": 65000,
             "p": 1
           },
           "closestDown": {
-            "target": 62500,
+            "target": 60000,
             "p": 1
           },
           "bias": 0,
-          "slug": "what-price-will-bitcoin-hit-in-july-2026"
+          "slug": "what-price-will-bitcoin-hit-before-2027"
         },
-        "display_value": "+$65K: 100% · -$63K: 100%",
-        "context": "Nearby levels: +$65K 100%, -$63K 100% (bias 0%). Neutral.",
+        "display_value": "+$65K: 100% · -$60K: 100%",
+        "context": "Nearby levels: +$65K 100%, -$60K 100% (bias 0%). Neutral.",
         "history": [],
         "source": "Polymarket (Gamma)",
-        "source_updated": "2026-07-31",
-        "fetched_at": "2026-07-31T10:24:16.311Z",
+        "source_updated": "2026-08-01",
+        "fetched_at": "2026-08-01T09:46:27.234Z",
         "error": null,
         "education": {
           "what": "Polymarket contracts on whether BTC will touch specific price levels (e.g., $75K, $100K) by a certain date.",
@@ -353,19 +353,19 @@
         "state": "ok",
         "signal": "bearish",
         "value": {
-          "pCut": 0.036,
-          "pHold": 0.435,
-          "pHike": 0.5495,
+          "pCut": 0.027000000000000003,
+          "pHold": 0.385,
+          "pHike": 0.6104999999999999,
           "meetingDate": "2026-09-16",
           "slug": "fed-decision-in-september-762",
-          "volume": 9231831.307543999
+          "volume": 10262963.365546001
         },
-        "display_value": "P(cut)=4% · hold=44% · hike=55%",
-        "context": "September meeting (2026-09-16): odds of a hike 55% — hawkish backdrop.",
+        "display_value": "P(cut)=3% · hold=39% · hike=61%",
+        "context": "September meeting (2026-09-16): odds of a hike 61% — hawkish backdrop.",
         "history": [],
         "source": "Polymarket (Gamma)",
-        "source_updated": "2026-07-31",
-        "fetched_at": "2026-07-31T10:24:16.242Z",
+        "source_updated": "2026-08-01",
+        "fetched_at": "2026-08-01T09:46:27.262Z",
         "error": null,
         "education": {
           "what": "Prediction-market odds for the next Fed interest rate decision (cut / hold / hike). We track two independent markets — Polymarket and Kalshi — to cross-reference and reduce noise.",
@@ -384,7 +384,7 @@
         "history": [],
         "source": "Kalshi (KXFED via US proxy)",
         "source_updated": null,
-        "fetched_at": "2026-07-31T10:24:30.937Z",
+        "fetched_at": "2026-08-01T09:46:41.836Z",
         "error": "This operation was aborted",
         "education": {
           "what": "Prediction-market odds for the next Fed interest rate decision (cut / hold / hike). We track two independent markets — Polymarket and Kalshi — to cross-reference and reduce noise.",
@@ -405,7 +405,7 @@
         "history": [],
         "source": "FRED (M2SL)",
         "source_updated": null,
-        "fetched_at": "2026-07-31T10:24:30.941Z",
+        "fetched_at": "2026-08-01T09:46:41.839Z",
         "error": "This operation was aborted",
         "education": {
           "what": "US M2 money supply — the total amount of cash, checking deposits, and easily convertible near-money in the economy.",
@@ -418,9 +418,9 @@
         "tier": "t2",
         "state": "ok",
         "signal": "bullish",
-        "value": 16.860000610351562,
-        "display_value": "16.9",
-        "context": "VIX 16.9 — calm, risk-on environment for BTC.",
+        "value": 15.989999771118164,
+        "display_value": "16.0",
+        "context": "VIX 16.0 — calm, risk-on environment for BTC.",
         "history": [
           {
             "ts": "2026-06-18",
@@ -540,12 +540,12 @@
           },
           {
             "ts": "2026-07-31",
-            "value": 16.860000610351562
+            "value": 15.989999771118164
           }
         ],
         "source": "Yahoo ^VIX",
         "source_updated": "2026-07-31",
-        "fetched_at": "2026-07-31T10:24:16.138Z",
+        "fetched_at": "2026-08-01T09:46:27.100Z",
         "error": null,
         "education": {
           "what": "The CBOE Volatility Index ('Wall Street's fear gauge') measures expected 30-day volatility of the S&P 500, derived from options prices.",
@@ -564,7 +564,7 @@
         "history": [],
         "source": "FRED (DGS2, DFF)",
         "source_updated": null,
-        "fetched_at": "2026-07-31T10:24:30.947Z",
+        "fetched_at": "2026-08-01T09:46:41.842Z",
         "error": "This operation was aborted",
         "education": {
           "what": "Yield on US 2-year Treasury notes — the bond market's best guess of where Fed rates will be in two years.",
@@ -583,7 +583,7 @@
         "history": [],
         "source": "FRED (CPIAUCSL)",
         "source_updated": null,
-        "fetched_at": "2026-07-31T10:24:30.950Z",
+        "fetched_at": "2026-08-01T09:46:41.846Z",
         "error": "This operation was aborted",
         "education": {
           "what": "Consumer Price Index year-over-year — the headline US inflation number, released monthly by the Bureau of Labor Statistics.",
@@ -598,9 +598,9 @@
         "tier": "t3",
         "state": "ok",
         "signal": "neutral",
-        "value": 4112.39990234375,
-        "display_value": "$4,112 / oz",
-        "context": "Gold $4112, +1.1% (30d), -10.4% (90d). Rotation hasn't kicked in.",
+        "value": 4049.10009765625,
+        "display_value": "$4,049 / oz",
+        "context": "Gold $4049, -0.5% (30d), -11.8% (90d). Rotation hasn't kicked in.",
         "history": [
           {
             "ts": "2026-06-18",
@@ -720,12 +720,12 @@
           },
           {
             "ts": "2026-07-31",
-            "value": 4112.39990234375
+            "value": 4049.10009765625
           }
         ],
         "source": "Yahoo (GC=F, GLD)",
         "source_updated": "2026-07-31",
-        "fetched_at": "2026-07-31T10:24:16.190Z",
+        "fetched_at": "2026-08-01T09:46:27.157Z",
         "error": null,
         "education": {
           "what": "Gold price trend and its relationship to BTC. Historically, capital rotates from gold into bitcoin with a 4–7 month lag after major gold rallies.",
@@ -738,9 +738,9 @@
         "tier": "t3",
         "state": "ok",
         "signal": "bullish",
-        "value": 0.001578032341183029,
+        "value": 0.0015894889518848047,
         "display_value": "0.0016",
-        "context": "Copper/Gold 0.0016, +4.8% over 30d. Copper outpaces gold → risk-on, industrial demand rising.",
+        "context": "Copper/Gold 0.0016, +5.6% over 30d. Copper outpaces gold → risk-on, industrial demand rising.",
         "history": [
           {
             "ts": "2026-06-18",
@@ -860,12 +860,12 @@
           },
           {
             "ts": "2026-07-31",
-            "value": 0.001578032341183029
+            "value": 0.0015894889518848047
           }
         ],
         "source": "Yahoo (HG=F / GC=F)",
         "source_updated": "2026-07-31",
-        "fetched_at": "2026-07-31T10:24:16.199Z",
+        "fetched_at": "2026-08-01T09:46:27.124Z",
         "error": null,
         "education": {
           "what": "The Copper/Gold ratio — copper (industrial demand) divided by gold (safe-haven demand). A classic macro risk indicator.",
