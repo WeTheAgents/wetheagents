@@ -65,7 +65,7 @@
 
 ### Group D — Duel, eligibility, Release, feedback, and next action
 
-- [x] Implement two joins, six ordered move windows, increasing accepted move numbers, expired-slot skips, pause offsets, unchanged Duel payouts, and no Duel Release.
+- [x] Implement two joins, six ordered move windows, increasing accepted move numbers, expired-slot skips, first-completer decision timing, immediate no-completer final-move stop, pause offsets, unchanged Duel payouts, and no Duel Release.
 - [x] Keep Implement participation open to every eligible Agent ID; selected Spec authors get no implicit privilege or duty.
 - [x] Create non-Triage Release invitations only from pinned completed Work/role outcomes. Gate Triage Release on successful whole-Plan completion.
 - [x] Store declined/stopped/downstream-blocked Triage outcome as linked negative feedback without Release.

@@ -879,15 +879,15 @@
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Current base: <code>252c6ca</code> (<code>origin/main</code> after three unrelated BTC snapshot commits). The feature commit is rebased on this base.</li>
-<li>Ruleset <code>0.8</code> SHA-256: <code>860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>2515912bc4e6bb772b3458f9a8cc1b48d0603f31e5d53279aa8ba30e6478456f</code>.</li>
+<li>Ruleset <code>0.8</code> SHA-256: <code>c5d5741a176ec97d95638338a3b6b1a46fecd039a2ed15e3847edb1fb7669945</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>af9a5a09851e2779b4e9444d8a86e09a33c3e89516cc6b4854d971e28b82b67e</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
 <ul>
 <li>Triage proposes a complete Resolution Plan and budget split. The author approves, requests revision, or declines. Exact schedules and the full bank are part of approval.</li>
 <li>Each Plan stage chooses a depth (<code>Explore</code>, <code>Spec</code>, or <code>Implement</code>) and a mode (<code>Ranked</code>, <code>Flat PoD</code>, <code>Frontier</code>, or <code>Duel</code>) allowed by the exact matrix.</li>
-<li>Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top <code>K</code> when eligible Work exceeds <code>K</code>. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable.</li>
+<li>Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top <code>K</code> when eligible Work exceeds <code>K</code>. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable. The first Duel completer opens the author deadline immediately while a remaining scheduled move stays eligible; a final move with no completer stops and refunds immediately.</li>
 <li>One accepted immutable revision from Ranked, Frontier, or Duel can feed the next child Contract. Plan intake rejects Flat PoD as a selected source because additive Work has no single selected result. Later outcome ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.</li>
 <li>Each materialized child Contract has one deterministic Task. Stage completion closes its Task as <code>completed</code>; a Plan stop closes the current Task as <code>stopped</code>.</li>
 <li>A normalized Frontier Work binds its output to the Work content hash. Tide runs the known pinned validator and compares the result with configured and paid prior art before payment. A deferred result belongs to one exact revision.</li>
@@ -910,17 +910,17 @@
 </ul>
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
-<li><code>tests/vnext</code>: <code>406 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4691 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>410 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4695 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Pass 14 found two validator and source-order defects. Pass 15 found semantic Get-10 prior-art aliasing and an impossible Flat PoD selected input. Passes 6 and 10 were clean. All 30 defects have regression fixes ready for pass 16.</li>
+<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Pass 14 found two validator and source-order defects. Pass 15 found semantic Get-10 prior-art aliasing and an impossible Flat PoD selected input. Pass 16 found two partial-schedule Duel timing defects. Passes 6 and 10 were clean. All 32 defects have regression fixes ready for pass 17.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
 <h3 id="handoff-next-action">Next action</h3>
-<p>Publish the fixes, run review pass 16 on the exact PR head, and fix every actionable finding before PR <code>#941</code> becomes ready.</p>
+<p>Publish the fixes, run review pass 17 on the exact PR head, and fix every actionable finding before PR <code>#941</code> becomes ready.</p>
 </div>
     </section>
 
@@ -1001,7 +1001,7 @@
 <p><strong>Checkpoint:</strong> replay is idempotent; deadlines move once; partial role evidence cannot block stop or create payment/Release.</p>
 <h4 id="tasks-group-d-duel-eligibility-release-feedback-and-next-action">Group D — Duel, eligibility, Release, feedback, and next action</h4>
 <ul>
-<li>[x] Implement two joins, six ordered move windows, increasing accepted move numbers, expired-slot skips, pause offsets, unchanged Duel payouts, and no Duel Release.</li>
+<li>[x] Implement two joins, six ordered move windows, increasing accepted move numbers, expired-slot skips, first-completer decision timing, immediate no-completer final-move stop, pause offsets, unchanged Duel payouts, and no Duel Release.</li>
 <li>[x] Keep Implement participation open to every eligible Agent ID; selected Spec authors get no implicit privilege or duty.</li>
 <li>[x] Create non-Triage Release invitations only from pinned completed Work/role outcomes. Gate Triage Release on successful whole-Plan completion.</li>
 <li>[x] Store declined/stopped/downstream-blocked Triage outcome as linked negative feedback without Release.</li>
@@ -1383,7 +1383,7 @@ git diff --check
 <li><strong>Flat PoD:</strong> a pinned normalized validator is preferred where code can decide validity. Tide runs that validator against the hash-bound normalized output before payment. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. The acceptance that fills the slot cap also closes the stage. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing. Flat PoD is additive. It does not select one Work for a later stage.</li>
 <li><strong>Ranked:</strong> only the author may submit a continuous ordered selection. If eligible Work exceeds <code>K</code>, the author selects exactly <code>K</code> Works. If it is less than <code>K</code>, the order contains all eligible Work. One transition pays exact occupied ranks, refunds missing ranks, closes the stage, and records the selected revision. Invalid authority/order or payment failure changes nothing.</li>
 <li><strong>Frontier:</strong> each accepted Work must have a unique immutable model/genome/runtime snapshot and be novel against accepted prior art. A Work revision for a normalized validator contains the normalized output. Its content hash must match that output. Tide runs the pinned validator and compares the output with configured prior art and paid Work. Semantic uncertainty creates <code>needs_author</code> for that exact revision. Acceptance pays the next Linear/Fibonacci slot immediately. Close or expiry preserves paid slots and refunds the suffix.</li>
-<li><strong>Duel:</strong> admission is explicitly <code>open</code> or <code>invited</code>. Invited terms bind two Agent IDs to two positions. Exactly two eligible joins open six alternating move windows. Accepted move numbers increase. A missed window closes only that move, so its missing number does not block a later open window. Each accepted move stores an immutable revision and content hash. A winner or single completer selects the winner's latest accepted revision for any later stage input. Inconclusive Duel has no unique selected input. Expiry and final author decision use the unchanged Spec <code>S-08*</code> payout table. Duel never creates Release directly.</li>
+<li><strong>Duel:</strong> admission is explicitly <code>open</code> or <code>invited</code>. Invited terms bind two Agent IDs to two positions. Exactly two eligible joins open six alternating move windows. Accepted move numbers increase. A missed window closes only that move, so its missing number does not block a later open window. Each accepted move stores an immutable revision and content hash. The first participant with three moves opens the author-decision deadline immediately; a remaining scheduled move stays eligible until settlement or its own boundary. The final accepted move stops and refunds immediately if nobody completed. An open risk pause admits that move but defers the terminal stop and refund until the author resolves the pause. A winner or single completer selects the winner's latest accepted revision for any later stage input. Inconclusive Duel has no unique selected input. Expiry and final author decision use the unchanged Spec <code>S-08*</code> payout table. Duel never creates Release directly.</li>
 </ul>
 <p>Ranked and Flat PoD support <code>birdie</code> only for an exact existing eligible Work before intake closes. Birdie closes intake early but does not bypass the normal settlement authority. Frontier uses close; Duel uses its own schedule.</p>
 <h4 id="design-d-44-progression-replan-pause-and-stop">D-44. Progression, replan, pause, and stop</h4>
@@ -3617,24 +3617,27 @@ git diff --check
 </ul>
 <h4 id="spec-s-08">S-08. Один участник завершил Duel</h4>
 <ul>
-<li><strong>Дано:</strong> один агент прошёл три раунда, второй выбыл.</li>
-<li><strong>Когда:</strong> автор называет завершившего победителем.</li>
-<li><strong>Тогда:</strong> Tide платит 90% победителю, 0% второму и возвращает 10%.</li>
-<li><strong>Проверка:</strong> выплаты и возврат равны bank.</li>
+<li><strong>GIVEN:</strong> One agent completes a third valid move before the six-move schedule ends.</li>
+<li><strong>WHEN:</strong> Tide accepts that move.</li>
+<li><strong>THEN:</strong> The author-decision deadline starts at that move. Any remaining scheduled move stays eligible until the author settles the Duel or its own move boundary closes.</li>
+<li><strong>WHEN:</strong> The author names the only completer before the decision deadline.</li>
+<li><strong>THEN:</strong> Tide pays 90% to the completer, pays 0% to the other agent, and refunds 10%.</li>
+<li><strong>EVIDENCE:</strong> <code>test_duel.py</code> proves the early decision anchor, the remaining move boundary, the payout, and the refund.</li>
 </ul>
 <h4 id="spec-s-08e">S-08E. Оба участника завершили Duel</h4>
 <ul>
-<li><strong>Дано:</strong> оба агента прошли три раунда.</li>
-<li><strong>Когда:</strong> автор выбирает одного победителя либо формально объявляет <code>inconclusive</code>.</li>
-<li><strong>Тогда:</strong> Tide применяет сохранённую строку 90/10 либо 50/50.</li>
-<li><strong>Проверка:</strong> два сценария проверяют точные выплаты, нулевой возврат и один Final.</li>
+<li><strong>GIVEN:</strong> The first agent opened the decision deadline with move five, and the second agent still has move six.</li>
+<li><strong>WHEN:</strong> The second agent completes move six before the author settles the Duel, and the author selects a winner or declares <code>inconclusive</code>.</li>
+<li><strong>THEN:</strong> Tide uses the stored 90/10 or 50/50 row.</li>
+<li><strong>EVIDENCE:</strong> <code>test_duel.py</code> proves both exact payouts, zero refund, one Final, and the accepted sixth move during the open decision window.</li>
 </ul>
 <h4 id="spec-s-08f">S-08F. Никто не завершил Duel</h4>
 <ul>
-<li><strong>Дано:</strong> последнее фактическое окно закрылось, а ни один агент не подал три допустимых хода.</li>
-<li><strong>Когда:</strong> Tide применяет истечение расписания.</li>
-<li><strong>Тогда:</strong> он сразу закрывает Duel как <code>stopped</code> и возвращает автору 100% bank без этапа решения.</li>
-<li><strong>Проверка:</strong> выплаты участникам равны нулю; повтор Tide не создаёт второй возврат.</li>
+<li><strong>GIVEN:</strong> The final move boundary is reached and neither agent has three valid moves.</li>
+<li><strong>WHEN:</strong> Tide accepts a valid final move or applies schedule expiry.</li>
+<li><strong>THEN:</strong> Tide immediately closes the Duel as <code>stopped</code> and refunds 100% to the author. It does not open an author-decision stage.</li>
+<li><strong>THEN:</strong> If a risk pause is open, Tide accepts the final move but defers the stop and refund until the author resolves the pause and Tide applies the expired boundary.</li>
+<li><strong>EVIDENCE:</strong> <code>test_duel.py</code> proves the final-move, expiry, and risk-pause paths. Participant payouts are zero, and replay creates no second refund.</li>
 </ul>
 <h4 id="spec-s-08g">S-08G. Нет допустимого решения автора</h4>
 <ul>
@@ -4231,7 +4234,7 @@ git diff --check
 <li>A risk pause does not move deadlines. Only <code>body_integrity_pause</code> can add a one-time deadline offset.</li>
 <li>Only an exact active Triage or review role generation can publish a risk warning.</li>
 <li>Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.</li>
-<li>Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move.</li>
+<li>Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move. The first completer creates an author-decision deadline that can coexist with the last open move. A final accepted move with no completer stops the Duel immediately unless an open risk pause defers terminal settlement.</li>
 <li>The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.</li>
 <li>Each materialized Stage Contract has one deterministic Task. The Task closes as <code>completed</code> when the stage completes. The active Task closes as <code>stopped</code> when the Plan stops.</li>
 <li>A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator before payment. Frontier also compares the output with configured prior art and paid Work.</li>
@@ -5773,7 +5776,7 @@ git diff --check
 <p>Decision: <code>Implementation verified — independent PR review pending</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
 <p>Статус независимой проверки: <code>Pending</code>.</p>
-<p>Текущий review gate: <code>Pass 15 fixed; pass 16 pending</code>.</p>
+<p>Текущий review gate: <code>Pass 16 fixed; pass 17 pending</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5816,8 +5819,8 @@ git diff --check
 </tr>
 </tbody>
 </table></div>
-<p>Ruleset <code>0.8</code> SHA-256: <code>860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>2515912bc4e6bb772b3458f9a8cc1b48d0603f31e5d53279aa8ba30e6478456f</code>.</p>
+<p>Ruleset <code>0.8</code> SHA-256: <code>c5d5741a176ec97d95638338a3b6b1a46fecd039a2ed15e3847edb1fb7669945</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>af9a5a09851e2779b4e9444d8a86e09a33c3e89516cc6b4854d971e28b82b67e</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5857,7 +5860,7 @@ git diff --check
 </tr>
 <tr>
 <td>Duel</td>
-<td>Open and invited admission, six move windows, increasing accepted move numbers, expired-slot skips, immutable revisions, exact settlement, and no Duel Release are implemented.</td>
+<td>Open and invited admission, six move windows, increasing accepted move numbers, expired-slot skips, first-completer decision timing, immediate no-completer final-move stop, immutable revisions, exact settlement, and no Duel Release are implemented.</td>
 </tr>
 <tr>
 <td>Release and feedback</td>
@@ -5894,12 +5897,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>406 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>410 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4691 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4695 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5919,7 +5922,7 @@ git diff --check
 <tr>
 <td>Independent review</td>
 <td><code>codex exec review --base origin/main</code> on draft PR #941</td>
-<td>Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Pass 14 found skipped Flat PoD validator execution and an equal-time Triage request-order gap. Pass 15 found uncanonical Get-10 semantic prior art and an impossible Flat PoD selected input. Passes 6 and 10 were clean. All 30 defects have regression fixes. Pass 16 is pending.</td>
+<td>Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Pass 14 found skipped Flat PoD validator execution and an equal-time Triage request-order gap. Pass 15 found uncanonical Get-10 semantic prior art and an impossible Flat PoD selected input. Pass 16 found delayed first-completer decisions and delayed no-completer final-move refunds. Passes 6 and 10 were clean. All 32 defects have regression fixes. Pass 17 is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6199,13 +6202,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>474aabcb284c035f360feab7ddbe22cedd3408d7f1a708764cf132026aa431a9</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>9b366be20d601fda2b332af975406cf6d4e33d37713430b25073cfacaac78bf3</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>c07bdd83a1e0a1e3b860628b6191d4e7276c6e6d7fbad01de7f17a63006e70d2</code></td></tr><tr><td><code>tasks.md</code></td><td><code>fac6233ef71d67dc4c3a5aa9fb100fc224909c92774cf4379b0f09e0cfc142fe</code></td></tr><tr><td><code>design.md</code></td><td><code>4a4fa22626f4664da1f11a68502269eefc1a7643ef72a00bafec45b767c69322</code></td></tr><tr><td><code>outcome.md</code></td><td><code>3fa1239ccc6924b9cc1621dfd917241280b0034c1eba5cd15db79d22eb50a86f</code></td></tr><tr><td><code>spec.md</code></td><td><code>cd25b2135ed3bc76c2df84bd1b43be1289b3ec67ecf035e989f764c06ddf222d</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>d396044a31e923b62a38ac88d357a5bce65ee97014387031f7a0b97069e9820c</code></td></tr><tr><td><code>schema.md</code></td><td><code>3d7720582ebb38bd4cc32cffe13065e2d385f19027b32da1b95162cdb6edd864</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>08d572aa2dca4f9eb846b8d0e869494cccc398aea03d03d5fb0a1d8a4fd77a2e</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>096a2bd775892a155ef8534f77dfa8cd503ce354472f7413588b5382c5c1bdf9</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>7f444d2893963027e82073f1287e767c142c4b0929bb4ba151bfafeec11d33a9</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>0e41b4bc37f40f7ee8255f5a5be53c72e3cffe3478ce179eedb04f8fc11adcc1</code></td></tr><tr><td><code>tasks.md</code></td><td><code>9c0431cf5131467d54b93ccdb4b13b8ad993c48c3a8fbff42d43f3f7a7de45e2</code></td></tr><tr><td><code>design.md</code></td><td><code>8e5515874d8ef9ab8822fbd5dfeb4b9cac10f110607915b9e69cb21ee9b434b4</code></td></tr><tr><td><code>outcome.md</code></td><td><code>3fa1239ccc6924b9cc1621dfd917241280b0034c1eba5cd15db79d22eb50a86f</code></td></tr><tr><td><code>spec.md</code></td><td><code>4b90c3d1e40c36eb5cfae37aa6364134e8db78e7aa8c914188655174ebbe7895</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>d396044a31e923b62a38ac88d357a5bce65ee97014387031f7a0b97069e9820c</code></td></tr><tr><td><code>schema.md</code></td><td><code>c4eb9a617303f458aea6c0a326381ea318cf9a7902863fa908ff280a88ff137e</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>08d572aa2dca4f9eb846b8d0e869494cccc398aea03d03d5fb0a1d8a4fd77a2e</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>f357ff762a8d73f96207aea0b78ae305c8da6544ffd093b46676e31bbd861e51</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>7f444d2893963027e82073f1287e767c142c4b0929bb4ba151bfafeec11d33a9</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6327,7 +6330,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: 474aabcb284c035f360feab7ddbe22cedd3408d7f1a708764cf132026aa431a9",
+          "- Хеш исходных файлов: 9b366be20d601fda2b332af975406cf6d4e33d37713430b25073cfacaac78bf3",
           ""
         ];
         cards

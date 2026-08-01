@@ -93,6 +93,12 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
     assert rules["modes"]["duel"]["move_order"] == (
         "strictly-increasing-accepted-numbers-with-expired-slot-skips"
     )
+    assert rules["modes"]["duel"]["decision_window"] == (
+        "opens-at-first-completer"
+    )
+    assert rules["modes"]["duel"]["no_completers"] == (
+        "immediate-stop-at-schedule-end"
+    )
     assert rules["modes"]["frontier"]["normalized_validation"] == (
         "bound-output-replay-with-pinned-validator"
     )

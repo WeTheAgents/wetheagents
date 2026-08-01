@@ -81,7 +81,7 @@ An open `risk_pause` admits active-stage Work revisions, exact control-disclosur
 12. A risk pause does not move deadlines. Only `body_integrity_pause` can add a one-time deadline offset.
 13. Only an exact active Triage or review role generation can publish a risk warning.
 14. Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.
-15. Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move.
+15. Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move. The first completer creates an author-decision deadline that can coexist with the last open move. A final accepted move with no completer stops the Duel immediately unless an open risk pause defers terminal settlement.
 16. The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.
 17. Each materialized Stage Contract has one deterministic Task. The Task closes as `completed` when the stage completes. The active Task closes as `stopped` when the Plan stops.
 18. A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator before payment. Frontier also compares the output with configured prior art and paid Work.

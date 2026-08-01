@@ -1052,6 +1052,10 @@ def _stage_deadline(stage: StageState, kind: str) -> StageDeadline:
         raise PlanError(f"state: active stage has no {kind} deadline") from exc
 
 
+def _optional_stage_deadline(stage: StageState, kind: str) -> StageDeadline | None:
+    return next((item for item in reversed(stage.deadlines) if item.kind == kind), None)
+
+
 def _deadline(
     deadline_id: str, kind: str, anchor: datetime, duration: int
 ) -> StageDeadline:
@@ -1893,7 +1897,14 @@ def _mode_expiry(
     elif stage.contract.mode == "duel" and stage.phase == "join":
         due = _stage_deadline(stage, "join").effective_due_at
     elif stage.contract.mode == "duel" and stage.phase == "moves":
-        due = _stage_deadline(stage, "move-6").effective_due_at
+        move_due = _stage_deadline(stage, "move-6").effective_due_at
+        decision_deadline = _optional_stage_deadline(stage, "author_decision")
+        due = min(
+            move_due,
+            decision_deadline.effective_due_at
+            if decision_deadline is not None
+            else move_due,
+        )
     elif stage.contract.mode == "duel" and stage.phase == "decision":
         due = _stage_deadline(stage, "author_decision").effective_due_at
     else:
@@ -1932,20 +1943,32 @@ def _mode_expiry(
     elif stage.phase == "join":
         _stop_duel(model, activation, event, stage, "duel-underfilled")
     elif stage.phase == "moves":
+        decision_deadline = _optional_stage_deadline(stage, "author_decision")
+        if (
+            decision_deadline is not None
+            and event.effective_at > decision_deadline.effective_due_at
+        ):
+            _stop_duel(model, activation, event, stage, "duel-no-valid-decision")
+            return
         completers = _duel_completers(stage)
         if not completers:
             _stop_duel(model, activation, event, stage, "duel-no-completers")
             return
-        duration = stage.contract.schedule.author_decision_seconds
-        assert duration is not None
-        deadline = _deadline(
-            f"{stage.contract.contract_id}:deadline:author-decision",
-            "author_decision",
-            due,
-            duration,
-        )
+        deadlines = stage.deadlines
+        if decision_deadline is None:
+            duration = stage.contract.schedule.author_decision_seconds
+            assert duration is not None
+            deadlines = (
+                *deadlines,
+                _deadline(
+                    f"{stage.contract.contract_id}:deadline:author-decision",
+                    "author_decision",
+                    due,
+                    duration,
+                ),
+            )
         _replace_stage(
-            model, stage, phase="decision", deadlines=(*stage.deadlines, deadline)
+            model, stage, phase="decision", deadlines=deadlines
         )
     else:
         _stop_duel(model, activation, event, stage, "duel-no-valid-decision")
@@ -2008,7 +2031,9 @@ def _duel_join(model: _Model, event: LifecycleEvent) -> None:
     )
 
 
-def _duel_move(model: _Model, event: LifecycleEvent) -> None:
+def _duel_move(
+    model: _Model, activation: PlanActivation, event: LifecycleEvent
+) -> None:
     data = _payload(
         event, {"content_hash", "contract_id", "move_number", "revision_id"}
     )
@@ -2031,6 +2056,12 @@ def _duel_move(model: _Model, event: LifecycleEvent) -> None:
     assert effective_anchor is not None
     if not effective_anchor <= event.effective_at <= deadline.effective_due_at:
         raise PlanError("state: Duel move is outside its exact window")
+    decision_deadline = _optional_stage_deadline(stage, "author_decision")
+    if (
+        decision_deadline is not None
+        and event.effective_at > decision_deadline.effective_due_at
+    ):
+        raise PlanError("state: Duel author-decision boundary has expired")
     identifier = work_id(stage.contract.contract_id, event.actor_id)
     existing = next((item for item in stage.works if item.work_id == identifier), None)
     authority = _activate_work_authority(
@@ -2065,29 +2096,32 @@ def _duel_move(model: _Model, event: LifecycleEvent) -> None:
         else tuple(work if item.work_id == identifier else item for item in stage.works)
     )
     moves = (*stage.duel_moves, (number, event.actor_id, event.effective_at))
-    phase = stage.phase
-    deadlines = stage.deadlines
-    if number == 6:
+    stage = _replace_stage(model, stage, works=works, duel_moves=moves)
+    completers = _duel_completers(stage)
+    decision_deadline = _optional_stage_deadline(stage, "author_decision")
+    if completers and decision_deadline is None:
         duration = stage.contract.schedule.author_decision_seconds
         assert duration is not None
-        deadlines = (
-            *deadlines,
-            _deadline(
-                f"{stage.contract.contract_id}:deadline:author-decision",
-                "author_decision",
-                event.effective_at,
-                duration,
+        stage = _replace_stage(
+            model,
+            stage,
+            deadlines=(
+                *stage.deadlines,
+                _deadline(
+                    f"{stage.contract.contract_id}:deadline:author-decision",
+                    "author_decision",
+                    event.effective_at,
+                    duration,
+                ),
             ),
         )
-        phase = "decision"
-    _replace_stage(
-        model,
-        stage,
-        works=works,
-        duel_moves=moves,
-        phase=phase,
-        deadlines=deadlines,
-    )
+    if number == 6 and not completers:
+        if _active_pause(model, "risk_pause") is not None:
+            return
+        _stop_duel(model, activation, event, stage, "duel-no-completers")
+        return
+    if number == 6:
+        _replace_stage(model, stage, phase="decision")
 
 
 def _duel_completers(stage: StageState) -> list[str]:
@@ -2238,12 +2272,18 @@ def _duel_decision(
 ) -> None:
     data = _payload(event, {"contract_id", "outcome", "winner_agent_id"})
     stage = _stage_for_contract(model, data["contract_id"])
+    deadline = _optional_stage_deadline(stage, "author_decision")
     if (
         stage.contract.mode != "duel"
-        or stage.phase != "decision"
+        or stage.phase not in {"moves", "decision"}
+        or deadline is None
         or not _progression_is_usable(model)
-        or event.effective_at
-        > _stage_deadline(stage, "author_decision").effective_due_at
+        or deadline.effective_anchor_at is None
+        or not (
+            deadline.effective_anchor_at
+            <= event.effective_at
+            <= deadline.effective_due_at
+        )
     ):
         raise PlanError("matrix: Duel decision does not apply")
     _settle_duel(
@@ -2551,7 +2591,10 @@ def _body_resume(model: _Model, event: LifecycleEvent) -> None:
         live_kinds = {
             "join": {"join"},
             "intake": {"intake"},
-            "moves": {f"move-{number}" for number in range(1, 7)},
+            "moves": {
+                *(f"move-{number}" for number in range(1, 7)),
+                "author_decision",
+            },
             "decision": {"author_decision"},
         }.get(stage.phase, set())
         model.stages[index] = replace(
@@ -2851,7 +2894,7 @@ def _apply_event(
     elif event.kind == "duel_join":
         _duel_join(model, event)
     elif event.kind == "duel_move":
-        _duel_move(model, event)
+        _duel_move(model, activation, event)
     elif event.kind == "duel_decision":
         _duel_decision(model, activation, event)
     elif event.kind == "control_disclosure":
@@ -3284,12 +3327,26 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             if stage.phase == "decision":
                 boundary = _stage_deadline(stage, "author_decision").effective_due_at
             elif stage.contract.mode == "duel" and stage.phase == "moves":
-                number = max((item[0] for item in stage.duel_moves), default=0) + 1
-                boundary = next(
-                    item.effective_due_at
-                    for item in stage.deadlines
-                    if item.kind == f"move-{number}"
+                decision_deadline = _optional_stage_deadline(
+                    stage, "author_decision"
                 )
+                if decision_deadline is not None:
+                    boundary = decision_deadline.effective_due_at
+                else:
+                    number = (
+                        max((item[0] for item in stage.duel_moves), default=0) + 1
+                    )
+                    if number > 6:
+                        action = "wait for Tide to close the Duel"
+                        boundary = _stage_deadline(
+                            stage, "move-6"
+                        ).effective_due_at
+                        blocked_work_id = None
+                        control_group_id = None
+                    else:
+                        boundary = _stage_deadline(
+                            stage, f"move-{number}"
+                        ).effective_due_at
             else:
                 boundary = (
                     stage.birdie_at or _stage_deadline(stage, "intake").effective_due_at
@@ -3309,18 +3366,25 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             )
             boundary = _stage_deadline(stage, "join").effective_due_at
         elif stage.contract.mode == "duel" and stage.phase == "moves":
-            number = max((item[0] for item in stage.duel_moves), default=0) + 1
-            expected = stage.duel_participants[(number - 1) % 2][0]
-            action = (
-                "publish the next Duel move"
-                if actor_agent_id == expected
-                else "wait for the other Duel participant"
-            )
-            boundary = next(
-                item.effective_due_at
-                for item in stage.deadlines
-                if item.kind == f"move-{number}"
-            )
+            decision_deadline = _optional_stage_deadline(stage, "author_decision")
+            if is_author and decision_deadline is not None:
+                action = "publish the exact Duel outcome"
+                boundary = decision_deadline.effective_due_at
+            else:
+                number = max((item[0] for item in stage.duel_moves), default=0) + 1
+                if number > 6:
+                    action = "wait for Tide to close the Duel"
+                    boundary = _stage_deadline(stage, "move-6").effective_due_at
+                else:
+                    expected = stage.duel_participants[(number - 1) % 2][0]
+                    action = (
+                        "publish the next Duel move"
+                        if actor_agent_id == expected
+                        else "wait for the other Duel participant"
+                    )
+                    boundary = _stage_deadline(
+                        stage, f"move-{number}"
+                    ).effective_due_at
         elif stage.contract.mode == "duel" and stage.phase == "decision":
             action = (
                 "publish the exact Duel outcome"

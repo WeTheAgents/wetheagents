@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9"
+    "c5d5741a176ec97d95638338a3b6b1a46fecd039a2ed15e3847edb1fb7669945"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -162,8 +162,10 @@ def _validate_modes(value: object) -> None:
             "author_decision",
             "bank_multiple_wea",
             "birdie",
+            "decision_window",
             "minimum_bank_wea",
             "move_order",
+            "no_completers",
             "outcome_percentages",
             "positions",
             "rounds",
@@ -173,6 +175,10 @@ def _validate_modes(value: object) -> None:
         raise RulesetError("Duel admission rules are inconsistent")
     if duel["author_decision"] is not True or duel["birdie"] is not False:
         raise RulesetError("Duel authority rules are inconsistent")
+    if duel["decision_window"] != "opens-at-first-completer":
+        raise RulesetError("Duel decision timing is inconsistent")
+    if duel["no_completers"] != "immediate-stop-at-schedule-end":
+        raise RulesetError("Duel no-completer timing is inconsistent")
     _positive_integer(duel["bank_multiple_wea"], field="duel.bank_multiple_wea")
     _positive_integer(duel["minimum_bank_wea"], field="duel.minimum_bank_wea")
     if duel["positions"] != 2 or duel["rounds"] != 3:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import timedelta
 
 import pytest
@@ -64,6 +65,7 @@ def _move(
     sequence,
     *,
     identity_registry=None,
+    effective_at=None,
 ):
     lifecycle = modules()["lifecycle"]
     projection = lifecycle.project_runtime(state)
@@ -91,6 +93,7 @@ def _move(
             actor_kind="agent",
             actor_id=agent_id,
             actor_account_id=account_id,
+            effective_at=effective_at,
         ),
         identity_registry=identity_registry,
     )
@@ -128,6 +131,10 @@ def test_s_08_duel_second_join_materializes_six_moves_and_winner_split() -> None
         else:
             agent_id, account_id = "agent-beta", "account-beta"
         state = _move(state, agent_id, account_id, number, number + 2)
+        if number == 5:
+            current = modules()["lifecycle"].project_runtime(state).current_stage
+            assert current.phase == "moves"
+            assert any(item.kind == "author_decision" for item in current.deadlines)
     contract_id = (
         modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
     )
@@ -286,10 +293,17 @@ def test_s_08_single_completer_gets_90_percent_and_selected_output() -> None:
     contract_id = (
         modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
     )
-    state = apply_event(
-        state,
-        _move_expiry(state, contract_id),
+    stage_projection = modules()["lifecycle"].project_runtime(state).current_stage
+    decision_deadline = next(
+        item for item in stage_projection.deadlines if item.kind == "author_decision"
     )
+    assert stage_projection.phase == "moves"
+    assert decision_deadline.effective_anchor_at == stage_projection.duel_moves[-1][2]
+    author_action = modules()["lifecycle"].next_action(state, "agent-author")
+    participant_action = modules()["lifecycle"].next_action(state, "agent-beta")
+    assert author_action.action == "publish the exact Duel outcome"
+    assert author_action.boundary_at == decision_deadline.effective_due_at
+    assert participant_action.action == "publish the next Duel move"
     state = apply_event(
         state,
         author_event(
@@ -348,11 +362,6 @@ def test_s_03f_common_control_blocks_duel_selection_and_settlement() -> None:
     )
     assert alpha_work.authority.disclosure is not None
     expiry = _move_expiry(state, contract_id)
-    state = apply_event(
-        state,
-        expiry,
-        identity_registry=identity_registry,
-    )
     decision = lifecycle_event(
         state,
         "duel_decision",
@@ -448,6 +457,131 @@ def test_s_08f_no_completer_after_six_windows_stops_and_refunds() -> None:
     assert projection.plan_status == "stopped"
     assert projection.escrow.refunded_wea == 20
     assert projection.escrow.paid_wea == 0
+
+
+def test_s_08f_accepted_final_move_with_no_completer_stops_immediately() -> None:
+    state = _join(_duel_state(), "agent-alpha", "account-alpha", "a", 1)
+    state = _join(state, "agent-beta", "account-beta", "b", 2)
+    state = _move(state, "agent-beta", "account-beta", 6, 8)
+
+    projection = modules()["lifecycle"].project_runtime(state)
+    assert projection.plan_status == "stopped"
+    assert projection.current_stage.phase == "closed"
+    assert projection.current_task.close_result == "stopped"
+    assert projection.escrow.refunded_wea == 20
+    assert projection.escrow.paid_wea == 0
+    assert projection.current_stage.duel_moves[-1][0] == 6
+
+
+def test_s_04b_risk_pause_defers_final_move_stop_until_continue() -> None:
+    state = _join(_duel_state(), "agent-alpha", "account-alpha", "a", 1)
+    state = _join(state, "agent-beta", "account-beta", "b", 2)
+    state = assign_role(state, sequence=3)
+    state = apply_event(
+        state,
+        lifecycle_event(
+            state,
+            "risk_warning",
+            {"generation": 1, "role_id": "review-role", "warning_id": "duel-risk"},
+            sequence=4,
+            actor_kind="role",
+            actor_id="agent-alpha",
+            actor_account_id="account-alpha",
+        ),
+    )
+    state = apply_event(
+        state,
+        lifecycle_event(
+            state,
+            "risk_pause",
+            {"warning_id": "duel-risk"},
+            sequence=5,
+            actor_kind="agent0",
+            actor_id="agent0@system",
+            actor_account_id="account-agent0",
+        ),
+    )
+    state = _move(state, "agent-beta", "account-beta", 6, 8)
+    paused = modules()["lifecycle"].project_runtime(state)
+    assert paused.plan_status == "paused"
+    assert paused.escrow.refunded_wea == 0
+    assert paused.current_stage.duel_moves[-1][0] == 6
+
+    state = apply_event(
+        state, author_event(state, "author_continue", {}, sequence=9)
+    )
+    action = modules()["lifecycle"].next_action(state, "agent-author")
+    assert action.action == "wait for Tide to close the Duel"
+    contract_id = (
+        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
+    )
+    state = apply_event(
+        state,
+        lifecycle_event(
+            state, "mode_expiry", {"contract_id": contract_id}, sequence=10
+        ),
+    )
+    projection = modules()["lifecycle"].project_runtime(state)
+    assert projection.plan_status == "stopped"
+    assert projection.escrow.refunded_wea == 20
+
+
+def test_s_08g_remaining_move_cannot_outlive_early_decision_deadline() -> None:
+    intake = modules()["intake"]
+    duel = stage(
+        key="short-decision-duel",
+        depth="explore",
+        mode="duel",
+        allocation_wea=20,
+    )
+    duel = replace(
+        duel,
+        schedule=intake.StageSchedule(
+            join_seconds=600,
+            move_seconds=(60, 60, 60, 60, 60, 60),
+            author_decision_seconds=30,
+        ),
+    )
+    state = activated_runtime(plan_stages=(duel,), total_bank_wea=20)
+    state = _join(state, "agent-alpha", "account-alpha", "a", 1)
+    state = _join(state, "agent-beta", "account-beta", "b", 2)
+    state = _move(state, "agent-alpha", "account-alpha", 1, 3)
+    state = _move(state, "agent-alpha", "account-alpha", 3, 5)
+    state = _move(state, "agent-alpha", "account-alpha", 5, 7)
+    deadline = next(
+        item
+        for item in modules()["lifecycle"]
+        .project_runtime(state)
+        .current_stage.deadlines
+        if item.kind == "author_decision"
+    )
+
+    with pytest.raises(modules()["intake"].PlanError, match="boundary has expired"):
+        _move(
+            state,
+            "agent-beta",
+            "account-beta",
+            6,
+            8,
+            effective_at=deadline.effective_due_at + timedelta(microseconds=1),
+        )
+    state = apply_event(
+        state,
+        lifecycle_event(
+            state,
+            "mode_expiry",
+            {
+                "contract_id": modules()["lifecycle"]
+                .project_runtime(state)
+                .current_stage.contract.contract_id
+            },
+            sequence=9,
+            effective_at=deadline.effective_due_at + timedelta(microseconds=1),
+        ),
+    )
+    projection = modules()["lifecycle"].project_runtime(state)
+    assert projection.plan_status == "stopped"
+    assert projection.escrow.refunded_wea == 20
 
 
 def test_s_08g_invalid_or_missing_author_decision_never_pays() -> None:
@@ -571,6 +705,45 @@ def test_s_08d_body_pause_offsets_active_and_future_duel_windows_once() -> None:
         deadlines["move-3"].effective_anchor_at == deadlines["move-2"].effective_due_at
     )
     assert all(len(item.pause_ids) <= 1 for item in deadlines.values())
+
+
+def test_s_08d_body_pause_offsets_open_move_and_early_decision_once() -> None:
+    state = _join(_duel_state(), "agent-alpha", "account-alpha", "a", 1)
+    state = _join(state, "agent-beta", "account-beta", "b", 2)
+    state = _move(state, "agent-alpha", "account-alpha", 1, 3)
+    state = _move(state, "agent-alpha", "account-alpha", 3, 5)
+    state = _move(state, "agent-alpha", "account-alpha", 5, 7)
+    lifecycle = modules()["lifecycle"]
+    before = {
+        item.kind: item.effective_due_at
+        for item in lifecycle.project_runtime(state).current_stage.deadlines
+        if item.kind in {"move-6", "author_decision"}
+    }
+    pause_at = state.activation.plan.activated_at + timedelta(minutes=7, seconds=30)
+    resume_at = pause_at + timedelta(minutes=1)
+    state = apply_body_transition(
+        state,
+        "body_pause",
+        body="Changed Issue body",
+        sequence=20,
+        effective_at=pause_at,
+    )
+    state = apply_body_transition(
+        state,
+        "body_resume",
+        body=state.activation.draft.body,
+        sequence=21,
+        effective_at=resume_at,
+    )
+    after = {
+        item.kind: item
+        for item in lifecycle.project_runtime(state).current_stage.deadlines
+        if item.kind in {"move-6", "author_decision"}
+    }
+    assert set(after) == {"move-6", "author_decision"}
+    for kind in after:
+        assert after[kind].effective_due_at == before[kind] + timedelta(minutes=1)
+        assert len(after[kind].pause_ids) == 1
 
 
 def test_duel_winner_revision_materializes_the_next_stage_input() -> None:

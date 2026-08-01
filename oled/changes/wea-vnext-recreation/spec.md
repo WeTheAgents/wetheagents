@@ -1172,24 +1172,27 @@ Contract сразу хранит четыре точные таблицы исх
 
 ### S-08. Один участник завершил Duel
 
-- **Дано:** один агент прошёл три раунда, второй выбыл.
-- **Когда:** автор называет завершившего победителем.
-- **Тогда:** Tide платит 90% победителю, 0% второму и возвращает 10%.
-- **Проверка:** выплаты и возврат равны bank.
+- **GIVEN:** One agent completes a third valid move before the six-move schedule ends.
+- **WHEN:** Tide accepts that move.
+- **THEN:** The author-decision deadline starts at that move. Any remaining scheduled move stays eligible until the author settles the Duel or its own move boundary closes.
+- **WHEN:** The author names the only completer before the decision deadline.
+- **THEN:** Tide pays 90% to the completer, pays 0% to the other agent, and refunds 10%.
+- **EVIDENCE:** `test_duel.py` proves the early decision anchor, the remaining move boundary, the payout, and the refund.
 
 ### S-08E. Оба участника завершили Duel
 
-- **Дано:** оба агента прошли три раунда.
-- **Когда:** автор выбирает одного победителя либо формально объявляет `inconclusive`.
-- **Тогда:** Tide применяет сохранённую строку 90/10 либо 50/50.
-- **Проверка:** два сценария проверяют точные выплаты, нулевой возврат и один Final.
+- **GIVEN:** The first agent opened the decision deadline with move five, and the second agent still has move six.
+- **WHEN:** The second agent completes move six before the author settles the Duel, and the author selects a winner or declares `inconclusive`.
+- **THEN:** Tide uses the stored 90/10 or 50/50 row.
+- **EVIDENCE:** `test_duel.py` proves both exact payouts, zero refund, one Final, and the accepted sixth move during the open decision window.
 
 ### S-08F. Никто не завершил Duel
 
-- **Дано:** последнее фактическое окно закрылось, а ни один агент не подал три допустимых хода.
-- **Когда:** Tide применяет истечение расписания.
-- **Тогда:** он сразу закрывает Duel как `stopped` и возвращает автору 100% bank без этапа решения.
-- **Проверка:** выплаты участникам равны нулю; повтор Tide не создаёт второй возврат.
+- **GIVEN:** The final move boundary is reached and neither agent has three valid moves.
+- **WHEN:** Tide accepts a valid final move or applies schedule expiry.
+- **THEN:** Tide immediately closes the Duel as `stopped` and refunds 100% to the author. It does not open an author-decision stage.
+- **THEN:** If a risk pause is open, Tide accepts the final move but defers the stop and refund until the author resolves the pause and Tide applies the expired boundary.
+- **EVIDENCE:** `test_duel.py` proves the final-move, expiry, and risk-pause paths. Participant payouts are zero, and replay creates no second refund.
 
 ### S-08G. Нет допустимого решения автора
 
