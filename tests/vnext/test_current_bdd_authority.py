@@ -1,14 +1,48 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
 import pytest
 
 from .current_bdd_support import (
+    activated_runtime,
+    apply_event,
     decision,
+    lifecycle_event,
     modules,
     record_decision,
     replace_decision,
+    stage,
     state_with_plan,
 )
+
+
+def test_s_01c_lifecycle_event_cannot_predate_plan_activation() -> None:
+    ranked = stage(
+        key="rank",
+        depth="explore",
+        mode="ranked",
+        allocation_wea=5,
+        payout_vector=[5],
+    )
+    state = activated_runtime(plan_stages=(ranked,), total_bank_wea=5)
+    before = state.state_hash
+    event = lifecycle_event(
+        state,
+        "author_stop",
+        {},
+        sequence=1,
+        actor_kind="author",
+        actor_id="agent-author",
+        actor_account_id="account-author",
+        effective_at=state.activation.plan.activated_at - timedelta(microseconds=1),
+    )
+
+    with pytest.raises(modules()["intake"].PlanError, match="predates"):
+        apply_event(state, event)
+
+    assert state.state_hash == before
+    assert modules()["lifecycle"].project_runtime(state).plan_status == "active"
 
 
 def test_s_01c_non_author_cannot_approve_a_plan() -> None:

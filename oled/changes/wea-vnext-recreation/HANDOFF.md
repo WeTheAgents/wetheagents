@@ -8,9 +8,9 @@ Status: `Implementation verified — independent PR review pending`.
 
 - Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
-- Local branch base: `88690c2`. A fresh authenticated fetch is not available through the current non-interactive Git credential session.
+- Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
 - Ruleset `0.8` SHA-256: `e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1`.
-- Executor `v0_8_0` manifest SHA-256: `b0d81033fa8626c21ec8573fdce39a388ced8d7eccc154faf82cfba6af21c519`.
+- Executor `v0_8_0` manifest SHA-256: `cca6bf1a20ff621fa3377b79fc15a972387454788152456cf9ef9a4d6a0359de`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -35,12 +35,12 @@ Status: `Implementation verified — independent PR review pending`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `369 passed`, `18 skipped`.
-- Full repository: `4654 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `371 passed`, `18 skipped`.
+- Full repository: `4656 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Independent `codex exec review`: pending until the PR exists.
+- Draft PR: `#941`. First independent review found and closed two P1 timing defects: pre-activation lifecycle events and expiry at an inclusive deadline. Second review is pending.
 
 ## Hard stop boundary
 

@@ -74,6 +74,20 @@ def _move(state, agent_id, account_id, number, sequence):
     )
 
 
+def _move_expiry(state, contract_id):
+    current = modules()["lifecycle"].project_runtime(state).current_stage
+    due = next(
+        item.effective_due_at for item in current.deadlines if item.kind == "move-6"
+    )
+    return lifecycle_event(
+        state,
+        "mode_expiry",
+        {"contract_id": contract_id},
+        sequence=8,
+        effective_at=due + timedelta(microseconds=1),
+    )
+
+
 def test_s_08_duel_second_join_materializes_six_moves_and_winner_split() -> None:
     state = _join(_duel_state(), "agent-alpha", "account-alpha", "a", 1)
     state = _join(state, "agent-beta", "account-beta", "b", 2)
@@ -179,7 +193,7 @@ def test_s_08_single_completer_gets_90_percent_and_selected_output() -> None:
     )
     state = apply_event(
         state,
-        lifecycle_event(state, "mode_expiry", {"contract_id": contract_id}, sequence=8),
+        _move_expiry(state, contract_id),
     )
     state = apply_event(
         state,
@@ -242,9 +256,7 @@ def test_s_08f_no_completer_after_six_windows_stops_and_refunds() -> None:
     contract_id = (
         modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
     )
-    expiry = lifecycle_event(
-        state, "mode_expiry", {"contract_id": contract_id}, sequence=8
-    )
+    expiry = _move_expiry(state, contract_id)
     state = apply_event(state, expiry)
     replay = apply_event(state, expiry)
     projection = modules()["lifecycle"].project_runtime(state)
@@ -265,7 +277,7 @@ def test_s_08g_invalid_or_missing_author_decision_never_pays() -> None:
     )
     state = apply_event(
         state,
-        lifecycle_event(state, "mode_expiry", {"contract_id": contract_id}, sequence=8),
+        _move_expiry(state, contract_id),
     )
     before = state.state_hash
     with pytest.raises(modules()["intake"].PlanError, match="two completers"):

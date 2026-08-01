@@ -21,7 +21,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Ruleset `0.8` SHA-256: `e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1`.
 
-Executor `v0_8_0` manifest SHA-256: `b0d81033fa8626c21ec8573fdce39a388ced8d7eccc154faf82cfba6af21c519`.
+Executor `v0_8_0` manifest SHA-256: `cca6bf1a20ff621fa3377b79fc15a972387454788152456cf9ef9a4d6a0359de`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -49,12 +49,12 @@ Executor `v0_8_0` manifest SHA-256: `b0d81033fa8626c21ec8573fdce39a388ced8d7eccc
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `369 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4654 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `371 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4656 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review` after PR creation | Pending before publication |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | First pass found two P1 timing defects. Both have regression fixes. Second pass is pending. |
 
 ## Historical verification baseline through Block 3
 

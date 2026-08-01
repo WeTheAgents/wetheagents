@@ -878,9 +878,9 @@
 <ul>
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
-<li>Local branch base: <code>88690c2</code>. A fresh authenticated fetch is not available through the current non-interactive Git credential session.</li>
+<li>Current base: <code>252c6ca</code> (<code>origin/main</code> after three unrelated BTC snapshot commits). The feature commit is rebased on this base.</li>
 <li>Ruleset <code>0.8</code> SHA-256: <code>e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>b0d81033fa8626c21ec8573fdce39a388ced8d7eccc154faf82cfba6af21c519</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>cca6bf1a20ff621fa3377b79fc15a972387454788152456cf9ef9a4d6a0359de</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
@@ -905,12 +905,12 @@
 </ul>
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
-<li><code>tests/vnext</code>: <code>369 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4654 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>371 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4656 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>Independent <code>codex exec review</code>: pending until the PR exists.</li>
+<li>Draft PR: <code>#941</code>. First independent review found and closed two P1 timing defects: pre-activation lifecycle events and expiry at an inclusive deadline. Second review is pending.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
@@ -5738,7 +5738,7 @@ git diff --check
 </tbody>
 </table></div>
 <p>Ruleset <code>0.8</code> SHA-256: <code>e6b0c46795c443865acf8279bc4669c0511f7e92a77e95693e3adfc591cea0c1</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>b0d81033fa8626c21ec8573fdce39a388ced8d7eccc154faf82cfba6af21c519</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>cca6bf1a20ff621fa3377b79fc15a972387454788152456cf9ef9a4d6a0359de</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5807,12 +5807,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>369 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>371 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4654 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4656 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5831,8 +5831,8 @@ git diff --check
 </tr>
 <tr>
 <td>Independent review</td>
-<td><code>codex exec review</code> after PR creation</td>
-<td>Pending before publication</td>
+<td><code>codex exec review --base origin/main</code> on draft PR #941</td>
+<td>First pass found two P1 timing defects. Both have regression fixes. Second pass is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6112,13 +6112,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>c2c61e5ebbd5f8acf5c5145ebd780cec0b4a01e846a9c521e8e1198e80d68f75</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>a438d7b02eda769844a66a70334a59c67bbde2805921e9b9b8ffcf351f8a855d</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>d274807af8f6920ea614b69acd36f89ba7fc93dc267f27e2968476bcd6e40a9a</code></td></tr><tr><td><code>tasks.md</code></td><td><code>6f52ba18d2a614a18336002389a04f46aa9b308e8aeb9d13ba6a389360493baf</code></td></tr><tr><td><code>design.md</code></td><td><code>9f64d0624bd93eb85c6a440597e71ba3f3a9886a86f9f7f588c144ef6bdc3e56</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c16e3af5ce207b77d431fbcd292d36b672b3a1ea72936ca40e6de728d33e39d8</code></td></tr><tr><td><code>spec.md</code></td><td><code>ba62f3cfd929373ee5eb95a40e116ae26996153a39e73358385ca24e34d9f3e0</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>b1966b0486f69866a85109a1d9794cc7fd531c46c0228a693d305d5c8d9e11c3</code></td></tr><tr><td><code>schema.md</code></td><td><code>082ff1c1b8bf0bfb671c8c7668bc375236ceb2c054909c19a517102a68e70cca</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>e5e6591bc7564cbf1b4896b240d8b16a2825d99b35d638127a26a0918dffb5ad</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>c760a4574445b385649f38cabd154a7dd8b9a3d05511387cd1e002ce04c85c6b</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>327765dab94f0af35abb6974954fcf5e87c5943e86bdb85ae957c3d393fc7a3a</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>d3c93d35f8acfcec4456b21648918ace9dd0022b2978693a0073aa6a3fbd0a51</code></td></tr><tr><td><code>tasks.md</code></td><td><code>6f52ba18d2a614a18336002389a04f46aa9b308e8aeb9d13ba6a389360493baf</code></td></tr><tr><td><code>design.md</code></td><td><code>9f64d0624bd93eb85c6a440597e71ba3f3a9886a86f9f7f588c144ef6bdc3e56</code></td></tr><tr><td><code>outcome.md</code></td><td><code>c16e3af5ce207b77d431fbcd292d36b672b3a1ea72936ca40e6de728d33e39d8</code></td></tr><tr><td><code>spec.md</code></td><td><code>ba62f3cfd929373ee5eb95a40e116ae26996153a39e73358385ca24e34d9f3e0</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>b1966b0486f69866a85109a1d9794cc7fd531c46c0228a693d305d5c8d9e11c3</code></td></tr><tr><td><code>schema.md</code></td><td><code>082ff1c1b8bf0bfb671c8c7668bc375236ceb2c054909c19a517102a68e70cca</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>e5e6591bc7564cbf1b4896b240d8b16a2825d99b35d638127a26a0918dffb5ad</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>a7e0c3778f9224dd5c95fba7ca00bcc61c9aa3a71c459053a48a3165eaeb734e</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>327765dab94f0af35abb6974954fcf5e87c5943e86bdb85ae957c3d393fc7a3a</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6240,7 +6240,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: c2c61e5ebbd5f8acf5c5145ebd780cec0b4a01e846a9c521e8e1198e80d68f75",
+          "- Хеш исходных файлов: a438d7b02eda769844a66a70334a59c67bbde2805921e9b9b8ffcf351f8a855d",
           ""
         ];
         cards

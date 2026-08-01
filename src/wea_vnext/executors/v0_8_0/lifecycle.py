@@ -1362,7 +1362,7 @@ def _mode_expiry(
         due = _stage_deadline(stage, "author_decision").effective_due_at
     else:
         raise PlanError("state: active mode has no expirable boundary")
-    if event.effective_at < due:
+    if event.effective_at <= due:
         raise PlanError("state: mode boundary has not expired")
     if stage.contract.mode == "ranked" and stage.phase == "intake":
         duration = stage.contract.schedule.author_decision_seconds
@@ -2313,6 +2313,8 @@ def apply_lifecycle_event(
     event = _rebuild(event, LifecycleEvent, "lifecycle event")
     if event.plan_id != state.activation.plan.plan_id:
         raise PlanError("evidence_boundary: lifecycle event belongs to another Plan")
+    if event.effective_at < state.activation.plan.activated_at:
+        raise PlanError("evidence_boundary: lifecycle event predates Plan activation")
     for existing in state.events:
         if (
             existing.event_id == event.event_id
