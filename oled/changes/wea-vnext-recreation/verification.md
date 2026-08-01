@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Implementation verified — independent PR review pending`.
+Decision: `Ready after Spec 0.9 reconciliation`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `Pending`.
+Статус независимой проверки: `CLEAN`.
 
-Текущий review gate: `Pass 5 fixed; pass 6 pending`.
+Текущий review gate: `Pass 6 clean`.
 
 ## Версии
 
@@ -57,7 +57,7 @@ Executor `v0_8_0` manifest SHA-256: `a3c3b8b35fe6f8ac5cef0375732469a319d3564a1c2
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–4 found ten P1 defects. Pass 5 found one P1 and two P2 lifecycle defects. All 13 have regression fixes. Pass 6 is pending. |
+| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 1–4 found ten P1 defects. Pass 5 found one P1 and two P2 lifecycle defects. All 13 have regression fixes. Pass 6 found no actionable regression. |
 
 ## Historical verification baseline through Block 3
 

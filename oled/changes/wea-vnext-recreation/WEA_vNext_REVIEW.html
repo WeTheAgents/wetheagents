@@ -849,17 +849,17 @@
 
     <main id="top">
       <header class="hero">
-        <p class="hero-kicker">Spec 0.9 · implementation verified</p>
+        <p class="hero-kicker">Spec 0.9 · reference runtime verified</p>
         <h1>WEA vNext</h1>
-        <p class="hero-lead">Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и manifest-pinned executor 0.8.0. Пакет ожидает независимую проверку PR; live Tide, ledger, migration, bootstrap и GitHub writers не подключены.</p>
+        <p class="hero-lead">Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и manifest-pinned executor 0.8.0. Live Tide, ledger, migration, bootstrap и GitHub writers не подключены.</p>
         <div class="hero-status" aria-label="Статус пакета">
-          <span class="status-pill">Spec 0.9 verified · PR review pending · Not live</span>
+          <span class="status-pill">Spec 0.9 verified · Not live</span>
           <span class="status-pill">Расхождений BDD: 0</span>
           <span class="status-pill">Отложено: 4</span>
           <span class="status-pill">Кандидат 0.9</span>
         </div>
         <div class="hero-actions">
-          <a class="primary" href="#doc-handoff">Открыть review handoff</a>
+          <a class="primary" href="#doc-handoff">Открыть verified handoff</a>
           <a class="secondary" href="#doc-outcome">Читать основу системы</a>
         </div>
       </header>
@@ -868,12 +868,12 @@
     <section class="document-section" id="doc-handoff" data-source="HANDOFF.md">
       <header class="document-header">
         <p class="eyebrow">Требует внимания</p>
-        <h2>Agent0 handoff: Spec 0.9 review pending</h2>
+        <h2>Agent0 handoff: Ready after Spec 0.9 reconciliation</h2>
         <p class="source-file">Исходный Markdown-файл: <code>HANDOFF.md</code></p>
       </header>
       <div class="markdown-body">
 <p>The inactive WEA vNext reference runtime now implements Outcome/Spec <code>0.9</code>. Design/schema <code>1.0</code>, delta/migration <code>0.9</code>, tasks <code>1.2</code>, ruleset/interface <code>0.8</code>, executor <code>v0_8_0</code>, the exact BDD registry, and contract tests are reconciled. <code>BDD alignment: 100%</code>. WEA vNext remains <code>Not live</code>.</p>
-<p>Status: <code>Implementation verified — independent PR review pending</code>.</p>
+<p>Status: <code>Implementation verified — review clean</code>.</p>
 <h3 id="handoff-repository-boundary">Repository boundary</h3>
 <ul>
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
@@ -912,12 +912,12 @@
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>Draft PR: <code>#941</code>. Passes 1–4 closed ten P1 defects. Pass 5 closed one P1 and two P2 lifecycle defects. Pass 6 is pending.</li>
+<li>PR: <code>#941</code>. Passes 1–4 closed ten P1 defects. Pass 5 closed one P1 and two P2 lifecycle defects. Pass 6 found no actionable regression.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
 <h3 id="handoff-next-action">Next action</h3>
-<p>Push the pass 5 fixes. Run <code>codex exec review</code> again and fix every actionable finding. Then publish the review-clean handoff and artifact.</p>
+<p>Merge PR <code>#941</code> when the repository is ready. Keep WEA vNext <code>Not live</code> until the separate migration, bootstrap, and cutover gates are approved.</p>
 </div>
     </section>
 
@@ -930,7 +930,7 @@
             Рекомендуемый маршрут: handoff → план реализации → техническое устройство →
             утверждённое поведение по необходимости → приложения.
           </p>
-          <p>Все решения текущего reference runtime приняты и локально доказаны. Остаётся независимая проверка опубликованного PR.</p>
+          <p>Все решения текущего reference runtime приняты и доказаны. Отложенные вопросы относятся только к будущей live-активации.</p>
         </div>
         <div>
           <p class="eyebrow">Легенда источников</p>
@@ -946,7 +946,7 @@
         <p class="source-file">Исходный Markdown-файл: <code>tasks.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус <code>tasks 1.2</code>: <strong>implemented / final verification in progress</strong>. Spec 0.9 reference runtime implemented and verified. Один delivery task reconciles the inactive WEA vNext reference runtime to Outcome/Spec <code>0.9</code> and design/schema <code>1.0</code>. Blocks 1–4 remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Статус <code>tasks 1.2</code>: <strong>implemented / review clean</strong>. Spec 0.9 reference runtime implemented and verified. Один delivery task reconciles the inactive WEA vNext reference runtime to Outcome/Spec <code>0.9</code> and design/schema <code>1.0</code>. Blocks 1–4 remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <h3 id="tasks-правила-исполнения">Правила исполнения</h3>
 <ul>
 <li>Historical blocks below were separate tasks. The current Spec <code>0.9</code> delivery is one behavior-complete task and one PR with five internal verification groups. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
@@ -1011,7 +1011,7 @@
 <li>[x] Make registry tests parse the normative Spec <code>0.9</code> delta and inherited compatibility list without confusing historical duplicate headings.</li>
 <li>[x] Update package data and manifest tests for ruleset <code>0.8</code> and <code>v0_8_0</code> while preserving all older wheel/replay cases.</li>
 <li>[x] Run focused current-BDD tests, all <code>tests/vnext</code>, full repository tests, Ruff, Pyright, manifest/canonical checks, ledger schema/invariant checks, and phase-boundary checks.</li>
-<li>[ ] Perform self-roast, independent <code>codex exec review</code>, lean cut, and regenerate <code>HANDOFF.md</code>, <code>verification.md</code>, and <code>WEA_vNext_REVIEW.html</code> from fresh evidence.</li>
+<li>[x] Perform self-roast, independent <code>codex exec review</code>, lean cut, and regenerate <code>HANDOFF.md</code>, <code>verification.md</code>, and <code>WEA_vNext_REVIEW.html</code> from fresh evidence.</li>
 </ul>
 <p><strong>Checkpoint commands:</strong></p>
 <pre><code class="language-powershell">python -m pytest tests/vnext/test_current_bdd_*.py -q
@@ -5726,10 +5726,10 @@ git diff --check
       </header>
       <div class="markdown-body">
 <p>Outcome/Spec <code>0.9</code>, design/schema <code>1.0</code>, tasks <code>1.2</code>, ruleset/interface <code>0.8</code>, executor <code>0.8.0</code>, registry и contract tests согласованы. <code>BDD alignment: 100%</code>. Reference runtime доказан локально и остаётся <code>Not live</code>. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
-<p>Decision: <code>Implementation verified — independent PR review pending</code>.</p>
+<p>Decision: <code>Ready after Spec 0.9 reconciliation</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
-<p>Статус независимой проверки: <code>Pending</code>.</p>
-<p>Текущий review gate: <code>Pass 5 fixed; pass 6 pending</code>.</p>
+<p>Статус независимой проверки: <code>CLEAN</code>.</p>
+<p>Текущий review gate: <code>Pass 6 clean</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5870,8 +5870,8 @@ git diff --check
 </tr>
 <tr>
 <td>Independent review</td>
-<td><code>codex exec review --base origin/main</code> on draft PR #941</td>
-<td>Passes 1–4 found ten P1 defects. Pass 5 found one P1 and two P2 lifecycle defects. All 13 have regression fixes. Pass 6 is pending.</td>
+<td><code>codex exec review --base origin/main</code> on PR #941</td>
+<td>Passes 1–4 found ten P1 defects. Pass 5 found one P1 and two P2 lifecycle defects. All 13 have regression fixes. Pass 6 found no actionable regression.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6151,13 +6151,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>16f0936815c11c30570825e61434820ef036f5fd657a4395de1a35685b97b903</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>608ca15f4a818c3579c2a72885581bd8d8cfb9eb2d8b9d850ca6ecf37f2d9d21</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>c2ed654e5b2b00698908d302bc1dc82f4290d4c3086ebab5a39d3769223aedba</code></td></tr><tr><td><code>tasks.md</code></td><td><code>09b857a22352edafb1fd4227bb1eb8dc058fbcea38256d073e10b558a287320c</code></td></tr><tr><td><code>design.md</code></td><td><code>304ecda6059c4a21d96f77a9346604993183e81e4216f992e66347c74f55f6bc</code></td></tr><tr><td><code>outcome.md</code></td><td><code>46701133daa71aaf74068c47266d6737c873cfe1f04cf428d467b282dffd5a08</code></td></tr><tr><td><code>spec.md</code></td><td><code>01b294c2150a96f605cb2f8257f1120f88fd3cd5c7574b07de5c9f67bea8806c</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>40c2709e00a92e67119876051908f8f7991bddb074113b5465f2b759ff8a2d14</code></td></tr><tr><td><code>schema.md</code></td><td><code>6deaf434cf846fe4ca872e5810cf619f464f3872197cec796885a89f3fc90aeb</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>3e3b1473bb4bdffac4d28b0c15543cd4132f4c8b3dc98f040df23c1858779401</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>6059094949040bae7ce387a7a81786a87d8e30902b3b84330a08646328539e9b</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>327765dab94f0af35abb6974954fcf5e87c5943e86bdb85ae957c3d393fc7a3a</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>f88155ed22f0a59dd89e5e19bfc6be144b579d3328e29acfa9f81862b9e159ee</code></td></tr><tr><td><code>tasks.md</code></td><td><code>c7f1c2fb9c650b5584366441db0a8ec12cded9aa0ef4395d0ca80c62ea3f46a7</code></td></tr><tr><td><code>design.md</code></td><td><code>304ecda6059c4a21d96f77a9346604993183e81e4216f992e66347c74f55f6bc</code></td></tr><tr><td><code>outcome.md</code></td><td><code>46701133daa71aaf74068c47266d6737c873cfe1f04cf428d467b282dffd5a08</code></td></tr><tr><td><code>spec.md</code></td><td><code>01b294c2150a96f605cb2f8257f1120f88fd3cd5c7574b07de5c9f67bea8806c</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>40c2709e00a92e67119876051908f8f7991bddb074113b5465f2b759ff8a2d14</code></td></tr><tr><td><code>schema.md</code></td><td><code>6deaf434cf846fe4ca872e5810cf619f464f3872197cec796885a89f3fc90aeb</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>3e3b1473bb4bdffac4d28b0c15543cd4132f4c8b3dc98f040df23c1858779401</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>5db28534a2e4c20f2a323ee81999f1c261f3cbf387772e037618ac72624b1b38</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>d669fee290b835dcc4adb450a00e80aba58b9d9810f5f4f972105004b16d29b6</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6279,7 +6279,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: 16f0936815c11c30570825e61434820ef036f5fd657a4395de1a35685b97b903",
+          "- Хеш исходных файлов: 608ca15f4a818c3579c2a72885581bd8d8cfb9eb2d8b9d850ca6ecf37f2d9d21",
           ""
         ];
         cards
