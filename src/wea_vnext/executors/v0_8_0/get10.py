@@ -76,8 +76,12 @@ def validate_candidate(expression: str) -> Get10Validation:
     }
     classification = classifications.get(normalized, "not-seen")
     if classification != "not-seen":
+        semantic_normalizations = {
+            "(1+1+1)/.3": "3/0.3",
+            "3/(.1+.1+.1)": "3/0.3",
+        }
         return Get10Validation(
-            normalized_expression=normalized,
+            normalized_expression=semantic_normalizations.get(normalized, normalized),
             classification=classification,
             valid=classification.startswith("needs-author-after-normalization:"),
             needs_author=classification.startswith("needs-author-after-normalization:"),

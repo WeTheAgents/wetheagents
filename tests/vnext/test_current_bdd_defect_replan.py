@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from .current_bdd_support import (
     activated_runtime,
     apply_event,
@@ -95,6 +97,37 @@ def test_s_04d_and_s_66_replan_changes_only_unstarted_suffix() -> None:
             actor_account_id="account-agent0",
         ),
     )
+    additive = stage(
+        key="additive-research",
+        depth="explore",
+        mode="flat_pod",
+        allocation_wea=4,
+        payout_vector=[2, 2],
+        slots=2,
+    )
+    impossible_successor = stage(
+        key="impossible-implement",
+        depth="implement",
+        mode="ranked",
+        allocation_wea=6,
+        payout_vector=[6],
+        inputs=(intake.SelectedWorkInput("additive-research"),),
+    )
+    with pytest.raises(intake.PlanError, match="Flat PoD"):
+        apply_event(
+            state,
+            author_event(
+                state,
+                "suffix_replan",
+                {
+                    "replacement_suffix": [
+                        additive.to_data(),
+                        impossible_successor.to_data(),
+                    ]
+                },
+                sequence=16,
+            ),
+        )
     corrected = stage(
         key="corrected-implement",
         depth="implement",
@@ -109,7 +142,7 @@ def test_s_04d_and_s_66_replan_changes_only_unstarted_suffix() -> None:
             state,
             "suffix_replan",
             {"replacement_suffix": [corrected.to_data()]},
-            sequence=16,
+            sequence=17,
         ),
     )
     projection = modules()["lifecycle"].project_runtime(state)

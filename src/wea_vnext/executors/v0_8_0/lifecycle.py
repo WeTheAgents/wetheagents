@@ -1526,7 +1526,11 @@ def _normalized_prior_art_key(
     )
     if type(expression) is str:
         if validator == ("get10-normalized-code", "1"):
-            return "".join(expression.split())
+            normalized = "".join(expression.split())
+            return {
+                "(1+1+1)/.3": "3/0.3",
+                "3/(.1+.1+.1)": "3/0.3",
+            }.get(normalized, normalized)
         return " ".join(expression.split())
     return canonical_dumps(value).decode("utf-8")
 
@@ -1564,6 +1568,14 @@ def _validate_normalized_work(
         prior_art = {
             _normalized_prior_art_key(item, validator)
             for item in config.get("prior_art", [])
+            if not (
+                validator == ("get10-normalized-code", "1")
+                and type(item) is dict
+                and type(item.get("classification")) is str
+                and item["classification"].startswith(
+                    "needs-author-after-normalization:"
+                )
+            )
         }
         accepted_art = {
             _normalized_prior_art_key(candidate.normalized_output, validator)
@@ -1816,21 +1828,6 @@ def _close_additive(
             basis_id=stage.contract.contract_id,
         )
     stage = _replace_stage(model, stage, refunded_wea=stage.refunded_wea + refund)
-    if (
-        stage.stage_index < len(model.future_stages) - 1
-        and selected_revision_id is None
-    ):
-        _close_current_task(model, event, "completed")
-        pause = PauseState(
-            pause_id=f"{event.event_id}:progression-pause",
-            kind="progression_pause",
-            started_at=event.effective_at,
-            cause_id=stage.contract.contract_id,
-        )
-        model.pauses.append(pause)
-        model.plan_status = "paused"
-        _replace_stage(model, stage, status="completed", phase="closed")
-        return
     _close_stage(
         model,
         activation,
@@ -2731,9 +2728,16 @@ def _suffix_replan(
     if len(keys) != len(set(keys)):
         raise PlanError("declaration: replacement suffix stage keys must be unique")
     for index, item in enumerate(candidate):
-        earlier = set(keys[:index])
-        if any(selector.source_stage_key not in earlier for selector in item.inputs):
-            raise PlanError("declaration: replacement suffix selector is not earlier")
+        earlier = {stage.key: stage.mode for stage in candidate[:index]}
+        for selector in item.inputs:
+            if selector.source_stage_key not in earlier:
+                raise PlanError(
+                    "declaration: replacement suffix selector is not earlier"
+                )
+            if earlier[selector.source_stage_key] == "flat_pod":
+                raise PlanError(
+                    "matrix: Flat PoD cannot supply one selected Work"
+                )
     model.future_stages = candidate
     for pause in [item for item in model.pauses if item.ended_at is None]:
         model.pauses[model.pauses.index(pause)] = replace(

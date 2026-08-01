@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 
 from .current_bdd_support import modules as current_modules
+from .current_bdd_support import plan_revision as current_plan_revision
 from .resolution_plan_support import modules, plan_revision
 
 
@@ -105,6 +106,11 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
         "agent0-from-active-assigned-triage-or-review-generation"
     )
     assert rules["roles"]["result_authority"] == ("frozen-agent-and-github-account")
+    assert rules["plan"]["selected_input_source_modes"] == (
+        "duel",
+        "frontier",
+        "ranked",
+    )
 
 
 @pytest.mark.parametrize(
@@ -210,6 +216,39 @@ def test_all_simple_matrix_rows_are_constructible_without_a_profile() -> None:
     )
     with pytest.raises(intake.PlanError, match="earlier"):
         replace(plan, stages=(invalid_first, *plan.stages[1:]))
+
+
+def test_s_69_flat_pod_cannot_supply_one_selected_work() -> None:
+    intake = current_modules()["intake"]
+    flat = intake.PlanStage(
+        key="ideas",
+        depth="explore",
+        mode="flat_pod",
+        schedule=intake.StageSchedule(intake_seconds=60),
+        allocation_wea=2,
+        config={
+            "acceptance": {"kind": "author"},
+            "additive": True,
+            "payout_vector": [1, 1],
+            "slots": 2,
+        },
+        expected_output="Independent ideas",
+    )
+    successor = intake.PlanStage(
+        key="spec",
+        depth="spec",
+        mode="ranked",
+        schedule=intake.StageSchedule(
+            intake_seconds=60, author_decision_seconds=60
+        ),
+        allocation_wea=1,
+        config={"payout_vector": [1], "winner_count": 1},
+        expected_output="One specification",
+        inputs=(intake.SelectedWorkInput("ideas"),),
+    )
+
+    with pytest.raises(intake.PlanError, match="Flat PoD"):
+        current_plan_revision(plan_stages=(flat, successor), total_bank_wea=3)
 
 
 def test_two_slot_linear_frontier_must_advance_the_frontier() -> None:

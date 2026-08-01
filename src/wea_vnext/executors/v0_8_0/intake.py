@@ -1166,14 +1166,18 @@ class ResolutionPlanRevision:
         keys = [stage.key for stage in self.stages]
         if len(keys) != len(set(keys)):
             raise PlanError("matrix: stage keys must be unique")
-        earlier: set[str] = set()
+        earlier: dict[str, str] = {}
         for stage in self.stages:
             for selector in stage.inputs:
                 if selector.source_stage_key not in earlier:
                     raise PlanError(
                         "evidence_boundary: selector must name an earlier stage"
                     )
-            earlier.add(stage.key)
+                if earlier[selector.source_stage_key] == "flat_pod":
+                    raise PlanError(
+                        "matrix: Flat PoD cannot supply one selected Work"
+                    )
+            earlier[stage.key] = stage.mode
         if sum(stage.allocation_wea for stage in self.stages) != self.total_bank_wea:
             raise PlanError("money: stage allocations must equal total bank")
         _canonical_snapshot(

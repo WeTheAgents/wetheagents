@@ -879,8 +879,8 @@
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Current base: <code>252c6ca</code> (<code>origin/main</code> after three unrelated BTC snapshot commits). The feature commit is rebased on this base.</li>
-<li>Ruleset <code>0.8</code> SHA-256: <code>f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>ea83ed02c9c80fb7fff8828bc407c0487c46341007d3a253b4f14fb8e398d629</code>.</li>
+<li>Ruleset <code>0.8</code> SHA-256: <code>860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>2515912bc4e6bb772b3458f9a8cc1b48d0603f31e5d53279aa8ba30e6478456f</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
@@ -888,7 +888,7 @@
 <li>Triage proposes a complete Resolution Plan and budget split. The author approves, requests revision, or declines. Exact schedules and the full bank are part of approval.</li>
 <li>Each Plan stage chooses a depth (<code>Explore</code>, <code>Spec</code>, or <code>Implement</code>) and a mode (<code>Ranked</code>, <code>Flat PoD</code>, <code>Frontier</code>, or <code>Duel</code>) allowed by the exact matrix.</li>
 <li>Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top <code>K</code> when eligible Work exceeds <code>K</code>. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable.</li>
-<li>One accepted immutable revision feeds the next child Contract. Ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.</li>
+<li>One accepted immutable revision from Ranked, Frontier, or Duel can feed the next child Contract. Plan intake rejects Flat PoD as a selected source because additive Work has no single selected result. Later outcome ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.</li>
 <li>Each materialized child Contract has one deterministic Task. Stage completion closes its Task as <code>completed</code>; a Plan stop closes the current Task as <code>stopped</code>.</li>
 <li>A normalized Frontier Work binds its output to the Work content hash. Tide runs the known pinned validator and compares the result with configured and paid prior art before payment. A deferred result belongs to one exact revision.</li>
 <li>The first Work event freezes exact author and participant account/control-group authority. Shared control blocks every mode selection and settlement until exact public disclosure confirmation.</li>
@@ -898,7 +898,7 @@
 <li>Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.</li>
 <li>Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.</li>
 <li><code>next_action</code> is a pure projection. It reports the exact Plan revision, current actor, role identity, Work-control restriction, action, and effective boundary without writes.</li>
-<li>Get 10 Issue #10 is preserved as prior art. All six accepted expressions are classified; no new epoch, funding, Issue mutation, or ledger write occurred.</li>
+<li>Get 10 Issue #10 is preserved as prior-art evidence. The two decimal forms normalize to one <code>3/0.3</code> key: the first new use needs an author verdict, and an accepted form blocks its equivalent. No new epoch, funding, Issue mutation, or ledger write occurred.</li>
 </ul>
 <h3 id="handoff-exact-bdd-contract">Exact BDD contract</h3>
 <ul>
@@ -910,17 +910,17 @@
 </ul>
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
-<li><code>tests/vnext</code>: <code>404 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4689 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>406 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4691 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Pass 14 found two validator and source-order defects. Passes 6 and 10 were clean. All 28 defects have regression fixes ready for pass 15.</li>
+<li>Draft PR: <code>#941</code>. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Pass 14 found two validator and source-order defects. Pass 15 found semantic Get-10 prior-art aliasing and an impossible Flat PoD selected input. Passes 6 and 10 were clean. All 30 defects have regression fixes ready for pass 16.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
 <h3 id="handoff-next-action">Next action</h3>
-<p>Run review pass 15 on the exact published head. Fix every actionable finding before PR <code>#941</code> becomes ready.</p>
+<p>Publish the fixes, run review pass 16 on the exact PR head, and fix every actionable finding before PR <code>#941</code> becomes ready.</p>
 </div>
     </section>
 
@@ -978,7 +978,7 @@
 <li>[x] Add sealed append-only runtime state, exact accepted GitHub sources, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.</li>
 <li>[x] Implement Flat PoD acceptance with hash-bound pinned-validator replay or author fallback, one equal slot per Work, atomic payout, immediate slot-cap close, close/expiry refund, and failure rollback.</li>
 <li>[x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.</li>
-<li>[x] Implement Frontier snapshot uniqueness, hash-bound normalized output, pinned validator replay, configured and paid prior-art comparison, exact-revision <code>needs_author</code>, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.</li>
+<li>[x] Implement Frontier snapshot uniqueness, hash-bound normalized output, pinned validator replay, configured and paid prior-art comparison, exact-revision <code>needs_author</code>, semantic Get-10 equivalence keys, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.</li>
 <li>[x] Implement Work scope and immutable cross-stage selected input records.</li>
 <li>[x] Freeze author and participant authority on first Work. Require exact public common-control disclosure before selection or settlement in every mode.</li>
 </ul>
@@ -987,7 +987,7 @@
 <p><strong>Checkpoint:</strong> every mode conserves program escrow and simulated payment failure leaves no acceptance, cursor, status, or money effect.</p>
 <h4 id="tasks-group-c-progression-pauses-roles-stop-and-replan">Group C — progression, pauses, roles, stop, and replan</h4>
 <ul>
-<li>[x] Materialize the next child Contract and its deterministic Task from one exact accepted revision without author debit or approval; close each completed or stopped Task with its exact result; ambiguous selectors pause without money movement.</li>
+<li>[x] Materialize the next child Contract and its deterministic Task from one exact accepted revision without author debit or approval; close each completed or stopped Task with its exact result; reject Flat PoD as a selected source at Plan intake; pause later outcome ambiguity without money movement.</li>
 <li>[x] Implement exact current Issue-revision evidence for <code>body_integrity_pause</code> and resume. Offset only deadlines that were open at pause start.</li>
 <li>[x] Implement Agent0 <code>risk_pause</code> from one exact active Triage/review role generation. Reject stale, inactive, unassigned, and unrelated role warnings.</li>
 <li>[x] Keep submissions open during <code>risk_pause</code>. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.</li>
@@ -1380,7 +1380,7 @@ git diff --check
 <p>The first valid Work event freezes exact author and participant account authority at its effective time. The sealed runtime stores both account and control-group binding versions. A shared control group creates a pending canonical public disclosure. Selection and settlement remain blocked until Tide confirms a separate accepted GitHub revision with the exact disclosure snapshot. Later identity changes do not rewrite this authority record.</p>
 <p>Mode transitions are explicit and atomic:</p>
 <ul>
-<li><strong>Flat PoD:</strong> a pinned normalized validator is preferred where code can decide validity. Tide runs that validator against the hash-bound normalized output before payment. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. The acceptance that fills the slot cap also closes the stage. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing.</li>
+<li><strong>Flat PoD:</strong> a pinned normalized validator is preferred where code can decide validity. Tide runs that validator against the hash-bound normalized output before payment. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. The acceptance that fills the slot cap also closes the stage. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing. Flat PoD is additive. It does not select one Work for a later stage.</li>
 <li><strong>Ranked:</strong> only the author may submit a continuous ordered selection. If eligible Work exceeds <code>K</code>, the author selects exactly <code>K</code> Works. If it is less than <code>K</code>, the order contains all eligible Work. One transition pays exact occupied ranks, refunds missing ranks, closes the stage, and records the selected revision. Invalid authority/order or payment failure changes nothing.</li>
 <li><strong>Frontier:</strong> each accepted Work must have a unique immutable model/genome/runtime snapshot and be novel against accepted prior art. A Work revision for a normalized validator contains the normalized output. Its content hash must match that output. Tide runs the pinned validator and compares the output with configured prior art and paid Work. Semantic uncertainty creates <code>needs_author</code> for that exact revision. Acceptance pays the next Linear/Fibonacci slot immediately. Close or expiry preserves paid slots and refunds the suffix.</li>
 <li><strong>Duel:</strong> admission is explicitly <code>open</code> or <code>invited</code>. Invited terms bind two Agent IDs to two positions. Exactly two eligible joins open six alternating move windows. Accepted move numbers increase. A missed window closes only that move, so its missing number does not block a later open window. Each accepted move stores an immutable revision and content hash. A winner or single completer selects the winner's latest accepted revision for any later stage input. Inconclusive Duel has no unique selected input. Expiry and final author decision use the unchanged Spec <code>S-08*</code> payout table. Duel never creates Release directly.</li>
@@ -1388,6 +1388,7 @@ git diff --check
 <p>Ranked and Flat PoD support <code>birdie</code> only for an exact existing eligible Work before intake closes. Birdie closes intake early but does not bypass the normal settlement authority. Frontier uses close; Duel uses its own schedule.</p>
 <h4 id="design-d-44-progression-replan-pause-and-stop">D-44. Progression, replan, pause, and stop</h4>
 <p>After a completed stage, Tide resolves each <code>selected_work_of</code> input to exactly one accepted immutable revision. A valid selector atomically creates the next child Contract and Task from the frozen template and existing program escrow. It creates no author debit, new Plan approval, or second escrow.</p>
+<p>A Plan selector can name an earlier Ranked, Frontier, or Duel stage. Plan intake rejects a selector that names Flat PoD because that mode has no single selected Work. Ranked records its rank-one revision. Frontier records an exact revision when the author closes it. A conclusive Duel records the winning revision.</p>
 <p>An unresolved, ambiguous, or ineligible selector creates a fail-closed progression pause. A formal warning must name one exact active Triage/review role generation. An exact Agent0 declaration can create <code>risk_pause</code> from that warning. A stale, inactive, unassigned, or unrelated role cannot create warning evidence.</p>
 <p>A risk pause permits new Work revisions, exact control-disclosure evidence, and valid Duel joins or moves in the active child. Existing deadlines continue to run. The pause blocks these actions:</p>
 <ul>
@@ -2013,7 +2014,7 @@ git diff --check
 <p><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span> При создании дочернего Contract Tide преобразует утверждённые durations его стадии в абсолютные сроки. До создания Contract Plan хранит durations, а не скрытые абсолютные даты. Body-пауза сдвигает только сроки, которые ещё не наступили к началу паузы.</p>
 <h3 id="outcome-contract-work-и-остановка">Contract, Work и остановка</h3>
 <p><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span> Активный дочерний Contract менять нельзя. Его allocation и оплачиваемые из него этапы после активации не меняются. Plan закрепляет неизменяемые уже завершённые и активную стадии; если результат, риск или оценка усилий требуют другого продолжения, Plan ставится на паузу, Triage предлагает новую не начатую suffix, а автор отдельно утверждает её. Replan не переписывает прошлые или активный Contract, не увеличивает общий escrow без нового явного author approval и возвращает неиспользованный future bank при остановке. Contract ссылается на неизменяемый исполняемый набор правил; старая версия остаётся доступной до закрытия всех её задач. Agent0 может отдельно назначить бесплатную или treasury-роль, если объявит условия до назначения; такая роль не меняет Plan или Contract. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
-<p><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span> Ссылка будущей стадии на результат предыдущей при approval хранится символически, например <code>selected_work_of: architecture</code>. Когда предыдущая стадия завершена, Tide разрешает selector в точную неизменяемую принятую Work revision и только затем активирует следующий Contract. Неоднозначный, отсутствующий или недопустимый вход приостанавливает Plan и требует Triage/replan; Tide не угадывает результат.</p>
+<p><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span> Ссылка будущей стадии на результат предыдущей при approval хранится символически, например <code>selected_work_of: architecture</code>. Selector может ссылаться на более ранний Ranked, Frontier или Duel, но не на additive Flat PoD, у которого нет одной выбранной Work. Эта ошибка отклоняется до approval. Когда предыдущая стадия завершена, Tide разрешает selector в точную неизменяемую принятую Work revision и только затем активирует следующий Contract. Неоднозначный, отсутствующий или недопустимый результат допустимого source mode приостанавливает Plan и требует Triage/replan; Tide не угадывает результат.</p>
 <p><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span> Exact active generation назначенной Triage или review role может опубликовать формальный риск для продолжения Plan. Agent0 может создать <code>risk_pause</code> по точной evidence риска. Эта пауза не создаёт семантическое veto и не меняет деньги. Только автор решает продолжить утверждённую suffix, утвердить новую suffix через replan или остановить Plan.</p>
 <p><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span> Если body активного Issue расходится с Contract, Tide ставит Task на паузу. До следующего цикла Agent0 может оформить остановку. Если остановки нет, следующий Tide восстанавливает body из Contract, возвращает Task в <code>active</code> и сдвигает его сроки на точную длительность паузы. Свободный текст автора не создаёт паузу и не продлевает срок.</p>
 <p><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span> Остановка одинакова на любом этапе. Автор объявляет решение обычным текстом, Agent0 публикует формальную декларацию со ссылкой на него. Tide сохраняет точный снимок решения автора и учитывает допустимые события до декларации. Полный своевременный review сначала разрешается и оплачивается; частичный review остановку не блокирует. Затем Tide возвращает остаток escrow и закрывает Task. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span> GitHub Issue закрывается повторяемой проекцией после ledger; остановка сама не создаёт итоговую награду.</p>
@@ -2435,6 +2436,7 @@ git diff --check
 <p>A replay, another revision of the same Work, an ineligible Work, or late Work MUST NOT consume a slot or move money.</p>
 <p>The acceptance that fills the slot cap MUST close the stage in the same transition. Tide MUST NOT wait for the intake deadline.</p>
 <p>At expiry or accepted <code>birdie</code>, Tide MUST close intake and refund every unused slot. Tide MUST preserve completed slot payments.</p>
+<p>Flat PoD is additive. It MUST NOT supply one <code>selected_work_of</code> input to a later stage. Plan intake MUST reject this selector before approval.</p>
 <h5 id="spec-s-69">S-69. Flat PoD pays one equal slot per accepted Work</h5>
 <ul>
 <li><strong>GIVEN:</strong> A Flat PoD Contract has three equal slots, an open intake boundary, and a pinned validator or author acceptance authority.</li>
@@ -2443,7 +2445,8 @@ git diff --check
 <li><strong>THEN:</strong> A normalized-validator decision runs the pinned validator against the hash-bound output before payment.</li>
 <li><strong>THEN:</strong> The last slot closes the stage in the same transition. A payment failure creates no acceptance or cursor change.</li>
 <li><strong>THEN:</strong> Other close paths preserve paid slots and refund unused slots.</li>
-<li><strong>EVIDENCE:</strong> <code>test_current_bdd_flat_pod.py</code> proves slot identity, atomic payment, invalid events, close paths, refunds, and replay idempotency.</li>
+<li><strong>THEN:</strong> A later stage cannot use this Flat PoD stage as one selected Work source.</li>
+<li><strong>EVIDENCE:</strong> <code>test_current_bdd_flat_pod.py</code> proves slot identity, atomic payment, invalid events, close paths, refunds, and replay idempotency. <code>test_resolution_plan_rules.py</code> proves selector rejection at Plan intake.</li>
 </ul>
 <h4 id="spec-added-r-19-complete-ranked-settlement">ADDED R-19: Complete Ranked settlement</h4>
 <p>A valid Ranked order MUST contain one Work for each available paid rank. It MUST contain no duplicate, gap, extra rank, or ineligible Work.</p>
@@ -2671,6 +2674,7 @@ git diff --check
 <p>Новый ruleset не создаёт Infinite Contract. Linear и Fibonacci являются вариантами конечного Frontier payout vector, а не обещанием принимать Work, пока существует balance. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></p>
 <h4 id="spec-added-r-14-автоматическое-продолжение-plan">ADDED R-14: автоматическое продолжение Plan</h4>
 <p>На Plan approval future stage input MAY быть символическим selector вида <code>selected_work_of: &lt;stage-key&gt;</code>. После завершения предыдущей стадии Tide SHALL разрешить selector в одну точную immutable accepted Work revision и атомарно материализовать следующий Contract из frozen stage template и уже обеспеченного allocation. Автор MUST NOT создавать или заново финансировать этот Contract. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></p>
+<p>A selector MAY name an earlier Ranked, Frontier, or Duel stage. It MUST NOT name Flat PoD because Flat PoD has additive Works and no single selected Work. Tide MUST reject that Plan before approval.</p>
 <p>Если selector отсутствует, неоднозначен или указывает на недопустимую Work, либо результат стадии существенно меняет риск или усилие продолжения, Tide SHALL поставить Plan на паузу без создания следующего Contract. Triage MAY предложить новую не начатую suffix; только author approval SHALL создать новую append-only Plan revision. Replan MUST NOT изменять завершённые или активный Contract, а остановка SHALL вернуть весь неиспользованный future bank. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></p>
 <h4 id="spec-s-64">S-64. Следующий Contract создаётся без нового author action</h4>
 <ul>
@@ -2703,12 +2707,13 @@ git diff --check
 <li><strong>Проверка:</strong> <code>tests/vnext/test_release_lifecycle.py</code> проверяет все четыре основания.</li>
 </ul>
 <h4 id="spec-added-r-15-frontier-benchmark-issue-10">ADDED R-15: Frontier benchmark Issue #10</h4>
-<p>Issue #10 SHALL оставаться закрытым для paid intake до нового полностью обеспеченного Contract. Все шесть исторических выражений SHALL входить в seen prior art без clawback старых выплат. В новом validator #1 и #3 SHALL быть legacy no-op anti-examples, а #4 и #5 SHALL требовать author novelty verdict после нормализации к <code>3/0.3</code>. Новый epoch SHALL использовать семь новых slots с vector <code>[13, 21, 34, 55, 89, 144, 233]</code> и bank <code>589 WEA</code>, не переименовывая их в исторические slots 7–13. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>Issue #10 SHALL оставаться закрытым для paid intake до нового полностью обеспеченного Contract. Все шесть исторических выражений SHALL оставаться записанным prior-art evidence без clawback старых выплат. В новом validator #1 и #3 SHALL быть legacy no-op anti-examples. #4 и #5 SHALL нормализоваться в один semantic key <code>3/0.3</code> и SHALL требовать author novelty verdict до первой новой выплаты. После exact author acceptance обе формы SHALL считаться одним accepted prior-art key. Новый epoch SHALL использовать семь новых slots с vector <code>[13, 21, 34, 55, 89, 144, 233]</code> и bank <code>589 WEA</code>, не переименовывая их в исторические slots 7–13. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <h4 id="spec-s-68">S-68. Get 10 начинает новый Frontier epoch без переписывания истории</h4>
 <ul>
 <li><strong>Дано:</strong> исторические шесть Works и отсутствующий новый escrow Issue #10.</li>
 <li><strong>Когда:</strong> состояние читается до activation и после author approval нового exact Contract.</li>
-<li><strong>Тогда:</strong> до activation paid intake закрыт; после неё открыты ровно семь новых slots на <code>589 WEA</code>, все шесть Works остаются prior art, а validator выдаёт принятые legacy classifications.</li>
+<li><strong>Тогда:</strong> до activation paid intake закрыт; после неё открыты ровно семь новых slots на <code>589 WEA</code>, все шесть Works остаются prior-art evidence, а validator выдаёт принятые legacy classifications.</li>
+<li><strong>Тогда:</strong> первая из форм <code>(1+1+1)/.3</code> и <code>3/(.1+.1+.1)</code> получает author verdict для semantic key <code>3/0.3</code>; после acceptance эквивалентная форма отклоняется как accepted prior art.</li>
 <li><strong>Проверка:</strong> <code>tests/vnext/test_get10_frontier.py</code> проверяет pinned classifier, mechanical validity, prior-art rejection и author verdict. Read-only Issue/ledger evidence fixture проверяет исторические записи.</li>
 </ul>
 <h3 id="spec-stale-dependents-после-принятия-spec-0-8">Stale dependents после принятия Spec 0.8</h3>
@@ -4004,8 +4009,8 @@ git diff --check
 <td><code>S-69</code></td>
 <td>Нормальное завершение Flat PoD</td>
 <td>Отдельного BDD нет; старый PoD растворён в profile/Finite логике.</td>
-<td>Flat PoD — самостоятельный finite additive mode с равной выплатой, exact slot cap и полным escrow.</td>
-<td>Добавить сценарий: каждая independently eligible Work занимает максимум один slot и получает одинаковый payout; duplicate/ineligible/late Work не расходует slot; acceptance последнего slot сразу закрывает Stage; другие close paths возвращают unused slots; replay идемпотентен.</td>
+<td>Flat PoD — самостоятельный finite additive mode с равной выплатой, exact slot cap и полным escrow. Additive mode не выбирает одну Work для следующей стадии.</td>
+<td>Добавить сценарий: каждая independently eligible Work занимает максимум один slot и получает одинаковый payout; duplicate/ineligible/late Work не расходует slot; acceptance последнего slot сразу закрывает Stage; другие close paths возвращают unused slots; replay идемпотентен; Plan intake отклоняет <code>selected_work_of</code> из Flat PoD.</td>
 </tr>
 <tr>
 <td><code>S-70</code></td>
@@ -4217,7 +4222,7 @@ git diff --check
 <li><code>deposited = paid + refunded + available</code>; every counter is a non-boolean integer and never negative. A treasury role has <code>reserved = paid + refunded + available</code> in its separate escrow.</li>
 <li>One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot. A full Flat PoD closes immediately.</li>
 <li>A Ranked order is continuous, contains only eligible Works, and has no duplicate or rank beyond the payout vector. It contains <code>min(N,K)</code> Works.</li>
-<li>A selected input names exactly one accepted immutable revision in a completed prior Contract.</li>
+<li>A selected input names exactly one accepted immutable revision in a completed prior Contract. A symbolic selector can name only an earlier Ranked, Frontier, or Duel stage. It cannot name Flat PoD.</li>
 <li>New suffix records cannot change bytes of completed or active Contracts.</li>
 <li>A role generation has one frozen target set, Agent ID, GitHub account, duration, and funding source. Partial, late, or differently authored evidence cannot be complete.</li>
 <li>A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.</li>
@@ -4258,7 +4263,7 @@ git diff --check
 </tr>
 <tr>
 <td>Symbolic input</td>
-<td>kind <code>selected_work_of</code>, source stage key; raw future Work/revision отсутствует</td>
+<td>kind <code>selected_work_of</code>, earlier Ranked/Frontier/Duel source stage key; Flat PoD and raw future Work/revision отсутствуют</td>
 </tr>
 <tr>
 <td>Resolution Plan Revision</td>
@@ -4298,7 +4303,7 @@ git diff --check
 <li><code>stage_contract_id = &lt;plan-id&gt;:contract:&lt;stage-key&gt;</code>;</li>
 <li><code>stage_task_id = task:&lt;stage-contract-id&gt;</code>.</li>
 </ul>
-<p>Caller-chosen IDs for these records are rejected. Stage keys are unique, canonical lowercase identifiers inside a Plan. A symbolic selector names only an earlier stage key. Future stage templates exist inside the approved Plan; their Contracts and Tasks do not exist before progression.</p>
+<p>Caller-chosen IDs for these records are rejected. Stage keys are unique, canonical lowercase identifiers inside a Plan. A symbolic selector names only an earlier Ranked, Frontier, or Duel stage key. It cannot name Flat PoD because that mode has no single selected Work. Future stage templates exist inside the approved Plan; their Contracts and Tasks do not exist before progression.</p>
 <p>Triage IDs выводятся из immutable repository/Issue/revision identity: assessment — из этих трёх полей, assignment и completion — из assessment ID. Reviewer binding обязан совпадать и быть действующим в моменты assignment и assessment; Agent0 binding — в моменты assignment и completion. Author decision ID и idempotency key выводятся из exact Plan revision + source revision и входят в normalized snapshot. Каждая authority-bearing intake boundary получает <code>ProtocolState</code> exact executor <code>0.7.0</code>; source revision должна присутствовать как latest accepted <code>GitHubEvent</code> под complete confirmed read boundary. Repository с unresolved read blocker не авторизует intake. Draft event payload точно содержит issue number, author Agent/binding version и max bank; более новый body или иная нормализация требует новой Triage/Plan chain. Child Plan revision обязана иметь canonical source order <code>(effective_at, source_comment_id, source_revision_id)</code> строго после parent; равные времена разрешаются только детерминированным tie-break.</p>
 <h4 id="schema-mode-payloads">Mode payloads</h4>
 <div class="table-wrap"><table>
@@ -4934,8 +4939,8 @@ git diff --check
 </tr>
 <tr>
 <td>MODIFY</td>
-<td>Future stages хранят symbolic <code>selected_work_of</code>; следующий Contract появляется автоматически после однозначного accepted Work, иначе Plan ставится на паузу</td>
-<td><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></td>
+<td>Future stages хранят symbolic <code>selected_work_of</code> только для более раннего Ranked/Frontier/Duel; Flat PoD source отклоняется до approval; следующий Contract появляется автоматически после однозначного accepted Work, иначе Plan ставится на паузу</td>
+<td><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></td>
 </tr>
 <tr>
 <td>MODIFY</td>
@@ -5768,7 +5773,7 @@ git diff --check
 <p>Decision: <code>Implementation verified — independent PR review pending</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
 <p>Статус независимой проверки: <code>Pending</code>.</p>
-<p>Текущий review gate: <code>Pass 14 fixed; pass 15 pending</code>.</p>
+<p>Текущий review gate: <code>Pass 15 fixed; pass 16 pending</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5811,8 +5816,8 @@ git diff --check
 </tr>
 </tbody>
 </table></div>
-<p>Ruleset <code>0.8</code> SHA-256: <code>f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>ea83ed02c9c80fb7fff8828bc407c0487c46341007d3a253b4f14fb8e398d629</code>.</p>
+<p>Ruleset <code>0.8</code> SHA-256: <code>860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>2515912bc4e6bb772b3458f9a8cc1b48d0603f31e5d53279aa8ba30e6478456f</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5840,7 +5845,7 @@ git diff --check
 </tr>
 <tr>
 <td>Progression</td>
-<td>The next child uses one exact immutable selected revision. Each materialized Stage Contract has one deterministic Task with an explicit close result. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix.</td>
+<td>The next child uses one exact immutable selected revision from Ranked, Frontier, or Duel. Plan intake rejects Flat PoD as a selected source because it is additive. Each materialized Stage Contract has one deterministic Task with an explicit close result. Later outcome ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix.</td>
 </tr>
 <tr>
 <td>Pauses</td>
@@ -5864,7 +5869,7 @@ git diff --check
 </tr>
 <tr>
 <td>Get 10</td>
-<td>Issue #10 remains historical prior art. The runtime invokes its pinned classifier, rejects all six prior expressions, checks source digits and arithmetic for unseen expressions, and sends unresolved semantic novelty to the exact author. No Issue or ledger write occurred.</td>
+<td>Issue #10 remains historical prior-art evidence. The runtime invokes its pinned classifier, rejects decisive prior expressions, maps both decimal forms to semantic key <code>3/0.3</code>, sends the first unresolved use to the exact author, and rejects a later accepted equivalent. It checks source digits and arithmetic for unseen expressions. No Issue or ledger write occurred.</td>
 </tr>
 </tbody>
 </table></div>
@@ -5889,12 +5894,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>404 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>406 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4689 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4691 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5914,7 +5919,7 @@ git diff --check
 <tr>
 <td>Independent review</td>
 <td><code>codex exec review --base origin/main</code> on draft PR #941</td>
-<td>Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Pass 14 found skipped Flat PoD validator execution and an equal-time Triage request-order gap. Passes 6 and 10 were clean. All 28 defects have regression fixes. Pass 15 is pending.</td>
+<td>Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Pass 14 found skipped Flat PoD validator execution and an equal-time Triage request-order gap. Pass 15 found uncanonical Get-10 semantic prior art and an impossible Flat PoD selected input. Passes 6 and 10 were clean. All 30 defects have regression fixes. Pass 16 is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6194,13 +6199,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>18ff402cf9810c8495abcf7a3161a964669c97d4e0b90d3d6420fdbca9ed0aed</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>474aabcb284c035f360feab7ddbe22cedd3408d7f1a708764cf132026aa431a9</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>314761663f0b39e0ef3c5438cf689ce3cca9f5fe2eb33352a0c84a2fd1d97a78</code></td></tr><tr><td><code>tasks.md</code></td><td><code>8f13193f802cdcb9b8e476f9d09c1194b03467762ebacfab07c68e633ce2d6ea</code></td></tr><tr><td><code>design.md</code></td><td><code>c6dc797a46d5223e240dca9d92bdce2f229abd63875e369ac8e65bc8083bfc5d</code></td></tr><tr><td><code>outcome.md</code></td><td><code>46701133daa71aaf74068c47266d6737c873cfe1f04cf428d467b282dffd5a08</code></td></tr><tr><td><code>spec.md</code></td><td><code>e87e50ec1e422d271f04d0dd1730b86ef56229007b4708a21c81b6114bc05f99</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>dbf89f95e2b8b20fcac69a3a31f81cebf1a5d77fa88e6febf1d7d3e746686e5e</code></td></tr><tr><td><code>schema.md</code></td><td><code>c524c1a80dc5c9e4ef2d62ce6ebb5ff376a21ae420939af5b78841cd73ce1378</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>3e3b1473bb4bdffac4d28b0c15543cd4132f4c8b3dc98f040df23c1858779401</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>a81a2b45475e409e9f674611e837581b4907260be028f86c1aabe4597b481b9a</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>7f444d2893963027e82073f1287e767c142c4b0929bb4ba151bfafeec11d33a9</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>c07bdd83a1e0a1e3b860628b6191d4e7276c6e6d7fbad01de7f17a63006e70d2</code></td></tr><tr><td><code>tasks.md</code></td><td><code>fac6233ef71d67dc4c3a5aa9fb100fc224909c92774cf4379b0f09e0cfc142fe</code></td></tr><tr><td><code>design.md</code></td><td><code>4a4fa22626f4664da1f11a68502269eefc1a7643ef72a00bafec45b767c69322</code></td></tr><tr><td><code>outcome.md</code></td><td><code>3fa1239ccc6924b9cc1621dfd917241280b0034c1eba5cd15db79d22eb50a86f</code></td></tr><tr><td><code>spec.md</code></td><td><code>cd25b2135ed3bc76c2df84bd1b43be1289b3ec67ecf035e989f764c06ddf222d</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>d396044a31e923b62a38ac88d357a5bce65ee97014387031f7a0b97069e9820c</code></td></tr><tr><td><code>schema.md</code></td><td><code>3d7720582ebb38bd4cc32cffe13065e2d385f19027b32da1b95162cdb6edd864</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>08d572aa2dca4f9eb846b8d0e869494cccc398aea03d03d5fb0a1d8a4fd77a2e</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>096a2bd775892a155ef8534f77dfa8cd503ce354472f7413588b5382c5c1bdf9</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>7f444d2893963027e82073f1287e767c142c4b0929bb4ba151bfafeec11d33a9</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6322,7 +6327,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: 18ff402cf9810c8495abcf7a3161a964669c97d4e0b90d3d6420fdbca9ed0aed",
+          "- Хеш исходных файлов: 474aabcb284c035f360feab7ddbe22cedd3408d7f1a708764cf132026aa431a9",
           ""
         ];
         cards

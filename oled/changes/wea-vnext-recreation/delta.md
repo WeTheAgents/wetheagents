@@ -37,7 +37,7 @@
 | MODIFY | Новый Contract задаётся строкой матрицы `depth × mode`: Explore допускает Ranked/Flat PoD/Frontier/Duel, Spec и Implement — Ranked/Frontier | `[CHAT]` |
 | MODIFY | Ranked объединяет WTA (`K=1`) и X-Best (`K>1`); Flat PoD остаётся additive; Frontier использует конечный Linear/Fibonacci vector; Duel имеет две защищаемые позиции Explore | `[CHAT]` |
 | MODIFY | Triage может рекомендовать отказ, но не имеет semantic veto в ruleset 0.7; hard reject ограничен формальными authority, declaration, identity, matrix, money и evidence-boundary ошибками | `[CHAT]` |
-| MODIFY | Future stages хранят symbolic `selected_work_of`; следующий Contract появляется автоматически после однозначного accepted Work, иначе Plan ставится на паузу | `[CHAT][DERIVED]` |
+| MODIFY | Future stages хранят symbolic `selected_work_of` только для более раннего Ranked/Frontier/Duel; Flat PoD source отклоняется до approval; следующий Contract появляется автоматически после однозначного accepted Work, иначе Plan ставится на паузу | `[CHAT][DERIVED][REVIEW]` |
 | MODIFY | Replan создаёт append-only Plan revision только для незапущенного suffix и снова требует author approval; active/completed Contracts не переписываются | `[CHAT][DERIVED]` |
 | MODIFY | Release зависит от завершённой Implement Work, а не от старого имени profile | `[CHAT]` |
 | HISTORICAL | Ruleset `0.6`, executors `v0_6_0…v0_6_3` и их profile semantics сохраняются byte-for-byte только для replay | `[CHECK]` |

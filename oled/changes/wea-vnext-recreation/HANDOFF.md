@@ -9,8 +9,8 @@ Status: `Implementation verified — independent PR review pending`.
 - Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
-- Ruleset `0.8` SHA-256: `f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b`.
-- Executor `v0_8_0` manifest SHA-256: `ea83ed02c9c80fb7fff8828bc407c0487c46341007d3a253b4f14fb8e398d629`.
+- Ruleset `0.8` SHA-256: `860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9`.
+- Executor `v0_8_0` manifest SHA-256: `2515912bc4e6bb772b3458f9a8cc1b48d0603f31e5d53279aa8ba30e6478456f`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -18,7 +18,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Triage proposes a complete Resolution Plan and budget split. The author approves, requests revision, or declines. Exact schedules and the full bank are part of approval.
 - Each Plan stage chooses a depth (`Explore`, `Spec`, or `Implement`) and a mode (`Ranked`, `Flat PoD`, `Frontier`, or `Duel`) allowed by the exact matrix.
 - Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top `K` when eligible Work exceeds `K`. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable.
-- One accepted immutable revision feeds the next child Contract. Ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.
+- One accepted immutable revision from Ranked, Frontier, or Duel can feed the next child Contract. Plan intake rejects Flat PoD as a selected source because additive Work has no single selected result. Later outcome ambiguity pauses progression. A suffix replan cannot change the completed or active prefix.
 - Each materialized child Contract has one deterministic Task. Stage completion closes its Task as `completed`; a Plan stop closes the current Task as `stopped`.
 - A normalized Frontier Work binds its output to the Work content hash. Tide runs the known pinned validator and compares the result with configured and paid prior art before payment. A deferred result belongs to one exact revision.
 - The first Work event freezes exact author and participant account/control-group authority. Shared control blocks every mode selection and settlement until exact public disclosure confirmation.
@@ -28,7 +28,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.
 - Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.
 - `next_action` is a pure projection. It reports the exact Plan revision, current actor, role identity, Work-control restriction, action, and effective boundary without writes.
-- Get 10 Issue #10 is preserved as prior art. All six accepted expressions are classified; no new epoch, funding, Issue mutation, or ledger write occurred.
+- Get 10 Issue #10 is preserved as prior-art evidence. The two decimal forms normalize to one `3/0.3` key: the first new use needs an author verdict, and an accepted form blocks its equivalent. No new epoch, funding, Issue mutation, or ledger write occurred.
 
 ## Exact BDD contract
 
@@ -40,12 +40,12 @@ Status: `Implementation verified — independent PR review pending`.
 
 ## Fresh evidence
 
-- `tests/vnext`: `404 passed`, `18 skipped`.
-- Full repository: `4689 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `406 passed`, `18 skipped`.
+- Full repository: `4691 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- Draft PR: `#941`. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Pass 14 found two validator and source-order defects. Passes 6 and 10 were clean. All 28 defects have regression fixes ready for pass 15.
+- Draft PR: `#941`. Passes 1–5 closed 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found two defects. The final self-roast found one whitespace-normalization defect. Pass 13 found three terminal-role and deferred-revision defects. Pass 14 found two validator and source-order defects. Pass 15 found semantic Get-10 prior-art aliasing and an impossible Flat PoD selected input. Passes 6 and 10 were clean. All 30 defects have regression fixes ready for pass 16.
 
 ## Hard stop boundary
 
@@ -53,4 +53,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Run review pass 15 on the exact published head. Fix every actionable finding before PR `#941` becomes ready.
+Publish the fixes, run review pass 16 on the exact PR head, and fix every actionable finding before PR `#941` becomes ready.

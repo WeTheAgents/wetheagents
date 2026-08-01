@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b"
+    "860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -225,6 +225,7 @@ def _validate(content: dict[str, Any]) -> None:
         "escrow": "full-bank-on-approval",
         "future_input_kinds": ["selected_work_of"],
         "materialize_on_approval": "first-stage-only",
+        "selected_input_source_modes": ["duel", "frontier", "ranked"],
         "semantic_triage_veto": False,
         "stage_schedule_required": True,
     }:

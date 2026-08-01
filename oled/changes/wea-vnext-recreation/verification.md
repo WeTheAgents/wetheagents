@@ -8,7 +8,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 14 fixed; pass 15 pending`.
+Текущий review gate: `Pass 15 fixed; pass 16 pending`.
 
 ## Версии
 
@@ -21,9 +21,9 @@ Decision: `Implementation verified — independent PR review pending`.
 | historical successor | ruleset `0.7`, executor `v0_7_0` | Immutable Resolution Plan intake and activation slice |
 | current successor | ruleset/interface `0.8`, executor `v0_8_0` | Manifest-pinned execution of all current Spec `0.9` behavior |
 
-Ruleset `0.8` SHA-256: `f88dad72873ba2afc8ccfa318a0940a4dcea289c92ac21c8463447b478cf644b`.
+Ruleset `0.8` SHA-256: `860694eb4ba1e947b8fa4fa9789344c8ab849dba86ccc19612a5447e7bd657a9`.
 
-Executor `v0_8_0` manifest SHA-256: `ea83ed02c9c80fb7fff8828bc407c0487c46341007d3a253b4f14fb8e398d629`.
+Executor `v0_8_0` manifest SHA-256: `2515912bc4e6bb772b3458f9a8cc1b48d0603f31e5d53279aa8ba30e6478456f`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -33,13 +33,13 @@ Executor `v0_8_0` manifest SHA-256: `ea83ed02c9c80fb7fff8828bc407c0487c46341007d
 | Authority evidence | Each lifecycle event matches one accepted GitHub source under a complete confirmed read boundary. Source revisions are globally single-use. |
 | Modes | Ranked pays an exact author-selected top `K` when submissions exceed paid ranks. Flat PoD, Frontier, and Duel have exact admission, deadlines, payout, refund, underfill, and expiry behavior. A normalized Frontier result is hash-bound, replayed through the known pinned validator, and compared with configured and paid prior art. Flat PoD closes in the acceptance that fills its slot cap. Settlement transitions are atomic and idempotent. |
 | Common control | The first Work event freezes exact author and participant account/control-group authority. Shared control blocks selection and settlement in every mode until exact public disclosure confirmation. |
-| Progression | The next child uses one exact immutable selected revision. Each materialized Stage Contract has one deterministic Task with an explicit close result. Ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix. |
+| Progression | The next child uses one exact immutable selected revision from Ranked, Frontier, or Duel. Plan intake rejects Flat PoD as a selected source because it is additive. Each materialized Stage Contract has one deterministic Task with an explicit close result. Later outcome ambiguity pauses progression. An approved suffix replan cannot change the completed or active prefix. |
 | Pauses | Body pause and resume require exact current Issue revisions. Body pauses offset open deadlines once. Risk pauses keep submissions open, keep deadlines running, and block stage decisions and settlement. Body resume preserves other pauses. |
 | Assigned roles | Frozen targets, Agent ID, GitHub account, generations, deadlines, funding, replacement races, and ordered stop behavior are explicit. Only an exact active Triage or review generation can publish a risk warning. |
 | Duel | Open and invited admission, six move windows, increasing accepted move numbers, expired-slot skips, immutable revisions, exact settlement, and no Duel Release are implemented. |
 | Release and feedback | Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful whole-Plan completion. A downstream blocker preserves negative Triage feedback and suppresses Release. |
 | Read-only projection | `next_action` reports the exact Plan revision, stage, Contract, mode, actor, role identity, Work-control restriction, action, and effective boundary without writes. |
-| Get 10 | Issue #10 remains historical prior art. The runtime invokes its pinned classifier, rejects all six prior expressions, checks source digits and arithmetic for unseen expressions, and sends unresolved semantic novelty to the exact author. No Issue or ledger write occurred. |
+| Get 10 | Issue #10 remains historical prior-art evidence. The runtime invokes its pinned classifier, rejects decisive prior expressions, maps both decimal forms to semantic key `3/0.3`, sends the first unresolved use to the exact author, and rejects a later accepted equivalent. It checks source digits and arithmetic for unseen expressions. No Issue or ledger write occurred. |
 
 ## BDD alignment
 
@@ -53,12 +53,12 @@ Executor `v0_8_0` manifest SHA-256: `ea83ed02c9c80fb7fff8828bc407c0487c46341007d
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `404 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4689 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `406 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4691 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Pass 14 found skipped Flat PoD validator execution and an equal-time Triage request-order gap. Passes 6 and 10 were clean. All 28 defects have regression fixes. Pass 15 is pending. |
+| Independent review | `codex exec review --base origin/main` on draft PR #941 | Passes 1–5 found 13 defects. Passes 7–9 and 11 found seven more defects. Pass 12 found missing stage Task lifecycle and unbound Frontier validation. The final self-roast found a whitespace-normalization gap. Pass 13 found terminal role escrows and an overwritten exact-revision deferral. Pass 14 found skipped Flat PoD validator execution and an equal-time Triage request-order gap. Pass 15 found uncanonical Get-10 semantic prior art and an impossible Flat PoD selected input. Passes 6 and 10 were clean. All 30 defects have regression fixes. Pass 16 is pending. |
 
 ## Historical verification baseline through Block 3
 

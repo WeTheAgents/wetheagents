@@ -72,7 +72,7 @@ An open `risk_pause` admits active-stage Work revisions, exact control-disclosur
 3. `deposited = paid + refunded + available`; every counter is a non-boolean integer and never negative. A treasury role has `reserved = paid + refunded + available` in its separate escrow.
 4. One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot. A full Flat PoD closes immediately.
 5. A Ranked order is continuous, contains only eligible Works, and has no duplicate or rank beyond the payout vector. It contains `min(N,K)` Works.
-6. A selected input names exactly one accepted immutable revision in a completed prior Contract.
+6. A selected input names exactly one accepted immutable revision in a completed prior Contract. A symbolic selector can name only an earlier Ranked, Frontier, or Duel stage. It cannot name Flat PoD.
 7. New suffix records cannot change bytes of completed or active Contracts.
 8. A role generation has one frozen target set, Agent ID, GitHub account, duration, and funding source. Partial, late, or differently authored evidence cannot be complete.
 9. A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.
@@ -100,7 +100,7 @@ Schema `1.0` exists only inside the full `v0_8_0` closure. Ruleset `0.7`, execut
 | Draft Issue | repository ID, Issue ID/number, author Agent ID, GitHub account и exact active account binding/version, latest accepted body revision/text/hash, max total bank, event/effective time |
 | Triage Assessment | deterministic assignment/assessment/completion IDs, exact reviewer authority на assignment и assessment, Agent0 authority на assignment/completion, exact Draft revision/hash, three accepted source revisions/snapshots/hashes/times, risk/advice |
 | Plan Stage | stable stage key/index, depth, mode, mode parameters, allocation, expected output, ordered symbolic/resolved inputs |
-| Symbolic input | kind `selected_work_of`, source stage key; raw future Work/revision отсутствует |
+| Symbolic input | kind `selected_work_of`, earlier Ranked/Frontier/Duel source stage key; Flat PoD and raw future Work/revision отсутствуют |
 | Resolution Plan Revision | deterministic Plan ID, append-only revision number/ID, parent revision, proposer kind `triage/author`, proposer authority, exact Draft/Triage refs, ordered Stage records, full bank, canonical content hash, source revision/snapshot/hash/time |
 | Author Plan Decision | deterministic decision ID/key, exact Plan revision/hash, outcome, author authority, and accepted source revision/hash/time after the Plan source |
 | Program Escrow | deterministic `plan-escrow:<plan-id>` ID, author/payer, deposited/paid/refunded integer WEA, current status; `available = deposited - paid - refunded` |
@@ -117,7 +117,7 @@ Schema `1.0` exists only inside the full `v0_8_0` closure. Ruleset `0.7`, execut
 - `stage_contract_id = <plan-id>:contract:<stage-key>`;
 - `stage_task_id = task:<stage-contract-id>`.
 
-Caller-chosen IDs for these records are rejected. Stage keys are unique, canonical lowercase identifiers inside a Plan. A symbolic selector names only an earlier stage key. Future stage templates exist inside the approved Plan; their Contracts and Tasks do not exist before progression.
+Caller-chosen IDs for these records are rejected. Stage keys are unique, canonical lowercase identifiers inside a Plan. A symbolic selector names only an earlier Ranked, Frontier, or Duel stage key. It cannot name Flat PoD because that mode has no single selected Work. Future stage templates exist inside the approved Plan; their Contracts and Tasks do not exist before progression.
 
 Triage IDs выводятся из immutable repository/Issue/revision identity: assessment — из этих трёх полей, assignment и completion — из assessment ID. Reviewer binding обязан совпадать и быть действующим в моменты assignment и assessment; Agent0 binding — в моменты assignment и completion. Author decision ID и idempotency key выводятся из exact Plan revision + source revision и входят в normalized snapshot. Каждая authority-bearing intake boundary получает `ProtocolState` exact executor `0.7.0`; source revision должна присутствовать как latest accepted `GitHubEvent` под complete confirmed read boundary. Repository с unresolved read blocker не авторизует intake. Draft event payload точно содержит issue number, author Agent/binding version и max bank; более новый body или иная нормализация требует новой Triage/Plan chain. Child Plan revision обязана иметь canonical source order `(effective_at, source_comment_id, source_revision_id)` строго после parent; равные времена разрешаются только детерминированным tie-break.
 

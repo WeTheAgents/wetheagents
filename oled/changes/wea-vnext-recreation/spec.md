@@ -387,6 +387,8 @@ The acceptance that fills the slot cap MUST close the stage in the same transiti
 
 At expiry or accepted `birdie`, Tide MUST close intake and refund every unused slot. Tide MUST preserve completed slot payments.
 
+Flat PoD is additive. It MUST NOT supply one `selected_work_of` input to a later stage. Plan intake MUST reject this selector before approval.
+
 #### S-69. Flat PoD pays one equal slot per accepted Work
 
 - **GIVEN:** A Flat PoD Contract has three equal slots, an open intake boundary, and a pinned validator or author acceptance authority.
@@ -395,7 +397,8 @@ At expiry or accepted `birdie`, Tide MUST close intake and refund every unused s
 - **THEN:** A normalized-validator decision runs the pinned validator against the hash-bound output before payment.
 - **THEN:** The last slot closes the stage in the same transition. A payment failure creates no acceptance or cursor change.
 - **THEN:** Other close paths preserve paid slots and refund unused slots.
-- **EVIDENCE:** `test_current_bdd_flat_pod.py` proves slot identity, atomic payment, invalid events, close paths, refunds, and replay idempotency.
+- **THEN:** A later stage cannot use this Flat PoD stage as one selected Work source.
+- **EVIDENCE:** `test_current_bdd_flat_pod.py` proves slot identity, atomic payment, invalid events, close paths, refunds, and replay idempotency. `test_resolution_plan_rules.py` proves selector rejection at Plan intake.
 
 ### ADDED R-19: Complete Ranked settlement
 
@@ -552,6 +555,8 @@ Frontier SHALL иметь конечный exact payout vector, выбранны
 
 На Plan approval future stage input MAY быть символическим selector вида `selected_work_of: <stage-key>`. После завершения предыдущей стадии Tide SHALL разрешить selector в одну точную immutable accepted Work revision и атомарно материализовать следующий Contract из frozen stage template и уже обеспеченного allocation. Автор MUST NOT создавать или заново финансировать этот Contract. `[CHAT]`
 
+A selector MAY name an earlier Ranked, Frontier, or Duel stage. It MUST NOT name Flat PoD because Flat PoD has additive Works and no single selected Work. Tide MUST reject that Plan before approval.
+
 Если selector отсутствует, неоднозначен или указывает на недопустимую Work, либо результат стадии существенно меняет риск или усилие продолжения, Tide SHALL поставить Plan на паузу без создания следующего Contract. Triage MAY предложить новую не начатую suffix; только author approval SHALL создать новую append-only Plan revision. Replan MUST NOT изменять завершённые или активный Contract, а остановка SHALL вернуть весь неиспользованный future bank. `[CHAT][DERIVED]`
 
 ### S-64. Следующий Contract создаётся без нового author action
@@ -588,13 +593,14 @@ Frontier SHALL иметь конечный exact payout vector, выбранны
 
 ### ADDED R-15: Frontier benchmark Issue #10
 
-Issue #10 SHALL оставаться закрытым для paid intake до нового полностью обеспеченного Contract. Все шесть исторических выражений SHALL входить в seen prior art без clawback старых выплат. В новом validator #1 и #3 SHALL быть legacy no-op anti-examples, а #4 и #5 SHALL требовать author novelty verdict после нормализации к `3/0.3`. Новый epoch SHALL использовать семь новых slots с vector `[13, 21, 34, 55, 89, 144, 233]` и bank `589 WEA`, не переименовывая их в исторические slots 7–13. `[CHAT][CHECK]`
+Issue #10 SHALL оставаться закрытым для paid intake до нового полностью обеспеченного Contract. Все шесть исторических выражений SHALL оставаться записанным prior-art evidence без clawback старых выплат. В новом validator #1 и #3 SHALL быть legacy no-op anti-examples. #4 и #5 SHALL нормализоваться в один semantic key `3/0.3` и SHALL требовать author novelty verdict до первой новой выплаты. После exact author acceptance обе формы SHALL считаться одним accepted prior-art key. Новый epoch SHALL использовать семь новых slots с vector `[13, 21, 34, 55, 89, 144, 233]` и bank `589 WEA`, не переименовывая их в исторические slots 7–13. `[CHAT][CHECK][REVIEW]`
 
 ### S-68. Get 10 начинает новый Frontier epoch без переписывания истории
 
 - **Дано:** исторические шесть Works и отсутствующий новый escrow Issue #10.
 - **Когда:** состояние читается до activation и после author approval нового exact Contract.
-- **Тогда:** до activation paid intake закрыт; после неё открыты ровно семь новых slots на `589 WEA`, все шесть Works остаются prior art, а validator выдаёт принятые legacy classifications.
+- **Тогда:** до activation paid intake закрыт; после неё открыты ровно семь новых slots на `589 WEA`, все шесть Works остаются prior-art evidence, а validator выдаёт принятые legacy classifications.
+- **Тогда:** первая из форм `(1+1+1)/.3` и `3/(.1+.1+.1)` получает author verdict для semantic key `3/0.3`; после acceptance эквивалентная форма отклоняется как accepted prior art.
 - **Проверка:** `tests/vnext/test_get10_frontier.py` проверяет pinned classifier, mechanical validity, prior-art rejection и author verdict. Read-only Issue/ledger evidence fixture проверяет исторические записи.
 
 ## Stale dependents после принятия Spec 0.8

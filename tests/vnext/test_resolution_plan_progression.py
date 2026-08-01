@@ -1,23 +1,22 @@
 from __future__ import annotations
 
 from .current_bdd_support import (
-    accept_work,
     activated_runtime,
+    apply_event,
+    lifecycle_event,
     modules,
     stage,
-    submit_work,
 )
 
 
 def test_s_65_missing_selector_pauses_without_creating_future_child() -> None:
     intake = modules()["intake"]
     first = stage(
-        key="ideas",
+        key="research",
         depth="explore",
-        mode="flat_pod",
+        mode="frontier",
         allocation_wea=1,
         payout_vector=[1],
-        slots=1,
     )
     second = stage(
         key="spec",
@@ -25,22 +24,31 @@ def test_s_65_missing_selector_pauses_without_creating_future_child() -> None:
         mode="ranked",
         allocation_wea=5,
         payout_vector=[5],
-        inputs=(intake.SelectedWorkInput("ideas"),),
+        inputs=(intake.SelectedWorkInput("research"),),
     )
     state = activated_runtime(plan_stages=(first, second), total_bank_wea=6)
-    state, identifier, revision = submit_work(
-        state,
-        agent_id="agent-alpha",
-        account_id="account-alpha",
-        sequence=1,
+    contract_id = (
+        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
     )
-    state = accept_work(state, work_id=identifier, revision_id=revision, sequence=2)
+    state = apply_event(
+        state,
+        lifecycle_event(
+            state,
+            "frontier_close",
+            {"contract_id": contract_id, "selected_revision_id": None},
+            sequence=1,
+            actor_kind="author",
+            actor_id="agent-author",
+            actor_account_id="account-author",
+        ),
+    )
     projection = modules()["lifecycle"].project_runtime(state)
     assert projection.plan_status == "paused"
     assert len(projection.stages) == 1
     assert len(projection.tasks) == 1
     assert projection.current_task.status == "closed"
     assert projection.current_task.close_result == "completed"
-    assert projection.escrow.paid_wea == 1
+    assert projection.escrow.paid_wea == 0
+    assert projection.escrow.refunded_wea == 1
     assert projection.escrow.available_wea == 5
     assert projection.pauses[-1].kind == "progression_pause"
