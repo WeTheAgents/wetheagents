@@ -9,6 +9,7 @@ import json
 import re
 import sys
 import threading
+import weakref
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from importlib import abc as importlib_abc
@@ -67,14 +68,78 @@ class _LoadedExecutor:
     modules: Mapping[str, ModuleType]
 
 
+def _verified_call_registry() -> tuple[Any, Any]:
+    """Keep authority-bearing calls outside the exported wrapper object."""
+    records: dict[
+        int,
+        tuple[
+            weakref.ReferenceType[Any],
+            RuntimeReference,
+            Mapping[str, Any],
+        ],
+    ] = {}
+    lock = threading.RLock()
+
+    def remember(
+        owner: Any,
+        reference: RuntimeReference,
+        calls: Mapping[str, Any],
+    ) -> None:
+        identity = id(owner)
+
+        def forget(owner_reference: weakref.ReferenceType[Any]) -> None:
+            with lock:
+                current = records.get(identity)
+                if current is not None and current[0] is owner_reference:
+                    records.pop(identity, None)
+
+        owner_reference = weakref.ref(owner, forget)
+        with lock:
+            current = records.get(identity)
+            if current is not None and current[0]() is not owner:
+                raise ManifestError("verified executor identity was reused")
+            records[identity] = (
+                owner_reference,
+                reference,
+                MappingProxyType(dict(calls)),
+            )
+
+    def invoke(
+        owner: Any,
+        name: str,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> Any:
+        with lock:
+            current = records.get(id(owner))
+            if current is None or current[0]() is not owner:
+                raise AttributeError("verified runtime call is not available")
+            reference = current[1]
+            function = current[2].get(name)
+        if function is None:
+            raise AttributeError("verified runtime call is not available")
+        if "_verified_runtime_reference" in kwargs:
+            raise TypeError("verified runtime is supplied by the manifest verifier")
+        return function(
+            *args,
+            **kwargs,
+            _verified_runtime_reference=reference,
+        )
+
+    return remember, invoke
+
+
+_remember_verified_calls, _invoke_verified_call = _verified_call_registry()
+del _verified_call_registry
+
+
 class _ReadOnlyModule:
     """Expose verified attributes without exposing a mutable module namespace."""
 
-    __slots__ = ("__module", "__reference", "__verified_calls")
+    __slots__ = ("__module", "__weakref__")
 
     def __init__(self, module: ModuleType, reference: RuntimeReference) -> None:
         object.__setattr__(self, "_ReadOnlyModule__module", module)
-        object.__setattr__(self, "_ReadOnlyModule__reference", reference)
         verified_calls: dict[str, Any] = {}
         if module.__name__.endswith(".intake"):
             if all(
@@ -107,11 +172,7 @@ class _ReadOnlyModule:
                     "lifecycle runtime call is outside the verified closure"
                 )
             verified_calls["apply_lifecycle_event"] = candidate
-        object.__setattr__(
-            self,
-            "_ReadOnlyModule__verified_calls",
-            MappingProxyType(verified_calls),
-        )
+        _remember_verified_calls(self, reference, verified_calls)
 
     def __getattribute__(self, name: str) -> Any:
         if name.startswith("_") or name in {
@@ -137,18 +198,7 @@ class _ReadOnlyModule:
 
     def call_verified(self, name: str, *args: Any, **kwargs: Any) -> Any:
         """Invoke an authority-bearing entry point with verifier-owned runtime."""
-        calls = object.__getattribute__(self, "_ReadOnlyModule__verified_calls")
-        function = calls.get(name)
-        if function is None:
-            raise AttributeError("verified runtime call is not available")
-        if "_verified_runtime_reference" in kwargs:
-            raise TypeError("verified runtime is supplied by the manifest verifier")
-        reference = object.__getattribute__(self, "_ReadOnlyModule__reference")
-        return function(
-            *args,
-            **kwargs,
-            _verified_runtime_reference=reference,
-        )
+        return _invoke_verified_call(self, name, args, kwargs)
 
 
 @dataclass(frozen=True)

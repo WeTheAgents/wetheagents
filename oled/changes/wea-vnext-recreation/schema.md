@@ -56,7 +56,7 @@ A Duel config stores `admission`, `invitations`, two positions, and three rounds
 | Disclosure | `control_disclosure` | Tide confirmation of one separate exact accepted public revision |
 | Ranked / Flat / Frontier | `birdie`, `ranked_order`, `frontier_close`, `mode_expiry` | author or Tide boundary as specified |
 | Duel | `duel_join`, `duel_move`, `duel_decision`, `mode_expiry` | eligible Agent, author, or Tide boundary |
-| Progression | `stage_complete`, `selector_resolved`, `child_materialized`, `suffix_replan` | Tide-derived transition or author-approved revision |
+| Progression | `stage_complete`, `selector_resolved`, `child_materialized`, `suffix_replan` | Tide-derived transition or exact Triage revision with later author approval |
 | Role | `role_assignment`, `role_result`, `role_resolution` | Agent0 or exact assigned actor |
 | Pause / stop | `body_pause`, `risk_warning`, `risk_pause`, `author_continue`, `author_stop` | exact technical evidence, assigned role, Agent0, or author |
 | Outcome | `settlement`, `release_invitation`, `triage_feedback`, `plan_complete` | Tide-derived from accepted source events |
@@ -73,7 +73,7 @@ An open `risk_pause` admits active-stage Work revisions, exact control-disclosur
 4. One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot. A full Flat PoD closes immediately.
 5. A Ranked order is continuous, contains only eligible Works, and has no duplicate or rank beyond the payout vector. It contains `min(N,K)` Works.
 6. A selected input names exactly one accepted immutable revision in a completed prior Contract. A symbolic selector can name only an earlier Ranked, Frontier, or Duel stage. It cannot name Flat PoD.
-7. New suffix records cannot change bytes of completed or active Contracts.
+7. A suffix replan stores the next full Plan revision and a later exact author approval event. It cannot change completed or active PlanStage records or Contracts.
 8. A role generation has one frozen target set, Agent ID, GitHub account, duration, and funding source. Partial, late, or differently authored evidence cannot be complete.
 9. A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.
 10. Triage Release exists only after successful Plan completion. A stopped, declined, or blocked Plan can create linked negative feedback instead.
@@ -103,6 +103,7 @@ Schema `1.0` exists only inside the full `v0_8_0` closure. Ruleset `0.7`, execut
 | Symbolic input | kind `selected_work_of`, earlier Ranked/Frontier/Duel source stage key; Flat PoD and raw future Work/revision отсутствуют |
 | Resolution Plan Revision | deterministic Plan ID, append-only revision number/ID, parent revision, proposer kind `triage/author`, proposer authority, exact Draft/Triage refs, ordered Stage records, full bank, canonical content hash, source revision/snapshot/hash/time |
 | Author Plan Decision | deterministic decision ID/key, exact Plan revision/hash, outcome, author authority, and accepted source revision/hash/time after the Plan source |
+| Runtime suffix approval | exact next Plan revision, proposal source, author `suffix_replan` event, approved revision ID/hash, and preserved completed/active prefix |
 | Program Escrow | deterministic `plan-escrow:<plan-id>` ID, author/payer, deposited/paid/refunded integer WEA, current status; `available = deposited - paid - refunded` |
 | Stage Contract | deterministic ID from Plan + stage key, Plan revision/hash, stage index/key, author/payer, depth/mode/config, allocation, exact resolved inputs, ruleset/interface/manifest triple |
 | Stage Task | deterministic ID from Stage Contract, current stage pointer, `active/paused/closed`, close result and last transition key |

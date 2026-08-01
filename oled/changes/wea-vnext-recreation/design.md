@@ -97,6 +97,8 @@ A `body_resume` event preserves any open risk or progression pause. The author m
 - approve an append-only replacement suffix that leaves completed and active Contracts byte-identical;
 - stop the Plan.
 
+A suffix replan stores one full `ResolutionPlanRevision` after the current approved revision. The original Triage reviewer MUST publish the proposal under its frozen binding. A later author `suffix_replan` event MUST name the exact revision ID and content hash. Runtime state stores both records as append-only evidence. Completed and active PlanStage templates remain identical. A future Stage Contract uses the latest approved revision ID and content hash. Direct inline `replacement_suffix` data has no authority.
+
 `body_integrity_pause` starts from the current accepted changed Issue revision. `body_resume` names a current accepted revision after the pause start. That revision contains the exact frozen Contract body. Resume offsets each deadline that was open at pause start exactly once. A complete role result submitted before the pause remains resolvable under frozen terms. New or incomplete role evidence after the pause cannot delay an author stop. A `body_resume` event does not resolve any other pause.
 
 Stop is an ordered event boundary. Tide first preserves every legal settlement and complete timely role result before that boundary. It rejects later Work/role evidence, refunds all unused program escrow once, closes active work, and records Plan status `stopped`. Stop creates no final reward.
@@ -120,6 +122,7 @@ The feedback chain is `problem revision → Triage proposal → author decision/
 - **Atomicity:** event construction, derived state, balances, escrow counters, status, cursor, and idempotency set appear together or remain absent.
 - **Replay:** deterministic IDs make identical replay a no-op and conflicting reuse an error. Projection from activation plus events must reproduce byte-identical canonical state.
 - **Isolation:** historical closure hashes are captured before implementation and checked after it.
+- **Runtime trust:** the read-only wrapper is an API boundary, not an operating-system sandbox. It does not store authority calls or the verified runtime reference in wrapper attributes. The in-memory reference runtime trusts its Python process. A future live writer MUST isolate untrusted Python in another process.
 - **Scope ceiling:** the deliverable is a manifest-pinned, in-memory reference executor and test suite. It must not write GitHub, live ledger files, migration state, bootstrap records, or historical executor bytes.
 - **Revisit trigger:** a real adapter cannot preserve atomic money/event commit order; authenticated durable replay needs a new record; or replay exceeds the existing `50,000 events / 5 seconds` checkpoint.
 

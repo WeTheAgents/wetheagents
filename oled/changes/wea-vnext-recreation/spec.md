@@ -573,12 +573,14 @@ A selector MAY name an earlier Ranked, Frontier, or Duel stage. It MUST NOT name
 - **Тогда:** новый Contract отсутствует, escrow не меняется, Plan становится paused и сообщает причину для Triage/replan.
 - **Проверка:** `tests/vnext/test_resolution_plan_progression.py` отдельно проверяет три отрицательные формы.
 
-### S-66. Replan меняет только будущую suffix
+### S-66. A replan changes only future stages
 
-- **Дано:** одна стадия завершена, текущий Contract активен, а две будущие стадии ещё не начаты.
-- **Когда:** Triage предлагает новую suffix и автор утверждает её либо останавливает Plan.
-- **Тогда:** новая append-only Plan revision сохраняет completed/active ссылки byte-for-byte и заменяет только future templates; stop возвращает их неиспользованный bank.
-- **Проверка:** `tests/vnext/test_resolution_plan_replan.py` проверяет immutable prefix, authority, funding delta и refund.
+- **GIVEN:** One Plan stage is complete. One Stage Contract is active. At least one later stage has not started.
+- **WHEN:** Triage publishes the next sequential Plan revision. The author approves its exact revision ID and content hash in a later source.
+- **THEN:** Tide stores the Plan revision and author approval as append-only evidence. The revision MUST keep every completed and active PlanStage unchanged.
+- **THEN:** Tide replaces only unstarted templates and preserves their total allocation. Each later Stage Contract MUST bind to the approved revision.
+- **THEN:** Tide MUST reject missing evidence, wrong authority, a detached parent, a changed prefix, a reused source, or an approval before the proposal.
+- **CHECK:** `tests/vnext/test_resolution_plan_replan.py` verifies the immutable prefix, authority, evidence order, replay, allocation, and future Contract binding.
 
 ### MODIFIED R-10: основание Release
 

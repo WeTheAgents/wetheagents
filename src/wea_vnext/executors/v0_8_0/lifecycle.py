@@ -7,7 +7,7 @@ import weakref
 from collections.abc import Mapping
 from dataclasses import dataclass, fields, replace
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 
 from .canonical import canonical_dumps, canonical_hash, freeze_json, thaw_json
 from .deadlines import apply_pause_offset, duel_windows, materialize_deadline
@@ -29,13 +29,14 @@ from .intake import (
     PlanStage,
     ProgramEscrow,
     ProtocolState,
+    ResolutionPlanRevision,
     ResolvedWorkInput,
-    SelectedWorkInput,
     StageContract,
     StageDeadline,
-    StageSchedule,
+    _authorize_plan_revision,
     _rebuild_github_state,
     _require_github_event,
+    _require_plan_event,
     _snapshot_runtime,
     _verified_runtime,
     initial_stage_deadlines,
@@ -540,6 +541,10 @@ class RuntimeProjection:
     releases: tuple[ReleaseInvitation, ...]
     triage_feedback: tuple[TriageFeedback, ...]
     future_stages: tuple[PlanStage, ...]
+    plan_revisions: tuple[ResolutionPlanRevision, ...]
+    plan_revision_approvals: tuple[PlanRevisionApproval, ...]
+    current_plan_revision_id: str
+    current_plan_content_hash: str
 
     def balance(self, agent_id: str) -> int:
         return next(
@@ -577,6 +582,33 @@ class NextAction:
     role_generation: int | None
     work_id: str | None
     control_group_id: str | None
+
+
+@dataclass(frozen=True)
+class PlanRevisionApproval:
+    plan_revision_id: str
+    plan_content_hash: str
+    approval_event_id: str
+    author_agent_id: str
+    source_id: str
+    source_revision_id: str
+    source_snapshot_hash: str
+    effective_at: datetime
+
+    def __post_init__(self) -> None:
+        for field in (
+            "plan_revision_id",
+            "approval_event_id",
+            "author_agent_id",
+            "source_id",
+            "source_revision_id",
+        ):
+            _text(field, getattr(self, field))
+        _hash("plan_content_hash", self.plan_content_hash)
+        _hash("source_snapshot_hash", self.source_snapshot_hash)
+        object.__setattr__(
+            self, "effective_at", _utc("effective_at", self.effective_at)
+        )
 
 
 def _runtime_state_seals() -> tuple[Any, Any]:
@@ -679,6 +711,7 @@ class ResolutionPlanRuntimeState:
     activation: PlanActivation
     events: tuple[LifecycleEvent, ...] = ()
     work_authorities: tuple[WorkAuthority, ...] = ()
+    plan_revisions: tuple[ResolutionPlanRevision, ...] = ()
 
     def __post_init__(self) -> None:
         if type(self.activation) is not PlanActivation:
@@ -690,9 +723,9 @@ class ResolutionPlanRuntimeState:
             type(item) is not LifecycleEvent for item in self.events
         ):
             raise PlanError("evidence_boundary: lifecycle events require exact types")
-        if self.events and getattr(self, "_verified_marker", None) is not (
-            _RUNTIME_STATE_CAPABILITY
-        ):
+        if (self.events or self.plan_revisions) and getattr(
+            self, "_verified_marker", None
+        ) is not (_RUNTIME_STATE_CAPABILITY):
             raise PlanError("evidence_boundary: non-empty runtime requires replay")
         rebuilt = tuple(
             _rebuild(item, LifecycleEvent, "lifecycle event") for item in self.events
@@ -711,6 +744,23 @@ class ResolutionPlanRuntimeState:
             "work_authorities",
             tuple(sorted(self.work_authorities, key=lambda item: item.work_id)),
         )
+        if type(self.plan_revisions) is not tuple or any(
+            type(item) is not ResolutionPlanRevision for item in self.plan_revisions
+        ):
+            raise PlanError(
+                "evidence_boundary: runtime Plan revisions require exact types"
+            )
+        plan_revisions = tuple(
+            _rebuild(item, ResolutionPlanRevision, "runtime Plan revision")
+            for item in self.plan_revisions
+        )
+        revision_ids = [item.revision_id for item in plan_revisions]
+        source_revisions = [item.source_revision_id for item in plan_revisions]
+        if len(revision_ids) != len(set(revision_ids)) or len(source_revisions) != len(
+            set(source_revisions)
+        ):
+            raise PlanError("evidence_boundary: runtime Plan revisions must be unique")
+        object.__setattr__(self, "plan_revisions", plan_revisions)
         _remember_runtime_state(self, self.state_hash)
 
     @property
@@ -721,6 +771,7 @@ class ResolutionPlanRuntimeState:
                 "plan_id": self.activation.plan.plan_id,
                 "events": [item.to_data() for item in self.events],
                 "work_authorities": [item.to_data() for item in self.work_authorities],
+                "plan_revisions": [item.to_data() for item in self.plan_revisions],
             }
         )
 
@@ -733,11 +784,13 @@ def _verified_runtime_state(
     activation: PlanActivation,
     events: tuple[LifecycleEvent, ...],
     work_authorities: tuple[WorkAuthority, ...],
+    plan_revisions: tuple[ResolutionPlanRevision, ...],
 ) -> ResolutionPlanRuntimeState:
     state = object.__new__(ResolutionPlanRuntimeState)
     object.__setattr__(state, "activation", activation)
     object.__setattr__(state, "events", events)
     object.__setattr__(state, "work_authorities", work_authorities)
+    object.__setattr__(state, "plan_revisions", plan_revisions)
     object.__setattr__(state, "_verified_marker", _RUNTIME_STATE_CAPABILITY)
     try:
         state.__post_init__()
@@ -766,6 +819,11 @@ class _Model:
     releases: list[ReleaseInvitation]
     triage_feedback: list[TriageFeedback]
     future_stages: list[PlanStage]
+    current_plan_revision: ResolutionPlanRevision
+    approved_plan_revisions: list[ResolutionPlanRevision]
+    plan_revision_records: dict[str, ResolutionPlanRevision]
+    plan_revision_approvals: list[PlanRevisionApproval]
+    applied_plan_revision_ids: set[str]
     warnings: dict[str, str]
     authority_records: dict[str, WorkAuthority]
     work_authorities: dict[str, WorkAuthority]
@@ -775,7 +833,13 @@ class _Model:
 def _initial_model(
     activation: PlanActivation,
     work_authorities: tuple[WorkAuthority, ...],
+    plan_revisions: tuple[ResolutionPlanRevision, ...],
 ) -> _Model:
+    initial_revision = next(
+        item
+        for item in activation.state.plan_revisions
+        if item.revision_id == activation.plan.plan_revision_id
+    )
     first = StageState(
         stage_index=0,
         stage_key=activation.contract.stage_key,
@@ -810,6 +874,11 @@ def _initial_model(
         releases=[],
         triage_feedback=[],
         future_stages=list(activation.plan.stages),
+        current_plan_revision=initial_revision,
+        approved_plan_revisions=[initial_revision],
+        plan_revision_records={item.revision_id: item for item in plan_revisions},
+        plan_revision_approvals=[],
+        applied_plan_revision_ids=set(),
         warnings={},
         authority_records={item.created_event_id: item for item in work_authorities},
         work_authorities={},
@@ -1158,11 +1227,12 @@ def _materialize_next(
         model.plan_status = "paused"
         return
     identifier = stage_contract_id(activation.plan.plan_id, template.key)
+    current_revision = model.current_plan_revision
     contract = StageContract(
         contract_id=identifier,
         plan_id=activation.plan.plan_id,
-        plan_revision_id=activation.plan.plan_revision_id,
-        plan_content_hash=activation.plan.plan_content_hash,
+        plan_revision_id=current_revision.revision_id,
+        plan_content_hash=current_revision.content_hash,
         stage_index=next_index,
         stage_key=template.key,
         depth=template.depth,
@@ -1520,9 +1590,7 @@ def _acceptance_authority(
         raise PlanError("matrix: acceptance authority is invalid")
 
 
-def _normalized_prior_art_key(
-    value: object, validator: tuple[object, object]
-) -> str:
+def _normalized_prior_art_key(value: object, validator: tuple[object, object]) -> str:
     expression = (
         value.get("expression")
         if type(value) is dict and type(value.get("expression")) is str
@@ -1721,9 +1789,7 @@ def _work_acceptance(
             ),
             (
                 revision.revision_id,
-                "author-accepted"
-                if event.actor_kind == "author"
-                else "valid-novel",
+                "author-accepted" if event.actor_kind == "author" else "valid-novel",
             ),
         ),
     )
@@ -1967,9 +2033,7 @@ def _mode_expiry(
                     duration,
                 ),
             )
-        _replace_stage(
-            model, stage, phase="decision", deadlines=deadlines
-        )
+        _replace_stage(model, stage, phase="decision", deadlines=deadlines)
     else:
         _stop_duel(model, activation, event, stage, "duel-no-valid-decision")
 
@@ -2699,53 +2763,10 @@ def _author_continue(
         _materialize_next(model, activation, event, current)
 
 
-def _stage_from_data(value: object) -> PlanStage:
-    if type(value) is not dict or set(value) != {
-        "allocation_wea",
-        "config",
-        "depth",
-        "expected_output",
-        "inputs",
-        "key",
-        "mode",
-        "schedule",
-    }:
-        raise PlanError("declaration: suffix stage has invalid fields")
-    schedule = value["schedule"]
-    if type(schedule) is not dict or set(schedule) != {
-        "author_decision_seconds",
-        "intake_seconds",
-        "join_seconds",
-        "move_seconds",
-    }:
-        raise PlanError("declaration: suffix schedule has invalid fields")
-    inputs = value["inputs"]
-    if type(inputs) is not list or any(
-        type(item) is not dict or set(item) != {"kind", "source_stage_key"}
-        for item in inputs
-    ):
-        raise PlanError("declaration: suffix inputs have invalid fields")
-    return PlanStage(
-        key=value["key"],
-        depth=value["depth"],
-        mode=value["mode"],
-        schedule=StageSchedule(
-            intake_seconds=schedule["intake_seconds"],
-            join_seconds=schedule["join_seconds"],
-            move_seconds=tuple(schedule["move_seconds"]),
-            author_decision_seconds=schedule["author_decision_seconds"],
-        ),
-        allocation_wea=value["allocation_wea"],
-        config=value["config"],
-        expected_output=value["expected_output"],
-        inputs=tuple(SelectedWorkInput(item["source_stage_key"]) for item in inputs),
-    )
-
-
 def _suffix_replan(
     model: _Model, activation: PlanActivation, event: LifecycleEvent
 ) -> None:
-    data = _payload(event, {"replacement_suffix"})
+    data = _payload(event, {"plan_content_hash", "plan_revision_id"})
     if (
         model.plan_status != "paused"
         or _active_body_pause(model) is not None
@@ -2756,32 +2777,49 @@ def _suffix_replan(
     ):
         raise PlanError("state: suffix replan requires a paused Plan")
     current = _current(model)
-    replacement = data["replacement_suffix"]
-    if type(replacement) is not list or not replacement:
+    revision_id = _text("plan_revision_id", data["plan_revision_id"])
+    revision = model.plan_revision_records.get(revision_id)
+    if revision is None:
+        raise PlanError("evidence_boundary: approved suffix Plan revision is missing")
+    if _hash("plan_content_hash", data["plan_content_hash"]) != revision.content_hash:
+        raise PlanError("evidence_boundary: suffix Plan content hash does not match")
+    if (
+        revision.parent_revision_id != model.current_plan_revision.revision_id
+        or revision.revision_number != model.current_plan_revision.revision_number + 1
+    ):
+        raise PlanError(
+            "evidence_boundary: suffix Plan revision must append to current"
+        )
+    candidate = list(revision.stages)
+    prefix = model.future_stages[: current.stage_index + 1]
+    if candidate[: current.stage_index + 1] != prefix:
+        raise PlanError(
+            "evidence_boundary: suffix replan changed completed or active stage"
+        )
+    stages = candidate[current.stage_index + 1 :]
+    if not stages:
         raise PlanError("declaration: replacement suffix must be non-empty")
-    stages = [_stage_from_data(item) for item in replacement]
     old_suffix = model.future_stages[current.stage_index + 1 :]
     if sum(item.allocation_wea for item in stages) != sum(
         item.allocation_wea for item in old_suffix
     ):
         raise PlanError("money: replacement suffix must keep future allocation")
-    prefix = model.future_stages[: current.stage_index + 1]
-    candidate = [*prefix, *stages]
-    keys = [item.key for item in candidate]
-    if len(keys) != len(set(keys)):
-        raise PlanError("declaration: replacement suffix stage keys must be unique")
-    for index, item in enumerate(candidate):
-        earlier = {stage.key: stage.mode for stage in candidate[:index]}
-        for selector in item.inputs:
-            if selector.source_stage_key not in earlier:
-                raise PlanError(
-                    "declaration: replacement suffix selector is not earlier"
-                )
-            if earlier[selector.source_stage_key] == "flat_pod":
-                raise PlanError(
-                    "matrix: Flat PoD cannot supply one selected Work"
-                )
     model.future_stages = candidate
+    model.current_plan_revision = revision
+    model.approved_plan_revisions.append(revision)
+    model.applied_plan_revision_ids.add(revision.revision_id)
+    model.plan_revision_approvals.append(
+        PlanRevisionApproval(
+            plan_revision_id=revision.revision_id,
+            plan_content_hash=revision.content_hash,
+            approval_event_id=event.event_id,
+            author_agent_id=event.actor_id,
+            source_id=event.source_id,
+            source_revision_id=event.source_revision_id,
+            source_snapshot_hash=event.source_snapshot_hash,
+            effective_at=event.effective_at,
+        )
+    )
     for pause in [item for item in model.pauses if item.ended_at is None]:
         model.pauses[model.pauses.index(pause)] = replace(
             pause, ended_at=event.effective_at
@@ -2929,12 +2967,17 @@ def _projection(
     activation: PlanActivation,
     events: tuple[LifecycleEvent, ...],
     work_authorities: tuple[WorkAuthority, ...],
+    plan_revisions: tuple[ResolutionPlanRevision, ...],
 ) -> RuntimeProjection:
-    model = _initial_model(activation, work_authorities)
+    model = _initial_model(activation, work_authorities, plan_revisions)
     for event in events:
         _apply_event(model, activation, event)
     if model.activated_authority_events != set(model.authority_records):
         raise PlanError("identity: Work authority record does not match event history")
+    if model.applied_plan_revision_ids != set(model.plan_revision_records):
+        raise PlanError(
+            "evidence_boundary: Plan revision does not match replan history"
+        )
     deposited = activation.escrow.deposited_wea
     escrow = ProgramEscrow(
         escrow_id=activation.escrow.escrow_id,
@@ -2966,6 +3009,10 @@ def _projection(
         releases=tuple(model.releases),
         triage_feedback=tuple(model.triage_feedback),
         future_stages=tuple(model.future_stages),
+        plan_revisions=tuple(model.approved_plan_revisions),
+        plan_revision_approvals=tuple(model.plan_revision_approvals),
+        current_plan_revision_id=model.current_plan_revision.revision_id,
+        current_plan_content_hash=model.current_plan_revision.content_hash,
     )
 
 
@@ -2973,7 +3020,12 @@ def project_runtime(state: ResolutionPlanRuntimeState) -> RuntimeProjection:
     if type(state) is not ResolutionPlanRuntimeState:
         raise PlanError("evidence_boundary: runtime state must use exact verified type")
     state._assert_unchanged()
-    return _projection(state.activation, state.events, state.work_authorities)
+    return _projection(
+        state.activation,
+        state.events,
+        state.work_authorities,
+        state.plan_revisions,
+    )
 
 
 def _require_issue_body_evidence(
@@ -3074,6 +3126,7 @@ def _require_control_disclosure_evidence(
             )
         ),
         *(item.source_revision_id for item in state.events),
+        *(item.source_revision_id for item in state.plan_revisions),
         *(
             thaw_json(item.payload).get("disclosure_revision_id")
             for item in state.events
@@ -3181,12 +3234,135 @@ def _candidate_work_authorities(
     )
 
 
+def _candidate_plan_revisions(
+    state: ResolutionPlanRuntimeState,
+    projection: RuntimeProjection,
+    event: LifecycleEvent,
+    revision: ResolutionPlanRevision | None,
+    registry: IdentityRegistry,
+    github_state: ProtocolState,
+) -> tuple[ResolutionPlanRevision, ...]:
+    if event.kind != "suffix_replan":
+        if revision is not None:
+            raise PlanError(
+                "declaration: Plan revision is allowed only for a suffix replan"
+            )
+        return state.plan_revisions
+    if type(revision) is not ResolutionPlanRevision:
+        raise PlanError(
+            "evidence_boundary: suffix replan requires an exact Plan revision"
+        )
+    revision = cast(
+        ResolutionPlanRevision,
+        _rebuild(revision, ResolutionPlanRevision, "runtime Plan revision"),
+    )
+    data = _payload(event, {"plan_content_hash", "plan_revision_id"})
+    if (
+        data["plan_revision_id"] != revision.revision_id
+        or data["plan_content_hash"] != revision.content_hash
+    ):
+        raise PlanError(
+            "evidence_boundary: suffix approval does not match Plan revision"
+        )
+    current = projection.plan_revisions[-1]
+    if (
+        revision.revision_number != current.revision_number + 1
+        or revision.parent_revision_id != current.revision_id
+    ):
+        raise PlanError(
+            "evidence_boundary: suffix Plan revision must append to current"
+        )
+    activation = state.activation
+    assessment = _activation_assessment(activation)
+    if (
+        revision.proposer_kind != "triage"
+        or revision.plan_id != activation.plan.plan_id
+        or revision.repository_id != activation.draft.repository_id
+        or revision.issue_id != activation.draft.issue_id
+        or revision.issue_revision_id != activation.draft.issue_revision_id
+        or revision.body_hash != activation.draft.body_hash
+        or revision.triage_assessment_id != assessment.assessment_id
+        or revision.author_agent_id != activation.plan.author_agent_id
+        or revision.total_bank_wea != activation.plan.total_bank_wea
+    ):
+        raise PlanError(
+            "evidence_boundary: suffix revision does not match Plan and Triage"
+        )
+    active_pauses = [
+        item
+        for item in projection.pauses
+        if item.ended_at is None and item.kind in {"risk_pause", "progression_pause"}
+    ]
+    if not active_pauses or any(
+        item.ended_at is None and item.kind == "body_integrity_pause"
+        for item in projection.pauses
+    ):
+        raise PlanError("state: suffix replan requires an author-controlled pause")
+    proposal_order = (
+        revision.effective_at,
+        revision.source_comment_id,
+        revision.source_revision_id,
+    )
+    parent_order = (
+        current.effective_at,
+        current.source_comment_id,
+        current.source_revision_id,
+    )
+    approval_order = (
+        event.effective_at,
+        event.source_id,
+        event.source_revision_id,
+    )
+    if proposal_order <= parent_order:
+        raise PlanError(
+            "evidence_boundary: suffix proposal must follow parent revision"
+        )
+    if proposal_order >= approval_order:
+        raise PlanError(
+            "evidence_boundary: author approval must follow suffix proposal"
+        )
+    if revision.effective_at < max(item.started_at for item in active_pauses):
+        raise PlanError("evidence_boundary: suffix proposal predates the active pause")
+    used_revisions = {
+        activation.draft.issue_revision_id,
+        *(item.source_revision_id for item in activation.state.plan_revisions),
+        *(item.source_revision_id for item in activation.state.decisions),
+        *(
+            source_revision_id
+            for item in activation.state.triage_assessments
+            for source_revision_id in (
+                item.assignment_source_revision_id,
+                item.source_revision_id,
+                item.completion_source_revision_id,
+            )
+        ),
+        *(item.source_revision_id for item in state.events),
+        *(item.source_revision_id for item in state.plan_revisions),
+        *(
+            thaw_json(item.payload).get("disclosure_revision_id")
+            for item in state.events
+            if item.kind == "control_disclosure"
+        ),
+        event.source_revision_id,
+    }
+    if revision.source_revision_id in used_revisions:
+        raise PlanError("evidence_boundary: source revision is globally single-use")
+    if revision.source_comment_id == event.source_id:
+        raise PlanError(
+            "evidence_boundary: proposal and approval need separate sources"
+        )
+    _authorize_plan_revision(revision, assessment, activation.draft, registry)
+    _require_plan_event(revision, github_state)
+    return (*state.plan_revisions, revision)
+
+
 def apply_lifecycle_event(
     state: ResolutionPlanRuntimeState,
     event: LifecycleEvent,
     *,
     registry: IdentityRegistry,
     github_state: ProtocolState,
+    plan_revision: ResolutionPlanRevision | None = None,
     _verified_runtime_reference: Any,
 ) -> ResolutionPlanRuntimeState:
     if type(state) is not ResolutionPlanRuntimeState:
@@ -3230,6 +3406,7 @@ def apply_lifecycle_event(
             for item in state.events
             if item.kind == "control_disclosure"
         ),
+        *(item.source_revision_id for item in state.plan_revisions),
     }
     if event.source_revision_id in intake_source_revisions:
         raise PlanError("evidence_boundary: source revision is globally single-use")
@@ -3250,10 +3427,26 @@ def apply_lifecycle_event(
     _require_control_disclosure_evidence(state, current, event, github_state)
     _authorize_event(current, state.activation, event, registry)
     candidate_authorities = _candidate_work_authorities(state, current, event, registry)
+    candidate_plan_revisions = _candidate_plan_revisions(
+        state,
+        current,
+        event,
+        plan_revision,
+        registry,
+        github_state,
+    )
     candidate_events = (*state.events, event)
-    _projection(state.activation, candidate_events, candidate_authorities)
+    _projection(
+        state.activation,
+        candidate_events,
+        candidate_authorities,
+        candidate_plan_revisions,
+    )
     return _verified_runtime_state(
-        state.activation, candidate_events, candidate_authorities
+        state.activation,
+        candidate_events,
+        candidate_authorities,
+        candidate_plan_revisions,
     )
 
 
@@ -3327,20 +3520,14 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             if stage.phase == "decision":
                 boundary = _stage_deadline(stage, "author_decision").effective_due_at
             elif stage.contract.mode == "duel" and stage.phase == "moves":
-                decision_deadline = _optional_stage_deadline(
-                    stage, "author_decision"
-                )
+                decision_deadline = _optional_stage_deadline(stage, "author_decision")
                 if decision_deadline is not None:
                     boundary = decision_deadline.effective_due_at
                 else:
-                    number = (
-                        max((item[0] for item in stage.duel_moves), default=0) + 1
-                    )
+                    number = max((item[0] for item in stage.duel_moves), default=0) + 1
                     if number > 6:
                         action = "wait for Tide to close the Duel"
-                        boundary = _stage_deadline(
-                            stage, "move-6"
-                        ).effective_due_at
+                        boundary = _stage_deadline(stage, "move-6").effective_due_at
                         blocked_work_id = None
                         control_group_id = None
                     else:
@@ -3382,9 +3569,7 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
                         if actor_agent_id == expected
                         else "wait for the other Duel participant"
                     )
-                    boundary = _stage_deadline(
-                        stage, f"move-{number}"
-                    ).effective_due_at
+                    boundary = _stage_deadline(stage, f"move-{number}").effective_due_at
         elif stage.contract.mode == "duel" and stage.phase == "decision":
             action = (
                 "publish the exact Duel outcome"
@@ -3408,7 +3593,7 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             )
     return NextAction(
         plan_id=projection.plan_id,
-        plan_revision_id=state.activation.plan.plan_revision_id,
+        plan_revision_id=projection.current_plan_revision_id,
         stage_key=stage.stage_key,
         contract_id=stage.contract.contract_id,
         depth=stage.contract.depth,
@@ -3427,6 +3612,7 @@ __all__ = [
     "LifecycleEvent",
     "NextAction",
     "PauseState",
+    "PlanRevisionApproval",
     "ReleaseInvitation",
     "ResolutionPlanRuntimeState",
     "RoleState",

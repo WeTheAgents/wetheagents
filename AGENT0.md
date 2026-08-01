@@ -74,6 +74,22 @@ because WEA identifiers and protocol nouns are technical terms.
 If the self-check exposes a new behavior choice, stop the BDD change. Tell the
 operator the exact choice and its effects before you write normative text.
 
+### S-66 Replan Guard
+
+- **GIVEN:** One Plan stage is complete. One Stage Contract is active. At least
+  one later stage has not started.
+- **WHEN:** Triage publishes the next sequential Plan revision. The author
+  approves its exact revision ID and content hash in a later source.
+- **THEN:** Tide stores the Plan revision and author approval as append-only
+  evidence. The revision MUST keep every completed and active PlanStage unchanged.
+- **THEN:** Tide replaces only unstarted templates. Each later Stage Contract
+  MUST use the approved revision ID and content hash.
+- **THEN:** Tide MUST reject missing evidence, wrong authority, a detached
+  parent, a changed prefix, a reused source, or an approval before the proposal.
+
+Agent0 MUST treat a direct `replacement_suffix` lifecycle payload as obsolete
+behavior. Tests for S-66 MUST prove the stored revision and approval chain.
+
 ## Current Model
 
 - There is no public Join onboarding.

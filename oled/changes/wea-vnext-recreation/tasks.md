@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.2`: **implemented / final review pending**. Spec 0.9 reference runtime implemented and verified. Один delivery task reconciles the inactive WEA vNext reference runtime to Outcome/Spec `0.9` and design/schema `1.0`. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.2`: **implemented / independent review pending**. Spec 0.9 reference runtime implemented and verified. Pass 20 found verifier-only callables in wrapper attributes. The repair removes those attributes and adds an exact regression. The next independent review is pending. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
@@ -56,6 +56,7 @@
 - [x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, `free/treasury` settlement, replacement races, and terminal closure of every active role escrow.
 - [x] Bind each role result and downstream blocker to the assigned generation's frozen Agent ID and GitHub account.
 - [x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.
+- [x] Store each suffix replan as the next full Triage Plan revision plus a later exact author approval. Bind future Contracts to that revision.
 
 **Scenarios:** S-02B, S-02J, S-04B, S-04D, S-05A, S-05D…S-05H, S-65, S-66, plus compatible pause/deadline scenarios.
 
@@ -83,7 +84,7 @@
 - [x] Make registry tests parse the normative Spec `0.9` delta and inherited compatibility list without confusing historical duplicate headings.
 - [x] Update package data and manifest tests for ruleset `0.8` and `v0_8_0` while preserving all older wheel/replay cases.
 - [x] Run focused current-BDD tests, all `tests/vnext`, full repository tests, Ruff, Pyright, manifest/canonical checks, ledger schema/invariant checks, and phase-boundary checks.
-- [ ] Perform self-roast, independent `codex exec review`, lean cut, and regenerate `HANDOFF.md`, `verification.md`, and `WEA_vNext_REVIEW.html` from fresh evidence.
+- [ ] Perform the final independent `codex exec review`, lean cut, and regenerate `HANDOFF.md`, `verification.md`, and `WEA_vNext_REVIEW.html` from fresh evidence.
 
 **Checkpoint commands:**
 

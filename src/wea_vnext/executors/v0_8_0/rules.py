@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "c5d5741a176ec97d95638338a3b6b1a46fecd039a2ed15e3847edb1fb7669945"
+    "2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -314,6 +314,13 @@ def _validate(content: dict[str, Any]) -> None:
             "latest-accepted-github-revision-under-complete-confirmed-read-boundary"
         ),
         "stop_authority": "author",
+        "suffix_replan": {
+            "approval": "later-exact-author-event",
+            "future_contract_binding": "approved-revision",
+            "prefix": "completed-and-active-byte-identical",
+            "proposal": "append-only-full-plan-revision",
+            "proposal_authority": "triage",
+        },
         "suffix_replan_authority": "author",
     }:
         raise RulesetError("lifecycle authority rules are inconsistent")

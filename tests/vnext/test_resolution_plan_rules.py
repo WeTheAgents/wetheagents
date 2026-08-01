@@ -79,6 +79,13 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
         "deadline_offset": False,
         "role_scope": "pre-pause-only",
     }
+    assert lifecycle["suffix_replan"] == {
+        "approval": "later-exact-author-event",
+        "future_contract_binding": "approved-revision",
+        "prefix": "completed-and-active-byte-identical",
+        "proposal": "append-only-full-plan-revision",
+        "proposal_authority": "triage",
+    }
     rules = current_modules()["rules"].load_ruleset().content
     assert rules["modes"]["flat_pod"]["slot_cap_close"] == "immediate"
     assert rules["modes"]["ranked"] == {

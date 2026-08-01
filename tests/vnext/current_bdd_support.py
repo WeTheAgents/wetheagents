@@ -870,6 +870,7 @@ def apply_event(
     *,
     evidence_state: Any | None = None,
     identity_registry: Any | None = None,
+    plan_revision_record: Any | None = None,
 ) -> Any:
     return modules()["lifecycle"].call_verified(
         "apply_lifecycle_event",
@@ -877,6 +878,67 @@ def apply_event(
         event,
         registry=identity_registry or registry(),
         github_state=evidence_state or github_state(event),
+        plan_revision=plan_revision_record,
+    )
+
+
+def suffix_replan_records(
+    state: Any,
+    replacement_suffix: tuple[Any, ...],
+    *,
+    sequence: int,
+) -> tuple[Any, Any, Any]:
+    intake = modules()["intake"]
+    projection = modules()["lifecycle"].project_runtime(state)
+    current = projection.plan_revisions[-1]
+    revision_number = current.revision_number + 1
+    revision_id = intake.resolution_plan_revision_id(
+        current.plan_id, revision_number
+    )
+    approval_at = state.activation.plan.activated_at + timedelta(minutes=sequence)
+    revision = replace_plan_revision(
+        current,
+        revision_id=revision_id,
+        revision_number=revision_number,
+        parent_revision_id=current.revision_id,
+        stages=(
+            *projection.future_stages[: projection.current_stage_index + 1],
+            *replacement_suffix,
+        ),
+        source_comment_id=f"suffix-plan-comment-{sequence:04d}",
+        source_revision_id=f"suffix-plan-revision-{sequence:04d}",
+        effective_at=approval_at - timedelta(seconds=1),
+    )
+    event = lifecycle_event(
+        state,
+        "suffix_replan",
+        {
+            "plan_content_hash": revision.content_hash,
+            "plan_revision_id": revision.revision_id,
+        },
+        sequence=sequence,
+        actor_kind="author",
+        actor_id="agent-author",
+        actor_account_id="account-author",
+        effective_at=approval_at,
+    )
+    return revision, event, github_state(revision, event)
+
+
+def apply_suffix_replan(
+    state: Any,
+    replacement_suffix: tuple[Any, ...],
+    *,
+    sequence: int,
+) -> Any:
+    revision, event, evidence = suffix_replan_records(
+        state, replacement_suffix, sequence=sequence
+    )
+    return apply_event(
+        state,
+        event,
+        evidence_state=evidence,
+        plan_revision_record=revision,
     )
 
 

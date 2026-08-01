@@ -4,6 +4,8 @@ from datetime import timedelta
 
 import pytest
 
+from wea_vnext import resolution_plan
+
 from .current_bdd_support import (
     activated_runtime,
     apply_event,
@@ -19,6 +21,19 @@ from .current_bdd_support import (
     stage,
     state_with_plan,
 )
+
+
+def test_s_01c_verified_wrapper_does_not_store_authority_calls_or_runtime() -> None:
+    lifecycle = resolution_plan.make_lifecycle_event.__globals__["_LIFECYCLE"]
+
+    with pytest.raises(AttributeError):
+        object.__getattribute__(lifecycle, "_ReadOnlyModule__verified_calls")
+    with pytest.raises(AttributeError):
+        object.__getattribute__(lifecycle, "_ReadOnlyModule__reference")
+
+    raw_module = object.__getattribute__(lifecycle, "_ReadOnlyModule__module")
+    assert "apply_lifecycle_event" not in vars(raw_module)
+    assert "_WEA_VERIFIER_CAPABILITY" not in vars(raw_module)
 
 
 def test_s_01c_validator_cannot_impersonate_a_participant_or_role() -> None:

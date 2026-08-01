@@ -5,6 +5,7 @@ import pytest
 from .current_bdd_support import (
     activated_runtime,
     apply_event,
+    apply_suffix_replan,
     assign_role,
     author_event,
     lifecycle_event,
@@ -114,18 +115,19 @@ def test_s_04d_and_s_66_replan_changes_only_unstarted_suffix() -> None:
         inputs=(intake.SelectedWorkInput("additive-research"),),
     )
     with pytest.raises(intake.PlanError, match="Flat PoD"):
+        apply_suffix_replan(
+            state,
+            (additive, impossible_successor),
+            sequence=16,
+        )
+    with pytest.raises(intake.PlanError, match="exact Plan revision"):
         apply_event(
             state,
             author_event(
                 state,
                 "suffix_replan",
-                {
-                    "replacement_suffix": [
-                        additive.to_data(),
-                        impossible_successor.to_data(),
-                    ]
-                },
-                sequence=16,
+                {"replacement_suffix": [third.to_data()]},
+                sequence=17,
             ),
         )
     corrected = stage(
@@ -136,17 +138,58 @@ def test_s_04d_and_s_66_replan_changes_only_unstarted_suffix() -> None:
         payout_vector=[10],
         inputs=(intake.SelectedWorkInput("spec"),),
     )
-    state = apply_event(
+    state = apply_suffix_replan(
         state,
-        author_event(
-            state,
-            "suffix_replan",
-            {"replacement_suffix": [corrected.to_data()]},
-            sequence=17,
-        ),
+        (corrected,),
+        sequence=18,
     )
     projection = modules()["lifecycle"].project_runtime(state)
     assert projection.stages[0].contract.to_data() == completed_bytes
     assert projection.stages[1].contract.to_data() == active_bytes
     assert projection.future_stages[-1].key == "corrected-implement"
     assert projection.escrow.available_wea == 15
+    assert len(projection.plan_revisions) == 2
+    assert projection.current_plan_revision_id == (
+        projection.plan_revisions[-1].revision_id
+    )
+    assert projection.plan_revision_approvals[0].plan_revision_id == (
+        projection.current_plan_revision_id
+    )
+    assert projection.plan_revision_approvals[0].author_agent_id == "agent-author"
+
+    state, spec_work, spec_revision = submit_work(
+        state,
+        agent_id="agent-beta",
+        account_id="account-beta",
+        sequence=19,
+    )
+    spec_contract_id = (
+        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
+    )
+    state = apply_event(
+        state,
+        lifecycle_event(
+                state, "mode_expiry", {"contract_id": spec_contract_id}, sequence=23
+        ),
+    )
+    state = apply_event(
+        state,
+        author_event(
+            state,
+            "ranked_order",
+            {
+                "contract_id": spec_contract_id,
+                "ordered_work_ids": [spec_work],
+                "selected_revision_id": spec_revision,
+            },
+            sequence=24,
+        ),
+    )
+    progressed = modules()["lifecycle"].project_runtime(state)
+    assert progressed.current_stage.stage_key == "corrected-implement"
+    assert progressed.current_stage.contract.plan_revision_id == (
+        projection.current_plan_revision_id
+    )
+    assert progressed.current_stage.contract.plan_content_hash == (
+        projection.current_plan_content_hash
+    )

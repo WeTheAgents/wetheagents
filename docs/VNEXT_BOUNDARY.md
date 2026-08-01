@@ -26,8 +26,16 @@ The detailed behavior contract remains in
 | `tests/vnext/` | vNext behavior, isolation, and replay contracts | Pin the executor version being tested. Historical replay tests never follow a moving default. |
 | `oled/changes/wea-vnext-recreation/` | accepted target behavior and implementation gates | Start here when intended future behavior is unclear. |
 
-The candidate facades currently share executor `0.6.3`. That pin does not make
-the executor live and does not override the runtime triple stored by a Contract.
+The legacy candidate facades share executor `0.6.3`. The inactive Resolution
+Plan facade is pinned to executor `0.8.0`. These pins do not make an executor
+live. They do not override the runtime triple stored by a Contract.
+
+The read-only executor wrapper is an API boundary. It does not store raw
+authority calls or the verified runtime reference in wrapper attributes. It is
+not an operating-system sandbox. The reference runtime trusts the Python
+process that imports `wea_vnext.engine`. A future live writer MUST NOT run
+untrusted Python in that process. If a writer must run untrusted code, it MUST
+put that code behind a separate process boundary.
 
 ## If the logic is uncertain
 
