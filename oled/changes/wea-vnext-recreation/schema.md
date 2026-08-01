@@ -69,13 +69,13 @@ An open `risk_pause` admits only active-stage Work revisions, valid Duel joins o
 2. One event ID, source revision, and idempotency key have one canonical meaning. A complete confirmed read boundary covers each lifecycle source.
 3. `deposited = paid + refunded + available`; every counter is a non-boolean integer and never negative. A treasury role has `reserved = paid + refunded + available` in its separate escrow.
 4. One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot. A full Flat PoD closes immediately.
-5. A Ranked order is continuous, contains no duplicate Work, contains only eligible Works, and has no rank beyond the payout vector.
+5. A Ranked order is continuous, contains only eligible Works, and has no duplicate or rank beyond the payout vector. It contains `min(N,K)` Works.
 6. A selected input names exactly one accepted immutable revision in a completed prior Contract.
 7. New suffix records cannot change bytes of completed or active Contracts.
 8. A role generation has one frozen target set, actor, duration, and funding source. Partial or late evidence cannot be complete.
 9. A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.
 10. Triage Release exists only after successful Plan completion. A stopped, declined, or blocked Plan can create linked negative feedback instead.
-11. `next_action` is derived from projection and never appears as a lifecycle event.
+11. `next_action` is derived from projection and never appears as a lifecycle event. A role-owned action contains role ID and generation. The earliest deadline wins.
 12. A risk pause does not move deadlines. Only `body_integrity_pause` can add a one-time deadline offset.
 13. Only an exact active Triage or review role generation can publish a risk warning.
 14. Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.

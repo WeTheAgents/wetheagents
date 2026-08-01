@@ -454,6 +454,8 @@ class NextAction:
     actor_id: str
     action: str
     boundary_at: datetime | None
+    role_id: str | None
+    role_generation: int | None
 
 
 def _runtime_state_seals() -> tuple[Any, Any]:
@@ -1297,8 +1299,9 @@ def _ranked_order(
         raise PlanError("declaration: Ranked order must be non-empty and unique")
     eligible = {item.work_id for item in stage.works if item.eligible}
     vector = tuple(thaw_json(stage.contract.config)["payout_vector"])
-    if set(ordered) != eligible or len(ordered) > len(vector):
-        raise PlanError("matrix: Ranked order must contain every eligible Work")
+    expected_count = min(len(eligible), len(vector))
+    if len(ordered) != expected_count or not set(ordered).issubset(eligible):
+        raise PlanError("matrix: Ranked order must fill each available paid rank")
     selected = _text("selected_revision_id", data["selected_revision_id"])
     winner = _work(stage, ordered[0])
     if selected not in {item.revision_id for item in winner.revisions if item.eligible}:
@@ -2535,6 +2538,8 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
         item.kind for item in projection.pauses if item.ended_at is None
     }
     is_author = actor_agent_id == state.activation.plan.author_agent_id
+    role_id = None
+    role_generation = None
     if projection.plan_status in {"completed", "stopped"}:
         action = f"no action; Plan is {projection.plan_status}"
         boundary = None
@@ -2561,8 +2566,18 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             if item.assigned_agent_id == actor_agent_id and item.status == "active"
         ]
         if assigned:
+            role = min(
+                assigned,
+                key=lambda item: (
+                    item.effective_due_at,
+                    item.role_id,
+                    item.generation,
+                ),
+            )
             action = "submit the complete assigned-role target set"
-            boundary = assigned[-1].effective_due_at
+            boundary = role.effective_due_at
+            role_id = role.role_id
+            role_generation = role.generation
         elif stage.contract.mode == "ranked" and stage.phase == "decision":
             action = (
                 "publish the exact Ranked order"
@@ -2620,6 +2635,8 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
         actor_id=actor_agent_id,
         action=action,
         boundary_at=boundary,
+        role_id=role_id,
+        role_generation=role_generation,
     )
 
 

@@ -64,6 +64,15 @@ def test_s_01c_s_04b_ruleset_pins_lifecycle_evidence_and_pause_boundary() -> Non
     }
     rules = current_modules()["rules"].load_ruleset().content
     assert rules["modes"]["flat_pod"]["slot_cap_close"] == "immediate"
+    assert rules["modes"]["ranked"] == {
+        "author_decision": True,
+        "birdie": True,
+        "finite": True,
+        "minimum_winners": 1,
+        "overfill": "author-selects-exactly-k-eligible",
+        "settlement": "atomic-contiguous-ranked-selection",
+        "underfill": "pay-all-eligible-refund-unused",
+    }
     assert rules["modes"]["duel"]["move_order"] == (
         "strictly-increasing-accepted-numbers-with-expired-slot-skips"
     )

@@ -67,7 +67,7 @@
 - [x] Keep Implement participation open to every eligible Agent ID; selected Spec authors get no implicit privilege or duty.
 - [x] Create non-Triage Release invitations only from pinned completed Work/role outcomes. Gate Triage Release on successful whole-Plan completion.
 - [x] Store declined/stopped/downstream-blocked Triage outcome as linked negative feedback without Release.
-- [x] Expose pure `next_action` with exact Plan/stage/Contract/depth/mode/actor/deadline boundary and prove zero writes.
+- [x] Expose pure `next_action` with exact Plan/stage/Contract/depth/mode/actor/role/deadline boundary and prove zero writes.
 
 **Scenarios:** S-04C, S-08, S-08A…S-08G, S-10, S-13, plus compatible Release/projection scenarios.
 

@@ -342,15 +342,18 @@ A declined task, stopped Plan, or downstream blocker MUST NOT create a Triage Re
 
 `wea next` MUST show the exact Plan revision, stage, child Contract, depth, mode, current actor, required action, and Tide boundary.
 
-When an assigned role controls the next action, the output MUST show the exact role. The command MUST remain read-only.
+When an assigned role controls the next action, the output MUST show the exact role ID and generation. It MUST select the earliest role deadline.
+
+Equal role deadlines MUST use role ID and generation as deterministic tie-breaks. The command MUST remain read-only.
 
 #### S-13. `wea next` shows the next exact action
 
-- **GIVEN:** Tide records an active child stage and an optional assigned role as the current action owner.
+- **GIVEN:** Tide records an active child stage. The actor has zero, one, or several active assigned roles.
 - **WHEN:** A participant runs `wea next` and reads the latest Tide confirmation.
-- **THEN:** Both outputs show identical Plan, stage, Contract, depth, mode, actor, role, action, and Tide boundary values.
+- **THEN:** Both outputs show identical Plan, stage, Contract, depth, mode, actor, role ID, generation, action, and Tide boundary values.
+- **THEN:** A role-owned action uses the earliest deadline. Equal deadlines use role ID and generation as tie-breaks.
 - **THEN:** The command creates no comment, transition, or ledger record.
-- **EVIDENCE:** `test_current_bdd_next.py` proves stage-owned and role-owned actions and proves read-only behavior.
+- **EVIDENCE:** `test_current_bdd_next.py` proves stage-owned and role-owned actions, deterministic selection, and read-only behavior.
 
 ### ADDED R-18: Flat PoD settlement
 
@@ -379,7 +382,9 @@ At expiry or accepted `birdie`, Tide MUST close intake and refund every unused s
 
 ### ADDED R-19: Complete Ranked settlement
 
-A valid Ranked order MUST contain each paid rank from one through its final rank. It MUST contain no duplicate, gap, extra rank, or ineligible Work.
+A valid Ranked order MUST contain one Work for each available paid rank. It MUST contain no duplicate, gap, extra rank, or ineligible Work.
+
+If fewer than `K` eligible Works exist, the order MUST contain all eligible Works. If more than `K` eligible Works exist, the author MUST select exactly `K` Works.
 
 Only the author can publish the Ranked decision. Tide MUST pay the exact rank vector and close the stage in one atomic transition.
 
@@ -387,12 +392,13 @@ An invalid order or invalid authority MUST create no partial settlement. A repla
 
 #### S-70. Ranked settlement is complete and atomic
 
-- **GIVEN:** A Ranked Contract has `K` eligible Works and an exact payout vector with `K` entries.
-- **WHEN:** The author publishes a valid total order and Tide applies it.
-- **THEN:** Tide pays each Work its exact rank allocation and closes the stage in one atomic transition.
+- **GIVEN:** A Ranked Contract has `N` eligible Works and an exact payout vector with `K` entries.
+- **WHEN:** The author publishes a valid ordered selection and Tide applies it.
+- **THEN:** Tide pays the ordered `min(N,K)` Works and closes the stage in one atomic transition.
+- **THEN:** If `N<K`, Tide refunds unused ranks. If `N>K`, unselected eligible Work gets no payment.
 - **THEN:** A duplicate, gap, extra rank, ineligible Work, or wrong authority leaves all ranks unpaid and the stage unsettled.
 - **THEN:** A payment failure also leaves all ranks unpaid and the stage unsettled.
-- **EVIDENCE:** `test_current_bdd_ranked_settlement.py` proves the valid order, every invalid form, atomic rollback, and replay idempotency.
+- **EVIDENCE:** `test_current_bdd_ranked_settlement.py` proves underfill, exact fill, overfill selection, invalid forms, atomic rollback, and replay idempotency.
 
 ## Reconciled dependents after Spec 0.9
 

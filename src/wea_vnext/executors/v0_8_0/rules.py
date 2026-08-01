@@ -21,7 +21,7 @@ class RulesetError(ValueError):
 
 
 _EXPECTED_RULESET_SHA256 = (
-    "eb5eb18c66bc2a0a4fb53925627e387567b56a303ddc7bae24574fad43b519d7"
+    "f28ea6b551ca4a41f04adefb0edce2d20a6c17fddff5bbbb3d1a870b4727fa7b"
 )
 _EXPECTED_DEPTH_MODES = {
     "explore": ["duel", "flat_pod", "frontier", "ranked"],
@@ -91,6 +91,7 @@ def _validate_modes(value: object) -> None:
             "birdie",
             "finite",
             "minimum_winners",
+            "overfill",
             "settlement",
             "underfill",
         },
@@ -100,8 +101,9 @@ def _validate_modes(value: object) -> None:
         "birdie": True,
         "finite": True,
         "minimum_winners": 1,
-        "settlement": "atomic-total-order",
-        "underfill": "pay-eligible-ranks-refund-unused",
+        "overfill": "author-selects-exactly-k-eligible",
+        "settlement": "atomic-contiguous-ranked-selection",
+        "underfill": "pay-all-eligible-refund-unused",
     }:
         raise RulesetError("ranked rules are inconsistent")
     flat = _exact_dict(

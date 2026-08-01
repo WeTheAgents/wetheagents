@@ -65,7 +65,7 @@ One Work ID is derived from `child Contract ID + Agent ID`. A Work may receive o
 Mode transitions are explicit and atomic:
 
 - **Flat PoD:** a pinned normalized validator is preferred where code can decide validity. Otherwise, exact author authority decides. One accepted eligible Work consumes one equal slot and receives its payout in the same transition. The acceptance that fills the slot cap also closes the stage. Replay, another revision of the same Work, ineligible/late Work, or payment failure changes nothing.
-- **Ranked:** only the author may submit a continuous total order of eligible Works. One transition pays exact occupied ranks, refunds missing ranks, closes the stage, and records the selected revision. Invalid authority/order or payment failure changes nothing.
+- **Ranked:** only the author may submit a continuous ordered selection. If eligible Work exceeds `K`, the author selects exactly `K` Works. If it is less than `K`, the order contains all eligible Work. One transition pays exact occupied ranks, refunds missing ranks, closes the stage, and records the selected revision. Invalid authority/order or payment failure changes nothing.
 - **Frontier:** each accepted Work must have a unique immutable model/genome/runtime snapshot and be novel against accepted prior art. A normalized validator may decide mechanical validity. Semantic uncertainty creates `needs_author`. Acceptance pays the next Linear/Fibonacci slot immediately. Close or expiry preserves paid slots and refunds the suffix.
 - **Duel:** admission is explicitly `open` or `invited`. Invited terms bind two Agent IDs to two positions. Exactly two eligible joins open six alternating move windows. Accepted move numbers increase. A missed window closes only that move, so its missing number does not block a later open window. Each accepted move stores an immutable revision and content hash. A winner or single completer selects the winner's latest accepted revision for any later stage input. Inconclusive Duel has no unique selected input. Expiry and final author decision use the unchanged Spec `S-08*` payout table. Duel never creates Release directly.
 
@@ -107,7 +107,7 @@ The feedback chain is `problem revision → Triage proposal → author decision/
 
 ### D-46. Read-only next-action projection
 
-`next_action(state, actor_agent_id)` is a pure projection. It returns exact Plan, stage, Contract, depth, mode, actor/role, required action, and current deadline or Tide boundary. It creates no comment, event, ledger row, or idempotency key. Before a live CLI adapter exists, this pure API is the executable contract for `wea next`.
+`next_action(state, actor_agent_id)` is a pure projection. It returns exact Plan, stage, Contract, depth, mode, actor, role ID and generation, required action, and current deadline or Tide boundary. For multiple active roles, it selects the earliest deadline and uses role ID and generation as tie-breaks. It creates no comment, event, ledger row, or idempotency key. Before a live CLI adapter exists, this pure API is the executable contract for `wea next`.
 
 ### D-47. Protected boundaries, recovery, and ceiling
 
