@@ -1802,7 +1802,16 @@ def _work_acceptance(
         works=updated.works,
         paid_wea=stage.paid_wea + amount,
     )
-    if len(accepted) + 1 == len(vector):
+    future_selector_uses_stage = any(
+        any(
+            selector.source_stage_key == stage.stage_key
+            for selector in template.inputs
+        )
+        for template in model.future_stages[stage.stage_index + 1 :]
+    )
+    if len(accepted) + 1 == len(vector) and (
+        stage.contract.mode == "flat_pod" or not future_selector_uses_stage
+    ):
         _close_additive(model, activation, event, stage, None)
 
 
