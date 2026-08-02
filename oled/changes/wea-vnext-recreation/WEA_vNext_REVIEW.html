@@ -880,7 +880,7 @@
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Reviewed target: tracked <code>origin/main</code> <code>599bd77</code>. The feature merge-base remains <code>252c6ca</code>. Later target commits change only BTC snapshots.</li>
 <li>Ruleset <code>0.8</code> SHA-256: <code>2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>52bd9175dfeb39f140aba323c2878b1dddcd4551c4ba0736881e286bfa93d9db</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>b215548e9b9155f769baddea94d88369e4079232a4aa743e25ad0590ffa06ad4</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
@@ -912,17 +912,17 @@
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
 <li>S-66 and ruleset focus: <code>20 passed</code>.</li>
-<li><code>tests/vnext</code>: <code>423 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4708 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>425 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4710 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>PR: <code>#941</code>. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found one source-order gap: expiry or stop could skip a valid earlier Work declaration already present in its confirmed GitHub boundary. The runtime now rejects the later event until every earlier valid declaration is applied. An invalid earlier declaration does not block progress. Lifecycle idempotency keys are deterministic. S-02B and S-01C regressions pass. Pass 28 is pending.</li>
+<li>PR: <code>#941</code>. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found that a later event could skip valid earlier Work. Pass 28 found the same missing guard for a suffix replan because its separate Plan revision was not reconstructed. The runtime now reconstructs exact Plan revision evidence from the confirmed GitHub boundary and repeats all authority, content, prefix, and source checks. Invalid earlier declarations still do not block progress. S-01C, S-02B, S-06C, and S-66 regressions pass. Pass 29 is pending.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
 <h3 id="handoff-next-action">Next action</h3>
-<p>Run Pass 28 against the corrected package. If it is clean, publish and merge PR <code>#941</code>. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.</p>
+<p>Run Pass 29 against the corrected package. If it is clean, publish and merge PR <code>#941</code>. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.</p>
 </div>
     </section>
 
@@ -951,7 +951,7 @@
         <p class="source-file">Исходный Markdown-файл: <code>tasks.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус <code>tasks 1.2</code>: <strong>implemented / review pending</strong>. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Pass 27 found and fixed one source-order gap. Pass 28 must verify the corrected package. Blocks 1–4 remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p>Статус <code>tasks 1.2</code>: <strong>implemented / review pending</strong>. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Passes 27 and 28 found and fixed two source-order gaps. Pass 29 must verify the corrected package. Blocks 1–4 remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <h3 id="tasks-правила-исполнения">Правила исполнения</h3>
 <ul>
 <li>Historical blocks below were separate tasks. The current Spec <code>0.9</code> delivery is one behavior-complete task and one PR with five internal verification groups. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
@@ -2715,6 +2715,8 @@ git diff --check
 <li><strong>WHEN:</strong> Triage publishes the next sequential Plan revision. The author approves its exact revision ID and content hash in a later source.</li>
 <li><strong>THEN:</strong> Tide stores the Plan revision and author approval as append-only evidence. The revision MUST keep every completed and active PlanStage unchanged.</li>
 <li><strong>THEN:</strong> Tide replaces only unstarted templates and preserves their total allocation. Each later Stage Contract MUST bind to the approved revision.</li>
+<li><strong>THEN:</strong> A valid unapplied suffix replan MUST block each later lifecycle event in the same confirmed read boundary.</li>
+<li><strong>THEN:</strong> An invalid suffix replan MUST NOT block a later valid lifecycle event.</li>
 <li><strong>THEN:</strong> Tide MUST reject missing evidence, wrong authority, a detached parent, a changed prefix, a reused source, or an approval before the proposal.</li>
 <li><strong>CHECK:</strong> <code>tests/vnext/test_resolution_plan_replan.py</code> verifies the immutable prefix, authority, evidence order, replay, allocation, and future Contract binding.</li>
 </ul>
@@ -5804,7 +5806,7 @@ git diff --check
 <p>Decision: <code>Implementation verified — independent PR review pending</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
 <p>Статус независимой проверки: <code>Pending</code>.</p>
-<p>Текущий review gate: <code>Pass 28 pending</code>.</p>
+<p>Текущий review gate: <code>Pass 29 pending</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5848,7 +5850,7 @@ git diff --check
 </tbody>
 </table></div>
 <p>Ruleset <code>0.8</code> SHA-256: <code>2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>52bd9175dfeb39f140aba323c2878b1dddcd4551c4ba0736881e286bfa93d9db</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>b215548e9b9155f769baddea94d88369e4079232a4aa743e25ad0590ffa06ad4</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5926,12 +5928,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>423 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>425 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4708 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4710 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5951,7 +5953,7 @@ git diff --check
 <tr>
 <td>Independent review</td>
 <td><code>codex exec review --base origin/main</code> on PR #941</td>
-<td>Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found one source-order gap: expiry or stop could skip a valid earlier Work declaration already present in its confirmed GitHub boundary. The runtime now rejects the later event until every earlier valid declaration is applied. An invalid earlier declaration does not block progress. Lifecycle idempotency keys are deterministic. S-02B and S-01C regressions pass. Pass 28 is pending.</td>
+<td>Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found that a later event could skip valid earlier Work. Pass 28 found the same missing guard for a suffix replan because its separate Plan revision was not reconstructed. The runtime now reconstructs exact Plan revision evidence from the confirmed GitHub boundary and repeats all authority, content, prefix, and source checks. Invalid earlier declarations still do not block progress. S-01C, S-02B, S-06C, and S-66 regressions pass. Pass 29 is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6231,13 +6233,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>a291c98f0dfc47449ca7f65277ba42dd6e030b286dd9669fe66cdfd57b346d31</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>02454430a0ef4cf757b3c43bef9f286da3e55e54e1600284fc7fb1076e4a3583</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>3acbfc7ab001489e3b2b8fc63dee838aa27c716198a0ab9c3c27792e7b39294a</code></td></tr><tr><td><code>tasks.md</code></td><td><code>e3686d897bc97c77623d8e769cd6e8a2c419e79e4a70ef489c6e4f1b0f025f99</code></td></tr><tr><td><code>design.md</code></td><td><code>09d479df1c292b66a8d6bed52d219efddb1f3be7c67d686fa82e03399ede6b50</code></td></tr><tr><td><code>outcome.md</code></td><td><code>dbeb0247cd00d83c92e0a49291058c477ab3e01832ecf9a32dcbdcbb979781a9</code></td></tr><tr><td><code>spec.md</code></td><td><code>d6d86466b5fafb36bcfd3d1e6163341b23210cd898b8e5f678a12633190dd69f</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9f7843281839dc4b7ad745290aa3931b09793f2cdff18e8fb75b1b66578cc91f</code></td></tr><tr><td><code>schema.md</code></td><td><code>0498cbf73efd6a717b100e621fa3d82a61ba663396b7c8f8a7e66a9f0a6b9ac2</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>c89b90c77e0fca74a9d6f01646758546571f2211bac648c30d096b7f86fad145</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>b9a5c41ccec42311060398c2caebb11b8d3afeb59a3b2495f091952859219868</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>8c0dfc5fcb072093098a7beaf741830927f00173cdca71eee5d1f0dea304ea39</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>091b9d6aad25b2ba521c46809f8a2f77fdebc565988014f5321156c902e77b75</code></td></tr><tr><td><code>tasks.md</code></td><td><code>a46dc33b4bde948591e11a59426f5c3be95dabb952b73392e048ab6243731ee1</code></td></tr><tr><td><code>design.md</code></td><td><code>09d479df1c292b66a8d6bed52d219efddb1f3be7c67d686fa82e03399ede6b50</code></td></tr><tr><td><code>outcome.md</code></td><td><code>dbeb0247cd00d83c92e0a49291058c477ab3e01832ecf9a32dcbdcbb979781a9</code></td></tr><tr><td><code>spec.md</code></td><td><code>8933edaf01d26f6959443e3293330f4f6613135a3ea57d74c3164c706038ac55</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9f7843281839dc4b7ad745290aa3931b09793f2cdff18e8fb75b1b66578cc91f</code></td></tr><tr><td><code>schema.md</code></td><td><code>0498cbf73efd6a717b100e621fa3d82a61ba663396b7c8f8a7e66a9f0a6b9ac2</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>c89b90c77e0fca74a9d6f01646758546571f2211bac648c30d096b7f86fad145</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>ad58334abc35441fd95e59bfc3a0708771b0f944f9cbb282cd348b82ba85f995</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>8c0dfc5fcb072093098a7beaf741830927f00173cdca71eee5d1f0dea304ea39</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6359,7 +6361,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: a291c98f0dfc47449ca7f65277ba42dd6e030b286dd9669fe66cdfd57b346d31",
+          "- Хеш исходных файлов: 02454430a0ef4cf757b3c43bef9f286da3e55e54e1600284fc7fb1076e4a3583",
           ""
         ];
         cards

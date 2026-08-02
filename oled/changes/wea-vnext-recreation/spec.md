@@ -593,6 +593,8 @@ A selector MAY name an earlier Ranked, Frontier, or Duel stage. It MUST NOT name
 - **WHEN:** Triage publishes the next sequential Plan revision. The author approves its exact revision ID and content hash in a later source.
 - **THEN:** Tide stores the Plan revision and author approval as append-only evidence. The revision MUST keep every completed and active PlanStage unchanged.
 - **THEN:** Tide replaces only unstarted templates and preserves their total allocation. Each later Stage Contract MUST bind to the approved revision.
+- **THEN:** A valid unapplied suffix replan MUST block each later lifecycle event in the same confirmed read boundary.
+- **THEN:** An invalid suffix replan MUST NOT block a later valid lifecycle event.
 - **THEN:** Tide MUST reject missing evidence, wrong authority, a detached parent, a changed prefix, a reused source, or an approval before the proposal.
 - **CHECK:** `tests/vnext/test_resolution_plan_replan.py` verifies the immutable prefix, authority, evidence order, replay, allocation, and future Contract binding.
 

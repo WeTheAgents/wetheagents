@@ -32,8 +32,10 @@ from .intake import (
     ProtocolState,
     ResolutionPlanRevision,
     ResolvedWorkInput,
+    SelectedWorkInput,
     StageContract,
     StageDeadline,
+    StageSchedule,
     _authorize_plan_revision,
     _rebuild_github_state,
     _require_github_event,
@@ -3422,6 +3424,158 @@ def _lifecycle_event_from_github_source(
     return candidate
 
 
+def _plan_revision_from_github_source(
+    source: Any, plan_id: str
+) -> ResolutionPlanRevision | None:
+    if source.object_kind != "issue_comment":
+        return None
+    try:
+        declaration = json.loads(source.body)
+    except (TypeError, ValueError):
+        return None
+    expected_fields = {
+        "author_agent_id",
+        "body_hash",
+        "issue_id",
+        "issue_revision_id",
+        "kind",
+        "parent_revision_id",
+        "plan_id",
+        "proposer_agent_id",
+        "proposer_binding_id",
+        "proposer_binding_version",
+        "proposer_github_account_id",
+        "proposer_kind",
+        "repository_id",
+        "revision_id",
+        "revision_number",
+        "stages",
+        "total_bank_wea",
+        "triage_assessment_id",
+    }
+    if (
+        type(declaration) is not dict
+        or set(declaration) != expected_fields
+        or declaration.get("kind") != "resolution_plan_revision"
+        or type(declaration.get("stages")) is not list
+    ):
+        return None
+    try:
+        stages: list[PlanStage] = []
+        for stage_data in declaration["stages"]:
+            if type(stage_data) is not dict or set(stage_data) != {
+                "allocation_wea",
+                "config",
+                "depth",
+                "expected_output",
+                "inputs",
+                "key",
+                "mode",
+                "schedule",
+            }:
+                return None
+            schedule_data = stage_data["schedule"]
+            input_data = stage_data["inputs"]
+            if (
+                type(schedule_data) is not dict
+                or set(schedule_data)
+                != {
+                    "author_decision_seconds",
+                    "intake_seconds",
+                    "join_seconds",
+                    "move_seconds",
+                }
+                or type(schedule_data["move_seconds"]) is not list
+                or type(input_data) is not list
+            ):
+                return None
+            inputs: list[SelectedWorkInput] = []
+            for item in input_data:
+                if (
+                    type(item) is not dict
+                    or set(item) != {"kind", "source_stage_key"}
+                    or item.get("kind") != "selected_work_of"
+                ):
+                    return None
+                inputs.append(SelectedWorkInput(item["source_stage_key"]))
+            stages.append(
+                PlanStage(
+                    key=stage_data["key"],
+                    depth=stage_data["depth"],
+                    mode=stage_data["mode"],
+                    schedule=StageSchedule(
+                        intake_seconds=schedule_data["intake_seconds"],
+                        join_seconds=schedule_data["join_seconds"],
+                        move_seconds=tuple(schedule_data["move_seconds"]),
+                        author_decision_seconds=schedule_data[
+                            "author_decision_seconds"
+                        ],
+                    ),
+                    allocation_wea=stage_data["allocation_wea"],
+                    config=stage_data["config"],
+                    expected_output=stage_data["expected_output"],
+                    inputs=tuple(inputs),
+                )
+            )
+        revision = ResolutionPlanRevision(
+            plan_id=declaration["plan_id"],
+            revision_id=declaration["revision_id"],
+            revision_number=declaration["revision_number"],
+            parent_revision_id=declaration["parent_revision_id"],
+            repository_id=declaration["repository_id"],
+            issue_id=declaration["issue_id"],
+            issue_revision_id=declaration["issue_revision_id"],
+            body_hash=declaration["body_hash"],
+            triage_assessment_id=declaration["triage_assessment_id"],
+            proposer_kind=declaration["proposer_kind"],
+            proposer_agent_id=declaration["proposer_agent_id"],
+            proposer_github_account_id=declaration["proposer_github_account_id"],
+            proposer_binding_id=declaration["proposer_binding_id"],
+            proposer_binding_version=declaration["proposer_binding_version"],
+            author_agent_id=declaration["author_agent_id"],
+            total_bank_wea=declaration["total_bank_wea"],
+            stages=tuple(stages),
+            source_comment_id=source.object_id,
+            source_revision_id=source.revision_id,
+            snapshot=source.body,
+            snapshot_hash=source.content_hash,
+            effective_at=source.effective_at,
+        )
+    except (KeyError, PlanError, TypeError, ValueError):
+        return None
+    if (
+        revision.plan_id != plan_id
+        or revision.repository_id != source.repository_id
+        or revision.proposer_github_account_id != source.actor_account_id
+    ):
+        return None
+    return revision
+
+
+def _plan_revision_candidates(
+    event: LifecycleEvent, github_state: ProtocolState
+) -> tuple[ResolutionPlanRevision | None, ...]:
+    if event.kind != "suffix_replan":
+        return (None,)
+    data = thaw_json(event.payload)
+    if type(data) is not dict or set(data) != {
+        "plan_content_hash",
+        "plan_revision_id",
+    }:
+        return ()
+    candidates = tuple(
+        revision
+        for source in github_state.events
+        if (
+            revision := _plan_revision_from_github_source(source, event.plan_id)
+        )
+        is not None
+        and revision.revision_id == data["plan_revision_id"]
+        and revision.content_hash == data["plan_content_hash"]
+    )
+    return candidates
+
+
 def _require_no_earlier_unapplied_declaration(
     state: ResolutionPlanRuntimeState,
     event: LifecycleEvent,
@@ -3440,21 +3594,22 @@ def _require_no_earlier_unapplied_declaration(
             or candidate.source_revision_id in applied_revisions
         ):
             continue
-        try:
-            _apply_lifecycle_event_core(
-                state,
-                candidate,
-                registry=registry,
-                github_state=github_state,
-                plan_revision=None,
-                check_prior=False,
+        for revision in _plan_revision_candidates(candidate, github_state):
+            try:
+                _apply_lifecycle_event_core(
+                    state,
+                    candidate,
+                    registry=registry,
+                    github_state=github_state,
+                    plan_revision=revision,
+                    check_prior=False,
+                )
+            except PlanError:
+                continue
+            raise PlanError(
+                "evidence_boundary: earlier accepted lifecycle declaration "
+                "remains unapplied"
             )
-        except PlanError:
-            continue
-        raise PlanError(
-            "evidence_boundary: earlier accepted lifecycle declaration "
-            "remains unapplied"
-        )
 
 
 def _apply_lifecycle_event_core(

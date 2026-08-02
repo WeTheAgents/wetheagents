@@ -10,7 +10,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Reviewed target: tracked `origin/main` `599bd77`. The feature merge-base remains `252c6ca`. Later target commits change only BTC snapshots.
 - Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
-- Executor `v0_8_0` manifest SHA-256: `52bd9175dfeb39f140aba323c2878b1dddcd4551c4ba0736881e286bfa93d9db`.
+- Executor `v0_8_0` manifest SHA-256: `b215548e9b9155f769baddea94d88369e4079232a4aa743e25ad0590ffa06ad4`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -42,12 +42,12 @@ Status: `Implementation verified — independent PR review pending`.
 ## Fresh evidence
 
 - S-66 and ruleset focus: `20 passed`.
-- `tests/vnext`: `423 passed`, `18 skipped`.
-- Full repository: `4708 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `425 passed`, `18 skipped`.
+- Full repository: `4710 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found one source-order gap: expiry or stop could skip a valid earlier Work declaration already present in its confirmed GitHub boundary. The runtime now rejects the later event until every earlier valid declaration is applied. An invalid earlier declaration does not block progress. Lifecycle idempotency keys are deterministic. S-02B and S-01C regressions pass. Pass 28 is pending.
+- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found that a later event could skip valid earlier Work. Pass 28 found the same missing guard for a suffix replan because its separate Plan revision was not reconstructed. The runtime now reconstructs exact Plan revision evidence from the confirmed GitHub boundary and repeats all authority, content, prefix, and source checks. Invalid earlier declarations still do not block progress. S-01C, S-02B, S-06C, and S-66 regressions pass. Pass 29 is pending.
 
 ## Hard stop boundary
 
@@ -55,4 +55,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Run Pass 28 against the corrected package. If it is clean, publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.
+Run Pass 29 against the corrected package. If it is clean, publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.

@@ -216,3 +216,50 @@ def test_s_66_exact_replan_replay_is_idempotent() -> None:
     )
 
     assert replayed is applied
+
+
+def test_s_66_unapplied_replan_blocks_a_later_lifecycle_event() -> None:
+    state, _, replacement = _paused_plan()
+    revision, event, _ = suffix_replan_records(
+        state, (replacement,), sequence=2
+    )
+    stop = author_event(state, "author_stop", {}, sequence=3)
+    evidence = github_state(revision, event, stop)
+
+    with pytest.raises(
+        modules()["intake"].PlanError,
+        match="earlier accepted lifecycle declaration remains unapplied",
+    ):
+        apply_event(state, stop, evidence_state=evidence)
+
+    replanned = apply_event(
+        state,
+        event,
+        evidence_state=evidence,
+        plan_revision_record=revision,
+    )
+    stopped = apply_event(replanned, stop, evidence_state=evidence)
+    projection = modules()["lifecycle"].project_runtime(stopped)
+    assert projection.plan_status == "stopped"
+    assert projection.plan_revisions[-1].revision_id == revision.revision_id
+
+
+def test_s_66_invalid_replan_does_not_block_a_later_valid_event() -> None:
+    state, _, replacement = _paused_plan()
+    revision, _, _ = suffix_replan_records(state, (replacement,), sequence=2)
+    invalid = replace_plan_revision(
+        revision,
+        proposer_kind="author",
+        proposer_agent_id="agent-author",
+        proposer_github_account_id="account-author",
+        proposer_binding_id="author-binding",
+    )
+    event = _approval_event(state, invalid)
+    stop = author_event(state, "author_stop", {}, sequence=3)
+    stopped = apply_event(
+        state,
+        stop,
+        evidence_state=github_state(invalid, event, stop),
+    )
+
+    assert modules()["lifecycle"].project_runtime(stopped).plan_status == "stopped"

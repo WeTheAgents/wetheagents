@@ -8,7 +8,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 28 pending`.
+Текущий review gate: `Pass 29 pending`.
 
 ## Версии
 
@@ -23,7 +23,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
 
-Executor `v0_8_0` manifest SHA-256: `52bd9175dfeb39f140aba323c2878b1dddcd4551c4ba0736881e286bfa93d9db`.
+Executor `v0_8_0` manifest SHA-256: `b215548e9b9155f769baddea94d88369e4079232a4aa743e25ad0590ffa06ad4`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -54,12 +54,12 @@ Executor `v0_8_0` manifest SHA-256: `52bd9175dfeb39f140aba323c2878b1dddcd4551c4b
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `423 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4708 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `425 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4710 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found one source-order gap: expiry or stop could skip a valid earlier Work declaration already present in its confirmed GitHub boundary. The runtime now rejects the later event until every earlier valid declaration is applied. An invalid earlier declaration does not block progress. Lifecycle idempotency keys are deterministic. S-02B and S-01C regressions pass. Pass 28 is pending. |
+| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found that a later event could skip valid earlier Work. Pass 28 found the same missing guard for a suffix replan because its separate Plan revision was not reconstructed. The runtime now reconstructs exact Plan revision evidence from the confirmed GitHub boundary and repeats all authority, content, prefix, and source checks. Invalid earlier declarations still do not block progress. S-01C, S-02B, S-06C, and S-66 regressions pass. Pass 29 is pending. |
 
 ## Historical verification baseline through Block 3
 

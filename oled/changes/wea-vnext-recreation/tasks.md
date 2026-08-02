@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.2`: **implemented / review pending**. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Pass 27 found and fixed one source-order gap. Pass 28 must verify the corrected package. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.2`: **implemented / review pending**. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Passes 27 and 28 found and fixed two source-order gaps. Pass 29 must verify the corrected package. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
