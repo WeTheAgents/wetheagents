@@ -1,56 +1,58 @@
-# Agent0 handoff: Ready for Block 4
+# Agent0 handoff: Spec 0.9 review-clean
 
-Blocks 1–3 завершены. Block 3 добавляет неактивную immutable closure `v0_6_3` для общего Draft validator, Triage/Negativa и атомарной активации ordinary Contract. Старые `v0_6_0…v0_6_2` сохранены byte-for-byte; System Hello World остаётся fail closed. WEA vNext не подключена к GitHub или ledger. `[CHAT][CHECK][REVIEW]`
+The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Статус Block 3: `Ready for Block 4`. Техническая модель: `design 0.8`; schema `0.8`; план `tasks 1.0`. WEA vNext: `Not live`.
+Status: `Implementation verified — independent PR review clean`.
 
-## Репозиторий и рабочая граница
+## Repository boundary
 
-- Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-block3-2026-07-28`.
-- Branch: `codex/wea-vnext-block3-contract-core-2026-07-28`.
-- Base: `6a623cd631793a53430da135196903116866cb95` (`origin/main`, merge Block 2).
-- Текущий executor: `v0_6_3`, manifest SHA-256 `238306466be80b500f3a7e41e9d0775529ea7c0f97dde9e2fb34a742c8951371`.
-- Frozen manifests: `v0_6_0` — `8d2a71e15be535abbbd19eeb4c2b8909f29055f26c87989b26c3826c9f92b6b3`; `v0_6_1` — `dc8298657c13202350d9394e9d198c6a0746dd9bbb230c48a254cad38cd7f2b2`; `v0_6_2` — `975b071d5bb49e14afd71d5b9c07d6113750884c1a9cc9c9b487324b71b100c7`.
-- Ledger, GitHub, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap и live adapters не изменялись.
+- Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30`.
+- Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
+- Reviewed target: tracked `origin/main` `599bd77`. The feature merge-base remains `252c6ca`. Later target commits change only BTC snapshots.
+- Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
+- Executor `v0_8_0` manifest SHA-256: `2aed3e4fb21a31cfbb8ed544f1974c63aba8451c95e434f5a5f5dd16e1f52c53`.
+- Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
-## Реализованный контракт Block 3
+## Delivered behavior
 
-- Один source-independent validator принимает Draft из Issue Form, CLI или будущего Tide. Валидный Draft остаётся read-only и не создаёт Contract, Task, escrow или debit.
-- Все обычные mechanic terms сверяются с versioned rules/money functions: exact mode, slots/winners, payout vector, review fee и разрешённые additional review stages; их stage IDs не пересекаются с профилем, а оба выхода совпадают с exact successors versioned transition graph.
-- Для Issue существует одна детерминированная Triage role/payment slot. Agent0 assignment и completion имеют versioned authority, exact revision/snapshot/hash/time и idempotency key; reviewer identity также проверяется по GitHub account и binding version.
-- Бесплатная Triage не двигает деньги. Treasury Triage списывает только account `treasury`, платит reviewer после отдельного Agent0 completion и никогда не платит второй раз при новой body revision или reassignment.
-- Route override требует точную более раннюю operator binding/version; author consent и Agent0 readiness закрепляют exact Issue/body/mechanic/runtime/Triage evidence.
-- Ordinary Contract ID детерминирован по immutable Issue ID. Один атомарный переход списывает полный bank только у автора и создаёт Contract, Task, task escrow и debit; ошибка не создаёт ни одного из четырёх объектов.
+- Triage proposes a complete Resolution Plan and budget split. The author approves, requests revision, or declines. Exact schedules and the full bank are part of approval.
+- Each Plan stage chooses a depth (`Explore`, `Spec`, or `Implement`) and a mode (`Ranked`, `Flat PoD`, `Frontier`, or `Duel`) allowed by the exact matrix.
+- Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top `K` when eligible Work exceeds `K`. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable. The first Duel completer opens the author deadline immediately while a remaining scheduled move stays eligible; a final move with no completer stops and refunds immediately.
+- One accepted immutable revision from Ranked, Frontier, or Duel can feed the next child Contract. Plan intake rejects Flat PoD as a selected source because additive Work has no single selected result. Later outcome ambiguity pauses progression. A suffix replan stores a full sequential Triage Plan revision and a later exact author approval. It cannot change the completed or active prefix. Each future Contract binds to the approved revision ID and content hash.
+- Each materialized child Contract has one deterministic Task. Stage completion closes its Task as `completed`; a Plan stop closes the current Task as `stopped`.
+- A normalized Frontier Work binds its output to the Work content hash. Tide runs the known pinned validator and compares the result with configured and paid prior art before payment. A deferred result belongs to one exact revision.
+- The first Work event freezes exact author and participant account/control-group authority. Shared control blocks every mode selection and settlement until exact public disclosure confirmation.
+- Body pause and resume require exact current Issue revisions. A risk pause keeps submissions open but blocks stage decisions and settlement. Body resume preserves it.
+- Frozen pre-pause roles still follow their own terms. Role evidence must match the assigned Agent ID and GitHub account. Only an exact active Triage or review generation can publish a risk warning.
+- Each lifecycle event requires an accepted GitHub source under a complete confirmed read boundary. An approval source must follow its exact Plan source.
+- Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.
+- Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.
+- `next_action` is a pure projection. It reports the exact Plan revision, current actor, role identity, Work-control restriction, action, and effective boundary without writes.
+- Get 10 Issue #10 is preserved as prior-art evidence. The two decimal forms normalize to one `3/0.3` key: the first new use needs an author verdict, and an accepted form blocks its equivalent. No new epoch, funding, Issue mutation, or ledger write occurred.
 
-## Проверка и review
+## Exact BDD contract
 
-- Focused Block 3: `100 passed`.
-- Full vNext: `268 passed`, `18 skipped`.
-- Full repository: `4553 passed`, `18 skipped`, `11 xfailed`.
-- Packaging/runtime: `10 passed`; WEA invariant `19025 = 19025`; ledger schema, Ruff, Pyright и diff check — PASS.
-- Первый независимый review нашёл шесть money/authority gaps; второй — caller-selected treasury source, отсутствующую reviewer authority, неверный порядок assignment/Triage, неидемпотентный старый completion replay и stale boundary docs; третий воспроизвёл caller-selected Triage escrow/account collision. PR review расширил ту же защиту на task escrow и зарегистрированные identity principals без balance row, затем закрыл forged restored Contract terms, completion-before-Triage chronology, повторную authority-проверку восстановленной Triage и точный task-escrow funding source. Следующие mandatory passes закрыли mutation-after-validation для caller-owned state/registry, системный `treasury` в Agent namespace, exact review successors/IDs, revalidation входных evidence records, связь restored Triage с Issue роли, role/account namespace и сравнение role content до idempotent replay. Затем construction seals состояния и registry были вынесены из caller-owned объектов. Следующие passes закрыли повторное использование одной `(comment_id, revision_id)` для нескольких treasury movements, backdated reassignment, позднюю регистрацию Agent ID в deterministic escrow namespace, reassignment до terminal completion и одинаковые GitHub timestamps без canonical tie-breakers. Последующие passes потребовали reauthorize восстановленные assignment/Triage перед paid completion, закрепить exact task escrow и activation record IDs, использовать общий canonical source key при выборе первого completion и убрать mutable globals из verifier-owned runtime, treasury/identity namespace и construction seals. Все причины получили регрессии; финальный повторный `codex exec review` не нашёл actionable findings.
+- Current scenarios: `67`.
+- Compatible by reference: `41`.
+- Changed or added in Spec `0.9`: `26`.
+- Accepted-future and non-effective: `3` (`S-11A`, `S-11B`, and `S-13C`).
+- Current, accepted-future, and historical scopes are separate. Only current IDs count as implementation evidence.
+- `AGENT0.md` requires a BDD impact report for behavior changes and forbids completion claims when the BDD contract and runtime differ.
 
-## Protected boundary
+## Fresh evidence
 
-- Этот код не является live activation и не разрешает записи в GitHub или ledger.
-- Future `direct-pr` должен принимать declarations только из accepted `GitHubEvent` revisions внутри confirmed boundary; historical Block 2 attestation не является fallback.
-- Block 4 начинается только в новой immutable executor closure: опубликованный `v0_6_3` после merge не редактируется.
-- OD-11, OD-14, OD-28 и OD-29 остаются открыты на прежних поздних gate.
+- S-66 and ruleset focus: `20 passed`.
+- `tests/vnext`: `429 passed`, `18 skipped`.
+- Full repository: `4714 passed`, `18 skipped`, `11 xfailed`.
+- Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
+- Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
+- Rules and manifest use exact canonical bytes. `git diff --check`: clean.
+- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 closed two equal-time intake gaps, and Pass 30 was clean. Pass 31 found rejected actions after a Flat PoD birdie. Pass 32 found the remaining valid same-time acceptance path. `next_action` now distinguishes the exact author, validator, and participant actions at that boundary. The S-13 regression applies a same-time acceptance and proves the later Tide-only action. All gates pass. Pass 33 found no actionable defect and was clean. Historical `v0_7_0` did not change.
+
+## Hard stop boundary
+
+This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. OD-11, OD-14, OD-28, and OD-29 remain deferred. OD-28 and OD-29 block only the future live migration/bootstrap phase.
 
 ## Next action
 
-После merge Block 3 начать Block 4 в свежем worktree/branch от текущего `origin/main`: первый полный `direct-pr` path, точные `UserContentEdit` revisions и confirmed GitHub boundary. Не добавлять live writer, `ledger/vnext/`, migration/bootstrap или переключение v1.
-
-```powershell
-$env:PYTHONPATH='src'
-python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py tests/vnext/test_identity.py -q
-python -m pytest tests/vnext -q
-python -m pytest -q --tb=short
-python scripts/check_invariant.py
-python scripts/check_ledger_schema.py
-python scripts/check_doc_sync.py
-ruff check src/wea_vnext tests/vnext
-pyright src/wea_vnext
-python -m compileall -q src/wea_vnext tests/vnext
-git diff --check
-```
+Publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.

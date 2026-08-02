@@ -1,6 +1,155 @@
 # WEA vNext: минимальные машинные записи
 
-Статус: `schema 0.8` уточняет машинную модель `spec 0.7` для `design 0.8`. Новые технические поля не меняют одобренное поведение. `[CHAT][DERIVED][REVIEW]`
+Статус: `schema 1.0` является текущей машинной моделью Spec `0.9` и design `1.0`. Она добавляется только в ruleset `0.8` / executor `v0_8_0`. Опубликованные записи старых closure не меняются. `[CHAT][DERIVED]`
+
+## Schema delta 1.0: lifecycle records
+
+This delta replaces incompatible schema `0.9` fields for new Resolution Plans. Historical records below remain authoritative for their pinned executors.
+
+| Record | Required canonical fields |
+| --- | --- |
+| Stage Schedule | mode, positive intake/join/decision durations as applicable, exactly six positive Duel move durations |
+| Stage Contract | all schema `0.9` fields plus schedule, materialized initial absolute deadlines, acceptance authority, ruleset/interface/manifest triple |
+| Runtime State | exact verified activation aggregate, ordered verified lifecycle events, frozen Work authorities, canonical replay hash, construction seal |
+| Lifecycle Event | deterministic event ID, Plan ID, kind, actor kind/ID/authority, accepted GitHub source revision/snapshot/hash, effective time, idempotency key, canonical typed payload |
+| Work | deterministic Contract + Agent ID, ordered immutable revisions, frozen author/participant account and control-group authorities, pending or confirmed disclosure, eligibility, per-revision validator deferrals/results, acceptance evidence |
+| Work Revision | revision ID/index, Work/Contract/Agent IDs, content hash, immutable snapshot identity, optional normalized output for the pinned validator, source evidence and effective time |
+| Stage Runtime | stage/Contract/Task IDs, status, phase, base/effective opens and due times, mode cursor, selected revision, paid/refunded amount |
+| Stage Task Runtime | deterministic Task ID, Stage Contract ID, Plan/stage refs, `active/paused/closed`, `completed/stopped` close result, activation time, last transition ID |
+| Role Assignment | role/generation IDs, assigned Agent ID and GitHub account, exact targets, duration and due times, funding `free/treasury`, optional role escrow |
+| Role Result | role/generation, frozen Agent ID and GitHub account authority, exact target subset, result IDs/hashes/times, completeness, last required result time |
+| Pause | kind `body_integrity_pause/risk_pause/progression_pause`, exact Issue revision or role-generation warning evidence, start/end, author decision, affected open deadline IDs and one-time offsets |
+| Settlement | transition ID, kind `payout/refund/treasury`, recipient/source, positive WEA, reason, exact Work/rank/slot/role ref, prior/result financial hashes |
+| Release Invitation | deterministic ID, recipient, source kind/ref, eligibility evidence, terminal Plan prerequisite for Triage |
+| Feedback Outcome | Triage assessment/agent, linked Plan/stage/blocker/terminal event, polarity, exact reason/source evidence |
+
+### Canonical IDs and ordering
+
+- `work_id = <stage-contract-id>:work:<agent-id>`.
+- `work_revision_id = <work-id>:revision:<positive-index>`.
+- `lifecycle_event_id = <plan-id>:event:<kind>:<source-revision-id>`.
+- `role_generation_id = <role-id>:generation:<positive-index>`.
+- `settlement_id`, `release_invitation_id`, and pause IDs derive from their exact source event and semantic target.
+- Lifecycle order is `(effective_at, source_id, source_revision_id, event_id)`. Backdated or same-key-conflicting suffixes fail closed.
+- Every cross-stage input contains exact Work ID, revision ID, content hash, source stage key, and source Contract ID.
+
+### Schedule schema
+
+Durations are positive integer seconds. Boolean values are invalid integers.
+
+| Mode | Present fields | Forbidden fields |
+| --- | --- | --- |
+| Ranked | `intake_seconds`, `author_decision_seconds` | join and move durations |
+| Flat PoD | `intake_seconds` | decision, join, and move durations |
+| Frontier | `intake_seconds` | decision, join, and move durations |
+| Duel | `join_seconds`, `move_seconds[6]`, `author_decision_seconds` | intake duration |
+
+Each materialized deadline stores `deadline_id`, kind, base anchor, effective open, approved duration, `base_due_at`, `effective_due_at`, and applied pause IDs. A later phase deadline appears only when its anchor event exists. One pause ID can affect one deadline at most once.
+
+A Duel config stores `admission`, `invitations`, two positions, and three rounds. `open` requires an empty invitation list. `invited` requires exactly two different Agent IDs, with one fixed position for each Agent. Each Duel move stores its number, actor, effective time, deterministic Work revision ID, and content hash. Accepted move numbers increase. An expired empty slot does not need a synthetic move record.
+
+### Event kinds and payload ownership
+
+| Family | Event kinds | Authority |
+| --- | --- | --- |
+| Work | `work_revision`, `validator_result`, `author_acceptance`, `work_acceptance` | participating Agent, pinned validator, or author as defined by Contract |
+| Disclosure | `control_disclosure` | Tide confirmation of one separate exact accepted public revision |
+| Ranked / Flat / Frontier | `birdie`, `ranked_order`, `frontier_close`, `mode_expiry` | author or Tide boundary as specified |
+| Duel | `duel_join`, `duel_move`, `duel_decision`, `mode_expiry` | eligible Agent, author, or Tide boundary |
+| Progression | `stage_complete`, `selector_resolved`, `child_materialized`, `suffix_replan` | Tide-derived transition or exact Triage revision with later author approval |
+| Role | `role_assignment`, `role_result`, `role_resolution` | Agent0 or exact assigned actor |
+| Pause / stop | `body_pause`, `risk_warning`, `risk_pause`, `author_continue`, `author_stop` | exact technical evidence, assigned role, Agent0, or author |
+| Outcome | `settlement`, `release_invitation`, `triage_feedback`, `plan_complete` | Tide-derived from accepted source events |
+
+Derived event groups are atomic. A Flat PoD acceptance group contains Work acceptance, slot cursor, payout, financial hashes, and cap closure when full. A Ranked settlement group contains complete order, payouts, underfill refunds, stage close, and selected input. A stop group contains the final legal prefix, unused escrow refund, active closure, and terminal Plan status.
+
+An open `risk_pause` admits active-stage Work revisions, exact control-disclosure evidence, valid Duel joins or moves, and events for roles assigned before the pause. It rejects stage decisions, mode settlement, stage completion, child materialization, and new role assignments. Role settlement uses only its separate frozen role escrow. It cannot change program escrow or stage status. A warning names one exact active Triage or review generation. A `body_pause` names the current accepted changed Issue revision. A `body_resume` names a current accepted revision after the pause start. The resume revision contains the exact frozen Contract body. It closes only the body pause and preserves every open risk or progression pause.
+
+### Lifecycle invariants
+
+1. The activation aggregate is verified before the first lifecycle event.
+2. One event ID, source revision, and idempotency key have one canonical meaning. A complete confirmed read boundary covers each lifecycle source.
+3. `deposited = paid + refunded + available`; every counter is a non-boolean integer and never negative. A treasury role has `reserved = paid + refunded + available` in its separate escrow.
+4. One Flat PoD or Frontier Work consumes at most one slot. One snapshot consumes at most one Frontier slot. A full Flat PoD closes immediately.
+5. A Ranked order is continuous, contains only eligible Works, and has no duplicate or rank beyond the payout vector. It contains `min(N,K)` Works.
+6. A selected input names exactly one accepted immutable revision in a completed prior Contract. A symbolic selector can name only an earlier Ranked, Frontier, or Duel stage. It cannot name Flat PoD.
+7. A suffix replan stores the next full Plan revision and a later exact author approval event. It cannot change completed or active PlanStage records or Contracts.
+8. A role generation has one frozen target set, Agent ID, GitHub account, duration, and funding source. Partial, late, or differently authored evidence cannot be complete.
+9. A stopped or completed Plan accepts no later Work, role result, payout, refund, or Release event.
+10. Triage Release exists only after successful Plan completion. A stopped, declined, or blocked Plan can create linked negative feedback instead.
+11. `next_action` is derived from projection and never appears as a lifecycle event. It identifies the Plan revision. Role and Work-control restrictions contain their exact IDs.
+12. A risk pause does not move deadlines. Only `body_integrity_pause` can add a one-time deadline offset.
+13. Only an exact active Triage or review role generation can publish a risk warning.
+14. Body pause and resume use the latest accepted current Issue revision. Resume evidence is later than the pause and matches the frozen body.
+15. Accepted Duel move numbers increase. A missing lower number identifies an expired empty slot, not a pending move. The first completer creates an author-decision deadline that can coexist with the last open move. A final accepted move with no completer stops the Duel immediately unless an open risk pause defers terminal settlement.
+16. The first Work event freezes exact account and control-group authorities. Shared control blocks selection and settlement until exact public disclosure confirmation.
+17. Each materialized Stage Contract has one deterministic Task. The Task closes as `completed` when the stage completes. The active Task closes as `stopped` when the Plan stops.
+18. A normalized validator uses an output whose SHA-256 hash equals the Work content hash. Tide runs the pinned validator before payment. Frontier also compares the output with configured prior art and paid Work.
+19. A terminal Plan has no active role and no available role escrow. A complete timely result requires an Agent0 decision first. A terminal transition rejects another active role and returns its role escrow to treasury.
+
+### Compatibility and storage boundary
+
+Schema `1.0` exists only inside the full `v0_8_0` closure. Ruleset `0.7`, executor `v0_7_0`, and schema `0.9` remain unchanged. There is no record conversion, public durable deserializer, live writer, bootstrap, or ledger migration in this delivery. Test and shadow state may be discarded and replayed.
+
+## Schema delta 0.9: Resolution Plan
+
+Эта delta заменяет несовместимые profile/ordinary-Contract/Infinite поля schema 0.8 для ruleset `0.7`.
+
+| Запись | Минимальные поля ruleset 0.7 |
+| --- | --- |
+| Draft Issue | repository ID, Issue ID/number, author Agent ID, GitHub account и exact active account binding/version, latest accepted body revision/text/hash, max total bank, event/effective time |
+| Triage Assessment | deterministic assignment/assessment/completion IDs, exact reviewer authority на assignment и assessment, Agent0 authority на assignment/completion, exact Draft revision/hash, three accepted source revisions/snapshots/hashes/times, risk/advice |
+| Plan Stage | stable stage key/index, depth, mode, mode parameters, allocation, expected output, ordered symbolic/resolved inputs |
+| Symbolic input | kind `selected_work_of`, earlier Ranked/Frontier/Duel source stage key; Flat PoD and raw future Work/revision отсутствуют |
+| Resolution Plan Revision | deterministic Plan ID, append-only revision number/ID, parent revision, proposer kind `triage/author`, proposer authority, exact Draft/Triage refs, ordered Stage records, full bank, canonical content hash, source revision/snapshot/hash/time |
+| Author Plan Decision | deterministic decision ID/key, exact Plan revision/hash, outcome, author authority, and accepted source revision/hash/time after the Plan source |
+| Runtime suffix approval | exact next Plan revision, proposal source, author `suffix_replan` event, approved revision ID/hash, and preserved completed/active prefix |
+| Program Escrow | deterministic `plan-escrow:<plan-id>` ID, author/payer, deposited/paid/refunded integer WEA, current status; `available = deposited - paid - refunded` |
+| Stage Contract | deterministic ID from Plan + stage key, Plan revision/hash, stage index/key, author/payer, depth/mode/config, allocation, exact resolved inputs, ruleset/interface/manifest triple |
+| Stage Task | deterministic ID from Stage Contract, current stage pointer, `active/paused/closed`, close result and last transition key |
+| Plan activation group | Plan, approval, one author debit, program escrow, exactly first Stage Contract and Task, one activation idempotency key |
+| Triage feedback chain | exact Draft → assessment/proposal → author amendment/decision → later execution/replan/outcome refs; semantic advice remains data, not a reject code |
+
+### Canonical identities
+
+- `plan_id = resolution-plan:<repository-id>:<issue-id>`;
+- `plan_revision_id = <plan-id>:revision:<positive-index>`;
+- `program_escrow_id = plan-escrow:<plan-id>`;
+- `stage_contract_id = <plan-id>:contract:<stage-key>`;
+- `stage_task_id = task:<stage-contract-id>`.
+
+Caller-chosen IDs for these records are rejected. Stage keys are unique, canonical lowercase identifiers inside a Plan. A symbolic selector names only an earlier Ranked, Frontier, or Duel stage key. It cannot name Flat PoD because that mode has no single selected Work. Future stage templates exist inside the approved Plan; their Contracts and Tasks do not exist before progression.
+
+Triage IDs выводятся из immutable repository/Issue/revision identity: assessment — из этих трёх полей, assignment и completion — из assessment ID. Reviewer binding обязан совпадать и быть действующим в моменты assignment и assessment; Agent0 binding — в моменты assignment и completion. Author decision ID и idempotency key выводятся из exact Plan revision + source revision и входят в normalized snapshot. Каждая authority-bearing intake boundary получает `ProtocolState` exact executor `0.7.0`; source revision должна присутствовать как latest accepted `GitHubEvent` под complete confirmed read boundary. Repository с unresolved read blocker не авторизует intake. Draft event payload точно содержит issue number, author Agent/binding version и max bank; более новый body или иная нормализация требует новой Triage/Plan chain. Child Plan revision обязана иметь canonical source order `(effective_at, source_comment_id, source_revision_id)` строго после parent; равные времена разрешаются только детерминированным tie-break.
+
+### Mode payloads
+
+| Mode | Required canonical payload |
+| --- | --- |
+| `ranked` | positive `winner_count`, same-length positive integer `payout_vector`, allocation equal to vector sum |
+| `flat_pod` | positive `slots`, same-length equal positive integer `payout_vector`, `additive = true`, allocation equal to vector sum |
+| `frontier` | `incentive = linear/fibonacci`, positive finite `payout_vector`, `snapshot_identity = model+genome+runtime`, allocation equal to vector sum |
+| `duel` | exactly two non-empty positions, three rounds, accepted integer outcome vectors whose payout + refund equals allocation |
+
+Unknown fields, old `profile`, `direct-pr`, `spec-only`, `full-build`, `infinite`, unbounded slot counts and boolean-as-integer money are rejected by the versioned rules validator.
+
+### Resolution Plan money invariants
+
+1. До approval отсутствуют task debit, program escrow, Plan, child Contract и Task.
+2. При approval `author debit = plan bank = sum(stage allocations) = program escrow deposited`.
+3. Один Plan имеет ровно один payer, один program escrow и не более одной accepted activation group.
+4. Activation materializes exactly stage index 0; Contracts/Tasks остальных templates отсутствуют.
+5. Child Contract allocation является earmark program escrow и не создаёт новый author debit или второй escrow.
+6. Plan/escrow/debit/first Contract/first Task существуют вместе либо отсутствуют вместе.
+7. Каждый evidence ID и idempotency key глобально одноразовый; identical replay возвращает тот же state, conflicting reuse отклоняется.
+8. `treasury`, `task-escrow:`, `triage-escrow:` и `plan-escrow:` зарезервированы вне Agent principal namespace.
+9. Каждый activation debit хранит `prior_financial_hash`. Aggregate упорядочивает activation groups по `(effective_at, transition_id)`, снимает их в обратном порядке, возвращает debit в payer balance и на каждом шаге требует точный predecessor hash. Это поддерживает несколько последовательных Plans и отклоняет восстановление уже списанного balance. Публичного durable activated-state deserializer в Block 4 нет; authenticated replay остаётся отдельным downstream boundary.
+
+### История и совместимость
+
+Schema 0.9 добавляется только в `v0_7_0`; schema 0.8 ниже остаётся точным описанием `v0_6_3`. Никакая migration старого ordinary Contract в Plan не выполняется. До live bootstrap новые records существуют только в чистых tests/shadow values.
+
+## Historical baseline schema 0.8
 
 ## Что нужно хранить
 

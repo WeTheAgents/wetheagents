@@ -1,6 +1,18 @@
 # WEA v1 → vNext: границы миграции
 
-Статус: `migration 0.8` задаёт правила сохранности для блока 9 плана реализации и operator-attested восстановление исторического Hello World по `spec 0.7`. Переключение не одобрено и сейчас не выполняется. `[CHAT][DERIVED]`
+Статус: `migration 0.9` согласована со Spec `0.9` и design `1.0`. Она разрешает только inactive shadow executor `v0_8_0`. Переключение, bootstrap и live writes не одобрены и сейчас не выполняются. `[CHAT][DERIVED]`
+
+## Delta migration 0.9
+
+- Install ruleset `0.8` and executor `v0_8_0` beside every immutable historical closure.
+- Use `resolution_plan.py` only as a pre-live, pure in-memory proving facade.
+- Do not convert an existing v1 task, ordinary Contract, ruleset `0.7` Plan, ledger row, escrow, Work, or role record.
+- Do not write `ledger/`, GitHub Issues/comments/labels, migration state, bootstrap state, or a live executor selector.
+- Before bootstrap, recovery is discard-and-replay of shadow state from exact activation evidence and lifecycle events.
+- After a future live Contract pins `v0_8_0`, recovery is append-only repair or a new executor. Editing `v0_8_0` is forbidden.
+- A future live gate must re-run the complete v1 writer inventory, unfinished-task reconciliation, current financial snapshot, dual confirmation, epoch lock, compare-and-swap, and delayed-old-writer rejection below.
+
+This delivery changes no migration accounting. The historical `19025 WEA` checkpoint remains audit evidence only; it is not copied into new runtime state.
 
 ## Проверенная исходная точка
 

@@ -24,11 +24,12 @@ from markdown_it import MarkdownIt
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "WEA_vNext_REVIEW.html"
-BASE_SHA = "940c230"
-PACKAGE_REVISION = "0.7"
-DESIGN_REVISION = "0.8"
-DELTA_REVISION = "0.7"
-TASKS_REVISION = "1.0"
+BASE_SHA = "252c6ca"
+PACKAGE_REVISION = "0.9"
+DESIGN_REVISION = "1.0"
+MIGRATION_REVISION = "0.9"
+DELTA_REVISION = "0.9"
+TASKS_REVISION = "1.2"
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,12 @@ DOCUMENTS = (
     Document("design", "design.md", "Как это устроить", "Техническое решение"),
     Document("outcome", "outcome.md", "Что строим", "Коротко"),
     Document("spec", "spec.md", "Утверждённое поведение", "Сценарии"),
+    Document(
+        "bdd-contract-rewrite",
+        "bdd-contract-rewrite.md",
+        "Решения BDD",
+        "Журнал принятых различий",
+    ),
     Document("schema", "schema.md", "Записи и инварианты", "Техническое приложение"),
     Document("migration", "migration.md", "Миграция", "Техническое приложение"),
     Document("delta", "delta.md", "Что меняется", "Техническое приложение"),
@@ -53,11 +60,13 @@ DOCUMENTS = (
     Document("verification", "verification.md", "Проверка", "Техническое приложение"),
 )
 
-SUPPORTING_SOURCES = (
-    ROOT / "sources" / "WEA_RESTART_HANDOFF_2026-07-14.md",
+SUPPORTING_SOURCES = (ROOT / "sources" / "WEA_RESTART_HANDOFF_2026-07-14.md",)
+SOURCE_SNAPSHOT_SHA256 = (
+    "4ECEC24E8CAE4F915825E1536A346E4C6462FAC94A79EE5659C7D96B75322F14"
 )
-SOURCE_SNAPSHOT_SHA256 = "4ECEC24E8CAE4F915825E1536A346E4C6462FAC94A79EE5659C7D96B75322F14"
-SOURCE_ORIGINAL_SHA256 = "6D39F389D763D09BE0D7BAFAF0E9A7B92C26270FE3A50A580BD755171A930416"
+SOURCE_ORIGINAL_SHA256 = (
+    "6D39F389D763D09BE0D7BAFAF0E9A7B92C26270FE3A50A580BD755171A930416"
+)
 
 MARKDOWN = (
     MarkdownIt("commonmark", {"html": False, "linkify": False, "typographer": False})
@@ -92,9 +101,9 @@ CURRENT_DECISION_IDS = set(
 )
 
 VERSION_MARKERS = {
-    "HANDOFF.md": (r"Техническая модель: `design ([^`]+)`", DESIGN_REVISION),
+    "HANDOFF.md": (r"[Dd]esign/schema `([^`]+)`", DESIGN_REVISION),
     "open-decisions.md": (r"Статус кандидата `([^`]+)`", PACKAGE_REVISION),
-    "outcome.md": (r"Кандидат `([^`]+)` закрепляет", PACKAGE_REVISION),
+    "outcome.md": (r"Outcome `([^`]+)` сохраняет", PACKAGE_REVISION),
     "spec.md": (
         r"# WEA vNext: поведение кандидата ([0-9.]+)",
         PACKAGE_REVISION,
@@ -102,13 +111,18 @@ VERSION_MARKERS = {
     "design.md": (r"Статус: `design ([^`]+)`", DESIGN_REVISION),
     "tasks.md": (r"`tasks ([^`]+)`", TASKS_REVISION),
     "schema.md": (r"Статус: `schema ([^`]+)`", DESIGN_REVISION),
-    "migration.md": (r"Статус: `migration ([^`]+)`", DESIGN_REVISION),
+    "migration.md": (r"Статус: `migration ([^`]+)`", MIGRATION_REVISION),
     "delta.md": (r"Статус: `delta ([^`]+)`", DELTA_REVISION),
     "verification.md": (
         r"# WEA vNext: проверка пакета поведения ([0-9.]+)",
         PACKAGE_REVISION,
     ),
 }
+
+
+def current_decision(verification: str) -> str:
+    match = re.search(r"^Decision: `([^`]+)`\.$", verification, re.MULTILINE)
+    return match.group(1) if match else ""
 
 
 def validate_package_contract() -> None:
@@ -121,19 +135,90 @@ def validate_package_contract() -> None:
         if not match:
             errors.append(f"{filename}: version marker is missing")
         elif match.group(1) != expected:
-            errors.append(
-                f"{filename}: version {match.group(1)!r} != {expected!r}"
-            )
+            errors.append(f"{filename}: version {match.group(1)!r} != {expected!r}")
 
     verification = texts.get("verification.md", "")
     decisions = texts.get("open-decisions.md", "")
     tasks = texts.get("tasks.md", "")
     handoff = texts.get("HANDOFF.md", "")
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
-    block_three_complete = "Ready for Block 4" in verification
+    decision = current_decision(verification)
+    spec_implementation_review_pending = (
+        decision == "Implementation verified — independent PR review pending"
+    )
+    spec_implementation_review_clean = (
+        decision == "Implementation verified — independent PR review clean"
+    )
+    spec_reconciliation_complete = decision == "Ready after Spec 0.9 reconciliation"
+    spec_reconciliation_pending = (
+        decision == "Not ready — Spec 0.9 reconciliation pending"
+    )
+    bdd_rewrite_pending = decision == "Not ready — BDD rewrite pending"
+    block_four_complete = decision == "Ready after Block 4"
+    block_four_implemented = (
+        spec_implementation_review_pending
+        or spec_implementation_review_clean
+        or spec_reconciliation_complete
+        or spec_reconciliation_pending
+        or bdd_rewrite_pending
+        or block_four_complete
+    )
+    block_three_complete = block_four_implemented or "Ready for Block 4" in verification
     block_two_complete = block_three_complete or "Ready for Block 3" in verification
     block_one_complete = block_two_complete or "Ready for Block 2" in verification
-    if block_three_complete:
+    if spec_implementation_review_pending:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
+            errors.append("tasks.md: Spec 0.9 completion marker is missing")
+        if "Spec 0.9 review pending" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 review status is missing")
+        if "BDD alignment: 100%" not in verification:
+            errors.append("verification.md: exact BDD alignment is missing")
+    elif spec_implementation_review_clean:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
+            errors.append("tasks.md: Spec 0.9 completion marker is missing")
+        if "Spec 0.9 review-clean" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 review status is missing")
+        if "BDD alignment: 100%" not in verification:
+            errors.append("verification.md: exact BDD alignment is missing")
+    elif spec_reconciliation_complete:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
+            errors.append("tasks.md: Spec 0.9 completion marker is missing")
+        if "Ready after Spec 0.9 reconciliation" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 handoff status is missing")
+        if "BDD alignment: 100%" not in verification:
+            errors.append("verification.md: exact BDD alignment is missing")
+    elif spec_reconciliation_pending:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "stale после Spec 0.9" not in tasks:
+            errors.append("tasks.md: Spec 0.9 stale marker is missing")
+        if "Spec 0.9 reconciliation pending" not in handoff:
+            errors.append("HANDOFF.md: Spec 0.9 reconciliation status is missing")
+        if "stale design/tasks/runtime/tests" not in decisions:
+            errors.append("open-decisions.md: reconciliation blocker is missing")
+    elif bdd_rewrite_pending:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "блоки 1–4 реализованы и проверены" not in tasks:
+            errors.append("tasks.md: Block 4 completion marker is missing")
+        if "BDD rewrite pending after Block 4" not in handoff:
+            errors.append("HANDOFF.md: BDD rewrite handoff status is missing")
+        if "BDD rewrite теперь блокирует" not in decisions:
+            errors.append("open-decisions.md: BDD blocker status is missing")
+    elif block_four_complete:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if "блоки 1–4 реализованы и проверены" not in tasks:
+            errors.append("tasks.md: Block 4 completion marker is missing")
+        if "Ready after Block 4" not in handoff:
+            errors.append("HANDOFF.md: post-Block-4 handoff status is missing")
+    elif block_three_complete:
         if "Not live" not in verification:
             errors.append("verification.md: live-runtime boundary is missing")
         if "блоки 1–3 реализованы и проверены" not in tasks:
@@ -157,13 +242,25 @@ def validate_package_contract() -> None:
             errors.append("verification.md: runtime status marker is missing")
     if "Статус свежих команд: `Complete`" not in verification:
         errors.append("verification.md: fresh-command evidence is incomplete")
-    expected_review = "`CLEAN`" if block_one_complete else "`Complete`"
-    if f"Статус независимой проверки: {expected_review}" not in verification:
-        errors.append("verification.md: independent review is incomplete")
+    if spec_implementation_review_pending:
+        if "Статус независимой проверки: `Pending`" not in verification:
+            errors.append("verification.md: pending review status is missing")
+    elif spec_implementation_review_clean:
+        if "Статус независимой проверки: `CLEAN`" not in verification:
+            errors.append("verification.md: clean review status is missing")
+    elif spec_reconciliation_pending:
+        if "Статус независимой проверки Spec 0.9:" not in verification:
+            errors.append("verification.md: Spec 0.9 review status is missing")
+    else:
+        expected_review = "`CLEAN`" if block_one_complete else "`Complete`"
+        if f"Статус независимой проверки: {expected_review}" not in verification:
+            errors.append("verification.md: independent review is incomplete")
     if re.search(r"записываются после|выполняется после сборки", verification):
         errors.append("verification.md: contains a future evidence placeholder")
-    if "блокирующих решений нет" not in decisions:
-        errors.append("open-decisions.md: blocking-decision status disagrees with readiness")
+    if not bdd_rewrite_pending and "блокирующих решений нет" not in decisions:
+        errors.append(
+            "open-decisions.md: blocking-decision status disagrees with readiness"
+        )
     if not block_two_complete and block_one_complete:
         if "блок 1 `tasks 1.0` реализован" not in tasks:
             errors.append("tasks.md: Block 1 completion marker is missing")
@@ -188,7 +285,9 @@ def validate_package_contract() -> None:
     for decision_id in ("OD-24", "OD-25", "OD-26", "OD-27"):
         if decision_id not in evidence:
             errors.append(f"evidence.md: missing approved resolution {decision_id}")
-    snapshot_hash = hashlib.sha256(SUPPORTING_SOURCES[0].read_bytes()).hexdigest().upper()
+    snapshot_hash = (
+        hashlib.sha256(SUPPORTING_SOURCES[0].read_bytes()).hexdigest().upper()
+    )
     if snapshot_hash != SOURCE_SNAPSHOT_SHA256:
         errors.append(
             "source handoff snapshot hash differs: "
@@ -257,7 +356,19 @@ def decorate_source_tags(soup: BeautifulSoup) -> None:
 
 
 def autolink_decisions(soup: BeautifulSoup) -> None:
-    ignored = {"a", "code", "pre", "textarea", "button", "h1", "h2", "h3", "h4", "h5", "h6"}
+    ignored = {
+        "a",
+        "code",
+        "pre",
+        "textarea",
+        "button",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+    }
     for text_node in list(soup.find_all(string=OD_PATTERN)):
         if not isinstance(text_node, NavigableString):
             continue
@@ -291,7 +402,9 @@ def render_markdown(path: Path) -> BeautifulSoup:
     return soup
 
 
-def assign_heading_ids(soup: BeautifulSoup, document_slug: str) -> list[dict[str, str | int]]:
+def assign_heading_ids(
+    soup: BeautifulSoup, document_slug: str
+) -> list[dict[str, str | int]]:
     entries: list[dict[str, str | int]] = []
     used: set[str] = set()
     counters: dict[str, int] = {}
@@ -353,7 +466,10 @@ def extract_decisions() -> tuple[str, list[dict[str, str]], str, dict[str, int]]
     for group_heading in soup.find_all("h2"):
         group = group_heading.get_text(" ", strip=True)
         normalized_group = group.casefold()
-        if "до реализации" in normalized_group or "требует внимания" in normalized_group:
+        if (
+            "до реализации" in normalized_group
+            or "требует внимания" in normalized_group
+        ):
             group_key = "core"
         elif "позже" in normalized_group or "отлож" in normalized_group:
             group_key = "late"
@@ -366,7 +482,8 @@ def extract_decisions() -> tuple[str, list[dict[str, str]], str, dict[str, int]]
             cells = row.find_all("td", recursive=False)
             if len(cells) != 4:
                 raise RuntimeError(
-                    "Decision table row must have four cells: " + row.get_text(" ", strip=True)
+                    "Decision table row must have four cells: "
+                    + row.get_text(" ", strip=True)
                 )
             decision_id = cells[0].get_text(" ", strip=True)
             if not re.fullmatch(r"OD-\d{2}", decision_id):
@@ -410,37 +527,37 @@ def decision_card(decision: dict[str, str]) -> str:
     )
     basis_label = "Источник" if decision["group_key"] == "late" else "Основание"
     return f"""
-    <article class="decision-card" id="decision-od-{decision['number']}"
-      data-decision-id="{decision['id']}" data-group="{decision['group_key']}"
+    <article class="decision-card" id="decision-od-{decision["number"]}"
+      data-decision-id="{decision["id"]}" data-group="{decision["group_key"]}"
       data-decision-fingerprint="{fingerprint}"
-      data-title="{html.escape(decision['question_text'], quote=True)}"
+      data-title="{html.escape(decision["question_text"], quote=True)}"
       data-search="{html.escape(search_text.lower(), quote=True)}"
       data-decision-status="{initial_status}" tabindex="-1">
       <header class="decision-card-header">
-        <span class="decision-id">{decision['id']}</span>
-        <span class="decision-group">{html.escape(decision['group'])}</span>
-        <h4>{decision['question']}</h4>
+        <span class="decision-id">{decision["id"]}</span>
+        <span class="decision-group">{html.escape(decision["group"])}</span>
+        <h4>{decision["question"]}</h4>
       </header>
       <div class="decision-copy">
         <div class="decision-recommendation">
           <p class="field-label">{recommendation_label}</p>
-          <div class="copy-source">{decision['recommendation']}</div>
+          <div class="copy-source">{decision["recommendation"]}</div>
         </div>
         <div class="decision-basis">
           <p class="field-label">{basis_label}</p>
-          <div class="copy-source">{decision['basis']}</div>
+          <div class="copy-source">{decision["basis"]}</div>
         </div>
       </div>
       <div class="decision-review">
-        <div class="decision-actions" role="group" aria-label="Решение по {decision['id']}">
+        <div class="decision-actions" role="group" aria-label="Решение по {decision["id"]}">
           <button type="button" data-set-status="accept" aria-pressed="false">Принять</button>
           <button type="button" data-set-status="change" aria-pressed="false">Изменить</button>
           <button type="button" data-set-status="defer" aria-pressed="false">Отложить</button>
         </div>
         <details class="decision-note">
           <summary>Комментарий оператора</summary>
-          <label class="sr-only" for="note-{decision['number']}">Комментарий к {decision['id']}</label>
-          <textarea id="note-{decision['number']}" rows="3"
+          <label class="sr-only" for="note-{decision["number"]}">Комментарий к {decision["id"]}</label>
+          <textarea id="note-{decision["number"]}" rows="3"
             placeholder="Что изменить, уточнить или проверить…"></textarea>
         </details>
         <p class="decision-print-state">Статус: {"отложено" if initial_status == "defer" else "не решено"}</p>
@@ -473,9 +590,9 @@ def render_decision_section() -> tuple[
     for group_key, group_title, members in groups:
         cards.append(
             f'<section class="decision-group-section" id="decisions-{group_key}">'
-            f'<h3>{html.escape(group_title)}</h3>'
+            f"<h3>{html.escape(group_title)}</h3>"
             f'<p class="group-count">{len(members)} '
-            f'{russian_plural(len(members), "решение", "решения", "решений")}</p>'
+            f"{russian_plural(len(members), 'решение', 'решения', 'решений')}</p>"
             + "".join(decision_card(item) for item in members)
             + "</section>"
         )
@@ -491,7 +608,7 @@ def render_decision_section() -> tuple[
     )
     next_button = (
         '<button type="button" class="button-secondary" id="next-unresolved">'
-        'Следующее нерешённое</button>'
+        "Следующее нерешённое</button>"
         if group_counts["core"]
         else ""
     )
@@ -540,7 +657,9 @@ def render_decision_section() -> tuple[
     return section, headings, title, group_counts
 
 
-def nav_document(document: Document, title: str, headings: list[dict[str, str | int]]) -> str:
+def nav_document(
+    document: Document, title: str, headings: list[dict[str, str | int]]
+) -> str:
     items = []
     for heading in headings:
         if int(heading["level"]) > 3:
@@ -549,7 +668,7 @@ def nav_document(document: Document, title: str, headings: list[dict[str, str | 
         items.append(
             f'<li class="{css_class}"><a href="#{heading["id"]}" '
             f'data-nav-text="{html.escape(str(heading["title"]).lower(), quote=True)}">'
-            f'{html.escape(str(heading["title"]))}</a></li>'
+            f"{html.escape(str(heading['title']))}</a></li>"
         )
     details_open = " open" if document.slug in {"handoff", "decisions"} else ""
     nav_title = document.nav_title or title
@@ -567,11 +686,34 @@ def nav_document(document: Document, title: str, headings: list[dict[str, str | 
 
 def build() -> None:
     validate_package_contract()
-    verification_text = (
-        ROOT / "verification.md"
-    ).read_text(encoding="utf-8")
-    block_three_complete = "Ready for Block 4" in verification_text
-    block_two_complete = block_three_complete or "Ready for Block 3" in verification_text
+    verification_text = (ROOT / "verification.md").read_text(encoding="utf-8")
+    decision = current_decision(verification_text)
+    spec_implementation_review_pending = (
+        decision == "Implementation verified — independent PR review pending"
+    )
+    spec_implementation_review_clean = (
+        decision == "Implementation verified — independent PR review clean"
+    )
+    spec_reconciliation_complete = decision == "Ready after Spec 0.9 reconciliation"
+    spec_reconciliation_pending = (
+        decision == "Not ready — Spec 0.9 reconciliation pending"
+    )
+    bdd_rewrite_pending = decision == "Not ready — BDD rewrite pending"
+    block_four_complete = decision == "Ready after Block 4"
+    block_four_implemented = (
+        spec_implementation_review_pending
+        or spec_implementation_review_clean
+        or spec_reconciliation_complete
+        or spec_reconciliation_pending
+        or bdd_rewrite_pending
+        or block_four_complete
+    )
+    block_three_complete = (
+        block_four_implemented or "Ready for Block 4" in verification_text
+    )
+    block_two_complete = (
+        block_three_complete or "Ready for Block 3" in verification_text
+    )
     block_one_complete = block_two_complete or "Ready for Block 2" in verification_text
     source_digest, manifest_rows = source_manifest()
     attention_sections: list[str] = []
@@ -592,7 +734,32 @@ def build() -> None:
         nav_sections.append(nav_document(document, title, headings))
 
     decision_count = sum(decision_counts.values())
-    if decision_counts["core"]:
+    if spec_implementation_review_pending:
+        decision_guide = (
+            "Все решения текущего reference runtime приняты и локально доказаны. "
+            "Остаётся независимая проверка опубликованного PR."
+        )
+    elif spec_implementation_review_clean:
+        decision_guide = (
+            "Все решения reference runtime приняты и независимо проверены. "
+            "Отложенные вопросы относятся только к будущей live-активации."
+        )
+    elif spec_reconciliation_complete:
+        decision_guide = (
+            "Все решения текущего reference runtime приняты и доказаны. "
+            "Отложенные вопросы относятся только к будущей live-активации."
+        )
+    elif spec_reconciliation_pending:
+        decision_guide = (
+            "Все BDD-решения приняты. Журнал различий сохранён для traceability. "
+            "Следующий шаг — design reconciliation, затем новый tasks contract."
+        )
+    elif bdd_rewrite_pending:
+        decision_guide = (
+            "Текущий blocker находится в таблице BDD: принимайте или изменяйте "
+            "сценарии построчно; отложенные OD показаны только для контекста."
+        )
+    elif decision_counts["core"]:
         decision_guide = (
             "Кнопки решений сохраняют выбор только в хранилище этого браузера. "
             "Для обсуждения скачайте или скопируйте решения в формате Markdown."
@@ -603,7 +770,70 @@ def build() -> None:
             "План и handoff готовы для следующего ограниченного блока."
         )
 
-    if decision_counts["core"]:
+    if spec_implementation_review_pending:
+        hero_kicker = "Spec 0.9 · implementation verified"
+        hero_lead = (
+            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
+            "Пакет ожидает независимую проверку PR. "
+            "live Tide, ledger, migration, bootstrap и GitHub writers не подключены."
+        )
+        package_status = "Spec 0.9 verified · PR review pending · Not live"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть review handoff"
+        core_status_label = "Расхождений BDD"
+        core_status_count = "0"
+    elif spec_implementation_review_clean:
+        hero_kicker = "Spec 0.9 · independent review clean"
+        hero_lead = (
+            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
+            "Независимый review не нашёл "
+            "actionable defects. Live-системы не подключены."
+        )
+        package_status = "Spec 0.9 verified · PR review clean · Not live"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть review-clean handoff"
+        core_status_label = "Расхождений BDD"
+        core_status_count = "0"
+    elif spec_reconciliation_complete:
+        hero_kicker = "Spec 0.9 · reference runtime verified"
+        hero_lead = (
+            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
+            "Live Tide, ledger, migration, "
+            "bootstrap и GitHub writers не подключены."
+        )
+        package_status = "Spec 0.9 verified · Not live"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть verified handoff"
+        core_status_label = "Расхождений BDD"
+        core_status_count = "0"
+    elif spec_reconciliation_pending:
+        hero_kicker = "Spec 0.9 принят · reconciliation pending"
+        hero_lead = (
+            "Оператор принял 24 переписанных и два новых BDD-сценария. "
+            "Design, tasks, ruleset 0.7, runtime и tests ещё описывают Spec 0.8. "
+            "Пакет остаётся Not ready до отдельного согласования и реализации."
+        )
+        package_status = "Not ready · Spec 0.9 reconciliation pending"
+        primary_href = "#doc-spec"
+        primary_label = "Открыть Spec 0.9"
+        core_status_label = "Открытых BDD-решений"
+        core_status_count = "0"
+    elif bdd_rewrite_pending:
+        hero_kicker = "BDD-контракт · построчная проверка"
+        hero_lead = (
+            "Block 4 code slice проверен, но новая матрица изменила смысл 24 старых "
+            "сценариев и требует двух новых. До вашего построчного решения пакет "
+            "не считается согласованным и дальнейшая реализация остановлена."
+        )
+        package_status = "Not ready · BDD rewrite pending"
+        primary_href = "#doc-bdd-contract-rewrite"
+        primary_label = "Открыть таблицу BDD"
+        core_status_label = "BDD-строк к решению"
+        core_status_count = "26"
+    elif decision_counts["core"]:
         hero_kicker = "Кандидат · построчная проверка"
         hero_lead = (
             "Короткий пакет утверждённых правил, оставшихся вопросов и технических "
@@ -612,6 +842,20 @@ def build() -> None:
         package_status = "Ожидает полной вычитки"
         primary_href = "#doc-decisions"
         primary_label = "Решить открытые вопросы"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
+    elif block_four_complete:
+        hero_kicker = "Кандидат · блоки 1–4 проверены"
+        hero_lead = (
+            "Author-approved Resolution Plan и атомарная активация первого child "
+            "Contract реализованы в отдельной immutable closure 0.7. Live Tide, "
+            "ledger и GitHub не подключены; следующие execution slices ещё не начаты."
+        )
+        package_status = "Block 4 закрыт; vNext не подключена"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть post-Block-4 handoff"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     elif block_three_complete:
         hero_kicker = "Кандидат · блоки 1–3 проверены"
         hero_lead = (
@@ -622,6 +866,8 @@ def build() -> None:
         package_status = "Блок 3 закрыт; vNext не подключена"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff блока 4"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     elif block_two_complete:
         hero_kicker = "Кандидат · блоки 1–2 проверены"
         hero_lead = (
@@ -632,6 +878,8 @@ def build() -> None:
         package_status = "Блок 2 закрыт; vNext не подключена"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff блока 3"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     elif block_one_complete:
         hero_kicker = "Кандидат · блок 1 проверен"
         hero_lead = (
@@ -641,6 +889,8 @@ def build() -> None:
         package_status = "Блок 1 готов; vNext не подключена"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff блока 2"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
     else:
         hero_kicker = "Кандидат · план реализации"
         hero_lead = (
@@ -650,6 +900,8 @@ def build() -> None:
         package_status = "План готов; код не начат"
         primary_href = "#doc-handoff"
         primary_label = "Открыть handoff"
+        core_status_label = "Блокирующих решений"
+        core_status_count = str(decision_counts["core"])
 
     manifest_html = "".join(
         "<tr><td><code>"
@@ -1030,6 +1282,25 @@ def build() -> None:
       line-height: 1.68;
       overflow-wrap: anywhere;
     }
+    #doc-bdd-contract-rewrite .markdown-body { max-width: none; }
+    #doc-bdd-contract-rewrite table {
+      table-layout: fixed;
+      font-size: 12px;
+    }
+    #doc-bdd-contract-rewrite th:first-child,
+    #doc-bdd-contract-rewrite td:first-child {
+      width: 7%;
+      white-space: nowrap;
+      overflow-wrap: normal;
+    }
+    #doc-bdd-contract-rewrite th:nth-child(2),
+    #doc-bdd-contract-rewrite td:nth-child(2) { width: 14%; }
+    #doc-bdd-contract-rewrite th:nth-child(3),
+    #doc-bdd-contract-rewrite td:nth-child(3) { width: 21%; }
+    #doc-bdd-contract-rewrite th:nth-child(4),
+    #doc-bdd-contract-rewrite td:nth-child(4) { width: 25%; }
+    #doc-bdd-contract-rewrite th:nth-child(5),
+    #doc-bdd-contract-rewrite td:nth-child(5) { width: 33%; }
     .markdown-body > p,
     .markdown-body > ul,
     .markdown-body > ol,
@@ -1414,7 +1685,7 @@ def build() -> None:
         <p class="hero-lead">__HERO_LEAD__</p>
         <div class="hero-status" aria-label="Статус пакета">
           <span class="status-pill">__PACKAGE_STATUS__</span>
-          <span class="status-pill">Блокирующих решений: __CORE_DECISION_COUNT__</span>
+          <span class="status-pill">__CORE_STATUS_LABEL__: __CORE_DECISION_COUNT__</span>
           <span class="status-pill">Отложено: __LATE_DECISION_COUNT__</span>
           <span class="status-pill">Кандидат __REVISION__</span>
         </div>
@@ -1762,9 +2033,10 @@ def build() -> None:
         .replace("__HERO_KICKER__", hero_kicker)
         .replace("__HERO_LEAD__", hero_lead)
         .replace("__PACKAGE_STATUS__", package_status)
+        .replace("__CORE_STATUS_LABEL__", core_status_label)
         .replace("__PRIMARY_HREF__", primary_href)
         .replace("__PRIMARY_LABEL__", primary_label)
-        .replace("__CORE_DECISION_COUNT__", str(decision_counts["core"]))
+        .replace("__CORE_DECISION_COUNT__", core_status_count)
         .replace("__LATE_DECISION_COUNT__", str(decision_counts["late"]))
         .replace("__DECISION_GUIDE__", decision_guide)
         .replace("__NAV__", "".join(nav_sections))

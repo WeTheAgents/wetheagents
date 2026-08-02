@@ -1,15 +1,109 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.0`: блоки 1–3 реализованы и проверены по `outcome 0.7`, `spec 0.7` и `design 0.8`. Текущий `v0_6_3` добавляет только неактивные Draft, Triage и ordinary Contract semantics; System Hello World остаётся fail closed. Block 4 — следующий ограниченный этап; live adapter, ledger-write, миграция и bootstrap не разрешены. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.2`: **implemented / review clean**. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Passes 31 and 32 found and fixed the two sides of the S-13 Flat PoD birdie next-action gap. Pass 33 found no actionable defect and was clean. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
-- Каждый блок ниже становится отдельной задачей и отдельным PR. Следующий блок начинается после проверки предыдущего. `[DERIVED]`
+- Historical blocks below were separate tasks. The current Spec `0.9` delivery is one behavior-complete task and one PR with five internal verification groups. `[DERIVED]`
 - На 2026-07-27 оператор поставил проект на паузу: v1 Tide и Agent0 loop не работают. Это разрешает заранее удалить публичный общий `claim`, уже отсутствующий в vNext, но не разрешает ledger-write, миграцию, bootstrap или live-подключение vNext. `[CHAT][DERIVED][CHECK]`
 - Общая логика живёт в `src/wea_vnext/`. CLI и Tide используют её как библиотеку и не держат собственные копии правил или расчётов. `[CODE@c703f5e][DERIVED]`
-- Правила `0.6` неизменяемы. Каждый Contract хранит хеш канонического содержимого правил, версию интерфейса Tide и хеш манифеста исполнителя. Пока Contract ссылается на эту тройку, все три компонента остаются доступными. `[CHAT][DERIVED][REVIEW]`
+- Rulesets and executors `0.6.x` and `0.7/v0_7_0` are immutable. Spec `0.9` receives ruleset/Tide interface `0.8` and executor `v0_8_0`; every Contract keeps its exact runtime triple while replay can reference it. `[CHAT][DERIVED][REVIEW]`
 - Тесты называют BDD-сценарии из `spec.md` своими ID. Реестр сценариев не позволяет потерять или повторить ID. `[DERIVED]`
 - Изменение наблюдаемого поведения возвращает работу в `outcome.md` или `spec.md`. Реализация не закрывает OD-11, OD-14, OD-28 или OD-29 догадкой. `[CHAT][DERIVED][REVIEW]`
+
+## Current delivery: Spec 0.9 reconciliation
+
+**Outcome:** one manifest-pinned pure runtime can replay and prove all 67 current BDD scenarios without changing live GitHub, ledger, migration, or bootstrap state. S-11A, S-11B, and S-13C remain accepted-future and non-effective.
+
+**Authority:** Outcome/Spec `0.9`; design/schema `1.0`; delta/migration `0.9`. No open behavior decision exists.
+
+### Group A — successor closure, schedules, and exact approval
+
+- [x] Capture hashes for `rulesets/0.7.json` and every file in `executors/v0_7_0/` before edits.
+- [x] Add canonical `rulesets/0.8.json` with exact depth × mode rules, schedule shapes, acceptance authority, role funding, pause kinds, release gate, and no profiles/Infinite/hidden fee.
+- [x] Copy the complete closure to `executors/v0_8_0/`; update only successor version constants, rules validation, `StageSchedule`, `PlanStage`, `StageContract` deadlines, and manifest coverage.
+- [x] Re-pin `resolution_plan.py` to exact executor `0.8.0`; keep old facades and closures unchanged.
+- [x] Prove exact author/payer authority, strict Plan-to-decision source order, complete Plan/schedule binding, one debit, one escrow, first-child-only materialization, and replay atomicity.
+
+**Scenarios:** S-01C, S-02A, S-02C, S-02H, S-02I, S-05C, plus inherited S-56…S-59.
+
+**Files:** `rulesets/0.8.json`, `executors/v0_8_0/{rules,intake,manifest}.py/json`, `resolution_plan.py`, `test_current_bdd_{authority,plan_activation,plan_approval,plan_decision,plan_bank}.py`, packaging/runtime tests.
+
+**Checkpoint:** focused tests are green; historical hash comparison is exact; no live path references `0.8.0`.
+
+### Group B — Work and atomic mode settlement
+
+- [x] Add sealed append-only runtime state, exact accepted GitHub sources, canonical replay, derived financial/stage projection, and deterministic Work/revision identity.
+- [x] Implement Flat PoD acceptance with hash-bound pinned-validator replay or author fallback, one equal slot per Work, atomic payout, immediate slot-cap close, close/expiry refund, and failure rollback.
+- [x] Implement Ranked author order, continuous rank validation, underfill refund, atomic settlement, selected revision, decision deadline, and no-winner expiry.
+- [x] Implement Frontier snapshot uniqueness, hash-bound normalized output, pinned validator replay, configured and paid prior-art comparison, exact-revision `needs_author`, semantic Get-10 equivalence keys, immediate Linear/Fibonacci payout, close/expiry, and unused suffix refund.
+- [x] Implement Work scope and immutable cross-stage selected input records.
+- [x] Freeze author and participant authority on first Work. Require exact public common-control disclosure before selection or settlement in every mode.
+
+**Scenarios:** S-03B, S-03F, S-04A, S-06C, S-07A, S-07B, S-61…S-64, S-67, S-68, S-69, S-70.
+
+**Files:** `executors/v0_8_0/lifecycle.py`, `test_current_bdd_{work_scope,ranked_progression,mode_expiry,birdie,flat_pod,ranked_settlement}.py`, existing Frontier/progression tests.
+
+**Checkpoint:** every mode conserves program escrow and simulated payment failure leaves no acceptance, cursor, status, or money effect.
+
+### Group C — progression, pauses, roles, stop, and replan
+
+- [x] Materialize the next child Contract and its deterministic Task from one exact accepted revision without author debit or approval; close each completed or stopped Task with its exact result; reject Flat PoD as a selected source at Plan intake; pause later outcome ambiguity without money movement.
+- [x] Implement exact current Issue-revision evidence for `body_integrity_pause` and resume. Offset only deadlines that were open at pause start.
+- [x] Implement Agent0 `risk_pause` from one exact active Triage/review role generation. Reject stale, inactive, unassigned, and unrelated role warnings.
+- [x] Keep submissions open during `risk_pause`. Block stage decisions, keep deadlines running, preserve the pause on body resume, and require the author to resolve it.
+- [x] Permit only frozen pre-pause role evidence and resolution during `risk_pause`. Reject new role assignments and keep role settlement separate from stage settlement.
+- [x] Implement frozen role target sets, positive assignment-relative deadlines, generations, complete/timely evidence, late Agent0 resolution, `free/treasury` settlement, replacement races, and terminal closure of every active role escrow.
+- [x] Bind each role result and downstream blocker to the assigned generation's frozen Agent ID and GitHub account.
+- [x] Implement ordered stop: resolve a complete timely pre-boundary result first, ignore incomplete/later evidence, preserve legal settlements, refund unused escrow once, and close without a final reward.
+- [x] Store each suffix replan as the next full Triage Plan revision plus a later exact author approval. Bind future Contracts to that revision.
+
+**Scenarios:** S-02B, S-02J, S-04B, S-04D, S-05A, S-05D…S-05H, S-65, S-66, plus compatible pause/deadline scenarios.
+
+**Files:** `executors/v0_8_0/lifecycle.py`, `test_current_bdd_{plan_stop,body_pause,risk_pause,defect_replan,role_generations,role_timing,role_stop_order,post_stop,role_deadline}.py`.
+
+**Checkpoint:** replay is idempotent; deadlines move once; partial role evidence cannot block stop or create payment/Release.
+
+### Group D — Duel, eligibility, Release, feedback, and next action
+
+- [x] Implement two joins, six ordered move windows, increasing accepted move numbers, expired-slot skips, first-completer decision timing, immediate no-completer final-move stop, pause offsets, unchanged Duel payouts, and no Duel Release.
+- [x] Keep Implement participation open to every eligible Agent ID; selected Spec authors get no implicit privilege or duty.
+- [x] Create non-Triage Release invitations only from pinned completed Work/role outcomes. Gate Triage Release on successful whole-Plan completion.
+- [x] Store declined/stopped/downstream-blocked Triage outcome as linked negative feedback without Release.
+- [x] Expose pure `next_action` with exact Plan revision/stage/Contract/depth/mode/actor/role/Work-control/deadline context and prove zero writes.
+
+**Scenarios:** S-04C, S-08, S-08A…S-08G, S-10, S-13, plus compatible Release/projection scenarios.
+
+**Files:** `executors/v0_8_0/lifecycle.py`, `resolution_plan.py`, `test_current_bdd_{implement_eligibility,triage_release,next}.py`, existing Duel tests.
+
+**Checkpoint:** Duel timing/payouts match the inherited table; `next_action` is a pure projection; Triage gets no early Release.
+
+### Group E — exact registry, integration, and durable evidence
+
+- [x] Register exactly 67 current IDs: 41 compatible scenarios plus 26 changed or added scenarios. Register S-11A, S-11B, and S-13C as accepted-future. Keep historical references separate.
+- [x] Make registry tests parse the normative Spec `0.9` delta and inherited compatibility list without confusing historical duplicate headings.
+- [x] Update package data and manifest tests for ruleset `0.8` and `v0_8_0` while preserving all older wheel/replay cases.
+- [x] Run focused current-BDD tests, all `tests/vnext`, full repository tests, Ruff, Pyright, manifest/canonical checks, ledger schema/invariant checks, and phase-boundary checks.
+- [x] Perform the final independent `codex exec review`, lean cut, and regenerate `HANDOFF.md`, `verification.md`, and `WEA_vNext_REVIEW.html` from fresh evidence.
+
+**Checkpoint commands:**
+
+```powershell
+python -m pytest tests/vnext/test_current_bdd_*.py -q
+python -m pytest tests/vnext -q
+python -m pytest -q
+ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py
+pyright src/wea_vnext
+python scripts/check_invariant.py
+python scripts/check_ledger_schema.py
+python scripts/check_doc_sync.py
+python oled/changes/wea-vnext-recreation/build_review_html.py
+git diff --check
+```
+
+### Scope stop
+
+Do not add or change a live Tide/CLI writer, `ledger/vnext/`, GitHub Issue state, task funding, migration record, bootstrap, Domain/Access behavior, OD-11, OD-14, OD-28, or OD-29. A discovered need for any item stops implementation and returns to the operator.
 
 ## 1. Ядро протокола и воспроизводимое состояние
 
@@ -57,22 +151,42 @@
 **Сценарии:** S-02A, S-02C, S-02H, S-02I.
 **Проверка:** `python -m pytest tests/vnext/test_intake.py tests/vnext/test_contract_activation.py -q`. `[CHAT][DERIVED]`
 
-## 4. Первый полный путь `direct-pr`
+## 4. Resolution Plan intake и первый child Contract
 
-**Зависит от:** блока 3. Это первый сквозной срез обычной задачи.
+**Зависит от:** blocks 1–3 как immutable historical foundation; `outcome 0.8`, `spec 0.8`, `design 0.9`. **Статус:** complete; verified in the inactive `v0_7_0` boundary.
 
-- [ ] Разбирать только комментарии с заголовком `### Декларация WEA`; остальной текст считать обсуждением.
-- [ ] Читать все страницы `userContentEdits` у Issue и IssueComment. Недоступная или неполная история блокирует цикл; один `updatedAt` не заменяет ID ревизии.
-- [ ] Выводить future Hello World submission, Agent0 decision и common-control disclosure только из принятых `GitHubEvent` внутри confirmed boundary; проверять actor/object/revision/body/effective time и глобальную одноразовость evidence IDs. Исторический operator-attested v1 bundle не является fallback этого пути.
-- [ ] Создавать Work первым допустимым Deliverable. Следующие Deliverables сохраняют Work ID и получают следующую ревизию.
-- [ ] Добавить поколения назначения роли проверки, полный Review Deliverable, решение автора, Final, выплаты и возврат остатка. После `completed` новый verdict требует продолженного поколения с целями и сроком; вторую выплату из bank оно не создаёт.
-- [ ] Реализовать `wea submit <issue>` через общий валидатор и `wea next <issue>` как чтение подтверждённого состояния. CLI не пишет состояние сам.
-- [ ] Сохранять ledger-переход раньше GitHub-проекции. Комментарий, label и закрытие Issue повторяются по детерминированному projection ID без второй выплаты.
+- [x] До изменений записать hashes `v0_6_0…v0_6_3` и `rulesets/0.6.json`; после реализации доказать byte-for-byte отсутствие изменений.
+- [x] Сначала создать `test_resolution_plan_rules.py`, `test_resolution_plan_intake.py` и `test_resolution_plan_activation.py`; initial RED дал 20 ожидаемых failures из-за отсутствующего executor `0.7.0` после исправления test-package imports.
+- [x] Добавить канонический `rulesets/0.7.json` без profile aliases и Infinite. Проверить все разрешённые depth × mode строки и каждую независимо недопустимую форму S-59, exact finite payouts и formal reject taxonomy.
+- [x] Добавить полную immutable closure `v0_7_0` с пустым semantic-dependency map. Сохранить общие replay/Identity/manifest boundaries, зарезервировать `plan-escrow:` и заменить profile intake на exact `Draft → TriageAssessment → ResolutionPlanRevision → AuthorPlanDecision` chain.
+- [x] Поддержать initial Triage proposal, append-only author amendment, `approve/request_revision/decline` и semantic warning без veto. Все source revisions/hashes, authority snapshots, parent links и feedback evidence входят в canonical state.
+- [x] Реализовать atomic approval: один author debit полного bank, один program escrow, Plan и только first Stage Contract/Task. Future templates и symbolic selectors сохраняются, но future Contracts отсутствуют; replay identical, conflicting evidence, foreign subclass и post-validation mutation fail closed.
+- [x] Добавить явный facade `src/wea_vnext/resolution_plan.py`, закреплённый на `0.7.0`; старый `intake.py` facade остаётся на `0.6.3`. Обновить package/manifest tests без подключения CLI или live Tide.
+- [x] Запустить focused tests, весь `tests/vnext`, полный repository suite, Ruff, ledger schema/invariant checks и phase-boundary checks; записать фактические результаты только в `verification.md` через OLED Verify.
 
-**Сценарии:** S-01, S-01B, S-01C, S-03A, S-03B, S-03C, S-05A, S-05C, S-05D, S-05E, S-05F, S-05G, S-05H, S-06, S-06B, S-13, S-13B.
-**Проверка:** `python -m pytest tests/vnext/test_direct_pr_flow.py tests/vnext/test_cli.py tests/vnext/test_projection.py -q`. `[CHAT][DERIVED]`
+**Сценарии:** S-56, S-57, S-58, S-59. S-60…S-68 остаются принятым downstream контрактом, не обещанием Block 4.
 
-## 5. Общие механики, сроки и защита Contract
+**Focused proof:** `python -m pytest tests/vnext/test_resolution_plan_rules.py tests/vnext/test_resolution_plan_intake.py tests/vnext/test_resolution_plan_activation.py -q`.
+
+## Очередь после Block 4
+
+Это dependency map, а не разрешение расширять текущий PR:
+
+1. generic Stage execution для Ranked и Flat PoD, accepted GitHubEvent/Work revisions, underfill, deadlines, roles и settlement;
+2. Frontier execution, normalized validator/`needs_author`, snapshot uniqueness и новый Get 10 epoch;
+3. Explore/Duel execution;
+4. selector resolution, automatic next Contract, paused replan suffix и Release по Implement depth;
+5. Domain/Access, затем отдельный shadow/migration/bootstrap gate.
+
+The current Spec `0.9` delivery completes items 1–4. The next active block starts with a new Domain/Access cut. The archived Block 6 is not executable.
+
+Точные block numbers и cuts после Block 4 должны учитывать реальные размеры и найденные seams; их нельзя выводить из старых profiles.
+
+## Исторический roadmap tasks 1.0 — superseded после Block 4
+
+Следующие разделы сохраняют прежнюю декомпозицию для traceability, но не являются исполняемым планом Spec 0.8.
+
+### Archived 5. Общие механики, сроки и защита Contract
 
 **Зависит от:** блока 4.
 
@@ -86,7 +200,7 @@
 **Сценарии:** S-02B, S-02D, S-02E, S-02F, S-02G, S-02J, S-05B, S-06C, S-06D, S-07A, S-07B, S-07C.
 **Проверка:** `python -m pytest tests/vnext/test_mechanics.py tests/vnext/test_deadlines.py tests/vnext/test_pause.py tests/vnext/test_roles.py -q`. `[CHAT][DERIVED]`
 
-## 6. `full-build` и параллельные Work
+### Archived 6. `full-build` и параллельные Work
 
 **Зависит от:** блока 5.
 
@@ -99,7 +213,7 @@
 **Сценарии:** S-04A, S-04B, S-04C, S-04D, S-10.
 **Проверка:** `python -m pytest tests/vnext/test_full_build.py tests/vnext/test_release_lifecycle.py tests/vnext/test_cli_release.py -q`. `[CHAT][DERIVED][REVIEW]`
 
-## 7. Duel
+### Archived 7. Duel
 
 **Зависит от:** блоков 3 и 5.
 
@@ -110,7 +224,7 @@
 **Сценарии:** S-08A, S-08B, S-08C, S-08D, S-08, S-08E, S-08F, S-08G.
 **Проверка:** `python -m pytest tests/vnext/test_duel.py -q`. `[CHAT][DERIVED]`
 
-## 8. Domain, Access и служебные подтверждения
+### Archived 8. Domain, Access и служебные подтверждения
 
 **Зависит от:** блока 2. Можно вести параллельно с блоками 4–7 после стабилизации ядра.
 
@@ -123,7 +237,7 @@
 **Сценарии:** S-11A, S-11B, S-13C.
 **Проверка:** `python -m pytest tests/vnext/test_access.py tests/vnext/test_correction.py tests/vnext/test_replay_repair.py -q`. `[CHAT][DERIVED][REVIEW]`
 
-## 9. Теневой прогон, миграция и переключение
+### Archived 9. Теневой прогон, миграция и переключение
 
 **Зависит от:** блоков 1–8. Само переключение требует нового явного подтверждения оператора и Agent0. `[CHAT][DERIVED]`
 
@@ -141,7 +255,7 @@
 
 **Проверка:** `python -m pytest tests/vnext -q`, затем `python -m pytest -q`, `ruff check .`, `python scripts/check_invariant.py`, `python scripts/check_ledger_schema.py` и `python scripts/check_doc_sync.py`. Отдельные тесты доказывают одинаковый хеш прежнего исполнителя, восстановление после удаления `state/`, отказ каждого пути записи v1 после epoch, отказ запоздавшего процесса, пустую очередь при bootstrap и нефинансовое восстановление без изменения WEA. `[CODE@c703f5e][DERIVED][REVIEW]`
 
-## Покрытие требований
+## Историческое покрытие tasks 1.0
 
 | Требования Spec | Блоки и доказательство |
 | --- | --- |
@@ -159,8 +273,17 @@
 | R-12 | 8, 9: обучение, governance и синхронизация документации |
 | R-13 | 1, 4, 8, 9: Tide, проекция, ledger и коррекция |
 
-Все 55 BDD-сценариев имеют один основной блок. Табличные правила механик и payout проверяются в блоках 1 и 5, даже если у строки нет отдельного сценария. `[DERIVED]`
+Эта таблица описывает только superseded Spec 0.7. Current Spec 0.8 scenarios S-56…S-59 принадлежат Block 4; S-60…S-68 распределятся после его evidence по очереди выше. `[DERIVED]`
 
-## Граница следующей сессии
+## Resume handoff tasks 1.1
 
-Block 3 закрыт после adversarial review и повторной проверки. Следующая сессия начинает Block 4 отдельным worktree и PR от свежего `origin/main`: первый полный `direct-pr` path с accepted GitHubEvent revisions и confirmed boundary. `v0_6_0…v0_6_3` не меняются; новая closure по-прежнему fail closed для System Hello World. Никаких live-write, `scripts/tide_vnext.py`, `ledger/vnext/`, migration/bootstrap или переключения без отдельного gate. `[CHAT][DERIVED][CHECK][REVIEW]`
+| Lane/group | Status | Dependency or blocker | Exact next action | Proof/evidence gap |
+| --- | --- | --- | --- | --- |
+| Block 4 rules tests | complete | none | retain exact ruleset/manifest bytes | focused and vNext suites green |
+| Block 4 authority/feedback | complete | none | retain S-56/S-57 regressions | feedback chain and formal-only reject tests green |
+| Block 4 atomic activation | complete | none | retain S-58 one-debit group | atomic activation/idempotency tests green |
+| Historical isolation | complete | none | no action | old paths have no diff; runtime/packaging suite green |
+| Downstream execution | planned later | Block 4 evidence informs cut | retain queue without code in this branch | S-60…S-68 hooks absent |
+| Live/migration/bootstrap | blocked by explicit phase authority | separate operator + Agent0 gate | no action | intentionally absent |
+
+Immediate next action: use `oled-design` to reconcile design/schema/delta/migration with accepted Outcome/Spec `0.9`. Then use `oled-tasks` before any code or test change. Ruleset `0.7` and executors `v0_6_0…v0_7_0` remain immutable. No live writer, `scripts/tide_vnext.py`, `ledger/vnext/`, migration, bootstrap, Issue activation, or WEA funding is authorized. `[CHAT][DERIVED][CHECK]`

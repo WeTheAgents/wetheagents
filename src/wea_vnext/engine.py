@@ -9,6 +9,7 @@ import json
 import re
 import sys
 import threading
+import weakref
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from importlib import abc as importlib_abc
@@ -67,31 +68,114 @@ class _LoadedExecutor:
     modules: Mapping[str, ModuleType]
 
 
+def _verified_call_registry() -> tuple[Any, Any]:
+    """Keep authority-bearing calls outside the exported wrapper object."""
+    records: dict[
+        int,
+        tuple[
+            weakref.ReferenceType[Any],
+            RuntimeReference,
+            Mapping[str, Any],
+        ],
+    ] = {}
+    lock = threading.RLock()
+
+    def remember(
+        owner: Any,
+        reference: RuntimeReference,
+        calls: Mapping[str, Any],
+    ) -> None:
+        identity = id(owner)
+
+        def forget(owner_reference: weakref.ReferenceType[Any]) -> None:
+            with lock:
+                current = records.get(identity)
+                if current is not None and current[0] is owner_reference:
+                    records.pop(identity, None)
+
+        owner_reference = weakref.ref(owner, forget)
+        with lock:
+            current = records.get(identity)
+            if current is not None and current[0]() is not owner:
+                raise ManifestError("verified executor identity was reused")
+            records[identity] = (
+                owner_reference,
+                reference,
+                MappingProxyType(dict(calls)),
+            )
+
+    def invoke(
+        owner: Any,
+        name: str,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> Any:
+        with lock:
+            current = records.get(id(owner))
+            if current is None or current[0]() is not owner:
+                raise AttributeError("verified runtime call is not available")
+            reference = current[1]
+            function = current[2].get(name)
+        if function is None:
+            raise AttributeError("verified runtime call is not available")
+        if "_verified_runtime_reference" in kwargs:
+            raise TypeError("verified runtime is supplied by the manifest verifier")
+        return function(
+            *args,
+            **kwargs,
+            _verified_runtime_reference=reference,
+        )
+
+    return remember, invoke
+
+
+_remember_verified_calls, _invoke_verified_call = _verified_call_registry()
+del _verified_call_registry
+
+
 class _ReadOnlyModule:
     """Expose verified attributes without exposing a mutable module namespace."""
 
-    __slots__ = ("__module", "__reference", "__verified_calls")
+    __slots__ = ("__module", "__weakref__")
 
     def __init__(self, module: ModuleType, reference: RuntimeReference) -> None:
         object.__setattr__(self, "_ReadOnlyModule__module", module)
-        object.__setattr__(self, "_ReadOnlyModule__reference", reference)
         verified_calls: dict[str, Any] = {}
         if module.__name__.endswith(".intake"):
-            for name in ("activate_contract", "validate_draft"):
+            if all(
+                callable(module.__dict__.get(name))
+                for name in ("activate_contract", "validate_draft")
+            ):
+                authority_calls = ("activate_contract", "validate_draft")
+            elif callable(module.__dict__.get("activate_resolution_plan")):
+                authority_calls = (
+                    "activate_resolution_plan",
+                    "record_author_plan_decision",
+                    "record_plan_revision",
+                    "record_triage_assessment",
+                )
+            else:
+                raise ManifestError(
+                    "intake runtime call is outside the verified closure"
+                )
+            for name in authority_calls:
                 candidate = module.__dict__.pop(name, None)
                 if not callable(candidate):
                     raise ManifestError(
                         "intake runtime call is outside the verified closure"
                     )
                 verified_calls[name] = candidate
-        object.__setattr__(
-            self,
-            "_ReadOnlyModule__verified_calls",
-            MappingProxyType(verified_calls),
-        )
+        elif module.__name__.endswith(".lifecycle"):
+            candidate = module.__dict__.pop("apply_lifecycle_event", None)
+            if not callable(candidate):
+                raise ManifestError(
+                    "lifecycle runtime call is outside the verified closure"
+                )
+            verified_calls["apply_lifecycle_event"] = candidate
+        _remember_verified_calls(self, reference, verified_calls)
 
     def __getattribute__(self, name: str) -> Any:
-        if name in {
+        if name.startswith("_") or name in {
             "__dict__",
             "_ReadOnlyModule__module",
             "_ReadOnlyModule__reference",
@@ -110,22 +194,11 @@ class _ReadOnlyModule:
 
     def __dir__(self) -> list[str]:
         module = object.__getattribute__(self, "_ReadOnlyModule__module")
-        return dir(module)
+        return [name for name in dir(module) if not name.startswith("_")]
 
     def call_verified(self, name: str, *args: Any, **kwargs: Any) -> Any:
         """Invoke an authority-bearing entry point with verifier-owned runtime."""
-        calls = object.__getattribute__(self, "_ReadOnlyModule__verified_calls")
-        function = calls.get(name)
-        if function is None:
-            raise AttributeError("verified runtime call is not available")
-        if "_verified_runtime_reference" in kwargs:
-            raise TypeError("verified runtime is supplied by the manifest verifier")
-        reference = object.__getattribute__(self, "_ReadOnlyModule__reference")
-        return function(
-            *args,
-            **kwargs,
-            _verified_runtime_reference=reference,
-        )
+        return _invoke_verified_call(self, name, args, kwargs)
 
 
 @dataclass(frozen=True)
@@ -210,11 +283,14 @@ _MISSING_BINDING = object()
 _PUBLIC_EXECUTOR_SUBMODULES = frozenset(
     {
         "declarations",
+        "get10",
         "identity",
         "identity_hello_world",
         "identity_migration",
         "intake",
+        "lifecycle",
         "projection",
+        "rules",
     }
 )
 _MANIFEST_KEYS = {
