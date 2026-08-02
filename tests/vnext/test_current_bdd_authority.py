@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import timedelta
 
 import pytest
@@ -59,6 +60,22 @@ def test_s_01c_validator_cannot_impersonate_a_participant_or_role() -> None:
     with pytest.raises(modules()["intake"].PlanError, match="exact actor kind"):
         apply_event(state, forged_join)
     assert modules()["lifecycle"].project_runtime(state).current_stage.works == ()
+
+    stop = lifecycle_event(
+        state,
+        "author_stop",
+        {},
+        sequence=2,
+        actor_kind="author",
+        actor_id="agent-author",
+        actor_account_id="account-author",
+    )
+    stopped = apply_event(
+        state,
+        stop,
+        evidence_state=github_state(forged_join, stop),
+    )
+    assert modules()["lifecycle"].project_runtime(stopped).plan_status == "stopped"
 
     state = assign_role(state, generation=1, sequence=1)
     before = state.state_hash
@@ -150,6 +167,25 @@ def test_s_01c_lifecycle_requires_exact_accepted_github_source() -> None:
             apply_event(state, event, evidence_state=evidence)
 
     assert modules()["lifecycle"].project_runtime(state).plan_status == "active"
+
+
+def test_s_01c_lifecycle_idempotency_key_is_deterministic() -> None:
+    state = activated_runtime()
+    event = lifecycle_event(
+        state,
+        "author_stop",
+        {},
+        sequence=1,
+        actor_kind="author",
+        actor_id="agent-author",
+        actor_account_id="account-author",
+    )
+
+    with pytest.raises(
+        modules()["intake"].PlanError,
+        match="lifecycle idempotency key is not deterministic",
+    ):
+        replace(event, idempotency_key="caller-selected-key")
 
 
 def test_s_01c_lifecycle_event_cannot_predate_plan_activation() -> None:

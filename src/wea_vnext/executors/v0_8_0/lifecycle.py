@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import weakref
 from collections.abc import Mapping
 from dataclasses import dataclass, fields, replace
@@ -208,6 +209,10 @@ class LifecycleEvent:
             raise PlanError(
                 "evidence_boundary: lifecycle event ID is not deterministic"
             )
+        if self.idempotency_key != f"lifecycle:{self.source_revision_id}":
+            raise PlanError(
+                "evidence_boundary: lifecycle idempotency key is not deterministic"
+            )
         effective_at = _utc("effective_at", self.effective_at)
         object.__setattr__(self, "effective_at", effective_at)
         try:
@@ -275,7 +280,6 @@ def make_lifecycle_event(
     source_revision_id: str,
     payload: Mapping[str, Any],
     effective_at: datetime,
-    idempotency_key: str | None = None,
 ) -> LifecycleEvent:
     event_id = lifecycle_event_id(plan_id, kind, source_revision_id)
     normalized_time = _utc("effective_at", effective_at)
@@ -306,7 +310,7 @@ def make_lifecycle_event(
         source_snapshot_hash=hashlib.sha256(snapshot.encode("utf-8")).hexdigest(),
         payload=normalized_payload,
         effective_at=normalized_time,
-        idempotency_key=idempotency_key or f"lifecycle:{source_revision_id}",
+        idempotency_key=f"lifecycle:{source_revision_id}",
     )
 
 
@@ -3362,22 +3366,106 @@ def _candidate_plan_revisions(
     return (*state.plan_revisions, revision)
 
 
-def apply_lifecycle_event(
+def _lifecycle_event_from_github_source(
+    source: Any, plan_id: str
+) -> LifecycleEvent | None:
+    if source.object_kind != "issue_comment":
+        return None
+    try:
+        declaration = json.loads(source.body)
+    except (TypeError, ValueError):
+        return None
+    expected_fields = {
+        "actor_account_id",
+        "actor_id",
+        "actor_kind",
+        "effective_at",
+        "event_id",
+        "kind",
+        "payload",
+        "plan_id",
+        "source_id",
+        "source_revision_id",
+    }
+    if type(declaration) is not dict or set(declaration) != expected_fields:
+        return None
+    effective_at = declaration.get("effective_at")
+    if type(effective_at) is not str:
+        return None
+    try:
+        parsed_time = datetime.fromisoformat(effective_at.replace("Z", "+00:00"))
+        candidate = LifecycleEvent(
+            event_id=declaration["event_id"],
+            plan_id=declaration["plan_id"],
+            kind=declaration["kind"],
+            actor_kind=declaration["actor_kind"],
+            actor_id=declaration["actor_id"],
+            actor_account_id=declaration["actor_account_id"],
+            source_id=declaration["source_id"],
+            source_revision_id=declaration["source_revision_id"],
+            source_snapshot=source.body,
+            source_snapshot_hash=source.content_hash,
+            payload=declaration["payload"],
+            effective_at=parsed_time,
+            idempotency_key=f"lifecycle:{declaration['source_revision_id']}",
+        )
+    except (KeyError, PlanError, TypeError, ValueError):
+        return None
+    if (
+        candidate.plan_id != plan_id
+        or candidate.source_id != source.object_id
+        or candidate.source_revision_id != source.revision_id
+        or candidate.actor_account_id != source.actor_account_id
+        or candidate.effective_at != source.effective_at
+    ):
+        return None
+    return candidate
+
+
+def _require_no_earlier_unapplied_declaration(
+    state: ResolutionPlanRuntimeState,
+    event: LifecycleEvent,
+    *,
+    registry: IdentityRegistry,
+    github_state: ProtocolState,
+) -> None:
+    applied_revisions = {item.source_revision_id for item in state.events}
+    for source in github_state.events:
+        candidate = _lifecycle_event_from_github_source(
+            source, state.activation.plan.plan_id
+        )
+        if (
+            candidate is None
+            or candidate.order_key >= event.order_key
+            or candidate.source_revision_id in applied_revisions
+        ):
+            continue
+        try:
+            _apply_lifecycle_event_core(
+                state,
+                candidate,
+                registry=registry,
+                github_state=github_state,
+                plan_revision=None,
+                check_prior=False,
+            )
+        except PlanError:
+            continue
+        raise PlanError(
+            "evidence_boundary: earlier accepted lifecycle declaration "
+            "remains unapplied"
+        )
+
+
+def _apply_lifecycle_event_core(
     state: ResolutionPlanRuntimeState,
     event: LifecycleEvent,
     *,
     registry: IdentityRegistry,
     github_state: ProtocolState,
     plan_revision: ResolutionPlanRevision | None = None,
-    _verified_runtime_reference: Any,
+    check_prior: bool,
 ) -> ResolutionPlanRuntimeState:
-    if type(state) is not ResolutionPlanRuntimeState:
-        raise PlanError("evidence_boundary: runtime state must use exact verified type")
-    state._assert_unchanged()
-    if _snapshot_runtime(_verified_runtime_reference) != _verified_runtime():
-        raise PlanError("runtime: call does not belong to executor 0.8.0")
-    event = _rebuild(event, LifecycleEvent, "lifecycle event")
-    github_state = _rebuild_github_state(github_state)
     if event.plan_id != state.activation.plan.plan_id:
         raise PlanError("evidence_boundary: lifecycle event belongs to another Plan")
     if event.effective_at < state.activation.plan.activated_at:
@@ -3428,6 +3516,13 @@ def apply_lifecycle_event(
             raise PlanError("evidence_boundary: source revision is globally single-use")
     if state.events and event.order_key <= state.events[-1].order_key:
         raise PlanError("evidence_boundary: lifecycle event must append in exact order")
+    if check_prior:
+        _require_no_earlier_unapplied_declaration(
+            state,
+            event,
+            registry=registry,
+            github_state=github_state,
+        )
     current = project_runtime(state)
     _require_issue_body_evidence(state, current, event, github_state)
     _require_control_disclosure_evidence(state, current, event, github_state)
@@ -3453,6 +3548,32 @@ def apply_lifecycle_event(
         candidate_events,
         candidate_authorities,
         candidate_plan_revisions,
+    )
+
+
+def apply_lifecycle_event(
+    state: ResolutionPlanRuntimeState,
+    event: LifecycleEvent,
+    *,
+    registry: IdentityRegistry,
+    github_state: ProtocolState,
+    plan_revision: ResolutionPlanRevision | None = None,
+    _verified_runtime_reference: Any,
+) -> ResolutionPlanRuntimeState:
+    if type(state) is not ResolutionPlanRuntimeState:
+        raise PlanError("evidence_boundary: runtime state must use exact verified type")
+    state._assert_unchanged()
+    if _snapshot_runtime(_verified_runtime_reference) != _verified_runtime():
+        raise PlanError("runtime: call does not belong to executor 0.8.0")
+    event = _rebuild(event, LifecycleEvent, "lifecycle event")
+    github_state = _rebuild_github_state(github_state)
+    return _apply_lifecycle_event_core(
+        state,
+        event,
+        registry=registry,
+        github_state=github_state,
+        plan_revision=plan_revision,
+        check_prior=True,
     )
 
 

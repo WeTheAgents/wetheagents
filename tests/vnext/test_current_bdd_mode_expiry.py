@@ -9,6 +9,7 @@ from .current_bdd_support import (
     activated_runtime,
     apply_event,
     digest,
+    github_state,
     lifecycle_event,
     modules,
     stage,
@@ -42,36 +43,40 @@ def test_s_06c_expiry_waits_until_after_the_inclusive_deadline() -> None:
 
     identifier = lifecycle.work_id(contract_id, "agent-alpha")
     revision_id = lifecycle.work_revision_id(identifier, 1)
-    state = apply_event(
+    work = lifecycle_event(
         state,
-        lifecycle_event(
-            state,
-            "work_revision",
-            {
-                "content_hash": digest("deadline work"),
-                "contract_id": contract_id,
-                "eligible": True,
-                "normalized_output": None,
-                "revision_id": revision_id,
-                "snapshot": None,
-            },
-            sequence=2,
-            actor_kind="agent",
-            actor_id="agent-alpha",
-            actor_account_id="account-alpha",
-            effective_at=due,
-        ),
+        "work_revision",
+        {
+            "content_hash": digest("deadline work"),
+            "contract_id": contract_id,
+            "eligible": True,
+            "normalized_output": None,
+            "revision_id": revision_id,
+            "snapshot": None,
+        },
+        sequence=2,
+        actor_kind="agent",
+        actor_id="agent-alpha",
+        actor_account_id="account-alpha",
+        effective_at=due,
     )
-    state = apply_event(
+    expiry = lifecycle_event(
         state,
-        lifecycle_event(
-            state,
-            "mode_expiry",
-            {"contract_id": contract_id},
-            sequence=3,
-            effective_at=due + timedelta(microseconds=1),
-        ),
+        "mode_expiry",
+        {"contract_id": contract_id},
+        sequence=3,
+        effective_at=due + timedelta(microseconds=1),
     )
+    evidence = github_state(work, expiry)
+
+    with pytest.raises(
+        modules()["intake"].PlanError,
+        match="earlier accepted lifecycle declaration remains unapplied",
+    ):
+        apply_event(state, expiry, evidence_state=evidence)
+
+    state = apply_event(state, work, evidence_state=evidence)
+    state = apply_event(state, expiry, evidence_state=evidence)
 
     projection = lifecycle.project_runtime(state)
     assert projection.current_stage.phase == "decision"

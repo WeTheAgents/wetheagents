@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Implementation verified — independent PR review clean`.
+Decision: `Implementation verified — independent PR review pending`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `CLEAN`.
+Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 26 clean`.
+Текущий review gate: `Pass 28 pending`.
 
 ## Версии
 
@@ -23,7 +23,7 @@ Decision: `Implementation verified — independent PR review clean`.
 
 Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
 
-Executor `v0_8_0` manifest SHA-256: `19a73d9b2c37bae77255c9cf6a6bd30dbd2aeca4367e84b170a009724f2014b8`.
+Executor `v0_8_0` manifest SHA-256: `52bd9175dfeb39f140aba323c2878b1dddcd4551c4ba0736881e286bfa93d9db`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -54,12 +54,12 @@ Executor `v0_8_0` manifest SHA-256: `19a73d9b2c37bae77255c9cf6a6bd30dbd2aeca4367
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `421 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4706 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `423 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4708 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Exact regressions cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect. The operator then approved the three-scenario accepted-future correction. Pass 26 found no actionable correctness issue and reran vNext: `421 passed`, `18 skipped`. |
+| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Pass 27 found one source-order gap: expiry or stop could skip a valid earlier Work declaration already present in its confirmed GitHub boundary. The runtime now rejects the later event until every earlier valid declaration is applied. An invalid earlier declaration does not block progress. Lifecycle idempotency keys are deterministic. S-02B and S-01C regressions pass. Pass 28 is pending. |
 
 ## Historical verification baseline through Block 3
 

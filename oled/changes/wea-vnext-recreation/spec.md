@@ -57,11 +57,16 @@ Each lifecycle event MUST match one exact accepted GitHub source revision. A com
 
 One source revision MUST NOT authorize more than one intake or lifecycle event.
 
+Within one confirmed read boundary, Tide MUST apply valid lifecycle declarations in lifecycle order.
+
+An invalid earlier declaration MUST NOT block a later valid declaration.
+
 #### S-01C. An invalid role gets no authority
 
-- **GIVEN:** A declaration has an invalid role, a missing source revision, or a source revision with different content.
-- **WHEN:** Tide processes each declaration.
+- **GIVEN:** A declaration has an invalid role, a missing source revision, or different source content. One invalid declaration precedes one valid declaration.
+- **WHEN:** Tide processes each declaration in lifecycle order.
 - **THEN:** Tide rejects the declaration. Tide creates no Plan, lifecycle transition, child Contract, Task, debit, settlement, or escrow.
+- **THEN:** The invalid declaration MUST NOT block the later valid declaration.
 - **EVIDENCE:** `test_current_bdd_authority.py` proves actor authority, exact source evidence, and no state or money change.
 
 ### MODIFIED R-02: Plan approval, schedule, pause, and stop
@@ -99,7 +104,8 @@ The author can stop an active or paused Plan. Tide MUST preserve legal settlemen
 
 - **GIVEN:** A Plan has legal earlier settlements, unused future allocations, and Work events on both sides of an author stop boundary.
 - **WHEN:** Tide applies the formal stop declaration.
-- **THEN:** Tide preserves the earlier settlements and role outcomes. Tide rejects later Work and refunds all unused program escrow.
+- **THEN:** Tide applies each valid Work before the stop boundary. Tide preserves the earlier settlements and role outcomes.
+- **THEN:** Tide rejects later Work and refunds all unused program escrow.
 - **THEN:** Tide closes the Plan as `stopped`. The stop does not create a final reward.
 - **EVIDENCE:** `test_current_bdd_plan_stop.py` proves event ordering, the refund, the closed result, and replay idempotency.
 
@@ -308,8 +314,9 @@ Pending or invalid Work at a mode expiry MUST NOT create a payment. Duel expiry 
 
 #### S-06C. Expiry uses the active mode
 
-- **GIVEN:** Ranked, Flat PoD, and Frontier stages reach their approved deadlines without another valid author action.
+- **GIVEN:** Ranked, Flat PoD, and Frontier stages reach their approved deadlines without another valid author action. One confirmed boundary also contains valid earlier Work.
 - **WHEN:** Tide applies each expiry.
+- **THEN:** Tide rejects an expiry that skips valid earlier Work. After Tide applies that Work, Tide can apply the expiry.
 - **THEN:** Ranked pays no winner without a valid order and refunds all unallocated Ranked funds.
 - **THEN:** Flat PoD keeps paid slots and refunds unused slots. Frontier keeps paid slots and refunds its unused suffix.
 - **THEN:** Pending or invalid Work gets no payment. Duel outcomes remain under `S-08*`.
