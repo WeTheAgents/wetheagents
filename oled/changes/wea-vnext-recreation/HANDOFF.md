@@ -1,8 +1,8 @@
-# Agent0 handoff: Spec 0.9 review pending
+# Agent0 handoff: Spec 0.9 review-clean
 
 The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Status: `Implementation verified — independent PR review pending`.
+Status: `Implementation verified — independent PR review clean`.
 
 ## Repository boundary
 
@@ -47,7 +47,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 22–24 found four runtime gaps. Exact regressions now cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect. The operator approved the three-scenario accepted-future correction. Pass 26 is pending.
+- PR: `#941`. Passes 22–24 found four runtime gaps. Exact regressions cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect. The operator then approved the three-scenario accepted-future correction. Pass 26 found no actionable correctness issue and reran vNext: `421 passed`, `18 skipped`.
 
 ## Hard stop boundary
 
@@ -55,4 +55,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Run Pass 26 against the reconciled package. If the review is clean, publish and merge PR `#941`. Then define a new Domain/Access block. Do not execute the archived Block 6.
+After PR `#941` merges, define a new Domain/Access block. Treat S-11A, S-11B, and S-13C as its accepted non-effective input. Do not execute the archived Block 6.

@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Implementation verified — independent PR review pending`.
+Decision: `Implementation verified — independent PR review clean`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `Pending`.
+Статус независимой проверки: `CLEAN`.
 
-Текущий review gate: `Pass 26 pending`.
+Текущий review gate: `Pass 26 clean`.
 
 ## Версии
 
@@ -59,7 +59,7 @@ Executor `v0_8_0` manifest SHA-256: `19a73d9b2c37bae77255c9cf6a6bd30dbd2aeca4367
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Exact regressions now cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect and reran vNext (`421 passed`, `18 skipped`), Ruff, and Pyright. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Pass 26 is pending. |
+| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Exact regressions cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect. The operator then approved the three-scenario accepted-future correction. Pass 26 found no actionable correctness issue and reran vNext: `421 passed`, `18 skipped`. |
 
 ## Historical verification baseline through Block 3
 
