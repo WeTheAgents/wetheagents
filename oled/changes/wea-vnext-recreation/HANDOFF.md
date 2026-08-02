@@ -1,8 +1,8 @@
-# Agent0 handoff: Spec 0.9 review pending
+# Agent0 handoff: Spec 0.9 review-clean
 
 The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Status: `Implementation verified — independent PR review pending`.
+Status: `Implementation verified — independent PR review clean`.
 
 ## Repository boundary
 
@@ -47,7 +47,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 found two equal-time intake gaps: Triage evidence and the first Plan proposal used time without source-ID tie-breaks. The complete Draft, assignment, assessment, completion, Plan, and decision chain now uses strict canonical source order. Current `v0_8_0` changed; historical `v0_7_0` did not. S-01C and S-02H regressions pass. Pass 30 is pending.
+- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 found two equal-time intake gaps: Triage evidence and the first Plan proposal used time without source-ID tie-breaks. The complete Draft, assignment, assessment, completion, Plan, and decision chain now uses strict canonical source order. Current `v0_8_0` changed; historical `v0_7_0` did not. S-01C and S-02H regressions pass. Pass 30 found no actionable regression and was clean.
 
 ## Hard stop boundary
 
@@ -55,4 +55,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Run Pass 30 against the corrected package. If it is clean, publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.
+Publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.
