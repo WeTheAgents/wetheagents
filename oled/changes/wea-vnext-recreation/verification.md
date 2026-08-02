@@ -8,7 +8,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 32 pending`.
+Текущий review gate: `Pass 33 pending`.
 
 ## Версии
 
@@ -23,7 +23,7 @@ Decision: `Implementation verified — independent PR review pending`.
 
 Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
 
-Executor `v0_8_0` manifest SHA-256: `cc231d8cc5b0125988ee86e613c834302397e7406090d49080824698e60221b0`.
+Executor `v0_8_0` manifest SHA-256: `2aed3e4fb21a31cfbb8ed544f1974c63aba8451c95e434f5a5f5dd16e1f52c53`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -59,7 +59,7 @@ Executor `v0_8_0` manifest SHA-256: `cc231d8cc5b0125988ee86e613c834302397e740609
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 closed two equal-time intake gaps, and Pass 30 was clean. Pass 31 found that `next_action` advertised rejected author and participant actions after a Flat PoD birdie. The projection now reports the Tide mode-expiry boundary; the S-13 regression and all gates pass. Pass 32 is pending. Historical `v0_7_0` did not change. |
+| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 closed two equal-time intake gaps, and Pass 30 was clean. Pass 31 found rejected actions after a Flat PoD birdie. Pass 32 found the remaining valid same-time acceptance path. `next_action` now distinguishes the exact author, validator, and participant actions at that boundary. The S-13 regression applies a same-time acceptance and proves the later Tide-only action. All gates pass. Pass 33 is pending. Historical `v0_7_0` did not change. |
 
 ## Historical verification baseline through Block 3
 

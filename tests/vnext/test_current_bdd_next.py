@@ -85,7 +85,7 @@ def test_s_13_next_action_waits_for_flat_pod_expiry_after_birdie() -> None:
         slots=3,
     )
     state = activated_runtime(plan_stages=(flat_pod,), total_bank_wea=3)
-    state, identifier, _ = submit_work(
+    state, identifier, revision_id = submit_work(
         state,
         agent_id="agent-alpha",
         account_id="account-alpha",
@@ -109,10 +109,42 @@ def test_s_13_next_action_waits_for_flat_pod_expiry_after_birdie() -> None:
     before = state.state_hash
     projection = modules()["lifecycle"].project_runtime(state)
 
-    for actor_id in ("agent-author", "agent-alpha"):
-        action = modules()["lifecycle"].next_action(state, actor_id)
-        assert action.action == "wait for Tide to apply mode expiry"
-        assert action.boundary_at == projection.current_stage.birdie_at
+    author_action = modules()["lifecycle"].next_action(state, "agent-author")
+    assert author_action.action == (
+        "accept eligible Work at the birdie boundary or wait for Tide "
+        "to apply mode expiry"
+    )
+    assert author_action.boundary_at == projection.current_stage.birdie_at
+
+    participant_action = modules()["lifecycle"].next_action(state, "agent-alpha")
+    assert participant_action.action == "wait for Tide to apply mode expiry"
+    assert participant_action.boundary_at == projection.current_stage.birdie_at
 
     assert state.state_hash == before
     assert len(state.events) == 2
+
+    accepted = apply_event(
+        state,
+        lifecycle_event(
+            state,
+            "work_acceptance",
+            {
+                "contract_id": contract_id,
+                "novel": True,
+                "revision_id": revision_id,
+                "verdict": "accept",
+                "work_id": identifier,
+            },
+            sequence=3,
+            actor_kind="author",
+            actor_id="agent-author",
+            actor_account_id="account-author",
+            effective_at=projection.current_stage.birdie_at,
+        ),
+    )
+    accepted_projection = modules()["lifecycle"].project_runtime(accepted)
+    assert accepted_projection.current_stage.paid_wea == 1
+    assert (
+        modules()["lifecycle"].next_action(accepted, "agent-author").action
+        == "wait for Tide to apply mode expiry"
+    )

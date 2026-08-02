@@ -10,7 +10,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Reviewed target: tracked `origin/main` `599bd77`. The feature merge-base remains `252c6ca`. Later target commits change only BTC snapshots.
 - Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
-- Executor `v0_8_0` manifest SHA-256: `cc231d8cc5b0125988ee86e613c834302397e7406090d49080824698e60221b0`.
+- Executor `v0_8_0` manifest SHA-256: `2aed3e4fb21a31cfbb8ed544f1974c63aba8451c95e434f5a5f5dd16e1f52c53`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -47,7 +47,7 @@ Status: `Implementation verified — independent PR review pending`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 closed two equal-time intake gaps, and Pass 30 was clean. Pass 31 found that `next_action` advertised rejected author and participant actions after a Flat PoD birdie. The projection now reports the Tide mode-expiry boundary; the S-13 regression and all gates pass. Pass 32 is pending. Historical `v0_7_0` did not change.
+- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 closed two equal-time intake gaps, and Pass 30 was clean. Pass 31 found rejected actions after a Flat PoD birdie. Pass 32 found the remaining valid same-time acceptance path. `next_action` now distinguishes the exact author, validator, and participant actions at that boundary. The S-13 regression applies a same-time acceptance and proves the later Tide-only action. All gates pass. Pass 33 is pending. Historical `v0_7_0` did not change.
 
 ## Hard stop boundary
 
@@ -55,4 +55,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Run Pass 32 against the corrected package. If it is clean, publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.
+Run Pass 33 against the corrected package. If it is clean, publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.

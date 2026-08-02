@@ -3820,7 +3820,53 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             stage.contract.mode == "flat_pod"
             and stage.phase == "closed-intake"
         ):
-            action = "wait for Tide to apply mode expiry"
+            config = thaw_json(stage.contract.config)
+            acceptance = config.get("acceptance")
+            open_revisions = tuple(
+                (work, revision)
+                for work in stage.works
+                if work.accepted_revision_id is None
+                and work.authority.settlement_allowed
+                for revision in work.revisions
+                if revision.eligible
+                and stage.birdie_at is not None
+                and revision.effective_at <= stage.birdie_at
+            )
+            author_can_accept = is_author and any(
+                (
+                    type(acceptance) is dict
+                    and acceptance.get("kind") == "author"
+                )
+                or any(
+                    revision_id == revision.revision_id
+                    for revision_id, _ in work.deferred_validations
+                )
+                for work, revision in open_revisions
+            )
+            validator_can_decide = (
+                type(acceptance) is dict
+                and acceptance.get("kind") == "normalized_validator"
+                and actor_agent_id == acceptance.get("validator_id")
+                and any(
+                    all(
+                        revision_id != revision.revision_id
+                        for revision_id, _ in work.deferred_validations
+                    )
+                    for work, revision in open_revisions
+                )
+            )
+            if author_can_accept:
+                action = (
+                    "accept eligible Work at the birdie boundary or wait for Tide "
+                    "to apply mode expiry"
+                )
+            elif validator_can_decide:
+                action = (
+                    "validate eligible Work at the birdie boundary or wait for Tide "
+                    "to apply mode expiry"
+                )
+            else:
+                action = "wait for Tide to apply mode expiry"
             boundary = (
                 stage.birdie_at
                 or _stage_deadline(stage, "intake").effective_due_at
