@@ -526,7 +526,7 @@ def test_s_04b_risk_pause_defers_final_move_stop_until_continue() -> None:
     assert projection.escrow.refunded_wea == 20
 
 
-def test_s_08g_remaining_move_cannot_outlive_early_decision_deadline() -> None:
+def test_s_08g_remaining_move_outlives_early_decision_deadline() -> None:
     intake = modules()["intake"]
     duel = stage(
         key="short-decision-duel",
@@ -548,35 +548,55 @@ def test_s_08g_remaining_move_cannot_outlive_early_decision_deadline() -> None:
     state = _move(state, "agent-alpha", "account-alpha", 1, 3)
     state = _move(state, "agent-alpha", "account-alpha", 3, 5)
     state = _move(state, "agent-alpha", "account-alpha", 5, 7)
-    deadline = next(
+    current_stage = modules()["lifecycle"].project_runtime(state).current_stage
+    decision_deadline = next(
         item
-        for item in modules()["lifecycle"]
-        .project_runtime(state)
-        .current_stage.deadlines
+        for item in current_stage.deadlines
         if item.kind == "author_decision"
     )
+    remaining_move_deadline = next(
+        item for item in current_stage.deadlines if item.kind == "move-6"
+    )
+    assert decision_deadline.effective_due_at < remaining_move_deadline.effective_due_at
+    contract_id = current_stage.contract.contract_id
 
-    with pytest.raises(modules()["intake"].PlanError, match="boundary has expired"):
-        _move(
+    with pytest.raises(
+        modules()["intake"].PlanError, match="mode boundary has not expired"
+    ):
+        apply_event(
             state,
-            "agent-beta",
-            "account-beta",
-            6,
-            8,
-            effective_at=deadline.effective_due_at + timedelta(microseconds=1),
+            lifecycle_event(
+                state,
+                "mode_expiry",
+                {"contract_id": contract_id},
+                sequence=8,
+                effective_at=(
+                    decision_deadline.effective_due_at + timedelta(microseconds=1)
+                ),
+            ),
         )
+
+    state = _move(
+        state,
+        "agent-beta",
+        "account-beta",
+        6,
+        8,
+        effective_at=decision_deadline.effective_due_at + timedelta(microseconds=1),
+    )
+    projection = modules()["lifecycle"].project_runtime(state)
+    assert projection.current_stage.duel_moves[-1][0] == 6
+
     state = apply_event(
         state,
         lifecycle_event(
             state,
             "mode_expiry",
-            {
-                "contract_id": modules()["lifecycle"]
-                .project_runtime(state)
-                .current_stage.contract.contract_id
-            },
+            {"contract_id": contract_id},
             sequence=9,
-            effective_at=deadline.effective_due_at + timedelta(microseconds=1),
+            effective_at=(
+                remaining_move_deadline.effective_due_at + timedelta(microseconds=1)
+            ),
         ),
     )
     projection = modules()["lifecycle"].project_runtime(state)
@@ -590,18 +610,23 @@ def test_s_08g_invalid_or_missing_author_decision_never_pays() -> None:
     state = _move(state, "agent-alpha", "account-alpha", 1, 3)
     state = _move(state, "agent-alpha", "account-alpha", 3, 5)
     state = _move(state, "agent-alpha", "account-alpha", 5, 7)
-    contract_id = (
-        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
+    current_stage = modules()["lifecycle"].project_runtime(state).current_stage
+    contract_id = current_stage.contract.contract_id
+    move_due = next(
+        item.effective_due_at
+        for item in current_stage.deadlines
+        if item.kind == "move-6"
     )
-    state = apply_event(
-        state,
-        _move_expiry(state, contract_id),
+    decision_due = next(
+        item.effective_due_at
+        for item in current_stage.deadlines
+        if item.kind == "author_decision"
     )
     before = state.state_hash
     with pytest.raises(modules()["intake"].PlanError, match="two completers"):
         apply_event(
             state,
-            author_event(
+            lifecycle_event(
                 state,
                 "duel_decision",
                 {
@@ -610,13 +635,21 @@ def test_s_08g_invalid_or_missing_author_decision_never_pays() -> None:
                     "winner_agent_id": "agent-beta",
                 },
                 sequence=9,
+                actor_kind="author",
+                actor_id="agent-author",
+                actor_account_id="account-author",
+                effective_at=move_due + timedelta(microseconds=1),
             ),
         )
     assert state.state_hash == before
     state = apply_event(
         state,
         lifecycle_event(
-            state, "mode_expiry", {"contract_id": contract_id}, sequence=14
+            state,
+            "mode_expiry",
+            {"contract_id": contract_id},
+            sequence=14,
+            effective_at=max(move_due, decision_due) + timedelta(microseconds=1),
         ),
     )
     projection = modules()["lifecycle"].project_runtime(state)

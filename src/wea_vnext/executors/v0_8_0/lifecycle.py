@@ -1965,7 +1965,7 @@ def _mode_expiry(
     elif stage.contract.mode == "duel" and stage.phase == "moves":
         move_due = _stage_deadline(stage, "move-6").effective_due_at
         decision_deadline = _optional_stage_deadline(stage, "author_decision")
-        due = min(
+        due = max(
             move_due,
             decision_deadline.effective_due_at
             if decision_deadline is not None
@@ -2120,12 +2120,6 @@ def _duel_move(
     assert effective_anchor is not None
     if not effective_anchor <= event.effective_at <= deadline.effective_due_at:
         raise PlanError("state: Duel move is outside its exact window")
-    decision_deadline = _optional_stage_deadline(stage, "author_decision")
-    if (
-        decision_deadline is not None
-        and event.effective_at > decision_deadline.effective_due_at
-    ):
-        raise PlanError("state: Duel author-decision boundary has expired")
     identifier = work_id(stage.contract.contract_id, event.actor_id)
     existing = next((item for item in stage.works if item.work_id == identifier), None)
     authority = _activate_work_authority(
