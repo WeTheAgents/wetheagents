@@ -1,8 +1,8 @@
-# Agent0 handoff: Spec 0.9 review-clean
+# Agent0 handoff: Spec 0.9 review pending
 
 The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Status: `Implementation verified — independent PR review clean`.
+Status: `Implementation verified — independent PR review pending`.
 
 ## Repository boundary
 
@@ -10,7 +10,7 @@ Status: `Implementation verified — independent PR review clean`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
 - Reviewed target: tracked `origin/main` `599bd77`. The feature merge-base remains `252c6ca`. Later target commits change only BTC snapshots.
 - Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
-- Executor `v0_8_0` manifest SHA-256: `b8fc07921157d74c3e65e4ba21b9d93952bbd7430a7ca3ec3cba34ab553535ba`.
+- Executor `v0_8_0` manifest SHA-256: `cc231d8cc5b0125988ee86e613c834302397e7406090d49080824698e60221b0`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -42,12 +42,12 @@ Status: `Implementation verified — independent PR review clean`.
 ## Fresh evidence
 
 - S-66 and ruleset focus: `20 passed`.
-- `tests/vnext`: `428 passed`, `18 skipped`.
-- Full repository: `4713 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `429 passed`, `18 skipped`.
+- Full repository: `4714 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 found two equal-time intake gaps: Triage evidence and the first Plan proposal used time without source-ID tie-breaks. The complete Draft, assignment, assessment, completion, Plan, and decision chain now uses strict canonical source order. Current `v0_8_0` changed; historical `v0_7_0` did not. S-01C and S-02H regressions pass. Pass 30 found no actionable regression and was clean.
+- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 closed two equal-time intake gaps, and Pass 30 was clean. Pass 31 found that `next_action` advertised rejected author and participant actions after a Flat PoD birdie. The projection now reports the Tide mode-expiry boundary; the S-13 regression and all gates pass. Pass 32 is pending. Historical `v0_7_0` did not change.
 
 ## Hard stop boundary
 
@@ -55,4 +55,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.
+Run Pass 32 against the corrected package. If it is clean, publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.

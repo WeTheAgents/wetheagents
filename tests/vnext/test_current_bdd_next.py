@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from .current_bdd_support import (
     activated_runtime,
+    apply_event,
     assign_role,
+    lifecycle_event,
     modules,
     stage,
+    submit_work,
 )
 
 
@@ -70,3 +73,46 @@ def test_s_13_next_action_is_exact_and_read_only() -> None:
     )
     assert state.state_hash == before
     assert len(state.events) == 4
+
+
+def test_s_13_next_action_waits_for_flat_pod_expiry_after_birdie() -> None:
+    flat_pod = stage(
+        key="answers",
+        depth="explore",
+        mode="flat_pod",
+        allocation_wea=3,
+        payout_vector=[1, 1, 1],
+        slots=3,
+    )
+    state = activated_runtime(plan_stages=(flat_pod,), total_bank_wea=3)
+    state, identifier, _ = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=1,
+    )
+    contract_id = (
+        modules()["lifecycle"].project_runtime(state).current_stage.contract.contract_id
+    )
+    state = apply_event(
+        state,
+        lifecycle_event(
+            state,
+            "birdie",
+            {"contract_id": contract_id, "work_id": identifier},
+            sequence=2,
+            actor_kind="author",
+            actor_id="agent-author",
+            actor_account_id="account-author",
+        ),
+    )
+    before = state.state_hash
+    projection = modules()["lifecycle"].project_runtime(state)
+
+    for actor_id in ("agent-author", "agent-alpha"):
+        action = modules()["lifecycle"].next_action(state, actor_id)
+        assert action.action == "wait for Tide to apply mode expiry"
+        assert action.boundary_at == projection.current_stage.birdie_at
+
+    assert state.state_hash == before
+    assert len(state.events) == 2

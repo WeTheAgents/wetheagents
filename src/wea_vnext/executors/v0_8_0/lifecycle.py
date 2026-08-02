@@ -3816,6 +3816,15 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
             boundary = role.effective_due_at
             role_id = role.role_id
             role_generation = role.generation
+        elif (
+            stage.contract.mode == "flat_pod"
+            and stage.phase == "closed-intake"
+        ):
+            action = "wait for Tide to apply mode expiry"
+            boundary = (
+                stage.birdie_at
+                or _stage_deadline(stage, "intake").effective_due_at
+            )
         elif pending_disclosures and is_author:
             action = "wait for the public common-control disclosure"
             if stage.phase == "decision":
