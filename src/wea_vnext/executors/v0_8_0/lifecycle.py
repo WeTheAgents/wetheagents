@@ -1716,8 +1716,7 @@ def _work_acceptance(
     acceptance = config.get("acceptance")
     normalized_needs_author = False
     if (
-        deferred_result is None
-        and type(acceptance) is dict
+        type(acceptance) is dict
         and acceptance.get("kind") == "normalized_validator"
     ):
         normalized_needs_author = _validate_normalized_work(
@@ -1726,7 +1725,11 @@ def _work_acceptance(
             revision,
             enforce_novelty=stage.contract.mode == "frontier",
         )
-        if normalized_needs_author and verdict != "needs_author":
+        if (
+            deferred_result is None
+            and normalized_needs_author
+            and verdict != "needs_author"
+        ):
             raise PlanError("matrix: normalized result requires the exact author")
     if verdict == "needs_author":
         if event.actor_kind != "validator":
@@ -3471,15 +3474,34 @@ def next_action(state: ResolutionPlanRuntimeState, actor_agent_id: str) -> NextA
         disclosure = pending_disclosures[0].authority.disclosure
         assert disclosure is not None
         control_group_id = disclosure.control_group_id
+    pending_role_resolutions = sorted(
+        (
+            role
+            for role in projection.roles
+            if role.status == "active" and role.timely_complete
+        ),
+        key=lambda role: (
+            role.effective_due_at,
+            role.role_id,
+            role.generation,
+        ),
+    )
     if projection.plan_status in {"completed", "stopped"}:
         action = f"no action; Plan is {projection.plan_status}"
         boundary = None
+    elif actor_agent_id == "agent0@system" and pending_role_resolutions:
+        role = pending_role_resolutions[0]
+        action = "resolve the complete timely assigned-role result"
+        boundary = None
+        role_id = role.role_id
+        role_generation = role.generation
     elif "body_integrity_pause" in open_pause_kinds:
-        action = (
-            "restore the exact Issue body or stop"
-            if is_author
-            else "wait for exact Issue body restoration"
-        )
+        if is_author and pending_role_resolutions:
+            action = "restore the exact Issue body or wait for Agent0 role resolution"
+        elif is_author:
+            action = "restore the exact Issue body or stop"
+        else:
+            action = "wait for exact Issue body restoration"
         boundary = None
     elif projection.plan_status == "paused" and is_author:
         action = "continue, approve a suffix replan, or stop"

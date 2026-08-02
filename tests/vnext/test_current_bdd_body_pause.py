@@ -47,6 +47,38 @@ def test_s_02j_complete_pre_pause_role_result_keeps_frozen_outcome() -> None:
     assert projection.escrow.refunded_wea == 5
 
 
+def test_s_02j_next_action_surfaces_pre_pause_role_resolution() -> None:
+    ranked = stage(
+        key="rank",
+        depth="explore",
+        mode="ranked",
+        allocation_wea=5,
+        payout_vector=[5],
+    )
+    state = activated_runtime(plan_stages=(ranked,), total_bank_wea=5)
+    state = assign_role(state, sequence=1)
+    state = submit_role_result(state, sequence=2)
+    state = apply_body_transition(
+        state,
+        "body_pause",
+        body="Changed Issue body",
+        sequence=3,
+    )
+
+    before = state.state_hash
+    action = modules()["lifecycle"].next_action(state, "agent0@system")
+    assert action.action == "resolve the complete timely assigned-role result"
+    assert action.role_id == "review-role"
+    assert action.role_generation == 1
+    assert action.boundary_at is None
+    author_action = modules()["lifecycle"].next_action(state, "agent-author")
+    assert (
+        author_action.action
+        == "restore the exact Issue body or wait for Agent0 role resolution"
+    )
+    assert state.state_hash == before
+
+
 def test_s_02j_new_or_partial_role_result_after_pause_changes_nothing() -> None:
     ranked = stage(
         key="rank",

@@ -213,3 +213,69 @@ def test_s_68_get10_defers_first_semantic_form_then_rejects_its_equivalent() -> 
             validator=validator,
         )
     assert modules()["lifecycle"].project_runtime(state).escrow.paid_wea == 13
+
+
+def test_s_68_deferred_equivalent_is_rechecked_after_prior_art_advances() -> None:
+    get10 = modules()["get10"]
+    intake = modules()["intake"]
+    contract_stage = intake.PlanStage(
+        key="get10-frontier-v2",
+        depth="explore",
+        mode="frontier",
+        schedule=intake.StageSchedule(intake_seconds=604800),
+        allocation_wea=589,
+        config=get10.new_epoch_config(),
+        expected_output="A valid novel expression that equals 10",
+    )
+    state = activated_runtime(
+        plan_stages=(contract_stage,), total_bank_wea=589, author_balance=700
+    )
+    validator = (get10.GET10_VALIDATOR_ID, get10.GET10_VALIDATOR_VERSION)
+    state, first_work, first_revision = submit_work(
+        state,
+        agent_id="agent-alpha",
+        account_id="account-alpha",
+        sequence=1,
+        content="(1+1+1)/.3",
+        snapshot={"model": "m1", "genome": "g1", "runtime": "r1"},
+    )
+    state = accept_work(
+        state,
+        work_id=first_work,
+        revision_id=first_revision,
+        sequence=2,
+        verdict="needs_author",
+        validator=validator,
+    )
+    state, second_work, second_revision = submit_work(
+        state,
+        agent_id="agent-beta",
+        account_id="account-beta",
+        sequence=3,
+        content="3/(.1+.1+.1)",
+        snapshot={"model": "m2", "genome": "g2", "runtime": "r2"},
+    )
+    state = accept_work(
+        state,
+        work_id=second_work,
+        revision_id=second_revision,
+        sequence=4,
+        verdict="needs_author",
+        validator=validator,
+    )
+    state = accept_work(
+        state, work_id=first_work, revision_id=first_revision, sequence=5
+    )
+
+    before = state.state_hash
+    with pytest.raises(intake.PlanError, match="prior art"):
+        accept_work(
+            state,
+            work_id=second_work,
+            revision_id=second_revision,
+            sequence=6,
+        )
+    projection = modules()["lifecycle"].project_runtime(state)
+    assert state.state_hash == before
+    assert projection.escrow.paid_wea == 13
+    assert projection.current_stage.works[1].accepted_revision_id is None
