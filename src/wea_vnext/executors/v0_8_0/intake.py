@@ -148,6 +148,30 @@ def _source_order(value: Any) -> tuple[datetime, str, str]:
     )
 
 
+def _draft_source_order(value: Any) -> tuple[datetime, str, str]:
+    return (
+        object.__getattribute__(value, "effective_at"),
+        object.__getattribute__(value, "issue_id"),
+        object.__getattribute__(value, "issue_revision_id"),
+    )
+
+
+def _triage_assignment_source_order(value: Any) -> tuple[datetime, str, str]:
+    return (
+        object.__getattribute__(value, "assignment_effective_at"),
+        object.__getattribute__(value, "assignment_source_comment_id"),
+        object.__getattribute__(value, "assignment_source_revision_id"),
+    )
+
+
+def _triage_completion_source_order(value: Any) -> tuple[datetime, str, str]:
+    return (
+        object.__getattribute__(value, "completion_effective_at"),
+        object.__getattribute__(value, "completion_source_comment_id"),
+        object.__getattribute__(value, "completion_source_revision_id"),
+    )
+
+
 def _hash(field: str, value: object) -> str:
     if type(value) is not str or _HASH.fullmatch(value) is None:
         raise PlanError(f"{field}: must be a lowercase SHA-256 digest")
@@ -751,11 +775,22 @@ class TriageAssessment:
         completion_effective_at = _utc(
             "completion_effective_at", self.completion_effective_at
         )
-        if (
-            not assignment_effective_at
-            <= review_effective_at
-            <= completion_effective_at
-        ):
+        assignment_order = (
+            assignment_effective_at,
+            self.assignment_source_comment_id,
+            self.assignment_source_revision_id,
+        )
+        review_order = (
+            review_effective_at,
+            self.source_comment_id,
+            self.source_revision_id,
+        )
+        completion_order = (
+            completion_effective_at,
+            self.completion_source_comment_id,
+            self.completion_source_revision_id,
+        )
+        if not assignment_order < review_order < completion_order:
             raise PlanError("evidence_boundary: Triage evidence order is invalid")
         object.__setattr__(self, "assignment_effective_at", assignment_effective_at)
         object.__setattr__(self, "effective_at", review_effective_at)
@@ -1768,7 +1803,8 @@ class PlanIntakeState:
                 or assessment.issue_id != revision.issue_id
                 or assessment.issue_revision_id != revision.issue_revision_id
                 or assessment.body_hash != revision.body_hash
-                or assessment.completion_effective_at > revision.effective_at
+                or _source_order(revision)
+                <= _triage_completion_source_order(assessment)
             ):
                 raise PlanError("evidence_boundary: Plan does not match assessment")
             by_plan.setdefault(revision.plan_id, []).append(revision)
@@ -2336,7 +2372,8 @@ def record_triage_assessment(
         or assessment.issue_revision_id != draft.issue_revision_id
         or assessment.body_hash != draft.body_hash
         or assessment.reviewer_agent_id == draft.author_agent_id
-        or assessment.assignment_effective_at < draft.effective_at
+        or _triage_assignment_source_order(assessment)
+        <= _draft_source_order(draft)
     ):
         raise PlanError("evidence_boundary: assessment does not match exact Draft")
     _require_draft_event(draft, github_state)
@@ -2397,7 +2434,8 @@ def record_plan_revision(
         or revision.body_hash != draft.body_hash
         or revision.author_agent_id != draft.author_agent_id
         or revision.total_bank_wea > draft.max_bank_wea
-        or revision.effective_at < assessment.completion_effective_at
+        or _source_order(revision)
+        <= _triage_completion_source_order(assessment)
     ):
         raise PlanError(
             "evidence_boundary: Plan does not match Draft/Triage or max bank"
@@ -2552,8 +2590,10 @@ def _reauthorize_activation_chain(
         or assessment.issue_revision_id != draft.issue_revision_id
         or assessment.body_hash != draft.body_hash
         or assessment.reviewer_agent_id == draft.author_agent_id
-        or assessment.assignment_effective_at < draft.effective_at
-        or revision.effective_at < assessment.completion_effective_at
+        or _triage_assignment_source_order(assessment)
+        <= _draft_source_order(draft)
+        or _source_order(revision)
+        <= _triage_completion_source_order(assessment)
     ):
         raise PlanError("evidence_boundary: activation Draft does not match exact Plan")
     _authorize_assessment(assessment, registry)

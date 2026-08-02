@@ -61,9 +61,13 @@ Within one confirmed read boundary, Tide MUST apply valid lifecycle declarations
 
 An invalid earlier declaration MUST NOT block a later valid declaration.
 
+Within the intake chain, each accepted source MUST follow its prerequisite in canonical GitHub order.
+
+When source times are equal, source IDs MUST determine the order.
+
 #### S-01C. An invalid role gets no authority
 
-- **GIVEN:** A declaration has an invalid role, a missing source revision, or different source content. One invalid declaration precedes one valid declaration.
+- **GIVEN:** A declaration has an invalid role, missing evidence, different source content, or a source that precedes its prerequisite. One invalid declaration precedes one valid declaration.
 - **WHEN:** Tide processes each declaration in lifecycle order.
 - **THEN:** Tide rejects the declaration. Tide creates no Plan, lifecycle transition, child Contract, Task, debit, settlement, or escrow.
 - **THEN:** The invalid declaration MUST NOT block the later valid declaration.
@@ -127,6 +131,7 @@ The author can stop an active or paused Plan. Tide MUST preserve legal settlemen
   - The Plan revision, Plan hash, or total bank differs.
   - The stage order, depth, mode, parameters, payout, or expected output differs.
   - A dependency, selector, ruleset identity, or Triage revision differs.
+- **EVIDENCE:** The Triage assignment, assessment, completion, Plan proposal, and author approval use strict canonical source order, including equal times.
 - **EVIDENCE:** `test_current_bdd_plan_approval.py` proves source order, one debit, and one activation after an exact replay.
 - **EVIDENCE:** The same test proves that Tide creates only first-stage deadlines at activation and creates later deadlines with each later child Contract.
 

@@ -5,10 +5,15 @@ from dataclasses import replace
 import pytest
 
 from .current_bdd_support import (
+    assessment,
     decision,
+    draft,
+    github_state,
     modules,
     plan_revision,
     record_decision,
+    record_plan,
+    record_triage,
     replace_decision,
     replace_plan_revision,
     stages,
@@ -79,3 +84,38 @@ def test_s_02h_author_decision_source_must_follow_the_plan_source() -> None:
         record_decision(state, draft, approval)
 
     assert state.decisions == ()
+
+
+def test_s_02h_initial_plan_must_follow_triage_completion_source_order() -> None:
+    intake = modules()["intake"]
+    draft_record = draft()
+    assessment_record = assessment()
+    state = intake.PlanIntakeState(
+        balances=(intake.AccountBalance("agent-author", 150),)
+    )
+    state = record_triage(state, draft_record, assessment_record)
+    inverted = replace_plan_revision(
+        plan_revision(),
+        effective_at=assessment_record.completion_effective_at,
+        source_comment_id="a-plan",
+    )
+
+    with pytest.raises(intake.PlanError, match="Draft/Triage"):
+        record_plan(
+            state,
+            draft_record,
+            inverted,
+            evidence_state=github_state(draft_record, assessment_record, inverted),
+        )
+
+    later = replace_plan_revision(
+        inverted,
+        source_comment_id="z-plan",
+    )
+    accepted = record_plan(
+        state,
+        draft_record,
+        later,
+        evidence_state=github_state(draft_record, assessment_record, later),
+    )
+    assert accepted.plan_revisions[-1] == later

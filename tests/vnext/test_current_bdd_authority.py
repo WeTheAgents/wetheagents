@@ -10,14 +10,18 @@ from wea_vnext import resolution_plan
 from .current_bdd_support import (
     activated_runtime,
     apply_event,
+    assessment,
     assign_role,
     decision,
     digest,
+    draft,
     github_state,
     lifecycle_event,
     modules,
     record_decision,
+    record_triage,
     registry,
+    replace_assessment,
     replace_decision,
     stage,
     state_with_plan,
@@ -186,6 +190,44 @@ def test_s_01c_lifecycle_idempotency_key_is_deterministic() -> None:
         match="lifecycle idempotency key is not deterministic",
     ):
         replace(event, idempotency_key="caller-selected-key")
+
+
+def test_s_01c_triage_chain_uses_full_canonical_source_order() -> None:
+    intake = modules()["intake"]
+    base = assessment()
+    for changes in (
+        {
+            "assignment_effective_at": base.effective_at,
+            "assignment_source_comment_id": "z-assignment",
+        },
+        {
+            "completion_effective_at": base.effective_at,
+            "completion_source_comment_id": "a-completion",
+        },
+    ):
+        with pytest.raises(intake.PlanError, match="Triage evidence order"):
+            replace_assessment(base, **changes)
+
+
+def test_s_01c_triage_assignment_must_follow_the_draft_source() -> None:
+    intake = modules()["intake"]
+    draft_record = replace(draft(), effective_at=assessment().assignment_effective_at)
+    inverted = replace_assessment(
+        assessment(),
+        assignment_effective_at=draft_record.effective_at,
+        assignment_source_comment_id="a-assignment",
+    )
+    state = intake.PlanIntakeState(
+        balances=(intake.AccountBalance("agent-author", 150),)
+    )
+
+    with pytest.raises(intake.PlanError, match="exact Draft"):
+        record_triage(
+            state,
+            draft_record,
+            inverted,
+            evidence_state=github_state(draft_record, inverted),
+        )
 
 
 def test_s_01c_lifecycle_event_cannot_predate_plan_activation() -> None:
