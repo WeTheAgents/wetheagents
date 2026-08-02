@@ -773,8 +773,9 @@ def build() -> None:
     if spec_implementation_review_pending:
         hero_kicker = "Spec 0.9 · implementation verified"
         hero_lead = (
-            "Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и "
-            "manifest-pinned executor 0.8.0. Пакет ожидает независимую проверку PR; "
+            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
+            "Пакет ожидает независимую проверку PR. "
             "live Tide, ledger, migration, bootstrap и GitHub writers не подключены."
         )
         package_status = "Spec 0.9 verified · PR review pending · Not live"
@@ -785,8 +786,9 @@ def build() -> None:
     elif spec_implementation_review_clean:
         hero_kicker = "Spec 0.9 · independent review clean"
         hero_lead = (
-            "Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и "
-            "manifest-pinned executor 0.8.0. Независимый review не нашёл "
+            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
+            "Независимый review не нашёл "
             "actionable defects. Live-системы не подключены."
         )
         package_status = "Spec 0.9 verified · PR review clean · Not live"
@@ -797,8 +799,9 @@ def build() -> None:
     elif spec_reconciliation_complete:
         hero_kicker = "Spec 0.9 · reference runtime verified"
         hero_lead = (
-            "Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и "
-            "manifest-pinned executor 0.8.0. Live Tide, ledger, migration, "
+            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
+            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
+            "Live Tide, ledger, migration, "
             "bootstrap и GitHub writers не подключены."
         )
         package_status = "Spec 0.9 verified · Not live"

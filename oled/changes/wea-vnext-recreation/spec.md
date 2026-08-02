@@ -20,13 +20,17 @@
 - Реализует `outcome 0.9`.
 - Полномочие: решения оператора в этом чате `[CHAT]`.
 - Область: внутренний WEA vNext после отдельного переключения.
-- Неизменное поведение: до переключения действует WEA v1. Совместимые требования Spec `0.8` и `0.7` остаются в силе.
+- Current scope: WEA v1 applies before cutover. The 41 compatible current scenarios remain effective. Three accepted-future scenarios are non-effective.
 
 Предыдущие кандидаты перечислены в `outcome.md` и не являются отдельными действующими версиями.
 
 ## Normative delta Spec 0.9
 
-This delta has priority over conflicting text in Spec `0.8` and baseline `0.7`. The unchanged scenarios remain in force by reference.
+This delta has priority over conflicting text in Spec `0.8` and baseline `0.7`.
+
+The 41 compatible scenarios remain in force by reference.
+
+`S-11A`, `S-11B`, and `S-13C` are accepted future behavior. They are non-effective and do not count as current implementation evidence.
 
 The normative BDD uses pragmatic Simplified Technical English. Product nouns and identifiers keep their exact spelling.
 
@@ -428,7 +432,7 @@ An invalid order or invalid authority MUST create no partial settlement. A repla
 | `delta.md`, `migration.md` | delta/migration `0.9` | Record the behavior change and preserve the no-live-migration boundary. |
 | `tasks.md`, `HANDOFF.md` | tasks `1.2` | Describe one behavior-complete delivery and its verified handoff. |
 | `src/wea_vnext/rulesets/0.8.json`, `src/wea_vnext/executors/v0_8_0/` | ruleset/interface `0.8`, executor `0.8.0` | Implement the current contract in a new immutable successor. Ruleset `0.7` and executor `v0_7_0` stay unchanged. |
-| `tests/vnext/scenarios.py`, contract tests | Spec `0.9` | Register exactly 70 current scenarios: 44 compatible and 26 changed or added scenarios. Historical and accepted-future scopes do not count as current evidence. |
+| `tests/vnext/scenarios.py`, contract tests | Spec `0.9` | Register exactly 67 current scenarios: 41 compatible and 26 changed or added scenarios. Register S-11A, S-11B, and S-13C as accepted-future. Historical and accepted-future scopes do not count as current evidence. |
 | `verification.md`, `WEA_vNext_REVIEW.html` | Spec `0.9` | Report fresh reference-runtime evidence and keep the explicit `Not live` boundary. |
 
 ## Scenario evidence map Spec 0.9
@@ -446,8 +450,11 @@ An invalid order or invalid authority MUST create no partial settlement. A repla
 | R-13 | S-13 | `test_current_bdd_next.py`, `test_current_bdd_work_scope.py` |
 | R-18 | S-69 | `test_current_bdd_flat_pod.py` |
 | R-19 | S-70 | `test_current_bdd_ranked_settlement.py` |
+| Accepted future | S-11A, S-11B, S-13C | No current implementation evidence. A later approved block must add exact runtime and contract tests before promotion. |
 
-The 44 compatible scenarios remain normative by reference. The current set is `S-56` through `S-68` plus the 31 IDs listed in `bdd-contract-rewrite.md`.
+The 41 compatible scenarios remain normative by reference. The current set contains 67 IDs: 41 compatible and 26 changed or added.
+
+The accepted-future set contains `S-11A`, `S-11B`, and `S-13C`.
 
 ## Historical delta Spec 0.8
 
@@ -1255,6 +1262,8 @@ Release завершает обучение на реальном исходе. 
 
 ## R-11. Domain и Access
 
+`R-11`, `S-11A`, and `S-11B` define accepted future behavior. They are non-effective in ruleset `0.8` and executor `v0_8_0`.
+
 Domain отделяет крупную работу от root. Access даёт права на время, но не создаёт обязанность работать.
 
 - `[CHAT]` Новый Domain живёт во внешнем репозитории; старый `domains/` служит материалом для классификации.
@@ -1316,6 +1325,8 @@ Tide работает редким экономическим циклом. Ledg
 - **Проверка:** повтор декларации не создаёт Work, Deliverable или платёж.
 
 ### S-13C. Аварийная финансовая коррекция
+
+`S-13C` defines accepted future behavior. It is non-effective in ruleset `0.8` and executor `v0_8_0`.
 
 - **Дано:** опубликованный переход ledger признан ошибочным, но прежние записи нельзя менять или удалять.
 - **Когда:** оператор и Agent0 отдельно подтверждают один hash предложения коррекции.

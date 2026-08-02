@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.2`: **implemented / review clean**. Spec 0.9 reference runtime implemented and verified. Pass 20 found verifier-only callables in wrapper attributes. The repair removes those attributes and adds an exact regression. Pass 21 found no actionable defect. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.2`: **implemented / review pending**. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Pass 25 found no actionable runtime defect. Pass 26 must verify the reconciled package. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Правила исполнения
 
@@ -13,7 +13,7 @@
 
 ## Current delivery: Spec 0.9 reconciliation
 
-**Outcome:** one manifest-pinned pure runtime can replay and prove all 70 current BDD scenarios without changing live GitHub, ledger, migration, or bootstrap state.
+**Outcome:** one manifest-pinned pure runtime can replay and prove all 67 current BDD scenarios without changing live GitHub, ledger, migration, or bootstrap state. S-11A, S-11B, and S-13C remain accepted-future and non-effective.
 
 **Authority:** Outcome/Spec `0.9`; design/schema `1.0`; delta/migration `0.9`. No open behavior decision exists.
 
@@ -80,11 +80,11 @@
 
 ### Group E — exact registry, integration, and durable evidence
 
-- [x] Replace the 68-ID registry with exactly 70 current IDs: the 44 compatible scenarios plus the 26 changed/added scenarios. Keep accepted-future and historical references in separate named scopes that cannot count as current evidence.
+- [x] Register exactly 67 current IDs: 41 compatible scenarios plus 26 changed or added scenarios. Register S-11A, S-11B, and S-13C as accepted-future. Keep historical references separate.
 - [x] Make registry tests parse the normative Spec `0.9` delta and inherited compatibility list without confusing historical duplicate headings.
 - [x] Update package data and manifest tests for ruleset `0.8` and `v0_8_0` while preserving all older wheel/replay cases.
 - [x] Run focused current-BDD tests, all `tests/vnext`, full repository tests, Ruff, Pyright, manifest/canonical checks, ledger schema/invariant checks, and phase-boundary checks.
-- [x] Perform the final independent `codex exec review`, lean cut, and regenerate `HANDOFF.md`, `verification.md`, and `WEA_vNext_REVIEW.html` from fresh evidence.
+- [ ] Perform the final independent `codex exec review`, lean cut, and regenerate `HANDOFF.md`, `verification.md`, and `WEA_vNext_REVIEW.html` from fresh evidence.
 
 **Checkpoint commands:**
 
@@ -177,6 +177,8 @@ Do not add or change a live Tide/CLI writer, `ledger/vnext/`, GitHub Issue state
 3. Explore/Duel execution;
 4. selector resolution, automatic next Contract, paused replan suffix и Release по Implement depth;
 5. Domain/Access, затем отдельный shadow/migration/bootstrap gate.
+
+The current Spec `0.9` delivery completes items 1–4. The next active block starts with a new Domain/Access cut. The archived Block 6 is not executable.
 
 Точные block numbers и cuts после Block 4 должны учитывать реальные размеры и найденные seams; их нельзя выводить из старых profiles.
 

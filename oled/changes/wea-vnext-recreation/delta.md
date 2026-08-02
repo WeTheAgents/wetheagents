@@ -22,7 +22,7 @@
 | --- | --- | --- |
 | `rulesets/0.8.json`, `executors/v0_8_0/` | ADD | full immutable inactive closure with no semantic dependencies |
 | `resolution_plan.py` | MODIFY | explicit facade pinned to `0.8.0` and lifecycle API |
-| `tests/vnext/scenarios.py` | MODIFY | 70 current IDs plus separate future/historical scopes |
+| `tests/vnext/scenarios.py` | MODIFY | 67 current IDs plus three accepted-future IDs and a separate historical scope |
 | `test_current_bdd_*.py` | ADD | exact evidence for 26 changed/added scenarios |
 | old rulesets/executors and `intake.py` | KEEP | historical replay surface |
 | live Tide, GitHub writer, ledger files, CLI command, bootstrap | NO CHANGE | unauthorized until a separate live adapter/migration gate |

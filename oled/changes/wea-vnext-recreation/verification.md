@@ -2,13 +2,13 @@
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 
-Decision: `Implementation verified — independent PR review clean`.
+Decision: `Implementation verified — independent PR review pending`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `CLEAN`.
+Статус независимой проверки: `Pending`.
 
-Текущий review gate: `Pass 21 clean`.
+Текущий review gate: `Pass 26 pending`.
 
 ## Версии
 
@@ -23,7 +23,7 @@ Decision: `Implementation verified — independent PR review clean`.
 
 Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
 
-Executor `v0_8_0` manifest SHA-256: `17c4c24e7e1e5bbb867a34b42aaa0c074d3d7cd36d9af55b5707a432ffca2636`.
+Executor `v0_8_0` manifest SHA-256: `19a73d9b2c37bae77255c9cf6a6bd30dbd2aeca4367e84b170a009724f2014b8`.
 
 ## Реализованный контракт Spec 0.9
 
@@ -43,9 +43,10 @@ Executor `v0_8_0` manifest SHA-256: `17c4c24e7e1e5bbb867a34b42aaa0c074d3d7cd36d9
 
 ## BDD alignment
 
-- Current registry: exactly `70` IDs.
-- Compatible scenarios: `44` IDs (`S-56` through `S-68` plus 31 baseline IDs).
+- Current registry: exactly `67` IDs.
+- Compatible current scenarios: `41` IDs.
 - Changed or added scenarios: exactly `26` IDs listed in the normative Spec `0.9` delta.
+- Accepted-future scenarios: exactly `3` IDs (`S-11A`, `S-11B`, and `S-13C`). They are non-effective.
 - Accepted-future and historical references use separate scopes. They cannot count as current evidence.
 - Contract tests name the normative scenario IDs and cover each changed behavior. Registry tests reject omissions, extras, duplicates, and historical-heading confusion.
 
@@ -53,12 +54,12 @@ Executor `v0_8_0` manifest SHA-256: `17c4c24e7e1e5bbb867a34b42aaa0c074d3d7cd36d9
 
 | Проверка | Команда | Результат |
 | --- | --- | --- |
-| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `418 passed`, `18 skipped` |
-| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4703 passed`, `18 skipped`, `11 xfailed` |
+| Полный vNext | `$env:PYTHONPATH='src'; python -m pytest tests/vnext -q` | PASS: `421 passed`, `18 skipped` |
+| Полный repository | `$env:PYTHONPATH='src'; python -m pytest -q --tb=short` | PASS: `4706 passed`, `18 skipped`, `11 xfailed` |
 | Python quality | `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`; `python -m pyright src/wea_vnext`; `python -m compileall -q src/wea_vnext` | PASS: Ruff clean; `0 errors, 0 warnings`; compileall clean |
 | v1 integrity | `check_invariant.py`; `check_ledger_schema.py`; `check_task_index_schema.py`; `check_doc_sync.py` | PASS: `19025 = 10000 + 9025`; schemas, task index, and docs clean |
 | Exact bytes | manifest verification; canonical rules verification; `git diff --check` | PASS: rules hash and manifest hash match the values above; compact JSON has no BOM or trailing newline; diff clean |
-| Independent review | `codex exec review --base origin/main` on PR #941 | Pass 20 found raw authority calls and the verified runtime reference in introspectable wrapper attributes. The repair moves both out of the wrapper and adds an exact S-01C regression. Pass 21 found no actionable defect, confirmed internal consistency, and reran the vNext suite: `418 passed`, `18 skipped`. |
+| Independent review | `codex exec review --base origin/main` on PR #941 | Passes 22–24 found four runtime gaps. Exact regressions now cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect and reran vNext (`421 passed`, `18 skipped`), Ruff, and Pyright. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Pass 26 is pending. |
 
 ## Historical verification baseline through Block 3
 

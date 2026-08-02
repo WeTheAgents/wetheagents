@@ -849,17 +849,17 @@
 
     <main id="top">
       <header class="hero">
-        <p class="hero-kicker">Spec 0.9 · independent review clean</p>
+        <p class="hero-kicker">Spec 0.9 · implementation verified</p>
         <h1>WEA vNext</h1>
-        <p class="hero-lead">Все 70 текущих BDD-сценариев согласованы с ruleset 0.8 и manifest-pinned executor 0.8.0. Независимый review не нашёл actionable defects. Live-системы не подключены.</p>
+        <p class="hero-lead">Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и manifest-pinned executor 0.8.0. Три future-сценария non-effective. Пакет ожидает независимую проверку PR. live Tide, ledger, migration, bootstrap и GitHub writers не подключены.</p>
         <div class="hero-status" aria-label="Статус пакета">
-          <span class="status-pill">Spec 0.9 verified · PR review clean · Not live</span>
+          <span class="status-pill">Spec 0.9 verified · PR review pending · Not live</span>
           <span class="status-pill">Расхождений BDD: 0</span>
           <span class="status-pill">Отложено: 4</span>
           <span class="status-pill">Кандидат 0.9</span>
         </div>
         <div class="hero-actions">
-          <a class="primary" href="#doc-handoff">Открыть review-clean handoff</a>
+          <a class="primary" href="#doc-handoff">Открыть review handoff</a>
           <a class="secondary" href="#doc-outcome">Читать основу системы</a>
         </div>
       </header>
@@ -868,19 +868,19 @@
     <section class="document-section" id="doc-handoff" data-source="HANDOFF.md">
       <header class="document-header">
         <p class="eyebrow">Требует внимания</p>
-        <h2>Agent0 handoff: Spec 0.9 review-clean</h2>
+        <h2>Agent0 handoff: Spec 0.9 review pending</h2>
         <p class="source-file">Исходный Markdown-файл: <code>HANDOFF.md</code></p>
       </header>
       <div class="markdown-body">
 <p>The inactive WEA vNext reference runtime now implements Outcome/Spec <code>0.9</code>. Design/schema <code>1.0</code>, delta/migration <code>0.9</code>, tasks <code>1.2</code>, ruleset/interface <code>0.8</code>, executor <code>v0_8_0</code>, the exact BDD registry, and contract tests are reconciled. <code>BDD alignment: 100%</code>. WEA vNext remains <code>Not live</code>.</p>
-<p>Status: <code>Implementation verified — independent PR review clean</code>.</p>
+<p>Status: <code>Implementation verified — independent PR review pending</code>.</p>
 <h3 id="handoff-repository-boundary">Repository boundary</h3>
 <ul>
 <li>Worktree: <code>D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
 <li>Branch: <code>codex/wea-vnext-resolution-plan-block4-2026-07-30</code>.</li>
-<li>Current base: <code>252c6ca</code> (<code>origin/main</code> after three unrelated BTC snapshot commits). The feature commit is rebased on this base.</li>
+<li>Reviewed target: tracked <code>origin/main</code> <code>599bd77</code>. The feature merge-base remains <code>252c6ca</code>. Later target commits change only BTC snapshots.</li>
 <li>Ruleset <code>0.8</code> SHA-256: <code>2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128</code>.</li>
-<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>17c4c24e7e1e5bbb867a34b42aaa0c074d3d7cd36d9af55b5707a432ffca2636</code>.</li>
+<li>Executor <code>v0_8_0</code> manifest SHA-256: <code>19a73d9b2c37bae77255c9cf6a6bd30dbd2aeca4367e84b170a009724f2014b8</code>.</li>
 <li>Ruleset <code>0.7</code> and executor <code>v0_7_0</code> retain the historical Resolution Plan intake and activation behavior. Older <code>0.6.x</code> executors retain their versioned replay behavior.</li>
 </ul>
 <h3 id="handoff-delivered-behavior">Delivered behavior</h3>
@@ -902,26 +902,27 @@
 </ul>
 <h3 id="handoff-exact-bdd-contract">Exact BDD contract</h3>
 <ul>
-<li>Current scenarios: <code>70</code>.</li>
-<li>Compatible by reference: <code>44</code>.</li>
+<li>Current scenarios: <code>67</code>.</li>
+<li>Compatible by reference: <code>41</code>.</li>
 <li>Changed or added in Spec <code>0.9</code>: <code>26</code>.</li>
+<li>Accepted-future and non-effective: <code>3</code> (<code>S-11A</code>, <code>S-11B</code>, and <code>S-13C</code>).</li>
 <li>Current, accepted-future, and historical scopes are separate. Only current IDs count as implementation evidence.</li>
 <li><code>AGENT0.md</code> requires a BDD impact report for behavior changes and forbids completion claims when the BDD contract and runtime differ.</li>
 </ul>
 <h3 id="handoff-fresh-evidence">Fresh evidence</h3>
 <ul>
 <li>S-66 and ruleset focus: <code>20 passed</code>.</li>
-<li><code>tests/vnext</code>: <code>418 passed</code>, <code>18 skipped</code>.</li>
-<li>Full repository: <code>4703 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
+<li><code>tests/vnext</code>: <code>421 passed</code>, <code>18 skipped</code>.</li>
+<li>Full repository: <code>4706 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code>.</li>
 <li>Ruff: clean. Targeted Pyright: <code>0 errors, 0 warnings</code>. Compileall: clean.</li>
 <li>Ledger invariant: PASS, <code>19025 = 10000 + 9025</code>. Ledger schema, task-index schema, and doc sync: PASS.</li>
 <li>Rules and manifest use exact canonical bytes. <code>git diff --check</code>: clean.</li>
-<li>PR: <code>#941</code>. Passes 6, 10, 17, 19, and 21 were clean. Pass 18 found the suffix-replan audit-chain defect. Pass 20 found raw authority calls and the runtime reference in introspectable wrapper attributes. Both repairs now have exact regressions. Pass 21 found no actionable defect and confirmed the vNext suite.</li>
+<li>PR: <code>#941</code>. Passes 22–24 found four runtime gaps. Exact regressions now cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect. The operator approved the three-scenario accepted-future correction. Pass 26 is pending.</li>
 </ul>
 <h3 id="handoff-hard-stop-boundary">Hard stop boundary</h3>
 <p>This delivery does not add or change a live Tide or CLI writer, <code>ledger/vnext/</code>, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a>, and <a class="xref" href="#decision-od-29">OD-29</a> remain deferred. <a class="xref" href="#decision-od-28">OD-28</a> and <a class="xref" href="#decision-od-29">OD-29</a> block only the future live migration/bootstrap phase.</p>
 <h3 id="handoff-next-action">Next action</h3>
-<p>Commit and push the review-clean evidence. Mark PR <code>#941</code> ready only after the published head and GitHub checks are clean. Live migration, bootstrap, and cutover remain separate prohibited work.</p>
+<p>Run Pass 26 against the reconciled package. If the review is clean, publish and merge PR <code>#941</code>. Then define a new Domain/Access block. Do not execute the archived Block 6.</p>
 </div>
     </section>
 
@@ -934,7 +935,7 @@
             Рекомендуемый маршрут: handoff → план реализации → техническое устройство →
             утверждённое поведение по необходимости → приложения.
           </p>
-          <p>Все решения reference runtime приняты и независимо проверены. Отложенные вопросы относятся только к будущей live-активации.</p>
+          <p>Все решения текущего reference runtime приняты и локально доказаны. Остаётся независимая проверка опубликованного PR.</p>
         </div>
         <div>
           <p class="eyebrow">Легенда источников</p>
@@ -950,7 +951,7 @@
         <p class="source-file">Исходный Markdown-файл: <code>tasks.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус <code>tasks 1.2</code>: <strong>implemented / review clean</strong>. Spec 0.9 reference runtime implemented and verified. Pass 20 found verifier-only callables in wrapper attributes. The repair removes those attributes and adds an exact regression. Pass 21 found no actionable defect. Blocks 1–4 remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p>Статус <code>tasks 1.2</code>: <strong>implemented / review pending</strong>. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Pass 25 found no actionable runtime defect. Pass 26 must verify the reconciled package. Blocks 1–4 remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <h3 id="tasks-правила-исполнения">Правила исполнения</h3>
 <ul>
 <li>Historical blocks below were separate tasks. The current Spec <code>0.9</code> delivery is one behavior-complete task and one PR with five internal verification groups. <span aria-label="Источники" class="source-tags"><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a></span></li>
@@ -961,7 +962,7 @@
 <li>Изменение наблюдаемого поведения возвращает работу в <code>outcome.md</code> или <code>spec.md</code>. Реализация не закрывает <a class="xref" href="#decision-od-11">OD-11</a>, <a class="xref" href="#decision-od-14">OD-14</a>, <a class="xref" href="#decision-od-28">OD-28</a> или <a class="xref" href="#decision-od-29">OD-29</a> догадкой. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></li>
 </ul>
 <h3 id="tasks-current-delivery-spec-0-9-reconciliation">Current delivery: Spec 0.9 reconciliation</h3>
-<p><strong>Outcome:</strong> one manifest-pinned pure runtime can replay and prove all 70 current BDD scenarios without changing live GitHub, ledger, migration, or bootstrap state.</p>
+<p><strong>Outcome:</strong> one manifest-pinned pure runtime can replay and prove all 67 current BDD scenarios without changing live GitHub, ledger, migration, or bootstrap state. S-11A, S-11B, and S-13C remain accepted-future and non-effective.</p>
 <p><strong>Authority:</strong> Outcome/Spec <code>0.9</code>; design/schema <code>1.0</code>; delta/migration <code>0.9</code>. No open behavior decision exists.</p>
 <h4 id="tasks-group-a-successor-closure-schedules-and-exact-approval">Group A — successor closure, schedules, and exact approval</h4>
 <ul>
@@ -1014,11 +1015,11 @@
 <p><strong>Checkpoint:</strong> Duel timing/payouts match the inherited table; <code>next_action</code> is a pure projection; Triage gets no early Release.</p>
 <h4 id="tasks-group-e-exact-registry-integration-and-durable-evidence">Group E — exact registry, integration, and durable evidence</h4>
 <ul>
-<li>[x] Replace the 68-ID registry with exactly 70 current IDs: the 44 compatible scenarios plus the 26 changed/added scenarios. Keep accepted-future and historical references in separate named scopes that cannot count as current evidence.</li>
+<li>[x] Register exactly 67 current IDs: 41 compatible scenarios plus 26 changed or added scenarios. Register S-11A, S-11B, and S-13C as accepted-future. Keep historical references separate.</li>
 <li>[x] Make registry tests parse the normative Spec <code>0.9</code> delta and inherited compatibility list without confusing historical duplicate headings.</li>
 <li>[x] Update package data and manifest tests for ruleset <code>0.8</code> and <code>v0_8_0</code> while preserving all older wheel/replay cases.</li>
 <li>[x] Run focused current-BDD tests, all <code>tests/vnext</code>, full repository tests, Ruff, Pyright, manifest/canonical checks, ledger schema/invariant checks, and phase-boundary checks.</li>
-<li>[x] Perform the final independent <code>codex exec review</code>, lean cut, and regenerate <code>HANDOFF.md</code>, <code>verification.md</code>, and <code>WEA_vNext_REVIEW.html</code> from fresh evidence.</li>
+<li>[ ] Perform the final independent <code>codex exec review</code>, lean cut, and regenerate <code>HANDOFF.md</code>, <code>verification.md</code>, and <code>WEA_vNext_REVIEW.html</code> from fresh evidence.</li>
 </ul>
 <p><strong>Checkpoint commands:</strong></p>
 <pre><code class="language-powershell">python -m pytest tests/vnext/test_current_bdd_*.py -q
@@ -1097,6 +1098,7 @@ git diff --check
 <li>selector resolution, automatic next Contract, paused replan suffix и Release по Implement depth;</li>
 <li>Domain/Access, затем отдельный shadow/migration/bootstrap gate.</li>
 </ol>
+<p>The current Spec <code>0.9</code> delivery completes items 1–4. The next active block starts with a new Domain/Access cut. The archived Block 6 is not executable.</p>
 <p>Точные block numbers и cuts после Block 4 должны учитывать реальные размеры и найденные seams; их нельзя выводить из старых profiles.</p>
 <h3 id="tasks-исторический-roadmap-tasks-1-0-superseded-после-block-4">Исторический roadmap tasks 1.0 — superseded после Block 4</h3>
 <p>Следующие разделы сохраняют прежнюю декомпозицию для traceability, но не являются исполняемым планом Spec 0.8.</p>
@@ -1431,8 +1433,8 @@ git diff --check
 <h4 id="design-design-verification-hooks">Design verification hooks</h4>
 <ul>
 <li><code>test_current_bdd_*.py</code> files named by Spec <code>0.9</code> prove the 26 changed or added scenarios.</li>
-<li>Existing tests for the 44 compatible scenarios remain contract evidence and must pass without weakening their assertions.</li>
-<li>Registry tests prove exactly 70 current scenario IDs and separate current, accepted-future, and historical scopes.</li>
+<li>Existing tests for the 41 compatible current scenarios remain contract evidence. The tests must pass without weaker assertions.</li>
+<li>Registry tests prove exactly 67 current scenario IDs and three accepted-future IDs. Current, accepted-future, and historical scopes remain separate.</li>
 <li>Runtime/packaging tests prove exact <code>0.8 / 0.8 / v0_8_0</code> selection and unchanged historical hashes.</li>
 <li>Full <code>tests/vnext</code>, full repository tests, Ruff, Pyright, manifest checks, and <code>scripts/check_invariant.py</code> provide integration evidence.</li>
 </ul>
@@ -2144,11 +2146,13 @@ git diff --check
 <li>Реализует <code>outcome 0.9</code>.</li>
 <li>Полномочие: решения оператора в этом чате <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span>.</li>
 <li>Область: внутренний WEA vNext после отдельного переключения.</li>
-<li>Неизменное поведение: до переключения действует WEA v1. Совместимые требования Spec <code>0.8</code> и <code>0.7</code> остаются в силе.</li>
+<li>Current scope: WEA v1 applies before cutover. The 41 compatible current scenarios remain effective. Three accepted-future scenarios are non-effective.</li>
 </ul>
 <p>Предыдущие кандидаты перечислены в <code>outcome.md</code> и не являются отдельными действующими версиями.</p>
 <h3 id="spec-normative-delta-spec-0-9">Normative delta Spec 0.9</h3>
-<p>This delta has priority over conflicting text in Spec <code>0.8</code> and baseline <code>0.7</code>. The unchanged scenarios remain in force by reference.</p>
+<p>This delta has priority over conflicting text in Spec <code>0.8</code> and baseline <code>0.7</code>.</p>
+<p>The 41 compatible scenarios remain in force by reference.</p>
+<p><code>S-11A</code>, <code>S-11B</code>, and <code>S-13C</code> are accepted future behavior. They are non-effective and do not count as current implementation evidence.</p>
 <p>The normative BDD uses pragmatic Simplified Technical English. Product nouns and identifiers keep their exact spelling.</p>
 <h4 id="spec-current-terms">Current terms</h4>
 <ul>
@@ -2500,7 +2504,7 @@ git diff --check
 <tr>
 <td><code>tests/vnext/scenarios.py</code>, contract tests</td>
 <td>Spec <code>0.9</code></td>
-<td>Register exactly 70 current scenarios: 44 compatible and 26 changed or added scenarios. Historical and accepted-future scopes do not count as current evidence.</td>
+<td>Register exactly 67 current scenarios: 41 compatible and 26 changed or added scenarios. Register S-11A, S-11B, and S-13C as accepted-future. Historical and accepted-future scopes do not count as current evidence.</td>
 </tr>
 <tr>
 <td><code>verification.md</code>, <code>WEA_vNext_REVIEW.html</code></td>
@@ -2574,9 +2578,15 @@ git diff --check
 <td>S-70</td>
 <td><code>test_current_bdd_ranked_settlement.py</code></td>
 </tr>
+<tr>
+<td>Accepted future</td>
+<td>S-11A, S-11B, S-13C</td>
+<td>No current implementation evidence. A later approved block must add exact runtime and contract tests before promotion.</td>
+</tr>
 </tbody>
 </table></div>
-<p>The 44 compatible scenarios remain normative by reference. The current set is <code>S-56</code> through <code>S-68</code> plus the 31 IDs listed in <code>bdd-contract-rewrite.md</code>.</p>
+<p>The 41 compatible scenarios remain normative by reference. The current set contains 67 IDs: 41 compatible and 26 changed or added.</p>
+<p>The accepted-future set contains <code>S-11A</code>, <code>S-11B</code>, and <code>S-13C</code>.</p>
 <h3 id="spec-historical-delta-spec-0-8">Historical delta Spec 0.8</h3>
 <p>Эта delta сохраняется для истории и для требований, которые Spec <code>0.9</code> наследует по ссылке. При конфликте действует нормативная delta Spec <code>0.9</code> выше.</p>
 <h4 id="spec-removed-r-02a-жёсткие-task-профили">REMOVED R-02A: жёсткие task-профили</h4>
@@ -3701,6 +3711,7 @@ git diff --check
 <li><strong>Проверка:</strong> приглашение ссылается на роль, а не на платёж.</li>
 </ul>
 <h3 id="spec-r-11">R-11. Domain и Access</h3>
+<p><code>R-11</code>, <code>S-11A</code>, and <code>S-11B</code> define accepted future behavior. They are non-effective in ruleset <code>0.8</code> and executor <code>v0_8_0</code>.</p>
 <p>Domain отделяет крупную работу от root. Access даёт права на время, но не создаёт обязанность работать.</p>
 <ul>
 <li><span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span> Новый Domain живёт во внешнем репозитории; старый <code>domains/</code> служит материалом для классификации.</li>
@@ -3760,6 +3771,7 @@ git diff --check
 <li><strong>Проверка:</strong> повтор декларации не создаёт Work, Deliverable или платёж.</li>
 </ul>
 <h4 id="spec-s-13c">S-13C. Аварийная финансовая коррекция</h4>
+<p><code>S-13C</code> defines accepted future behavior. It is non-effective in ruleset <code>0.8</code> and executor <code>v0_8_0</code>.</p>
 <ul>
 <li><strong>Дано:</strong> опубликованный переход ledger признан ошибочным, но прежние записи нельзя менять или удалять.</li>
 <li><strong>Когда:</strong> оператор и Agent0 отдельно подтверждают один hash предложения коррекции.</li>
@@ -3786,6 +3798,7 @@ git diff --check
       <div class="markdown-body">
 <p>Статус: <strong>оператор принял все 26 предложений и BD-01…BD-03 2026-08-01</strong>. Решения перенесены в нормативную delta Spec <code>0.9</code> по правилам Simplified Technical English. Design, tasks, registry, tests, ruleset и runtime остаются stale до отдельного reconciliation. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <p>Аудит сопоставил все 68 зарегистрированных сценариев с одобренной матрицей <code>depth × mode</code>, author-approved Resolution Plan, program escrow и дочерними Contracts ruleset <code>0.7</code>. Найдены 24 сценария, смысл которых расходится с новой моделью, и два отсутствующих сценария. Ещё 44 сценария не требуют смысловой правки. <span aria-label="Источники" class="source-tags"><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
+<p>After the approved 2026-08-02 scope correction, 41 of these scenarios remain current. <code>S-11A</code>, <code>S-11B</code>, and <code>S-13C</code> remain accepted-future and non-effective. The historical audit count remains 44 because the behavior text did not change. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <h3 id="bdd-contract-rewrite-развилки-закрытые-после-simple-english-pass">Развилки, закрытые после Simple English pass</h3>
 <p>Следующие вопросы были скрыты неоднозначными словами. Оператор принял все три рекомендации 2026-08-01. Открытых смысловых развилок в этой delta не осталось. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a></span></p>
 <div class="table-wrap"><table>
@@ -4891,7 +4904,7 @@ git diff --check
 <tr>
 <td><code>tests/vnext/scenarios.py</code></td>
 <td>MODIFY</td>
-<td>70 current IDs plus separate future/historical scopes</td>
+<td>67 current IDs plus three accepted-future IDs and a separate historical scope</td>
 </tr>
 <tr>
 <td><code>test_current_bdd_*.py</code></td>
@@ -5783,10 +5796,10 @@ git diff --check
       </header>
       <div class="markdown-body">
 <p>Outcome/Spec <code>0.9</code>, design/schema <code>1.0</code>, tasks <code>1.2</code>, ruleset/interface <code>0.8</code>, executor <code>0.8.0</code>, registry и contract tests согласованы. <code>BDD alignment: 100%</code>. Reference runtime доказан локально и остаётся <code>Not live</code>. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
-<p>Decision: <code>Implementation verified — independent PR review clean</code>.</p>
+<p>Decision: <code>Implementation verified — independent PR review pending</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
-<p>Статус независимой проверки: <code>CLEAN</code>.</p>
-<p>Текущий review gate: <code>Pass 21 clean</code>.</p>
+<p>Статус независимой проверки: <code>Pending</code>.</p>
+<p>Текущий review gate: <code>Pass 26 pending</code>.</p>
 <h3 id="verification-версии">Версии</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5830,7 +5843,7 @@ git diff --check
 </tbody>
 </table></div>
 <p>Ruleset <code>0.8</code> SHA-256: <code>2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128</code>.</p>
-<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>17c4c24e7e1e5bbb867a34b42aaa0c074d3d7cd36d9af55b5707a432ffca2636</code>.</p>
+<p>Executor <code>v0_8_0</code> manifest SHA-256: <code>19a73d9b2c37bae77255c9cf6a6bd30dbd2aeca4367e84b170a009724f2014b8</code>.</p>
 <h3 id="verification-реализованный-контракт-spec-0-9">Реализованный контракт Spec 0.9</h3>
 <div class="table-wrap"><table>
 <thead>
@@ -5888,9 +5901,10 @@ git diff --check
 </table></div>
 <h3 id="verification-bdd-alignment">BDD alignment</h3>
 <ul>
-<li>Current registry: exactly <code>70</code> IDs.</li>
-<li>Compatible scenarios: <code>44</code> IDs (<code>S-56</code> through <code>S-68</code> plus 31 baseline IDs).</li>
+<li>Current registry: exactly <code>67</code> IDs.</li>
+<li>Compatible current scenarios: <code>41</code> IDs.</li>
 <li>Changed or added scenarios: exactly <code>26</code> IDs listed in the normative Spec <code>0.9</code> delta.</li>
+<li>Accepted-future scenarios: exactly <code>3</code> IDs (<code>S-11A</code>, <code>S-11B</code>, and <code>S-13C</code>). They are non-effective.</li>
 <li>Accepted-future and historical references use separate scopes. They cannot count as current evidence.</li>
 <li>Contract tests name the normative scenario IDs and cover each changed behavior. Registry tests reject omissions, extras, duplicates, and historical-heading confusion.</li>
 </ul>
@@ -5907,12 +5921,12 @@ git diff --check
 <tr>
 <td>Полный vNext</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest tests/vnext -q</code></td>
-<td>PASS: <code>418 passed</code>, <code>18 skipped</code></td>
+<td>PASS: <code>421 passed</code>, <code>18 skipped</code></td>
 </tr>
 <tr>
 <td>Полный repository</td>
 <td><code>$env:PYTHONPATH='src'; python -m pytest -q --tb=short</code></td>
-<td>PASS: <code>4703 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
+<td>PASS: <code>4706 passed</code>, <code>18 skipped</code>, <code>11 xfailed</code></td>
 </tr>
 <tr>
 <td>Python quality</td>
@@ -5932,7 +5946,7 @@ git diff --check
 <tr>
 <td>Independent review</td>
 <td><code>codex exec review --base origin/main</code> on PR #941</td>
-<td>Pass 20 found raw authority calls and the verified runtime reference in introspectable wrapper attributes. The repair moves both out of the wrapper and adds an exact S-01C regression. Pass 21 found no actionable defect, confirmed internal consistency, and reran the vNext suite: <code>418 passed</code>, <code>18 skipped</code>.</td>
+<td>Passes 22–24 found four runtime gaps. Exact regressions now cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect and reran vNext (<code>421 passed</code>, <code>18 skipped</code>), Ruff, and Pyright. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Pass 26 is pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6212,13 +6226,13 @@ git diff --check
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>92b024c3afaa0214acc3e6c8ec9404ed78a768adf8080b6fb50fa760754640fa</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>f1a6de8bf530cc31cdc3c8bf86e0370dc32e2f68fb92d679d78b156460e503c2</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>af7c47d91e8c86b280bdf221b4ce815f95652b0f7a47b263c81936e0400d0155</code></td></tr><tr><td><code>tasks.md</code></td><td><code>8c603ff2220032041c2e2596489cd45c2e126fc5bf4f147de88ab05c4ac911c0</code></td></tr><tr><td><code>design.md</code></td><td><code>31a27a7c6f317d0aef7049d346121e364853872cd758b99c75338e8499b8d599</code></td></tr><tr><td><code>outcome.md</code></td><td><code>dbeb0247cd00d83c92e0a49291058c477ab3e01832ecf9a32dcbdcbb979781a9</code></td></tr><tr><td><code>spec.md</code></td><td><code>0510be1fa6a4c01af69d89465bdfaef908febbd2f0b5bf015774e36afd3a08e4</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>c0645738d3dd789c284558120e9245a6ff047e5cfcd17b469e32569a61e9a0d9</code></td></tr><tr><td><code>schema.md</code></td><td><code>0498cbf73efd6a717b100e621fa3d82a61ba663396b7c8f8a7e66a9f0a6b9ac2</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>e2c2443c8dd58f2c9dec50721e1f15907d726bde1fe331b6d1a79d324aa013a7</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>d420bacad997043416960dcd61fe14037b14fcc7514c0e7ef7ecf699ffd3a148</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>7f444d2893963027e82073f1287e767c142c4b0929bb4ba151bfafeec11d33a9</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>fa9363697e055219a71592afe43c78747332cb26adaba05cfcaf4bb25c939aa9</code></td></tr><tr><td><code>tasks.md</code></td><td><code>375f134a11b3e0eebf2dafbf419919075a5eb285c6e5a114b021f232f97f2754</code></td></tr><tr><td><code>design.md</code></td><td><code>09d479df1c292b66a8d6bed52d219efddb1f3be7c67d686fa82e03399ede6b50</code></td></tr><tr><td><code>outcome.md</code></td><td><code>dbeb0247cd00d83c92e0a49291058c477ab3e01832ecf9a32dcbdcbb979781a9</code></td></tr><tr><td><code>spec.md</code></td><td><code>1f11961a67d120191edc7c7dea91bf6916dbccb8e514b618445f6a77284c86b7</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9f7843281839dc4b7ad745290aa3931b09793f2cdff18e8fb75b1b66578cc91f</code></td></tr><tr><td><code>schema.md</code></td><td><code>0498cbf73efd6a717b100e621fa3d82a61ba663396b7c8f8a7e66a9f0a6b9ac2</code></td></tr><tr><td><code>migration.md</code></td><td><code>e3f70be69c9a6403bd04ae40a8ea524e38abcb27444f913fabc24d53d6295c56</code></td></tr><tr><td><code>delta.md</code></td><td><code>c89b90c77e0fca74a9d6f01646758546571f2211bac648c30d096b7f86fad145</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>2a1a2f4f860d53771c18627a52815aeb10dc628b6d4b06757390e96fd128ffee</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>d7c1c62febcd2f4b00e0b94b35ab807d415bb9a470044e2584b05683241f0489</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>8c0dfc5fcb072093098a7beaf741830927f00173cdca71eee5d1f0dea304ea39</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -6340,7 +6354,7 @@ git diff --check
           "",
           "- Версия кандидата: 0.9",
           "- Основа: 252c6ca",
-          "- Хеш исходных файлов: 92b024c3afaa0214acc3e6c8ec9404ed78a768adf8080b6fb50fa760754640fa",
+          "- Хеш исходных файлов: f1a6de8bf530cc31cdc3c8bf86e0370dc32e2f68fb92d679d78b156460e503c2",
           ""
         ];
         cards

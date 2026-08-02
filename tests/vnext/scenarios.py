@@ -41,10 +41,7 @@ COMPATIBLE_SCENARIO_IDS = (
     "S-09",
     "S-09B",
     "S-09C",
-    "S-11A",
-    "S-11B",
     "S-13B",
-    "S-13C",
 )
 
 CHANGED_SCENARIO_IDS = (
@@ -78,7 +75,11 @@ CHANGED_SCENARIO_IDS = (
 
 CURRENT_SCENARIO_IDS = (*COMPATIBLE_SCENARIO_IDS, *CHANGED_SCENARIO_IDS)
 SCENARIO_IDS = CURRENT_SCENARIO_IDS
-ACCEPTED_FUTURE_SCENARIO_IDS: tuple[str, ...] = ()
+ACCEPTED_FUTURE_SCENARIO_IDS = (
+    "S-11A",
+    "S-11B",
+    "S-13C",
+)
 
 # These references may duplicate current IDs because the version prefix is part
 # of their identity. They are not implementation claims for the current ruleset.
@@ -87,25 +88,27 @@ HISTORICAL_SCENARIO_REFS = tuple(f"0.8:{item}" for item in CHANGED_SCENARIO_IDS)
 
 def validate_registry() -> None:
     """Fail if scenario scopes overlap, omit an accepted case, or add a future claim."""
-    if len(COMPATIBLE_SCENARIO_IDS) != 44:
+    if len(COMPATIBLE_SCENARIO_IDS) != 41:
         raise ValueError(
-            f"expected 44 compatible scenario IDs, found {len(COMPATIBLE_SCENARIO_IDS)}"
+            f"expected 41 compatible scenario IDs, found {len(COMPATIBLE_SCENARIO_IDS)}"
         )
     if len(CHANGED_SCENARIO_IDS) != 26:
         raise ValueError(
             f"expected 26 changed scenario IDs, found {len(CHANGED_SCENARIO_IDS)}"
         )
-    if len(CURRENT_SCENARIO_IDS) != 70:
+    if len(CURRENT_SCENARIO_IDS) != 67:
         raise ValueError(
-            f"expected 70 current scenario IDs, found {len(CURRENT_SCENARIO_IDS)}"
+            f"expected 67 current scenario IDs, found {len(CURRENT_SCENARIO_IDS)}"
         )
     duplicates = sorted(
         {item for item in CURRENT_SCENARIO_IDS if CURRENT_SCENARIO_IDS.count(item) > 1}
     )
     if duplicates:
         raise ValueError(f"duplicate current scenario IDs: {', '.join(duplicates)}")
-    if ACCEPTED_FUTURE_SCENARIO_IDS:
-        raise ValueError("accepted-future scenarios must be empty after implementation")
+    if ACCEPTED_FUTURE_SCENARIO_IDS != ("S-11A", "S-11B", "S-13C"):
+        raise ValueError("accepted-future scenarios do not match the approved scope")
+    if set(CURRENT_SCENARIO_IDS) & set(ACCEPTED_FUTURE_SCENARIO_IDS):
+        raise ValueError("current and accepted-future scenario scopes overlap")
 
 
 validate_registry()

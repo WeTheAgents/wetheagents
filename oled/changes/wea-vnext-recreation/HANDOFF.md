@@ -1,16 +1,16 @@
-# Agent0 handoff: Spec 0.9 review-clean
+# Agent0 handoff: Spec 0.9 review pending
 
 The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
 
-Status: `Implementation verified — independent PR review clean`.
+Status: `Implementation verified — independent PR review pending`.
 
 ## Repository boundary
 
 - Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30`.
 - Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
-- Current base: `252c6ca` (`origin/main` after three unrelated BTC snapshot commits). The feature commit is rebased on this base.
+- Reviewed target: tracked `origin/main` `599bd77`. The feature merge-base remains `252c6ca`. Later target commits change only BTC snapshots.
 - Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
-- Executor `v0_8_0` manifest SHA-256: `17c4c24e7e1e5bbb867a34b42aaa0c074d3d7cd36d9af55b5707a432ffca2636`.
+- Executor `v0_8_0` manifest SHA-256: `19a73d9b2c37bae77255c9cf6a6bd30dbd2aeca4367e84b170a009724f2014b8`.
 - Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
 
 ## Delivered behavior
@@ -32,21 +32,22 @@ Status: `Implementation verified — independent PR review clean`.
 
 ## Exact BDD contract
 
-- Current scenarios: `70`.
-- Compatible by reference: `44`.
+- Current scenarios: `67`.
+- Compatible by reference: `41`.
 - Changed or added in Spec `0.9`: `26`.
+- Accepted-future and non-effective: `3` (`S-11A`, `S-11B`, and `S-13C`).
 - Current, accepted-future, and historical scopes are separate. Only current IDs count as implementation evidence.
 - `AGENT0.md` requires a BDD impact report for behavior changes and forbids completion claims when the BDD contract and runtime differ.
 
 ## Fresh evidence
 
 - S-66 and ruleset focus: `20 passed`.
-- `tests/vnext`: `418 passed`, `18 skipped`.
-- Full repository: `4703 passed`, `18 skipped`, `11 xfailed`.
+- `tests/vnext`: `421 passed`, `18 skipped`.
+- Full repository: `4706 passed`, `18 skipped`, `11 xfailed`.
 - Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
 - Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
 - Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 6, 10, 17, 19, and 21 were clean. Pass 18 found the suffix-replan audit-chain defect. Pass 20 found raw authority calls and the runtime reference in introspectable wrapper attributes. Both repairs now have exact regressions. Pass 21 found no actionable defect and confirmed the vNext suite.
+- PR: `#941`. Passes 22–24 found four runtime gaps. Exact regressions now cover S-08G, S-68, S-02J, and S-64. Pass 25 found no actionable runtime defect. The operator approved the three-scenario accepted-future correction. Pass 26 is pending.
 
 ## Hard stop boundary
 
@@ -54,4 +55,4 @@ This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`,
 
 ## Next action
 
-Commit and push the review-clean evidence. Mark PR `#941` ready only after the published head and GitHub checks are clean. Live migration, bootstrap, and cutover remain separate prohibited work.
+Run Pass 26 against the reconciled package. If the review is clean, publish and merge PR `#941`. Then define a new Domain/Access block. Do not execute the archived Block 6.

@@ -4,6 +4,8 @@
 
 Аудит сопоставил все 68 зарегистрированных сценариев с одобренной матрицей `depth × mode`, author-approved Resolution Plan, program escrow и дочерними Contracts ruleset `0.7`. Найдены 24 сценария, смысл которых расходится с новой моделью, и два отсутствующих сценария. Ещё 44 сценария не требуют смысловой правки. `[CHECK]`
 
+After the approved 2026-08-02 scope correction, 41 of these scenarios remain current. `S-11A`, `S-11B`, and `S-13C` remain accepted-future and non-effective. The historical audit count remains 44 because the behavior text did not change. `[CHAT][CHECK]`
+
 ## Развилки, закрытые после Simple English pass
 
 Следующие вопросы были скрыты неоднозначными словами. Оператор принял все три рекомендации 2026-08-01. Открытых смысловых развилок в этой delta не осталось. `[CHAT]`

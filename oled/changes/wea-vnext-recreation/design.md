@@ -131,8 +131,8 @@ Recovery before live bootstrap is discard-and-replay of shadow state. After any 
 ### Design verification hooks
 
 - `test_current_bdd_*.py` files named by Spec `0.9` prove the 26 changed or added scenarios.
-- Existing tests for the 44 compatible scenarios remain contract evidence and must pass without weakening their assertions.
-- Registry tests prove exactly 70 current scenario IDs and separate current, accepted-future, and historical scopes.
+- Existing tests for the 41 compatible current scenarios remain contract evidence. The tests must pass without weaker assertions.
+- Registry tests prove exactly 67 current scenario IDs and three accepted-future IDs. Current, accepted-future, and historical scopes remain separate.
 - Runtime/packaging tests prove exact `0.8 / 0.8 / v0_8_0` selection and unchanged historical hashes.
 - Full `tests/vnext`, full repository tests, Ruff, Pyright, manifest checks, and `scripts/check_invariant.py` provide integration evidence.
 
