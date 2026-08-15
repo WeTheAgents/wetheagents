@@ -12,6 +12,7 @@ from wea_vnext.financial_correction import (
     CompensatingPosting,
     CorrectionApproval,
     CorrectionGroup,
+    CorrectionIdempotencyRecord,
     CorrectionLedgerRow,
     FinancialCorrectionError,
     FinancialCorrectionState,
@@ -139,15 +140,21 @@ def _reconstruct(
     state: FinancialCorrectionState,
     *,
     groups: tuple[CorrectionGroup, ...] | None = None,
+    idempotency_records: tuple[CorrectionIdempotencyRecord, ...] | None = None,
 ) -> FinancialCorrectionState:
     return FinancialCorrectionState(
         opening_supply=state.opening_supply,
         opening_total_minted=state.opening_total_minted,
+        opening_snapshot_hash=state.opening_snapshot_hash,
         opening_positions=state.opening_positions,
         published_rows=state.published_rows,
         authority_bindings=state.authority_bindings,
         groups=state.groups if groups is None else groups,
-        idempotency_records=state.idempotency_records,
+        idempotency_records=(
+            state.idempotency_records
+            if idempotency_records is None
+            else idempotency_records
+        ),
     )
 
 
@@ -463,6 +470,38 @@ def test_s_13c_4_rejects_invalid_opening_invariant_and_boolean_money() -> None:
         CompensatingPosting("balance:alice", 1, "burn")
 
 
+def test_s_13c_4_rejects_a_deterministic_row_identity_collision() -> None:
+    state = _state()
+    proposal = _proposal()
+    effective_at = START + timedelta(minutes=2)
+    _, candidate_group = apply_financial_correction(
+        state,
+        proposal=proposal,
+        approvals=_approvals(state, proposal),
+        effective_at=effective_at,
+    )
+    collision_state = initial_financial_correction_state(
+        opening_supply=state.opening_supply,
+        opening_total_minted=state.opening_total_minted,
+        opening_positions=state.opening_positions,
+        published_rows=(
+            *state.published_rows,
+            make_published_ledger_row(candidate_group.rows[0].row_id, b"{}"),
+        ),
+        authority_bindings=state.authority_bindings,
+    )
+
+    with pytest.raises(FinancialCorrectionError, match="row identity collides"):
+        apply_financial_correction(
+            collision_state,
+            proposal=proposal,
+            approvals=_approvals(collision_state, proposal),
+            effective_at=effective_at,
+        )
+
+    assert collision_state.groups == ()
+
+
 def test_s_13c_5_exact_replay_returns_existing_group_without_append() -> None:
     state = _state()
     proposal = _proposal()
@@ -482,7 +521,8 @@ def test_s_13c_5_exact_replay_returns_existing_group_without_append() -> None:
         effective_at=effective_at,
     )
 
-    assert replayed is updated
+    assert replayed == updated
+    assert replayed is not updated
     assert existing == group
     assert len(replayed.groups) == 1
     assert len(replayed.correction_rows) == 2
@@ -570,6 +610,470 @@ def test_s_13c_5_clean_state_reconstructs_to_the_same_value() -> None:
     )
 
     assert _reconstruct(updated) == updated
+
+
+def test_opening_snapshot_commitment_rejects_reordered_rows() -> None:
+    state = _state()
+
+    with pytest.raises(FinancialCorrectionError, match="opening snapshot hash"):
+        FinancialCorrectionState(
+            opening_supply=state.opening_supply,
+            opening_total_minted=state.opening_total_minted,
+            opening_snapshot_hash=state.opening_snapshot_hash,
+            opening_positions=state.opening_positions,
+            published_rows=tuple(reversed(state.published_rows)),
+            authority_bindings=state.authority_bindings,
+        )
+
+
+def test_opening_snapshot_commitment_rejects_added_authority() -> None:
+    state = _state()
+    added = VerifiedCorrectionAuthority(
+        authority_kind="operator",
+        authority_id="operator:alternate",
+        authority_revision_id="operator:alternate:revision:1",
+        binding_id="binding:operator:alternate:financial-correction",
+        binding_version=1,
+        effective_from=START - timedelta(days=1),
+        effective_until=START + timedelta(days=30),
+    )
+
+    with pytest.raises(FinancialCorrectionError, match="opening snapshot hash"):
+        FinancialCorrectionState(
+            opening_supply=state.opening_supply,
+            opening_total_minted=state.opening_total_minted,
+            opening_snapshot_hash=state.opening_snapshot_hash,
+            opening_positions=state.opening_positions,
+            published_rows=state.published_rows,
+            authority_bindings=(
+                state.authority_bindings[0],
+                added,
+                state.authority_bindings[1],
+            ),
+        )
+
+
+def test_authority_binding_set_has_one_canonical_opening_commitment() -> None:
+    bindings = (_authority("operator"), _authority("agent0"))
+    forward = _state(authority_bindings=bindings)
+    reversed_input = _state(authority_bindings=tuple(reversed(bindings)))
+
+    assert forward.authority_bindings == reversed_input.authority_bindings
+    assert forward.opening_snapshot_hash == reversed_input.opening_snapshot_hash
+
+
+def test_stable_authority_binding_id_allows_non_overlapping_versions() -> None:
+    operator_v1 = VerifiedCorrectionAuthority(
+        authority_kind="operator",
+        authority_id="operator:primary",
+        authority_revision_id="operator:revision:6",
+        binding_id="binding:operator:financial-correction",
+        binding_version=1,
+        effective_from=START - timedelta(days=30),
+        effective_until=START - timedelta(days=1),
+    )
+    operator_v2 = VerifiedCorrectionAuthority(
+        authority_kind="operator",
+        authority_id="operator:primary",
+        authority_revision_id="operator:revision:7",
+        binding_id="binding:operator:financial-correction",
+        binding_version=2,
+        effective_from=START - timedelta(days=1),
+        effective_until=START + timedelta(days=30),
+    )
+
+    state = _state(
+        authority_bindings=(operator_v2, _authority("agent0"), operator_v1)
+    )
+
+    assert tuple(
+        (binding.binding_id, binding.binding_version)
+        for binding in state.authority_bindings
+        if binding.authority_kind == "operator"
+    ) == (
+        ("binding:operator:financial-correction", 1),
+        ("binding:operator:financial-correction", 2),
+    )
+
+
+def test_s_13c_5_group_chain_rejects_coordinated_noop_reordering() -> None:
+    state = _state()
+    first = _proposal(
+        correction_id="correction:2026-08-15:noop-first",
+        idempotency_key="financial-correction:2026-08-15:noop-first",
+        postings=(
+            CompensatingPosting("balance:alice", -1, "transfer"),
+            CompensatingPosting("balance:alice", 1, "transfer"),
+        ),
+    )
+    after_first, first_group = apply_financial_correction(
+        state,
+        proposal=first,
+        approvals=_approvals(state, first),
+        effective_at=START + timedelta(minutes=2),
+    )
+    second = _proposal(
+        correction_id="correction:2026-08-15:noop-second",
+        idempotency_key="financial-correction:2026-08-15:noop-second",
+        postings=(
+            CompensatingPosting("balance:bob", -1, "transfer"),
+            CompensatingPosting("balance:bob", 1, "transfer"),
+        ),
+    )
+    after_second, second_group = apply_financial_correction(
+        after_first,
+        proposal=second,
+        approvals=_approvals(
+            after_first,
+            second,
+            confirmed_at=START + timedelta(minutes=3),
+        ),
+        effective_at=START + timedelta(minutes=5),
+    )
+
+    assert first_group.sequence_number == 0
+    assert first_group.previous_group_hash == state.opening_snapshot_hash
+    assert second_group.sequence_number == 1
+    assert second_group.previous_group_hash == first_group.group_hash
+    with pytest.raises(FinancialCorrectionError, match="deterministic replay"):
+        _reconstruct(
+            after_second,
+            groups=(second_group, first_group),
+            idempotency_records=tuple(reversed(after_second.idempotency_records)),
+        )
+
+
+def test_validated_state_reuses_replay_and_rejects_top_level_history_tampering() -> (
+    None
+):
+    state = _state()
+    proposal = _proposal()
+    updated, _ = apply_financial_correction(
+        state,
+        proposal=proposal,
+        approvals=_approvals(state, proposal),
+        effective_at=START + timedelta(minutes=2),
+    )
+
+    assert updated.positions is updated.positions
+    assert updated.correction_rows is updated.correction_rows
+    forged: FinancialCorrectionState = _forged(updated, groups=())
+    with pytest.raises(FinancialCorrectionError, match="idempotency records"):
+        confirm_correction(
+            forged,
+            proposal=_proposal(
+                correction_id="correction:2026-08-15:after-tamper",
+                idempotency_key="financial-correction:2026-08-15:after-tamper",
+            ),
+            authority_kind="operator",
+            authority_id="operator:primary",
+            authority_revision_id="operator:revision:7",
+            confirmed_at=START + timedelta(minutes=3),
+        )
+
+
+def test_full_reconstruction_rejects_nested_row_tampering_on_exact_replay() -> None:
+    state = _state()
+    proposal = _proposal()
+    approvals = _approvals(state, proposal)
+    effective_at = START + timedelta(minutes=2)
+    updated, group = apply_financial_correction(
+        state,
+        proposal=proposal,
+        approvals=approvals,
+        effective_at=effective_at,
+    )
+    tampered_posting: CompensatingPosting = _forged(
+        group.rows[0].posting,
+        delta=-19,
+    )
+    tampered_row: CorrectionLedgerRow = _forged(
+        group.rows[0],
+        posting=tampered_posting,
+    )
+    tampered_group: CorrectionGroup = _forged(
+        group,
+        rows=(tampered_row, *group.rows[1:]),
+    )
+    tampered_state: FinancialCorrectionState = _forged(
+        updated,
+        groups=(tampered_group,),
+    )
+
+    with pytest.raises(FinancialCorrectionError, match="correction row"):
+        apply_financial_correction(
+            tampered_state,
+            proposal=proposal,
+            approvals=approvals,
+            effective_at=effective_at,
+        )
+
+
+def test_full_reconstruction_repairs_a_tampered_derived_replay_cache() -> None:
+    state = _state()
+    proposal = _proposal()
+    approvals = _approvals(state, proposal)
+    effective_at = START + timedelta(minutes=2)
+    updated, _ = apply_financial_correction(
+        state,
+        proposal=proposal,
+        approvals=approvals,
+        effective_at=effective_at,
+    )
+    object.__setattr__(updated._replay_result.positions[0], "amount", 999)
+
+    replayed, existing = apply_financial_correction(
+        updated,
+        proposal=proposal,
+        approvals=approvals,
+        effective_at=effective_at,
+    )
+
+    assert replayed == updated
+    assert replayed is not updated
+    assert existing.proposal == proposal
+    assert _amounts(replayed)["balance:alice"] == 80
+    assert type(replayed.positions[0].amount) is int
+
+
+def test_rejected_apply_does_not_mutate_the_caller_state() -> None:
+    state = _state()
+    proposal = _proposal()
+    opening_positions = state.opening_positions
+    published_rows = state.published_rows
+    authority_bindings = state.authority_bindings
+    replay_result = state._replay_result
+
+    with pytest.raises(FinancialCorrectionError, match="exactly one operator"):
+        apply_financial_correction(
+            state,
+            proposal=proposal,
+            approvals=(),
+            effective_at=START + timedelta(minutes=2),
+        )
+
+    assert state.opening_positions is opening_positions
+    assert state.published_rows is published_rows
+    assert state.authority_bindings is authority_bindings
+    assert state._replay_result is replay_result
+
+
+def test_validated_state_rejects_identical_value_nested_subclasses() -> None:
+    class ForgedRow(CorrectionLedgerRow):
+        pass
+
+    state = _state()
+    proposal = _proposal()
+    approvals = _approvals(state, proposal)
+    effective_at = START + timedelta(minutes=2)
+    updated, group = apply_financial_correction(
+        state,
+        proposal=proposal,
+        approvals=approvals,
+        effective_at=effective_at,
+    )
+    forged_row = object.__new__(ForgedRow)
+    for field in fields(group.rows[0]):
+        object.__setattr__(
+            forged_row,
+            field.name,
+            getattr(group.rows[0], field.name),
+        )
+    forged_group: CorrectionGroup = _forged(
+        group,
+        rows=(forged_row, *group.rows[1:]),
+    )
+    forged_state: FinancialCorrectionState = _forged(
+        updated,
+        groups=(forged_group,),
+    )
+
+    with pytest.raises(FinancialCorrectionError, match="exact CorrectionLedgerRow"):
+        apply_financial_correction(
+            forged_state,
+            proposal=proposal,
+            approvals=approvals,
+            effective_at=effective_at,
+        )
+
+
+def test_correction_history_and_proposal_cardinalities_are_bounded() -> None:
+    state = _state()
+    proposal = _proposal()
+    updated, group = apply_financial_correction(
+        state,
+        proposal=proposal,
+        approvals=_approvals(state, proposal),
+        effective_at=START + timedelta(minutes=2),
+    )
+
+    with pytest.raises(FinancialCorrectionError, match="history limit"):
+        FinancialCorrectionState(
+            opening_supply=updated.opening_supply,
+            opening_total_minted=updated.opening_total_minted,
+            opening_snapshot_hash=updated.opening_snapshot_hash,
+            opening_positions=updated.opening_positions,
+            published_rows=updated.published_rows,
+            authority_bindings=updated.authority_bindings,
+            groups=(group,) * 65,
+        )
+    with pytest.raises(FinancialCorrectionError, match="affected_ledger_ids"):
+        make_correction_proposal(
+            correction_id="correction:too-many-references",
+            affected_ledger_ids=tuple(
+                f"ledger:reference:{index}" for index in range(257)
+            ),
+            postings=(CompensatingPosting("balance:alice", 1, "mint"),),
+            idempotency_key="financial-correction:too-many-references",
+        )
+
+    large_row = make_published_ledger_row(
+        "ledger:large",
+        b"x" * (1024 * 1024),
+    )
+    with pytest.raises(FinancialCorrectionError, match="aggregate byte limit"):
+        initial_financial_correction_state(
+            opening_supply=175,
+            opening_positions=state.opening_positions,
+            published_rows=(large_row,) * 65,
+            authority_bindings=state.authority_bindings,
+        )
+
+
+def test_64_group_ceiling_allows_exact_replay_and_rejects_new_group() -> None:
+    state = _state()
+    last_proposal = None
+    last_approvals = None
+    last_effective_at = None
+    last_group = None
+    for index in range(64):
+        proposal = _proposal(
+            correction_id=f"correction:ceiling:{index}",
+            idempotency_key=f"financial-correction:ceiling:{index}",
+            postings=(
+                CompensatingPosting("balance:alice", -1, "transfer"),
+                CompensatingPosting("balance:alice", 1, "transfer"),
+            ),
+        )
+        approvals = _approvals(state, proposal)
+        effective_at = START + timedelta(minutes=2 + index)
+        state, group = apply_financial_correction(
+            state,
+            proposal=proposal,
+            approvals=approvals,
+            effective_at=effective_at,
+        )
+        last_proposal = proposal
+        last_approvals = approvals
+        last_effective_at = effective_at
+        last_group = group
+
+    assert last_proposal is not None
+    assert last_approvals is not None
+    assert last_effective_at is not None
+    assert last_group is not None
+    replayed, existing = apply_financial_correction(
+        state,
+        proposal=last_proposal,
+        approvals=last_approvals,
+        effective_at=last_effective_at,
+    )
+    assert replayed == state
+    assert existing == last_group
+    assert len(replayed.groups) == 64
+
+    new_proposal = _proposal(
+        correction_id="correction:ceiling:64",
+        idempotency_key="financial-correction:ceiling:64",
+        postings=(
+            CompensatingPosting("balance:alice", -1, "transfer"),
+            CompensatingPosting("balance:alice", 1, "transfer"),
+        ),
+    )
+    opening_positions = replayed.opening_positions
+    groups = replayed.groups
+    replay_result = replayed._replay_result
+    with pytest.raises(FinancialCorrectionError, match="checkpoint limit"):
+        apply_financial_correction(
+            replayed,
+            proposal=new_proposal,
+            approvals=_approvals(replayed, new_proposal),
+            effective_at=START + timedelta(minutes=66),
+        )
+    assert replayed.opening_positions is opening_positions
+    assert replayed.groups is groups
+    assert replayed._replay_result is replay_result
+
+
+def test_public_iterables_stop_after_limit_plus_one_items() -> None:
+    def guarded_repetition(value: Any, limit: int):
+        for index in range(limit + 2):
+            if index == limit + 1:
+                raise AssertionError("public iterable was consumed past its bound")
+            yield value
+
+    with pytest.raises(FinancialCorrectionError, match="accepted limit"):
+        make_correction_proposal(
+            correction_id="correction:bounded-generator",
+            affected_ledger_ids=guarded_repetition(
+                "ledger:history:2026-08-14:1",
+                256,
+            ),
+            postings=(CompensatingPosting("balance:alice", 1, "mint"),),
+            idempotency_key="financial-correction:bounded-generator",
+        )
+    with pytest.raises(FinancialCorrectionError, match="accepted limit"):
+        make_correction_proposal(
+            correction_id="correction:bounded-posting-generator",
+            affected_ledger_ids=("ledger:history:2026-08-14:1",),
+            postings=guarded_repetition(
+                CompensatingPosting("balance:alice", 1, "mint"),
+                128,
+            ),
+            idempotency_key="financial-correction:bounded-posting-generator",
+        )
+
+    state = _state()
+    with pytest.raises(FinancialCorrectionError, match="accepted limit"):
+        initial_financial_correction_state(
+            opening_supply=175,
+            opening_positions=guarded_repetition(
+                state.opening_positions[0],
+                10_000,
+            ),
+            published_rows=state.published_rows,
+            authority_bindings=state.authority_bindings,
+        )
+    with pytest.raises(FinancialCorrectionError, match="accepted limit"):
+        initial_financial_correction_state(
+            opening_supply=175,
+            opening_positions=state.opening_positions,
+            published_rows=guarded_repetition(
+                make_published_ledger_row("ledger:empty", b""),
+                100_000,
+            ),
+            authority_bindings=state.authority_bindings,
+        )
+    with pytest.raises(FinancialCorrectionError, match="accepted limit"):
+        initial_financial_correction_state(
+            opening_supply=175,
+            opening_positions=state.opening_positions,
+            published_rows=state.published_rows,
+            authority_bindings=guarded_repetition(
+                state.authority_bindings[0],
+                128,
+            ),
+        )
+
+    proposal = _proposal()
+    approvals = _approvals(state, proposal)
+    with pytest.raises(FinancialCorrectionError, match="accepted limit"):
+        apply_financial_correction(
+            state,
+            proposal=proposal,
+            approvals=guarded_repetition(approvals[0], 2),
+            effective_at=START + timedelta(minutes=2),
+        )
 
 
 def test_published_rows_reject_modified_content_and_subclasses() -> None:

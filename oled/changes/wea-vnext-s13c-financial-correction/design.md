@@ -1,10 +1,10 @@
 # Design: WEA vNext S13C Financial Correction
 
-**Revision:** 1.0
+**Revision:** 1.1
 **Date:** 2026-08-15
 **Status:** Accepted
 **Outcome:** `outcome.md` version 1.0
-**Specification:** `spec.md` version 1.0
+**Specification:** `spec.md` version 1.1
 
 ## Decision summary
 
@@ -28,7 +28,17 @@ inactive delivery; a live writer remains a separate future design.
 
 `initial_financial_correction_state(...)` accepts these explicit values plus
 `opening_supply` and `opening_total_minted`. It requires canonical, unique
-identities and proves the opening invariant before returning state.
+identities, proves the opening invariant, and derives an ordered opening
+snapshot hash before returning state. A recovery caller must retain that hash
+as an external trust anchor; changing row order or authority membership while
+retaining the pinned hash fails reconstruction.
+
+The factory bounds each public iterable before sorting or rebuilding it. The
+accepted snapshot ceilings are 10,000 positions, 100,000 published rows, 64
+MiB of aggregate published-row content, and 128 authority bindings. Authority
+bindings use canonical order, and uniqueness is enforced on
+`(binding_id, binding_version)` so a stable binding identity can retain its
+version history.
 
 ### Proposal and approval
 
@@ -51,25 +61,35 @@ Datetime values are normalized to UTC and encoded with a `Z` suffix.
   proposal hash, posting index, exact posting, effective time, and row hash.
 - `CorrectionGroup` contains the proposal, the operator and Agent0 approval
   snapshots in fixed role order, all row objects, effective time, and hashes of
-  the financial state before and after the group.
+  the financial state before and after the group. It also commits to its
+  zero-based sequence number and predecessor hash; the first predecessor is the
+  opening snapshot hash.
 - `CorrectionIdempotencyRecord` maps one idempotency key and proposal hash to
   one correction group.
 - `FinancialCorrectionState` stores immutable opening evidence, configured
   authority bindings, accepted groups, and exact idempotency records.
 
 Current positions, total minted, correction rows, and the complete ledger-row
-sequence are derived by replay. They are not independent mutable fields.
+sequence are derived by replay. They are not independent mutable fields. Each
+validated immutable state retains one non-comparable derived replay cache so
+properties do not reconstruct the same history repeatedly.
+
+The cache is never a trust anchor. Every public operation reconstructs a
+separate state value from exact fields and refreshes the cache through full
+historical replay. This rejects nested type/value tampering, repairs a modified
+derived cache without mutating the caller, and keeps failed operations atomic.
 
 ## Application algorithm
 
 `apply_financial_correction(state, proposal, approvals, effective_at)` returns
 `(state, group)` and performs these steps:
 
-1. Rebuild and replay the exact caller-owned state, proposal, approval tuple,
-   and timestamp. Reject subclasses, booleans as integers, malformed values,
-   and incomplete objects.
+1. Rebuild and replay the exact caller-owned state into a separate validated
+   value, then rebuild the proposal, bounded approval tuple, and timestamp.
+   Reject subclasses, booleans as integers, malformed values, incomplete
+   objects, and over-limit iterables without mutating caller-owned state.
 2. Check the idempotency key and correction ID. An exact replay returns the
-   original state and existing group. Conflicting reuse rejects.
+   equal freshly validated state and existing group. Conflicting reuse rejects.
 3. Require every affected ledger ID to exist in the published-row prefix or a
    previously accepted correction row.
 4. Resolve exactly one operator and one Agent0 approval. Each snapshot must
@@ -87,6 +107,12 @@ sequence are derived by replay. They are not independent mutable fields.
    idempotency record. The state constructor replays all history again before
    the result is returned.
 
+The public limits are 256 affected IDs, 128 postings, two approvals, and 64
+accepted groups per snapshot. Idempotent replay is checked before the group
+ceiling so retry remains stable. A 65th distinct group is rejected and requires
+a new externally pinned opening checkpoint. The ceiling bounds the deliberate
+full-reconstruction cost at this inactive trust boundary.
+
 No partially constructed state is exposed. Every failure raises
 `FinancialCorrectionError` before a new state is returned.
 
@@ -100,6 +126,7 @@ in tuple order from the opening positions.
 For each group it revalidates:
 
 - proposal and approval hashes and authority snapshots;
+- the pinned opening snapshot and sequence/predecessor hash chain;
 - affected-row availability at that historical point;
 - posting order, deterministic row IDs, and row hashes;
 - pre-state and post-state hashes;
@@ -120,6 +147,11 @@ A future live integration must separately choose authenticated source loading,
 durable serialization, locking or compare-and-swap, atomic file replacement or
 transaction semantics, fsync, crash recovery, and single-writer enforcement.
 This module is not evidence that those concerns are solved.
+
+`confirm_correction(...)` is a snapshot operation inside that trusted boundary,
+not a caller-authentication mechanism. Its configured authority inputs must have
+already been verified by the operator-controlled source that establishes the
+opening snapshot.
 
 ## Compatibility and dependency boundaries
 

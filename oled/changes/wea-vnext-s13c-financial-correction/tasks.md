@@ -1,11 +1,11 @@
 # Tasks: WEA vNext S13C Financial Correction
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-08-15
 **Status:** Approved for execution
 **Outcome:** `outcome.md` version 1.0
-**Specification:** `spec.md` version 1.0
-**Design:** `design.md` revision 1.0
+**Specification:** `spec.md` version 1.1
+**Design:** `design.md` revision 1.1
 
 ## Group 1 — Lock the executable contract
 
@@ -31,6 +31,12 @@
 - [x] Implement exact replay and conflict behavior.
 - [x] Reconstruct every supplied state from opening evidence and reject
   modified proposals, approvals, rows, hashes, ordering, or invariants.
+- [x] Bind reconstruction to an ordered opening-snapshot commitment and chain
+  every group to its sequence position and predecessor.
+- [x] Bound public iterables and aggregate opening-row bytes before unbounded
+  materialization, then cap one inactive snapshot at 64 correction groups.
+- [x] Validate into a separate reconstructed state so rejected operations never
+  mutate caller-owned tuples or derived replay state.
 - [x] Keep the module outside all current runtime and ledger-write paths.
 
 ## Group 3 — Reconcile durable evidence

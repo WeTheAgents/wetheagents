@@ -10,9 +10,11 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from collections.abc import Iterable
-from dataclasses import dataclass
+from collections.abc import Hashable, Iterable
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from itertools import islice
+from typing import TypeVar
 
 _HASH = re.compile(r"[0-9a-f]{64}")
 _IDENTIFIER = re.compile(r"[a-z0-9](?:[a-z0-9._:@/-]{0,510}[a-z0-9])?")
@@ -20,10 +22,37 @@ _POSITION_KINDS = frozenset({"balance", "escrow"})
 _POSTING_KINDS = frozenset({"transfer", "mint", "burn"})
 _AUTHORITY_KINDS = frozenset({"operator", "agent0"})
 _MAX_ROW_BYTES = 1024 * 1024
+_MAX_PUBLISHED_BYTES = 64 * 1024 * 1024
+_MAX_OPENING_POSITIONS = 10_000
+_MAX_PUBLISHED_ROWS = 100_000
+_MAX_AUTHORITY_BINDINGS = 128
+_MAX_AFFECTED_LEDGER_IDS = 256
+_MAX_POSTINGS_PER_PROPOSAL = 128
+_MAX_CORRECTION_GROUPS = 64
+
+_T = TypeVar("_T")
+_HashableT = TypeVar("_HashableT", bound=Hashable)
 
 
 class FinancialCorrectionError(ValueError):
     """A correction value or transition violates the accepted S-13C contract."""
+
+
+def _bounded_tuple(
+    values: Iterable[_T],
+    *,
+    limit: int,
+    field: str,
+) -> tuple[_T, ...]:
+    """Collect no more than one item beyond a public iterable's limit."""
+
+    try:
+        items = tuple(islice(values, limit + 1))
+    except TypeError as exc:
+        raise FinancialCorrectionError(f"{field} must be iterable") from exc
+    if len(items) > limit:
+        raise FinancialCorrectionError(f"{field} exceed the accepted limit")
+    return items
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -94,7 +123,11 @@ def _timestamp(value: datetime) -> str:
     return value.isoformat().replace("+00:00", "Z")
 
 
-def _require_unique(values: Iterable[str], *, field: str) -> tuple[str, ...]:
+def _require_unique(
+    values: Iterable[_HashableT],
+    *,
+    field: str,
+) -> tuple[_HashableT, ...]:
     items = tuple(values)
     if len(items) != len(set(items)):
         raise FinancialCorrectionError(f"state contains duplicate {field}")
@@ -184,6 +217,35 @@ def _rebuild_published_row(row: PublishedLedgerRow) -> PublishedLedgerRow:
         raise FinancialCorrectionError("published ledger row is incomplete") from exc
 
 
+def _rebuild_published_rows(
+    rows: Iterable[PublishedLedgerRow],
+) -> tuple[PublishedLedgerRow, ...]:
+    rebuilt: list[PublishedLedgerRow] = []
+    content_bytes = 0
+    for row in rows:
+        if type(row) is not PublishedLedgerRow:
+            raise FinancialCorrectionError(
+                "published rows must use the exact PublishedLedgerRow type"
+            )
+        try:
+            content = row.content
+        except AttributeError as exc:
+            raise FinancialCorrectionError(
+                "published ledger row is incomplete"
+            ) from exc
+        if type(content) is not bytes or len(content) > _MAX_ROW_BYTES:
+            raise FinancialCorrectionError(
+                "published row content must be bounded exact bytes"
+            )
+        content_bytes += len(content)
+        if content_bytes > _MAX_PUBLISHED_BYTES:
+            raise FinancialCorrectionError(
+                "published row content exceeds the aggregate byte limit"
+            )
+        rebuilt.append(_rebuild_published_row(row))
+    return tuple(rebuilt)
+
+
 @dataclass(frozen=True)
 class VerifiedCorrectionAuthority:
     """One verified operator or Agent0 authority binding."""
@@ -233,6 +295,21 @@ class VerifiedCorrectionAuthority:
             self.effective_until is None or instant < self.effective_until
         )
 
+    def to_mapping(self) -> dict[str, object]:
+        return {
+            "authority_id": self.authority_id,
+            "authority_kind": self.authority_kind,
+            "authority_revision_id": self.authority_revision_id,
+            "binding_id": self.binding_id,
+            "binding_version": self.binding_version,
+            "effective_from": _timestamp(self.effective_from),
+            "effective_until": (
+                None
+                if self.effective_until is None
+                else _timestamp(self.effective_until)
+            ),
+        }
+
 
 def _rebuild_authority(
     authority: VerifiedCorrectionAuthority,
@@ -253,6 +330,67 @@ def _rebuild_authority(
         )
     except AttributeError as exc:
         raise FinancialCorrectionError("authority binding is incomplete") from exc
+
+
+def _authority_sort_key(
+    authority: VerifiedCorrectionAuthority,
+) -> tuple[str, str, str, str, int, str, str]:
+    return (
+        authority.authority_kind,
+        authority.authority_id,
+        authority.authority_revision_id,
+        authority.binding_id,
+        authority.binding_version,
+        _timestamp(authority.effective_from),
+        (
+            ""
+            if authority.effective_until is None
+            else _timestamp(authority.effective_until)
+        ),
+    )
+
+
+def _opening_snapshot_payload(
+    *,
+    opening_supply: int,
+    opening_total_minted: int,
+    opening_positions: tuple[MoneyPosition, ...],
+    published_rows: tuple[PublishedLedgerRow, ...],
+    authority_bindings: tuple[VerifiedCorrectionAuthority, ...],
+) -> dict[str, object]:
+    return {
+        "authority_bindings": [item.to_mapping() for item in authority_bindings],
+        "opening_positions": [item.to_mapping() for item in opening_positions],
+        "opening_supply": opening_supply,
+        "opening_total_minted": opening_total_minted,
+        "published_rows": [
+            {
+                "content_hash": row.content_hash,
+                "content_length": len(row.content),
+                "ledger_id": row.ledger_id,
+            }
+            for row in published_rows
+        ],
+    }
+
+
+def _opening_snapshot_hash(
+    *,
+    opening_supply: int,
+    opening_total_minted: int,
+    opening_positions: tuple[MoneyPosition, ...],
+    published_rows: tuple[PublishedLedgerRow, ...],
+    authority_bindings: tuple[VerifiedCorrectionAuthority, ...],
+) -> str:
+    return _hash_value(
+        _opening_snapshot_payload(
+            opening_supply=opening_supply,
+            opening_total_minted=opening_total_minted,
+            opening_positions=opening_positions,
+            published_rows=published_rows,
+            authority_bindings=authority_bindings,
+        )
+    )
 
 
 @dataclass(frozen=True)
@@ -333,6 +471,10 @@ class CorrectionProposal:
             raise FinancialCorrectionError(
                 "affected_ledger_ids must be a non-empty immutable tuple"
             )
+        if len(self.affected_ledger_ids) > _MAX_AFFECTED_LEDGER_IDS:
+            raise FinancialCorrectionError(
+                "affected_ledger_ids exceed the correction proposal limit"
+            )
         affected = tuple(
             _require_identifier(value, field="affected ledger_id")
             for value in self.affected_ledger_ids
@@ -344,6 +486,10 @@ class CorrectionProposal:
         if type(self.postings) is not tuple or not self.postings:
             raise FinancialCorrectionError(
                 "postings must be a non-empty immutable tuple"
+            )
+        if len(self.postings) > _MAX_POSTINGS_PER_PROPOSAL:
+            raise FinancialCorrectionError(
+                "postings exceed the correction proposal limit"
             )
         postings = tuple(_rebuild_posting(posting) for posting in self.postings)
         object.__setattr__(self, "postings", postings)
@@ -387,17 +533,27 @@ def make_correction_proposal(
         idempotency_key,
         field="idempotency_key",
     )
+    affected_values = _bounded_tuple(
+        affected_ledger_ids,
+        limit=_MAX_AFFECTED_LEDGER_IDS,
+        field="affected_ledger_ids",
+    )
     affected = tuple(
         sorted(
             _require_identifier(value, field="affected ledger_id")
-            for value in affected_ledger_ids
+            for value in affected_values
         )
     )
     if not affected or len(affected) != len(set(affected)):
         raise FinancialCorrectionError(
             "affected_ledger_ids must be non-empty and duplicate-free"
         )
-    posting_tuple = tuple(_rebuild_posting(posting) for posting in postings)
+    posting_values = _bounded_tuple(
+        postings,
+        limit=_MAX_POSTINGS_PER_PROPOSAL,
+        field="postings",
+    )
+    posting_tuple = tuple(_rebuild_posting(posting) for posting in posting_values)
     if not posting_tuple:
         raise FinancialCorrectionError("postings must be non-empty")
     payload = _proposal_payload(
@@ -701,6 +857,8 @@ def _rebuild_row(row: CorrectionLedgerRow) -> CorrectionLedgerRow:
 
 def _group_payload(
     *,
+    sequence_number: int,
+    previous_group_hash: str,
     proposal: CorrectionProposal,
     operator_approval: CorrectionApproval,
     agent0_approval: CorrectionApproval,
@@ -715,8 +873,10 @@ def _group_payload(
         "operator_approval_hash": operator_approval.approval_hash,
         "post_state_hash": post_state_hash,
         "pre_state_hash": pre_state_hash,
+        "previous_group_hash": previous_group_hash,
         "proposal_hash": proposal.proposal_hash,
         "row_ids": [row.row_id for row in rows],
+        "sequence_number": sequence_number,
     }
 
 
@@ -725,6 +885,8 @@ class CorrectionGroup:
     """One complete accepted proposal and all append-only correction rows."""
 
     group_id: str
+    sequence_number: int
+    previous_group_hash: str
     proposal: CorrectionProposal
     operator_approval: CorrectionApproval
     agent0_approval: CorrectionApproval
@@ -736,6 +898,14 @@ class CorrectionGroup:
 
     def __post_init__(self) -> None:
         _require_identifier(self.group_id, field="correction group_id")
+        _require_nonnegative_integer(
+            self.sequence_number,
+            field="correction group sequence_number",
+        )
+        _require_hash(
+            self.previous_group_hash,
+            field="correction group previous_group_hash",
+        )
         proposal = _rebuild_proposal(self.proposal)
         operator_approval = _rebuild_approval(self.operator_approval)
         agent0_approval = _rebuild_approval(self.agent0_approval)
@@ -761,6 +931,8 @@ class CorrectionGroup:
         object.__setattr__(self, "rows", rows)
         object.__setattr__(self, "effective_at", effective_at)
         payload = _group_payload(
+            sequence_number=self.sequence_number,
+            previous_group_hash=self.previous_group_hash,
             proposal=proposal,
             operator_approval=operator_approval,
             agent0_approval=agent0_approval,
@@ -783,6 +955,8 @@ class CorrectionGroup:
 
 def _build_group(
     *,
+    sequence_number: int,
+    previous_group_hash: str,
     proposal: CorrectionProposal,
     operator_approval: CorrectionApproval,
     agent0_approval: CorrectionApproval,
@@ -792,6 +966,8 @@ def _build_group(
     post_state_hash: str,
 ) -> CorrectionGroup:
     payload = _group_payload(
+        sequence_number=sequence_number,
+        previous_group_hash=previous_group_hash,
         proposal=proposal,
         operator_approval=operator_approval,
         agent0_approval=agent0_approval,
@@ -803,6 +979,8 @@ def _build_group(
     group_id = f"correction-group:{_hash_value(payload)}"
     return CorrectionGroup(
         group_id=group_id,
+        sequence_number=sequence_number,
+        previous_group_hash=previous_group_hash,
         proposal=proposal,
         operator_approval=operator_approval,
         agent0_approval=agent0_approval,
@@ -822,6 +1000,8 @@ def _rebuild_group(group: CorrectionGroup) -> CorrectionGroup:
     try:
         return CorrectionGroup(
             group_id=group.group_id,
+            sequence_number=group.sequence_number,
+            previous_group_hash=group.previous_group_hash,
             proposal=group.proposal,
             operator_approval=group.operator_approval,
             agent0_approval=group.agent0_approval,
@@ -1007,6 +1187,7 @@ def _replay_groups(
     *,
     opening_supply: int,
     opening_total_minted: int,
+    opening_snapshot_hash: str,
     opening_positions: tuple[MoneyPosition, ...],
     published_rows: tuple[PublishedLedgerRow, ...],
     authority_bindings: tuple[VerifiedCorrectionAuthority, ...],
@@ -1015,18 +1196,19 @@ def _replay_groups(
     positions = opening_positions
     total_minted = opening_total_minted
     known_row_ids = {row.ledger_id for row in published_rows}
-    correction_rows: tuple[CorrectionLedgerRow, ...] = ()
+    correction_rows: list[CorrectionLedgerRow] = []
     idempotency: list[CorrectionIdempotencyRecord] = []
     correction_ids: set[str] = set()
     idempotency_keys: set[str] = set()
     group_ids: set[str] = set()
+    previous_group_hash = opening_snapshot_hash
     _check_invariant(
         opening_supply=opening_supply,
         positions=positions,
         total_minted=total_minted,
         boundary="opening",
     )
-    for group in groups:
+    for sequence_number, group in enumerate(groups):
         proposal = group.proposal
         if proposal.correction_id in correction_ids:
             raise FinancialCorrectionError("state contains duplicate correction ID")
@@ -1069,6 +1251,8 @@ def _replay_groups(
         if any(row.row_id in known_row_ids for row in expected_rows):
             raise FinancialCorrectionError("correction row identity collides")
         expected_group = _build_group(
+            sequence_number=sequence_number,
+            previous_group_hash=previous_group_hash,
             proposal=proposal,
             operator_approval=operator,
             agent0_approval=agent0,
@@ -1085,7 +1269,7 @@ def _replay_groups(
         idempotency_keys.add(proposal.idempotency_key)
         group_ids.add(group.group_id)
         known_row_ids.update(row.row_id for row in expected_rows)
-        correction_rows = (*correction_rows, *expected_rows)
+        correction_rows.extend(expected_rows)
         idempotency.append(
             CorrectionIdempotencyRecord(
                 key=proposal.idempotency_key,
@@ -1095,10 +1279,11 @@ def _replay_groups(
         )
         positions = updated_positions
         total_minted = updated_total_minted
+        previous_group_hash = expected_group.group_hash
     return _ReplayResult(
         positions=positions,
         total_minted=total_minted,
-        correction_rows=correction_rows,
+        correction_rows=tuple(correction_rows),
         idempotency_records=tuple(idempotency),
     )
 
@@ -1109,11 +1294,17 @@ class FinancialCorrectionState:
 
     opening_supply: int
     opening_total_minted: int
+    opening_snapshot_hash: str
     opening_positions: tuple[MoneyPosition, ...]
     published_rows: tuple[PublishedLedgerRow, ...]
     authority_bindings: tuple[VerifiedCorrectionAuthority, ...]
     groups: tuple[CorrectionGroup, ...] = ()
     idempotency_records: tuple[CorrectionIdempotencyRecord, ...] = ()
+    _replay_result: _ReplayResult = field(
+        init=False,
+        repr=False,
+        compare=False,
+    )
 
     def __post_init__(self) -> None:
         opening_supply = _require_nonnegative_integer(
@@ -1128,6 +1319,8 @@ class FinancialCorrectionState:
             raise FinancialCorrectionError(
                 "opening_positions must be a non-empty immutable tuple"
             )
+        if len(self.opening_positions) > _MAX_OPENING_POSITIONS:
+            raise FinancialCorrectionError("opening_positions exceed the state limit")
         positions = tuple(
             _rebuild_position(position) for position in self.opening_positions
         )
@@ -1145,9 +1338,9 @@ class FinancialCorrectionState:
             raise FinancialCorrectionError(
                 "published_rows must be a non-empty immutable tuple"
             )
-        published_rows = tuple(
-            _rebuild_published_row(row) for row in self.published_rows
-        )
+        if len(self.published_rows) > _MAX_PUBLISHED_ROWS:
+            raise FinancialCorrectionError("published_rows exceed the state limit")
+        published_rows = _rebuild_published_rows(self.published_rows)
         _require_unique(
             (row.ledger_id for row in published_rows),
             field="published ledger_id",
@@ -1156,19 +1349,51 @@ class FinancialCorrectionState:
             raise FinancialCorrectionError(
                 "authority_bindings must be an immutable tuple"
             )
+        if len(self.authority_bindings) > _MAX_AUTHORITY_BINDINGS:
+            raise FinancialCorrectionError(
+                "authority_bindings exceed the state limit"
+            )
         authorities = tuple(
             _rebuild_authority(authority) for authority in self.authority_bindings
         )
+        if authorities != tuple(sorted(authorities, key=_authority_sort_key)):
+            raise FinancialCorrectionError(
+                "authority_bindings must use canonical authority order"
+            )
         _require_unique(
-            (authority.binding_id for authority in authorities),
-            field="authority binding_id",
+            (
+                (authority.binding_id, authority.binding_version)
+                for authority in authorities
+            ),
+            field="authority binding identity and version",
         )
+        opening_snapshot_hash = _require_hash(
+            self.opening_snapshot_hash,
+            field="opening_snapshot_hash",
+        )
+        expected_opening_snapshot_hash = _opening_snapshot_hash(
+            opening_supply=opening_supply,
+            opening_total_minted=opening_total_minted,
+            opening_positions=positions,
+            published_rows=published_rows,
+            authority_bindings=authorities,
+        )
+        if opening_snapshot_hash != expected_opening_snapshot_hash:
+            raise FinancialCorrectionError(
+                "opening snapshot hash does not match exact opening evidence"
+            )
         if type(self.groups) is not tuple:
             raise FinancialCorrectionError("groups must be an immutable tuple")
+        if len(self.groups) > _MAX_CORRECTION_GROUPS:
+            raise FinancialCorrectionError("groups exceed the correction history limit")
         groups = tuple(_rebuild_group(group) for group in self.groups)
         if type(self.idempotency_records) is not tuple:
             raise FinancialCorrectionError(
                 "idempotency_records must be an immutable tuple"
+            )
+        if len(self.idempotency_records) > _MAX_CORRECTION_GROUPS:
+            raise FinancialCorrectionError(
+                "idempotency_records exceed the correction history limit"
             )
         idempotency = tuple(
             _rebuild_idempotency(record)
@@ -1182,6 +1407,7 @@ class FinancialCorrectionState:
         replay = _replay_groups(
             opening_supply=opening_supply,
             opening_total_minted=opening_total_minted,
+            opening_snapshot_hash=opening_snapshot_hash,
             opening_positions=positions,
             published_rows=published_rows,
             authority_bindings=authorities,
@@ -1191,16 +1417,10 @@ class FinancialCorrectionState:
             raise FinancialCorrectionError(
                 "state idempotency records do not match correction history"
             )
+        object.__setattr__(self, "_replay_result", replay)
 
     def _replay(self) -> _ReplayResult:
-        return _replay_groups(
-            opening_supply=self.opening_supply,
-            opening_total_minted=self.opening_total_minted,
-            opening_positions=self.opening_positions,
-            published_rows=self.published_rows,
-            authority_bindings=self.authority_bindings,
-            groups=self.groups,
-        )
+        return self._replay_result
 
     @property
     def positions(self) -> tuple[MoneyPosition, ...]:
@@ -1232,18 +1452,48 @@ def initial_financial_correction_state(
     """Build one validated inactive correction state from explicit evidence."""
 
     try:
+        position_values = _bounded_tuple(
+            opening_positions,
+            limit=_MAX_OPENING_POSITIONS,
+            field="opening_positions",
+        )
         positions = tuple(
             sorted(
-                (_rebuild_position(item) for item in opening_positions),
+                (_rebuild_position(item) for item in position_values),
                 key=lambda item: item.position_id,
             )
+        )
+        row_values = _bounded_tuple(
+            published_rows,
+            limit=_MAX_PUBLISHED_ROWS,
+            field="published_rows",
+        )
+        rows = _rebuild_published_rows(row_values)
+        authority_values = _bounded_tuple(
+            authority_bindings,
+            limit=_MAX_AUTHORITY_BINDINGS,
+            field="authority_bindings",
+        )
+        authorities = tuple(
+            sorted(
+                (_rebuild_authority(item) for item in authority_values),
+                key=_authority_sort_key,
+            )
+        )
+        snapshot_hash = _opening_snapshot_hash(
+            opening_supply=opening_supply,
+            opening_total_minted=opening_total_minted,
+            opening_positions=positions,
+            published_rows=rows,
+            authority_bindings=authorities,
         )
         return FinancialCorrectionState(
             opening_supply=opening_supply,
             opening_total_minted=opening_total_minted,
+            opening_snapshot_hash=snapshot_hash,
             opening_positions=positions,
-            published_rows=tuple(published_rows),
-            authority_bindings=tuple(authority_bindings),
+            published_rows=rows,
+            authority_bindings=authorities,
         )
     except (AttributeError, TypeError) as exc:
         raise FinancialCorrectionError(
@@ -1257,12 +1507,20 @@ def _require_state(state: FinancialCorrectionState) -> FinancialCorrectionState:
             "state must use the exact FinancialCorrectionState type"
         )
     try:
-        FinancialCorrectionState.__post_init__(state)
-    except AttributeError as exc:
+        return FinancialCorrectionState(
+            opening_supply=state.opening_supply,
+            opening_total_minted=state.opening_total_minted,
+            opening_snapshot_hash=state.opening_snapshot_hash,
+            opening_positions=state.opening_positions,
+            published_rows=state.published_rows,
+            authority_bindings=state.authority_bindings,
+            groups=state.groups,
+            idempotency_records=state.idempotency_records,
+        )
+    except (AttributeError, TypeError) as exc:
         raise FinancialCorrectionError(
             "financial correction state is incomplete"
         ) from exc
-    return state
 
 
 def confirm_correction(
@@ -1349,7 +1607,14 @@ def apply_financial_correction(
 
     state = _require_state(state)
     proposal = _rebuild_proposal(proposal)
-    approval_tuple = tuple(_rebuild_approval(value) for value in approvals)
+    approval_values = _bounded_tuple(
+        approvals,
+        limit=2,
+        field="approvals",
+    )
+    approval_tuple = tuple(
+        _rebuild_approval(value) for value in approval_values
+    )
     at = _utc(effective_at, field="effective_at")
     operator, agent0 = _resolve_approvals(
         authority_bindings=state.authority_bindings,
@@ -1377,6 +1642,10 @@ def apply_financial_correction(
             raise FinancialCorrectionError(
                 "correction ID was reused with different input"
             )
+    if len(state.groups) >= _MAX_CORRECTION_GROUPS:
+        raise FinancialCorrectionError(
+            "correction history reached its checkpoint limit"
+        )
     known_row_ids = {row.ledger_id for row in state.published_rows} | {
         row.row_id for row in state.correction_rows
     }
@@ -1413,6 +1682,12 @@ def apply_financial_correction(
     if any(row.row_id in known_row_ids for row in rows):
         raise FinancialCorrectionError("correction row identity collides")
     group = _build_group(
+        sequence_number=len(state.groups),
+        previous_group_hash=(
+            state.groups[-1].group_hash
+            if state.groups
+            else state.opening_snapshot_hash
+        ),
         proposal=proposal,
         operator_approval=operator,
         agent0_approval=agent0,
@@ -1429,6 +1704,7 @@ def apply_financial_correction(
     updated = FinancialCorrectionState(
         opening_supply=state.opening_supply,
         opening_total_minted=state.opening_total_minted,
+        opening_snapshot_hash=state.opening_snapshot_hash,
         opening_positions=state.opening_positions,
         published_rows=state.published_rows,
         authority_bindings=state.authority_bindings,

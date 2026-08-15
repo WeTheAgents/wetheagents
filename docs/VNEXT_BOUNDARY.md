@@ -1,8 +1,10 @@
 # WEA v1 / vNext Boundary
 
 This is the permanent engineering map for deciding where protocol work belongs.
-The detailed behavior contract remains in
-`oled/changes/wea-vnext-recreation/` while that change is active.
+The parent behavior contract remains in `oled/changes/wea-vnext-recreation/`.
+For financial correction, the accepted delta at
+`oled/changes/wea-vnext-s13c-financial-correction/spec.md` has priority over the
+parent's pre-delivery S-13C status and scenario count.
 
 ## Current phase
 

@@ -1,6 +1,6 @@
 # Specification: WEA vNext S13C Financial Correction
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-08-15
 **Status:** Accepted
 **Outcome:** `outcome.md` version 1.0
@@ -10,6 +10,9 @@
 This specification promotes S-13C from accepted-future behavior in the WEA
 vNext recreation specification to current inactive control-plane behavior. It
 does not change the other current scenarios or make WEA vNext live.
+
+This delta has priority over conflicting S-13C status, scenario-count, and
+accepted-future text in `oled/changes/wea-vnext-recreation/`.
 
 ## Terms
 
@@ -22,6 +25,9 @@ does not change the other current scenarios or make WEA vNext live.
   for one accepted correction.
 - **Opening supply:** the fixed supply represented by the opening positions
   before later mint or burn effects.
+- **Opening snapshot hash:** the externally pinnable SHA-256 commitment to the
+  ordered opening positions, exact published-row digests, supply values, and
+  complete authority-binding set.
 - **Total minted:** the cumulative signed supply adjustment. Mint increases it;
   burn decreases it.
 
@@ -43,7 +49,8 @@ Boolean values are not monetary integers.
 A proposal MUST contain:
 
 - one canonical correction ID;
-- one non-empty, duplicate-free set of affected published ledger IDs;
+- one non-empty, duplicate-free set of affected known ledger IDs, where each ID
+  identifies an opening published row or a previously accepted correction row;
 - one non-empty ordered list of exact compensating postings;
 - one canonical idempotency key; and
 - one SHA-256 proposal hash computed from the exact canonical proposal payload.
@@ -56,6 +63,8 @@ integer delta, and declare exactly one kind:
 - `burn`: has a negative delta and decreases total minted by the same amount.
 
 The aggregate of all `transfer` deltas in a correction MUST equal zero.
+A proposal MUST contain at most 256 affected ledger IDs and at most 128
+postings.
 
 ### R-FC-02: Independent verified confirmation
 
@@ -69,6 +78,17 @@ Both bindings MUST be effective when the approval is made, and the correction
 effective time MUST be no earlier than either confirmation time. Missing,
 duplicated, mismatched, expired, premature, or unverifiable approval evidence
 MUST reject the proposal without changing state.
+
+A binding ID is stable across revisions. The pair of binding ID and positive
+binding version MUST be unique in opening evidence; distinct versions of the
+same binding ID are valid and each approval resolves its exact version and
+effective interval.
+
+This inactive module treats `VerifiedCorrectionAuthority` values as trusted
+opening evidence and snapshots their configured identity and revision. Caller
+authentication and production authority-source loading remain outside this
+control-plane boundary; this delivery makes no claim that an untrusted Python
+caller is authenticated.
 
 ### R-FC-03: Atomic append and invariant preservation
 
@@ -95,6 +115,24 @@ rejected. A reconstructed state MUST validate the opening snapshot and replay
 every correction group, including proposal hashes, approval snapshots, row
 identities, row hashes, references, ordering, and financial invariants. Any
 tampering or inconsistent replay MUST reject reconstruction.
+
+The opening snapshot hash MUST match the exact ordered opening evidence. Each
+correction group MUST commit to its zero-based sequence number and the previous
+group hash, with the first group anchored to the opening snapshot hash.
+
+### R-FC-05: Bounded inactive snapshots
+
+One opening snapshot MUST contain at most 10,000 positions, 100,000 published
+rows, 64 MiB of aggregate published-row content, and 128 authority bindings.
+One application call MUST consume at most two approvals. One state MUST contain
+at most 64 correction groups and 64 matching idempotency records.
+
+Public iterable inputs MUST be collected only through the applicable limit
+plus one item, then reject when over limit. Aggregate row bytes MUST reject as
+soon as the byte ceiling is crossed. At the 64-group ceiling, an exact replay
+remains valid, while a new correction MUST reject unchanged. Continued history
+requires a separately retained and externally pinned opening checkpoint; this
+inactive module does not define checkpoint persistence.
 
 ## Acceptance scenarios
 
@@ -127,9 +165,11 @@ failed post-invariant rejects the whole proposal and appends no row.
 ### S-13C.5: Replay is stable and conflicts fail closed
 
 Replaying an identical accepted correction returns its existing group and row
-identities. Reusing its idempotency key or correction ID for different content
-is rejected without changing state. Reconstruction rejects modified rows,
-approval evidence, or group metadata.
+identities with an equal freshly validated state. Reusing its idempotency key
+or correction ID for different content is rejected without changing state.
+Reconstruction rejects modified rows, approval evidence, or group metadata.
+Over-limit state or public iterable input rejects without unbounded
+materialization.
 
 ## Verification contract
 
@@ -148,6 +188,8 @@ approval evidence, or group metadata.
 - No current ledger or v1 ledger mutation.
 - No runtime, worker, executor, scheduler, CLI command, or GitHub integration.
 - No creation of positions, identities, authority bindings, or published rows.
+- No authentication of an untrusted in-process caller. Authority bindings are
+  pre-verified trusted inputs.
 - No non-financial correction path.
 - A future live cutover requires a separate accepted design for durable atomic
   writes and authenticated authority-source loading.

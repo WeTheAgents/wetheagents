@@ -1,8 +1,8 @@
 # Verification: WEA vNext S13C Financial Correction
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-08-15
-**Status:** Corrected implementation independently reviewed clean; CI pending
+**Status:** Locally verified and review-clean; exact-head CI pending
 
 Decision: `S13C implemented as an inactive control plane; not live`.
 
@@ -27,8 +27,8 @@ Decision: `S13C implemented as an inactive control plane; not live`.
 | S-13C.1 atomic redistribution | `test_s_13c_1_atomic_redistribution_preserves_published_row_bytes` | PASS; two deterministic rows append after the exact published-row prefix. |
 | S-13C.2 supply correction | mint/burn sequence, burn-only, and signed-opening tests | PASS; position totals and signed total minted move together while resulting supply stays non-negative. |
 | S-13C.3 approval boundary | missing, mismatch, independence, unknown, inactive, and premature tests | PASS; invalid evidence returns no group. |
-| S-13C.4 financial rejection | unknown row, unknown position, negative result, invalid transfer, invalid opening, and malformed posting tests | PASS; state remains unchanged. |
-| S-13C.5 replay and reconstruction | exact replay, identity conflict, clean reconstruction, and tamper tests | PASS; no duplicate group and modified evidence is rejected. |
+| S-13C.4 financial rejection | unknown row, unknown position, negative result, invalid transfer, invalid opening, malformed posting, and row-collision tests | PASS; state remains unchanged. |
+| S-13C.5 replay and reconstruction | exact replay, identity conflict, opening-root, group-chain, separate reconstruction, cache repair, cardinality/byte ceilings, clean reconstruction, and tamper tests | PASS; no duplicate group, reordered history, modified opening evidence, caller mutation, or unbounded input is accepted. |
 | Scenario promotion | `test_scenario_registry.py` | PASS; 70 current scenarios and no accepted-future scenario. |
 | Runtime isolation | `test_runtime_boundary.py`; refreshed code graph | PASS; the module has no current closure reference or non-test inbound caller. |
 
@@ -36,9 +36,9 @@ Decision: `S13C implemented as an inactive control plane; not live`.
 
 | Command or check | Exit / result | Material evidence |
 | --- | --- | --- |
-| `python -m pytest tests/vnext/test_correction.py tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q` | 0 | `31 passed`. |
-| `python -m pytest tests/vnext -q` | 0 | `477 passed, 18 skipped`. |
-| `PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4762 passed, 18 skipped, 11 xfailed`. |
+| `python -m pytest tests/vnext/test_correction.py tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q` | 0 | `45 passed`. |
+| `python -m pytest tests/vnext -q` | 0 | `491 passed, 18 skipped`. |
+| `PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4776 passed, 18 skipped, 11 xfailed`. |
 | `python -m ruff check src/wea_vnext tests/vnext` | 0 | All checks passed. |
 | `python -m pyright src/wea_vnext tests/vnext/test_correction.py` | 0 | 0 errors, 0 warnings. |
 | `python -m compileall -q src/wea_vnext tests/vnext` | 0 | Syntax compilation passed. |
@@ -47,6 +47,7 @@ Decision: `S13C implemented as an inactive control plane; not live`.
 | `python scripts/check_pr_scope.py --diff-base origin/main` | 0 | 12 changed files, all within allowed scope. |
 | protected commit diff and `git diff --check` | 0 | No current ledger, writer, executor, ruleset, workflow, or CLI change; whitespace clean. |
 | refreshed code graph and inbound trace | complete | `apply_financial_correction` has zero non-test inbound callers. |
+| 64 sequential state-neutral correction groups | 0 | The accepted maximum, 64 groups and 128 rows, completed in 4.002 seconds. |
 
 The Pyright installation reports one pre-existing unrecognized configuration
 setting and an available newer version. It still completed with zero errors and
@@ -87,14 +88,50 @@ malformed caller object cannot escape as a raw attribute failure.
 
 ## Independent review
 
-Pass 1 found no actionable defect. Pass 2 found one P1 contract error: the code
-required cumulative `total_minted` to remain non-negative, but the accepted
-contract defines it as a signed supply adjustment and requires only
-`opening_supply + total_minted` to remain non-negative. The invariant and
-opening-state validation now implement that rule. Burn-only and signed-opening
-regressions pass, along with the complete verification matrix. Pass 3 reviewed
-corrected head `734eabc`, reran all 31 focused tests, and reported no actionable
-defect. One final exact-head review follows this documentation-only record.
+Pass 1 found no actionable defect. Pass 2 found the signed-supply error fixed in
+`734eabc`; pass 3 reviewed that correction clean. Subsequent fresh-context OLED
+reviews exposed root/ordering, replay-cache, mutation, resource-bound, and
+verification gaps. Every accepted finding below was reproduced, fixed, and
+covered. The final fresh-context review of the current tree returned `No
+findings`. The required `codex exec review --base origin/main` also found no
+actionable defect and independently reran all 45 focused tests.
+
+| Severity | Finding | Resolution |
+| --- | --- | --- |
+| P1 / HIGH | Burn-only corrections could not make the signed cumulative supply adjustment negative. | Fixed: only the resulting supply must remain non-negative; burn-only and signed-opening regressions pass. |
+| HIGH | Reordered published rows or added authority bindings could establish a different opening root. | Fixed: the exact ordered opening evidence is committed by `opening_snapshot_hash`; both tamper regressions pass. |
+| HIGH | State-neutral correction groups could be reordered with their idempotency records. | Fixed: every group commits to its sequence and predecessor, anchored at the opening snapshot; coordinated reorder is rejected. |
+| HIGH | Approval hashes do not authenticate an untrusted Python caller. | Rejected for this approved inactive boundary: configured authority bindings are pre-verified trusted inputs and `confirm_correction` snapshots them. The module has no external effect and explicitly defers authenticated production source loading to live cutover. |
+| MEDIUM | Repeated tuple copying and full replay made sequential history growth unavailable. | Fixed: row construction accumulates linearly; Spec/Design 1.1 bound one snapshot to 64 groups and all public input cardinalities plus 64 MiB aggregate published bytes. The maximum-chain probe completes in 4.002 seconds. |
+| MEDIUM | R-FC-01 said only published rows while the accepted design and tests allow prior correction rows. | Fixed as a spec reconciliation: R-FC-01 now names known opening or accepted correction rows, matching Outcome and Design authority. |
+| P2 | The permanent boundary pointed only to the parent spec, whose pre-delivery S-13C status is stale after this promotion. | Fixed: the boundary now links this accepted delta and states its priority over conflicting parent status and count text. |
+| HIGH | A mutated nested group or derived replay cache could pass an exact-replay shortcut; identical-value subclasses were not rejected. | Fixed: every public operation reconstructs a separate exact state through full historical replay. Nested tampering/subclasses reject and a cache-only mutation is repaired. |
+| HIGH | Revalidating by calling `__post_init__` in place mutated caller-owned frozen state even when an operation rejected. | Fixed: validation constructs a separate state. Rejection preserves original tuple/cache identities; exact replay returns an equal validated value. |
+| MEDIUM | Public generators were materialized before limits, and count-only published-row bounds still allowed excessive bytes. | Fixed: every public iterable stops at limit plus one; aggregate published content rejects incrementally above 64 MiB. |
+| MEDIUM | Binding uniqueness on `binding_id` alone prevented stable-ID version history. | Fixed: uniqueness uses `(binding_id, binding_version)`; canonical rotation evidence is covered. |
+| GAP | R-FC-05 ceiling behavior and S-13C.4 row collision lacked direct tests. | Fixed: the suite builds a real 64-group chain, proves replay at the ceiling and atomic rejection of a 65th group, and forces a deterministic row-ID collision. |
+
+## Protected lean cut
+
+- Calibration preserved exact opening evidence, dual trusted authority inputs,
+  atomic financial invariants, deterministic replay, tamper rejection, and the
+  inactive runtime boundary.
+- `delete`: nothing outside the accepted S-13C contract remains.
+- `reuse`: sharing private canonicalization from Domain/Access was rejected
+  because it would couple separate control planes without a public primitive.
+- `stdlib` and `native`: the implementation already uses only Python standard
+  library facilities and no external runtime.
+- `yagni` and `shrink`: no safe cut remains. Removing strict separate rebuilds,
+  root/chain commitments, explicit resource ceilings, or focused evidence would
+  weaken a protected trust/data boundary.
+- The derived replay cache, linear accumulator, and accepted snapshot ceilings
+  are the smallest safe response to measured history growth without trusting
+  mutable Python object identity; all affected checks were rerun.
+
+## Completion decision
+
+`Not ready` for publication until exact-head CI completes. The implementation
+contract, local checks, independent review, and Codex review are green.
 
 ## Completion ceiling
 
