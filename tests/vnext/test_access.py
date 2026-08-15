@@ -13,6 +13,7 @@ from wea_vnext.domain_access import (
     DomainAccessState,
     DomainRegistry,
     IdempotencyRecord,
+    VerifiedAccessAuthority,
     build_domain_registry,
     expire_access,
     grant_access,
@@ -32,7 +33,9 @@ class MissingOffset(tzinfo):
         return None
 
 
-def _state():
+def _state(
+    authority_bindings: tuple[VerifiedAccessAuthority, ...] | None = None,
+):
     records = (
         make_domain_record(
             domain_id="circle-1",
@@ -47,7 +50,32 @@ def _state():
             revision="2" * 40,
         ),
     )
-    return initial_access_state(build_domain_registry(records))
+    if authority_bindings is None:
+        authority_bindings = (_authority(), _authority("agent0"))
+    return initial_access_state(
+        build_domain_registry(records),
+        authority_bindings=authority_bindings,
+    )
+
+
+def _authority(
+    authority_kind: str = "operator",
+    authority_id: str | None = None,
+    authority_revision_id: str = "decision-1",
+    binding_id: str | None = None,
+    binding_version: int = 1,
+    effective_from: datetime = NOW - timedelta(days=1),
+    effective_until: datetime | None = None,
+) -> VerifiedAccessAuthority:
+    return VerifiedAccessAuthority(
+        authority_kind=authority_kind,
+        authority_id=authority_id or f"{authority_kind}@system",
+        authority_revision_id=authority_revision_id,
+        binding_id=binding_id or f"{authority_kind}-binding",
+        binding_version=binding_version,
+        effective_from=effective_from,
+        effective_until=effective_until,
+    )
 
 
 def _grant(state, **overrides):
@@ -80,6 +108,9 @@ def test_s_11a_authorized_source_grants_exactly_seven_days(
     assert access.ends_at - access.starts_at == timedelta(days=7)
     assert access.domain_id == "circle-1"
     assert access.registry_hash == state.registry.registry_hash
+    assert access.authority_binding_id == f"{authority_kind}-binding"
+    assert access.authority_binding_version == 1
+    assert access.authority_effective_from == NOW - timedelta(days=1)
     assert is_access_active(access, NOW)
     assert is_access_active(access, access.ends_at - timedelta(microseconds=1))
     assert not is_access_active(access, access.ends_at)
@@ -133,7 +164,7 @@ def test_s_11a_grant_replay_is_exact_and_conflicting_reuse_is_rejected() -> None
 def test_s_11b_access_expires_only_at_the_exact_boundary_and_replays() -> None:
     state, access = _grant(_state())
 
-    with pytest.raises(AccessError, match="exact ends_at"):
+    with pytest.raises(AccessError, match="precede ends_at"):
         expire_access(
             state,
             access_id=access.access_id,
@@ -144,7 +175,7 @@ def test_s_11b_access_expires_only_at_the_exact_boundary_and_replays() -> None:
     expired_state, expiry = expire_access(
         state,
         access_id=access.access_id,
-        effective_at=access.ends_at,
+        effective_at=access.ends_at + timedelta(hours=3),
         idempotency_key="expire:circle-1:boundary",
     )
     assert expired_state.expiries == (expiry,)
@@ -153,7 +184,7 @@ def test_s_11b_access_expires_only_at_the_exact_boundary_and_replays() -> None:
     replayed_state, replayed_expiry = expire_access(
         expired_state,
         access_id=access.access_id,
-        effective_at=access.ends_at,
+        effective_at=access.ends_at + timedelta(days=1),
         idempotency_key="expire:circle-1:boundary",
     )
     assert replayed_state is expired_state
@@ -214,6 +245,7 @@ def test_access_state_revalidates_global_overlap_and_idempotency_links() -> None
     with pytest.raises(AccessError, match="overlapping Access"):
         DomainAccessState(
             registry=first_state.registry,
+            authority_bindings=first_state.authority_bindings,
             grants=(*first_state.grants, *second_state.grants),
             idempotency_records=(
                 *first_state.idempotency_records,
@@ -230,6 +262,7 @@ def test_access_state_revalidates_global_overlap_and_idempotency_links() -> None
     with pytest.raises(AccessError, match="unknown Access"):
         DomainAccessState(
             registry=first_state.registry,
+            authority_bindings=first_state.authority_bindings,
             grants=first_state.grants,
             idempotency_records=(*first_state.idempotency_records, dangling),
         )
@@ -244,6 +277,7 @@ def test_access_state_revalidates_global_overlap_and_idempotency_links() -> None
     with pytest.raises(AccessError, match="exact request"):
         DomainAccessState(
             registry=first_state.registry,
+            authority_bindings=first_state.authority_bindings,
             grants=first_state.grants,
             idempotency_records=(wrong_hash,),
         )
@@ -257,6 +291,7 @@ def test_access_state_revalidates_global_overlap_and_idempotency_links() -> None
     with pytest.raises(AccessError, match="idempotency object reference"):
         DomainAccessState(
             registry=first_state.registry,
+            authority_bindings=first_state.authority_bindings,
             grants=first_state.grants,
             idempotency_records=(original, alias),
         )
@@ -265,6 +300,38 @@ def test_access_state_revalidates_global_overlap_and_idempotency_links() -> None
 def test_access_rejects_noncanonical_domain_as_an_access_error() -> None:
     with pytest.raises(AccessError, match="domain_id"):
         _grant(_state(), domain_id="Circle One")
+
+
+def test_access_requires_one_active_verified_authority_binding() -> None:
+    expired = _authority(effective_until=NOW)
+    state = _state((expired,))
+
+    with pytest.raises(AccessError, match="active binding"):
+        _grant(state)
+
+    with pytest.raises(AccessError, match="active binding"):
+        _grant(_state(), authority_id="unbound@system")
+
+    ambiguous = _state(
+        (
+            _authority(),
+            _authority(binding_id="operator-binding-2", binding_version=2),
+        )
+    )
+    with pytest.raises(AccessError, match="one configured active binding"):
+        _grant(ambiguous)
+
+    assert state.grants == ()
+    assert state.idempotency_records == ()
+
+    granted_state, _ = _grant(_state())
+    with pytest.raises(AccessError, match="configured active binding"):
+        DomainAccessState(
+            registry=granted_state.registry,
+            authority_bindings=(),
+            grants=granted_state.grants,
+            idempotency_records=granted_state.idempotency_records,
+        )
 
 
 def test_access_rejects_forged_registry_and_state_subclasses() -> None:
@@ -276,6 +343,10 @@ def test_access_rejects_forged_registry_and_state_subclasses() -> None:
         def __post_init__(self) -> None:
             pass
 
+    class ForgedAuthority(VerifiedAccessAuthority):
+        def __post_init__(self) -> None:
+            pass
+
     valid_registry = _state().registry
     forged_registry = ForgedRegistry(
         schema_version=2,
@@ -283,8 +354,22 @@ def test_access_rejects_forged_registry_and_state_subclasses() -> None:
         registry_hash="f" * 64,
     )
     with pytest.raises(AccessError, match="DomainRegistry"):
-        initial_access_state(forged_registry)
+        initial_access_state(forged_registry, authority_bindings=())
 
     forged_state = ForgedState(registry=valid_registry)
     with pytest.raises(AccessError, match="DomainAccessState"):
         _grant(forged_state)
+
+    forged_authority = ForgedAuthority(
+        authority_kind="operator",
+        authority_id="forged@system",
+        authority_revision_id="forged-revision",
+        binding_id="forged-binding",
+        binding_version=1,
+        effective_from=NOW - timedelta(days=1),
+    )
+    with pytest.raises(AccessError, match="immutable typed tuple"):
+        initial_access_state(
+            valid_registry,
+            authority_bindings=(forged_authority,),
+        )

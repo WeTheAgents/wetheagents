@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.3`: **implemented / independent review pending**. Outcome/Spec `1.0` and design `1.1` authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2 and 3 found five fail-closed validation gaps; their focused regressions pass. Final review remains pending. Tasks `1.2` and its verified Spec `0.9` implementation remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.3`: **implemented / independent review pending**. Outcome/Spec `1.0` and design `1.1` authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Final review remains pending. Tasks `1.2` and its verified Spec `0.9` implementation remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Current delivery: Spec 1.0 Domain and Access
 
@@ -114,8 +114,8 @@ This delivery must not add `test_correction.py`, correction code, correction sta
 | S-11B expiry | Access tests | `python -m pytest tests/vnext/test_access.py -q` | focused implementation passes |
 | No external permission or early revoke | negative Access API/state assertions | `python -m pytest tests/vnext/test_access.py -q` | focused assertions pass |
 | 69 current and one accepted-future | scenario registry tests | `python -m pytest tests/vnext/test_scenario_registry.py -q` | PASS in the focused 32-test gate |
-| Historical runtime isolation | runtime boundary, packaging, and manifest tests | full `tests/vnext` suite | PASS: 456 passed, 18 skipped; protected diff clean |
-| Repository integration | repository-required checks | Group 5 commands | PASS: 4741 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, and diff clean; final review pending |
+| Historical runtime isolation | runtime boundary, packaging, and manifest tests | full `tests/vnext` suite | PASS: 457 passed, 18 skipped; protected diff clean |
+| Repository integration | repository-required checks | Group 5 commands | PASS: 4742 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, and diff clean; final review pending |
 
 ## Spec 1.0 resume handoff
 

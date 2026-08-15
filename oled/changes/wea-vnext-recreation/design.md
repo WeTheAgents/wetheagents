@@ -67,16 +67,24 @@ Relevant rejected alternatives:
 The module exposes explicit models and functions for these operations:
 
 - load and verify one registry manifest;
-- create an empty Access state bound to one registry hash;
-- grant one seven-day Access from an operator or Agent0 declaration;
+- create an empty Access state bound to one registry hash and one verified authority-binding set;
+- grant one seven-day Access from an operator or Agent0 declaration whose exact source revision resolves through an active verified role binding;
 - evaluate the half-open active interval;
 - record one deterministic expiry.
 
-The state stores the verified registry, Access grants, expiry records, and idempotency results. It stores no Task, Work, Release, WEA, or GitHub permission field.
+The state stores the verified registry and the configured authority bindings. It also stores Access grants, expiry records, and idempotency results.
+
+The state stores no Task, Work, Release, WEA, or GitHub permission field.
 
 All accepted times are timezone-aware and normalize to UTC. Seven days equals `timedelta(days=7)`. Access uses `starts_at <= at < ends_at`.
 
-The transition rebuilds caller-owned records before validation. Deterministic IDs bind the registry hash, source revision, Agent ID, Domain ID, and interval.
+The transition rebuilds caller-owned records before validation. The initial state accepts exact `VerifiedAccessAuthority` records and rejects foreign subclasses.
+
+The grant resolves the source kind, ID, and revision against this configured set. The operator or Agent0 binding interval must contain `effective_at`.
+
+Deterministic IDs bind the source revision and the binding ID and version.
+
+The IDs also bind the registry hash, Agent ID, Domain ID, and interval.
 
 This module is a vNext control-plane library, not a reference executor. It receives no ruleset, Tide-interface, executor, or manifest triple.
 
@@ -84,7 +92,7 @@ This module is a vNext control-plane library, not a reference executor. It recei
 
 ### D-51. Protected boundaries, rollout, and recovery
 
-- **Authority:** only exact `operator` and `agent0` source types can grant Access.
+- **Authority:** only exact `operator` and `agent0` source types with one active verified role binding can grant Access.
 - **Repository trust:** WEA records an external commit only after the external default branch exposes that exact commit.
 - **Registry immutability:** tests reject any hash mismatch, duplicate Domain ID, duplicate repository ID, noncanonical order, or mutable alias.
 - **Replay:** an identical idempotency key returns the recorded result. Conflicting reuse fails closed.

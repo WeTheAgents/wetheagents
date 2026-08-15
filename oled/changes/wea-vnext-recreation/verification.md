@@ -54,7 +54,7 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 | Live registry manifest | canonical `domains/registry/v1.json` | Complete. |
 | Access implementation | focused tests and reconstructed-state invariants | Complete and current as an inactive control plane. |
 | BDD promotion | scenario registry and focused contract tests | Complete: 69 current and one accepted-future. |
-| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Pass 1 clean; pass 2 found three malformed-input defects; pass 3 found two caller-owned model validation defects; all fixes pass focused suites; final review pending. |
+| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Pass 1 clean; passes 2–4 found seven fail-closed contract defects; all fixes pass focused suites; final review pending. |
 
 ## Fresh commands
 
@@ -64,10 +64,10 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 | external `ruff check src tests`; `pyright src` | 0 | Ruff clean; 0 errors and 0 warnings. |
 | installed `circle1-score --root <WEA> --profile <WEA profile> ...` | 0 | Black-box checkpoint created with declared `3` and exercised `3`. |
 | external GitHub CI | 0 | Run `31866669759` passed package tests, Ruff, and Pyright at the pinned revision. |
-| `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q` | 0 | `26 passed`. |
-| focused Domain/Access/scenario/runtime gate | 0 | `38 passed`. |
-| `python -m pytest tests/vnext -q` | 0 | `456 passed, 18 skipped`. |
-| `$env:PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4741 passed, 18 skipped, 11 xfailed`. |
+| `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q` | 0 | `28 passed`. |
+| focused Domain/Access/scenario/runtime gate | 0 | `39 passed`. |
+| `python -m pytest tests/vnext -q` | 0 | `457 passed, 18 skipped`. |
+| `$env:PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4742 passed, 18 skipped, 11 xfailed`. |
 | `ruff check src/wea_vnext tests/vnext ...`; `pyright src/wea_vnext` | 0 | Ruff clean; 0 errors and 0 warnings. |
 | invariant, ledger schema, doc sync | 0 | `19025 = 10000 + 9025`; schema and docs pass. |
 | `git diff --check`; protected-path diff | 0 | Whitespace clean; runtime, ruleset, and `ledger/domains.json` unchanged. |
@@ -95,7 +95,10 @@ then passed with the result above.
   offsets, noncanonical repository path components, and oversized JSON integer
   errors. Pass 3 found two related caller-owned model gaps: forged Domain record
   and registry subclasses could skip constructor validation. Exact-type checks,
-  reconstruction, and focused regressions close both findings. Final review of
+  reconstruction, and focused regressions close both findings. Pass 4 found an
+  unverified source claim and rejected delayed expiry evaluation. Access now
+  requires an active verified authority record and stores its binding snapshot.
+  Late evaluation records the expiry at the canonical `ends_at`. Final review of
   the fixes is pending.
 
 ## Protected lean cut

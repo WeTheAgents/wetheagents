@@ -925,27 +925,27 @@ work, and ledger work remain in WEA.</li>
 profile, target, revision, and output inputs.</li>
 <li>The canonical <code>domains/registry/v1.json</code> binds the permanent repository ID,
 canonical locator, exact revision, record hash, and registry hash.</li>
-<li>WEA Domain registry and Access focus: <code>26 passed</code>.</li>
-<li>WEA scenario/runtime focus: <code>38 passed</code>.</li>
+<li>WEA Domain registry and Access focus: <code>28 passed</code>.</li>
+<li>WEA scenario/runtime focus: <code>39 passed</code>.</li>
 <li>The current scenario registry contains exactly 69 current scenarios and one
 accepted-future scenario. <code>BDD alignment: 100%</code>.</li>
-<li>Full WEA vNext suite: <code>456 passed, 18 skipped</code>.</li>
+<li>Full WEA vNext suite: <code>457 passed, 18 skipped</code>.</li>
 <li>Full repository suite with the worktree <code>src</code> on <code>PYTHONPATH</code>:
-<code>4741 passed, 18 skipped, 11 xfailed</code>.</li>
+<code>4742 passed, 18 skipped, 11 xfailed</code>.</li>
 <li>WEA Ruff: clean. WEA Pyright: 0 errors and 0 warnings.</li>
 <li>Economy invariant, ledger schema, task-index schema, doc sync, protected
 runtime/ledger diff, and <code>git diff --check</code>: pass.</li>
 </ul>
 <h3 id="handoff-remaining-gate">Remaining gate</h3>
 <p>There is no product, design, or identity blocker. PR <code>#942</code> is open. Review
-passes 2 and 3 found five fail-closed validation defects. Exact-type checks,
-reconstruction, and focused regressions close the two pass-3 caller-owned model
-findings. The remaining gates are final independent review, PR checks, and
-merge. Do not add S-13C, a successor runtime, live Tide, ledger writes,
-bootstrap, migration, or GitHub permission operations to this PR.</p>
+passes 2–4 found seven fail-closed contract defects. Pass 4 required one active
+verified authority binding and delayed expiry evaluation. Focused regressions
+now prove both boundaries. The remaining gates are final independent review, PR
+checks, and merge. Do not add S-13C, a successor runtime, live Tide, ledger
+writes, bootstrap, migration, or GitHub permission operations to this PR.</p>
 <h3 id="handoff-exact-resume-sequence">Exact resume sequence</h3>
 <ol>
-<li>Publish the pass-3 fixes and repeat independent review on the exact branch.</li>
+<li>Publish the pass-4 fixes and repeat independent review on the exact branch.</li>
 <li>Mark PR <code>#942</code> ready and merge after CI passes.</li>
 <li>Start S-13C as a separate OLED change and PR only after this PR merges.</li>
 </ol>
@@ -1052,7 +1052,7 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
         <p class="source-file">Исходный Markdown-файл: <code>tasks.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус <code>tasks 1.3</code>: <strong>implemented / independent review pending</strong>. Outcome/Spec <code>1.0</code> and design <code>1.1</code> authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2 and 3 found five fail-closed validation gaps; their focused regressions pass. Final review remains pending. Tasks <code>1.2</code> and its verified Spec <code>0.9</code> implementation remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p>Статус <code>tasks 1.3</code>: <strong>implemented / independent review pending</strong>. Outcome/Spec <code>1.0</code> and design <code>1.1</code> authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Final review remains pending. Tasks <code>1.2</code> and its verified Spec <code>0.9</code> implementation remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <h3 id="tasks-current-delivery-spec-1-0-domain-and-access">Current delivery: Spec 1.0 Domain and Access</h3>
 <p><strong>Outcome:</strong> publish Circle-1 as a real external Domain, bind its exact revision in an immutable WEA registry, and prove seven-day internal Access without live writes.</p>
 <p><strong>Authority:</strong> Outcome/Spec <code>1.0</code>; design <code>1.1</code>; operator approval on 2026-08-15. No behavior or design decision remains open.</p>
@@ -1291,13 +1291,13 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
 <td>Historical runtime isolation</td>
 <td>runtime boundary, packaging, and manifest tests</td>
 <td>full <code>tests/vnext</code> suite</td>
-<td>PASS: 456 passed, 18 skipped; protected diff clean</td>
+<td>PASS: 457 passed, 18 skipped; protected diff clean</td>
 </tr>
 <tr>
 <td>Repository integration</td>
 <td>repository-required checks</td>
 <td>Group 5 commands</td>
-<td>PASS: 4741 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, and diff clean; final review pending</td>
+<td>PASS: 4742 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, and diff clean; final review pending</td>
 </tr>
 </tbody>
 </table></div>
@@ -1777,19 +1777,23 @@ git diff --check
 <p>The module exposes explicit models and functions for these operations:</p>
 <ul>
 <li>load and verify one registry manifest;</li>
-<li>create an empty Access state bound to one registry hash;</li>
-<li>grant one seven-day Access from an operator or Agent0 declaration;</li>
+<li>create an empty Access state bound to one registry hash and one verified authority-binding set;</li>
+<li>grant one seven-day Access from an operator or Agent0 declaration whose exact source revision resolves through an active verified role binding;</li>
 <li>evaluate the half-open active interval;</li>
 <li>record one deterministic expiry.</li>
 </ul>
-<p>The state stores the verified registry, Access grants, expiry records, and idempotency results. It stores no Task, Work, Release, WEA, or GitHub permission field.</p>
+<p>The state stores the verified registry and the configured authority bindings. It also stores Access grants, expiry records, and idempotency results.</p>
+<p>The state stores no Task, Work, Release, WEA, or GitHub permission field.</p>
 <p>All accepted times are timezone-aware and normalize to UTC. Seven days equals <code>timedelta(days=7)</code>. Access uses <code>starts_at &lt;= at &lt; ends_at</code>.</p>
-<p>The transition rebuilds caller-owned records before validation. Deterministic IDs bind the registry hash, source revision, Agent ID, Domain ID, and interval.</p>
+<p>The transition rebuilds caller-owned records before validation. The initial state accepts exact <code>VerifiedAccessAuthority</code> records and rejects foreign subclasses.</p>
+<p>The grant resolves the source kind, ID, and revision against this configured set. The operator or Agent0 binding interval must contain <code>effective_at</code>.</p>
+<p>Deterministic IDs bind the source revision and the binding ID and version.</p>
+<p>The IDs also bind the registry hash, Agent ID, Domain ID, and interval.</p>
 <p>This module is a vNext control-plane library, not a reference executor. It receives no ruleset, Tide-interface, executor, or manifest triple.</p>
 <p><code>tests/vnext/scenarios.py</code> classifies <code>S-11A</code> and <code>S-11B</code> as control-plane scenarios. The existing 67 scenarios remain bound to ruleset <code>0.8</code> and executor <code>v0_8_0</code>.</p>
 <h4 id="design-d-51-protected-boundaries-rollout-and-recovery">D-51. Protected boundaries, rollout, and recovery</h4>
 <ul>
-<li><strong>Authority:</strong> only exact <code>operator</code> and <code>agent0</code> source types can grant Access.</li>
+<li><strong>Authority:</strong> only exact <code>operator</code> and <code>agent0</code> source types with one active verified role binding can grant Access.</li>
 <li><strong>Repository trust:</strong> WEA records an external commit only after the external default branch exposes that exact commit.</li>
 <li><strong>Registry immutability:</strong> tests reject any hash mismatch, duplicate Domain ID, duplicate repository ID, noncanonical order, or mutable alias.</li>
 <li><strong>Replay:</strong> an identical idempotency key returns the recorded result. Conflicting reuse fails closed.</li>
@@ -2774,8 +2778,9 @@ git diff --check
 <h5 id="spec-s-11a">S-11A. An authorized source grants one Access</h5>
 <ul>
 <li><strong>GIVEN:</strong> The verified Domain registry contains the exact Domain record.</li>
+<li><strong>GIVEN:</strong> One exact operator or Agent0 source resolves through an active verified role binding at <code>effective_at</code>.</li>
 <li><strong>GIVEN:</strong> The Agent ID has no Access active at the declaration <code>effective_at</code>.</li>
-<li><strong>WHEN:</strong> An operator or Agent0 source grants Access to the Agent ID and Domain ID.</li>
+<li><strong>WHEN:</strong> That verified operator or Agent0 source grants Access to the Agent ID and Domain ID.</li>
 <li><strong>THEN:</strong> The system records the exact Agent ID, Domain ID, source, <code>starts_at</code>, <code>ends_at</code>, and idempotency key.</li>
 <li><strong>THEN:</strong> The <code>starts_at</code> value equals <code>effective_at</code>. The <code>ends_at</code> value equals <code>starts_at + 7 days</code>.</li>
 <li><strong>THEN:</strong> Replay creates no second Access.</li>
@@ -4838,7 +4843,7 @@ the Spec <code>0.9</code> runtime records.</p>
 </tr>
 <tr>
 <td>Access grant</td>
-<td>deterministic Access ID, source kind <code>operator/agent0</code>, source ID and revision ID, exact Agent ID and Domain ID, registry hash, UTC <code>starts_at</code>, UTC <code>ends_at</code></td>
+<td>deterministic Access ID, source kind <code>operator/agent0</code>, source ID and revision ID, exact active authority binding ID/version and interval, exact Agent ID and Domain ID, registry hash, UTC <code>starts_at</code>, UTC <code>ends_at</code></td>
 </tr>
 <tr>
 <td>Access expiry</td>
@@ -4850,7 +4855,7 @@ the Spec <code>0.9</code> runtime records.</p>
 </tr>
 <tr>
 <td>Domain Access state</td>
-<td>one validated immutable registry, immutable grant tuple, immutable expiry tuple, immutable idempotency tuple</td>
+<td>one validated immutable registry, configured immutable authority-binding tuple, immutable grant tuple, immutable expiry tuple, immutable idempotency tuple</td>
 </tr>
 </tbody>
 </table></div>
@@ -4863,7 +4868,7 @@ the Spec <code>0.9</code> runtime records.</p>
 <li>An Access names one Domain from the exact registry hash stored in state.</li>
 <li><code>ends_at = starts_at + 7 days</code> after UTC normalization.</li>
 <li>Access intervals are half-open. One Agent ID has no overlapping interval across any Domains.</li>
-<li>Reconstructed state revalidates Domain binding, overlap, expiry linkage, unique IDs, and exact idempotency-result linkage.</li>
+<li>Reconstructed state revalidates Domain and authority bindings, overlap, expiry linkage, unique IDs, and exact idempotency-result linkage.</li>
 <li>An expiry is valid only at the exact Access <code>ends_at</code>. One Access has at most one expiry record.</li>
 <li>The model has no GitHub permission, Work, obligation, Release, money, early revoke, renewal, extension, suspension, or transfer field or transition.</li>
 </ol>
@@ -6831,7 +6836,7 @@ the public repository and exact revision are observable.</li>
 <tr>
 <td>Independent review and publication</td>
 <td>PR <code>#942</code>; <code>codex exec review --base origin/main</code></td>
-<td>Pass 1 clean; pass 2 found three malformed-input defects; pass 3 found two caller-owned model validation defects; all fixes pass focused suites; final review pending.</td>
+<td>Pass 1 clean; passes 2–4 found seven fail-closed contract defects; all fixes pass focused suites; final review pending.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6868,22 +6873,22 @@ the public repository and exact revision are observable.</li>
 <tr>
 <td><code>python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q</code></td>
 <td>0</td>
-<td><code>26 passed</code>.</td>
+<td><code>28 passed</code>.</td>
 </tr>
 <tr>
 <td>focused Domain/Access/scenario/runtime gate</td>
 <td>0</td>
-<td><code>38 passed</code>.</td>
+<td><code>39 passed</code>.</td>
 </tr>
 <tr>
 <td><code>python -m pytest tests/vnext -q</code></td>
 <td>0</td>
-<td><code>456 passed, 18 skipped</code>.</td>
+<td><code>457 passed, 18 skipped</code>.</td>
 </tr>
 <tr>
 <td><code>$env:PYTHONPATH=&lt;worktree&gt;/src; python -m pytest -q</code></td>
 <td>0</td>
-<td><code>4741 passed, 18 skipped, 11 xfailed</code>.</td>
+<td><code>4742 passed, 18 skipped, 11 xfailed</code>.</td>
 </tr>
 <tr>
 <td><code>ruff check src/wea_vnext tests/vnext ...</code>; <code>pyright src/wea_vnext</code></td>
@@ -6924,7 +6929,10 @@ the black-box checkpoint are ignored or outside both repositories.</li>
 offsets, noncanonical repository path components, and oversized JSON integer
 errors. Pass 3 found two related caller-owned model gaps: forged Domain record
 and registry subclasses could skip constructor validation. Exact-type checks,
-reconstruction, and focused regressions close both findings. Final review of
+reconstruction, and focused regressions close both findings. Pass 4 found an
+unverified source claim and rejected delayed expiry evaluation. Access now
+requires an active verified authority record and stores its binding snapshot.
+Late evaluation records the expiry at the canonical <code>ends_at</code>. Final review of
 the fixes is pending.</li>
 </ul>
 <h3 id="verification-protected-lean-cut">Protected lean cut</h3>
@@ -7376,13 +7384,13 @@ the exact branch.</p>
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>19ff72b6ad245114103820e8b357d5b3d18680a740dc8e4ffd351bf584a9c769</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>9893048d08ae378cb5a5ba11a1c8f18fea86bdefe46f383321e6971e966f66fa</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>0f7b4d5ddbb156d769448897bec52678853530f55ce8998fd18035381d9ba6a6</code></td></tr><tr><td><code>domain-access-proposal.md</code></td><td><code>53984a32d2429dfd24d66fdf59f21b7dc3bfc34a17001a614a8ebdbfddcda14e</code></td></tr><tr><td><code>tasks.md</code></td><td><code>3adb167146d5bdb44abf7431c57d0ef9554b287c2dbc4d078113a3ee10e63fb4</code></td></tr><tr><td><code>design.md</code></td><td><code>df14aa8a0d6f7624b2f788cef0a63a2cdc4448a8ada47904d279f692aa683856</code></td></tr><tr><td><code>outcome.md</code></td><td><code>91c9fe45cafab7059440cc610506139bfb899b2b4d12206376f1baa38dfad869</code></td></tr><tr><td><code>spec.md</code></td><td><code>e12474887110fbcde84372b756565e196fbc25379b2cdeea9f8eceee86fc0d65</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9f7843281839dc4b7ad745290aa3931b09793f2cdff18e8fb75b1b66578cc91f</code></td></tr><tr><td><code>schema.md</code></td><td><code>e19361589f9b15436ac07d399d905415bb3754f4ef3cf567e49794ff6399f6a2</code></td></tr><tr><td><code>migration.md</code></td><td><code>5d417a2e4b559ace8409dde5cbd5f13d0f3340b00cdf6cf7ca7775ec942bc6e1</code></td></tr><tr><td><code>delta.md</code></td><td><code>b3b2a0eb5b948ee7160e1ce6677a0bbf5ec21d485cadeab45bfe28db6cb553ae</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>0abed71cf42ae0cb41a78ddca1fe0e783fd6acc4e99936e57751c2792e2d7da8</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>94f6acf14341a6ddffb1cdcd40e3b3f67689857cc906bef3a0d96aa48d2c390a</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>a2b1a372514ac2ae17ab7d5f0caee722c6fb1059c72791095c01f796520011fc</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>879cba217e9ccb2cbde587560a34596b5892db168bb8655adb12ef8e67759243</code></td></tr><tr><td><code>domain-access-proposal.md</code></td><td><code>53984a32d2429dfd24d66fdf59f21b7dc3bfc34a17001a614a8ebdbfddcda14e</code></td></tr><tr><td><code>tasks.md</code></td><td><code>72be5274c304fe3116341ff4a1bec734614da7ebe1e38d72051070353e6a7b02</code></td></tr><tr><td><code>design.md</code></td><td><code>f0f7ae927c373fe3700b1403f3bdf8182bcbf67ad99f5b9143d5b626b14b6fc4</code></td></tr><tr><td><code>outcome.md</code></td><td><code>91c9fe45cafab7059440cc610506139bfb899b2b4d12206376f1baa38dfad869</code></td></tr><tr><td><code>spec.md</code></td><td><code>c74539aee520eee905c9f99795fce8efca5058154477c63a6fe10b74d246d7fa</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9f7843281839dc4b7ad745290aa3931b09793f2cdff18e8fb75b1b66578cc91f</code></td></tr><tr><td><code>schema.md</code></td><td><code>5ddccb33b49f9bb182235ec2f7687c544ec3a193ac8b0611008b93ead5c345d7</code></td></tr><tr><td><code>migration.md</code></td><td><code>5d417a2e4b559ace8409dde5cbd5f13d0f3340b00cdf6cf7ca7775ec942bc6e1</code></td></tr><tr><td><code>delta.md</code></td><td><code>b3b2a0eb5b948ee7160e1ce6677a0bbf5ec21d485cadeab45bfe28db6cb553ae</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>0abed71cf42ae0cb41a78ddca1fe0e783fd6acc4e99936e57751c2792e2d7da8</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>52221858b97bc29af86a164603aca6338173b7a913ad078c26254083a5cc75d7</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>a2b1a372514ac2ae17ab7d5f0caee722c6fb1059c72791095c01f796520011fc</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -7504,7 +7512,7 @@ the exact branch.</p>
           "",
           "- Версия кандидата: 1.0",
           "- Основа: 882a063",
-          "- Хеш исходных файлов: 19ff72b6ad245114103820e8b357d5b3d18680a740dc8e4ffd351bf584a9c769",
+          "- Хеш исходных файлов: 9893048d08ae378cb5a5ba11a1c8f18fea86bdefe46f383321e6971e966f66fa",
           ""
         ];
         cards

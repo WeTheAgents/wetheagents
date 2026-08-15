@@ -47,13 +47,13 @@ financial correction remains a separate future change. WEA vNext remains
   profile, target, revision, and output inputs.
 - The canonical `domains/registry/v1.json` binds the permanent repository ID,
   canonical locator, exact revision, record hash, and registry hash.
-- WEA Domain registry and Access focus: `26 passed`.
-- WEA scenario/runtime focus: `38 passed`.
+- WEA Domain registry and Access focus: `28 passed`.
+- WEA scenario/runtime focus: `39 passed`.
 - The current scenario registry contains exactly 69 current scenarios and one
   accepted-future scenario. `BDD alignment: 100%`.
-- Full WEA vNext suite: `456 passed, 18 skipped`.
+- Full WEA vNext suite: `457 passed, 18 skipped`.
 - Full repository suite with the worktree `src` on `PYTHONPATH`:
-  `4741 passed, 18 skipped, 11 xfailed`.
+  `4742 passed, 18 skipped, 11 xfailed`.
 - WEA Ruff: clean. WEA Pyright: 0 errors and 0 warnings.
 - Economy invariant, ledger schema, task-index schema, doc sync, protected
   runtime/ledger diff, and `git diff --check`: pass.
@@ -61,15 +61,15 @@ financial correction remains a separate future change. WEA vNext remains
 ## Remaining gate
 
 There is no product, design, or identity blocker. PR `#942` is open. Review
-passes 2 and 3 found five fail-closed validation defects. Exact-type checks,
-reconstruction, and focused regressions close the two pass-3 caller-owned model
-findings. The remaining gates are final independent review, PR checks, and
-merge. Do not add S-13C, a successor runtime, live Tide, ledger writes,
-bootstrap, migration, or GitHub permission operations to this PR.
+passes 2–4 found seven fail-closed contract defects. Pass 4 required one active
+verified authority binding and delayed expiry evaluation. Focused regressions
+now prove both boundaries. The remaining gates are final independent review, PR
+checks, and merge. Do not add S-13C, a successor runtime, live Tide, ledger
+writes, bootstrap, migration, or GitHub permission operations to this PR.
 
 ## Exact resume sequence
 
-1. Publish the pass-3 fixes and repeat independent review on the exact branch.
+1. Publish the pass-4 fixes and repeat independent review on the exact branch.
 2. Mark PR `#942` ready and merge after CI passes.
 3. Start S-13C as a separate OLED change and PR only after this PR merges.
 

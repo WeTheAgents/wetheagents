@@ -441,19 +441,92 @@ def _timestamp(value: datetime) -> str:
     return value.isoformat().replace("+00:00", "Z")
 
 
+@dataclass(frozen=True)
+class VerifiedAccessAuthority:
+    """One verified operator or Agent0 source bound to an active role version."""
+
+    authority_kind: str
+    authority_id: str
+    authority_revision_id: str
+    binding_id: str
+    binding_version: int
+    effective_from: datetime
+    effective_until: datetime | None = None
+
+    def __post_init__(self) -> None:
+        authority_kind = _access_string(
+            self.authority_kind,
+            field="authority_kind",
+        )
+        if authority_kind not in _ALLOWED_AUTHORITIES:
+            raise AccessError("authority_kind must be operator or agent0")
+        _access_string(self.authority_id, field="authority_id")
+        _access_string(self.authority_revision_id, field="authority_revision_id")
+        _access_string(self.binding_id, field="binding_id")
+        if type(self.binding_version) is not int or self.binding_version < 1:
+            raise AccessError("binding_version must be a positive integer")
+        effective_from = _utc(self.effective_from, field="effective_from")
+        effective_until = (
+            None
+            if self.effective_until is None
+            else _utc(self.effective_until, field="effective_until")
+        )
+        if effective_until is not None and effective_until <= effective_from:
+            raise AccessError("authority binding interval must be positive")
+        object.__setattr__(self, "effective_from", effective_from)
+        object.__setattr__(self, "effective_until", effective_until)
+
+    def active_at(self, effective_at: datetime) -> bool:
+        at = _utc(effective_at, field="effective_at")
+        return self.effective_from <= at and (
+            self.effective_until is None or at < self.effective_until
+        )
+
+
+def _rebuild_access_authority(
+    authority: VerifiedAccessAuthority,
+) -> VerifiedAccessAuthority:
+    if type(authority) is not VerifiedAccessAuthority:
+        raise AccessError("authority must use the verified binding record type")
+    try:
+        return VerifiedAccessAuthority(
+            authority_kind=authority.authority_kind,
+            authority_id=authority.authority_id,
+            authority_revision_id=authority.authority_revision_id,
+            binding_id=authority.binding_id,
+            binding_version=authority.binding_version,
+            effective_from=authority.effective_from,
+            effective_until=authority.effective_until,
+        )
+    except AttributeError as exc:
+        raise AccessError("authority binding is incomplete") from exc
+
+
 def _access_payload(
     *,
     authority_kind: str,
     authority_id: str,
     authority_revision_id: str,
+    authority_binding_id: str,
+    authority_binding_version: int,
+    authority_effective_from: datetime,
+    authority_effective_until: datetime | None,
     agent_id: str,
     domain_id: str,
     registry_hash: str,
     starts_at: datetime,
     ends_at: datetime,
-) -> dict[str, str]:
+) -> dict[str, object]:
     return {
         "agent_id": agent_id,
+        "authority_binding_id": authority_binding_id,
+        "authority_binding_version": authority_binding_version,
+        "authority_effective_from": _timestamp(authority_effective_from),
+        "authority_effective_until": (
+            None
+            if authority_effective_until is None
+            else _timestamp(authority_effective_until)
+        ),
         "authority_id": authority_id,
         "authority_kind": authority_kind,
         "authority_revision_id": authority_revision_id,
@@ -470,6 +543,10 @@ class AccessGrant:
     authority_kind: str
     authority_id: str
     authority_revision_id: str
+    authority_binding_id: str
+    authority_binding_version: int
+    authority_effective_from: datetime
+    authority_effective_until: datetime | None
     agent_id: str
     domain_id: str
     registry_hash: str
@@ -485,6 +562,26 @@ class AccessGrant:
             raise AccessError("authority_kind must be operator or agent0")
         _access_string(self.authority_id, field="authority_id")
         _access_string(self.authority_revision_id, field="authority_revision_id")
+        _access_string(self.authority_binding_id, field="authority_binding_id")
+        if (
+            type(self.authority_binding_version) is not int
+            or self.authority_binding_version < 1
+        ):
+            raise AccessError(
+                "authority_binding_version must be a positive integer"
+            )
+        authority_effective_from = _utc(
+            self.authority_effective_from,
+            field="authority_effective_from",
+        )
+        authority_effective_until = (
+            None
+            if self.authority_effective_until is None
+            else _utc(
+                self.authority_effective_until,
+                field="authority_effective_until",
+            )
+        )
         _access_string(self.agent_id, field="agent_id")
         _access_domain_id(self.domain_id)
         if type(self.registry_hash) is not str or not _HASH.fullmatch(
@@ -495,12 +592,31 @@ class AccessGrant:
         ends_at = _utc(self.ends_at, field="ends_at")
         object.__setattr__(self, "starts_at", starts_at)
         object.__setattr__(self, "ends_at", ends_at)
+        object.__setattr__(
+            self,
+            "authority_effective_from",
+            authority_effective_from,
+        )
+        object.__setattr__(
+            self,
+            "authority_effective_until",
+            authority_effective_until,
+        )
         if ends_at - starts_at != ACCESS_DURATION:
             raise AccessError("Access interval must be exactly seven days")
+        if starts_at < authority_effective_from or (
+            authority_effective_until is not None
+            and starts_at >= authority_effective_until
+        ):
+            raise AccessError("Access source does not have an active binding")
         payload = _access_payload(
             authority_kind=self.authority_kind,
             authority_id=self.authority_id,
             authority_revision_id=self.authority_revision_id,
+            authority_binding_id=self.authority_binding_id,
+            authority_binding_version=self.authority_binding_version,
+            authority_effective_from=authority_effective_from,
+            authority_effective_until=authority_effective_until,
             agent_id=self.agent_id,
             domain_id=self.domain_id,
             registry_hash=self.registry_hash,
@@ -550,6 +666,7 @@ class IdempotencyRecord:
 @dataclass(frozen=True)
 class DomainAccessState:
     registry: DomainRegistry
+    authority_bindings: tuple[VerifiedAccessAuthority, ...] = ()
     grants: tuple[AccessGrant, ...] = ()
     expiries: tuple[AccessExpiry, ...] = ()
     idempotency_records: tuple[IdempotencyRecord, ...] = ()
@@ -566,6 +683,21 @@ class DomainAccessState:
         except (AttributeError, DomainRegistryError) as exc:
             raise AccessError("state registry is not a verified manifest") from exc
         object.__setattr__(self, "registry", registry)
+        if type(self.authority_bindings) is not tuple or any(
+            type(value) is not VerifiedAccessAuthority
+            for value in self.authority_bindings
+        ):
+            raise AccessError(
+                "state authority_bindings must be an immutable typed tuple"
+            )
+        authority_bindings = tuple(
+            _rebuild_access_authority(value) for value in self.authority_bindings
+        )
+        object.__setattr__(self, "authority_bindings", authority_bindings)
+        _access_unique(
+            (binding.binding_id for binding in authority_bindings),
+            label="authority binding_id",
+        )
         if type(self.grants) is not tuple or any(
             type(value) is not AccessGrant for value in self.grants
         ):
@@ -612,6 +744,22 @@ class DomainAccessState:
                 raise AccessError("Access refers to an unknown Domain")
             if grant.registry_hash != self.registry.registry_hash:
                 raise AccessError("Access refers to a different registry manifest")
+            matches = [
+                binding
+                for binding in authority_bindings
+                if binding.authority_kind == grant.authority_kind
+                and binding.authority_id == grant.authority_id
+                and binding.authority_revision_id == grant.authority_revision_id
+                and binding.binding_id == grant.authority_binding_id
+                and binding.binding_version == grant.authority_binding_version
+                and binding.effective_from == grant.authority_effective_from
+                and binding.effective_until == grant.authority_effective_until
+                and binding.active_at(grant.starts_at)
+            ]
+            if len(matches) != 1:
+                raise AccessError(
+                    "Access source must resolve to one configured active binding"
+                )
         for expiry in self.expiries:
             if expiry.access_id not in known_access:
                 raise AccessError("expiry refers to an unknown Access")
@@ -647,6 +795,10 @@ class DomainAccessState:
                     authority_kind=access.authority_kind,
                     authority_id=access.authority_id,
                     authority_revision_id=access.authority_revision_id,
+                    authority_binding_id=access.authority_binding_id,
+                    authority_binding_version=access.authority_binding_version,
+                    authority_effective_from=access.authority_effective_from,
+                    authority_effective_until=access.authority_effective_until,
                     agent_id=access.agent_id,
                     domain_id=access.domain_id,
                     registry_hash=access.registry_hash,
@@ -682,10 +834,17 @@ def _access_unique(values: Iterable[str], *, label: str) -> None:
         raise AccessError(f"state contains duplicate {label}")
 
 
-def initial_access_state(registry: DomainRegistry) -> DomainAccessState:
+def initial_access_state(
+    registry: DomainRegistry,
+    *,
+    authority_bindings: Iterable[VerifiedAccessAuthority],
+) -> DomainAccessState:
     """Create empty control-plane state for one validated registry manifest."""
 
-    return DomainAccessState(registry=registry)
+    return DomainAccessState(
+        registry=registry,
+        authority_bindings=tuple(authority_bindings),
+    )
 
 
 def _require_access_state(state: DomainAccessState) -> DomainAccessState:
@@ -755,14 +914,29 @@ def grant_access(
     agent_id = _access_string(agent_id, field="agent_id")
     domain_id = _access_domain_id(domain_id)
     starts_at = _utc(effective_at, field="effective_at")
+    authorities = [
+        binding
+        for binding in state.authority_bindings
+        if binding.authority_kind == authority_kind
+        and binding.authority_id == authority_id
+        and binding.authority_revision_id == authority_revision_id
+        and binding.active_at(starts_at)
+    ]
+    if len(authorities) != 1:
+        raise AccessError("authority must resolve to one configured active binding")
+    authority = authorities[0]
     try:
         ends_at = starts_at + ACCESS_DURATION
     except OverflowError as exc:
         raise AccessError("effective_at cannot form a seven-day Access") from exc
     request = _access_payload(
-        authority_kind=authority_kind,
-        authority_id=authority_id,
-        authority_revision_id=authority_revision_id,
+        authority_kind=authority.authority_kind,
+        authority_id=authority.authority_id,
+        authority_revision_id=authority.authority_revision_id,
+        authority_binding_id=authority.binding_id,
+        authority_binding_version=authority.binding_version,
+        authority_effective_from=authority.effective_from,
+        authority_effective_until=authority.effective_until,
         agent_id=agent_id,
         domain_id=domain_id,
         registry_hash=state.registry.registry_hash,
@@ -778,8 +952,6 @@ def grant_access(
     )
     if replay is not None:
         return state, _grant_by_id(state, replay.object_id)
-    if authority_kind not in _ALLOWED_AUTHORITIES:
-        raise AccessError("authority_kind must be operator or agent0")
     state.registry.domain(domain_id)
     for existing in state.grants:
         if (
@@ -790,9 +962,13 @@ def grant_access(
             raise AccessError("agent already has overlapping Access")
     access = AccessGrant(
         access_id=f"access:{_hash_value(request)}",
-        authority_kind=authority_kind,
-        authority_id=authority_id,
-        authority_revision_id=authority_revision_id,
+        authority_kind=authority.authority_kind,
+        authority_id=authority.authority_id,
+        authority_revision_id=authority.authority_revision_id,
+        authority_binding_id=authority.binding_id,
+        authority_binding_version=authority.binding_version,
+        authority_effective_from=authority.effective_from,
+        authority_effective_until=authority.effective_until,
         agent_id=agent_id,
         domain_id=domain_id,
         registry_hash=state.registry.registry_hash,
@@ -808,6 +984,7 @@ def grant_access(
     return (
         DomainAccessState(
             registry=state.registry,
+            authority_bindings=state.authority_bindings,
             grants=(*state.grants, access),
             expiries=state.expiries,
             idempotency_records=(*state.idempotency_records, record),
@@ -828,7 +1005,25 @@ def expire_access(
     state = _require_access_state(state)
     access_id = _access_string(access_id, field="access_id")
     at = _utc(effective_at, field="effective_at")
-    request = {"access_id": access_id, "effective_at": _timestamp(at)}
+    for existing_record in state.idempotency_records:
+        if existing_record.key != idempotency_key:
+            continue
+        if existing_record.operation != "expire_access":
+            raise AccessError("idempotency key was reused with different input")
+        existing_expiry = next(
+            expiry
+            for expiry in state.expiries
+            if expiry.expiry_id == existing_record.object_id
+        )
+        if existing_expiry.access_id != access_id:
+            raise AccessError("idempotency key was reused with different input")
+    access = _grant_by_id(state, access_id)
+    if at < access.ends_at:
+        raise AccessError("Access expiry cannot precede ends_at")
+    request = {
+        "access_id": access_id,
+        "effective_at": _timestamp(access.ends_at),
+    }
     request_hash = _idempotency_request(operation="expire_access", payload=request)
     replay = _replay_record(
         state,
@@ -841,15 +1036,12 @@ def expire_access(
             if expiry.expiry_id == replay.object_id:
                 return state, expiry
         raise AccessError("idempotency result refers to an unknown expiry")
-    access = _grant_by_id(state, access_id)
-    if at != access.ends_at:
-        raise AccessError("Access expiry must use the exact ends_at boundary")
     if any(expiry.access_id == access_id for expiry in state.expiries):
         raise AccessError("Access already has an expiry record")
     expiry = AccessExpiry(
         expiry_id=f"access-expiry:{_hash_value(request)}",
         access_id=access_id,
-        effective_at=at,
+        effective_at=access.ends_at,
     )
     record = IdempotencyRecord(
         key=idempotency_key,
@@ -860,6 +1052,7 @@ def expire_access(
     return (
         DomainAccessState(
             registry=state.registry,
+            authority_bindings=state.authority_bindings,
             grants=state.grants,
             expiries=(*state.expiries, expiry),
             idempotency_records=(*state.idempotency_records, record),
@@ -891,6 +1084,7 @@ __all__ = [
     "DomainRegistry",
     "DomainRegistryError",
     "IdempotencyRecord",
+    "VerifiedAccessAuthority",
     "build_domain_registry",
     "expire_access",
     "grant_access",

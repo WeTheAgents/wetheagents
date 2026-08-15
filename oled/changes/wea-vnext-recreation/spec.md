@@ -73,8 +73,9 @@ Spec `1.0` MUST NOT support early Access revocation, renewal, extension, or tran
 #### S-11A. An authorized source grants one Access
 
 - **GIVEN:** The verified Domain registry contains the exact Domain record.
+- **GIVEN:** One exact operator or Agent0 source resolves through an active verified role binding at `effective_at`.
 - **GIVEN:** The Agent ID has no Access active at the declaration `effective_at`.
-- **WHEN:** An operator or Agent0 source grants Access to the Agent ID and Domain ID.
+- **WHEN:** That verified operator or Agent0 source grants Access to the Agent ID and Domain ID.
 - **THEN:** The system records the exact Agent ID, Domain ID, source, `starts_at`, `ends_at`, and idempotency key.
 - **THEN:** The `starts_at` value equals `effective_at`. The `ends_at` value equals `starts_at + 7 days`.
 - **THEN:** Replay creates no second Access.

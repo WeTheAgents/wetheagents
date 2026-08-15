@@ -12,10 +12,10 @@ the Spec `0.9` runtime records.
 | --- | --- |
 | Domain record | canonical Domain ID, permanent GitHub repository node ID, canonical HTTPS audit locator, full lowercase 40-character commit SHA, record SHA-256 |
 | Domain registry | schema version `1`, Domain records sorted by Domain ID, registry SHA-256 over the complete record payload |
-| Access grant | deterministic Access ID, source kind `operator/agent0`, source ID and revision ID, exact Agent ID and Domain ID, registry hash, UTC `starts_at`, UTC `ends_at` |
+| Access grant | deterministic Access ID, source kind `operator/agent0`, source ID and revision ID, exact active authority binding ID/version and interval, exact Agent ID and Domain ID, registry hash, UTC `starts_at`, UTC `ends_at` |
 | Access expiry | deterministic expiry ID, exact Access ID, effective time equal to the Access `ends_at` |
 | Idempotency result | key, operation `grant_access/expire_access`, canonical request hash, exact result object ID |
-| Domain Access state | one validated immutable registry, immutable grant tuple, immutable expiry tuple, immutable idempotency tuple |
+| Domain Access state | one validated immutable registry, configured immutable authority-binding tuple, immutable grant tuple, immutable expiry tuple, immutable idempotency tuple |
 
 ### Schema 1.1 invariants
 
@@ -26,7 +26,7 @@ the Spec `0.9` runtime records.
 5. An Access names one Domain from the exact registry hash stored in state.
 6. `ends_at = starts_at + 7 days` after UTC normalization.
 7. Access intervals are half-open. One Agent ID has no overlapping interval across any Domains.
-8. Reconstructed state revalidates Domain binding, overlap, expiry linkage, unique IDs, and exact idempotency-result linkage.
+8. Reconstructed state revalidates Domain and authority bindings, overlap, expiry linkage, unique IDs, and exact idempotency-result linkage.
 9. An expiry is valid only at the exact Access `ends_at`. One Access has at most one expiry record.
 10. The model has no GitHub permission, Work, obligation, Release, money, early revoke, renewal, extension, suspension, or transfer field or transition.
 
