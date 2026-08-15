@@ -2,7 +2,7 @@
 
 **Version:** 1.1
 **Date:** 2026-08-15
-**Status:** Approved for execution
+**Status:** Complete
 **Outcome:** `outcome.md` version 1.0
 **Specification:** `spec.md` version 1.1
 **Design:** `design.md` revision 1.1
@@ -85,7 +85,7 @@
   required checks.
 - [x] Run `codex exec review`, fix every actionable finding, and repeat until
   clean.
-- [ ] Mark the PR ready and merge only after local verification, review, and CI
+- [x] Mark the PR ready and merge only after local verification, review, and CI
   are clean.
 
 ## Completion ceiling

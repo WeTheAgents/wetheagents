@@ -2,7 +2,7 @@
 
 **Version:** 1.1
 **Date:** 2026-08-15
-**Status:** Locally verified and review-clean; exact-head CI pending
+**Status:** Ready and merged
 
 Decision: `S13C implemented as an inactive control plane; not live`.
 
@@ -48,6 +48,7 @@ Decision: `S13C implemented as an inactive control plane; not live`.
 | protected commit diff and `git diff --check` | 0 | No current ledger, writer, executor, ruleset, workflow, or CLI change; whitespace clean. |
 | refreshed code graph and inbound trace | complete | `apply_financial_correction` has zero non-test inbound callers. |
 | 64 sequential state-neutral correction groups | 0 | The accepted maximum, 64 groups and 128 rows, completed in 4.002 seconds. |
+| GitHub PR `#943` checks on `73c2a72` | 0 | Scope, doc sync, Semgrep, vNext boundary, and Workers Builds all passed before merge. |
 
 The Pyright installation reports one pre-existing unrecognized configuration
 setting and an available newer version. It still completed with zero errors and
@@ -63,7 +64,7 @@ deprecation warning. Neither warning is caused by this change.
   entrypoints are unchanged.
 - The commit-aware PR-scope check passes for all 12 changed files. The protected
   ledger/runtime diff is empty.
-- GitHub CI remains the final publication gate.
+- GitHub CI passed on the exact reviewed head before publication.
 
 ## Self-roast
 
@@ -130,8 +131,9 @@ actionable defect and independently reran all 45 focused tests.
 
 ## Completion decision
 
-`Not ready` for publication until exact-head CI completes. The implementation
-contract, local checks, independent review, and Codex review are green.
+`Ready and merged`. The implementation contract, local checks, independent
+review, Codex review, and exact-head CI are green. PR `#943` was squash-merged
+as `942998d` on 2026-08-15.
 
 ## Completion ceiling
 
