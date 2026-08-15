@@ -75,7 +75,7 @@
   protected-file diff. Keep the stage set limited to S13C.
 - [x] Perform the required self-roast for task alignment, scope, contracts,
   tests, and research/live isolation.
-- [ ] Commit and push the dedicated branch, open one draft PR, and wait for all
+- [x] Commit and push the dedicated branch and open one draft PR. Wait for all
   required checks.
 - [ ] Run `codex exec review`, fix every actionable finding, and repeat until
   clean.

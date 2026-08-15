@@ -1,6 +1,6 @@
 # Agent0 handoff: S13C financial correction
 
-Status: `implementation locally verified / publication review pending`.
+Status: `implementation locally verified / independent review clean`.
 
 The operator approved the separate S13C delivery on 2026-08-15 and explicitly
 rejected a narrow successor reference runtime. The implementation is an
@@ -47,13 +47,14 @@ inactive control-plane library. WEA vNext remains `Not live`.
 - Refreshed code graph: `apply_financial_correction` has no non-test inbound
   caller.
 - Current scenario registry: 70 current scenarios; no accepted-future scenario.
+- `codex exec review --base origin/main` pass 1 found no actionable defect and
+  independently reran the 29-test focused gate.
 
 ## Exact continuation
 
-1. Perform the required self-roast and inspect the protected-path diff.
-2. Commit and push this branch, then open one draft PR.
-3. Run `codex exec review`, fix all actionable findings, and repeat until clean.
-4. Require green PR checks before marking ready and merging.
+1. Commit and push this review record to both published feature branches.
+2. Rerun `codex exec review` on the documentation-only follow-up.
+3. Require green PR checks before marking ready and merging PR `#943`.
 
 ## Future live-cutover gate
 
