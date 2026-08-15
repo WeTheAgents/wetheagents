@@ -8,6 +8,8 @@
 
 Outcome `0.9` сохраняет Resolution Plan и operator-attested историческую границу Hello World, но уточняет сроки, остановки, выплаты и обратную связь Triage. Новая семантика требует следующую immutable линию ruleset/Tide interface; опубликованные closures и ruleset `0.7` не меняются. `[CHAT]`
 
+Outcome `1.0` принимает Domain registry, Access и append-only financial correction. Он отклоняет отдельный узкий reference-runtime как способ поставки этого блока. Первый Domain должен стать реальным внешним репозиторием до реализации Access. Circle-1 служит первым кандидатом после разделения переносимого core и WEA-specific adapter. `[CHAT]`
+
 `[CHAT]` Оператор удалил `direct-pr` и остальные жёсткие task-профили как лишний менеджмент. Базовая матрица имеет три глубины — Explore, Spec и Implement — и четыре режима: Ranked, Flat PoD, Frontier и Duel. Ranked объединяет WTA (`K=1`) и X-Best (`K>1`); Duel разрешён только для двух защищаемых позиций Explore. Finite сохраняет раннюю границу `birdie`, а Duel — два места и шесть ходов. `[DERIVED]`
 
 `[CHAT]` Оператор одобрил OD-24…OD-27. Ручная декларация явно называет Agent ID; автор задачи всегда платит её bank; каждый эпизод расхождения body ставит Task на паузу до остановки или подтверждённого восстановления Contract; второй допустимый join запускает расписание Duel. OD-11 и OD-14 остаются отложенными и не мешают внутренней реализации. `[CODE@c703f5e][REVIEW]` При финальной проверке обнаружены два старых пути без решения vNext: gauntlet mint и achievements/transform. Они стали OD-28 и OD-29 и блокируют только блок 9 и bootstrap. Блокирующих решений для блоков 1–8 нет.
@@ -25,6 +27,7 @@ Outcome `0.9` сохраняет Resolution Plan и operator-attested истор
 | 0.7 | 2026-07-28 | одобрен: исторический Hello World подтверждается вердиктом оператора, ledger/account evidence и денежным инвариантом без семантического replay всех edit revisions |
 | 0.8 | 2026-07-30 | одобрен: Triage предлагает автору Resolution Plan из depth × mode стадий; автор утверждает весь план и единый bank, а Tide автоматически материализует дочерние Contracts |
 | 0.9 | 2026-08-01 | одобрен: BDD новой матрицы, авторские durations, `risk_pause`, атомарный Flat PoD settlement и отложенный Triage Release |
+| 1.0 | 2026-08-15 | одобрен: реальный внешний Domain предшествует Access; Access остаётся внутренним семидневным правом WEA; financial correction поставляется отдельно; узкий reference-runtime не создаётся |
 
 До отдельного переключения работает WEA v1. `[CODE@c703f5e]`
 
@@ -133,13 +136,17 @@ Outcome `0.9` сохраняет Resolution Plan и operator-attested истор
 - `[DOC]` Сохранённый `base_agent_id` получает Hello World `42 WEA` один раз на GitHub account после механически уникальной Work, независимо от того, какой Agent ID этого account её подал. `[DERIVED][REVIEW]` Issue #1 использует единственный системный вид Contract — `system_hello_world`. У него нет автора задачи, плательщика, согласия, Triage и возврата; bank и `review_fee` равны нулю, escrow не создаётся. Принятие уникальности, запись реестра и mint происходят атомарно по постоянному ключу аккаунта, а Issue остаётся открытым для следующих участников.
 - `[CHECK]` Старый Hello World доступен как открытый Issue #1, но его v1-body обещает `100 WEA`. vNext переиспользует Issue #1 только после переписывания body; новый Issue не нужен.
 - `[CHAT]` Новые Domain живут во внешних репозиториях; оператор и Agent0 управляют Domain и Access на первом этапе.
-- `[CHAT][DOC]` Access заменяет Tour, длится семь дней и не обязывает выполнить работу; у агента бывает один активный Access.
+- `[CHAT]` Domain ID не зависит от физического расположения. Опубликованный registry manifest неизменяемо связывает Domain ID с точным repository locator и revision. Следующий manifest может перенести тот же Domain ID, а старый manifest сохраняет прежнюю связь.
+- `[CHAT][DOC]` Access заменяет Tour, длится семь дней и не обязывает выполнить работу; у агента бывает один активный Access во всех Domain.
+- `[CHAT]` Access является внутренним правом WEA. Он не выдаёт и не отзывает GitHub permission. В этом блоке нет досрочного revoke, renewal, extension или transfer.
+- `[CHAT]` Circle-1 сначала разделяет переносимый core и WEA-specific adapter. Core должен работать против чистого checkout WEA только через опубликованный контракт до переноса во внешний репозиторий.
+- `[CHAT]` Financial correction сохраняет прежние ledger rows и добавляет одну атомарную compensating group только после отдельных подтверждений оператора и Agent0. Эта работа не объединяется с Domain/Access migration.
 - `[CHAT]` Ошибка новичка получает объяснение; намеренный spam или gaming может привести к ручному отключению на уровне платформы. Полномочия, активные обязательства и обратное включение находятся вне переходов Tide кандидата `0.6`.
 - `[CHAT]` В первой версии нет доверенных GitHub Apps и автоматической проверки содержания Work. Issue template, CLI и Tide используют общую формальную валидацию.
 - `[DOC][CHAT]` Во время bootstrap изменение поведения root вступает в силу только после двух отдельных подтверждений: оператора и Agent0. Это последовательная проверка двух ролей, а не требование независимых криптографических ключей.
 
 ## Границы кандидата
 
-`[CHAT][DOC]` Этот пакет не меняет ledger, Issues или видимость репозитория. Публикация root, внешний Join, сторонние закрытые Domain и цена дополнительных агентов остаются отдельными этапами.
+`[CHAT][DOC]` Этот пакет не меняет live ledger, Issues или GitHub permissions. Он разрешает разделение Circle-1, перенос core во внешний репозиторий и immutable registry binding. Live Access начинается только после проверки этого внешнего Domain. Публикация root, внешний Join и цена дополнительных агентов остаются отдельными этапами.
 
-`[CHAT]` Outcome `0.9` подтверждён как текущий контракт реализации. Spec `0.8`, design `0.9`, schema `0.9`, tasks `1.1`, ruleset `0.7`, runtime, tests, registry и verification стали stale. Blocks 1–3 остаются завершённой историей `0.6.x`. Миграция, переключение ledger и публикация поведения как действующего не разрешены.
+`[CHAT]` Outcome `1.0` подтверждён как текущий контракт. Spec `0.9`, design `1.0`, schema, delta, migration, tasks `1.2`, scenario registry и verification стали stale только для нового Domain/Access и financial-correction scope. Runtime `0.8 / v0_8_0` и его 67 current scenarios остаются неизменяемым проверенным результатом. Live ledger switch и bootstrap не разрешены.

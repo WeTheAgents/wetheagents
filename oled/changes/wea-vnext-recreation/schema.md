@@ -1,6 +1,43 @@
 # WEA vNext: минимальные машинные записи
 
-Статус: `schema 1.0` является текущей машинной моделью Spec `0.9` и design `1.0`. Она добавляется только в ruleset `0.8` / executor `v0_8_0`. Опубликованные записи старых closure не меняются. `[CHAT][DERIVED]`
+Статус: `schema 1.1` дополняет Spec `1.0` и design `1.1` отдельной inactive control-plane моделью Domain/Access. Schema `1.0`, ruleset `0.8`, executor `v0_8_0` и все опубликованные historical closure остаются неизменными. `[CHAT][DERIVED]`
+
+## Schema delta 1.1: Domain registry and Access control plane
+
+This delta is outside every immutable executor closure. It supersedes only the
+future Domain/Access model in the historical baseline below. It does not change
+the Spec `0.9` runtime records.
+
+| Record | Required canonical fields |
+| --- | --- |
+| Domain record | canonical Domain ID, permanent GitHub repository node ID, canonical HTTPS audit locator, full lowercase 40-character commit SHA, record SHA-256 |
+| Domain registry | schema version `1`, Domain records sorted by Domain ID, registry SHA-256 over the complete record payload |
+| Access grant | deterministic Access ID, source kind `operator/agent0`, source ID and revision ID, exact Agent ID and Domain ID, registry hash, UTC `starts_at`, UTC `ends_at` |
+| Access expiry | deterministic expiry ID, exact Access ID, effective time equal to the Access `ends_at` |
+| Idempotency result | key, operation `grant_access/expire_access`, canonical request hash, exact result object ID |
+| Domain Access state | one validated immutable registry, immutable grant tuple, immutable expiry tuple, immutable idempotency tuple |
+
+### Schema 1.1 invariants
+
+1. Registry JSON uses exact canonical UTF-8 bytes with no BOM or trailing newline.
+2. Domain IDs and permanent repository IDs are unique in one registry version.
+3. Each record hash binds all record identity fields. The registry hash binds the schema version and complete ordered record set.
+4. Registry validation uses only supplied bytes or one explicit local path. It performs no network or mutable registry lookup.
+5. An Access names one Domain from the exact registry hash stored in state.
+6. `ends_at = starts_at + 7 days` after UTC normalization.
+7. Access intervals are half-open. One Agent ID has no overlapping interval across any Domains.
+8. Reconstructed state revalidates Domain binding, overlap, expiry linkage, unique IDs, and exact idempotency-result linkage.
+9. An expiry is valid only at the exact Access `ends_at`. One Access has at most one expiry record.
+10. The model has no GitHub permission, Work, obligation, Release, money, early revoke, renewal, extension, suspension, or transfer field or transition.
+
+The first live manifest is `domains/registry/v1.json`. It MUST NOT exist until
+the public Circle-1 default branch exposes the exact permanent repository ID
+and full commit SHA. A later registry change creates `v2.json`; it never edits
+`v1.json`.
+
+`src/wea_vnext/domain_access.py` is an inactive standard-library control-plane
+module. It is not packaged in an executor manifest and does not select or
+change a runtime triple.
 
 ## Schema delta 1.0: lifecycle records
 

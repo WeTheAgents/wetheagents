@@ -27,9 +27,14 @@ def _headings(level: int) -> tuple[str, ...]:
     )
 
 
-def test_scenario_registry_matches_spec_0_9_scopes_exactly() -> None:
+def test_scenario_registry_matches_effective_and_accepted_scopes_exactly() -> None:
     validate_registry()
-    changed_headings = _headings(4)
+    normative_headings = _headings(4)
+    changed_headings = tuple(
+        item
+        for item in normative_headings
+        if item not in ACCEPTED_FUTURE_SCENARIO_IDS
+    )
     historical_headings = _headings(3)
     compatible_headings = tuple(
         item
@@ -39,6 +44,7 @@ def test_scenario_registry_matches_spec_0_9_scopes_exactly() -> None:
     )
 
     assert CHANGED_SCENARIO_IDS == changed_headings
+    assert {"S-11A", "S-11B"}.issubset(normative_headings)
     assert COMPATIBLE_SCENARIO_IDS == compatible_headings
     assert len(CURRENT_SCENARIO_IDS) == len(set(CURRENT_SCENARIO_IDS)) == 67
     assert set(CURRENT_SCENARIO_IDS) == (
