@@ -126,16 +126,16 @@ This separation avoids an unrelated money change in the cross-repository migrati
 
 | Lane or boundary | Authority and status | Named hook and current result | Exact gap and causal coupling | Route and immediate next action |
 | --- | --- | --- | --- | --- |
-| Outcome / Spec `1.0` | accepted/current | normative S-11A/S-11B evidence map; unrun | none | preserve |
-| Circle-1 external repository | accepted/actionable | external suite and black-box scan; absent | no external commit means the registry cannot name a real Domain revision | Tasks then Execute: create and verify repository first |
-| Domain registry | accepted/actionable after external commit | `test_domain_registry.py`; absent | repository ID and SHA exist only after publication | Tasks then Execute after external publication |
-| Access control plane | accepted/actionable | `test_access.py`; absent | implementation and exact evidence are missing | Tasks then Execute |
-| External GitHub permission | accepted negative boundary | absence assertions in `test_access.py`; absent | implementation must not add a client or permission field | Tasks then Execute |
+| Outcome / Spec `1.0` | accepted/current | normative S-11A/S-11B evidence map; focused evidence passes | none | preserve |
+| Circle-1 external repository | implemented/public | external suite, black-box scan, public node ID `R_kgDOT4-F-Q`, revision `36a71440840351aa462e61a8ad5955881f55ecb0` | none | preserve immutable revision; follow external CI |
+| Domain registry | implemented/current | `test_domain_registry.py`; canonical live manifest passes | none | preserve `v1.json`; use a new version for later changes |
+| Access control plane | implemented/current | `test_access.py`; focused evidence passes | none | preserve until a separately approved live adapter exists |
+| External GitHub permission | implemented negative boundary | absence assertions in `test_access.py`; pass | none | preserve no-client/no-permission surface |
 | Runtime `0.8 / v0_8_0` | immutable/current for 67 scenarios | existing historical-isolation tests; last result belongs to Spec `0.9` | no design gap | preserve bytes, rerun in Verify |
 | Financial correction | accepted-future/separate | `test_correction.py`; absent | separate money write design is intentionally outside this delivery | keep accepted-future; start a new OLED lane after Domain/Access merge |
-| Recovery | accepted/current | registry immutability, replay, and integration hooks; absent | implementation evidence is missing, not the recovery choice | Tasks then Execute then Verify |
-| Ceiling and trigger | accepted/current | boundary and absence tests; absent | implementation evidence is missing | Tasks then Execute then Verify |
-| Tasks / implementation / verification | stale on design `1.0` | none for design `1.1` | downstream records do not authorize the new topology | route to `oled-tasks` |
+| Recovery | accepted/current | registry immutability, replay, and integration hooks; pass | none | preserve versioned-manifest recovery rule |
+| Ceiling and trigger | accepted/current | boundary and absence tests; pass | none | return to Outcome/Spec before expanding the ceiling |
+| Tasks / implementation / verification | design `1.1` | tasks `1.3`; implementation complete, final review pending | independent review is required by the serious-change gate | Verify, review, and publish |
 
 ## Design delta 1.0: complete Resolution Plan lifecycle
 

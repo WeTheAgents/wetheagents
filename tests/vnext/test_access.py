@@ -223,6 +223,33 @@ def test_access_state_revalidates_global_overlap_and_idempotency_links() -> None
             idempotency_records=(*first_state.idempotency_records, dangling),
         )
 
+    original = first_state.idempotency_records[0]
+    wrong_hash = IdempotencyRecord(
+        key=original.key,
+        operation=original.operation,
+        request_hash="a" * 64,
+        object_id=original.object_id,
+    )
+    with pytest.raises(AccessError, match="exact request"):
+        DomainAccessState(
+            registry=first_state.registry,
+            grants=first_state.grants,
+            idempotency_records=(wrong_hash,),
+        )
+
+    alias = IdempotencyRecord(
+        key="second-key-for-the-same-object",
+        operation=original.operation,
+        request_hash=original.request_hash,
+        object_id=original.object_id,
+    )
+    with pytest.raises(AccessError, match="idempotency object reference"):
+        DomainAccessState(
+            registry=first_state.registry,
+            grants=first_state.grants,
+            idempotency_records=(original, alias),
+        )
+
 
 def test_access_rejects_noncanonical_domain_as_an_access_error() -> None:
     with pytest.raises(AccessError, match="domain_id"):

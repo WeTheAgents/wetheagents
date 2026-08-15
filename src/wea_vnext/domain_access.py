@@ -494,7 +494,9 @@ class IdempotencyRecord:
         _access_string(self.key, field="idempotency key")
         if self.operation not in {"grant_access", "expire_access"}:
             raise AccessError("idempotency operation is not supported")
-        if not _HASH.fullmatch(self.request_hash):
+        if not isinstance(self.request_hash, str) or not _HASH.fullmatch(
+            self.request_hash
+        ):
             raise AccessError("idempotency request_hash must be a SHA-256")
         _access_string(self.object_id, field="idempotency object_id")
 
@@ -531,8 +533,10 @@ class DomainAccessState:
             label="idempotency key",
         )
         known_domains = {record.domain_id for record in self.registry.records}
-        known_access = {grant.access_id for grant in self.grants}
-        known_expiry = {expiry.expiry_id for expiry in self.expiries}
+        access_by_id = {grant.access_id: grant for grant in self.grants}
+        expiry_by_id = {expiry.expiry_id: expiry for expiry in self.expiries}
+        known_access = set(access_by_id)
+        known_expiry = set(expiry_by_id)
         for grant in self.grants:
             if grant.domain_id not in known_domains:
                 raise AccessError("Access refers to an unknown Domain")
@@ -568,9 +572,36 @@ class DomainAccessState:
             if record.operation == "grant_access":
                 if record.object_id not in known_access:
                     raise AccessError("idempotency result refers to an unknown Access")
-            elif record.object_id not in known_expiry:
-                raise AccessError("idempotency result refers to an unknown expiry")
+                access = access_by_id[record.object_id]
+                request_payload: Mapping[str, object] = _access_payload(
+                    authority_kind=access.authority_kind,
+                    authority_id=access.authority_id,
+                    authority_revision_id=access.authority_revision_id,
+                    agent_id=access.agent_id,
+                    domain_id=access.domain_id,
+                    registry_hash=access.registry_hash,
+                    starts_at=access.starts_at,
+                    ends_at=access.ends_at,
+                )
+            else:
+                if record.object_id not in known_expiry:
+                    raise AccessError("idempotency result refers to an unknown expiry")
+                expiry = expiry_by_id[record.object_id]
+                request_payload = {
+                    "access_id": expiry.access_id,
+                    "effective_at": _timestamp(expiry.effective_at),
+                }
+            expected_request_hash = _idempotency_request(
+                operation=record.operation,
+                payload=request_payload,
+            )
+            if record.request_hash != expected_request_hash:
+                raise AccessError("idempotency result does not match its exact request")
             mapped_objects.add(record.object_id)
+        _access_unique(
+            (record.object_id for record in self.idempotency_records),
+            label="idempotency object reference",
+        )
         if mapped_objects != known_access | known_expiry:
             raise AccessError("state objects must have exact idempotency results")
 

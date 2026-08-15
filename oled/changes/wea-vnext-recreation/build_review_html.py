@@ -24,12 +24,12 @@ from markdown_it import MarkdownIt
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "WEA_vNext_REVIEW.html"
-BASE_SHA = "252c6ca"
-PACKAGE_REVISION = "0.9"
-DESIGN_REVISION = "1.0"
-MIGRATION_REVISION = "0.9"
-DELTA_REVISION = "0.9"
-TASKS_REVISION = "1.2"
+BASE_SHA = "882a063"
+PACKAGE_REVISION = "1.0"
+DESIGN_REVISION = "1.1"
+MIGRATION_REVISION = "1.0"
+DELTA_REVISION = "1.0"
+TASKS_REVISION = "1.3"
 
 
 @dataclass(frozen=True)
@@ -42,6 +42,12 @@ class Document:
 
 DOCUMENTS = (
     Document("handoff", "HANDOFF.md", "Следующая сессия", "Требует внимания"),
+    Document(
+        "domain-access-decision",
+        "domain-access-proposal.md",
+        "Решение Domain/Access",
+        "Принятое решение",
+    ),
     Document("tasks", "tasks.md", "План реализации", "Следующие задачи"),
     Document("design", "design.md", "Как это устроить", "Техническое решение"),
     Document("outcome", "outcome.md", "Что строим", "Коротко"),
@@ -101,9 +107,9 @@ CURRENT_DECISION_IDS = set(
 )
 
 VERSION_MARKERS = {
-    "HANDOFF.md": (r"[Dd]esign/schema `([^`]+)`", DESIGN_REVISION),
+    "HANDOFF.md": (r"Outcome/Spec `([^`]+)`", PACKAGE_REVISION),
     "open-decisions.md": (r"Статус кандидата `([^`]+)`", PACKAGE_REVISION),
-    "outcome.md": (r"Outcome `([^`]+)` сохраняет", PACKAGE_REVISION),
+    "outcome.md": (r"Outcome `([^`]+)` принимает Domain registry", PACKAGE_REVISION),
     "spec.md": (
         r"# WEA vNext: поведение кандидата ([0-9.]+)",
         PACKAGE_REVISION,
@@ -114,7 +120,7 @@ VERSION_MARKERS = {
     "migration.md": (r"Статус: `migration ([^`]+)`", MIGRATION_REVISION),
     "delta.md": (r"Статус: `delta ([^`]+)`", DELTA_REVISION),
     "verification.md": (
-        r"# WEA vNext: проверка пакета поведения ([0-9.]+)",
+        r"# WEA vNext: Domain/Access verification ([0-9.]+)",
         PACKAGE_REVISION,
     ),
 }
@@ -144,10 +150,11 @@ def validate_package_contract() -> None:
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
     decision = current_decision(verification)
     spec_implementation_review_pending = (
-        decision == "Implementation verified — independent PR review pending"
+        decision
+        == "Domain/Access implementation verified — independent PR review pending"
     )
     spec_implementation_review_clean = (
-        decision == "Implementation verified — independent PR review clean"
+        decision == "Domain/Access implementation verified — independent PR review clean"
     )
     spec_reconciliation_complete = decision == "Ready after Spec 0.9 reconciliation"
     spec_reconciliation_pending = (
@@ -169,19 +176,19 @@ def validate_package_contract() -> None:
     if spec_implementation_review_pending:
         if "Not live" not in verification:
             errors.append("verification.md: live-runtime boundary is missing")
-        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
-            errors.append("tasks.md: Spec 0.9 completion marker is missing")
-        if "Spec 0.9 review pending" not in handoff:
-            errors.append("HANDOFF.md: Spec 0.9 review status is missing")
+        if "tasks 1.3`: **implemented / independent review pending**" not in tasks:
+            errors.append("tasks.md: Domain/Access completion marker is missing")
+        if "Domain/Access review pending" not in handoff:
+            errors.append("HANDOFF.md: Domain/Access review status is missing")
         if "BDD alignment: 100%" not in verification:
             errors.append("verification.md: exact BDD alignment is missing")
     elif spec_implementation_review_clean:
         if "Not live" not in verification:
             errors.append("verification.md: live-runtime boundary is missing")
-        if "Spec 0.9 reference runtime implemented and verified" not in tasks:
-            errors.append("tasks.md: Spec 0.9 completion marker is missing")
-        if "Spec 0.9 review-clean" not in handoff:
-            errors.append("HANDOFF.md: Spec 0.9 review status is missing")
+        if "tasks 1.3`: **implemented / review clean**" not in tasks:
+            errors.append("tasks.md: Domain/Access completion marker is missing")
+        if "Domain/Access review-clean" not in handoff:
+            errors.append("HANDOFF.md: Domain/Access review status is missing")
         if "BDD alignment: 100%" not in verification:
             errors.append("verification.md: exact BDD alignment is missing")
     elif spec_reconciliation_complete:
@@ -689,10 +696,11 @@ def build() -> None:
     verification_text = (ROOT / "verification.md").read_text(encoding="utf-8")
     decision = current_decision(verification_text)
     spec_implementation_review_pending = (
-        decision == "Implementation verified — independent PR review pending"
+        decision
+        == "Domain/Access implementation verified — independent PR review pending"
     )
     spec_implementation_review_clean = (
-        decision == "Implementation verified — independent PR review clean"
+        decision == "Domain/Access implementation verified — independent PR review clean"
     )
     spec_reconciliation_complete = decision == "Ready after Spec 0.9 reconciliation"
     spec_reconciliation_pending = (
@@ -736,13 +744,13 @@ def build() -> None:
     decision_count = sum(decision_counts.values())
     if spec_implementation_review_pending:
         decision_guide = (
-            "Все решения текущего reference runtime приняты и локально доказаны. "
-            "Остаётся независимая проверка опубликованного PR."
+            "Domain/Access решения приняты и локально доказаны. "
+            "Остаётся независимая проверка опубликованного WEA PR."
         )
     elif spec_implementation_review_clean:
         decision_guide = (
-            "Все решения reference runtime приняты и независимо проверены. "
-            "Отложенные вопросы относятся только к будущей live-активации."
+            "Domain/Access решения приняты и независимо проверены. "
+            "S-13C и live-активация остаются отдельными будущими изменениями."
         )
     elif spec_reconciliation_complete:
         decision_guide = (
@@ -771,27 +779,27 @@ def build() -> None:
         )
 
     if spec_implementation_review_pending:
-        hero_kicker = "Spec 0.9 · implementation verified"
+        hero_kicker = "Spec 1.0 · Domain/Access verified"
         hero_lead = (
-            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
-            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
-            "Пакет ожидает независимую проверку PR. "
-            "live Tide, ledger, migration, bootstrap и GitHub writers не подключены."
+            "69 текущих BDD-сценариев включают 67 неизменных runtime-сценариев "
+            "и два Domain/Access control-plane сценария. S-13C остаётся "
+            "accepted-future. Пакет ожидает независимую проверку WEA PR; "
+            "live Tide, ledger, bootstrap и GitHub permission writers не подключены."
         )
-        package_status = "Spec 0.9 verified · PR review pending · Not live"
+        package_status = "Spec 1.0 verified · PR review pending · Not live"
         primary_href = "#doc-handoff"
         primary_label = "Открыть review handoff"
         core_status_label = "Расхождений BDD"
         core_status_count = "0"
     elif spec_implementation_review_clean:
-        hero_kicker = "Spec 0.9 · independent review clean"
+        hero_kicker = "Spec 1.0 · independent review clean"
         hero_lead = (
-            "Все 67 текущих BDD-сценариев согласованы с ruleset 0.8 и "
-            "manifest-pinned executor 0.8.0. Три future-сценария non-effective. "
-            "Независимый review не нашёл "
-            "actionable defects. Live-системы не подключены."
+            "69 текущих BDD-сценариев включают 67 неизменных runtime-сценариев "
+            "и два Domain/Access control-plane сценария. S-13C остаётся "
+            "accepted-future. Независимый review не нашёл actionable defects. "
+            "Live-системы не подключены."
         )
-        package_status = "Spec 0.9 verified · PR review clean · Not live"
+        package_status = "Spec 1.0 verified · PR review clean · Not live"
         primary_href = "#doc-handoff"
         primary_label = "Открыть review-clean handoff"
         core_status_label = "Расхождений BDD"

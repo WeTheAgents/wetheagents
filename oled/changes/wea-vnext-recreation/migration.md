@@ -24,11 +24,11 @@
    revert or a new registry version.
 8. S-13C financial correction remains outside this migration.
 
-Current partial state: local Circle-1 commit
-`c538fba593d9aae06c3f60b9721b821118d8dafb` and the WEA validator/Access code
-pass their focused checks. Remote publication is blocked by organization
-repository-create permission, so no live registry manifest exists and S-11A /
-S-11B remain non-effective.
+Completed inactive state: public Circle-1 repository ID `R_kgDOT4-F-Q` exposes
+revision `36a71440840351aa462e61a8ad5955881f55ecb0` on `main`.
+`domains/registry/v1.json` binds those exact values. The WEA registry validator,
+Access code, and S-11A/S-11B focused checks pass. No live Access, permission,
+ledger, bootstrap, or migration write occurred.
 
 ## Historical delta migration 0.9
 

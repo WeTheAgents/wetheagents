@@ -39,33 +39,27 @@ writer belongs in this delivery.
 ## BDD impact
 
 - Baseline: 67 current scenarios and three accepted-future scenarios.
-- This delivery can promote S-11A and S-11B only after the external Circle-1
-  repository exists, its public default-branch revision is pinned, the WEA
-  registry manifest verifies, and the focused Access evidence passes.
-- S-13C remains the only accepted-future scenario after that promotion.
-- Until the external prerequisite passes, the scenario registry remains at
-  67 current and three accepted-future scenarios.
+- The external Circle-1 repository exists, its public default-branch revision
+  is pinned, the WEA registry manifest verifies, and the focused Access
+  evidence passes.
+- S-11A and S-11B are current control-plane scenarios.
+- S-13C is the only accepted-future scenario.
 
 ## Current execution state
 
-- The extracted Circle-1 repository is locally committed at
-  `c538fba593d9aae06c3f60b9721b821118d8dafb`.
+- The public Circle-1 repository is committed at
+  `36a71440840351aa462e61a8ad5955881f55ecb0`.
+- Its permanent repository ID is `R_kgDOT4-F-Q`.
 - The external suite passes: 215 passed and 9 explicit WEA integration skips.
 - The WEA black-box scan, Ruff, and Pyright pass.
-- Both configured GitHub identities can read `WeTheAgents`, but neither token
-  can create `WeTheAgents/circle-1`. The public repository, permanent
-  repository ID, and remote commit are therefore unavailable.
-- The WEA registry validator and Access state machine pass 20 focused tests.
-- `domains/registry/v1.json` is intentionally absent. No placeholder identity
-  or unverified revision is accepted.
-- S-11A and S-11B remain non-effective until the external gate passes.
+- `domains/registry/v1.json` binds the exact public ID, locator, revision,
+  record hash, and registry hash.
+- The WEA registry validator and Access state machine pass their focused tests.
+- S-11A and S-11B are effective in the inactive control plane. No live writer,
+  GitHub permission effect, ledger write, bootstrap, or cutover exists.
 
-## Exact unblock action
+## Publication state
 
-An organization owner must create the empty public repository
-`WeTheAgents/circle-1` or grant repository-create permission to the configured
-publishing identity. The prepared local repository can then push `main`.
-
-After the push, execution must read the permanent repository node ID and the
-full default-branch commit SHA from GitHub, generate the canonical WEA registry
-manifest, run the complete gates, and only then promote S-11A and S-11B.
+The external prerequisite and implementation are complete. Fresh full checks,
+independent review, and the WEA PR remain the publication gates. S-13C starts
+only as a separate OLED change after the Domain/Access PR merges.

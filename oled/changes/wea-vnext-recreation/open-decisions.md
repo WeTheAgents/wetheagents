@@ -1,6 +1,6 @@
 # Открытые решения
 
-Статус кандидата `0.9`: прежние OD-24…OD-33 и развилки BD-01…BD-03 закрыты. Оператор принял 24 переписанных и два добавленных сценария. Нормативная delta находится в `spec.md`. OD-11, OD-14, OD-28 и OD-29 остаются отложенными. `[CHAT][CHECK]`
+Статус кандидата `1.0`: прежние OD-24…OD-33 и развилки BD-01…BD-03 закрыты. Оператор принял внешний Circle-1 Domain, immutable registry, внутренний семидневный Access и отдельную поставку S-13C. Нормативная delta находится в `spec.md`. OD-11, OD-14, OD-28 и OD-29 остаются отложенными. `[CHAT][CHECK]`
 
 ### Закрыто в кандидате 0.8
 
@@ -25,4 +25,4 @@
 | OD-28 | Сохраняется ли gauntlet mint как экономическая механика vNext? | До блока 9. v1 продолжает работать; без решения этот путь записи нельзя ни отключить, ни перенести в vNext. | `[CODE@c703f5e][REVIEW]` |
 | OD-29 | Что делать с achievements, award/revoke и transform? | До блока 9 определить их место относительно genome и Release. До решения v1 остаётся без изменений. | `[CODE@c703f5e][REVIEW]` |
 
-Сами OD-11, OD-14, OD-28 и OD-29 не мешают проверенному reference runtime Spec `0.9`. Для этой delta блокирующих решений нет. OD-28 и OD-29 блокируют только будущий live migration/bootstrap block; они не разрешают live writes или cutover. `[CHAT][DERIVED][CHECK]`
+Сами OD-11, OD-14, OD-28 и OD-29 не мешают проверенному control plane Spec `1.0` или reference runtime Spec `0.9`. Для этой delta блокирующих решений нет. OD-28 и OD-29 блокируют только будущий live migration/bootstrap block; они не разрешают live writes или cutover. `[CHAT][DERIVED][CHECK]`

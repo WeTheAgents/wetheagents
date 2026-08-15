@@ -1,12 +1,16 @@
 # WEA vNext: Domain/Access verification 1.0
 
-Decision: `Not ready`.
+Decision: `Domain/Access implementation verified — independent PR review pending`.
 
-The local extraction and inactive control-plane implementation pass their
-available checks. Required external evidence is missing because the configured
-GitHub identities cannot create `WeTheAgents/circle-1`. S-11A and S-11B remain
-non-effective. No live registry manifest, scenario promotion, PR, review, or
-merge is claimed.
+The external Domain, immutable WEA manifest, and inactive Access control plane
+are implemented and pass their focused evidence. S-11A and S-11B are current;
+S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
+
+`BDD alignment: 100%`.
+
+Статус свежих команд: `Complete`.
+
+Статус независимой проверки: `Pending`.
 
 ## Artifact versions
 
@@ -25,19 +29,18 @@ merge is claimed.
 - Protected boundaries: no successor reference runtime, no edit to published
   executor/ruleset bytes, no live writer, no ledger change, no early revoke,
   and no S-13C financial correction in this delivery.
-- Required authority: the operator approved code and repository publication.
-  GitHub organization repository-create permission remains externally owned.
-- Unresolved product or design decisions: none. The permission/evidence gate is
-  operational, not a design ambiguity.
+- Required authority: the operator approved code and repository publication;
+  the public repository and exact revision are observable.
+- Unresolved product or design decisions: none.
 
 ## Scenario coverage
 
 | Required behavior or scenario | Evidence | Result |
 | --- | --- | --- |
-| Real external Circle-1 Domain | filtered local repository, package suite, static checks, installed CLI black-box scan | Local proof passes; public repository identity and remote revision are missing. |
-| Canonical immutable registry | `tests/vnext/test_domain_registry.py` | Fixture validation passes; live `domains/registry/v1.json` is intentionally absent. |
-| S-11A authority, lookup, fixed interval, global overlap, replay, no side effects | `tests/vnext/test_access.py` | Implementation evidence passes; scenario remains non-effective until the Domain manifest exists. |
-| S-11B exact boundary, expiry, replay, boundary replacement | `tests/vnext/test_access.py` | Implementation evidence passes; scenario remains non-effective until the Domain manifest exists. |
+| Real external Circle-1 Domain | public repository ID `R_kgDOT4-F-Q`, revision `36a71440840351aa462e61a8ad5955881f55ecb0`, package suite, static checks, GitHub CI, installed CLI black-box scan | PASS. |
+| Canonical immutable registry | `domains/registry/v1.json`; `tests/vnext/test_domain_registry.py` | PASS; exact canonical bytes bind the public ID, locator, and revision without network lookup. |
+| S-11A authority, lookup, fixed interval, global overlap, replay, no side effects | `tests/vnext/test_access.py` | PASS; current control-plane scenario. |
+| S-11B exact boundary, expiry, replay, boundary replacement | `tests/vnext/test_access.py` | PASS; current control-plane scenario. |
 | Historical runtime isolation | runtime-boundary test, protected path diff, full vNext suite | PASS; ruleset/executor/ledger Domain paths have no diff. |
 | S-13C isolation | file/diff inspection | PASS; no correction module, test, state, or ledger write was added. |
 
@@ -45,29 +48,29 @@ merge is claimed.
 
 | Required task | Evidence or blocker | Result |
 | --- | --- | --- |
-| External extraction | local commit `c538fba593d9aae06c3f60b9721b821118d8dafb`; 215 tests and black-box scan | Complete locally; remote publication blocked. |
-| Public Domain identity | two GitHub create attempts returned permission errors | BLOCKED. |
-| Registry validator | focused tests, Ruff, Pyright | Complete for deterministic fixtures. |
-| Live registry manifest | requires public permanent repository ID and SHA | BLOCKED; placeholder prohibited. |
-| Access implementation | focused tests and reconstructed-state invariants | Complete but inactive. |
-| BDD promotion | requires verified live manifest | Not started; registry correctly remains 67 current plus 3 accepted-future. |
-| Independent review and publication | requires complete candidate | Not run. |
+| External extraction | public commit `36a71440840351aa462e61a8ad5955881f55ecb0`; 215 tests, black-box scan, and GitHub CI run `31866669759` | Complete. |
+| Public Domain identity | permanent repository ID and public default-branch revision | Complete. |
+| Registry validator | focused tests, Ruff, Pyright | Complete. |
+| Live registry manifest | canonical `domains/registry/v1.json` | Complete. |
+| Access implementation | focused tests and reconstructed-state invariants | Complete and current as an inactive control plane. |
+| BDD promotion | scenario registry and focused contract tests | Complete: 69 current and one accepted-future. |
+| Independent review and publication | fresh candidate against `origin/main` | Pending. |
 
 ## Fresh commands
 
 | Command or check | Exit / result | Material evidence |
 | --- | --- | --- |
-| external `$env:CIRCLE1_WEA_ROOT=<WEA>; python -m pytest -q` | 0 | `215 passed, 9 skipped`; skips are explicit when the WEA root is not configured. |
+| external `$env:CIRCLE1_WEA_ROOT=<WEA>; python -m pytest -q` | 0 | `215 passed, 9 skipped`; the configured WEA integration group separately passes 6 tests. |
 | external `ruff check src tests`; `pyright src` | 0 | Ruff clean; 0 errors and 0 warnings. |
 | installed `circle1-score --root <WEA> --profile <WEA profile> ...` | 0 | Black-box checkpoint created with declared `3` and exercised `3`. |
+| external GitHub CI | 0 | Run `31866669759` passed package tests, Ruff, and Pyright at the pinned revision. |
 | `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q` | 0 | `20 passed`. |
-| focused scenario/runtime gate | 0 | `31 passed`. |
-| `python -m pytest tests/vnext -q` | 0 | `449 passed, 18 skipped`. |
-| `$env:PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4734 passed, 18 skipped, 11 xfailed`. |
+| focused Domain/Access/scenario/runtime gate | 0 | `32 passed`. |
+| `python -m pytest tests/vnext -q` | 0 | `450 passed, 18 skipped`. |
+| `$env:PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4735 passed, 18 skipped, 11 xfailed`. |
 | `ruff check src/wea_vnext tests/vnext ...`; `pyright src/wea_vnext` | 0 | Ruff clean; 0 errors and 0 warnings. |
 | invariant, ledger schema, doc sync | 0 | `19025 = 10000 + 9025`; schema and docs pass. |
 | `git diff --check`; protected-path diff | 0 | Whitespace clean; runtime, ruleset, and `ledger/domains.json` unchanged. |
-| `gh repo create WeTheAgents/circle-1 ...` with both configured identities | nonzero | Organization create permission unavailable; no repository was created. |
 
 The first full repository run omitted `PYTHONPATH`, so 19 subprocess tests
 could not import `wea_cli`. The exact affected group passed `42` tests after
@@ -78,7 +81,8 @@ then passed with the result above.
 
 - Intended WEA changes: accepted OLED records, boundary documentation, the
   control-plane module, focused tests, and the scenario-scope test correction.
-- Intended external changes: the locally committed Circle-1 extraction.
+- Intended external changes: the published Circle-1 extraction and public-CI
+  stabilization commit.
 - Unrelated work: none detected. The pre-existing handoff/proposal edits were
   part of this same approved task and were reconciled rather than discarded.
 - Generated noise: Python caches, pytest caches, editable-install metadata, and
@@ -87,8 +91,7 @@ then passed with the result above.
 ## Independent review
 
 - Trigger: serious durable change with an external repository contract.
-- Result: not run because required public identity and manifest evidence are
-  absent. A clean independent review remains mandatory before readiness.
+- Result: pending. A clean independent review remains mandatory before merge.
 
 ## Protected lean cut
 
@@ -100,18 +103,14 @@ then passed with the result above.
   placeholder manifest.
 - Rejected cuts: removing reconstruction-time hash, overlap, expiry, or
   idempotency validation would weaken the trust boundary.
-- Final cut pass: deferred until the public manifest completes the candidate.
+- Final cut pass: complete. The standard-library control plane and exact
+  manifest are the smallest boundary that preserves the accepted invariants.
 
 ## Evidence gaps and smallest next action
 
-Blocking gaps are the public Circle-1 repository, its permanent repository ID,
-its public default-branch SHA, the resulting canonical WEA manifest, BDD
-promotion, independent review, and publication.
-
-The smallest next action is for a `WeTheAgents` organization owner to create
-the empty public repository `WeTheAgents/circle-1` or grant create permission
-to the configured publisher. Execution can then push the prepared local
-`main`, read back the exact identity, and resume the remaining gates.
+The only remaining evidence gap is independent review, WEA PR checks, and
+merge. The smallest next action is to commit the narrow candidate, publish its
+PR, and repeat independent review until clean.
 
 ## Historical Spec 0.9 verification record
 

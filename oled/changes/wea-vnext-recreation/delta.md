@@ -20,15 +20,14 @@
 | --- | --- | --- |
 | external `WeTheAgents/circle-1` | ADD | public Domain owns portable Circle-1 history, package, docs, and tests |
 | `src/wea_vnext/domain_access.py` | ADD | inactive offline control-plane library outside executor closures |
-| `domains/registry/v1.json` | ADD AFTER EXTERNAL GATE | canonical immutable binding; no placeholder identity is allowed |
+| `domains/registry/v1.json` | ADD | canonical immutable binding to repository ID `R_kgDOT4-F-Q` and public revision `36a71440840351aa462e61a8ad5955881f55ecb0` |
 | `tests/vnext/test_domain_registry.py`, `test_access.py` | ADD | exact S-11A/S-11B evidence and negative-boundary evidence |
 | `tests/vnext/scenarios.py` | MODIFY AFTER EXTERNAL GATE | promote only S-11A/S-11B; retain S-13C accepted-future |
 | ledger, live Tide, CLI writers, GitHub permissions | NO CHANGE | no production write or activation |
 
-The extracted local Circle-1 commit and the focused control-plane code are
-verified. The live manifest and scenario promotion are blocked until an
-organization owner creates `WeTheAgents/circle-1` and the exact public identity
-can be read back.
+The external Circle-1 revision and the focused control-plane code are verified.
+The live manifest pins the exact public identity. S-11A and S-11B are current
+control-plane scenarios; S-13C remains accepted-future.
 
 ## Historical delta 0.9: full Plan execution
 

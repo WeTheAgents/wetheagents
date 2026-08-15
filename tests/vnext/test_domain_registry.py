@@ -17,6 +17,7 @@ from wea_vnext.domain_access import (
 REPOSITORY_ID = "R_kgDOPublicCircle1"
 REVISION = "1" * 40
 LOCATOR = "https://github.com/WeTheAgents/circle-1"
+LIVE_REGISTRY = Path("domains/registry/v1.json")
 
 
 def _registry_bytes() -> bytes:
@@ -45,6 +46,19 @@ def test_s_11a_loads_one_canonical_immutable_domain_record(tmp_path: Path) -> No
     assert registry.records[0].revision == REVISION
     assert len(registry.records[0].record_hash) == 64
     assert len(registry.registry_hash) == 64
+
+
+def test_s_11a_live_registry_pins_the_public_circle1_revision() -> None:
+    registry = load_domain_registry(LIVE_REGISTRY)
+
+    assert serialize_domain_registry(registry) == LIVE_REGISTRY.read_bytes()
+    assert len(registry.records) == 1
+    assert registry.records[0].domain_id == "circle-1"
+    assert registry.records[0].repository_id == "R_kgDOT4-F-Q"
+    assert registry.records[0].repository_locator == LOCATOR
+    assert registry.records[0].revision == (
+        "36a71440840351aa462e61a8ad5955881f55ecb0"
+    )
 
 
 def test_registry_rejects_noncanonical_or_ambiguous_json() -> None:

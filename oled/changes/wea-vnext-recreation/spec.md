@@ -2,7 +2,7 @@
 
 Статус: оператор одобрил Spec `1.0` как текущий контракт реализации. Он не действует до переключения с WEA v1. Источники определены в `outcome.md`.
 
-Кандидат `1.0` сохраняет реализованные 67 сценариев Spec `0.9`. Он добавляет внешний Domain registry и Access без новой узкой runtime closure. Financial correction остаётся отдельным accepted-future сценарием. `[CHAT][CHECK]`
+Кандидат `1.0` сохраняет реализованные 67 сценариев Spec `0.9` и добавляет два реализованных control-plane сценария Domain/Access без новой узкой runtime closure. Financial correction остаётся единственным accepted-future сценарием. `[CHAT][CHECK]`
 
 Каждый раздел объясняет смысл правила. BDD-сценарии закрепляют развилки, где похожие действия дают разный результат.
 
@@ -21,7 +21,7 @@
 - Реализует `outcome 1.0`.
 - Полномочие: решения оператора в этом чате `[CHAT]`.
 - Область: внутренний WEA vNext после отдельного переключения.
-- Current target: 69 scenarios after implementation. The 67 Spec `0.9` scenarios remain unchanged. `S-13C` remains accepted-future and non-effective.
+- Current implementation: 69 scenarios. The 67 Spec `0.9` scenarios remain unchanged. `S-11A` and `S-11B` are current control-plane scenarios. `S-13C` remains accepted-future and non-effective.
 
 Предыдущие кандидаты перечислены в `outcome.md` и не являются отдельными действующими версиями.
 
@@ -31,7 +31,7 @@ This delta has priority over conflicting Domain and Access text in Spec `0.9` an
 
 The 67 current Spec `0.9` scenarios remain in force by reference. Their ruleset `0.8` and executor `v0_8_0` stay unchanged.
 
-`S-11A` and `S-11B` become current only after their exact integration evidence passes. `S-13C` remains accepted-future in this delivery.
+`S-11A` and `S-11B` are current because their exact external binding and integration evidence pass. `S-13C` remains accepted-future in this delivery.
 
 The normative BDD uses pragmatic Simplified Technical English. Product nouns and identifiers keep their exact spelling.
 
@@ -118,15 +118,15 @@ The money invariant MUST pass before and after the correction. Replay MUST NOT a
 - **THEN:** A missing confirmation, mismatched hash, unknown ledger ID, or failed invariant creates no ledger row.
 - **EVIDENCE:** A separate delivery must add `tests/vnext/test_correction.py` before `S-13C` becomes current.
 
-## Stale dependents after Spec 1.0
+## Reconciled dependents after Spec 1.0
 
-| Artifact | Current binding | Required reconciliation |
+| Artifact | Current binding | Reconciliation result |
 | --- | --- | --- |
-| `design.md`, `schema.md`, `delta.md`, `migration.md` | Spec `0.9` | Replace the narrow runtime proposal with the external Domain and control-plane design. |
-| `tasks.md` | Spec `0.9` | Create separate Domain migration, Access, and financial-correction lanes. |
-| `tests/vnext/scenarios.py` | 67 current and 3 accepted-future | Move only `S-11A` and `S-11B` after their evidence exists. Keep `S-13C` accepted-future. |
+| `design.md`, `schema.md`, `delta.md`, `migration.md` | Spec `1.0` | External Domain and control-plane records are current; the narrow runtime proposal is rejected. |
+| `tasks.md` | Spec `1.0` | Domain/Access delivery is complete; financial correction remains a separate lane. |
+| `tests/vnext/scenarios.py` | 69 current and 1 accepted-future | S-11A/S-11B are current control-plane scenarios. S-13C remains accepted-future. |
 | Runtime `0.8 / v0_8_0` | 67 current Spec `0.9` scenarios | Preserve every byte. Do not create a successor runtime for this change. |
-| `verification.md` and review artifact | Spec `0.9` | Refresh after Domain migration and Access evidence pass. |
+| `verification.md` and review artifact | Spec `1.0` | Report the public binding, 69/1 registry, full checks, and independent review state. |
 
 ## Scenario evidence map Spec 1.0
 
