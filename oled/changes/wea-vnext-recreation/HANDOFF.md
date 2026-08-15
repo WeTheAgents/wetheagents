@@ -1,6 +1,6 @@
-# Agent0 handoff: Domain/Access review pending
+# Agent0 handoff: Domain/Access review-clean
 
-Status: `implementation verified / independent PR review pending`.
+Status: `implementation verified / independent PR review clean`.
 
 The operator accepted Outcome/Spec `1.0` and design `1.1` on 2026-08-15. The
 operator explicitly rejected a narrow successor reference runtime. S-13C
@@ -60,16 +60,17 @@ financial correction remains a separate future change. WEA vNext remains
 
 ## Remaining gate
 
-There is no product, design, or identity blocker. PR `#942` is open. Review
-passes 2–4 found seven fail-closed contract defects. Pass 4 required one active
-verified authority binding and delayed expiry evaluation. Focused regressions
-now prove both boundaries. The remaining gates are final independent review, PR
-checks, and merge. Do not add S-13C, a successor runtime, live Tide, ledger
-writes, bootstrap, migration, or GitHub permission operations to this PR.
+There is no product, design, identity, or review blocker. PR `#942` is open.
+Review passes 2–4 found seven fail-closed contract defects. Pass 4 required one
+active verified authority binding and delayed expiry evaluation. Focused
+regressions prove both boundaries. Pass 5 found no actionable defect after it
+reran focused tests, the full vNext suite, Ruff, and Pyright. The remaining
+gates are PR checks and merge. Do not add S-13C, a successor runtime, live Tide,
+ledger writes, bootstrap, migration, or GitHub permission operations to this PR.
 
 ## Exact resume sequence
 
-1. Publish the pass-4 fixes and repeat independent review on the exact branch.
+1. Publish this review record and verify the exact documentation commit.
 2. Mark PR `#942` ready and merge after CI passes.
 3. Start S-13C as a separate OLED change and PR only after this PR merges.
 

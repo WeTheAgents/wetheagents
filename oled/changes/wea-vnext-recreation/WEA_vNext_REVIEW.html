@@ -857,17 +857,17 @@
 
     <main id="top">
       <header class="hero">
-        <p class="hero-kicker">Spec 1.0 · Domain/Access verified</p>
+        <p class="hero-kicker">Spec 1.0 · independent review clean</p>
         <h1>WEA vNext</h1>
-        <p class="hero-lead">69 текущих BDD-сценариев включают 67 неизменных runtime-сценариев и два Domain/Access control-plane сценария. S-13C остаётся accepted-future. Пакет ожидает независимую проверку WEA PR; live Tide, ledger, bootstrap и GitHub permission writers не подключены.</p>
+        <p class="hero-lead">69 текущих BDD-сценариев включают 67 неизменных runtime-сценариев и два Domain/Access control-plane сценария. S-13C остаётся accepted-future. Независимый review не нашёл actionable defects. Live-системы не подключены.</p>
         <div class="hero-status" aria-label="Статус пакета">
-          <span class="status-pill">Spec 1.0 verified · PR review pending · Not live</span>
+          <span class="status-pill">Spec 1.0 verified · PR review clean · Not live</span>
           <span class="status-pill">Расхождений BDD: 0</span>
           <span class="status-pill">Отложено: 4</span>
           <span class="status-pill">Кандидат 1.0</span>
         </div>
         <div class="hero-actions">
-          <a class="primary" href="#doc-handoff">Открыть review handoff</a>
+          <a class="primary" href="#doc-handoff">Открыть review-clean handoff</a>
           <a class="secondary" href="#doc-outcome">Читать основу системы</a>
         </div>
       </header>
@@ -876,11 +876,11 @@
     <section class="document-section" id="doc-handoff" data-source="HANDOFF.md">
       <header class="document-header">
         <p class="eyebrow">Требует внимания</p>
-        <h2>Agent0 handoff: Domain/Access review pending</h2>
+        <h2>Agent0 handoff: Domain/Access review-clean</h2>
         <p class="source-file">Исходный Markdown-файл: <code>HANDOFF.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Status: <code>implementation verified / independent PR review pending</code>.</p>
+<p>Status: <code>implementation verified / independent PR review clean</code>.</p>
 <p>The operator accepted Outcome/Spec <code>1.0</code> and design <code>1.1</code> on 2026-08-15. The
 operator explicitly rejected a narrow successor reference runtime. S-13C
 financial correction remains a separate future change. WEA vNext remains
@@ -937,15 +937,16 @@ accepted-future scenario. <code>BDD alignment: 100%</code>.</li>
 runtime/ledger diff, and <code>git diff --check</code>: pass.</li>
 </ul>
 <h3 id="handoff-remaining-gate">Remaining gate</h3>
-<p>There is no product, design, or identity blocker. PR <code>#942</code> is open. Review
-passes 2–4 found seven fail-closed contract defects. Pass 4 required one active
-verified authority binding and delayed expiry evaluation. Focused regressions
-now prove both boundaries. The remaining gates are final independent review, PR
-checks, and merge. Do not add S-13C, a successor runtime, live Tide, ledger
-writes, bootstrap, migration, or GitHub permission operations to this PR.</p>
+<p>There is no product, design, identity, or review blocker. PR <code>#942</code> is open.
+Review passes 2–4 found seven fail-closed contract defects. Pass 4 required one
+active verified authority binding and delayed expiry evaluation. Focused
+regressions prove both boundaries. Pass 5 found no actionable defect after it
+reran focused tests, the full vNext suite, Ruff, and Pyright. The remaining
+gates are PR checks and merge. Do not add S-13C, a successor runtime, live Tide,
+ledger writes, bootstrap, migration, or GitHub permission operations to this PR.</p>
 <h3 id="handoff-exact-resume-sequence">Exact resume sequence</h3>
 <ol>
-<li>Publish the pass-4 fixes and repeat independent review on the exact branch.</li>
+<li>Publish this review record and verify the exact documentation commit.</li>
 <li>Mark PR <code>#942</code> ready and merge after CI passes.</li>
 <li>Start S-13C as a separate OLED change and PR only after this PR merges.</li>
 </ol>
@@ -969,7 +970,7 @@ enabled.</p>
             Рекомендуемый маршрут: handoff → план реализации → техническое устройство →
             утверждённое поведение по необходимости → приложения.
           </p>
-          <p>Domain/Access решения приняты и локально доказаны. Остаётся независимая проверка опубликованного WEA PR.</p>
+          <p>Domain/Access решения приняты и независимо проверены. S-13C и live-активация остаются отдельными будущими изменениями.</p>
         </div>
         <div>
           <p class="eyebrow">Легенда источников</p>
@@ -1052,7 +1053,7 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
         <p class="source-file">Исходный Markdown-файл: <code>tasks.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Статус <code>tasks 1.3</code>: <strong>implemented / independent review pending</strong>. Outcome/Spec <code>1.0</code> and design <code>1.1</code> authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Final review remains pending. Tasks <code>1.2</code> and its verified Spec <code>0.9</code> implementation remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
+<p>Статус <code>tasks 1.3</code>: <strong>implemented / review clean</strong>. Outcome/Spec <code>1.0</code> and design <code>1.1</code> authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Pass 5 found no actionable defect. Tasks <code>1.2</code> and its verified Spec <code>0.9</code> implementation remain immutable historical evidence. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-derived" href="#evidence-derived" title="Техническое следствие одобренных правил">[DERIVED]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a><a class="source-tag source-review" href="#evidence-review" title="Вывод независимого рецензента этого пакета">[REVIEW]</a></span></p>
 <h3 id="tasks-current-delivery-spec-1-0-domain-and-access">Current delivery: Spec 1.0 Domain and Access</h3>
 <p><strong>Outcome:</strong> publish Circle-1 as a real external Domain, bind its exact revision in an immutable WEA registry, and prove seven-day internal Access without live writes.</p>
 <p><strong>Authority:</strong> Outcome/Spec <code>1.0</code>; design <code>1.1</code>; operator approval on 2026-08-15. No behavior or design decision remains open.</p>
@@ -1168,7 +1169,7 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
 <p><strong>Covers:</strong> BDD alignment and historical isolation for Spec <code>1.0</code>.</p>
 </li>
 <li>
-<p><strong>Status:</strong> implementation and review fixes complete; final review pending.</p>
+<p><strong>Status:</strong> implementation complete; independent review clean.</p>
 </li>
 <li>
 <p><strong>Depends on:</strong> Groups 1–3.</p>
@@ -1202,7 +1203,7 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
 <p><strong>Covers:</strong> repository readiness for the Domain/Access delivery.</p>
 </li>
 <li>
-<p><strong>Status:</strong> review fixes verified; final independent review, PR checks, and merge pending.</p>
+<p><strong>Status:</strong> independent review clean; PR checks and merge pending.</p>
 </li>
 <li>
 <p><strong>Depends on:</strong> Groups 1–4.</p>
@@ -1229,7 +1230,7 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
 <p>[x] Run <code>python oled/changes/wea-vnext-recreation/build_review_html.py</code> and <code>git diff --check</code>.</p>
 </li>
 <li>
-<p>[ ] Run a fresh independent review against <code>origin/main</code>. Fix each actionable finding and repeat until clean.</p>
+<p>[x] Run a fresh independent review against <code>origin/main</code>. Fix each actionable finding and repeat until clean.</p>
 </li>
 <li>
 <p>[ ] Record actual results only in <code>verification.md</code>, commit intentional files, push through the authorized remote, open the PR, and merge only after checks and review are clean.</p>
@@ -1297,7 +1298,7 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
 <td>Repository integration</td>
 <td>repository-required checks</td>
 <td>Group 5 commands</td>
-<td>PASS: 4742 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, and diff clean; final review pending</td>
+<td>PASS: 4742 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, diff, and independent review clean</td>
 </tr>
 </tbody>
 </table></div>
@@ -1336,10 +1337,10 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
 </tr>
 <tr>
 <td>BDD/docs</td>
-<td>implementation complete</td>
-<td>final review</td>
+<td>implementation and review complete</td>
+<td>none</td>
 <td>preserve generated review artifact and exact 69/1 scope</td>
-<td>final review pending</td>
+<td>none</td>
 </tr>
 <tr>
 <td>Financial correction</td>
@@ -1350,10 +1351,10 @@ only as a separate OLED change after the Domain/Access PR merges.</p>
 </tr>
 <tr>
 <td>Verification/publication</td>
-<td>review fixes verified</td>
-<td>final review and PR checks</td>
-<td>publish fixes, repeat review, and merge PR <code>#942</code></td>
-<td>final review and merge pending</td>
+<td>independent review clean</td>
+<td>PR checks</td>
+<td>publish the review record and merge PR <code>#942</code></td>
+<td>merge pending</td>
 </tr>
 </tbody>
 </table></div>
@@ -6723,19 +6724,19 @@ control-plane scenarios; S-13C remains accepted-future.</p>
         <p class="source-file">Исходный Markdown-файл: <code>verification.md</code></p>
       </header>
       <div class="markdown-body">
-<p>Decision: <code>Domain/Access implementation verified — independent PR review pending</code>.</p>
+<p>Decision: <code>Domain/Access implementation verified — independent PR review clean</code>.</p>
 <p>The external Domain, immutable WEA manifest, and inactive Access control plane
 are implemented and pass their focused evidence. S-11A and S-11B are current;
 S-13C is the only accepted-future scenario. WEA vNext remains <code>Not live</code>.</p>
 <p><code>BDD alignment: 100%</code>.</p>
 <p>Статус свежих команд: <code>Complete</code>.</p>
-<p>Статус независимой проверки: <code>Pending</code>.</p>
+<p>Статус независимой проверки: <code>CLEAN</code>.</p>
 <h3 id="verification-artifact-versions">Artifact versions</h3>
 <ul>
 <li>Outcome/Spec: <code>1.0</code> accepted on 2026-08-15.</li>
 <li>Design: <code>1.1</code> accepted.</li>
 <li>Schema: <code>1.1</code> current Domain/Access delta; schema <code>1.0</code> preserved.</li>
-<li>Tasks: <code>1.3</code> in progress.</li>
+<li>Tasks: <code>1.3</code> implemented and review clean.</li>
 <li>Historical runtime: ruleset/interface <code>0.8</code>, executor <code>v0_8_0</code>, unchanged.</li>
 </ul>
 <h3 id="verification-contract-and-authority">Contract and authority</h3>
@@ -6836,7 +6837,7 @@ the public repository and exact revision are observable.</li>
 <tr>
 <td>Independent review and publication</td>
 <td>PR <code>#942</code>; <code>codex exec review --base origin/main</code></td>
-<td>Pass 1 clean; passes 2–4 found seven fail-closed contract defects; all fixes pass focused suites; final review pending.</td>
+<td>Pass 1 clean; passes 2–4 found seven fail-closed contract defects; pass 5 found no actionable defect. Publication checks and merge remain.</td>
 </tr>
 </tbody>
 </table></div>
@@ -6932,8 +6933,9 @@ and registry subclasses could skip constructor validation. Exact-type checks,
 reconstruction, and focused regressions close both findings. Pass 4 found an
 unverified source claim and rejected delayed expiry evaluation. Access now
 requires an active verified authority record and stores its binding snapshot.
-Late evaluation records the expiry at the canonical <code>ends_at</code>. Final review of
-the fixes is pending.</li>
+Late evaluation records the expiry at the canonical <code>ends_at</code>. Pass 5 reran
+focused tests, the full vNext suite, Ruff, and Pyright and found no actionable
+defect.</li>
 </ul>
 <h3 id="verification-protected-lean-cut">Protected lean cut</h3>
 <ul>
@@ -6949,9 +6951,9 @@ idempotency validation would weaken the trust boundary.</li>
 manifest are the smallest boundary that preserves the accepted invariants.</li>
 </ul>
 <h3 id="verification-evidence-gaps-and-smallest-next-action">Evidence gaps and smallest next action</h3>
-<p>The remaining evidence gaps are final independent review, WEA PR checks, and
-merge. The smallest next action is to publish the fixes and repeat review on
-the exact branch.</p>
+<p>The remaining evidence gaps are WEA PR checks and merge. The smallest next
+action is to publish this review record, verify the exact documentation commit,
+and merge after CI passes.</p>
 <h3 id="verification-historical-spec-0-9-verification-record">Historical Spec 0.9 verification record</h3>
 <p>Outcome/Spec <code>0.9</code>, design/schema <code>1.0</code>, tasks <code>1.2</code>, ruleset/interface <code>0.8</code>, executor <code>0.8.0</code>, registry и contract tests согласованы. <code>BDD alignment: 100%</code>. Reference runtime доказан локально и остаётся <code>Not live</code>. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. <span aria-label="Источники" class="source-tags"><a class="source-tag source-chat" href="#evidence-chat" title="Предметно обсуждено и одобрено в этом чате">[CHAT]</a><a class="source-tag source-check" href="#evidence-check" title="Подтверждено свежей командой или проверкой">[CHECK]</a></span></p>
 <p>Decision: <code>Implementation verified — independent PR review clean</code>.</p>
@@ -7384,13 +7386,13 @@ the exact branch.</p>
       <footer class="manifest">
         <strong>Состав исходных файлов</strong>
         <p>
-          SHA-256 набора: <code>9893048d08ae378cb5a5ba11a1c8f18fea86bdefe46f383321e6971e966f66fa</code>. HTML автономен; внешние шрифты,
+          SHA-256 набора: <code>58adef80bd507100577418040600e126939693aec0c75695256cb474b035279d</code>. HTML автономен; внешние шрифты,
           скрипты и сетевые запросы не используются.
         </p>
         <details>
           <summary>Хеши Markdown и сборщика</summary>
           <div class="table-wrap">
-            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>879cba217e9ccb2cbde587560a34596b5892db168bb8655adb12ef8e67759243</code></td></tr><tr><td><code>domain-access-proposal.md</code></td><td><code>53984a32d2429dfd24d66fdf59f21b7dc3bfc34a17001a614a8ebdbfddcda14e</code></td></tr><tr><td><code>tasks.md</code></td><td><code>72be5274c304fe3116341ff4a1bec734614da7ebe1e38d72051070353e6a7b02</code></td></tr><tr><td><code>design.md</code></td><td><code>f0f7ae927c373fe3700b1403f3bdf8182bcbf67ad99f5b9143d5b626b14b6fc4</code></td></tr><tr><td><code>outcome.md</code></td><td><code>91c9fe45cafab7059440cc610506139bfb899b2b4d12206376f1baa38dfad869</code></td></tr><tr><td><code>spec.md</code></td><td><code>c74539aee520eee905c9f99795fce8efca5058154477c63a6fe10b74d246d7fa</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9f7843281839dc4b7ad745290aa3931b09793f2cdff18e8fb75b1b66578cc91f</code></td></tr><tr><td><code>schema.md</code></td><td><code>5ddccb33b49f9bb182235ec2f7687c544ec3a193ac8b0611008b93ead5c345d7</code></td></tr><tr><td><code>migration.md</code></td><td><code>5d417a2e4b559ace8409dde5cbd5f13d0f3340b00cdf6cf7ca7775ec942bc6e1</code></td></tr><tr><td><code>delta.md</code></td><td><code>b3b2a0eb5b948ee7160e1ce6677a0bbf5ec21d485cadeab45bfe28db6cb553ae</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>0abed71cf42ae0cb41a78ddca1fe0e783fd6acc4e99936e57751c2792e2d7da8</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>52221858b97bc29af86a164603aca6338173b7a913ad078c26254083a5cc75d7</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>a2b1a372514ac2ae17ab7d5f0caee722c6fb1059c72791095c01f796520011fc</code></td></tr></tbody></table>
+            <table><thead><tr><th>Файл</th><th>SHA-256</th></tr></thead><tbody><tr><td><code>HANDOFF.md</code></td><td><code>a349c0ce27552a9ffd04de6a3d0e28195afa09a168ac471cd5f4c77f056ff0ec</code></td></tr><tr><td><code>domain-access-proposal.md</code></td><td><code>53984a32d2429dfd24d66fdf59f21b7dc3bfc34a17001a614a8ebdbfddcda14e</code></td></tr><tr><td><code>tasks.md</code></td><td><code>e9b2dced4fc9e4269071a4218266518c60df57d71a09d0ed8c23b45eecc35ac0</code></td></tr><tr><td><code>design.md</code></td><td><code>f0f7ae927c373fe3700b1403f3bdf8182bcbf67ad99f5b9143d5b626b14b6fc4</code></td></tr><tr><td><code>outcome.md</code></td><td><code>91c9fe45cafab7059440cc610506139bfb899b2b4d12206376f1baa38dfad869</code></td></tr><tr><td><code>spec.md</code></td><td><code>c74539aee520eee905c9f99795fce8efca5058154477c63a6fe10b74d246d7fa</code></td></tr><tr><td><code>bdd-contract-rewrite.md</code></td><td><code>9f7843281839dc4b7ad745290aa3931b09793f2cdff18e8fb75b1b66578cc91f</code></td></tr><tr><td><code>schema.md</code></td><td><code>5ddccb33b49f9bb182235ec2f7687c544ec3a193ac8b0611008b93ead5c345d7</code></td></tr><tr><td><code>migration.md</code></td><td><code>5d417a2e4b559ace8409dde5cbd5f13d0f3340b00cdf6cf7ca7775ec942bc6e1</code></td></tr><tr><td><code>delta.md</code></td><td><code>b3b2a0eb5b948ee7160e1ce6677a0bbf5ec21d485cadeab45bfe28db6cb553ae</code></td></tr><tr><td><code>open-decisions.md</code></td><td><code>0abed71cf42ae0cb41a78ddca1fe0e783fd6acc4e99936e57751c2792e2d7da8</code></td></tr><tr><td><code>evidence.md</code></td><td><code>49426ce4fa69188b21f14b10351fa811da2647a46b75759ddde4af8123a2a4c0</code></td></tr><tr><td><code>verification.md</code></td><td><code>ab7c490ca7a7239facdc9299b8e7e4e1183210cc02879a488fb9c117097b1e21</code></td></tr><tr><td><code>sources/WEA_RESTART_HANDOFF_2026-07-14.md</code></td><td><code>4ecec24e8cae4f915825e1536a346e4c6462fac94a79ee5659c7d96b75322f14</code></td></tr><tr><td><code>build_review_html.py</code></td><td><code>a2b1a372514ac2ae17ab7d5f0caee722c6fb1059c72791095c01f796520011fc</code></td></tr></tbody></table>
           </div>
         </details>
       </footer>
@@ -7512,7 +7514,7 @@ the exact branch.</p>
           "",
           "- Версия кандидата: 1.0",
           "- Основа: 882a063",
-          "- Хеш исходных файлов: 9893048d08ae378cb5a5ba11a1c8f18fea86bdefe46f383321e6971e966f66fa",
+          "- Хеш исходных файлов: 58adef80bd507100577418040600e126939693aec0c75695256cb474b035279d",
           ""
         ];
         cards

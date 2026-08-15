@@ -1,6 +1,6 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.3`: **implemented / independent review pending**. Outcome/Spec `1.0` and design `1.1` authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Final review remains pending. Tasks `1.2` and its verified Spec `0.9` implementation remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.3`: **implemented / review clean**. Outcome/Spec `1.0` and design `1.1` authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Pass 5 found no actionable defect. Tasks `1.2` and its verified Spec `0.9` implementation remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Current delivery: Spec 1.0 Domain and Access
 
@@ -62,7 +62,7 @@
 ### Group 4 — contract and repository reconciliation
 
 - **Covers:** BDD alignment and historical isolation for Spec `1.0`.
-- **Status:** implementation and review fixes complete; final review pending.
+- **Status:** implementation complete; independent review clean.
 - **Depends on:** Groups 1–3.
 - **Known areas:** `tests/vnext/scenarios.py`, `tests/vnext/test_scenario_registry.py`, `schema.md`, `delta.md`, `migration.md`, `domain-access-proposal.md`, `HANDOFF.md`, `build_review_html.py`, documentation maps.
 
@@ -78,7 +78,7 @@
 ### Group 5 — verification, review, and publication
 
 - **Covers:** repository readiness for the Domain/Access delivery.
-- **Status:** review fixes verified; final independent review, PR checks, and merge pending.
+- **Status:** independent review clean; PR checks and merge pending.
 - **Depends on:** Groups 1–4.
 
 - [x] Run `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q`.
@@ -88,7 +88,7 @@
 - [x] Run `pyright src/wea_vnext`.
 - [x] Run `python scripts/check_invariant.py`, `python scripts/check_ledger_schema.py`, and `python scripts/check_doc_sync.py`.
 - [x] Run `python oled/changes/wea-vnext-recreation/build_review_html.py` and `git diff --check`.
-- [ ] Run a fresh independent review against `origin/main`. Fix each actionable finding and repeat until clean.
+- [x] Run a fresh independent review against `origin/main`. Fix each actionable finding and repeat until clean.
 - [ ] Record actual results only in `verification.md`, commit intentional files, push through the authorized remote, open the PR, and merge only after checks and review are clean.
 
 ### Deferred independent lane — S-13C
@@ -115,7 +115,7 @@ This delivery must not add `test_correction.py`, correction code, correction sta
 | No external permission or early revoke | negative Access API/state assertions | `python -m pytest tests/vnext/test_access.py -q` | focused assertions pass |
 | 69 current and one accepted-future | scenario registry tests | `python -m pytest tests/vnext/test_scenario_registry.py -q` | PASS in the focused 32-test gate |
 | Historical runtime isolation | runtime boundary, packaging, and manifest tests | full `tests/vnext` suite | PASS: 457 passed, 18 skipped; protected diff clean |
-| Repository integration | repository-required checks | Group 5 commands | PASS: 4742 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, and diff clean; final review pending |
+| Repository integration | repository-required checks | Group 5 commands | PASS: 4742 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, diff, and independent review clean |
 
 ## Spec 1.0 resume handoff
 
@@ -124,9 +124,9 @@ This delivery must not add `test_correction.py`, correction code, correction sta
 | Circle-1 repository | complete | none | preserve the public revision | none |
 | Domain registry | complete | none | preserve canonical `v1.json`; later changes create a new version | none |
 | Access | complete | none | preserve focused evidence and no-live boundary | none |
-| BDD/docs | implementation complete | final review | preserve generated review artifact and exact 69/1 scope | final review pending |
+| BDD/docs | implementation and review complete | none | preserve generated review artifact and exact 69/1 scope | none |
 | Financial correction | deferred | Domain/Access merge and separate write-boundary design | keep S-13C accepted-future | `test_correction.py` intentionally absent |
-| Verification/publication | review fixes verified | final review and PR checks | publish fixes, repeat review, and merge PR `#942` | final review and merge pending |
+| Verification/publication | independent review clean | PR checks | publish the review record and merge PR `#942` | merge pending |
 
 ## Правила исполнения
 

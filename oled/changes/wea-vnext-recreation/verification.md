@@ -1,6 +1,6 @@
 # WEA vNext: Domain/Access verification 1.0
 
-Decision: `Domain/Access implementation verified — independent PR review pending`.
+Decision: `Domain/Access implementation verified — independent PR review clean`.
 
 The external Domain, immutable WEA manifest, and inactive Access control plane
 are implemented and pass their focused evidence. S-11A and S-11B are current;
@@ -10,14 +10,14 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `Pending`.
+Статус независимой проверки: `CLEAN`.
 
 ## Artifact versions
 
 - Outcome/Spec: `1.0` accepted on 2026-08-15.
 - Design: `1.1` accepted.
 - Schema: `1.1` current Domain/Access delta; schema `1.0` preserved.
-- Tasks: `1.3` in progress.
+- Tasks: `1.3` implemented and review clean.
 - Historical runtime: ruleset/interface `0.8`, executor `v0_8_0`, unchanged.
 
 ## Contract and authority
@@ -54,7 +54,7 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 | Live registry manifest | canonical `domains/registry/v1.json` | Complete. |
 | Access implementation | focused tests and reconstructed-state invariants | Complete and current as an inactive control plane. |
 | BDD promotion | scenario registry and focused contract tests | Complete: 69 current and one accepted-future. |
-| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Pass 1 clean; passes 2–4 found seven fail-closed contract defects; all fixes pass focused suites; final review pending. |
+| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Pass 1 clean; passes 2–4 found seven fail-closed contract defects; pass 5 found no actionable defect. Publication checks and merge remain. |
 
 ## Fresh commands
 
@@ -98,8 +98,9 @@ then passed with the result above.
   reconstruction, and focused regressions close both findings. Pass 4 found an
   unverified source claim and rejected delayed expiry evaluation. Access now
   requires an active verified authority record and stores its binding snapshot.
-  Late evaluation records the expiry at the canonical `ends_at`. Final review of
-  the fixes is pending.
+  Late evaluation records the expiry at the canonical `ends_at`. Pass 5 reran
+  focused tests, the full vNext suite, Ruff, and Pyright and found no actionable
+  defect.
 
 ## Protected lean cut
 
@@ -116,9 +117,9 @@ then passed with the result above.
 
 ## Evidence gaps and smallest next action
 
-The remaining evidence gaps are final independent review, WEA PR checks, and
-merge. The smallest next action is to publish the fixes and repeat review on
-the exact branch.
+The remaining evidence gaps are WEA PR checks and merge. The smallest next
+action is to publish this review record, verify the exact documentation commit,
+and merge after CI passes.
 
 ## Historical Spec 0.9 verification record
 
