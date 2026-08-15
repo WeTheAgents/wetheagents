@@ -78,13 +78,16 @@ CONTROL_PLANE_SCENARIO_IDS = (
     "S-11B",
 )
 
+CORRECTION_SCENARIO_IDS = ("S-13C",)
+
 CURRENT_SCENARIO_IDS = (
     *COMPATIBLE_SCENARIO_IDS,
     *CHANGED_SCENARIO_IDS,
     *CONTROL_PLANE_SCENARIO_IDS,
+    *CORRECTION_SCENARIO_IDS,
 )
 SCENARIO_IDS = CURRENT_SCENARIO_IDS
-ACCEPTED_FUTURE_SCENARIO_IDS = ("S-13C",)
+ACCEPTED_FUTURE_SCENARIO_IDS: tuple[str, ...] = ()
 
 # These references may duplicate current IDs because the version prefix is part
 # of their identity. They are not implementation claims for the current ruleset.
@@ -106,9 +109,14 @@ def validate_registry() -> None:
             "expected 2 control-plane scenario IDs, "
             f"found {len(CONTROL_PLANE_SCENARIO_IDS)}"
         )
-    if len(CURRENT_SCENARIO_IDS) != 69:
+    if len(CORRECTION_SCENARIO_IDS) != 1:
         raise ValueError(
-            f"expected 69 current scenario IDs, found {len(CURRENT_SCENARIO_IDS)}"
+            "expected 1 correction scenario ID, "
+            f"found {len(CORRECTION_SCENARIO_IDS)}"
+        )
+    if len(CURRENT_SCENARIO_IDS) != 70:
+        raise ValueError(
+            f"expected 70 current scenario IDs, found {len(CURRENT_SCENARIO_IDS)}"
         )
     duplicates = sorted(
         {item for item in CURRENT_SCENARIO_IDS if CURRENT_SCENARIO_IDS.count(item) > 1}
@@ -117,7 +125,9 @@ def validate_registry() -> None:
         raise ValueError(f"duplicate current scenario IDs: {', '.join(duplicates)}")
     if CONTROL_PLANE_SCENARIO_IDS != ("S-11A", "S-11B"):
         raise ValueError("control-plane scenarios do not match the approved scope")
-    if ACCEPTED_FUTURE_SCENARIO_IDS != ("S-13C",):
+    if CORRECTION_SCENARIO_IDS != ("S-13C",):
+        raise ValueError("correction scenarios do not match the approved scope")
+    if ACCEPTED_FUTURE_SCENARIO_IDS != ():
         raise ValueError("accepted-future scenarios do not match the approved scope")
     if set(CURRENT_SCENARIO_IDS) & set(ACCEPTED_FUTURE_SCENARIO_IDS):
         raise ValueError("current and accepted-future scenario scopes overlap")

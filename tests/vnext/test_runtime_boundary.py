@@ -119,6 +119,32 @@ def test_pre_activation_entrypoint_surfaces_have_no_literal_vnext_reference() ->
     assert not Path("ledger/vnext").exists()
 
 
+def test_financial_correction_stays_outside_current_runtime_closures() -> None:
+    correction = Path("src/wea_vnext/financial_correction.py")
+    assert correction.exists()
+    protected_surfaces = (
+        Path("src/wea_vnext/__init__.py"),
+        Path("src/wea_vnext/engine.py"),
+        Path("src/wea_vnext/declarations.py"),
+        Path("src/wea_vnext/hello_world.py"),
+        Path("src/wea_vnext/identity.py"),
+        Path("src/wea_vnext/intake.py"),
+        Path("src/wea_vnext/migration.py"),
+        Path("src/wea_vnext/projection.py"),
+        Path("src/wea_vnext/resolution_plan.py"),
+        *Path("src/wea_vnext/executors").rglob("*.py"),
+        *Path("src/wea_vnext/executors").rglob("manifest.json"),
+    )
+    violations = {
+        str(path): "financial correction reference"
+        for path in protected_surfaces
+        if "financial_correction" in path.read_text(
+            encoding="utf-8", errors="ignore"
+        )
+    }
+    assert not violations
+
+
 def test_boundary_guard_runs_on_pull_requests() -> None:
     workflow = Path(".github/workflows/guard-vnext-boundary.yml").read_text(
         encoding="utf-8"
