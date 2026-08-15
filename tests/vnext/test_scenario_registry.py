@@ -8,6 +8,7 @@ from .scenarios import (
     CHANGED_SCENARIO_IDS,
     COMPATIBLE_SCENARIO_IDS,
     CONTROL_PLANE_SCENARIO_IDS,
+    CORRECTION_SCENARIO_IDS,
     CURRENT_SCENARIO_IDS,
     HISTORICAL_SCENARIO_REFS,
     SCENARIO_IDS,
@@ -15,6 +16,9 @@ from .scenarios import (
 )
 
 SPEC_PATH = Path("oled/changes/wea-vnext-recreation/spec.md")
+CORRECTION_SPEC_PATH = Path(
+    "oled/changes/wea-vnext-s13c-financial-correction/spec.md"
+)
 
 
 def _headings(level: int) -> tuple[str, ...]:
@@ -36,6 +40,7 @@ def test_scenario_registry_matches_effective_and_accepted_scopes_exactly() -> No
         for item in normative_headings
         if item not in ACCEPTED_FUTURE_SCENARIO_IDS
         and item not in CONTROL_PLANE_SCENARIO_IDS
+        and item not in CORRECTION_SCENARIO_IDS
     )
     control_plane_headings = tuple(
         item for item in normative_headings if item in CONTROL_PLANE_SCENARIO_IDS
@@ -46,25 +51,36 @@ def test_scenario_registry_matches_effective_and_accepted_scopes_exactly() -> No
         for item in historical_headings
         if item not in CHANGED_SCENARIO_IDS
         and item not in CONTROL_PLANE_SCENARIO_IDS
+        and item not in CORRECTION_SCENARIO_IDS
         and item not in ACCEPTED_FUTURE_SCENARIO_IDS
+    )
+    correction_source = CORRECTION_SPEC_PATH.read_text(encoding="utf-8")
+    correction_headings = tuple(
+        dict.fromkeys(
+            re.findall(r"^### (S-[0-9]+[A-Z]?)\.", correction_source, re.MULTILINE)
+        )
     )
 
     assert CHANGED_SCENARIO_IDS == changed_headings
     assert CONTROL_PLANE_SCENARIO_IDS == control_plane_headings
     assert COMPATIBLE_SCENARIO_IDS == compatible_headings
-    assert len(CURRENT_SCENARIO_IDS) == len(set(CURRENT_SCENARIO_IDS)) == 69
+    assert CORRECTION_SCENARIO_IDS == correction_headings
+    assert len(CURRENT_SCENARIO_IDS) == len(set(CURRENT_SCENARIO_IDS)) == 70
     assert set(CURRENT_SCENARIO_IDS) == (
         set(changed_headings)
         | set(control_plane_headings)
+        | set(correction_headings)
         | (
             set(historical_headings)
             - set(ACCEPTED_FUTURE_SCENARIO_IDS)
             - set(CONTROL_PLANE_SCENARIO_IDS)
+            - set(CORRECTION_SCENARIO_IDS)
         )
     )
     assert SCENARIO_IDS is CURRENT_SCENARIO_IDS
     assert CONTROL_PLANE_SCENARIO_IDS == ("S-11A", "S-11B")
-    assert ACCEPTED_FUTURE_SCENARIO_IDS == ("S-13C",)
+    assert CORRECTION_SCENARIO_IDS == ("S-13C",)
+    assert ACCEPTED_FUTURE_SCENARIO_IDS == ()
     assert HISTORICAL_SCENARIO_REFS == tuple(
         f"0.8:{item}" for item in CHANGED_SCENARIO_IDS
     )
