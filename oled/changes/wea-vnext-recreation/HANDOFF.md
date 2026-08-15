@@ -1,58 +1,85 @@
-# Agent0 handoff: Spec 0.9 review-clean
+# Agent0 handoff: Domain/Access review-clean
 
-The inactive WEA vNext reference runtime now implements Outcome/Spec `0.9`. Design/schema `1.0`, delta/migration `0.9`, tasks `1.2`, ruleset/interface `0.8`, executor `v0_8_0`, the exact BDD registry, and contract tests are reconciled. `BDD alignment: 100%`. WEA vNext remains `Not live`.
+Status: `implementation verified / independent PR review clean`.
 
-Status: `Implementation verified — independent PR review clean`.
+The operator accepted Outcome/Spec `1.0` and design `1.1` on 2026-08-15. The
+operator explicitly rejected a narrow successor reference runtime. S-13C
+financial correction remains a separate future change. WEA vNext remains
+`Not live`.
 
-## Repository boundary
+## Current workspace
 
-- Worktree: `D:\GitHub\wetheagents-codex-wea-vnext-resolution-plan-block4-2026-07-30`.
-- Branch: `codex/wea-vnext-resolution-plan-block4-2026-07-30`.
-- Reviewed target: tracked `origin/main` `599bd77`. The feature merge-base remains `252c6ca`. Later target commits change only BTC snapshots.
-- Ruleset `0.8` SHA-256: `2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
-- Executor `v0_8_0` manifest SHA-256: `2aed3e4fb21a31cfbb8ed544f1974c63aba8451c95e434f5a5f5dd16e1f52c53`.
-- Ruleset `0.7` and executor `v0_7_0` retain the historical Resolution Plan intake and activation behavior. Older `0.6.x` executors retain their versioned replay behavior.
+- WEA worktree:
+  `D:\GitHub\wetheagents-codex-wea-vnext-domain-access-2026-08-03`.
+- WEA branch: `codex/wea-vnext-domain-access-2026-08-03`.
+- WEA base: `origin/main` at `882a063` after a clean rebase.
+- External local repository: `D:\GitHub\circle-1`.
+- External branch: `main`.
+- External public repository: `https://github.com/WeTheAgents/circle-1`.
+- External permanent repository ID: `R_kgDOT4-F-Q`.
+- External verified revision:
+  `36a71440840351aa462e61a8ad5955881f55ecb0`.
 
-## Delivered behavior
+## Accepted boundary
 
-- Triage proposes a complete Resolution Plan and budget split. The author approves, requests revision, or declines. Exact schedules and the full bank are part of approval.
-- Each Plan stage chooses a depth (`Explore`, `Spec`, or `Implement`) and a mode (`Ranked`, `Flat PoD`, `Frontier`, or `Duel`) allowed by the exact matrix.
-- Ranked, Flat PoD, Frontier, and Duel implement exact finite admission, deadlines, settlement, refund, underfill, pause, and replay rules. Ranked selects exactly the paid top `K` when eligible Work exceeds `K`. Flat PoD closes when its last slot is paid. Accepted Duel move numbers increase while expired empty slots remain skippable. The first Duel completer opens the author deadline immediately while a remaining scheduled move stays eligible; a final move with no completer stops and refunds immediately.
-- One accepted immutable revision from Ranked, Frontier, or Duel can feed the next child Contract. Plan intake rejects Flat PoD as a selected source because additive Work has no single selected result. Later outcome ambiguity pauses progression. A suffix replan stores a full sequential Triage Plan revision and a later exact author approval. It cannot change the completed or active prefix. Each future Contract binds to the approved revision ID and content hash.
-- Each materialized child Contract has one deterministic Task. Stage completion closes its Task as `completed`; a Plan stop closes the current Task as `stopped`.
-- A normalized Frontier Work binds its output to the Work content hash. Tide runs the known pinned validator and compares the result with configured and paid prior art before payment. A deferred result belongs to one exact revision.
-- The first Work event freezes exact author and participant account/control-group authority. Shared control blocks every mode selection and settlement until exact public disclosure confirmation.
-- Body pause and resume require exact current Issue revisions. A risk pause keeps submissions open but blocks stage decisions and settlement. Body resume preserves it.
-- Frozen pre-pause roles still follow their own terms. Role evidence must match the assigned Agent ID and GitHub account. Only an exact active Triage or review generation can publish a risk warning.
-- Each lifecycle event requires an accepted GitHub source under a complete confirmed read boundary. An approval source must follow its exact Plan source.
-- Implement participation is open to every eligible Agent. A selected Spec author has no implicit exclusive right or duty.
-- Non-Triage Release derives from completed pinned outcomes. Triage Release requires successful completion of the whole Plan. A downstream blocker records negative Triage feedback and suppresses Release.
-- `next_action` is a pure projection. It reports the exact Plan revision, current actor, role identity, Work-control restriction, action, and effective boundary without writes.
-- Get 10 Issue #10 is preserved as prior-art evidence. The two decimal forms normalize to one `3/0.3` key: the first new use needs an author verdict, and an accepted form blocks its equivalent. No new epoch, funding, Issue mutation, or ledger write occurred.
+- Publish Circle-1 as a real public external Domain.
+- Bind its permanent repository ID, canonical locator, and full revision in an
+  immutable WEA manifest.
+- Keep Access as an internal seven-day WEA right with no external permission
+  effect and no early revoke, renewal, extension, suspension, or transfer.
+- Keep the 67-scenario `0.8 / v0_8_0` runtime closure byte-identical while
+  adding S-11A and S-11B as current control-plane scenarios.
+- Keep S-13C and every ledger write outside this delivery.
 
-## Exact BDD contract
+## Completed evidence
 
-- Current scenarios: `67`.
-- Compatible by reference: `41`.
-- Changed or added in Spec `0.9`: `26`.
-- Accepted-future and non-effective: `3` (`S-11A`, `S-11B`, and `S-13C`).
-- Current, accepted-future, and historical scopes are separate. Only current IDs count as implementation evidence.
-- `AGENT0.md` requires a BDD impact report for behavior changes and forbids completion claims when the BDD contract and runtime differ.
+- Circle-1 history was filtered from WEA without deleting the WEA snapshot.
+- The public repository exposes the verified revision above on `main`; GitHub
+  CI run `31866669759` is green.
+- External ownership was split into `docs/`, `src/circle1/`, and focused tests.
+- WEA adapters, target profiles, checkpoints, director operations, task-index
+  work, and ledger work remain in WEA.
+- External package suite: `215 passed, 9 skipped`.
+- The nine skips are explicit WEA integration tests; they pass when
+  `CIRCLE1_WEA_ROOT` names the current WEA worktree.
+- External Ruff: clean. External Pyright: 0 errors and 0 warnings.
+- Installed `circle1-score` completed a black-box WEA scan with explicit root,
+  profile, target, revision, and output inputs.
+- The canonical `domains/registry/v1.json` binds the permanent repository ID,
+  canonical locator, exact revision, record hash, and registry hash.
+- WEA Domain registry and Access focus: `28 passed`.
+- WEA scenario/runtime focus: `39 passed`.
+- The current scenario registry contains exactly 69 current scenarios and one
+  accepted-future scenario. `BDD alignment: 100%`.
+- Full WEA vNext suite: `457 passed, 18 skipped`.
+- Full repository suite with the worktree `src` on `PYTHONPATH`:
+  `4742 passed, 18 skipped, 11 xfailed`.
+- WEA Ruff: clean. WEA Pyright: 0 errors and 0 warnings.
+- Economy invariant, ledger schema, task-index schema, doc sync, protected
+  runtime/ledger diff, and `git diff --check`: pass.
 
-## Fresh evidence
+## Remaining gate
 
-- S-66 and ruleset focus: `20 passed`.
-- `tests/vnext`: `429 passed`, `18 skipped`.
-- Full repository: `4714 passed`, `18 skipped`, `11 xfailed`.
-- Ruff: clean. Targeted Pyright: `0 errors, 0 warnings`. Compileall: clean.
-- Ledger invariant: PASS, `19025 = 10000 + 9025`. Ledger schema, task-index schema, and doc sync: PASS.
-- Rules and manifest use exact canonical bytes. `git diff --check`: clean.
-- PR: `#941`. Passes 22–24 found four runtime gaps. Passes 25 and 26 were clean. Passes 27 and 28 closed skipped Work and suffix-replan declarations. Pass 29 closed two equal-time intake gaps, and Pass 30 was clean. Pass 31 found rejected actions after a Flat PoD birdie. Pass 32 found the remaining valid same-time acceptance path. `next_action` now distinguishes the exact author, validator, and participant actions at that boundary. The S-13 regression applies a same-time acceptance and proves the later Tide-only action. All gates pass. Pass 33 found no actionable defect and was clean. Historical `v0_7_0` did not change.
+There is no product, design, identity, or review blocker. PR `#942` is open.
+Review passes 2–4 found seven fail-closed contract defects. Pass 4 required one
+active verified authority binding and delayed expiry evaluation. Focused
+regressions prove both boundaries. Pass 5 found no actionable defect after it
+reran focused tests, the full vNext suite, Ruff, and Pyright. The remaining
+gates are PR checks and merge. Do not add S-13C, a successor runtime, live Tide,
+ledger writes, bootstrap, migration, or GitHub permission operations to this PR.
 
-## Hard stop boundary
+## Exact resume sequence
 
-This delivery does not add or change a live Tide or CLI writer, `ledger/vnext/`, GitHub Issue state, WEA funding, migration records, bootstrap, Domain/Access behavior, or cutover. OD-11, OD-14, OD-28, and OD-29 remain deferred. OD-28 and OD-29 block only the future live migration/bootstrap phase.
+1. Publish this review record and verify the exact documentation commit.
+2. Mark PR `#942` ready and merge after CI passes.
+3. Start S-13C as a separate OLED change and PR only after this PR merges.
 
-## Next action
+## Historical baseline
 
-Publish and merge PR `#941`. Then define a new Domain/Access block from S-11A, S-11B, and S-13C. Do not execute the archived Block 6.
+PR `#941` merged the inactive Spec `0.9` reference runtime. It proves 67
+current scenarios with `BDD alignment: 100%`. Ruleset `0.8` SHA-256 is
+`2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
+Executor `v0_8_0` manifest SHA-256 is
+`2aed3e4fb21a31cfbb8ed544f1974c63aba8451c95e434f5a5f5dd16e1f52c53`.
+No live Tide writer, ledger namespace, migration, bootstrap, or cutover was
+enabled.

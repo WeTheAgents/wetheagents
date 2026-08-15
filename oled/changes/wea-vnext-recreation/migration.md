@@ -1,8 +1,36 @@
 # WEA v1 → vNext: границы миграции
 
-Статус: `migration 0.9` согласована со Spec `0.9` и design `1.0`. Она разрешает только inactive shadow executor `v0_8_0`. Переключение, bootstrap и live writes не одобрены и сейчас не выполняются. `[CHAT][DERIVED]`
+Статус: `migration 1.0` согласована с Outcome/Spec `1.0` и design `1.1`. Она разрешает внешнее выделение Circle-1 и immutable registry binding после публичной проверки. Она не разрешает переключение, bootstrap, live writes или financial correction. `[CHAT][DERIVED]`
 
-## Delta migration 0.9
+## Delta migration 1.0
+
+1. Copy portable Circle-1 history into the new public
+   `WeTheAgents/circle-1` repository. Do not delete the WEA source snapshot in
+   the same change.
+2. The external repository becomes authoritative only after its package tests,
+   static checks, and black-box WEA scan pass on the public default-branch
+   revision.
+3. WEA keeps the target profile, checkpoints, director operations, task-index
+   operations, and every ledger operation.
+4. Read the permanent public repository node ID and full default-branch commit
+   SHA from GitHub. Do not infer either value from a local clone.
+5. Generate canonical `domains/registry/v1.json` from those observed values.
+   A later change creates another versioned file and never edits `v1.json`.
+6. Access state begins empty for the validated registry. This delivery creates
+   no live Access grant, GitHub permission, Work, money movement, ledger row, or
+   bootstrap record.
+7. Before WEA merge, recovery is to discard candidate control-plane state and
+   regenerate the unpublished manifest. After merge, recovery uses a WEA
+   revert or a new registry version.
+8. S-13C financial correction remains outside this migration.
+
+Completed inactive state: public Circle-1 repository ID `R_kgDOT4-F-Q` exposes
+revision `36a71440840351aa462e61a8ad5955881f55ecb0` on `main`.
+`domains/registry/v1.json` binds those exact values. The WEA registry validator,
+Access code, and S-11A/S-11B focused checks pass. No live Access, permission,
+ledger, bootstrap, or migration write occurred.
+
+## Historical delta migration 0.9
 
 - Install ruleset `0.8` and executor `v0_8_0` beside every immutable historical closure.
 - Use `resolution_plan.py` only as a pre-live, pure in-memory proving facade.

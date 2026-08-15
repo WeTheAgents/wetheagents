@@ -21,6 +21,7 @@ The detailed behavior contract remains in
 | --- | --- | --- |
 | `src/wea_cli/`, `scripts/`, current `ledger/` | v1 runtime and history | Do not add new vNext protocol rules. Preserve audit and migration evidence. Direct writers remain callable until the Block 9 inventory and epoch guard, so the current pause is operational, not a complete code-enforced boundary. |
 | `src/wea_vnext/engine.py`, `store.py` | version selection, manifest verification, replay transport, shadow storage | No business rules. Executor selection is always explicit. |
+| `src/wea_vnext/domain_access.py`, `domains/registry/` | inactive Domain/Access control plane and immutable external-repository bindings | Keep outside executor closures. Use no network lookup, GitHub permission effect, live grant, ledger write, or placeholder repository identity. Add a manifest only after the external revision is publicly verified. |
 | `src/wea_vnext/executors/v0_6_x/` | immutable protocol behavior | Never edit a released executor closure. Copy the complete closure to a new version, change it there, and create a new manifest. |
 | `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `intake.py`, `migration.py`, `projection.py` | public candidate facades | Delegate through one explicitly pinned executor closure; do not duplicate rules. |
 | `tests/vnext/` | vNext behavior, isolation, and replay contracts | Pin the executor version being tested. Historical replay tests never follow a moving default. |
@@ -29,6 +30,11 @@ The detailed behavior contract remains in
 The legacy candidate facades share executor `0.6.3`. The inactive Resolution
 Plan facade is pinned to executor `0.8.0`. These pins do not make an executor
 live. They do not override the runtime triple stored by a Contract.
+
+Domain/Access does not select an executor. Its accepted boundary is a separate
+inactive control-plane library because registry validation and the internal
+seven-day right do not change historical Contract replay. A later request to
+make Access affect runtime behavior must return to Outcome, Spec, and Design.
 
 The read-only executor wrapper is an API boundary. It does not store raw
 authority calls or the verified runtime reference in wrapper attributes. It is

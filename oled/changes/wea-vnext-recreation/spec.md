@@ -1,8 +1,8 @@
-# WEA vNext: поведение кандидата 0.9
+# WEA vNext: поведение кандидата 1.0
 
-Статус: оператор одобрил Spec `0.9` как текущий контракт реализации. Он не действует до переключения с WEA v1. Источники определены в `outcome.md`.
+Статус: оператор одобрил Spec `1.0` как текущий контракт реализации. Он не действует до переключения с WEA v1. Источники определены в `outcome.md`.
 
-Кандидат `0.9` сохраняет историческую аттестацию Hello World и совместимое поведение `0.8`. Он заменяет несовместимые baseline-сценарии точным BDD для Resolution Plan. Новая семантика требует следующую immutable ruleset/Tide closure. Ruleset `0.7` и closures `v0_6_0…v0_6_3` остаются историческими. `[CHAT][CHECK]`
+Кандидат `1.0` сохраняет реализованные 67 сценариев Spec `0.9` и добавляет два реализованных control-plane сценария Domain/Access без новой узкой runtime closure. Financial correction остаётся единственным accepted-future сценарием. `[CHAT][CHECK]`
 
 Каждый раздел объясняет смысл правила. BDD-сценарии закрепляют развилки, где похожие действия дают разный результат.
 
@@ -14,15 +14,136 @@
 | 0.7 | 2026-07-28 | одобрена для реализации | вердикт оператора об историческом Hello World и подтверждённый инвариант WEA `[CHAT][CHECK]` |
 | 0.8 | 2026-07-30 | одобрена для реализации | решение оператора о Resolution Plan, author approval, матрице depth × mode и Frontier `[CHAT]` |
 | 0.9 | 2026-08-01 | одобрена для реализации | принятые 26 BDD-сценариев и решения BD-01…BD-03 `[CHAT]` |
+| 1.0 | 2026-08-15 | одобрена для реализации | решения оператора о реальном внешнем Domain, внутреннем Access и отдельной financial correction `[CHAT]` |
 
-- Версия Spec: `0.9`.
+- Версия Spec: `1.0`.
 - Статус: одобрена для реализации.
-- Реализует `outcome 0.9`.
+- Реализует `outcome 1.0`.
 - Полномочие: решения оператора в этом чате `[CHAT]`.
 - Область: внутренний WEA vNext после отдельного переключения.
-- Current scope: WEA v1 applies before cutover. The 41 compatible current scenarios remain effective. Three accepted-future scenarios are non-effective.
+- Current implementation: 69 scenarios. The 67 Spec `0.9` scenarios remain unchanged. `S-11A` and `S-11B` are current control-plane scenarios. `S-13C` remains accepted-future and non-effective.
 
 Предыдущие кандидаты перечислены в `outcome.md` и не являются отдельными действующими версиями.
+
+## Normative delta Spec 1.0
+
+This delta has priority over conflicting Domain and Access text in Spec `0.9` and the historical baseline.
+
+The 67 current Spec `0.9` scenarios remain in force by reference. Their ruleset `0.8` and executor `v0_8_0` stay unchanged.
+
+`S-11A` and `S-11B` are current because their exact external binding and integration evidence pass. `S-13C` remains accepted-future in this delivery.
+
+The normative BDD uses pragmatic Simplified Technical English. Product nouns and identifiers keep their exact spelling.
+
+### ADDED terms
+
+- A **Domain record** identifies one Domain and one external repository revision.
+- A **Domain registry** is one complete immutable set of Domain records with one content hash.
+- An **Access** is one internal WEA right for one Agent ID and one Domain.
+- An **Access expiry** is the deterministic end record for one Access.
+
+### MODIFIED R-11: Domain registry and Access
+
+A published Domain registry MUST contain a canonical ordered set of unique Domain records and one registry hash.
+
+Each Domain record MUST contain one stable Domain ID, one permanent repository ID, one repository locator, one revision, and one record hash.
+
+The system MUST verify every record hash and the registry hash before it accepts the registry.
+
+The system MUST accept an Access only when the verified registry contains the exact Domain record.
+
+The system MUST NOT create or change a Domain record or an external repository during an Access transition.
+
+Only an operator or Agent0 source MUST grant Access. A source of type `agent` MUST NOT grant Access.
+
+Each Access MUST name one exact Agent ID and one exact Domain ID.
+
+The `starts_at` value MUST equal the accepted declaration `effective_at`. The `ends_at` value MUST equal `starts_at + 7 days`.
+
+One Agent ID MUST have no more than one active Access across all Domains.
+
+The system MUST reject a second Access when its half-open interval overlaps an Access for the same Agent ID.
+
+Replay MUST NOT create a second Access or a second Access expiry.
+
+Access MUST NOT create Work, an obligation, a Release, a WEA movement, or an external permission write.
+
+Spec `1.0` MUST NOT support early Access revocation, renewal, extension, or transfer.
+
+#### S-11A. An authorized source grants one Access
+
+- **GIVEN:** The verified Domain registry contains the exact Domain record.
+- **GIVEN:** One exact operator or Agent0 source resolves through an active verified role binding at `effective_at`.
+- **GIVEN:** The Agent ID has no Access active at the declaration `effective_at`.
+- **WHEN:** That verified operator or Agent0 source grants Access to the Agent ID and Domain ID.
+- **THEN:** The system records the exact Agent ID, Domain ID, source, `starts_at`, `ends_at`, and idempotency key.
+- **THEN:** The `starts_at` value equals `effective_at`. The `ends_at` value equals `starts_at + 7 days`.
+- **THEN:** Replay creates no second Access.
+- **THEN:** An overlapping Access or an `agent` source receives one rejection and no state change.
+- **THEN:** The transition changes no Domain record or external repository.
+- **THEN:** The transition creates no Work, obligation, Release, WEA movement, or external permission write.
+- **THEN:** The public control plane exposes no early revoke, renewal, extension, or transfer transition.
+- **EVIDENCE:** `tests/vnext/test_domain_registry.py` and `tests/vnext/test_access.py` prove registry, authority, interval, replay, and no-effect behavior.
+
+#### S-11B. Access expires at the exact boundary
+
+- **GIVEN:** One Access has an `ends_at` value.
+- **WHEN:** The system evaluates the Access at or after `ends_at`.
+- **THEN:** The Access is not active at `ends_at`.
+- **THEN:** The system records one deterministic Access expiry.
+- **THEN:** Replay creates no second Access expiry.
+- **THEN:** A new Access can start at the prior `ends_at` because the two intervals do not overlap.
+- **THEN:** Expiry creates no Work, obligation, Release, WEA movement, or external permission write.
+- **EVIDENCE:** `tests/vnext/test_access.py` proves the boundary, replay, replacement, and no-effect behavior.
+
+### Accepted-future R-13: Append-only financial correction
+
+`S-13C` remains accepted-future and non-effective. Its separate delivery MUST preserve each prior ledger row.
+
+One correction proposal MUST name the correction ID, affected ledger IDs, exact compensating entries, proposal hash, and idempotency key.
+
+The operator and Agent0 MUST confirm the same proposal hash in separate sources.
+
+The future transition MUST append all compensating entries atomically or append none.
+
+The money invariant MUST pass before and after the correction. Replay MUST NOT append a second compensation group.
+
+#### S-13C. Two roles approve one financial correction
+
+- **GIVEN:** A published ledger transition is wrong, and each prior ledger row is immutable.
+- **GIVEN:** One proposal contains the correction ID, affected ledger IDs, exact entries, proposal hash, and idempotency key.
+- **WHEN:** The operator and Agent0 separately confirm the same proposal hash.
+- **THEN:** The future transition verifies the money invariant before and after one atomic append.
+- **THEN:** The future transition preserves each prior ledger row and appends each compensating entry.
+- **THEN:** Replay creates no second compensation group.
+- **THEN:** A missing confirmation, mismatched hash, unknown ledger ID, or failed invariant creates no ledger row.
+- **EVIDENCE:** A separate delivery must add `tests/vnext/test_correction.py` before `S-13C` becomes current.
+
+## Reconciled dependents after Spec 1.0
+
+| Artifact | Current binding | Reconciliation result |
+| --- | --- | --- |
+| `design.md`, `schema.md`, `delta.md`, `migration.md` | Spec `1.0` | External Domain and control-plane records are current; the narrow runtime proposal is rejected. |
+| `tasks.md` | Spec `1.0` | Domain/Access delivery is complete; financial correction remains a separate lane. |
+| `tests/vnext/scenarios.py` | 69 current and 1 accepted-future | S-11A/S-11B are current control-plane scenarios. S-13C remains accepted-future. |
+| Runtime `0.8 / v0_8_0` | 67 current Spec `0.9` scenarios | Preserve every byte. Do not create a successor runtime for this change. |
+| `verification.md` and review artifact | Spec `1.0` | Report the public binding, 69/1 registry, full checks, and independent review state. |
+
+## Scenario evidence map Spec 1.0
+
+| Requirement | Scenario | Observable evidence |
+| --- | --- | --- |
+| R-11 registry, authority, interval, replay, and no external permission | S-11A | `tests/vnext/test_domain_registry.py`, `tests/vnext/test_access.py` |
+| R-11 exact expiry and boundary replacement | S-11B | `tests/vnext/test_access.py` |
+| R-13 append-only correction | S-13C accepted-future | Separate `tests/vnext/test_correction.py` delivery |
+
+## Non-goals Spec 1.0
+
+- A successor reference-runtime closure for Domain, Access, or financial correction.
+- A live ledger writer, bootstrap, or cutover.
+- GitHub permission grant, revoke, reconciliation, or repair.
+- Early Access revocation, renewal, extension, or transfer.
+- Financial-correction implementation in the Domain/Access delivery.
 
 ## Normative delta Spec 0.9
 

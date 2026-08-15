@@ -1,4 +1,4 @@
-"""Exact scenario scopes for the accepted and implemented Spec 0.9."""
+"""Exact scenario scopes for accepted and implemented Spec 1.0 behavior."""
 
 COMPATIBLE_SCENARIO_IDS = (
     "S-56",
@@ -73,13 +73,18 @@ CHANGED_SCENARIO_IDS = (
     "S-70",
 )
 
-CURRENT_SCENARIO_IDS = (*COMPATIBLE_SCENARIO_IDS, *CHANGED_SCENARIO_IDS)
-SCENARIO_IDS = CURRENT_SCENARIO_IDS
-ACCEPTED_FUTURE_SCENARIO_IDS = (
+CONTROL_PLANE_SCENARIO_IDS = (
     "S-11A",
     "S-11B",
-    "S-13C",
 )
+
+CURRENT_SCENARIO_IDS = (
+    *COMPATIBLE_SCENARIO_IDS,
+    *CHANGED_SCENARIO_IDS,
+    *CONTROL_PLANE_SCENARIO_IDS,
+)
+SCENARIO_IDS = CURRENT_SCENARIO_IDS
+ACCEPTED_FUTURE_SCENARIO_IDS = ("S-13C",)
 
 # These references may duplicate current IDs because the version prefix is part
 # of their identity. They are not implementation claims for the current ruleset.
@@ -96,16 +101,23 @@ def validate_registry() -> None:
         raise ValueError(
             f"expected 26 changed scenario IDs, found {len(CHANGED_SCENARIO_IDS)}"
         )
-    if len(CURRENT_SCENARIO_IDS) != 67:
+    if len(CONTROL_PLANE_SCENARIO_IDS) != 2:
         raise ValueError(
-            f"expected 67 current scenario IDs, found {len(CURRENT_SCENARIO_IDS)}"
+            "expected 2 control-plane scenario IDs, "
+            f"found {len(CONTROL_PLANE_SCENARIO_IDS)}"
+        )
+    if len(CURRENT_SCENARIO_IDS) != 69:
+        raise ValueError(
+            f"expected 69 current scenario IDs, found {len(CURRENT_SCENARIO_IDS)}"
         )
     duplicates = sorted(
         {item for item in CURRENT_SCENARIO_IDS if CURRENT_SCENARIO_IDS.count(item) > 1}
     )
     if duplicates:
         raise ValueError(f"duplicate current scenario IDs: {', '.join(duplicates)}")
-    if ACCEPTED_FUTURE_SCENARIO_IDS != ("S-11A", "S-11B", "S-13C"):
+    if CONTROL_PLANE_SCENARIO_IDS != ("S-11A", "S-11B"):
+        raise ValueError("control-plane scenarios do not match the approved scope")
+    if ACCEPTED_FUTURE_SCENARIO_IDS != ("S-13C",):
         raise ValueError("accepted-future scenarios do not match the approved scope")
     if set(CURRENT_SCENARIO_IDS) & set(ACCEPTED_FUTURE_SCENARIO_IDS):
         raise ValueError("current and accepted-future scenario scopes overlap")

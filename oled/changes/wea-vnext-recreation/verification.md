@@ -1,4 +1,127 @@
-# WEA vNext: проверка пакета поведения 0.9
+# WEA vNext: Domain/Access verification 1.0
+
+Decision: `Domain/Access implementation verified — independent PR review clean`.
+
+The external Domain, immutable WEA manifest, and inactive Access control plane
+are implemented and pass their focused evidence. S-11A and S-11B are current;
+S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
+
+`BDD alignment: 100%`.
+
+Статус свежих команд: `Complete`.
+
+Статус независимой проверки: `CLEAN`.
+
+## Artifact versions
+
+- Outcome/Spec: `1.0` accepted on 2026-08-15.
+- Design: `1.1` accepted.
+- Schema: `1.1` current Domain/Access delta; schema `1.0` preserved.
+- Tasks: `1.3` implemented and review clean.
+- Historical runtime: ruleset/interface `0.8`, executor `v0_8_0`, unchanged.
+
+## Contract and authority
+
+- Accepted behavior: one real external Circle-1 Domain, immutable manifest
+  binding, internal seven-day Access, exact source authority, global per-Agent
+  overlap prevention, deterministic grant/expiry replay, and no external
+  permission effect.
+- Protected boundaries: no successor reference runtime, no edit to published
+  executor/ruleset bytes, no live writer, no ledger change, no early revoke,
+  and no S-13C financial correction in this delivery.
+- Required authority: the operator approved code and repository publication;
+  the public repository and exact revision are observable.
+- Unresolved product or design decisions: none.
+
+## Scenario coverage
+
+| Required behavior or scenario | Evidence | Result |
+| --- | --- | --- |
+| Real external Circle-1 Domain | public repository ID `R_kgDOT4-F-Q`, revision `36a71440840351aa462e61a8ad5955881f55ecb0`, package suite, static checks, GitHub CI, installed CLI black-box scan | PASS. |
+| Canonical immutable registry | `domains/registry/v1.json`; `tests/vnext/test_domain_registry.py` | PASS; exact canonical bytes bind the public ID, locator, and revision without network lookup. |
+| S-11A authority, lookup, fixed interval, global overlap, replay, no side effects | `tests/vnext/test_access.py` | PASS; current control-plane scenario. |
+| S-11B exact boundary, expiry, replay, boundary replacement | `tests/vnext/test_access.py` | PASS; current control-plane scenario. |
+| Historical runtime isolation | runtime-boundary test, protected path diff, full vNext suite | PASS; ruleset/executor/ledger Domain paths have no diff. |
+| S-13C isolation | file/diff inspection | PASS; no correction module, test, state, or ledger write was added. |
+
+## Task completion
+
+| Required task | Evidence or blocker | Result |
+| --- | --- | --- |
+| External extraction | public commit `36a71440840351aa462e61a8ad5955881f55ecb0`; 215 tests, black-box scan, and GitHub CI run `31866669759` | Complete. |
+| Public Domain identity | permanent repository ID and public default-branch revision | Complete. |
+| Registry validator | focused tests, Ruff, Pyright | Complete. |
+| Live registry manifest | canonical `domains/registry/v1.json` | Complete. |
+| Access implementation | focused tests and reconstructed-state invariants | Complete and current as an inactive control plane. |
+| BDD promotion | scenario registry and focused contract tests | Complete: 69 current and one accepted-future. |
+| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Pass 1 clean; passes 2–4 found seven fail-closed contract defects; pass 5 found no actionable defect. Publication checks and merge remain. |
+
+## Fresh commands
+
+| Command or check | Exit / result | Material evidence |
+| --- | --- | --- |
+| external `$env:CIRCLE1_WEA_ROOT=<WEA>; python -m pytest -q` | 0 | `215 passed, 9 skipped`; the configured WEA integration group separately passes 6 tests. |
+| external `ruff check src tests`; `pyright src` | 0 | Ruff clean; 0 errors and 0 warnings. |
+| installed `circle1-score --root <WEA> --profile <WEA profile> ...` | 0 | Black-box checkpoint created with declared `3` and exercised `3`. |
+| external GitHub CI | 0 | Run `31866669759` passed package tests, Ruff, and Pyright at the pinned revision. |
+| `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q` | 0 | `28 passed`. |
+| focused Domain/Access/scenario/runtime gate | 0 | `39 passed`. |
+| `python -m pytest tests/vnext -q` | 0 | `457 passed, 18 skipped`. |
+| `$env:PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4742 passed, 18 skipped, 11 xfailed`. |
+| `ruff check src/wea_vnext tests/vnext ...`; `pyright src/wea_vnext` | 0 | Ruff clean; 0 errors and 0 warnings. |
+| invariant, ledger schema, doc sync | 0 | `19025 = 10000 + 9025`; schema and docs pass. |
+| `git diff --check`; protected-path diff | 0 | Whitespace clean; runtime, ruleset, and `ledger/domains.json` unchanged. |
+
+The first full repository run omitted `PYTHONPATH`, so 19 subprocess tests
+could not import `wea_cli`. The exact affected group passed `42` tests after
+the source path was configured, and the complete environment-corrected rerun
+then passed with the result above.
+
+## Scope and dirty state
+
+- Intended WEA changes: accepted OLED records, boundary documentation, the
+  control-plane module, focused tests, and the scenario-scope test correction.
+- Intended external changes: the published Circle-1 extraction and public-CI
+  stabilization commit.
+- Unrelated work: none detected. The pre-existing handoff/proposal edits were
+  part of this same approved task and were reconciled rather than discarded.
+- Generated noise: Python caches, pytest caches, editable-install metadata, and
+  the black-box checkpoint are ignored or outside both repositories.
+
+## Independent review
+
+- Trigger: serious durable change with an external repository contract.
+- Result: pass 1 was clean. Pass 2 found three fail-closed gaps: undefined UTC
+  offsets, noncanonical repository path components, and oversized JSON integer
+  errors. Pass 3 found two related caller-owned model gaps: forged Domain record
+  and registry subclasses could skip constructor validation. Exact-type checks,
+  reconstruction, and focused regressions close both findings. Pass 4 found an
+  unverified source claim and rejected delayed expiry evaluation. Access now
+  requires an active verified authority record and stores its binding snapshot.
+  Late evaluation records the expiry at the canonical `ends_at`. Pass 5 reran
+  focused tests, the full vNext suite, Ruff, and Pyright and found no actionable
+  defect.
+
+## Protected lean cut
+
+- Calibration: preserve exact manifest validation, stable repository identity,
+  fixed interval/authority/idempotency invariants, runtime isolation, and all
+  negative boundaries.
+- Applied cuts: rejected the copied successor runtime; used the Python standard
+  library only; omitted network clients, live adapters, correction code, and a
+  placeholder manifest.
+- Rejected cuts: removing reconstruction-time hash, overlap, expiry, or
+  idempotency validation would weaken the trust boundary.
+- Final cut pass: complete. The standard-library control plane and exact
+  manifest are the smallest boundary that preserves the accepted invariants.
+
+## Evidence gaps and smallest next action
+
+The remaining evidence gaps are WEA PR checks and merge. The smallest next
+action is to publish this review record, verify the exact documentation commit,
+and merge after CI passes.
+
+## Historical Spec 0.9 verification record
 
 Outcome/Spec `0.9`, design/schema `1.0`, tasks `1.2`, ruleset/interface `0.8`, executor `0.8.0`, registry и contract tests согласованы. `BDD alignment: 100%`. Reference runtime доказан локально и остаётся `Not live`. Live Tide, ledger, GitHub writers, migration и bootstrap не менялись. `[CHAT][CHECK]`
 

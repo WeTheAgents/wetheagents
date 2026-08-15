@@ -1,6 +1,132 @@
 # WEA vNext: план реализации
 
-Статус `tasks 1.2`: **implemented / review clean**. Spec 0.9 reference runtime implemented and verified. The operator approved the S-11A, S-11B, and S-13C accepted-future scope correction. Passes 31 and 32 found and fixed the two sides of the S-13 Flat PoD birdie next-action gap. Pass 33 found no actionable defect and was clean. Blocks 1–4 remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+Статус `tasks 1.3`: **implemented / review clean**. Outcome/Spec `1.0` and design `1.1` authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Pass 5 found no actionable defect. Tasks `1.2` and its verified Spec `0.9` implementation remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
+
+## Current delivery: Spec 1.0 Domain and Access
+
+**Outcome:** publish Circle-1 as a real external Domain, bind its exact revision in an immutable WEA registry, and prove seven-day internal Access without live writes.
+
+**Authority:** Outcome/Spec `1.0`; design `1.1`; operator approval on 2026-08-15. No behavior or design decision remains open.
+
+**Scope:** activate S-11A and S-11B as tested control-plane scenarios. Keep all 67 Spec `0.9` scenarios and runtime bytes unchanged. Keep S-13C accepted-future.
+
+### Group 1 — external Circle-1 Domain
+
+- **Covers:** the external-Domain prerequisite for S-11A.
+- **Status:** complete; public revision pinned.
+- **Depends on:** none.
+- **Known areas:** `domains/circle-1/`, `scripts/circle1/`, `scripts/score_repo.py`, their focused tests, and the new `WeTheAgents/circle-1` repository.
+
+- [x] Inventory each Circle-1 file as portable core, WEA adapter/configuration, WEA evidence, or historical-only material.
+- [x] Create `WeTheAgents/circle-1` without deleting or changing the WEA source snapshot.
+- [x] Add the portable canon, scanner code, tests, packaging, explicit no-license notice, and migration provenance to the external repository.
+- [x] Replace WEA-private imports and hard-coded output paths with explicit target-root, profile, and output inputs.
+- [x] Keep the existing WEA target profile in WEA without moving Circle-1 executable code into it.
+- [x] Prove that the external package and CLI run without importing `wea_cli`, `ledger`, or WEA root scripts.
+- [x] Run the external black-box scan against WEA and retain published commit `36a71440840351aa462e61a8ad5955881f55ecb0`.
+- [x] Mark the retained WEA core/docs snapshots read-only and point them to the external source of truth. Keep WEA-owned profiles, checkpoints, and adapters local.
+
+**Evidence locator:** public `https://github.com/WeTheAgents/circle-1`; permanent repository ID `R_kgDOT4-F-Q`; public `main` revision `36a71440840351aa462e61a8ad5955881f55ecb0`; 215 passed, 9 explicit integration skips; configured WEA integration tests and black-box CLI pass; Ruff and Pyright are clean.
+
+### Group 2 — immutable WEA Domain registry
+
+- **Covers:** R-11 registry acceptance and the Domain precondition in S-11A.
+- **Status:** complete.
+- **Depends on:** Group 1 publication and its permanent repository ID plus full commit SHA.
+- **Known areas:** `domains/registry/v1.json`, `src/wea_vnext/domain_access.py`, `tests/vnext/test_domain_registry.py`, package and boundary checks.
+
+- [x] Add a failing `test_domain_registry.py` for canonical hashes, exact binding shape, duplicates, malformed revisions, and no network access.
+- [x] Add the smallest standard-library registry loader and verifier in `src/wea_vnext/domain_access.py`.
+- [x] Publish `domains/registry/v1.json` only after its Circle-1 repository ID, locator, and commit are observable on the external default branch.
+- [x] Prove with deterministic fixtures that canonical bytes verify and that a changed field fails closed.
+- [x] Prove that `ledger/domains.json` and all runtime/ruleset/executor files remain unchanged in the working diff.
+
+**Focused proof:** `python -m pytest tests/vnext/test_domain_registry.py -q`.
+
+### Group 3 — seven-day Access control plane
+
+- **Covers:** S-11A and S-11B.
+- **Status:** complete; focused tests and manifest prerequisite pass.
+- **Depends on:** Group 2 registry model. It does not depend on live bootstrap or financial correction.
+- **Known areas:** `src/wea_vnext/domain_access.py`, `tests/vnext/test_access.py`.
+
+- [x] Add failing S-11A tests for exact authority, Domain lookup, seven-day interval, global Agent overlap, replay, and no side effects.
+- [x] Add failing S-11B tests for the exact `ends_at` boundary, deterministic expiry, replay, and replacement at the boundary.
+- [x] Implement the smallest immutable Access state and transitions outside every executor closure.
+- [x] Normalize accepted timestamps to UTC and revalidate every reconstructed immutable state.
+- [x] Add explicit absence tests for GitHub permission fields or operations, early revoke, renewal, extension, transfer, money, and Work.
+- [x] Prove both scenario implementations with the focused tests. Do not make them effective before the registry prerequisite passes.
+
+**Focused proof:** `python -m pytest tests/vnext/test_access.py tests/vnext/test_domain_registry.py -q`.
+
+### Group 4 — contract and repository reconciliation
+
+- **Covers:** BDD alignment and historical isolation for Spec `1.0`.
+- **Status:** implementation complete; independent review clean.
+- **Depends on:** Groups 1–3.
+- **Known areas:** `tests/vnext/scenarios.py`, `tests/vnext/test_scenario_registry.py`, `schema.md`, `delta.md`, `migration.md`, `domain-access-proposal.md`, `HANDOFF.md`, `build_review_html.py`, documentation maps.
+
+- [x] Move S-11A and S-11B from accepted-future to current only after their focused evidence passes.
+- [x] Keep S-13C as the only accepted-future scenario and keep historical scenario scopes separate.
+- [x] Reconcile schema, delta, migration, proposal status, handoff, and review HTML with Outcome/Spec `1.0` and design `1.1`.
+- [x] Remove all successor `ruleset 0.9`, Tide interface `0.9`, executor `v0_9_0`, and combined-correction claims from the current proposal.
+- [x] Run the Simple English self-check on the new normative BDD text.
+- [x] Regenerate `WEA_vNext_REVIEW.html` from the reconciled Markdown sources.
+
+**Focused proof:** `python -m pytest tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q`.
+
+### Group 5 — verification, review, and publication
+
+- **Covers:** repository readiness for the Domain/Access delivery.
+- **Status:** independent review clean; PR checks and merge pending.
+- **Depends on:** Groups 1–4.
+
+- [x] Run `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q`.
+- [x] Run `python -m pytest tests/vnext -q`.
+- [x] Run `python -m pytest -q`.
+- [x] Run `ruff check src/wea_vnext tests/vnext oled/changes/wea-vnext-recreation/build_review_html.py`.
+- [x] Run `pyright src/wea_vnext`.
+- [x] Run `python scripts/check_invariant.py`, `python scripts/check_ledger_schema.py`, and `python scripts/check_doc_sync.py`.
+- [x] Run `python oled/changes/wea-vnext-recreation/build_review_html.py` and `git diff --check`.
+- [x] Run a fresh independent review against `origin/main`. Fix each actionable finding and repeat until clean.
+- [ ] Record actual results only in `verification.md`, commit intentional files, push through the authorized remote, open the PR, and merge only after checks and review are clean.
+
+### Deferred independent lane — S-13C
+
+S-13C remains accepted-future. After the Domain/Access PR merges, start a separate OLED change and PR for the financial correction write boundary.
+
+This delivery must not add `test_correction.py`, correction code, correction state, ledger rows, or money mutation.
+
+## Spec 1.0 risk and recovery
+
+- **Prerequisite:** verify the external repository and exact commit before adding the WEA registry record.
+- **Mutation boundary:** creating the external repository is authorized. Publishing a WEA registry record waits for the external default-branch commit.
+- **Partial failure:** leave an unregistered external repository in place and preserve every WEA source file.
+- **Rollback:** before WEA merge, remove only the unpublished candidate manifest. After merge, use a WEA revert or a new registry version.
+- **Integrity:** no published manifest, historical runtime byte, live ledger file, Issue, or GitHub permission is edited by Access transitions.
+
+## Spec 1.0 verification map
+
+| Accepted scenario or boundary | Adequate proving surface | Planned command or locator | Evidence gap |
+| --- | --- | --- | --- |
+| External Circle-1 Domain | external package suite and black-box WEA scan | public repository ID `R_kgDOT4-F-Q`, revision `36a71440840351aa462e61a8ad5955881f55ecb0`, 215 passed, black-box pass, GitHub CI run `31866669759` green | none |
+| S-11A registry and grant | registry and Access tests | `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q` | live manifest and focused implementation pass |
+| S-11B expiry | Access tests | `python -m pytest tests/vnext/test_access.py -q` | focused implementation passes |
+| No external permission or early revoke | negative Access API/state assertions | `python -m pytest tests/vnext/test_access.py -q` | focused assertions pass |
+| 69 current and one accepted-future | scenario registry tests | `python -m pytest tests/vnext/test_scenario_registry.py -q` | PASS in the focused 32-test gate |
+| Historical runtime isolation | runtime boundary, packaging, and manifest tests | full `tests/vnext` suite | PASS: 457 passed, 18 skipped; protected diff clean |
+| Repository integration | repository-required checks | Group 5 commands | PASS: 4742 passed, 18 skipped, 11 xfailed; Ruff, Pyright, invariant, schema, task-index schema, doc sync, diff, and independent review clean |
+
+## Spec 1.0 resume handoff
+
+| Lane | Status | Dependency or blocker | Exact next action | Proof gap |
+| --- | --- | --- | --- | --- |
+| Circle-1 repository | complete | none | preserve the public revision | none |
+| Domain registry | complete | none | preserve canonical `v1.json`; later changes create a new version | none |
+| Access | complete | none | preserve focused evidence and no-live boundary | none |
+| BDD/docs | implementation and review complete | none | preserve generated review artifact and exact 69/1 scope | none |
+| Financial correction | deferred | Domain/Access merge and separate write-boundary design | keep S-13C accepted-future | `test_correction.py` intentionally absent |
+| Verification/publication | independent review clean | PR checks | publish the review record and merge PR `#942` | merge pending |
 
 ## Правила исполнения
 
@@ -11,7 +137,7 @@
 - Тесты называют BDD-сценарии из `spec.md` своими ID. Реестр сценариев не позволяет потерять или повторить ID. `[DERIVED]`
 - Изменение наблюдаемого поведения возвращает работу в `outcome.md` или `spec.md`. Реализация не закрывает OD-11, OD-14, OD-28 или OD-29 догадкой. `[CHAT][DERIVED][REVIEW]`
 
-## Current delivery: Spec 0.9 reconciliation
+## Historical delivery: Spec 0.9 reconciliation
 
 **Outcome:** one manifest-pinned pure runtime can replay and prove all 67 current BDD scenarios without changing live GitHub, ledger, migration, or bootstrap state. S-11A, S-11B, and S-13C remain accepted-future and non-effective.
 

@@ -1,6 +1,6 @@
 # WEA vNext: техническое устройство
 
-Статус: `design 1.0` принят как исполнимая архитектура для `outcome/spec 0.9`. Он добавляет новый immutable ruleset/executor и полный pure-runtime lifecycle. Live GitHub/ledger adapter, bootstrap и миграция остаются запрещены. `[CHAT][CHECK][DERIVED]`
+Статус: `design 1.1` принят как исполнимая архитектура для `outcome/spec 1.0`. Он сохраняет design `1.0` и runtime `v0_8_0`, но выносит Domain/Access из runtime closure. Live GitHub/ledger adapter и bootstrap остаются запрещены. `[CHAT][CHECK][DERIVED]`
 
 ## История design
 
@@ -9,6 +9,141 @@
 | 0.8 | 0.7 | superseded для новых tasks | profile-based Contract и operator-attested Hello World closure |
 | 0.9 | 0.8 | stale после Spec 0.9 | author-approved Resolution Plan, program escrow и первый автоматически созданный child Contract |
 | 1.0 | 0.9 | current / approved for implementation | immutable lifecycle events, derived Plan projection, exact schedules, settlements, roles, pauses, Release and `next` |
+| 1.1 | 1.0 | current / approved for implementation | реальный внешний Circle-1 Domain, immutable registry manifest и отдельный Domain/Access control plane без новой runtime closure |
+
+## Design delta 1.1: external Domain and Access control plane
+
+This delta has priority over future Domain, Access, and financial-correction text in design `1.0`. The complete Resolution Plan design remains current.
+
+### D-48. Circle-1 becomes the first external Domain
+
+The external repository is `https://github.com/WeTheAgents/circle-1`. It owns the portable Circle-1 canon, schemas, scanner code, and scanner tests.
+
+WEA keeps only its operational adapter, target configuration, WEA checkpoints, and task-index or ledger reconciliation tools. These files do not become Circle-1 Core.
+
+The migration uses two ordered publications:
+
+1. Create and verify the external repository from the selected Circle-1 source snapshot.
+2. Add the exact repository ID, locator, and commit to the WEA Domain registry.
+
+The external repository must scan a clean WEA checkout through documented files and command inputs. It must not import private `wea_cli`, ledger, or root-script modules.
+
+The first migration can retain a read-only compatibility snapshot in WEA. The snapshot must name the external source of truth and must not accept new core changes.
+
+Relevant rejected alternatives:
+
+- Moving the complete `domains/circle-1` tree also moves WEA checkpoints and self-dogfooding evidence. Those records belong to the assessed repository.
+- Making WEA depend on an unpinned Git branch makes the same WEA commit produce different scan behavior.
+- Deleting the WEA snapshot before the external clone and black-box checks pass makes rollback depend on Git history surgery.
+
+### D-49. Versioned immutable Domain registry
+
+WEA stores published registry manifests at `domains/registry/v<N>.json`. A manifest contains `schema_version`, canonical Domain records, and `registry_hash`.
+
+The `registry_hash` covers the schema version and complete canonical ordered Domain-record array. Each `record_hash` covers every Domain-record field except `record_hash`.
+
+The first record contains:
+
+- stable `domain_id = "circle-1"`;
+- the permanent GitHub repository node ID;
+- `repository_locator = "https://github.com/WeTheAgents/circle-1"`;
+- one full 40-character commit SHA;
+- the record hash.
+
+A published manifest file is immutable. A repository rename or Domain relocation creates the next manifest version with the same Domain ID and repository ID.
+
+`src/wea_vnext/domain_access.py` accepts explicit registry bytes or an explicit path. It has no moving default and performs no network request.
+
+Relevant rejected alternatives:
+
+- `ledger/domains.json` is the active v1 assignment store. Reusing it changes live v1 meaning and mixes mutable assignment state with immutable vNext identity.
+- A mutable `latest.json` hides the exact registry used by an Access record.
+- A repository name alone does not survive rename and does not establish the pinned source revision.
+
+### D-50. Domain/Access control plane outside the executor closure
+
+`src/wea_vnext/domain_access.py` owns registry verification and the pure Domain/Access transition model. It does not import `engine.py` or any executor package.
+
+The module exposes explicit models and functions for these operations:
+
+- load and verify one registry manifest;
+- create an empty Access state bound to one registry hash and one verified authority-binding set;
+- grant one seven-day Access from an operator or Agent0 declaration whose exact source revision resolves through an active verified role binding;
+- evaluate the half-open active interval;
+- record one deterministic expiry.
+
+The state stores the verified registry and the configured authority bindings. It also stores Access grants, expiry records, and idempotency results.
+
+The state stores no Task, Work, Release, WEA, or GitHub permission field.
+
+All accepted times are timezone-aware and normalize to UTC. Seven days equals `timedelta(days=7)`. Access uses `starts_at <= at < ends_at`.
+
+The transition rebuilds caller-owned records before validation. The initial state accepts exact `VerifiedAccessAuthority` records and rejects foreign subclasses.
+
+The grant resolves the source kind, ID, and revision against this configured set. The operator or Agent0 binding interval must contain `effective_at`.
+
+Deterministic IDs bind the source revision and the binding ID and version.
+
+The IDs also bind the registry hash, Agent ID, Domain ID, and interval.
+
+This module is a vNext control-plane library, not a reference executor. It receives no ruleset, Tide-interface, executor, or manifest triple.
+
+`tests/vnext/scenarios.py` classifies `S-11A` and `S-11B` as control-plane scenarios. The existing 67 scenarios remain bound to ruleset `0.8` and executor `v0_8_0`.
+
+### D-51. Protected boundaries, rollout, and recovery
+
+- **Authority:** only exact `operator` and `agent0` source types with one active verified role binding can grant Access.
+- **Repository trust:** WEA records an external commit only after the external default branch exposes that exact commit.
+- **Registry immutability:** tests reject any hash mismatch, duplicate Domain ID, duplicate repository ID, noncanonical order, or mutable alias.
+- **Replay:** an identical idempotency key returns the recorded result. Conflicting reuse fails closed.
+- **Interval:** overlap is global per Agent ID across all Domain records. A new interval can start at the prior `ends_at`.
+- **External permission:** the module contains no GitHub client, token, collaborator state, grant, revoke, reconciliation, or repair function.
+- **Money:** the module contains no balances, escrow, ledger transition, payout, refund, or correction function.
+- **Historical isolation:** rulesets `0.6…0.8`, executors `v0_6_0…v0_8_0`, their manifests, and existing facades remain byte-identical.
+
+Rollout stops before the WEA registry commit when external repository creation, publication, or black-box verification fails. The unregistered repository has no WEA authority.
+
+Before live bootstrap, recovery removes the unpublished registry candidate and replays Access state from the last published registry plus accepted declarations. A merged registry rolls back through a new manifest version or a WEA revert. No process edits a published manifest.
+
+Partial failure preserves the external repository and all WEA history. It does not create Access, money, Issue state, ledger state, or GitHub permission state.
+
+### D-52. Financial correction remains a separate lane
+
+The Domain/Access delivery adds no correction module, correction state, ledger entry, ruleset, executor, facade, or test.
+
+After S-11A and S-11B merge, S-13C receives a separate design/task/implementation/verification cycle. That cycle can select its own protected write boundary.
+
+This separation avoids an unrelated money change in the cross-repository migration. It also removes the former reason to copy the complete runtime closure.
+
+### Ceiling and observable revisit trigger
+
+- **Ceiling:** one public external Circle-1 repository, immutable local registry manifests, and a non-live Domain/Access control-plane library.
+- **Revisit when:** a live writer, private Domain, GitHub permission automation, Domain mutation, early revoke, or persistent Access store becomes accepted behavior.
+
+### Design 1.1 verification hooks
+
+- The external Circle-1 suite proves its package and CLI without WEA imports.
+- The external black-box command scans a clean WEA checkout with the checked-in WEA target profile.
+- `tests/vnext/test_domain_registry.py` proves canonical hashes, exact external binding, duplicate rejection, and no network dependency.
+- `tests/vnext/test_access.py` proves S-11A and S-11B, authority, global overlap, half-open expiry, replay, and negative boundaries.
+- `tests/vnext/test_scenario_registry.py` proves 69 current IDs and only `S-13C` as accepted-future after implementation.
+- Historical isolation and packaging tests prove that no ruleset, executor, manifest, or facade changed.
+- Full vNext and repository checks prove integration. They do not activate a live writer.
+
+### Downstream state after design 1.1
+
+| Lane or boundary | Authority and status | Named hook and current result | Exact gap and causal coupling | Route and immediate next action |
+| --- | --- | --- | --- | --- |
+| Outcome / Spec `1.0` | accepted/current | normative S-11A/S-11B evidence map; focused evidence passes | none | preserve |
+| Circle-1 external repository | implemented/public | external suite, black-box scan, public node ID `R_kgDOT4-F-Q`, revision `36a71440840351aa462e61a8ad5955881f55ecb0` | none | preserve immutable revision; follow external CI |
+| Domain registry | implemented/current | `test_domain_registry.py`; canonical live manifest passes | none | preserve `v1.json`; use a new version for later changes |
+| Access control plane | implemented/current | `test_access.py`; focused evidence passes | none | preserve until a separately approved live adapter exists |
+| External GitHub permission | implemented negative boundary | absence assertions in `test_access.py`; pass | none | preserve no-client/no-permission surface |
+| Runtime `0.8 / v0_8_0` | immutable/current for 67 scenarios | existing historical-isolation tests; last result belongs to Spec `0.9` | no design gap | preserve bytes, rerun in Verify |
+| Financial correction | accepted-future/separate | `test_correction.py`; absent | separate money write design is intentionally outside this delivery | keep accepted-future; start a new OLED lane after Domain/Access merge |
+| Recovery | accepted/current | registry immutability, replay, and integration hooks; pass | none | preserve versioned-manifest recovery rule |
+| Ceiling and trigger | accepted/current | boundary and absence tests; pass | none | return to Outcome/Spec before expanding the ceiling |
+| Tasks / implementation / verification | design `1.1` | tasks `1.3`; implementation complete, final review pending | independent review is required by the serious-change gate | Verify, review, and publish |
 
 ## Design delta 1.0: complete Resolution Plan lifecycle
 

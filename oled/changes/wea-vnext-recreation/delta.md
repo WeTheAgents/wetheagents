@@ -1,8 +1,35 @@
 # Текущая WEA → vNext
 
-Статус: `delta 0.9` является текущей реализационной delta для `outcome/spec 0.9`, design/schema `1.0`, ruleset `0.8` и executor `v0_8_0`. `[CHAT][DERIVED][CHECK]`
+Статус: `delta 1.0` является текущей реализационной delta для Outcome/Spec `1.0`, design `1.1` и schema `1.1`. Delta `0.9`, ruleset `0.8` и executor `v0_8_0` остаются неизменным историческим результатом. `[CHAT][DERIVED]`
 
-## Delta 0.9: full Plan execution
+## Delta 1.0: external Domain and internal Access
+
+| Decision | Current behavior | Implementation consequence |
+| --- | --- | --- |
+| ADD | Circle-1 is a real external public Domain | extract portable canon/scanners/tests to `WeTheAgents/circle-1`; retain WEA adapters, profiles, checkpoints, task-index, and ledger operations in WEA |
+| ADD | immutable versioned Domain registry | validate canonical record and registry hashes in `src/wea_vnext/domain_access.py`; publish `domains/registry/v1.json` only from a verified public repository ID and commit |
+| ADD | internal seven-day Access | add immutable grant, expiry, idempotency, and state values with global per-Agent overlap prevention |
+| REJECT | GitHub permission as Access state or effect | expose no permission field, grant, revoke, check, or reconciliation operation |
+| REJECT | early revoke, renewal, extension, suspension, or transfer | active interval is exactly `[starts_at, starts_at + 7 days)` |
+| KEEP | 67-scenario Spec `0.9` runtime | do not edit ruleset `0.8`, executor `v0_8_0`, manifests, or runtime facades |
+| DEFER | S-13C financial correction | start a separate OLED change and PR after Domain/Access merges |
+
+### Executable surface
+
+| Component | Action | Boundary |
+| --- | --- | --- |
+| external `WeTheAgents/circle-1` | ADD | public Domain owns portable Circle-1 history, package, docs, and tests |
+| `src/wea_vnext/domain_access.py` | ADD | inactive offline control-plane library outside executor closures |
+| `domains/registry/v1.json` | ADD | canonical immutable binding to repository ID `R_kgDOT4-F-Q` and public revision `36a71440840351aa462e61a8ad5955881f55ecb0` |
+| `tests/vnext/test_domain_registry.py`, `test_access.py` | ADD | exact S-11A/S-11B evidence and negative-boundary evidence |
+| `tests/vnext/scenarios.py` | MODIFY AFTER EXTERNAL GATE | promote only S-11A/S-11B; retain S-13C accepted-future |
+| ledger, live Tide, CLI writers, GitHub permissions | NO CHANGE | no production write or activation |
+
+The external Circle-1 revision and the focused control-plane code are verified.
+The live manifest pins the exact public identity. S-11A and S-11B are current
+control-plane scenarios; S-13C remains accepted-future.
+
+## Historical delta 0.9: full Plan execution
 
 | Decision | Current behavior | Implementation consequence |
 | --- | --- | --- |
