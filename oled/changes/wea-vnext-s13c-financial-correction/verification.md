@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Date:** 2026-08-15
-**Status:** Local implementation verified; independent review clean; CI pending
+**Status:** Review P1 fixed and locally verified; final review and CI pending
 
 Decision: `S13C implemented as an inactive control plane; not live`.
 
@@ -25,7 +25,7 @@ Decision: `S13C implemented as an inactive control plane; not live`.
 | Scenario | Evidence | Result |
 | --- | --- | --- |
 | S-13C.1 atomic redistribution | `test_s_13c_1_atomic_redistribution_preserves_published_row_bytes` | PASS; two deterministic rows append after the exact published-row prefix. |
-| S-13C.2 supply correction | `test_s_13c_2_mint_and_burn_adjust_supply_with_position_amounts` | PASS; position totals and total minted move together. |
+| S-13C.2 supply correction | mint/burn sequence, burn-only, and signed-opening tests | PASS; position totals and signed total minted move together while resulting supply stays non-negative. |
 | S-13C.3 approval boundary | missing, mismatch, independence, unknown, inactive, and premature tests | PASS; invalid evidence returns no group. |
 | S-13C.4 financial rejection | unknown row, unknown position, negative result, invalid transfer, invalid opening, and malformed posting tests | PASS; state remains unchanged. |
 | S-13C.5 replay and reconstruction | exact replay, identity conflict, clean reconstruction, and tamper tests | PASS; no duplicate group and modified evidence is rejected. |
@@ -36,9 +36,9 @@ Decision: `S13C implemented as an inactive control plane; not live`.
 
 | Command or check | Exit / result | Material evidence |
 | --- | --- | --- |
-| `python -m pytest tests/vnext/test_correction.py tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q` | 0 | `29 passed`. |
-| `python -m pytest tests/vnext -q` | 0 | `475 passed, 18 skipped`. |
-| `PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4760 passed, 18 skipped, 11 xfailed`. |
+| `python -m pytest tests/vnext/test_correction.py tests/vnext/test_scenario_registry.py tests/vnext/test_runtime_boundary.py -q` | 0 | `31 passed`. |
+| `python -m pytest tests/vnext -q` | 0 | `477 passed, 18 skipped`. |
+| `PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4762 passed, 18 skipped, 11 xfailed`. |
 | `python -m ruff check src/wea_vnext tests/vnext` | 0 | All checks passed. |
 | `python -m pyright src/wea_vnext tests/vnext/test_correction.py` | 0 | 0 errors, 0 warnings. |
 | `python -m compileall -q src/wea_vnext tests/vnext` | 0 | Syntax compilation passed. |
@@ -88,11 +88,13 @@ malformed caller object cannot escape as a raw attribute failure.
 
 ## Independent review
 
-`codex exec review --base origin/main` pass 1 found no actionable defect. It
-independently inspected the complete branch diff and reran the 29-test focused
-correction, scenario-registry, and runtime-boundary gate successfully. A final
-review rerun remains required after this documentation-only review record is
-committed.
+Pass 1 found no actionable defect. Pass 2 found one P1 contract error: the code
+required cumulative `total_minted` to remain non-negative, but the accepted
+contract defines it as a signed supply adjustment and requires only
+`opening_supply + total_minted` to remain non-negative. The invariant and
+opening-state validation now implement that rule. Burn-only and signed-opening
+regressions pass, along with the complete verification matrix. A clean review
+rerun remains required on the corrected head.
 
 ## Completion ceiling
 

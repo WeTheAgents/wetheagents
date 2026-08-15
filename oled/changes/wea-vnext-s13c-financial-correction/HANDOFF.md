@@ -1,6 +1,6 @@
 # Agent0 handoff: S13C financial correction
 
-Status: `implementation locally verified / independent review clean`.
+Status: `review finding fixed / final independent review pending`.
 
 The operator approved the separate S13C delivery on 2026-08-15 and explicitly
 rejected a narrow successor reference runtime. The implementation is an
@@ -40,20 +40,21 @@ inactive control-plane library. WEA vNext remains `Not live`.
 
 ## Current evidence
 
-- Focused S13C/scenario/runtime gate: `29 passed`.
-- Full vNext suite: `475 passed, 18 skipped`.
-- Full repository suite: `4760 passed, 18 skipped, 11 xfailed`.
+- Focused S13C/scenario/runtime gate: `31 passed`.
+- Full vNext suite: `477 passed, 18 skipped`.
+- Full repository suite: `4762 passed, 18 skipped, 11 xfailed`.
 - Ruff: clean. Pyright: 0 errors and 0 warnings.
 - Refreshed code graph: `apply_financial_correction` has no non-test inbound
   caller.
 - Current scenario registry: 70 current scenarios; no accepted-future scenario.
-- `codex exec review --base origin/main` pass 1 found no actionable defect and
-  independently reran the 29-test focused gate.
+- Review pass 2 found that valid burn-only corrections could not make the signed
+  supply adjustment negative. The invariant now rejects only a negative
+  resulting supply. Two regressions and the complete verification matrix pass.
 
 ## Exact continuation
 
-1. Commit and push this review record to both published feature branches.
-2. Rerun `codex exec review` on the documentation-only follow-up.
+1. Commit and push the P1 fix and review record to both feature branches.
+2. Rerun `codex exec review` on the exact corrected head.
 3. Require green PR checks before marking ready and merging PR `#943`.
 
 ## Future live-cutover gate

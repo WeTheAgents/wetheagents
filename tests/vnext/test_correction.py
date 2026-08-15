@@ -218,6 +218,56 @@ def test_s_13c_2_mint_and_burn_adjust_supply_with_position_amounts() -> None:
     assert sum(_amounts(burned).values()) == burned.opening_supply + 5
 
 
+def test_s_13c_2_burn_can_create_a_signed_negative_supply_adjustment() -> None:
+    state = _state()
+    burn = _proposal(
+        correction_id="correction:2026-08-15:opening-burn",
+        idempotency_key="financial-correction:2026-08-15:opening-burn",
+        affected_ledger_ids=("ledger:history:2026-08-14:1",),
+        postings=(CompensatingPosting("balance:alice", -10, "burn"),),
+    )
+
+    burned, _ = apply_financial_correction(
+        state,
+        proposal=burn,
+        approvals=_approvals(state, burn),
+        effective_at=START + timedelta(minutes=2),
+    )
+
+    assert burned.total_minted == -10
+    assert sum(_amounts(burned).values()) == burned.opening_supply - 10
+
+
+def test_signed_opening_supply_adjustment_reconstructs_when_supply_is_valid() -> None:
+    state = initial_financial_correction_state(
+        opening_supply=185,
+        opening_total_minted=-10,
+        opening_positions=(
+            MoneyPosition("balance:alice", "balance", 100),
+            MoneyPosition("balance:bob", "balance", 50),
+            MoneyPosition("escrow:task-42", "escrow", 25),
+        ),
+        published_rows=(
+            make_published_ledger_row("ledger:history:1", b"{}"),
+        ),
+        authority_bindings=(_authority("operator"), _authority("agent0")),
+    )
+
+    assert state.total_minted == -10
+    assert sum(_amounts(state).values()) == 175
+
+    with pytest.raises(FinancialCorrectionError, match="resulting supply"):
+        initial_financial_correction_state(
+            opening_supply=5,
+            opening_total_minted=-10,
+            opening_positions=(MoneyPosition("balance:alice", "balance", 0),),
+            published_rows=(
+                make_published_ledger_row("ledger:history:1", b"{}"),
+            ),
+            authority_bindings=(_authority("operator"), _authority("agent0")),
+        )
+
+
 def test_s_13c_3_missing_or_mismatched_approval_changes_nothing() -> None:
     state = _state()
     proposal = _proposal()

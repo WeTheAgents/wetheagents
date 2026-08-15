@@ -65,6 +65,12 @@ def _require_nonnegative_integer(value: object, *, field: str) -> int:
     return value
 
 
+def _require_integer(value: object, *, field: str) -> int:
+    if type(value) is not int:
+        raise FinancialCorrectionError(f"{field} must be an integer")
+    return value
+
+
 def _utc(value: datetime, *, field: str) -> datetime:
     if type(value) is not datetime or value.tzinfo is None:
         raise FinancialCorrectionError(
@@ -892,13 +898,12 @@ def _check_invariant(
     total_minted: int,
     boundary: str,
 ) -> None:
-    if total_minted < 0:
+    resulting_supply = opening_supply + total_minted
+    if resulting_supply < 0:
         raise FinancialCorrectionError(
-            f"{boundary} total_minted must be non-negative"
+            f"{boundary} resulting supply must be non-negative"
         )
-    if sum(position.amount for position in positions) != (
-        opening_supply + total_minted
-    ):
+    if sum(position.amount for position in positions) != resulting_supply:
         raise FinancialCorrectionError(
             f"{boundary} financial invariant does not hold"
         )
@@ -1115,7 +1120,7 @@ class FinancialCorrectionState:
             self.opening_supply,
             field="opening_supply",
         )
-        opening_total_minted = _require_nonnegative_integer(
+        opening_total_minted = _require_integer(
             self.opening_total_minted,
             field="opening_total_minted",
         )
