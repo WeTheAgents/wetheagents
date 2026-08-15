@@ -11,6 +11,7 @@ from wea_vnext.domain_access import (
     AccessExpiry,
     AccessGrant,
     DomainAccessState,
+    DomainRegistry,
     IdempotencyRecord,
     build_domain_registry,
     expire_access,
@@ -264,3 +265,26 @@ def test_access_state_revalidates_global_overlap_and_idempotency_links() -> None
 def test_access_rejects_noncanonical_domain_as_an_access_error() -> None:
     with pytest.raises(AccessError, match="domain_id"):
         _grant(_state(), domain_id="Circle One")
+
+
+def test_access_rejects_forged_registry_and_state_subclasses() -> None:
+    class ForgedRegistry(DomainRegistry):
+        def __post_init__(self) -> None:
+            pass
+
+    class ForgedState(DomainAccessState):
+        def __post_init__(self) -> None:
+            pass
+
+    valid_registry = _state().registry
+    forged_registry = ForgedRegistry(
+        schema_version=2,
+        records=valid_registry.records,
+        registry_hash="f" * 64,
+    )
+    with pytest.raises(AccessError, match="DomainRegistry"):
+        initial_access_state(forged_registry)
+
+    forged_state = ForgedState(registry=valid_registry)
+    with pytest.raises(AccessError, match="DomainAccessState"):
+        _grant(forged_state)

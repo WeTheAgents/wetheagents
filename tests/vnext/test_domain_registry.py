@@ -6,6 +6,8 @@ from pathlib import Path
 import pytest
 
 from wea_vnext.domain_access import (
+    DomainRecord,
+    DomainRegistry,
     DomainRegistryError,
     build_domain_registry,
     load_domain_registry,
@@ -184,3 +186,37 @@ def test_registry_normalizes_oversized_integer_parse_failure() -> None:
 
     with pytest.raises(DomainRegistryError, match="strict JSON"):
         load_domain_registry_bytes(raw)
+
+
+def test_registry_rejects_forged_record_and_registry_subclasses() -> None:
+    class ForgedRecord(DomainRecord):
+        def __post_init__(self) -> None:
+            pass
+
+    class ForgedRegistry(DomainRegistry):
+        def __post_init__(self) -> None:
+            pass
+
+    forged_record = ForgedRecord(
+        domain_id="circle-1",
+        repository_id=REPOSITORY_ID,
+        repository_locator=LOCATOR,
+        revision=REVISION,
+        record_hash="f" * 64,
+    )
+    with pytest.raises(DomainRegistryError, match="DomainRecord"):
+        build_domain_registry((forged_record,))
+
+    valid_record = make_domain_record(
+        domain_id="circle-1",
+        repository_id=REPOSITORY_ID,
+        repository_locator=LOCATOR,
+        revision=REVISION,
+    )
+    forged_registry = ForgedRegistry(
+        schema_version=2,
+        records=(valid_record,),
+        registry_hash="f" * 64,
+    )
+    with pytest.raises(DomainRegistryError, match="DomainRegistry"):
+        serialize_domain_registry(forged_registry)

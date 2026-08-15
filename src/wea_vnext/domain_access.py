@@ -67,7 +67,7 @@ def _hash_value(value: object) -> str:
 
 
 def _require_string(value: object, *, field: str, error: type[ValueError]) -> str:
-    if not isinstance(value, str) or not value or len(value) > 512:
+    if type(value) is not str or not value or len(value) > 512:
         raise error(f"{field} must be a non-empty bounded string")
     return value
 
@@ -102,7 +102,7 @@ class DomainRecord:
         _validate_repository_id(self.repository_id)
         _validate_repository_locator(self.repository_locator)
         _validate_revision(self.revision)
-        if not isinstance(self.record_hash, str) or not _HASH.fullmatch(
+        if type(self.record_hash) is not str or not _HASH.fullmatch(
             self.record_hash
         ):
             raise DomainRegistryError("record_hash must be a lowercase SHA-256")
@@ -184,6 +184,21 @@ def make_domain_record(
     return DomainRecord(**payload, record_hash=_hash_value(payload))
 
 
+def _rebuild_domain_record(record: DomainRecord) -> DomainRecord:
+    """Revalidate one exact caller-owned record without trusting its constructor."""
+
+    try:
+        return DomainRecord(
+            domain_id=record.domain_id,
+            repository_id=record.repository_id,
+            repository_locator=record.repository_locator,
+            revision=record.revision,
+            record_hash=record.record_hash,
+        )
+    except AttributeError as exc:
+        raise DomainRegistryError("Domain record is incomplete") from exc
+
+
 def _registry_payload(
     schema_version: int,
     records: Iterable[DomainRecord],
@@ -205,14 +220,16 @@ class DomainRegistry:
     def __post_init__(self) -> None:
         if type(self.schema_version) is not int or self.schema_version != 1:
             raise DomainRegistryError("schema_version must be the integer 1")
-        if not isinstance(self.records, tuple) or not self.records:
+        if type(self.records) is not tuple or not self.records:
             raise DomainRegistryError(
                 "registry must contain at least one Domain record"
             )
         if len(self.records) > _MAX_RECORDS:
             raise DomainRegistryError("registry contains too many Domain records")
-        if any(not isinstance(record, DomainRecord) for record in self.records):
+        if any(type(record) is not DomainRecord for record in self.records):
             raise DomainRegistryError("registry records must be DomainRecord values")
+        records = tuple(_rebuild_domain_record(record) for record in self.records)
+        object.__setattr__(self, "records", records)
         if tuple(sorted(self.records, key=lambda item: item.domain_id)) != self.records:
             raise DomainRegistryError("registry records must be sorted by domain_id")
         _require_unique(
@@ -223,7 +240,7 @@ class DomainRegistry:
             (record.repository_id for record in self.records),
             field="repository_id",
         )
-        if not isinstance(self.registry_hash, str) or not _HASH.fullmatch(
+        if type(self.registry_hash) is not str or not _HASH.fullmatch(
             self.registry_hash
         ):
             raise DomainRegistryError("registry_hash must be a lowercase SHA-256")
@@ -255,7 +272,11 @@ def _require_unique(values: Iterable[str], *, field: str) -> None:
 def build_domain_registry(records: Iterable[DomainRecord]) -> DomainRegistry:
     """Build a sorted registry and bind its full record set with a hash."""
 
-    ordered = tuple(sorted(records, key=lambda item: item.domain_id))
+    candidates = tuple(records)
+    if any(type(record) is not DomainRecord for record in candidates):
+        raise DomainRegistryError("registry records must be DomainRecord values")
+    validated = tuple(_rebuild_domain_record(record) for record in candidates)
+    ordered = tuple(sorted(validated, key=lambda item: item.domain_id))
     payload = _registry_payload(1, ordered)
     return DomainRegistry(
         schema_version=1,
@@ -267,9 +288,17 @@ def build_domain_registry(records: Iterable[DomainRecord]) -> DomainRegistry:
 def serialize_domain_registry(registry: DomainRegistry) -> bytes:
     """Return the exact canonical bytes for a validated registry."""
 
-    if not isinstance(registry, DomainRegistry):
+    if type(registry) is not DomainRegistry:
         raise DomainRegistryError("registry must be a DomainRegistry value")
-    return _canonical_bytes(registry.to_mapping())
+    try:
+        validated = DomainRegistry(
+            schema_version=registry.schema_version,
+            records=registry.records,
+            registry_hash=registry.registry_hash,
+        )
+    except AttributeError as exc:
+        raise DomainRegistryError("registry is incomplete") from exc
+    return _canonical_bytes(validated.to_mapping())
 
 
 def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -396,7 +425,7 @@ def _access_domain_id(value: object) -> str:
 
 
 def _utc(value: datetime, *, field: str) -> datetime:
-    if not isinstance(value, datetime) or value.tzinfo is None:
+    if type(value) is not datetime or value.tzinfo is None:
         raise AccessError(f"{field} must be a timezone-aware datetime")
     try:
         if value.utcoffset() is None:
@@ -458,7 +487,7 @@ class AccessGrant:
         _access_string(self.authority_revision_id, field="authority_revision_id")
         _access_string(self.agent_id, field="agent_id")
         _access_domain_id(self.domain_id)
-        if not isinstance(self.registry_hash, str) or not _HASH.fullmatch(
+        if type(self.registry_hash) is not str or not _HASH.fullmatch(
             self.registry_hash
         ):
             raise AccessError("registry_hash must be a lowercase SHA-256")
@@ -511,7 +540,7 @@ class IdempotencyRecord:
         _access_string(self.key, field="idempotency key")
         if self.operation not in {"grant_access", "expire_access"}:
             raise AccessError("idempotency operation is not supported")
-        if not isinstance(self.request_hash, str) or not _HASH.fullmatch(
+        if type(self.request_hash) is not str or not _HASH.fullmatch(
             self.request_hash
         ):
             raise AccessError("idempotency request_hash must be a SHA-256")
@@ -526,17 +555,41 @@ class DomainAccessState:
     idempotency_records: tuple[IdempotencyRecord, ...] = ()
 
     def __post_init__(self) -> None:
-        if not isinstance(self.registry, DomainRegistry):
+        if type(self.registry) is not DomainRegistry:
             raise AccessError("state registry must be a DomainRegistry")
-        for field, values, expected_type in (
-            ("grants", self.grants, AccessGrant),
-            ("expiries", self.expiries, AccessExpiry),
-            ("idempotency_records", self.idempotency_records, IdempotencyRecord),
+        try:
+            registry = DomainRegistry(
+                schema_version=self.registry.schema_version,
+                records=self.registry.records,
+                registry_hash=self.registry.registry_hash,
+            )
+        except (AttributeError, DomainRegistryError) as exc:
+            raise AccessError("state registry is not a verified manifest") from exc
+        object.__setattr__(self, "registry", registry)
+        if type(self.grants) is not tuple or any(
+            type(value) is not AccessGrant for value in self.grants
         ):
-            if not isinstance(values, tuple) or any(
-                not isinstance(value, expected_type) for value in values
-            ):
-                raise AccessError(f"state {field} must be an immutable typed tuple")
+            raise AccessError("state grants must be an immutable typed tuple")
+        if type(self.expiries) is not tuple or any(
+            type(value) is not AccessExpiry for value in self.expiries
+        ):
+            raise AccessError("state expiries must be an immutable typed tuple")
+        if type(self.idempotency_records) is not tuple or any(
+            type(value) is not IdempotencyRecord
+            for value in self.idempotency_records
+        ):
+            raise AccessError(
+                "state idempotency_records must be an immutable typed tuple"
+            )
+        try:
+            for grant in self.grants:
+                AccessGrant.__post_init__(grant)
+            for expiry in self.expiries:
+                AccessExpiry.__post_init__(expiry)
+            for record in self.idempotency_records:
+                IdempotencyRecord.__post_init__(record)
+        except AttributeError as exc:
+            raise AccessError("state contains an incomplete value") from exc
         _access_unique(
             (grant.access_id for grant in self.grants),
             label="access_id",
@@ -635,6 +688,18 @@ def initial_access_state(registry: DomainRegistry) -> DomainAccessState:
     return DomainAccessState(registry=registry)
 
 
+def _require_access_state(state: DomainAccessState) -> DomainAccessState:
+    """Revalidate one exact state before using any caller-owned fields."""
+
+    if type(state) is not DomainAccessState:
+        raise AccessError("state must be a DomainAccessState")
+    try:
+        DomainAccessState.__post_init__(state)
+    except AttributeError as exc:
+        raise AccessError("state is incomplete") from exc
+    return state
+
+
 def _idempotency_request(
     *,
     operation: str,
@@ -680,8 +745,7 @@ def grant_access(
 ) -> tuple[DomainAccessState, AccessGrant]:
     """Grant one fixed Access if source, Domain, and global overlap checks pass."""
 
-    if not isinstance(state, DomainAccessState):
-        raise AccessError("state must be a DomainAccessState")
+    state = _require_access_state(state)
     authority_kind = _access_string(authority_kind, field="authority_kind")
     authority_id = _access_string(authority_id, field="authority_id")
     authority_revision_id = _access_string(
@@ -761,8 +825,7 @@ def expire_access(
 ) -> tuple[DomainAccessState, AccessExpiry]:
     """Record the deterministic expiry at the grant's exact ends_at boundary."""
 
-    if not isinstance(state, DomainAccessState):
-        raise AccessError("state must be a DomainAccessState")
+    state = _require_access_state(state)
     access_id = _access_string(access_id, field="access_id")
     at = _utc(effective_at, field="effective_at")
     request = {"access_id": access_id, "effective_at": _timestamp(at)}
@@ -808,8 +871,12 @@ def expire_access(
 def is_access_active(access: AccessGrant, at: datetime) -> bool:
     """Return whether a time is inside the fixed half-open Access interval."""
 
-    if not isinstance(access, AccessGrant):
+    if type(access) is not AccessGrant:
         raise AccessError("access must be an AccessGrant")
+    try:
+        AccessGrant.__post_init__(access)
+    except AttributeError as exc:
+        raise AccessError("access is incomplete") from exc
     instant = _utc(at, field="at")
     return access.starts_at <= instant < access.ends_at
 
