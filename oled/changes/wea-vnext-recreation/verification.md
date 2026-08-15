@@ -1,6 +1,6 @@
 # WEA vNext: Domain/Access verification 1.0
 
-Decision: `Domain/Access implementation verified — independent PR review pending`.
+Decision: `Domain/Access implementation verified — independent PR review clean`.
 
 The external Domain, immutable WEA manifest, and inactive Access control plane
 are implemented and pass their focused evidence. S-11A and S-11B are current;
@@ -10,7 +10,7 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `Pending`.
+Статус независимой проверки: `CLEAN`.
 
 ## Artifact versions
 
@@ -54,7 +54,7 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 | Live registry manifest | canonical `domains/registry/v1.json` | Complete. |
 | Access implementation | focused tests and reconstructed-state invariants | Complete and current as an inactive control plane. |
 | BDD promotion | scenario registry and focused contract tests | Complete: 69 current and one accepted-future. |
-| Independent review and publication | fresh candidate against `origin/main` | Pending. |
+| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Review pass 1 clean; PR checks and merge pending. |
 
 ## Fresh commands
 
@@ -91,7 +91,9 @@ then passed with the result above.
 ## Independent review
 
 - Trigger: serious durable change with an external repository contract.
-- Result: pending. A clean independent review remains mandatory before merge.
+- Result: pass 1 clean. The reviewer found the control plane, manifest,
+  scenario scope, and durable artifacts internally consistent and reproduced
+  the 32-test gate plus review-artifact build.
 
 ## Protected lean cut
 
@@ -108,9 +110,9 @@ then passed with the result above.
 
 ## Evidence gaps and smallest next action
 
-The only remaining evidence gap is independent review, WEA PR checks, and
-merge. The smallest next action is to commit the narrow candidate, publish its
-PR, and repeat independent review until clean.
+The only remaining evidence gap is WEA PR checks and merge. The smallest next
+action is to publish this review record, repeat review on the exact branch, and
+merge PR `#942` after all checks pass.
 
 ## Historical Spec 0.9 verification record
 
