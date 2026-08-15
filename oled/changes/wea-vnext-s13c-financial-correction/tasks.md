@@ -77,7 +77,7 @@
   tests, and research/live isolation.
 - [x] Commit and push the dedicated branch and open one draft PR. Wait for all
   required checks.
-- [ ] Run `codex exec review`, fix every actionable finding, and repeat until
+- [x] Run `codex exec review`, fix every actionable finding, and repeat until
   clean.
 - [ ] Mark the PR ready and merge only after local verification, review, and CI
   are clean.

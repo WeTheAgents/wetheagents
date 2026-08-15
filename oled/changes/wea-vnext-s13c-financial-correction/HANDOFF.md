@@ -1,6 +1,6 @@
 # Agent0 handoff: S13C financial correction
 
-Status: `review finding fixed / final independent review pending`.
+Status: `independent review clean / GitHub CI pending`.
 
 The operator approved the separate S13C delivery on 2026-08-15 and explicitly
 rejected a narrow successor reference runtime. The implementation is an
@@ -50,11 +50,13 @@ inactive control-plane library. WEA vNext remains `Not live`.
 - Review pass 2 found that valid burn-only corrections could not make the signed
   supply adjustment negative. The invariant now rejects only a negative
   resulting supply. Two regressions and the complete verification matrix pass.
+- Review pass 3 on corrected head `734eabc` found no actionable defect and
+  independently reran the 31 focused tests successfully.
 
 ## Exact continuation
 
-1. Commit and push the P1 fix and review record to both feature branches.
-2. Rerun `codex exec review` on the exact corrected head.
+1. Commit and push this clean-review record to both feature branches.
+2. Rerun `codex exec review` on that exact documentation-only head.
 3. Require green PR checks before marking ready and merging PR `#943`.
 
 ## Future live-cutover gate

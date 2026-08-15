@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Date:** 2026-08-15
-**Status:** Review P1 fixed and locally verified; final review and CI pending
+**Status:** Corrected implementation independently reviewed clean; CI pending
 
 Decision: `S13C implemented as an inactive control plane; not live`.
 
@@ -62,8 +62,7 @@ deprecation warning. Neither warning is caused by this change.
   entrypoints are unchanged.
 - The commit-aware PR-scope check passes for all 12 changed files. The protected
   ledger/runtime diff is empty.
-- Independent review and GitHub CI remain publication gates and must be added
-  below after completion.
+- GitHub CI remains the final publication gate.
 
 ## Self-roast
 
@@ -93,8 +92,9 @@ required cumulative `total_minted` to remain non-negative, but the accepted
 contract defines it as a signed supply adjustment and requires only
 `opening_supply + total_minted` to remain non-negative. The invariant and
 opening-state validation now implement that rule. Burn-only and signed-opening
-regressions pass, along with the complete verification matrix. A clean review
-rerun remains required on the corrected head.
+regressions pass, along with the complete verification matrix. Pass 3 reviewed
+corrected head `734eabc`, reran all 31 focused tests, and reported no actionable
+defect. One final exact-head review follows this documentation-only record.
 
 ## Completion ceiling
 
