@@ -1,6 +1,6 @@
 # Agent0 handoff: S13C financial correction
 
-Status: `review-clean and locally verified / exact-head CI pending`.
+Status: `complete / merged`.
 
 The operator approved the separate S13C delivery on 2026-08-15 and explicitly
 rejected a narrow successor reference runtime. The implementation is an
@@ -77,11 +77,13 @@ inactive control-plane library. WEA vNext remains `Not live`.
   findings`.
 - The required final `codex exec review --base origin/main` found no actionable
   defect on the complete diff and independently reran all 45 focused tests.
+- All five exact-head GitHub checks passed on `73c2a72`; PR `#943` was marked
+  ready and squash-merged as `942998d` on 2026-08-15.
 
-## Exact continuation
+## Completion
 
-1. Commit and push the exact reviewed content to both feature branches.
-2. Require green PR checks before marking ready and merging PR `#943`.
+No task-local continuation remains. Any live connection is a new OLED change
+under the gate below.
 
 ## Future live-cutover gate
 
