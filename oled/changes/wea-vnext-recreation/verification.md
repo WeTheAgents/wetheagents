@@ -1,6 +1,6 @@
 # WEA vNext: Domain/Access verification 1.0
 
-Decision: `Domain/Access implementation verified — independent PR review clean`.
+Decision: `Domain/Access implementation verified — independent PR review pending`.
 
 The external Domain, immutable WEA manifest, and inactive Access control plane
 are implemented and pass their focused evidence. S-11A and S-11B are current;
@@ -10,7 +10,7 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 
 Статус свежих команд: `Complete`.
 
-Статус независимой проверки: `CLEAN`.
+Статус независимой проверки: `Pending`.
 
 ## Artifact versions
 
@@ -54,7 +54,7 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 | Live registry manifest | canonical `domains/registry/v1.json` | Complete. |
 | Access implementation | focused tests and reconstructed-state invariants | Complete and current as an inactive control plane. |
 | BDD promotion | scenario registry and focused contract tests | Complete: 69 current and one accepted-future. |
-| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Review pass 1 clean; PR checks and merge pending. |
+| Independent review and publication | PR `#942`; `codex exec review --base origin/main` | Pass 1 clean; pass 2 found three malformed-input defects; fixes pass targeted and full suites; final review pending. |
 
 ## Fresh commands
 
@@ -64,10 +64,10 @@ S-13C is the only accepted-future scenario. WEA vNext remains `Not live`.
 | external `ruff check src tests`; `pyright src` | 0 | Ruff clean; 0 errors and 0 warnings. |
 | installed `circle1-score --root <WEA> --profile <WEA profile> ...` | 0 | Black-box checkpoint created with declared `3` and exercised `3`. |
 | external GitHub CI | 0 | Run `31866669759` passed package tests, Ruff, and Pyright at the pinned revision. |
-| `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q` | 0 | `20 passed`. |
-| focused Domain/Access/scenario/runtime gate | 0 | `32 passed`. |
-| `python -m pytest tests/vnext -q` | 0 | `450 passed, 18 skipped`. |
-| `$env:PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4735 passed, 18 skipped, 11 xfailed`. |
+| `python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q` | 0 | `24 passed`. |
+| focused Domain/Access/scenario/runtime gate | 0 | `36 passed`. |
+| `python -m pytest tests/vnext -q` | 0 | `454 passed, 18 skipped`. |
+| `$env:PYTHONPATH=<worktree>/src; python -m pytest -q` | 0 | `4739 passed, 18 skipped, 11 xfailed`. |
 | `ruff check src/wea_vnext tests/vnext ...`; `pyright src/wea_vnext` | 0 | Ruff clean; 0 errors and 0 warnings. |
 | invariant, ledger schema, doc sync | 0 | `19025 = 10000 + 9025`; schema and docs pass. |
 | `git diff --check`; protected-path diff | 0 | Whitespace clean; runtime, ruleset, and `ledger/domains.json` unchanged. |
@@ -91,9 +91,10 @@ then passed with the result above.
 ## Independent review
 
 - Trigger: serious durable change with an external repository contract.
-- Result: pass 1 clean. The reviewer found the control plane, manifest,
-  scenario scope, and durable artifacts internally consistent and reproduced
-  the 32-test gate plus review-artifact build.
+- Result: pass 1 was clean. Pass 2 found three fail-closed gaps: undefined UTC
+  offsets, noncanonical repository path components, and oversized JSON integer
+  errors. All three have focused regressions and pass the refreshed full suites.
+  Final review of the fixes is pending.
 
 ## Protected lean cut
 
@@ -110,9 +111,9 @@ then passed with the result above.
 
 ## Evidence gaps and smallest next action
 
-The only remaining evidence gap is WEA PR checks and merge. The smallest next
-action is to publish this review record, repeat review on the exact branch, and
-merge PR `#942` after all checks pass.
+The remaining evidence gaps are final independent review, WEA PR checks, and
+merge. The smallest next action is to publish the fixes and repeat review on
+the exact branch.
 
 ## Historical Spec 0.9 verification record
 

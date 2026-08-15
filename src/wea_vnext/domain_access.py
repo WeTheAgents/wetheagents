@@ -21,7 +21,9 @@ _DOMAIN_ID = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
 _HASH = re.compile(r"[0-9a-f]{64}")
 _REPOSITORY_ID = re.compile(r"[A-Za-z0-9_=-]{1,128}")
 _REPOSITORY_LOCATOR = re.compile(
-    r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
+    r"https://github\.com/"
+    r"(?P<owner>[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)/"
+    r"(?P<repository>[A-Za-z0-9_.-]{1,100})"
 )
 _REVISION = re.compile(r"[0-9a-f]{40}")
 _ALLOWED_AUTHORITIES = frozenset({"agent0", "operator"})
@@ -144,9 +146,15 @@ def _validate_repository_locator(value: object) -> str:
         field="repository_locator",
         error=DomainRegistryError,
     )
-    if not _REPOSITORY_LOCATOR.fullmatch(value):
+    match = _REPOSITORY_LOCATOR.fullmatch(value)
+    if match is None:
         raise DomainRegistryError(
             "repository locator must be a canonical GitHub HTTPS URL"
+        )
+    repository = match.group("repository")
+    if repository in {".", ".."} or repository.endswith((".", ".git")):
+        raise DomainRegistryError(
+            "repository locator must use a canonical GitHub repository path"
         )
     return value
 
@@ -291,7 +299,12 @@ def _load_json(raw: bytes, *, source: str) -> Mapping[str, object]:
         )
     except DomainRegistryError:
         raise
-    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as exc:
+    except (
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        RecursionError,
+        ValueError,
+    ) as exc:
         raise DomainRegistryError(f"{source} is not strict JSON") from exc
     if not isinstance(value, dict):
         raise DomainRegistryError(f"{source} must contain one JSON object")
@@ -386,8 +399,12 @@ def _utc(value: datetime, *, field: str) -> datetime:
     if not isinstance(value, datetime) or value.tzinfo is None:
         raise AccessError(f"{field} must be a timezone-aware datetime")
     try:
+        if value.utcoffset() is None:
+            raise AccessError(f"{field} must have a defined UTC offset")
         return value.astimezone(timezone.utc)
-    except (OverflowError, ValueError) as exc:
+    except AccessError:
+        raise
+    except (OverflowError, TypeError, ValueError) as exc:
         raise AccessError(f"{field} cannot be normalized to UTC") from exc
 
 

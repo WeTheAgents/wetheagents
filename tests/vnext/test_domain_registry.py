@@ -112,6 +112,9 @@ def test_registry_rejects_changed_record_or_registry_hash() -> None:
         ("repository_id", "", "repository_id"),
         ("repository_locator", "git@github.com:WeTheAgents/circle-1.git", "locator"),
         ("repository_locator", LOCATOR + "/", "locator"),
+        ("repository_locator", "https://github.com/WeTheAgents/.", "locator"),
+        ("repository_locator", "https://github.com/-owner/circle-1", "locator"),
+        ("repository_locator", LOCATOR + ".git", "locator"),
         ("revision", "abc123", "revision"),
     ),
 )
@@ -168,3 +171,16 @@ def test_registry_load_does_not_use_a_network_or_mutable_lookup(
     registry = load_domain_registry_bytes(_registry_bytes())
 
     assert registry.records[0].repository_locator == LOCATOR
+
+
+def test_registry_normalizes_oversized_integer_parse_failure() -> None:
+    raw = (
+        b'{"records":[],"registry_hash":"'
+        + b"0" * 64
+        + b'","schema_version":'
+        + b"9" * 5000
+        + b"}"
+    )
+
+    with pytest.raises(DomainRegistryError, match="strict JSON"):
+        load_domain_registry_bytes(raw)

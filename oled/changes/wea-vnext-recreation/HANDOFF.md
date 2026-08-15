@@ -1,6 +1,6 @@
-# Agent0 handoff: Domain/Access review-clean
+# Agent0 handoff: Domain/Access review pending
 
-Status: `implementation verified / independent PR review clean`.
+Status: `implementation verified / independent PR review pending`.
 
 The operator accepted Outcome/Spec `1.0` and design `1.1` on 2026-08-15. The
 operator explicitly rejected a narrow successor reference runtime. S-13C
@@ -47,28 +47,28 @@ financial correction remains a separate future change. WEA vNext remains
   profile, target, revision, and output inputs.
 - The canonical `domains/registry/v1.json` binds the permanent repository ID,
   canonical locator, exact revision, record hash, and registry hash.
-- WEA Domain registry and Access focus: `20 passed`.
-- WEA scenario/runtime focus: `32 passed`.
+- WEA Domain registry and Access focus: `24 passed`.
+- WEA scenario/runtime focus: `36 passed`.
 - The current scenario registry contains exactly 69 current scenarios and one
   accepted-future scenario. `BDD alignment: 100%`.
-- Full WEA vNext suite: `450 passed, 18 skipped`.
+- Full WEA vNext suite: `454 passed, 18 skipped`.
 - Full repository suite with the worktree `src` on `PYTHONPATH`:
-  `4735 passed, 18 skipped, 11 xfailed`.
+  `4739 passed, 18 skipped, 11 xfailed`.
 - WEA Ruff: clean. WEA Pyright: 0 errors and 0 warnings.
 - Economy invariant, ledger schema, task-index schema, doc sync, protected
   runtime/ledger diff, and `git diff --check`: pass.
 
 ## Remaining gate
 
-There is no product, design, identity, or review blocker. PR `#942` is open and
-independent review pass 1 is clean. The remaining gate is PR checks and merge.
-Do not add S-13C, a successor runtime, live Tide, ledger writes, bootstrap,
-migration, or GitHub permission operations to this PR.
+There is no product, design, or identity blocker. PR `#942` is open. Review
+pass 2 found three malformed-input defects; all fixes and refreshed suites pass.
+The remaining gates are final independent review, PR checks, and merge. Do not
+add S-13C, a successor runtime, live Tide, ledger writes, bootstrap, migration,
+or GitHub permission operations to this PR.
 
 ## Exact resume sequence
 
-1. Publish this review-clean record and repeat independent review on the exact
-   branch.
+1. Publish the pass-2 fixes and repeat independent review on the exact branch.
 2. Mark PR `#942` ready and merge after CI passes.
 3. Start S-13C as a separate OLED change and PR only after this PR merges.
 

@@ -40,7 +40,7 @@ Relevant rejected alternatives:
 
 WEA stores published registry manifests at `domains/registry/v<N>.json`. A manifest contains `schema_version`, canonical Domain records, and `registry_hash`.
 
-The `registry_hash` covers only the canonical ordered Domain-record array. Each `record_hash` covers every Domain-record field except `record_hash`.
+The `registry_hash` covers the schema version and complete canonical ordered Domain-record array. Each `record_hash` covers every Domain-record field except `record_hash`.
 
 The first record contains:
 

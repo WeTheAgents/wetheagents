@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import fields
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, tzinfo
 
 import pytest
 
@@ -21,6 +21,14 @@ from wea_vnext.domain_access import (
 )
 
 NOW = datetime(2026, 8, 15, 12, tzinfo=timezone.utc)
+
+
+class MissingOffset(tzinfo):
+    def utcoffset(self, _dt: datetime | None) -> None:
+        return None
+
+    def dst(self, _dt: datetime | None) -> None:
+        return None
 
 
 def _state():
@@ -175,6 +183,8 @@ def test_access_rejects_naive_time_and_conflicting_expiry_replay() -> None:
     state = _state()
     with pytest.raises(AccessError, match="timezone-aware"):
         _grant(state, effective_at=NOW.replace(tzinfo=None))
+    with pytest.raises(AccessError, match="defined UTC offset"):
+        _grant(state, effective_at=NOW.replace(tzinfo=MissingOffset()))
 
     state, access = _grant(state)
     state, _ = expire_access(
