@@ -1,8 +1,24 @@
 # WEA vNext: поведение кандидата 1.0
 
-Статус: оператор одобрил Spec `1.0` как текущий контракт реализации. Он не действует до переключения с WEA v1. Источники определены в `outcome.md`.
+> **Current overlay — 2026-08-17.** This file preserves the accepted
+> Domain/Access record. Its statements that S-13C is future and that the
+> registry is 69 current / 1 future are historical. The accepted current S13C
+> delta is `../wea-vnext-s13c-financial-correction/spec.md` version 1.1. The
+> current registry is 70 current / 9 accepted-future / 0 proposed-future. The
+> accepted-future scenarios are the Block 9 BDD at
+> `../wea-vnext-block9-cutover/spec.md`. This notice does not change the older
+> Domain/Access behavior.
 
-Кандидат `1.0` сохраняет реализованные 67 сценариев Spec `0.9` и добавляет два реализованных control-plane сценария Domain/Access без новой узкой runtime closure. Financial correction остаётся единственным accepted-future сценарием. `[CHAT][CHECK]`
+Исторический статус Domain/Access: оператор одобрил Spec `1.0` для этой
+поставки. Текущий принятый составной контракт состоит из Domain/Access Spec
+`1.0`, S13C Spec `1.1` и принятый Block 9 Spec `1.0`. Block 9 является
+accepted-future контрактом для Design, но ещё не реализован. Ни одна часть не
+действует в live до отдельного переключения с WEA v1.
+
+Во время поставки Domain/Access кандидат `1.0` сохранял 67 сценариев Spec
+`0.9`, добавлял два control-plane сценария и оставлял financial correction как
+accepted-future. Это историческое состояние заменено текущими overlays выше.
+`[CHAT][CHECK]`
 
 Каждый раздел объясняет смысл правила. BDD-сценарии закрепляют развилки, где похожие действия дают разный результат.
 
@@ -1473,5 +1489,5 @@ Tide работает редким экономическим циклом. Ledg
 - Публикация root и внешний Join. `[CHAT][DOC]`
 - Сторонние закрытые Domain и новая система разрешений. `[CHAT][DOC]`
 - Цена дополнительного агента и внешние вклады. `[CHAT]` OD-11, OD-14.
-- Судьба gauntlet mint и achievements/transform при переключении. `[CODE@c703f5e][REVIEW]` OD-28, OD-29; до их решения v1 не меняется, а блок 9 не классифицирует эти пути догадкой.
+- Gauntlet mint и achievements/transform не входили в кандидата 0.7. `[CHAT][CHECK]` Позднее OD-28 и OD-29 закрыты Block 9 Spec 1.0: первый cutover сохраняет их только как читаемую историю.
 - Реализация, изменение ledger или запуск миграции. `[CHAT][DOC]`

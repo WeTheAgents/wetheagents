@@ -1,6 +1,12 @@
 # Текущая WEA → vNext
 
-Статус: `delta 1.0` является текущей реализационной delta для Outcome/Spec `1.0`, design `1.1` и schema `1.1`. Delta `0.9`, ruleset `0.8` и executor `v0_8_0` остаются неизменным историческим результатом. `[CHAT][DERIVED]`
+Статус: `decision delta 1.2` добавляет принятый Block 9 Outcome/Spec 1.0 к Domain/Access delta `1.0`. Она не является cutover implementation delta. Ruleset `0.8`, executor `v0_8_0` и production writers не меняются. `[CHAT][DERIVED]`
+
+| Версия | Дата | Значение |
+| --- | --- | --- |
+| 1.0 | 2026-08-15 | Domain/Access implementation delta. |
+| 1.1 | 2026-08-16 | Gauntlet mint и achievement writes классифицированы как historical-read-only / disabled для первого cutover. |
+| 1.2 | 2026-08-17 | Exact Block 9 Outcome/Spec 1.0 принят для Design без разрешения implementation или live cutover. |
 
 ## Delta 1.0: external Domain and internal Access
 
@@ -149,8 +155,8 @@ control-plane scenarios; S-13C remains accepted-future.
 | `wea rename`, `agent_aliases.json` | DISABLE / HISTORICAL | Agent ID не переименовывается разрушительно; новая связь добавляется версионированной записью, aliases v1 остаются для чтения |
 | `wea accept`, `ranking`, `duel-winner`, `verify` | REPLACE | выбор автора, Review Deliverable и расчёт проходят через декларации и Tide |
 | `pending.json`, `process_pending.py` | DISABLE / SETTLE V1 | очередь должна стать пустой до bootstrap; после него отдельного пути выплат нет |
-| `wea gauntlet mint`, `trajectory_mints.json` | UNRESOLVED | v1 остаётся без изменений; OD-28 должен решить перенос или отключение до блока 9 |
-| `wea award`, `revoke`, transform и `achievements.json` | UNRESOLVED | v1 остаётся без изменений; OD-29 должен определить связь с genome и Release до блока 9 |
+| `wea gauntlet mint`, `trajectory_mints.json` | HISTORICAL / DISABLE | первый cutover не создаёт новые gauntlet mint; старые записи остаются читаемой историей |
+| `wea award`, `revoke`, transform и `achievements.json` | HISTORICAL / DISABLE | первый cutover не создаёт активные achievements и не применяет их эффекты; будущий identity/ikigai-механизм требует отдельного контракта |
 | `wea assign`, `ledger/domains.json` | REPLACE | Domain и Access создаются декларациями Agent0 или оператора и переходом Tide |
 | общий `wea claim` и claim TTL | DISABLE | отдельного claim нет; Duel использует новый join |
 | `label-paid.yml` | DISABLE | статус Issue — проекция уже записанного состояния Tide, а не самостоятельный writer |
@@ -175,4 +181,4 @@ control-plane scenarios; S-13C remains accepted-future.
 
 `[DERIVED]` До переключения `documentation-inventory.json` назначает одно решение каждому нормативному документу и машинному шаблону. Файл без решения блокирует переключение, но не работу над кандидатом.
 
-`[CHAT][REVIEW]` OD-21…OD-27 закрыты в кандидате `0.6`. Блокирующих решений для внутренней реализации нет; OD-11 и OD-14 отложены до внешнего этапа, OD-28 и OD-29 — до блока 9.
+`[CHAT][REVIEW]` OD-21…OD-29 закрыты. OD-11 и OD-14 отложены до соответствующего внешнего этапа. Block 9 Outcome/Spec 1.0 принят без изменений 2026-08-17 и является accepted-future контрактом для Design; vNext остаётся неактивным.

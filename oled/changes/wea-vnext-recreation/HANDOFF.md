@@ -1,85 +1,44 @@
-# Agent0 handoff: Domain/Access review-clean
+# Agent0 handoff: WEA vNext current state
 
-Status: `implementation verified / independent PR review clean`.
+Status: `Block 9 Outcome/BDD 1.0 accepted; Design required next`.
 
-The operator accepted Outcome/Spec `1.0` and design `1.1` on 2026-08-15. The
-operator explicitly rejected a narrow successor reference runtime. S-13C
-financial correction remains a separate future change. WEA vNext remains
-`Not live`.
+## Current truth
 
-## Current workspace
+- v1 remains authoritative and under an operator pause. Direct legacy writers
+  still exist. Do not call them.
+- Domain/Access and S13C are merged inactive control planes.
+- The scenario registry has 70 current, 9 accepted-future, and zero
+  proposed-future Block 9 scenarios.
+- The operator rejected a narrow successor reference runtime.
+- The operator accepted the SDD evidence reconciliation on 2026-08-16.
+- The first cutover does not carry gauntlet mint into vNext.
+- Achievement, award, revoke, and transform records remain readable history.
+  They create no active vNext effect.
+- A future identity-discovery mechanism for ikigai is important. It requires a
+  separate future Outcome and Spec.
 
-- WEA worktree:
-  `D:\GitHub\wetheagents-codex-wea-vnext-domain-access-2026-08-03`.
-- WEA branch: `codex/wea-vnext-domain-access-2026-08-03`.
-- WEA base: `origin/main` at `882a063` after a clean rebase.
-- External local repository: `D:\GitHub\circle-1`.
-- External branch: `main`.
-- External public repository: `https://github.com/WeTheAgents/circle-1`.
-- External permanent repository ID: `R_kgDOT4-F-Q`.
-- External verified revision:
-  `36a71440840351aa462e61a8ad5955881f55ecb0`.
+## Current authority
 
-## Accepted boundary
+- Accepted Block 9 Outcome/Spec 1.0:
+  `../wea-vnext-block9-cutover/`.
+- Operator review artifact:
+  `../wea-vnext-s13c-financial-correction/WEA_vNext_SDD_REVIEW.html`.
+- Permanent engineering boundary: `../../../docs/VNEXT_BOUNDARY.md`.
 
-- Publish Circle-1 as a real public external Domain.
-- Bind its permanent repository ID, canonical locator, and full revision in an
-  immutable WEA manifest.
-- Keep Access as an internal seven-day WEA right with no external permission
-  effect and no early revoke, renewal, extension, suspension, or transfer.
-- Keep the 67-scenario `0.8 / v0_8_0` runtime closure byte-identical while
-  adding S-11A and S-11B as current control-plane scenarios.
-- Keep S-13C and every ledger write outside this delivery.
+## Exact next step
 
-## Completed evidence
+Prepare and review the Block 9 Design. It must define the writer inventory,
+reconciliation
+evidence, canonical genesis, shadow replay, atomic cutover, epoch guard,
+recovery, and exact approval bundle.
 
-- Circle-1 history was filtered from WEA without deleting the WEA snapshot.
-- The public repository exposes the verified revision above on `main`; GitHub
-  CI run `31866669759` is green.
-- External ownership was split into `docs/`, `src/circle1/`, and focused tests.
-- WEA adapters, target profiles, checkpoints, director operations, task-index
-  work, and ledger work remain in WEA.
-- External package suite: `215 passed, 9 skipped`.
-- The nine skips are explicit WEA integration tests; they pass when
-  `CIRCLE1_WEA_ROOT` names the current WEA worktree.
-- External Ruff: clean. External Pyright: 0 errors and 0 warnings.
-- Installed `circle1-score` completed a black-box WEA scan with explicit root,
-  profile, target, revision, and output inputs.
-- The canonical `domains/registry/v1.json` binds the permanent repository ID,
-  canonical locator, exact revision, record hash, and registry hash.
-- WEA Domain registry and Access focus: `28 passed`.
-- WEA scenario/runtime focus: `39 passed`.
-- The current scenario registry contains exactly 69 current scenarios and one
-  accepted-future scenario. `BDD alignment: 100%`.
-- Full WEA vNext suite: `457 passed, 18 skipped`.
-- Full repository suite with the worktree `src` on `PYTHONPATH`:
-  `4742 passed, 18 skipped, 11 xfailed`.
-- WEA Ruff: clean. WEA Pyright: 0 errors and 0 warnings.
-- Economy invariant, ledger schema, task-index schema, doc sync, protected
-  runtime/ledger diff, and `git diff --check`: pass.
+Do not implement a writer, create genesis, edit a ledger, change credentials,
+or activate vNext. Those actions require accepted Outcome/BDD and Design,
+implementation tasks, fresh verification, and a separate exact operator plus
+Agent0 cutover approval.
 
-## Remaining gate
+## Historical provenance
 
-There is no product, design, identity, or review blocker. PR `#942` is open.
-Review passes 2–4 found seven fail-closed contract defects. Pass 4 required one
-active verified authority binding and delayed expiry evaluation. Focused
-regressions prove both boundaries. Pass 5 found no actionable defect after it
-reran focused tests, the full vNext suite, Ruff, and Pyright. The remaining
-gates are PR checks and merge. Do not add S-13C, a successor runtime, live Tide,
-ledger writes, bootstrap, migration, or GitHub permission operations to this PR.
-
-## Exact resume sequence
-
-1. Publish this review record and verify the exact documentation commit.
-2. Mark PR `#942` ready and merge after CI passes.
-3. Start S-13C as a separate OLED change and PR only after this PR merges.
-
-## Historical baseline
-
-PR `#941` merged the inactive Spec `0.9` reference runtime. It proves 67
-current scenarios with `BDD alignment: 100%`. Ruleset `0.8` SHA-256 is
-`2b5f396b1e5c06e9be5190c3de41a626bb905eba7fb35bb327633bcc24983128`.
-Executor `v0_8_0` manifest SHA-256 is
-`2aed3e4fb21a31cfbb8ed544f1974c63aba8451c95e434f5a5f5dd16e1f52c53`.
-No live Tide writer, ledger namespace, migration, bootstrap, or cutover was
-enabled.
+- Domain/Access: PR `#942`, merge `bb114e7`.
+- S13C: PR `#943`, merge `942998d`.
+- S13C verification: PR `#944`, merge `0ea6513`.

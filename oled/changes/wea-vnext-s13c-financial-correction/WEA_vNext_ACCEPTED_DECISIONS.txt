@@ -1,0 +1,26 @@
+WEA vNext — deterministic record of operator decisions
+Artifact version: 2026-08-18.1
+Authority dates: 2026-08-16 and 2026-08-17
+Authority source: operator messages in the current Codex task; no independently authenticated repository revision is available.
+Local base: 0ea6513
+Selected-source fingerprint SHA-256: 849f2c665a4c4cf3864108fd15bc0a0685f26721e874b9fa5b33f317206b455b
+Prepared candidate package SHA-256: 636e09e1f9c927d85128bd73e550ea480ee04ad9b3719419b5629f6d3f4977f5
+Decision payload SHA-256: fcec6617c9068dede2062045c231833dab24079a7bc1697bfc8b5cd551c27593
+Evidence meaning: derived self-consistency record; not standalone proof of an operator act.
+Scope: Block 9 Outcome/Spec 1.0 is accepted for Design; implementation and activation remain unauthorized.
+
+SDD-01: Принять ограничение
+
+SDD-02: Одобрить сверку
+
+OD-28: Не переносить
+Комментарий: Вариант А: убрать gauntlet mint из первого cutover.
+
+OD-29: Только история
+Комментарий: Вариант А. Будущий механизм важен для ikigai и поиска идентичности, но требует отдельной задачи.
+
+NEXT-01: Разрешить design
+Комментарий: Приняты остальные рекомендации. Направление Block 9 Design разрешено в принципе; точный BDD отдельно принят 2026-08-17.
+
+BLOCK9-ACCEPT-01: Принять без изменений
+Комментарий: Принимаю Block 9 Outcome/Spec 1.0 без изменений.

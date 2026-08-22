@@ -1,5 +1,12 @@
 # WEA vNext: техническое устройство
 
+> **Current overlay — 2026-08-17.** This file preserves Design 1.1 for the
+> Domain/Access delivery. S13C was later delivered under
+> `../wea-vnext-s13c-financial-correction/design.md` revision 1.1. WEA vNext is
+> still inactive. Block 9 Outcome/Spec 1.0 is accepted at
+> `../wea-vnext-block9-cutover/`. Its separate Design is required next. No
+> implementation or live cutover is authorized.
+
 Статус: `design 1.1` принят как исполнимая архитектура для `outcome/spec 1.0`. Он сохраняет design `1.0` и runtime `v0_8_0`, но выносит Domain/Access из runtime closure. Live GitHub/ledger adapter и bootstrap остаются запрещены. `[CHAT][CHECK][DERIVED]`
 
 ## История design

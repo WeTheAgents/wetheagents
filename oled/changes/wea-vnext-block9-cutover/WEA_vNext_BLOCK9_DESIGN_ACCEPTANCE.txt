@@ -1,0 +1,12 @@
+WEA vNext — exact Block 9 Design acceptance binding
+Design revision: 1.0
+Authority date: 2026-08-18
+Authority wording: Принимаю Block 9 Design.
+Authority source: operator message in the current Codex task; this derived manifest is not standalone identity proof.
+Design path: oled/changes/wea-vnext-block9-cutover/design.md
+Design SHA-256: 70026e7551acc7c5f1ae56b1d49962045dec3b70e0647aaf3b5040f36e856283
+Governing Outcome SHA-256: e9cbdcc924c8e01cae3240885e272fc75a7595bae1dcab4ee4034e6d439d1f67
+Governing Spec SHA-256: 25c65e999bb158d773fa7d46c5e566cd36f5a7eb4b8b8aff272274d8efe59dfa
+Meaning: these exact Design bytes are accepted for Tasks planning only; implementation and activation remain unauthorized.
+Status rule: proposed wording inside the frozen Design is the preparation-time snapshot; this later manifest records acceptance.
+Drift rule: byte changes require a new Design revision and a new exact operator acceptance.

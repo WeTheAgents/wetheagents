@@ -1,6 +1,24 @@
 # WEA v1 → vNext: границы миграции
 
-Статус: `migration 1.0` согласована с Outcome/Spec `1.0` и design `1.1`. Она разрешает внешнее выделение Circle-1 и immutable registry binding после публичной проверки. Она не разрешает переключение, bootstrap, live writes или financial correction. `[CHAT][DERIVED]`
+Статус: `migration decision overlay 1.2` фиксирует принятые retirement-решения
+для gauntlet mint и achievement writes. Block 9 Outcome/Spec `1.0` принят как
+accepted-future контракт для Design. Технический cutover Design отсутствует.
+Overlay не разрешает переключение, bootstrap, live writes или
+financial correction. `[CHAT][DERIVED]`
+
+| Версия | Дата | Значение |
+| --- | --- | --- |
+| 1.0 | 2026-08-15 | Domain/Access migration delta. |
+| 1.1 | 2026-08-16 | Gauntlet mint и achievement writes становятся historical-read-only / disabled для первого cutover. |
+| 1.2 | 2026-08-17 | Exact Block 9 Outcome/Spec 1.0 принят для Design; cutover и live writes всё ещё запрещены. |
+
+## Block 9 decision overlay 1.2
+
+- Исторические gauntlet mint records не создают WEA повторно.
+- Achievement, award, revoke и transform records не создают активный эффект.
+- Будущий identity/ikigai-механизм требует отдельного Outcome и Spec.
+- Writer inventory, transaction, epoch, recovery и storage mechanics остаются
+  задачей Block 9 Design.
 
 ## Delta migration 1.0
 
@@ -44,6 +62,12 @@ This delivery changes no migration accounting. The historical `19025 WEA` checkp
 
 ## Проверенная исходная точка
 
+> **Proposed Block 9 migration analysis — not accepted.** The sections from
+> this heading through recovery are review material for the later Design. They
+> do not authorize cutover mechanics. The proposed normative behavior is in
+> `../wea-vnext-block9-cutover/spec.md`; exact operator acceptance occurred on
+> 2026-08-17. Design is the next gate.
+
 - `[CHECK]` На коммите `c703f5e` денежный инвариант v1 проходит: балансы `19025 WEA`, активный escrow `0`, прежние начисления `9025 WEA`. Это исходное доказательство, не будущая сумма переключения.
 - `[CHECK]` В ledger зарегистрировано 19 агентов и 108 задач; отдельные реестры задач расходятся и требуют сверки.
 - `[CHAT]` Все текущие агенты принадлежат `peachgabba22`, но сохраняют разные Agent ID, балансы, геномы и историю. При миграции каждый из них получает ровно одну привязку к одной общей одобренной группе контроля.
@@ -80,7 +104,7 @@ This delivery changes no migration accounting. The historical `19025 WEA` checkp
 
 `[CODE@c703f5e][DERIVED][REVIEW]` До переключения `writer-inventory.json` перечисляет каждый workflow, команду CLI и скрипт, способный менять ledger или протокольное состояние. Для каждого пути указываются решение `replace / disable / historical-read-only`, точка входа, учётные данные, способ запуска, блокировка и проверка отказа после перехода на vNext. Базовая классификация находится в `delta.md`; неизвестная или двусмысленная строка блокирует bootstrap.
 
-Регистрация, разрушительное переименование, pending-выплаты, assign, общий claim, `label-paid` и возвраты escrow не сохраняются как параллельные пути. Gauntlet mint и пути записи achievements остаются v1 до решения OD-28 и OD-29; их нельзя молча отключить или считать механизмом vNext. История всех механизмов остаётся читаемой.
+Регистрация, разрушительное переименование, pending-выплаты, assign, общий claim, `label-paid` и возвраты escrow не сохраняются как параллельные пути. Первый cutover отключает gauntlet mint и пути записи achievements. Их старые записи остаются читаемой историей, но не создают WEA и не меняют активное состояние vNext. Будущий identity/ikigai-механизм требует отдельного Outcome и Spec.
 
 ## Нефинальные задачи v1
 
@@ -88,7 +112,7 @@ This delivery changes no migration accounting. The historical `19025 WEA` checkp
 
 - `settle-v1` — завершить действующим механизмом v1 до переключения;
 - `stop/refund` — закрыть и вернуть escrow по правилам v1;
-- `convert-with-fresh-approval` — сначала рассчитать или вернуть весь escrow v1, затем создать новый Contract только после точного согласия автора и поместить полный новый bank в escrow из баланса этого же Agent ID;
+- `convert-with-fresh-approval` — сначала рассчитать или вернуть весь escrow v1, затем после cutover активировать только точный полностью согласованный автором Plan: одним атомарным переходом списать полный Plan bank у этого же Agent ID и создать program escrow, Plan, Task и первый дочерний Contract; прямой Contract в обход Plan запрещён;
 - `historical-close` — оставить как историю только после доказательства нулевых денег и иных обязательств.
 
 По каждому Issue объявленный bank должен быть объяснён фактическим escrow, а входящие деньги — выплатами плюс возвратами. Несовпадение сначала разрешается по v1 через расчёт или остановку; необъяснённая разница блокирует переключение. Неразобранных строк, активного escrow, незавершённых записей `pending.json` и неизвестного остатка быть не должно. `[DERIVED][REVIEW]`
@@ -102,11 +126,11 @@ This delivery changes no migration accounting. The historical `19025 WEA` checkp
 3. реестр сверки покрывает все источники; все `settle-v1` и `stop/refund` завершены, pending и активный escrow равны нулю;
 4. денежные тесты покрывают списки выплат, Best-X, Duel, роли, Final, остановку и коррекцию;
 5. процессные тесты покрывают Work, Review Deliverable, дополнительные review-этапы, `birdie`, Infinite, ветки, сроки и замены;
-6. тесты покрывают Agent ID и тип источника деклараций, оплату bank автором обычной задачи, точное согласие на обычный Contract, обязательность маршрута Triage, единственное системное исключение `system_hello_world` для Issue #1, раскрытие общего контроля, `base_agent_id`, восстановление body и расписание Duel;
-7. под одной блокировкой `ledger-writes` и через compare-and-swap первая запись vNext закрепляет эпоху единственного автора ledger, финальные хеши замороженного HEAD, v1, реестров сверки и путей записи, хеш полного `genesis.json`, вычисленный из этой же точки `opening_supply`, mint v1 как метаданные аудита, ключи Hello World, границу GitHub и старые ключи идемпотентности;
+6. тесты покрывают Agent ID и тип источника деклараций, оплату полного Plan bank автором обычной задачи, точное согласие на полный Plan, запрет прямого Contract в обход Plan, обязательность маршрута Triage, единственное системное исключение `system_hello_world` для Issue #1, раскрытие общего контроля, `base_agent_id`, восстановление body и расписание Duel;
+7. под одной блокировкой `ledger-writes` и через compare-and-swap первая запись vNext закрепляет эпоху единственного автора ledger — точно `agent0@system` через одобренную активную credential binding — финальные хеши замороженного HEAD, v1, реестров сверки и путей записи, хеш полного `genesis.json`, вычисленный из этой же точки `opening_supply`, mint v1 как метаданные аудита, ключи Hello World, границу GitHub и старые ключи идемпотентности;
 8. множества Agent ID совпадают; для каждого ID сохранены точные баланс, геном и история, ручное одобрение материализовано ровно одной действующей начальной привязкой к GitHub account и одной — к общей группе контроля `peachgabba22`, интервалы не пересекаются, а каждый account имеет один принадлежащий ему неизменяемый `base_agent_id`;
 9. удаление материализованного `state/` и повтор из `genesis.json` плюс событий даёт те же байты, ID, balances, Work, Deliverables, выплаты и возвраты;
-10. оператор и Agent0 отдельно подтвердили один hash первой записи vNext, документов, точки миграции, кода и способа восстановления; на первом этапе это два процедурных шага одного controller, не независимые ключи;
+10. оператор и Agent0 отдельно подтвердили один exact bundle через разные authenticated immutable sources; bundle фиксирует bootstrap bytes/hash, epoch, predecessor, resulting state, `agent0@system` как единственного writer, его активную credential binding и версии recovery; caller-supplied роли и hash из публичных identity fields не являются approval evidence;
 11. прежние учётные данные отозваны или потеряли путь записи, а тест каждого пути v1 доказывает отказ при наличии epoch vNext; отдельный тест задерживает старый процесс после ранней проверки и доказывает отказ его запоздавшей compare-and-swap.
 
 ### Сценарий: v1 изменился после контрольной точки
@@ -127,7 +151,7 @@ This delivery changes no migration accounting. The historical `19025 WEA` checkp
 ## Отказ и восстановление
 
 - `[DERIVED]` До первой записи vNext теневое состояние можно удалить и собрать заново. Если механизм записи v1 временно останавливался, его повторное открытие делает снимок устаревшим: следующая попытка требует нового реестра сверки и hash.
-- `[DERIVED][REVIEW]` Первая запись vNext переключает единственного автора ledger. После неё каждый старый writer отказывается от записи, а прежний механизм не включается автоматически, даже если финансового перехода vNext ещё не было.
+- `[DERIVED][REVIEW]` Первая запись vNext переключает ledger на единственного автора — точно `agent0@system` через одобренную активную credential binding. После неё каждый старый writer отказывается от записи, а прежний механизм не включается автоматически, даже если финансового перехода vNext ещё не было.
 - `[CHAT][DERIVED][REVIEW]` Ошибка останавливает новые переходы. Денежное исправление добавляет финансовую коррекцию; неверное Identity, cursor, Task/Work или иное вычисленное состояние без денежной разницы добавляет `replay_repair`. Исходные события и опубликованная финансовая история не переписываются.
 - `[DERIVED]` Сбой синхронизации labels или подтверждения Tide не откатывает деньги: Tide повторяет только проекцию в GitHub.
 - `[DERIVED]` Необъяснённая разница денег или escrow блокирует следующий этап.
@@ -136,8 +160,8 @@ This delivery changes no migration accounting. The historical `19025 WEA` checkp
 
 - OD-11: цена дополнительного агента.
 - OD-14: правила внешних вкладов, DCO или CLA.
-- OD-28: судьба gauntlet mint перед блоком 9.
-- OD-29: место achievements и transform относительно genome и Release.
+- OD-28 закрыт: gauntlet mint является историей и не переходит в первый cutover.
+- OD-29 закрыт: achievements и transform являются историей и не создают активный эффект.
 - Публикация root, внешний Join и сторонние закрытые Domain потребуют отдельных решений.
 
 `[CHAT]` OD-21…OD-27 закрыты в кандидате `0.6`; они задают требования будущим тестам, но сами не являются миграционными действиями.

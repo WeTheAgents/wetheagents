@@ -5,12 +5,14 @@ from pathlib import Path
 
 from .scenarios import (
     ACCEPTED_FUTURE_SCENARIO_IDS,
+    BLOCK9_SCENARIO_IDS,
     CHANGED_SCENARIO_IDS,
     COMPATIBLE_SCENARIO_IDS,
     CONTROL_PLANE_SCENARIO_IDS,
     CORRECTION_SCENARIO_IDS,
     CURRENT_SCENARIO_IDS,
     HISTORICAL_SCENARIO_REFS,
+    PROPOSED_FUTURE_SCENARIO_IDS,
     SCENARIO_IDS,
     validate_registry,
 )
@@ -19,6 +21,7 @@ SPEC_PATH = Path("oled/changes/wea-vnext-recreation/spec.md")
 CORRECTION_SPEC_PATH = Path(
     "oled/changes/wea-vnext-s13c-financial-correction/spec.md"
 )
+BLOCK9_SPEC_PATH = Path("oled/changes/wea-vnext-block9-cutover/spec.md")
 
 
 def _headings(level: int) -> tuple[str, ...]:
@@ -60,11 +63,20 @@ def test_scenario_registry_matches_effective_and_accepted_scopes_exactly() -> No
             re.findall(r"^### (S-[0-9]+[A-Z]?)\.", correction_source, re.MULTILINE)
         )
     )
+    block9_source = BLOCK9_SPEC_PATH.read_text(encoding="utf-8")
+    block9_headings = tuple(
+        re.findall(
+            r"^#### Scenario (S-[0-9]+[A-Z]?):",
+            block9_source,
+            re.MULTILINE,
+        )
+    )
 
     assert CHANGED_SCENARIO_IDS == changed_headings
     assert CONTROL_PLANE_SCENARIO_IDS == control_plane_headings
     assert COMPATIBLE_SCENARIO_IDS == compatible_headings
     assert CORRECTION_SCENARIO_IDS == correction_headings
+    assert BLOCK9_SCENARIO_IDS == block9_headings
     assert len(CURRENT_SCENARIO_IDS) == len(set(CURRENT_SCENARIO_IDS)) == 70
     assert set(CURRENT_SCENARIO_IDS) == (
         set(changed_headings)
@@ -80,7 +92,11 @@ def test_scenario_registry_matches_effective_and_accepted_scopes_exactly() -> No
     assert SCENARIO_IDS is CURRENT_SCENARIO_IDS
     assert CONTROL_PLANE_SCENARIO_IDS == ("S-11A", "S-11B")
     assert CORRECTION_SCENARIO_IDS == ("S-13C",)
-    assert ACCEPTED_FUTURE_SCENARIO_IDS == ()
+    assert ACCEPTED_FUTURE_SCENARIO_IDS == BLOCK9_SCENARIO_IDS
+    assert ACCEPTED_FUTURE_SCENARIO_IDS == tuple(
+        f"S-{number}" for number in range(71, 80)
+    )
+    assert PROPOSED_FUTURE_SCENARIO_IDS == ()
     assert HISTORICAL_SCENARIO_REFS == tuple(
         f"0.8:{item}" for item in CHANGED_SCENARIO_IDS
     )

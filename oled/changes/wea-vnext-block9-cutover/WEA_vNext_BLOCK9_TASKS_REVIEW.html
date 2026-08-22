@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>WEA vNext — Block 9 Tasks 2.0</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #647087;
+      --paper: #f5f2ea;
+      --card: #fffdf8;
+      --line: #d9d4c8;
+      --blue: #214f8b;
+      --blue-soft: #e8f0fb;
+      --green: #226a4b;
+      --green-soft: #e6f3eb;
+      --amber: #8a5a12;
+      --amber-soft: #fff0ce;
+      --red: #8b2f35;
+      --red-soft: #f9e7e7;
+      --shadow: 0 18px 50px rgba(35, 44, 64, .09);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 85% 5%, rgba(33, 79, 139, .10), transparent 30rem),
+        linear-gradient(180deg, #f9f7f1 0, var(--paper) 48rem);
+      font: 16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    a { color: var(--blue); }
+    code {
+      padding: .12rem .34rem;
+      border-radius: .35rem;
+      background: #edf0f4;
+      font: .88em/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      overflow-wrap: anywhere;
+    }
+    .wrap { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
+    .hero { padding: 54px 0 28px; }
+    .hero-grid { display: grid; grid-template-columns: 1.45fr .75fr; gap: 28px; align-items: end; }
+    .kicker, .eyebrow {
+      margin: 0 0 .4rem;
+      color: var(--blue);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1 { max-width: 880px; margin: 0; font-size: clamp(2.2rem, 6vw, 4.8rem); line-height: .98; letter-spacing: -.055em; }
+    .lead { max-width: 760px; margin: 1.3rem 0 0; color: #445066; font-size: 1.14rem; }
+    .status-box { padding: 22px; border: 1px solid #bfd0e5; border-radius: 18px; background: rgba(255,255,255,.72); box-shadow: var(--shadow); }
+    .status-box strong { display: block; font-size: 1.22rem; }
+    .status-box p { margin: .45rem 0 0; color: var(--muted); }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 28px 0; }
+    .metric { padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.66); }
+    .metric b { display: block; font-size: 1.7rem; line-height: 1; }
+    .metric span { color: var(--muted); font-size: .88rem; }
+    .plain-answer { margin: 24px 0 34px; padding: 26px; border-left: 5px solid var(--green); border-radius: 0 18px 18px 0; background: var(--green-soft); }
+    .plain-answer h2 { margin-top: 0; }
+    .plain-answer p:last-child { margin-bottom: 0; }
+    .flow { display: grid; grid-template-columns: 1fr auto 2.4fr auto 1fr auto 1fr; gap: 10px; align-items: center; margin: 22px 0 34px; }
+    .flow-node { min-height: 100px; padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--card); }
+    .flow-node.parallel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px; }
+    .flow-node.parallel span { padding: 10px; border-radius: 10px; background: var(--blue-soft); text-align: center; }
+    .arrow { color: var(--blue); font-size: 1.5rem; font-weight: 900; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+    button { padding: 9px 14px; border: 1px solid #b9c2d0; border-radius: 999px; color: var(--ink); background: white; font: inherit; cursor: pointer; }
+    button[aria-pressed="true"] { border-color: var(--blue); color: white; background: var(--blue); }
+    .task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .task-card { position: relative; padding: 24px; border: 1px solid var(--line); border-radius: 20px; background: var(--card); box-shadow: 0 8px 26px rgba(35,44,64,.05); }
+    .task-card.is-hidden { display: none; }
+    .task-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .task-number { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; color: white; background: var(--blue); font-weight: 900; }
+    .badge, .decision { display: inline-flex; padding: 5px 9px; border-radius: 999px; font-size: .78rem; font-weight: 800; }
+    .badge.build, .badge.parallel { color: var(--blue); background: var(--blue-soft); }
+    .badge.setup, .badge.gate { color: var(--amber); background: var(--amber-soft); }
+    .badge.operation { color: var(--green); background: var(--green-soft); }
+    .badge.blocked { color: var(--red); background: var(--red-soft); }
+    .task-card h3 { margin: .2rem 0 1rem; font-size: 1.45rem; line-height: 1.15; }
+    .explain-grid { display: grid; gap: 8px; }
+    .explain-grid > div { padding: 12px 14px; border-radius: 12px; background: #f4f1e9; }
+    .explain-grid h4 { margin: 0 0 .2rem; font-size: .84rem; }
+    .explain-grid p { margin: 0; color: #4c5668; }
+    .facts { margin: 16px 0; }
+    .facts > div { display: grid; grid-template-columns: 130px 1fr; gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+    .facts dt { color: var(--muted); }
+    .facts dd { margin: 0; }
+    details { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+    summary { color: var(--blue); font-weight: 750; cursor: pointer; }
+    .checklist { padding-left: 1.3rem; }
+    .checklist li { margin: .55rem 0; }
+    section { padding: 32px 0; }
+    section h2 { margin: 0 0 .5rem; font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -.035em; }
+    .section-lead { max-width: 780px; margin: 0 0 20px; color: var(--muted); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; background: var(--card); }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { padding: 14px 16px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    thead th { color: var(--muted); background: #f3f0e8; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+    tbody th { width: 22%; }
+    .decision.safe { color: var(--green); background: var(--green-soft); }
+    .decision.risk { color: var(--red); background: var(--red-soft); }
+    .decision-box { display: grid; grid-template-columns: 1.3fr .7fr; gap: 20px; padding: 26px; border-radius: 20px; color: white; background: #172d4a; }
+    .decision-box h2 { color: white; }
+    .decision-box p { color: #d9e4f2; }
+    .reply { align-self: center; padding: 18px; border: 1px solid #6c87a8; border-radius: 14px; background: #0f223b; }
+    .reply code { display: block; color: #fff; background: transparent; white-space: normal; }
+    footer { padding: 34px 0 52px; color: var(--muted); font-size: .88rem; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hash { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    @media (max-width: 860px) {
+      .hero-grid, .decision-box { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .task-grid { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); text-align: center; }
+      .flow-node.parallel { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .wrap { width: min(100% - 20px, 1180px); }
+      .hero { padding-top: 30px; }
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+      .task-card { padding: 18px; }
+      .facts > div { grid-template-columns: 1fr; gap: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kicker">WEA vNext · Block 9 · Tasks 2.0</p>
+        <h1>План реализации без лишних approval-этапов</h1>
+        <p class="lead">Этот документ объясняет пользу каждой группы. Он также показывает безопасные сокращения и границы, которые нельзя убрать без изменения принятого Design.</p>
+      </div>
+      <aside class="status-box">
+        <strong>Нужен review Tasks</strong>
+        <p>Tasks 2.0 не разрешает менять credentials, Windows accounts, GitHub Apps, rulesets, ledger или main.</p>
+      </aside>
+    </div>
+    <div class="wrap metric-grid" aria-label="Краткие показатели плана">
+      <div class="metric"><b>5</b><span>dormant implementation lanes</span></div>
+      <div class="metric"><b>2</b><span>группы в rehearsal delivery</span></div>
+      <div class="metric"><b>1</b><span>отдельный activation gate</span></div>
+      <div class="metric"><b>3</b><span>реальные delivery-этапы</span></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="plain-answer" aria-labelledby="short-answer">
+      <h2 id="short-answer">Короткий ответ про лишние этапы</h2>
+      <p>Восемь групп ниже не означают восемь согласований. Группы 1–5 составляют одну dormant-поставку.</p>
+      <p>После общей основы группы 3–5 можно делать параллельно. Группы 6–7 составляют одну отдельно принятую rehearsal delivery.</p>
+      <p>Rehearsal остаётся отдельным, потому что activation меняет authoritative ledger epoch. Это единственная необратимая операция.</p>
+    </section>
+
+    <div class="flow" aria-label="Поток реализации">
+      <div class="flow-node"><strong>1. Safety kernel</strong><br>Общая основа</div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="flow-node parallel"><span>2. Environment</span><span>3. Migration</span><span>4. Recovery</span><span>5. Shadow</span></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="flow-node"><strong>6. v1 cleanup</strong><br><strong>7. Rehearsal</strong></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="flow-node"><strong>8. Activation</strong><br>Новые подписи</div>
+    </div>
+
+    <section aria-labelledby="groups-title">
+      <h2 id="groups-title">Что делает каждая группа</h2>
+      <p class="section-lead">Нажмите на технический checklist только при необходимости. Основные причины и результаты указаны простым языком.</p>
+      <div class="toolbar" role="group" aria-label="Фильтр групп">
+        <button type="button" data-filter="all" aria-pressed="true">Все</button>
+        <button type="button" data-filter="build" aria-pressed="false">Общая основа</button>
+        <button type="button" data-filter="setup" aria-pressed="false">Environment</button>
+        <button type="button" data-filter="parallel" aria-pressed="false">Можно параллельно</button>
+        <button type="button" data-filter="operation" aria-pressed="false">Закрытие v1</button>
+        <button type="button" data-filter="gate" aria-pressed="false">Rehearsal</button>
+        <button type="button" data-filter="blocked" aria-pressed="false">Activation</button>
+      </div>
+      <div class="task-grid">
+    <article class="task-card" data-kind="build" id="task-1">
+      <div class="task-topline">
+        <span class="task-number">1</span>
+        <span class="badge build">Общая основа</span>
+      </div>
+      <p class="eyebrow">Основа</p>
+      <h3>Build the dormant transaction and writer kernel</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>Один путь записи, один lock, один epoch guard и одна атомарная Git-транзакция.</p></div>
+        <div><h4>Зачем нужно</h4><p>Иначе старый writer может записать вторую версию истории после cutover.</p></div>
+        <div><h4>Как упростить</h4><p>Не делить на отдельные approval-этапы. Реализовать и проверить как одну техническую основу.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>S-71 and the transaction foundation of S-75.</dd></div>
+        <div><dt>Статус</dt><dd>planned.</dd></div>
+        <div><dt>Зависимость</dt><dd>accepted Block 9 Design 1.0 and accepted Tasks 2.0.</dd></div>
+        <div><dt>Технических действий</dt><dd>10</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Before the first implementation edit, require a clean worktree and write the exact <code>git rev-parse HEAD</code> value to <code>oled/changes/wea-vnext-block9-cutover/implementation-base.txt</code>. Group 7 uses this one base to derive the complete Block 9 changed-file manifest.</li><li>Create <code>tests/vnext/test_block9_writer_gate.py</code> and the transaction foundation in <code>tests/vnext/test_block9_cutover.py</code>.</li><li>Record the expected pre-change failures for omitted writers, guard bypass, wrong principals, ref drift, and non-atomic publication.</li><li>Add two independent writer-universe builders and the three accepted inventories from D-B9-02.</li><li>Add one transaction helper with the common-Git-directory lock, epoch guard, remote predecessor check, canonical JSON, and signed Git commit.</li><li>Add append-only <code>ledger/vnext/</code> event storage and disposable derived state. Keep the live adapter disabled.</li><li>Add the non-circular cutover-core, signed approval-envelope, sequence-zero, and final-tree validation path.</li><li>Route each retained v1 mutation entry point through the shared guard. Disable every retired writer path.</li><li>Add no-change inspection and provisioning tools for the accepted Windows identities, Apps, rulesets, keys, and permissions. Do not apply them here.</li><li>Prove the code kernel with <code>python -m pytest -q tests/vnext/test_block9_writer_gate.py tests/vnext/test_block9_cutover.py</code>.</li></ol>
+      </details>
+    </article>
+    
+    <article class="task-card" data-kind="setup" id="task-2">
+      <div class="task-topline">
+        <span class="task-number">2</span>
+        <span class="badge setup">Нужен environment checkpoint</span>
+      </div>
+      <p class="eyebrow">Среда</p>
+      <h3>Prepare the dormant host and GitHub boundary</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>Отдельные Windows identities, GitHub Apps и rulesets делают границу writer технически исполнимой.</p></div>
+        <div><h4>Зачем нужно</h4><p>Код не остановит same-account worker или другой credential с правом записи в main.</p></div>
+        <div><h4>Как упростить</h4><p>Использовать один checkpoint для всей настройки. Не согласовывать каждый account, App или ruleset отдельно.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>the environment and authority sides of S-71, S-74, S-75, and S-79.</dd></div>
+        <div><dt>Статус</dt><dd>blocked pending one explicit operator approval of the no-change inspection report.</dd></div>
+        <div><dt>Зависимость</dt><dd>Group 1 inspection and provisioning tools.</dd></div>
+        <div><dt>Технических действий</dt><dd>7</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Run the no-change inspection mode. Record current accounts, ACLs, credentials, workflows, Apps, rulesets, worktrees, and writer processes.</li><li>Build the complete proposed environment diff and its recovery steps.</li><li>Stop and obtain one explicit operator approval for that exact dormant setup. Tasks 2.0 acceptance does not supply this approval.</li><li>After approval, create the Agent0, worker, and shadow identities. Apply the accepted ACL and token separation.</li><li>Install the ledger App and no-Contents projection App. Apply both layered rulesets and remove legacy canonical-ref authority.</li><li>Prove ledger-App fast-forward, force-push rejection, deletion rejection, projection-App ref rejection, worker secret denial, and shadow denial in a disposable repository and restricted accounts.</li><li>Record exact public identities, permissions, fingerprints, rulesets, and rejection evidence. Do not enable the vNext adapter.</li></ol>
+      </details>
+    </article>
+    
+    <article class="task-card" data-kind="parallel" id="task-3">
+      <div class="task-topline">
+        <span class="task-number">3</span>
+        <span class="badge parallel">Можно параллельно</span>
+      </div>
+      <p class="eyebrow">Данные</p>
+      <h3>Build offline reconciliation and canonical genesis</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>Все обязательства v1 получают один исход. Genesis всегда создаёт одинаковое начальное состояние.</p></div>
+        <div><h4>Зачем нужно</h4><p>Иначе деньги, задачи или identity могут потеряться или попасть в vNext дважды.</p></div>
+        <div><h4>Как упростить</h4><p>Reconciliation, genesis и retirement используют один snapshot. Их выгодно оставить вместе.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>S-72, S-73, S-76, and S-77.</dd></div>
+        <div><dt>Статус</dt><dd>planned.</dd></div>
+        <div><dt>Зависимость</dt><dd>Group 1 schemas and transaction interfaces. It does not depend on Groups 2, 4, or 5 for code work.</dd></div>
+        <div><dt>Технических действий</dt><dd>8</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Create <code>tests/vnext/test_block9_reconciliation.py</code>, <code>tests/vnext/test_block9_genesis.py</code>, and <code>tests/vnext/test_block9_legacy_retirement.py</code>.</li><li>Record the expected pre-change failures for incomplete pagination, missing inverse links, unexplained money, duplicate outcomes, and unstable genesis bytes.</li><li>Capture the complete offline GitHub and v1 input bundle from one exact test boundary. Keep the production capture path dormant.</li><li>Implement the four accepted reconciliation outcomes and complete money equality.</li><li>Implement the signed conversion-intent state machine. Do not create a converted Plan, Task, Contract, debit, or escrow in genesis.</li><li>Build genesis from the frozen input. Rebuild it independently and require identical bytes and state hashes.</li><li>Preserve gauntlet and achievement history as read-only evidence. Reject every new retired write.</li><li>Prove reconciliation and genesis with <code>python -m pytest -q tests/vnext/test_block9_reconciliation.py tests/vnext/test_block9_genesis.py tests/vnext/test_block9_legacy_retirement.py</code>.</li></ol>
+      </details>
+    </article>
+    
+    <article class="task-card" data-kind="parallel" id="task-4">
+      <div class="task-topline">
+        <span class="task-number">4</span>
+        <span class="badge parallel">Можно параллельно</span>
+      </div>
+      <p class="eyebrow">Восстановление</p>
+      <h3>Make financial and non-financial recovery durable</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>После crash или replay-дефекта система продолжает одну историю и умеет сделать разрешённое исправление.</p></div>
+        <div><h4>Зачем нужно</h4><p>Без recovery безопасный cutover невозможен. Ошибка может навсегда заблокировать ledger.</p></div>
+        <div><h4>Как упростить</h4><p>Financial correction и replay repair используют один append kernel. Их proof остаётся раздельным.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>S-78.</dd></div>
+        <div><dt>Статус</dt><dd>planned.</dd></div>
+        <div><dt>Зависимость</dt><dd>Group 1 transaction kernel. It can proceed in parallel with Groups 3 and 5.</dd></div>
+        <div><dt>Технических действий</dt><dd>7</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Create <code>tests/vnext/test_block9_recovery_prerequisites.py</code> and <code>tests/vnext/test_block9_recovery.py</code>.</li><li>Record the expected pre-change failures for missing durable adapters, crash points, duplicate retry, authority rotation, and money-changing repair.</li><li>Adapt S13C 1.1 to the durable event transaction without weakening any financial, type, ordering, tamper, or idempotency rule.</li><li>Add durable <code>replay_repair</code> for the accepted non-financial operation set. Reject every repair that changes a financial projection.</li><li>Add correction checkpoints at the accepted 64-group boundary.</li><li>Exercise failures before file replacement, commit creation, push, remote confirmation, and projection confirmation.</li><li>Prove restart reconstruction, exact retry, tamper rejection, and no v1 fallback with <code>python -m pytest -q tests/vnext/test_block9_recovery_prerequisites.py tests/vnext/test_block9_recovery.py</code>.</li></ol>
+      </details>
+    </article>
+    
+    <article class="task-card" data-kind="parallel" id="task-5">
+      <div class="task-topline">
+        <span class="task-number">5</span>
+        <span class="badge parallel">Можно параллельно</span>
+      </div>
+      <p class="eyebrow">Shadow и GitHub</p>
+      <h3>Build isolated shadow proof and public projections</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>Полный runtime дважды работает без live-эффекта. Comments и labels сходятся без повторной оплаты.</p></div>
+        <div><h4>Зачем нужно</h4><p>Unit tests не доказывают отсутствие доступа к сети, credentials и live ledger.</p></div>
+        <div><h4>Как упростить</h4><p>Tracked files входят в activation commit. Projection worker обрабатывает только внешние GitHub-объекты.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>S-74 and S-79.</dd></div>
+        <div><dt>Статус</dt><dd>planned.</dd></div>
+        <div><dt>Зависимость</dt><dd>Group 1 interfaces. Final integrated proof also needs Groups 2, 3, and 4.</dd></div>
+        <div><dt>Технических действий</dt><dd>8</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Create <code>tests/vnext/test_block9_shadow.py</code> and <code>tests/vnext/test_block9_public_contract.py</code>.</li><li>Record the expected pre-change failures for live-path access, available network, credential access, unstable replay, duplicate comments, and stale public status.</li><li>Implement the restricted-account shadow harness with copied inputs, denied live paths, network-off proof, and bounded child processes.</li><li>Run the complete candidate twice from fresh test inputs. Require identical report bytes and no host-state change.</li><li>Make root docs, CLI help, Issue forms, and workflow guards epoch-aware in the dormant implementation.</li><li>Add the projection state machine, hidden comment marker, full pagination, exact read-back, desired-state label update, and <code>projection_degraded</code> status.</li><li>Bind projection work to the no-Contents projection App. Reject permission expansion or canonical-ref access.</li><li>Prove the group with <code>python -m pytest -q tests/vnext/test_block9_shadow.py tests/vnext/test_block9_public_contract.py</code>.</li></ol>
+      </details>
+    </article>
+    
+    <article class="task-card" data-kind="operation" id="task-6">
+      <div class="task-topline">
+        <span class="task-number">6</span>
+        <span class="badge operation">Отдельная Delivery 2 authority</span>
+      </div>
+      <p class="eyebrow">Закрытие v1</p>
+      <h3>Resolve every real v1 obligation under v1 authority</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>Каждое реальное обязательство v1 получает разрешённый конечный исход до финального snapshot.</p></div>
+        <div><h4>Зачем нужно</h4><p>Migration code не закрывает реальные Issues, escrow и pending payments сам по себе.</p></div>
+        <div><h4>Как упростить</h4><p>Одна Delivery 2 acceptance покрывает v1 cleanup и следующий rehearsal. Она не разрешает activation.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>the real-project preparation side of S-72.</dd></div>
+        <div><dt>Статус</dt><dd>blocked pending a separate exact operator acceptance of Delivery 2.</dd></div>
+        <div><dt>Зависимость</dt><dd>Groups 1 through 5 complete and verified.</dd></div>
+        <div><dt>Технических действий</dt><dd>9</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Stop every agent, writer, maintenance process, and writer workflow trigger. Keep the project frozen through Group 7.</li><li>Prove that local writer processes and running or pending GitHub writer jobs are empty before the first operational capture.</li><li>Capture the complete two-way Issue and v1 obligation universe.</li><li>Assign exactly one accepted outcome to every real obligation.</li><li>Build and hash a dry-run manifest for every planned v1 ledger action. Before each action, verify the exact escrow, available amount, idempotency key, expected predecessor, and expected result against the current ledger.</li><li>Perform each authorized <code>settle-v1</code>, <code>stop/refund</code>, <code>historical-close</code>, or conversion closure/refund as one controlled Agent0 transaction through current v1 authority and idempotency rules.</li><li>Immediately after each committed v1 transaction, run <code>python scripts/check_invariant.py</code>, <code>python scripts/check_ledger_schema.py</code>, and <code>python scripts/check_task_index_schema.py</code>. Classify any interruption as an exact retry, a conflict, or a partial failure. Resolve it before the next action. Never continue from an unverified ledger state.</li><li>For each conversion, capture the exact verified v1 closure or refund record and hash. Then validate the exact fresh Agent approval and create the canonical immutable conversion-intent record in <code>pending</code> state. Bind that closure evidence, every field required by Spec 1.0 lines 66 through 72, the terminal-state rules, and one-shot idempotency key. Preserve the exact intent bytes, hash, and approval evidence for the final boundary and genesis input. Do not create vNext money or objects.</li><li>Prove that active escrow, pending payments, duplicate outcomes, unexplained money, and unclassified obligations are absent. Keep writers stopped and capture a fresh final boundary for Group 7.</li></ol>
+      </details>
+    </article>
+    
+    <article class="task-card" data-kind="gate" id="task-7">
+      <div class="task-topline">
+        <span class="task-number">7</span>
+        <span class="badge gate">Отдельный rehearsal</span>
+      </div>
+      <p class="eyebrow">Rehearsal</p>
+      <h3>Build the exact candidate and run one no-write rehearsal</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>Один отчёт показывает, что весь candidate работает на одном точном snapshot.</p></div>
+        <div><h4>Зачем нужно</h4><p>Раздельные tests не доказывают совместимость всех модулей, ключей, правил и данных.</p></div>
+        <div><h4>Как упростить</h4><p>Нужен один rehearsal, а не rehearsal для каждой группы. Shadow внутри него запускается дважды.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>S-71 through S-79 together.</dd></div>
+        <div><dt>Статус</dt><dd>blocked pending the same separate exact operator acceptance as Group 6 and successful completion of Group 6.</dd></div>
+        <div><dt>Зависимость</dt><dd>Groups 1 through 6 and the still-active stop-the-world boundary.</dd></div>
+        <div><dt>Технических действий</dt><dd>16</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Recheck that every writer trigger stays disabled and that local and GitHub writer queues remain empty before reading the final boundary.</li><li>Capture and hash the final remote ref, v1 state, GitHub boundary, authority state, environment state, and runtime.</li><li>Rebuild both writer universes, all inventories, reconciliation, genesis, recovery prerequisites, shadow reports, and public-surface expectations.</li><li>Build the complete unsigned cutover core, exact bootstrap bytes, deterministic sequence-zero event blueprint, and closed activation path set.</li><li>With non-authoritative rehearsal keys, exercise both approval envelopes, sequence zero, final-tree manifest, signed commit, and remote confirmation in a disposable repository. Do not create canonical sequence zero.</li><li>Run every Block 9 focused proving target against this exact candidate.</li><li>Run <code>python -m pytest -q tests/vnext</code>.</li><li>From a clean final candidate, generate <code>evidence/vnext/block9-changed-python-files.txt</code>. Read the base from <code>oled/changes/wea-vnext-block9-cutover/implementation-base.txt</code>. The manifest includes every added, copied, modified, or renamed Python file anywhere in the repository; it excludes only deleted files. Use this exact PowerShell: <code>$base = (Get-Content -Raw oled/changes/wea-vnext-block9-cutover/implementation-base.txt).Trim(); if (git status --porcelain) { throw &#x27;dirty candidate&#x27; }; $files = @(git diff --name-only --diff-filter=ACMR &quot;${base}..HEAD&quot; -- &#x27;*.py&#x27;); [Array]::Sort($files, [StringComparer]::Ordinal); if (-not $files) { throw &#x27;empty Block 9 Python manifest&#x27; }; $files | Set-Content -Encoding utf8NoBOM evidence/vnext/block9-changed-python-files.txt</code>.</li><li>In PowerShell, run <code>$files = @(Get-Content evidence/vnext/block9-changed-python-files.txt); if (-not $files) { throw &#x27;empty Block 9 Python manifest&#x27; }; python -m ruff check -- $files</code>. Report the repository-wide Ruff baseline separately; unrelated legacy findings do not block this delivery.</li><li>Run <code>python -m pyright</code> with the repository configuration.</li><li>Run <code>python scripts/check_invariant.py</code>, <code>python scripts/check_ledger_schema.py</code>, <code>python scripts/check_task_index_schema.py</code>, and <code>python scripts/check_doc_sync.py</code>.</li><li>Run <code>python oled/changes/wea-vnext-block9-cutover/build_tasks_review.py --check</code>, <code>python oled/changes/wea-vnext-s13c-financial-correction/build_sdd_review.py --check</code>, and <code>python oled/changes/wea-vnext-recreation/build_review_html.py --check</code>.</li><li>Run the disposable GitHub integration proof for both Apps and both rulesets. Do not target the canonical repository.</li><li>Produce one readiness report with exact hashes and every remaining gap.</li><li>If any result is ambiguous, incomplete, stale, or different between the two shadow runs, stop.</li><li>After a clean report, stop. Do not publish canonical sequence zero or an activation commit.</li></ol>
+      </details>
+    </article>
+    
+    <article class="task-card" data-kind="blocked" id="task-8">
+      <div class="task-topline">
+        <span class="task-number">8</span>
+        <span class="badge blocked">Заблокировано</span>
+      </div>
+      <p class="eyebrow">Activation</p>
+      <h3>Activate only under a new exact approval</h3>
+      <div class="explain-grid">
+        <div><h4>Что даёт</h4><p>Один commit переключает остановленный v1 на vNext.</p></div>
+        <div><h4>Зачем нужно</h4><p>Это единственный необратимый шаг, который меняет authoritative ledger epoch.</p></div>
+        <div><h4>Как упростить</h4><p>Оставить один activation gate. Не добавлять rolling migration, dual write или автоматический scheduler.</p></div>
+      </div>
+      <dl class="facts">
+        <div><dt>BDD</dt><dd>S-75 and the post-cutover sides of S-78 and S-79.</dd></div>
+        <div><dt>Статус</dt><dd>blocked and outside the authority of Tasks 2.0.</dd></div>
+        <div><dt>Зависимость</dt><dd>a clean Group 7 report, a newly confirmed frozen boundary, an activation-specific Tasks revision, exact operator approval, and exact Agent0 approval.</dd></div>
+        <div><dt>Технических действий</dt><dd>8</dd></div>
+      </dl>
+      <details>
+        <summary>Показать точный технический checklist</summary>
+        <ol class="checklist"><li>Do not start this group from Tasks 2.0.</li><li>After Group 7, create an activation-specific Tasks revision for the exact frozen boundary and candidate implementation.</li><li>Reconfirm that the Group 7 boundary and every authority source remain unchanged. Rebuild the candidate if any bound input changed.</li><li>Obtain the two accepted signed approval envelopes for that exact package.</li><li>Publish one Agent0-signed fast-forward commit through the ledger App.</li><li>Reconstruct from the remote ref, prove the invariant, and reconcile external projections through the projection App.</li><li>If publication did not occur, discard or rebuild the candidate from the current boundary.</li><li>If publication occurred, keep vNext authoritative and use forward repair. Never reactivate v1 automatically.</li></ol>
+      </details>
+    </article>
+    </div>
+    </section>
+
+    <section aria-labelledby="lean-title">
+      <h2 id="lean-title">Где план можно сократить</h2>
+      <p class="section-lead">Зелёные решения сокращают организационную работу без изменения контракта. Красные решения меняют принятую безопасность или BDD.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Сокращение</th><th>Что произойдёт</th><th>Влияние</th><th>Решение</th></tr></thead>
+          <tbody>
+            <tr data-cut="safe">
+              <th>Параллельная работа</th>
+              <td>После общей основы группы 3, 4 и 5 идут параллельно.</td>
+              <td>Без изменения контракта</td>
+              <td><span class="decision safe">Рекомендуется</span></td>
+            </tr>
+            
+            <tr data-cut="safe">
+              <th>Одна dormant-поставка</th>
+              <td>Группы 1–5 входят в один dormant package. Group 2 имеет один environment checkpoint.</td>
+              <td>Без изменения контракта</td>
+              <td><span class="decision safe">Рекомендуется</span></td>
+            </tr>
+            
+            <tr data-cut="safe">
+              <th>Одна acceptance для Groups 6–7</th>
+              <td>Controlled v1 cleanup и no-write rehearsal образуют одну Delivery 2.</td>
+              <td>Соответствует Design</td>
+              <td><span class="decision safe">Рекомендуется</span></td>
+            </tr>
+            
+            <tr data-cut="risk">
+              <th>Rehearsal вместе с activation</th>
+              <td>Система потеряет последнюю no-write проверку перед mutation.</td>
+              <td>Новая версия Design</td>
+              <td><span class="decision risk">Не рекомендуется</span></td>
+            </tr>
+            
+            <tr data-cut="risk">
+              <th>Один writer inventory</th>
+              <td>Пропущенный writer нельзя будет независимо обнаружить.</td>
+              <td>Нарушает S-71</td>
+              <td><span class="decision risk">Нельзя сокращать</span></td>
+            </tr>
+            
+            <tr data-cut="risk">
+              <th>Один Windows account</th>
+              <td>Worker получит тот же доступ к secrets, что и Agent0.</td>
+              <td>Новая версия Design</td>
+              <td><span class="decision risk">Не рекомендуется</span></td>
+            </tr>
+            
+            <tr data-cut="risk">
+              <th>Один GitHub App</th>
+              <td>Projection code получит право писать в canonical ref.</td>
+              <td>Новая версия Design</td>
+              <td><span class="decision risk">Не рекомендуется</span></td>
+            </tr>
+            
+            <tr data-cut="risk">
+              <th>Один shadow run</th>
+              <td>Повторяемость полного runtime останется недоказанной.</td>
+              <td>Нарушает S-74</td>
+              <td><span class="decision risk">Нельзя сокращать</span></td>
+            </tr>
+            
+            <tr data-cut="risk">
+              <th>Recovery после activation</th>
+              <td>В момент cutover не будет разрешённого repair path.</td>
+              <td>Нарушает S-78</td>
+              <td><span class="decision risk">Нельзя сокращать</span></td>
+            </tr>
+            </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="decision-box" aria-labelledby="decision-title">
+      <div>
+        <h2 id="decision-title">Что нужно согласовать сейчас</h2>
+        <p>Рекомендуемый lean cut сохраняет три delivery-этапа: dormant implementation, no-write rehearsal и отдельно activation.</p>
+        <p>Acceptance Tasks разрешит только code work в Groups 1, 3, 4 и 5. Environment setup, v1 cleanup, rehearsal и activation останутся заблокированными.</p>
+      </div>
+      <div class="reply">
+        <strong>Короткий ответ для согласования</strong>
+        <code>Принимаю Block 9 Tasks 2.0 и lean cut. Разрешаю только code work Groups 1, 3, 4, 5. Не разрешаю environment mutation, v1 cleanup, rehearsal или activation.</code>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="source-links">
+        <a href="tasks.md">Tasks 2.0</a>
+        <a href="WEA_vNext_BLOCK9_DESIGN_ACCEPTANCE.txt">Design acceptance binding</a>
+        <a href="design.md">Accepted Design 1.0</a>
+        <a href="spec.md">Accepted Spec 1.0</a>
+        <a href="outcome.md">Accepted Outcome 1.0</a>
+      </div>
+      <p>Artifact version: 2026-08-18.1. Tasks SHA-256: <span class="hash">e4d047d2bcf10ea6ed03296de869b2a9ea818f69df0208c307bf73da5e963c80</span>.</p>
+      <p>Selected-source fingerprint SHA-256: <span class="hash">949ee8ce650e0d1d05818d6e0245c03b696f731e5dfdea9c1dbc04a1ba7c4010</span>.</p>
+      <p>Этот HTML является объяснением Tasks. Нормативный checklist находится в <code>tasks.md</code>.</p>
+    </div>
+  </footer>
+  <script>
+    const buttons = [...document.querySelectorAll('[data-filter]')];
+    const cards = [...document.querySelectorAll('.task-card')];
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter;
+        for (const item of buttons) item.setAttribute('aria-pressed', String(item === button));
+        for (const card of cards) card.classList.toggle('is-hidden', filter !== 'all' && card.dataset.kind !== filter);
+      });
+    }
+  </script>
+</body>
+</html>
