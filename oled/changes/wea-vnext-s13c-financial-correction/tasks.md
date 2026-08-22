@@ -1,23 +1,38 @@
 # Tasks: WEA vNext S13C Financial Correction
 
-**Version:** 1.1
-**Date:** 2026-08-15
-**Status:** Complete
+**Version:** 1.4
+**Date:** 2026-08-17
+**Status:** Implementation and SDD reconciliation complete; Block 9 BDD accepted
 **Outcome:** `outcome.md` version 1.0
 **Specification:** `spec.md` version 1.1
 **Design:** `design.md` revision 1.1
+
+## Version history
+
+| Version | Date | Meaning |
+| --- | --- | --- |
+| 1.0 | 2026-08-15 | Initial implementation checklist. |
+| 1.1 | 2026-08-15 | Added review-driven tamper, authority-version, and resource-bound work. |
+| 1.2 | 2026-08-16 | Reconciles post-merge SDD evidence and adds the operator approval package. |
+| 1.3 | 2026-08-16 | Records all five operator decisions and prepares the Block 9 BDD review gate. |
+| 1.4 | 2026-08-17 | Records exact Block 9 Outcome/Spec 1.0 acceptance and opens Design only. |
 
 ## Group 1 — Lock the executable contract
 
 - [x] Add failing `tests/vnext/test_correction.py` coverage for S-13C.1 through
   S-13C.5, including exact replay, conflicting identities, atomic failure,
   approval binding, reconstruction, and tamper rejection.
-- [x] Update the scenario-registry contract to promote only S-13C, increase the
-  current count from 69 to 70, and leave no accepted-future scenario.
+- [x] Update the scenario-registry contract to promote only S-13C and increase
+  the current count from 69 to 70. The later accepted Block 9 BDD tracks 9
+  accepted-future scenarios without changing current S13C behavior.
 - [x] Extend the runtime-boundary contract so the correction module cannot
   enter an executor or pre-activation entrypoint closure.
-- [x] Run the focused tests and record the expected red result before adding
-  production code.
+- [x] Close evidence decision `SDD-01`: the original chronological RED output
+  was not retained. A retrospective baseline check proves that the exact S13C
+  test module cannot load on pre-S13C source because
+  `wea_vnext.financial_correction` is absent. Operator approval is required to
+  accept that limitation. The operator accepted it on 2026-08-16 and did not
+  claim that the missing output exists.
 
 ## Group 2 — Implement the inactive correction control plane
 
@@ -88,9 +103,32 @@
 - [x] Mark the PR ready and merge only after local verification, review, and CI
   are clean.
 
+## Group 5 — Post-merge SDD reconciliation and operator review
+
+- [x] Add append-only Outcome, Spec, Design, Tasks, and Verification version
+  provenance without changing accepted behavior.
+- [x] Express S-13C.1 through S-13C.5 as explicit GIVEN/WHEN/THEN/EVIDENCE
+  scenarios and map every independent requirement clause to exact test IDs.
+- [x] Add focused tests for complete canonical proposal inputs, exact payload
+  hash, zero delta, unique approval roles, and exact binding-version evidence.
+- [x] Mark stale parent Domain/Access status as historical and point to the
+  current S13C delta and review package.
+- [x] Build one self-contained Russian HTML artifact with plain explanations,
+  a locked accepted-decision record, Block 9 BDD, and exportable approval text.
+- [x] Record the already merged PR `#943` (`942998d`) and final verification PR
+  `#944` (`0ea6513`) as provenance.
+- [x] Record operator acceptance of `SDD-01`, `SDD-02`, `OD-28`, `OD-29`, and
+  `NEXT-01` on 2026-08-16.
+- [x] Record separate operator acceptance of exact Block 9 Outcome/Spec 1.0
+  without changes on 2026-08-17.
+
 ## Completion ceiling
 
 Completion means S-13C is a tested current inactive control-plane scenario.
 It does not mean that WEA vNext is live, that the current ledger can be
 corrected through this API, or that a durable financial transaction boundary
 exists.
+
+Post-merge SDD reconciliation is complete. The next allowed action is Block 9
+Design against the accepted Outcome/BDD. Implementation and live cutover
+remain separate approval gates.

@@ -1,0 +1,14 @@
+WEA vNext — exact Block 9 Outcome/Spec acceptance binding
+Contract version: 1.0
+Authority date: 2026-08-17
+Authority wording: Принимаю Block 9 Outcome/Spec 1.0 без изменений.
+Authority source: operator message in the current Codex task; this derived manifest is not standalone identity proof.
+Outcome path: oled/changes/wea-vnext-block9-cutover/outcome.md
+Outcome SHA-256: e9cbdcc924c8e01cae3240885e272fc75a7595bae1dcab4ee4034e6d439d1f67
+Spec path: oled/changes/wea-vnext-block9-cutover/spec.md
+Spec SHA-256: 25c65e999bb158d773fa7d46c5e566cd36f5a7eb4b8b8aff272274d8efe59dfa
+Candidate-preparation decision payload SHA-256: 100957844bcf3e9a1207ba95c2225acc74d3fb292a2684bd257a7ea7094a1c9e
+Acceptance decision payload SHA-256: fcec6617c9068dede2062045c231833dab24079a7bc1697bfc8b5cd551c27593
+Meaning: these exact bytes are accepted for Design only; implementation and activation remain unauthorized.
+Status rule: proposed/pending wording inside the pinned files is the immutable preparation-time snapshot; this later manifest records its exact acceptance without rewriting those bytes.
+Drift rule: byte changes require a new contract version and a new exact operator acceptance before the builder can pass.

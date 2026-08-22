@@ -5,6 +5,14 @@ The parent behavior contract remains in `oled/changes/wea-vnext-recreation/`.
 For financial correction, the accepted delta at
 `oled/changes/wea-vnext-s13c-financial-correction/spec.md` has priority over the
 parent's pre-delivery S-13C status and scenario count.
+For cutover behavior, the frozen snapshot at
+`oled/changes/wea-vnext-block9-cutover/spec.md` and its exact acceptance
+binding at
+`oled/changes/wea-vnext-s13c-financial-correction/WEA_vNext_BLOCK9_ACCEPTANCE.txt`
+apply the accepted OD-28 and OD-29 decisions. The snapshot intentionally keeps
+its preparation-time `proposed/pending` and overlay 1.1 wording; the binding
+and current parent overlay 1.2 supersede only that status. This authorizes
+Design only; implementation and activation remain separate gates.
 
 ## Current phase
 
@@ -14,6 +22,9 @@ parent's pre-delivery S-13C status and scenario count.
   The v1 ledger, history, and audit tools remain authoritative evidence.
 - vNext is an inactive, fail-closed candidate. It has no live Tide adapter and
   no canonical ledger namespace.
+- The registry has 70 current scenarios, 9 accepted-future Block 9 scenarios,
+  and zero proposed-future scenarios. Accepted-future is binding for Design
+  but is not implementation or live evidence.
 - `scripts/tide_vnext.py` and `ledger/vnext/` do not exist. Adding either is an
   explicit activation step, not ordinary maintenance.
 
@@ -29,6 +40,7 @@ parent's pre-delivery S-13C status and scenario count.
 | `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `intake.py`, `migration.py`, `projection.py` | public candidate facades | Delegate through one explicitly pinned executor closure; do not duplicate rules. |
 | `tests/vnext/` | vNext behavior, isolation, and replay contracts | Pin the executor version being tested. Historical replay tests never follow a moving default. |
 | `oled/changes/wea-vnext-recreation/` | accepted target behavior and implementation gates | Start here when intended future behavior is unclear. |
+| `oled/changes/wea-vnext-block9-cutover/` | accepted cutover Outcome and BDD | Design next. Do not implement or activate until Design and tasks are also accepted. |
 
 The legacy candidate facades share executor `0.6.3`. The inactive Resolution
 Plan facade is pinned to executor `0.8.0`. These pins do not make an executor
@@ -77,11 +89,15 @@ historical integrity checks. Do not reinterpret old records with vNext rules.
 
 ## Activation boundary
 
-Merging inactive vNext code does not activate it. Activation requires the
-separate migration gate: a complete writer inventory, frozen and reconciled v1
-evidence, shadow replay, `genesis.json`, the vNext epoch, two procedural
-confirmations, disabled v1 writers, and an explicitly enabled vNext Tide
-adapter. An unknown writer or ambiguous record blocks activation.
+Merging inactive vNext code does not activate it. The accepted activation
+contract is R-B9-05 in `oled/changes/wea-vnext-block9-cutover/spec.md`. It
+requires a complete writer inventory,
+frozen and reconciled v1 evidence, shadow replay, `genesis.json`, the vNext
+epoch, separate authenticated immutable operator and Agent0 approvals of one
+exact bundle, `agent0@system` as the sole ledger writer through its approved
+active credential binding, disabled v1 writers, and an explicitly enabled
+vNext Tide adapter. An unknown writer, ambiguous record, substituted writer,
+or changed bundle blocks activation.
 
 `tests/vnext/test_runtime_boundary.py` is a narrow pre-activation tripwire. It
 rejects literal vNext references in the current CLI, scripts of every file

@@ -1,6 +1,6 @@
 # Agent0 handoff: S13C financial correction
 
-Status: `complete / merged`.
+Status: `implementation complete / merged; SDD decisions accepted`.
 
 The operator approved the separate S13C delivery on 2026-08-15 and explicitly
 rejected a narrow successor reference runtime. The implementation is an
@@ -9,10 +9,12 @@ inactive control-plane library. WEA vNext remains `Not live`.
 ## Current workspace
 
 - Worktree:
-  `D:\GitHub\wetheagents-codex-wea-vnext-s13c-financial-correction-2026-08-15`.
-- Branch: `codex/wea-vnext-s13c-financial-correction-2026-08-15`.
-- Base: merged Domain/Access commit `bb114e7` from `origin/main`.
-- OLED authority: Outcome `1.0`, Spec/Design/Tasks `1.1` in this folder.
+  `D:\GitHub\wetheagents-codex-wea-vnext-sdd-review-2026-08-16`.
+- Branch: `codex/wea-vnext-sdd-review-2026-08-16`.
+- Audited base: local `origin/main` at `0ea6513`. Noninteractive remote refresh
+  was unavailable, so this record does not claim a newer remote head.
+- OLED authority: Outcome `1.0`, Spec/Design `1.1`, Tasks/Verification `1.4`.
+- Operator artifact: `WEA_vNext_SDD_REVIEW.html` in this folder.
 
 ## Implemented boundary
 
@@ -56,7 +58,8 @@ inactive control-plane library. WEA vNext remains `Not live`.
 - Ruff: clean. Pyright: 0 errors and 0 warnings.
 - Refreshed code graph: `apply_financial_correction` has no non-test inbound
   caller.
-- Current scenario registry: 70 current scenarios; no accepted-future scenario.
+- Current scenario registry: 70 current, 9 accepted-future, and zero
+  proposed-future Block 9 scenarios.
 - Review pass 2 found that valid burn-only corrections could not make the signed
   supply adjustment negative. The invariant now rejects only a negative
   resulting supply. Two regressions and the complete verification matrix pass.
@@ -79,11 +82,15 @@ inactive control-plane library. WEA vNext remains `Not live`.
   defect on the complete diff and independently reran all 45 focused tests.
 - All five exact-head GitHub checks passed on `73c2a72`; PR `#943` was marked
   ready and squash-merged as `942998d` on 2026-08-15.
+- PR `#944` then finalized the verification record and was merged as `0ea6513`.
 
-## Completion
+## Current continuation
 
-No task-local continuation remains. Any live connection is a new OLED change
-under the gate below.
+The operator accepted all five initial recommendations in
+`WEA_vNext_SDD_REVIEW.html`, then separately accepted exact Block 9
+Outcome/Spec 1.0 without changes on 2026-08-17. Block 9 Design is now the next
+allowed action. Any implementation or live connection remains a separate OLED
+gate.
 
 ## Future live-cutover gate
 

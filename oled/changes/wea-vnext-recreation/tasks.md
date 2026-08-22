@@ -1,5 +1,13 @@
 # WEA vNext: план реализации
 
+> **Current overlay — 2026-08-17.** The Domain/Access work below is complete
+> and merged through PR `#942` (`bb114e7`). The separate S13C lane is also
+> complete and merged through PRs `#943`/`#944` (`942998d`/`0ea6513`). The
+> registry is 70 current / 9 accepted-future / 0 proposed-future. Six
+> operator decisions are accepted, including exact Block 9 Outcome/Spec 1.0.
+> Current Block 9 review material is in `../wea-vnext-block9-cutover/`.
+> Older pending/accepted-future text below is historical.
+
 Статус `tasks 1.3`: **implemented / review clean**. Outcome/Spec `1.0` and design `1.1` authorize a real external Circle-1 Domain and the S-11A/S-11B control plane. They prohibit a successor reference-runtime closure. S-13C remains a separate accepted-future lane. Review passes 2–4 found seven fail-closed contract gaps; their focused regressions pass. Pass 5 found no actionable defect. Tasks `1.2` and its verified Spec `0.9` implementation remain immutable historical evidence. `[CHAT][DERIVED][CHECK][REVIEW]`
 
 ## Current delivery: Spec 1.0 Domain and Access
@@ -135,7 +143,7 @@ This delivery must not add `test_correction.py`, correction code, correction sta
 - Общая логика живёт в `src/wea_vnext/`. CLI и Tide используют её как библиотеку и не держат собственные копии правил или расчётов. `[CODE@c703f5e][DERIVED]`
 - Rulesets and executors `0.6.x` and `0.7/v0_7_0` are immutable. Spec `0.9` receives ruleset/Tide interface `0.8` and executor `v0_8_0`; every Contract keeps its exact runtime triple while replay can reference it. `[CHAT][DERIVED][REVIEW]`
 - Тесты называют BDD-сценарии из `spec.md` своими ID. Реестр сценариев не позволяет потерять или повторить ID. `[DERIVED]`
-- Изменение наблюдаемого поведения возвращает работу в `outcome.md` или `spec.md`. Реализация не закрывает OD-11, OD-14, OD-28 или OD-29 догадкой. `[CHAT][DERIVED][REVIEW]`
+- Изменение наблюдаемого поведения возвращает работу в `outcome.md` или `spec.md`. Реализация не закрывает OD-11 или OD-14 догадкой. OD-28 и OD-29 закрыты решением оператора; exact Block 9 Outcome/Spec 1.0 принят для Design, но не для implementation/live. `[CHAT][DERIVED][REVIEW]`
 
 ## Historical delivery: Spec 0.9 reconciliation
 
@@ -369,7 +377,7 @@ The current Spec `0.9` delivery completes items 1–4. The next active block sta
 
 - [ ] Составить `documentation-inventory.json` и `writer-inventory.json`. Каждый workflow, CLI-команда и script, способный менять ledger или протокольное состояние, получает одно решение `replace / disable / historical-read-only`; неизвестный путь блокирует переключение.
 - [x] Досрочно отключить публичный общий `wea claim`: удалить CLI-команду, `--force`, milestone shim, GitHub `claim-fast` writer и действующие инструкции; удалить scheduled Tide/auto-triage writers, чтобы операторская пауза была fail closed. Исторические claim-chain/TTL/integrity проверки остаются для чтения v1; claim-подобный Duel join остаётся отдельным будущим событием профиля Duel. Этот шаг перенесён вперёд решением оператора после остановки v1 Tide и Agent0 loop.
-- [ ] Явно заменить v1 `register`, `rename`, `accept`, `ranking`, `duel-winner`, `verify`, `assign`, `pending/process_pending`, Tide и `label-paid`. До решения OD-28 и OD-29 не классифицировать `gauntlet mint` и пути achievement/revoke/transform догадкой.
+- [ ] Явно заменить v1 `register`, `rename`, `accept`, `ranking`, `duel-winner`, `verify`, `assign`, `pending/process_pending`, Tide и `label-paid`. Классифицировать `gauntlet mint` и пути achievement/revoke/transform как `historical-read-only / disable` по Block 9 Spec 1.0.
 - [ ] Сверить balances, escrow, незавершённые Issues, history, idempotency keys, Identity и Hello World. Сохранить frozen hashes, opening supply и reconciliation hash.
 - [ ] Построить канонический `genesis.json` как событие 0 с полным начальным состоянием Agents, Identity, balances, использованных ключей и ссылок на историю v1. Удаление `state/` и повтор из genesis плюс событий должны дать те же байты.
 - [ ] Прогнать vNext в теневом режиме без записи в ledger и GitHub. Каждый отчёт связывает границу GitHub, hash набора правил, вход и воспроизводимый выход.

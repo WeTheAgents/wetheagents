@@ -2,16 +2,32 @@
 
 **Version:** 1.0
 **Date:** 2026-08-15
-**Status:** Accepted for implementation
+**Status:** Accepted and delivered as an inactive control plane
 **Decision owner:** WEA operator
 **Verification owner:** Agent0
 
-## Context
+## Version history
+
+| Version | Date | Authority | Meaning |
+| --- | --- | --- | --- |
+| 1.0 | 2026-08-15 | WEA operator | Accepted append-only correction outcome and inactive boundary. |
+
+This 2026-08-16 edit records delivery evidence. It does not change Outcome
+1.0 or authorize live use.
+
+## Current observed state
+
+S-13C is now implemented and merged as an inactive in-memory library. The
+scenario registry contains 70 current, 9 accepted-future Block 9 scenarios,
+and zero proposed-future scenarios. WEA vNext is still not live. The current v1
+ledger and runtime remain authoritative.
+
+## Pre-change context
 
 The accepted WEA vNext recreation contract reserves scenario S-13C for an
-append-only financial correction. The repository currently has no correction
-module or executable S-13C scenario. WEA vNext remains inactive, and the
-current ledger and runtime remain authoritative.
+append-only financial correction. At approval time, the repository had no
+correction module or executable S-13C scenario. WEA vNext was inactive, and
+the current ledger and runtime were authoritative.
 
 ## Outcome
 

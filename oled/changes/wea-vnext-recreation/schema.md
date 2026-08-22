@@ -1,5 +1,12 @@
 # WEA vNext: минимальные машинные записи
 
+> **Current overlay — 2026-08-17.** This file retains the accepted
+> Domain/Access schema. Accepted Block 9 Outcome/Spec 1.0 describes binding
+> history and cutover behavior for Design; its
+> Design and machine records do not exist. Accepted OD-28/OD-29 decisions keep
+> gauntlet mint and achievement records as readable history without active
+> vNext effect.
+
 Статус: `schema 1.1` дополняет Spec `1.0` и design `1.1` отдельной inactive control-plane моделью Domain/Access. Schema `1.0`, ruleset `0.8`, executor `v0_8_0` и все опубликованные historical closure остаются неизменными. `[CHAT][DERIVED]`
 
 ## Schema delta 1.1: Domain registry and Access control plane

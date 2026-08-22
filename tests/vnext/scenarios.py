@@ -1,4 +1,4 @@
-"""Exact scenario scopes for accepted and implemented Spec 1.0 behavior."""
+"""Exact scenario scopes for accepted and implemented vNext behavior."""
 
 COMPATIBLE_SCENARIO_IDS = (
     "S-56",
@@ -80,6 +80,18 @@ CONTROL_PLANE_SCENARIO_IDS = (
 
 CORRECTION_SCENARIO_IDS = ("S-13C",)
 
+BLOCK9_SCENARIO_IDS = (
+    "S-71",
+    "S-72",
+    "S-73",
+    "S-74",
+    "S-75",
+    "S-76",
+    "S-77",
+    "S-78",
+    "S-79",
+)
+
 CURRENT_SCENARIO_IDS = (
     *COMPATIBLE_SCENARIO_IDS,
     *CHANGED_SCENARIO_IDS,
@@ -87,7 +99,8 @@ CURRENT_SCENARIO_IDS = (
     *CORRECTION_SCENARIO_IDS,
 )
 SCENARIO_IDS = CURRENT_SCENARIO_IDS
-ACCEPTED_FUTURE_SCENARIO_IDS: tuple[str, ...] = ()
+ACCEPTED_FUTURE_SCENARIO_IDS = BLOCK9_SCENARIO_IDS
+PROPOSED_FUTURE_SCENARIO_IDS: tuple[str, ...] = ()
 
 # These references may duplicate current IDs because the version prefix is part
 # of their identity. They are not implementation claims for the current ruleset.
@@ -95,7 +108,7 @@ HISTORICAL_SCENARIO_REFS = tuple(f"0.8:{item}" for item in CHANGED_SCENARIO_IDS)
 
 
 def validate_registry() -> None:
-    """Fail if scenario scopes overlap, omit an accepted case, or add a future claim."""
+    """Fail if scenario scopes overlap or differ from the accepted contracts."""
     if len(COMPATIBLE_SCENARIO_IDS) != 41:
         raise ValueError(
             f"expected 41 compatible scenario IDs, found {len(COMPATIBLE_SCENARIO_IDS)}"
@@ -114,6 +127,11 @@ def validate_registry() -> None:
             "expected 1 correction scenario ID, "
             f"found {len(CORRECTION_SCENARIO_IDS)}"
         )
+    if len(BLOCK9_SCENARIO_IDS) != 9:
+        raise ValueError(
+            "expected 9 accepted Block 9 scenario IDs, found "
+            f"{len(BLOCK9_SCENARIO_IDS)}"
+        )
     if len(CURRENT_SCENARIO_IDS) != 70:
         raise ValueError(
             f"expected 70 current scenario IDs, found {len(CURRENT_SCENARIO_IDS)}"
@@ -127,10 +145,16 @@ def validate_registry() -> None:
         raise ValueError("control-plane scenarios do not match the approved scope")
     if CORRECTION_SCENARIO_IDS != ("S-13C",):
         raise ValueError("correction scenarios do not match the approved scope")
-    if ACCEPTED_FUTURE_SCENARIO_IDS != ():
-        raise ValueError("accepted-future scenarios do not match the approved scope")
+    if ACCEPTED_FUTURE_SCENARIO_IDS != tuple(
+        f"S-{number}" for number in range(71, 80)
+    ):
+        raise ValueError("accepted-future scenarios do not match the accepted scope")
+    if PROPOSED_FUTURE_SCENARIO_IDS != ():
+        raise ValueError("proposed-future scope must stay empty")
     if set(CURRENT_SCENARIO_IDS) & set(ACCEPTED_FUTURE_SCENARIO_IDS):
         raise ValueError("current and accepted-future scenario scopes overlap")
+    if set(CURRENT_SCENARIO_IDS) & set(PROPOSED_FUTURE_SCENARIO_IDS):
+        raise ValueError("current and proposed-future scenario scopes overlap")
 
 
 validate_registry()

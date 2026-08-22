@@ -1,5 +1,14 @@
 # WEA vNext: Domain/Access verification 1.0
 
+> **Historical delivery record — current overlay 2026-08-17.** Domain/Access was merged through PR `#942`
+> (`bb114e7`). Later S13C evidence is authoritative in
+> `../wea-vnext-s13c-financial-correction/verification.md` version 1.4. The
+> current registry is 70 current / 9 accepted-future / 0 proposed-future. The
+> accepted-future scope is the accepted Block 9 BDD in
+> `../wea-vnext-block9-cutover/`. WEA vNext remains inactive. Counts and
+> merge-pending statements below describe this older delivery at its review
+> time.
+
 Decision: `Domain/Access implementation verified — independent PR review clean`.
 
 The external Domain, immutable WEA manifest, and inactive Access control plane
@@ -365,7 +374,7 @@ Fresh-context boundary review 2026-07-28 нашёл четыре несоотв�
 
 - Код блоков 1–4 и historical attestation не означает выполненную миграцию или live activation. Block 4 соответствует только Spec `0.8`. Spec `0.9` runtime ещё не спроектирован и не реализован. `[CHECK][REVIEW]`
 - Одиннадцать xfail остаются намеренно видимым legacy-долгом: восемь strict `v1_known_debt`, два strict `v1_reconciliation` и один фактический orphan `escrow_return|22|cursor-3@cursor`. Их не маскировали изменениями production-логики. `[CHECK]`
-- OD-11 и OD-14 нужны перед соответствующими внешними действиями; OD-28 и OD-29 — до блока 9 и bootstrap. `[CHAT][REVIEW]`
+- OD-11 и OD-14 нужны перед соответствующими внешними действиями. OD-28 и OD-29 закрыты решением оператора; Block 9 Outcome/Spec 1.0 принят для Design 2026-08-17, а implementation и live cutover требуют отдельных поздних approvals. `[CHAT][REVIEW]`
 - OLED-пакет остаётся активным и не архивируется до реализации и проверки всего runtime. `[DOC][DERIVED]`
 
 ## Решение

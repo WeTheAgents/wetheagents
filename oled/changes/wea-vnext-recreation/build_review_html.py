@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import html
 import json
@@ -19,16 +20,18 @@ import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup
+from bs4.element import NavigableString
 from markdown_it import MarkdownIt
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "WEA_vNext_REVIEW.html"
 BASE_SHA = "882a063"
-PACKAGE_REVISION = "1.0"
+PACKAGE_REVISION = "1.2"
+DOMAIN_ACCESS_SPEC_REVISION = "1.0"
 DESIGN_REVISION = "1.1"
-MIGRATION_REVISION = "1.0"
-DELTA_REVISION = "1.0"
+MIGRATION_REVISION = "1.2"
+DELTA_REVISION = "1.2"
 TASKS_REVISION = "1.3"
 
 
@@ -107,21 +110,27 @@ CURRENT_DECISION_IDS = set(
 )
 
 VERSION_MARKERS = {
-    "HANDOFF.md": (r"Outcome/Spec `([^`]+)`", PACKAGE_REVISION),
+    "HANDOFF.md": (
+        r"Status: `([^`]+)`",
+        "Block 9 Outcome/BDD 1.0 accepted; Design required next",
+    ),
     "open-decisions.md": (r"Статус кандидата `([^`]+)`", PACKAGE_REVISION),
-    "outcome.md": (r"Outcome `([^`]+)` принимает Domain registry", PACKAGE_REVISION),
+    "outcome.md": (r"\| (1\.2) \| 2026-08-17", PACKAGE_REVISION),
     "spec.md": (
         r"# WEA vNext: поведение кандидата ([0-9.]+)",
-        PACKAGE_REVISION,
+        DOMAIN_ACCESS_SPEC_REVISION,
     ),
     "design.md": (r"Статус: `design ([^`]+)`", DESIGN_REVISION),
     "tasks.md": (r"`tasks ([^`]+)`", TASKS_REVISION),
     "schema.md": (r"Статус: `schema ([^`]+)`", DESIGN_REVISION),
-    "migration.md": (r"Статус: `migration ([^`]+)`", MIGRATION_REVISION),
-    "delta.md": (r"Статус: `delta ([^`]+)`", DELTA_REVISION),
+    "migration.md": (
+        r"Статус: `migration decision overlay ([^`]+)`",
+        MIGRATION_REVISION,
+    ),
+    "delta.md": (r"Статус: `decision delta ([^`]+)`", DELTA_REVISION),
     "verification.md": (
         r"# WEA vNext: Domain/Access verification ([0-9.]+)",
-        PACKAGE_REVISION,
+        DOMAIN_ACCESS_SPEC_REVISION,
     ),
 }
 
@@ -149,6 +158,9 @@ def validate_package_contract() -> None:
     handoff = texts.get("HANDOFF.md", "")
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
     decision = current_decision(verification)
+    current_block9_overlay = (
+        "Block 9 Outcome/BDD 1.0 accepted; Design required next" in handoff
+    )
     spec_implementation_review_pending = (
         decision
         == "Domain/Access implementation verified — independent PR review pending"
@@ -163,7 +175,8 @@ def validate_package_contract() -> None:
     bdd_rewrite_pending = decision == "Not ready — BDD rewrite pending"
     block_four_complete = decision == "Ready after Block 4"
     block_four_implemented = (
-        spec_implementation_review_pending
+        current_block9_overlay
+        or spec_implementation_review_pending
         or spec_implementation_review_clean
         or spec_reconciliation_complete
         or spec_reconciliation_pending
@@ -173,7 +186,19 @@ def validate_package_contract() -> None:
     block_three_complete = block_four_implemented or "Ready for Block 4" in verification
     block_two_complete = block_three_complete or "Ready for Block 3" in verification
     block_one_complete = block_two_complete or "Ready for Block 2" in verification
-    if spec_implementation_review_pending:
+    if current_block9_overlay:
+        if "Not live" not in verification:
+            errors.append("verification.md: live-runtime boundary is missing")
+        if (
+            "registry is 70 current / 9 accepted-future / 0 proposed-future"
+            not in tasks
+        ):
+            errors.append("tasks.md: current Block 9 scenario overlay is missing")
+        if "OD-28 и OD-29 закрыты" not in decisions:
+            errors.append("open-decisions.md: accepted Block 9 decisions are missing")
+        if "BDD alignment: 100%" not in verification:
+            errors.append("verification.md: retained BDD alignment is missing")
+    elif spec_implementation_review_pending:
         if "Not live" not in verification:
             errors.append("verification.md: live-runtime boundary is missing")
         if "tasks 1.3`: **implemented / independent review pending**" not in tasks:
@@ -249,7 +274,10 @@ def validate_package_contract() -> None:
             errors.append("verification.md: runtime status marker is missing")
     if "Статус свежих команд: `Complete`" not in verification:
         errors.append("verification.md: fresh-command evidence is incomplete")
-    if spec_implementation_review_pending:
+    if current_block9_overlay:
+        if "Статус независимой проверки: `CLEAN`" not in verification:
+            errors.append("verification.md: retained clean review status is missing")
+    elif spec_implementation_review_pending:
         if "Статус независимой проверки: `Pending`" not in verification:
             errors.append("verification.md: pending review status is missing")
     elif spec_implementation_review_clean:
@@ -264,7 +292,11 @@ def validate_package_contract() -> None:
             errors.append("verification.md: independent review is incomplete")
     if re.search(r"записываются после|выполняется после сборки", verification):
         errors.append("verification.md: contains a future evidence placeholder")
-    if not bdd_rewrite_pending and "блокирующих решений нет" not in decisions:
+    if (
+        not current_block9_overlay
+        and not bdd_rewrite_pending
+        and "блокирующих решений нет" not in decisions
+    ):
         errors.append(
             "open-decisions.md: blocking-decision status disagrees with readiness"
         )
@@ -349,13 +381,13 @@ def decorate_source_tags(soup: BeautifulSoup) -> None:
         if remainder:
             continue
         wrapper = soup.new_tag("span")
-        wrapper["class"] = ["source-tags"]
+        wrapper["class"] = "source-tags"
         wrapper["aria-label"] = "Источники"
         for match in matches:
             key = match.group(1)
             label, css_class = SOURCE_TAGS[key]
             badge = soup.new_tag("a", href="#" + SOURCE_EVIDENCE_ANCHORS[key])
-            badge["class"] = ["source-tag", "source-" + css_class]
+            badge["class"] = "source-tag source-" + css_class
             badge["title"] = label
             badge.string = "[" + key + "]"
             wrapper.append(badge)
@@ -390,7 +422,7 @@ def autolink_decisions(soup: BeautifulSoup) -> None:
             if match.start() > cursor:
                 replacements.append(NavigableString(text[cursor : match.start()]))
             link = soup.new_tag("a", href="#decision-od-" + match.group(1))
-            link["class"] = ["xref"]
+            link["class"] = "xref"
             link.string = match.group(0)
             replacements.append(link)
             cursor = match.end()
@@ -434,7 +466,11 @@ def render_document(document: Document) -> tuple[str, list[dict[str, str | int]]
     soup = render_markdown(ROOT / document.filename)
     headings = assign_heading_ids(soup, document.slug)
     source_h1 = soup.find("h1")
-    title = source_h1.get_text(" ", strip=True) if source_h1 else document.nav_title
+    title = (
+        source_h1.get_text(" ", strip=True)
+        if source_h1
+        else (document.nav_title or document.filename)
+    )
     if source_h1:
         source_h1.extract()
         headings = [entry for entry in headings if entry["level"] != 1]
@@ -445,7 +481,7 @@ def render_document(document: Document) -> tuple[str, list[dict[str, str | int]]
 
     for table in list(soup.find_all("table")):
         wrapper = soup.new_tag("div")
-        wrapper["class"] = ["table-wrap"]
+        wrapper["class"] = "table-wrap"
         table.wrap(wrapper)
 
     section = f"""
@@ -464,8 +500,12 @@ def render_document(document: Document) -> tuple[str, list[dict[str, str | int]]
 def extract_decisions() -> tuple[str, list[dict[str, str]], str, dict[str, int]]:
     soup = render_markdown(ROOT / "open-decisions.md")
     title_node = soup.find("h1")
+    if title_node is None:
+        raise RuntimeError("open-decisions.md has no h1 title")
     title = title_node.get_text(" ", strip=True)
     status_node = title_node.find_next_sibling("p")
+    if status_node is None:
+        raise RuntimeError("open-decisions.md has no status paragraph")
     status_html = inner_html(status_node)
     decisions: list[dict[str, str]] = []
     group_counts = {"core": 0, "late": 0}
@@ -473,6 +513,12 @@ def extract_decisions() -> tuple[str, list[dict[str, str]], str, dict[str, int]]
     for group_heading in soup.find_all("h2"):
         group = group_heading.get_text(" ", strip=True)
         normalized_group = group.casefold()
+        if (
+            "решения оператора" in normalized_group
+            or "решение оператора" in normalized_group
+            or "будущая продуктовая работа" in normalized_group
+        ):
+            continue
         if (
             "до реализации" in normalized_group
             or "требует внимания" in normalized_group
@@ -691,10 +737,15 @@ def nav_document(
     """
 
 
-def build() -> None:
+def build(*, check: bool = False) -> None:
     validate_package_contract()
     verification_text = (ROOT / "verification.md").read_text(encoding="utf-8")
+    handoff_text = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
     decision = current_decision(verification_text)
+    current_block9_overlay = (
+        "Block 9 Outcome/BDD 1.0 accepted; Design required next"
+        in handoff_text
+    )
     spec_implementation_review_pending = (
         decision
         == "Domain/Access implementation verified — independent PR review pending"
@@ -709,7 +760,8 @@ def build() -> None:
     bdd_rewrite_pending = decision == "Not ready — BDD rewrite pending"
     block_four_complete = decision == "Ready after Block 4"
     block_four_implemented = (
-        spec_implementation_review_pending
+        current_block9_overlay
+        or spec_implementation_review_pending
         or spec_implementation_review_clean
         or spec_reconciliation_complete
         or spec_reconciliation_pending
@@ -742,7 +794,13 @@ def build() -> None:
         nav_sections.append(nav_document(document, title, headings))
 
     decision_count = sum(decision_counts.values())
-    if spec_implementation_review_pending:
+    if current_block9_overlay:
+        decision_guide = (
+            "Шесть решений оператора приняты. Точный Block 9 Outcome/BDD 1.0 "
+            "принят без изменений. Design разрешён как следующий gate; "
+            "implementation, live-активация и ledger writes запрещены."
+        )
+    elif spec_implementation_review_pending:
         decision_guide = (
             "Domain/Access решения приняты и локально доказаны. "
             "Остаётся независимая проверка опубликованного WEA PR."
@@ -778,7 +836,21 @@ def build() -> None:
             "План и handoff готовы для следующего ограниченного блока."
         )
 
-    if spec_implementation_review_pending:
+    if current_block9_overlay:
+        hero_kicker = "Block 9 BDD 1.0 · accepted · Design next"
+        hero_lead = (
+            "70 текущих сценариев остаются реализованными. Девять Block 9 "
+            "сценариев приняты как accepted-future контракт для Design; "
+            "proposed-future set пуст. "
+            "Gauntlet mint и активные achievement writes не входят в первый "
+            "cutover. WEA vNext остаётся выключенным."
+        )
+        package_status = "Block 9 BDD accepted · Design next · Not live"
+        primary_href = "#doc-handoff"
+        primary_label = "Открыть текущий handoff"
+        core_status_label = "Блокеров для Design"
+        core_status_count = "0"
+    elif spec_implementation_review_pending:
         hero_kicker = "Spec 1.0 · Domain/Access verified"
         hero_lead = (
             "69 текущих BDD-сценариев включают 67 неизменных runtime-сценариев "
@@ -2054,7 +2126,11 @@ def build() -> None:
         .replace("__MANIFEST__", manifest_html)
     )
     output = "\n".join(line.rstrip() for line in output.splitlines()) + "\n"
-    OUTPUT.write_text(output, encoding="utf-8", newline="\n")
+    if check:
+        if not OUTPUT.exists() or OUTPUT.read_text(encoding="utf-8") != output:
+            raise ValueError(f"Generated artifact is stale: {OUTPUT}")
+    else:
+        OUTPUT.write_text(output, encoding="utf-8", newline="\n")
     print(
         json.dumps(
             {
@@ -2064,7 +2140,8 @@ def build() -> None:
                 "core_decisions": decision_counts["core"],
                 "late_decisions": decision_counts["late"],
                 "source_digest": source_digest,
-                "bytes": OUTPUT.stat().st_size,
+                "bytes": len(output.encode("utf-8")),
+                "check": check,
             },
             ensure_ascii=False,
         )
@@ -2072,4 +2149,6 @@ def build() -> None:
 
 
 if __name__ == "__main__":
-    build()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true")
+    build(check=parser.parse_args().check)

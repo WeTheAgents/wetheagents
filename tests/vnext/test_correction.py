@@ -158,6 +158,57 @@ def _reconstruct(
     )
 
 
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"correction_id": ""}, "correction_id must be a canonical identifier"),
+        (
+            {"idempotency_key": ""},
+            "idempotency_key must be a canonical identifier",
+        ),
+        ({"affected_ledger_ids": ()}, "affected_ledger_ids must be non-empty"),
+        (
+            {
+                "affected_ledger_ids": (
+                    "ledger:history:2026-08-14:1",
+                    "ledger:history:2026-08-14:1",
+                )
+            },
+            "affected_ledger_ids must be non-empty and duplicate-free",
+        ),
+        ({"postings": ()}, "postings must be non-empty"),
+    ],
+)
+def test_s_13c_1_rejects_incomplete_or_duplicate_proposal_inputs(
+    changes: dict[str, object],
+    message: str,
+) -> None:
+    values: dict[str, object] = {
+        "correction_id": "correction:complete",
+        "affected_ledger_ids": ("ledger:history:2026-08-14:1",),
+        "postings": (CompensatingPosting("balance:alice", 1, "mint"),),
+        "idempotency_key": "financial-correction:complete",
+    }
+    values.update(changes)
+
+    with pytest.raises(FinancialCorrectionError, match=message):
+        make_correction_proposal(**values)  # type: ignore[arg-type]
+
+
+def test_s_13c_1_proposal_hash_binds_the_exact_payload() -> None:
+    state = _state()
+    proposal = _proposal()
+    forged = _forged(proposal, proposal_hash="0" * 64)
+
+    with pytest.raises(FinancialCorrectionError, match="proposal hash"):
+        apply_financial_correction(
+            state,
+            proposal=forged,
+            approvals=_approvals(state, proposal),
+            effective_at=START + timedelta(minutes=2),
+        )
+
+
 def test_s_13c_1_atomic_redistribution_preserves_published_row_bytes() -> None:
     state = _state()
     proposal = _proposal()
@@ -395,6 +446,58 @@ def test_s_13c_3_unknown_or_inactive_authority_cannot_confirm() -> None:
             authority_revision_id="operator:revision:7",
             confirmed_at=START,
         )
+
+
+def test_s_13c_3_requires_exact_binding_snapshot_and_one_approval_per_role() -> None:
+    state = _state()
+    proposal = _proposal()
+    approvals = _approvals(state, proposal)
+
+    with pytest.raises(FinancialCorrectionError, match="one operator and one Agent0"):
+        apply_financial_correction(
+            state,
+            proposal=proposal,
+            approvals=(approvals[0], approvals[0]),
+            effective_at=START + timedelta(minutes=2),
+        )
+
+    operator_binding = next(
+        binding
+        for binding in state.authority_bindings
+        if binding.authority_kind == "operator"
+    )
+    alternate_state = _state(
+        authority_bindings=(
+            _forged(
+                operator_binding,
+                binding_version=operator_binding.binding_version + 1,
+            ),
+            _authority("agent0"),
+        )
+    )
+    wrong_version = confirm_correction(
+        alternate_state,
+        proposal=proposal,
+        authority_kind="operator",
+        authority_id="operator:primary",
+        authority_revision_id="operator:revision:7",
+        confirmed_at=START,
+    )
+    with pytest.raises(FinancialCorrectionError, match="configured active authority"):
+        apply_financial_correction(
+            state,
+            proposal=proposal,
+            approvals=(wrong_version, approvals[1]),
+            effective_at=START + timedelta(minutes=2),
+        )
+
+    assert state.groups == ()
+    assert state.correction_rows == ()
+
+
+def test_s_13c_4_rejects_zero_delta_posting() -> None:
+    with pytest.raises(FinancialCorrectionError, match="non-zero integer"):
+        CompensatingPosting("balance:alice", 0, "transfer")
 
 
 @pytest.mark.parametrize(

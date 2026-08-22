@@ -5,6 +5,16 @@
 **Status:** Accepted
 **Outcome:** `outcome.md` version 1.0
 
+## Version history
+
+| Version | Date | Authority | Material behavior |
+| --- | --- | --- | --- |
+| 1.0 | 2026-08-15 | WEA operator | Atomic append-only correction, dual confirmation, invariant preservation, and replay. |
+| 1.1 | 2026-08-15 | WEA operator | Signed supply adjustment, prior correction-row references, versioned bindings, opening/group commitments, and bounded inactive snapshots. |
+
+The 2026-08-16 scenario and evidence-map edit is non-behavioral. It makes the
+accepted 1.1 clauses directly verifiable without changing them.
+
 ## Delta authority
 
 This specification promotes S-13C from accepted-future behavior in the WEA
@@ -138,48 +148,95 @@ inactive module does not define checkpoint persistence.
 
 ### S-13C.1: Atomic redistribution preserves history
 
-Given a valid opening state and two known published ledger rows, a proposal
-debits one known balance and credits another by the same amount. Independent,
-effective operator and Agent0 approvals confirm its hash. Applying the proposal
-appends one correction group, preserves the published-row prefix exactly, and
-leaves total minted unchanged.
+- **GIVEN:** A valid opening state, two known published rows, and a complete
+  canonical transfer proposal.
+- **WHEN:** Independent effective operator and Agent0 authorities confirm the
+  same exact proposal hash and the correction is applied.
+- **THEN:** One complete correction group is appended in posting order. The
+  published-row prefix stays byte-identical and total minted does not change.
+- **EVIDENCE:** `test_s_13c_1_atomic_redistribution_preserves_published_row_bytes`,
+  `test_s_13c_1_rejects_incomplete_or_duplicate_proposal_inputs`, and
+  `test_s_13c_1_proposal_hash_binds_the_exact_payload`.
 
 ### S-13C.2: Explicit supply correction
 
-Given a valid opening state, independently approved mint and burn proposals
-apply their signed supply changes to known positions and total minted by the
-same amount. The invariant holds after each complete group.
+- **GIVEN:** A valid opening state and complete mint or burn proposals for
+  known positions.
+- **WHEN:** Both required authorities approve each exact proposal and it is
+  applied.
+- **THEN:** The position amount and total minted change by the same signed
+  value. The resulting supply remains non-negative and the invariant holds.
+- **EVIDENCE:** `test_s_13c_2_mint_and_burn_adjust_supply_with_position_amounts`,
+  `test_s_13c_2_burn_can_create_a_signed_negative_supply_adjustment`, and
+  `test_signed_opening_supply_adjustment_reconstructs_when_supply_is_valid`.
 
 ### S-13C.3: Invalid approval evidence changes nothing
 
-Missing approval, a proposal-hash mismatch, an unknown or inactive authority,
-the same approval source for both roles, or an effective time before a
-confirmation rejects the whole proposal and appends no row.
+- **GIVEN:** A valid proposal and an unchanged valid state.
+- **WHEN:** An approval is missing, duplicated by role, bound to another hash,
+  bound to a wrong authority snapshot, unknown, inactive, not independent, or
+  later than the proposed effective time.
+- **THEN:** The whole proposal is rejected and no row or group is appended.
+- **EVIDENCE:** `test_s_13c_3_missing_or_mismatched_approval_changes_nothing`,
+  `test_s_13c_3_approval_sources_must_be_independent_and_effective`,
+  `test_s_13c_3_unknown_or_inactive_authority_cannot_confirm`, and
+  `test_s_13c_3_requires_exact_binding_snapshot_and_one_approval_per_role`.
 
 ### S-13C.4: Invalid financial effect changes nothing
 
-An unknown ledger reference, unknown position, insufficient debit, invalid
-posting kind, malformed integer, row collision, failed pre-invariant, or
-failed post-invariant rejects the whole proposal and appends no row.
+- **GIVEN:** A state and a proposed financial correction.
+- **WHEN:** A reference or position is unknown, a debit becomes negative, a
+  transfer does not net to zero, a posting kind/sign/value is invalid, a row
+  identity collides, or an invariant fails.
+- **THEN:** The whole correction is rejected and the caller state remains
+  unchanged.
+- **EVIDENCE:** `test_s_13c_4_invalid_effect_rejects_the_whole_group`,
+  `test_s_13c_4_rejects_invalid_opening_invariant_and_boolean_money`,
+  `test_s_13c_4_rejects_zero_delta_posting`, and
+  `test_s_13c_4_rejects_a_deterministic_row_identity_collision`.
 
 ### S-13C.5: Replay is stable and conflicts fail closed
 
-Replaying an identical accepted correction returns its existing group and row
-identities with an equal freshly validated state. Reusing its idempotency key
-or correction ID for different content is rejected without changing state.
-Reconstruction rejects modified rows, approval evidence, or group metadata.
-Over-limit state or public iterable input rejects without unbounded
-materialization.
+- **GIVEN:** A valid accepted correction history and its pinned opening
+  snapshot.
+- **WHEN:** The exact request is replayed, a conflicting identity is reused,
+  history is reconstructed, or an input reaches a published limit.
+- **THEN:** Exact replay returns the existing group. Conflicts, tampering,
+  reordering, subclasses, and over-limit distinct history reject without
+  changing the caller state. Public iterables stop at the limit plus one.
+- **EVIDENCE:** `test_s_13c_5_exact_replay_returns_existing_group_without_append`,
+  `test_s_13c_5_conflicting_idempotency_or_correction_id_fails_closed`,
+  `test_s_13c_5_reconstruction_rejects_tampered_group`,
+  `test_s_13c_5_group_chain_rejects_coordinated_noop_reordering`,
+  `test_full_reconstruction_rejects_nested_row_tampering_on_exact_replay`,
+  `test_full_reconstruction_repairs_a_tampered_derived_replay_cache`,
+  `test_rejected_apply_does_not_mutate_the_caller_state`,
+  `test_validated_state_rejects_identical_value_nested_subclasses`,
+  `test_correction_history_and_proposal_cardinalities_are_bounded`,
+  `test_64_group_ceiling_allows_exact_replay_and_rejects_new_group`, and
+  `test_public_iterables_stop_after_limit_plus_one_items`.
 
 ## Verification contract
 
-- `tests/vnext/test_correction.py` covers S-13C.1 through S-13C.5.
-- `tests/vnext/test_scenario_registry.py` proves that S-13C is current and the
-  current-scenario count is updated without losing another scenario.
-- `tests/vnext/test_runtime_boundary.py` proves that the inactive module does
-  not enter a current executor closure.
-- Existing invariant, schema, task-index, documentation, lint, type, focused,
-  vNext, and full-suite checks remain green.
+All test names below are in `tests/vnext/test_correction.py` unless another
+file is named.
+
+| Requirement clause | Scenario | Exact evidence |
+| --- | --- | --- |
+| R-FC-01 complete canonical IDs, non-empty collections, no duplicate affected IDs | S-13C.1 | `test_s_13c_1_rejects_incomplete_or_duplicate_proposal_inputs` |
+| R-FC-01 exact payload hash and posting order | S-13C.1 | `test_s_13c_1_proposal_hash_binds_the_exact_payload`; `test_s_13c_1_atomic_redistribution_preserves_published_row_bytes` |
+| R-FC-01 transfer/mint/burn sign, type, and transfer-net rules | S-13C.2, S-13C.4 | `test_s_13c_2_mint_and_burn_adjust_supply_with_position_amounts`; `test_s_13c_4_rejects_invalid_opening_invariant_and_boolean_money`; `test_s_13c_4_rejects_zero_delta_posting`; `test_s_13c_4_invalid_effect_rejects_the_whole_group` |
+| R-FC-02 exact operator and Agent0 roles, hash, binding snapshot, interval, and source independence | S-13C.3 | `test_s_13c_3_missing_or_mismatched_approval_changes_nothing`; `test_s_13c_3_approval_sources_must_be_independent_and_effective`; `test_s_13c_3_unknown_or_inactive_authority_cannot_confirm`; `test_s_13c_3_requires_exact_binding_snapshot_and_one_approval_per_role` |
+| R-FC-02 stable binding ID with unique versions | S-13C.3 | `test_stable_authority_binding_id_allows_non_overlapping_versions`; `test_authority_binding_set_has_one_canonical_opening_commitment` |
+| R-FC-03 pre/post invariant, known references/positions, atomic append, immutable ordered prefix, collision rejection | S-13C.1, S-13C.4 | `test_s_13c_1_atomic_redistribution_preserves_published_row_bytes`; `test_s_13c_4_invalid_effect_rejects_the_whole_group`; `test_s_13c_4_rejects_invalid_opening_invariant_and_boolean_money`; `test_s_13c_4_rejects_a_deterministic_row_identity_collision` |
+| R-FC-04 exact replay and conflicting correction/idempotency identities | S-13C.5 | `test_s_13c_5_exact_replay_returns_existing_group_without_append`; `test_s_13c_5_conflicting_idempotency_or_correction_id_fails_closed` |
+| R-FC-04 opening commitment, group chain, full reconstruction, hashes, order, exact types, and caller immutability | S-13C.5 | `test_s_13c_5_reconstruction_rejects_tampered_group`; `test_opening_snapshot_commitment_rejects_reordered_rows`; `test_opening_snapshot_commitment_rejects_added_authority`; `test_s_13c_5_group_chain_rejects_coordinated_noop_reordering`; `test_full_reconstruction_rejects_nested_row_tampering_on_exact_replay`; `test_full_reconstruction_repairs_a_tampered_derived_replay_cache`; `test_rejected_apply_does_not_mutate_the_caller_state`; `test_validated_state_rejects_identical_value_nested_subclasses` |
+| R-FC-05 all cardinality/byte/iterable limits and the 64/65 replay boundary | S-13C.5 | `test_correction_history_and_proposal_cardinalities_are_bounded`; `test_64_group_ceiling_allows_exact_replay_and_rejects_new_group`; `test_public_iterables_stop_after_limit_plus_one_items` |
+| S13C remains current in a registry of 70 current / 9 accepted-future / 0 proposed-future Block 9 scenarios | Registry | `tests/vnext/test_scenario_registry.py` |
+| Inactive module stays outside current executor closures | Runtime isolation | `tests/vnext/test_runtime_boundary.py` |
+
+Existing invariant, schema, task-index, documentation, lint, type, focused,
+vNext, and full-suite checks must remain green.
 
 ## Non-goals and compatibility ceiling
 

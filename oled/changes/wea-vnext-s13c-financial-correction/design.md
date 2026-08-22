@@ -6,6 +6,16 @@
 **Outcome:** `outcome.md` version 1.0
 **Specification:** `spec.md` version 1.1
 
+## Revision history
+
+| Revision | Date | Implements | Material decision |
+| --- | --- | --- | --- |
+| 1.0 | 2026-08-15 | Spec 1.0 | Pure immutable correction state, canonical hashes, dual confirmation, atomic application, and reconstruction. |
+| 1.1 | 2026-08-15 | Spec 1.1 | Signed supply, pinned opening/group chain, strict separate rebuild, versioned bindings, and bounded inactive snapshots. |
+
+The 2026-08-16 evidence reconciliation does not change Design 1.1. It adds
+version provenance and a plain-language operator review only.
+
 ## Decision summary
 
 Implement S-13C as a pure, immutable, standard-library control-plane module at
@@ -168,8 +178,9 @@ opening snapshot.
 
 - Direct S-13C tests cover success, failure atomicity, idempotency, supply
   changes, reconstruction, and tamper rejection.
-- Scenario-registry tests prove 70 current scenarios and no accepted-future
-  scenario after this delta.
+- Scenario-registry tests prove S13C remains one of 70 current scenarios. Nine
+  accepted-future Block 9 scenarios remain unimplemented; the proposed-future
+  set is empty.
 - Runtime-boundary tests prove `financial_correction.py` stays outside executor
   and pre-activation entrypoint closures.
 - Existing invariant and repository-wide quality gates remain mandatory.

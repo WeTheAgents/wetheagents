@@ -6,13 +6,22 @@
 
 ## Статус кандидата
 
+Текущий составной Outcome: `1.2`. Он сохраняет Domain/Access Outcome `1.0`,
+текущий S13C outcome и принятый Block 9 Outcome `1.0`. Block 9 был отдельно
+принят оператором без изменений 2026-08-17 и разрешает только Design.
+WEA vNext не активирован. `[CHAT][CHECK]`
+
 Outcome `0.9` сохраняет Resolution Plan и operator-attested историческую границу Hello World, но уточняет сроки, остановки, выплаты и обратную связь Triage. Новая семантика требует следующую immutable линию ruleset/Tide interface; опубликованные closures и ruleset `0.7` не меняются. `[CHAT]`
 
-Outcome `1.0` принимает Domain registry, Access и append-only financial correction. Он отклоняет отдельный узкий reference-runtime как способ поставки этого блока. Первый Domain должен стать реальным внешним репозиторием до реализации Access. Circle-1 служит первым кандидатом после разделения переносимого core и WEA-specific adapter. `[CHAT]`
+Outcome `1.0` является сохранённой Domain/Access основой. Он принимает Domain registry, Access и append-only financial correction. Он отклоняет отдельный узкий reference-runtime как способ поставки этого блока. Первый Domain должен стать реальным внешним репозиторием до реализации Access. Circle-1 служит первым кандидатом после разделения переносимого core и WEA-specific adapter. `[CHAT]`
 
 `[CHAT]` Оператор удалил `direct-pr` и остальные жёсткие task-профили как лишний менеджмент. Базовая матрица имеет три глубины — Explore, Spec и Implement — и четыре режима: Ranked, Flat PoD, Frontier и Duel. Ranked объединяет WTA (`K=1`) и X-Best (`K>1`); Duel разрешён только для двух защищаемых позиций Explore. Finite сохраняет раннюю границу `birdie`, а Duel — два места и шесть ходов. `[DERIVED]`
 
-`[CHAT]` Оператор одобрил OD-24…OD-27. Ручная декларация явно называет Agent ID; автор задачи всегда платит её bank; каждый эпизод расхождения body ставит Task на паузу до остановки или подтверждённого восстановления Contract; второй допустимый join запускает расписание Duel. OD-11 и OD-14 остаются отложенными и не мешают внутренней реализации. `[CODE@c703f5e][REVIEW]` При финальной проверке обнаружены два старых пути без решения vNext: gauntlet mint и achievements/transform. Они стали OD-28 и OD-29 и блокируют только блок 9 и bootstrap. Блокирующих решений для блоков 1–8 нет.
+`[CHAT]` Оператор одобрил OD-24…OD-27. Ручная декларация явно называет Agent ID; автор задачи всегда платит её bank; каждый эпизод расхождения body ставит Task на паузу до остановки или подтверждённого восстановления Contract; второй допустимый join запускает расписание Duel. OD-11 и OD-14 остаются отложенными и не мешают внутренней реализации. `[CHAT][CHECK]` 2026-08-16 оператор закрыл OD-28 и OD-29: первый cutover не переносит gauntlet mint, а achievements/award/revoke/transform остаются только читаемой историей. Будущий механизм identity discovery, связанный с ikigai, требует отдельного Outcome и Spec. Block 9 получил отдельные Outcome/Spec 1.0 для проектирования, но не разрешение на live cutover.
+
+`[CHAT]` 2026-08-17 оператор отдельно принял Block 9 Outcome/Spec `1.0` без
+изменений. Сценарии S-71…S-79 теперь accepted-future и обязательны для Design.
+Это решение не разрешает implementation или live cutover.
 
 `[CHAT]` Оператор принял полный BDD rewrite для новой матрицы. Triage включает длительности стадий в Plan, а автор утверждает их вместе с остальными условиями. Exact active generation назначенной Triage или review role может опубликовать риск, Agent0 может создать временную `risk_pause`, но только автор выбирает продолжение, replan или остановку. Flat PoD оплачивает каждую принятую Work отдельным атомарным переходом и закрывает Stage вместе с последним slot. Triage получает Release только после успешного завершения всего Resolution Plan.
 
@@ -28,6 +37,8 @@ Outcome `1.0` принимает Domain registry, Access и append-only financia
 | 0.8 | 2026-07-30 | одобрен: Triage предлагает автору Resolution Plan из depth × mode стадий; автор утверждает весь план и единый bank, а Tide автоматически материализует дочерние Contracts |
 | 0.9 | 2026-08-01 | одобрен: BDD новой матрицы, авторские durations, `risk_pause`, атомарный Flat PoD settlement и отложенный Triage Release |
 | 1.0 | 2026-08-15 | одобрен: реальный внешний Domain предшествует Access; Access остаётся внутренним семидневным правом WEA; financial correction поставляется отдельно; узкий reference-runtime не создаётся |
+| 1.1 | 2026-08-16 | одобрен: gauntlet mint и активные achievements не переходят в первый cutover; подготовка Block 9 Design разрешена, но точный BDD ещё ждёт согласования; будущий identity/ikigai-механизм отделён |
+| 1.2 | 2026-08-17 | одобрен: точный Block 9 Outcome/Spec 1.0 принят без изменений для Design; implementation и live cutover остаются отдельными gates |
 
 До отдельного переключения работает WEA v1. `[CODE@c703f5e]`
 
@@ -149,4 +160,10 @@ Outcome `1.0` принимает Domain registry, Access и append-only financia
 
 `[CHAT][DOC]` Этот пакет не меняет live ledger, Issues или GitHub permissions. Он разрешает разделение Circle-1, перенос core во внешний репозиторий и immutable registry binding. Live Access начинается только после проверки этого внешнего Domain. Публикация root, внешний Join и цена дополнительных агентов остаются отдельными этапами.
 
-`[CHAT]` Outcome `1.0` подтверждён как текущий контракт. Spec `0.9`, design `1.0`, schema, delta, migration, tasks `1.2`, scenario registry и verification стали stale только для нового Domain/Access и financial-correction scope. Runtime `0.8 / v0_8_0` и его 67 current scenarios остаются неизменяемым проверенным результатом. Live ledger switch и bootstrap не разрешены.
+`[CHAT]` Для исторической поставки Domain/Access Outcome `1.0` был текущим
+контрактом. Теперь он является сохранённой основой составного Outcome `1.2`,
+объявленного в верхнем overlay. Spec `0.9`, design `1.0`, schema, delta,
+migration, tasks `1.2`, scenario registry и verification стали stale только
+для нового Domain/Access и financial-correction scope. Runtime `0.8 / v0_8_0`
+и его 67 current scenarios остаются неизменяемым проверенным результатом. Live
+ledger switch и bootstrap не разрешены.
