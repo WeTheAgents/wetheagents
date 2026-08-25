@@ -2,7 +2,11 @@
 
 **Version:** 1.4
 **Date:** 2026-08-17
-**Status:** Implementation merged; Block 9 BDD accepted; Design next
+**Status:** S13C implementation merged. Downstream Block 9 Design 1.0/1.1 and
+Tasks 2.0/2.1 are exact-accepted; dormant Groups 1, 3, 4, and 5 are implemented
+and verified. The public-after-private-tests path is selected. Group 2 waits for
+exact Design 1.2 acceptance, Tasks 2.2, and later exact environment-package
+approvals. Historical gate results below retain their stage-time wording.
 
 Decision: `S13C implemented as an inactive control plane; not live`.
 

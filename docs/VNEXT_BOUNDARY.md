@@ -11,17 +11,24 @@ binding at
 `oled/changes/wea-vnext-s13c-financial-correction/WEA_vNext_BLOCK9_ACCEPTANCE.txt`
 apply the accepted OD-28 and OD-29 decisions. The snapshot intentionally keeps
 its preparation-time `proposed/pending` and overlay 1.1 wording; the binding
-and current parent overlay 1.2 supersede only that status. This authorizes
-Design only; implementation and activation remain separate gates.
+and current parent overlay 1.2 supersede only that status. Spec 1.1 and Design
+1.3 now add the accepted canonical private-pilot direction. The real vNext
+ledger starts while the root is private. GitHub Actions and pull requests form
+the authority path. Local Apps, local locks, and local epoch guards are not
+authority. Active Tasks 2.2 has no separate hash gate. One exact activation
+approval remains because it is a real ledger write. One later visibility stop
+remains because public exposure is not confidentially reversible.
 
 ## Current phase
 
-- v1 is under an operator pause. Scheduled Tide, auto-triage, and claim-fast
-  writers are disabled, but direct legacy CLI and maintenance writers still
-  exist and are not yet protected by a shared epoch guard. Do not invoke them.
-  The v1 ledger, history, and audit tools remain authoritative evidence.
-- vNext is an inactive, fail-closed candidate. It has no live Tide adapter and
-  no canonical ledger namespace.
+- v1 is under an operator pause. Its ledger, history, and audit tools remain
+  authoritative evidence until activation.
+- vNext is still inactive. The code now contains a GitHub Actions candidate
+  workflow and a trusted data-only pull-request guard.
+- The code does not contain a local writer kernel, local epoch guard, custom
+  App transport, or self-hosted guard.
+- No canonical `ledger/vnext/` namespace exists. The exact activation package
+  can only bind the canonical `main` commit after this code merges.
 - The registry has 70 current scenarios, 9 accepted-future Block 9 scenarios,
   and zero proposed-future scenarios. Accepted-future is binding for Design
   but is not implementation or live evidence.
@@ -32,7 +39,7 @@ Design only; implementation and activation remain separate gates.
 
 | Surface | Responsibility | Change rule |
 | --- | --- | --- |
-| `src/wea_cli/`, `scripts/`, current `ledger/` | v1 runtime and history | Do not add new vNext protocol rules. Preserve audit and migration evidence. Direct writers remain callable until the Block 9 inventory and epoch guard, so the current pause is operational, not a complete code-enforced boundary. |
+| `src/wea_cli/`, `scripts/`, current `ledger/` | v1 runtime and history | Do not add new vNext protocol rules. Preserve audit and migration evidence. Direct writers remain callable until GitHub-native activation retires their canonical publication path. |
 | `src/wea_vnext/engine.py`, `store.py` | version selection, manifest verification, replay transport, shadow storage | No business rules. Executor selection is always explicit. |
 | `src/wea_vnext/domain_access.py`, `domains/registry/` | inactive Domain/Access control plane and immutable external-repository bindings | Keep outside executor closures. Use no network lookup, GitHub permission effect, live grant, ledger write, or placeholder repository identity. Add a manifest only after the external revision is publicly verified. |
 | `src/wea_vnext/financial_correction.py` | inactive append-only financial-correction control plane | Keep outside executor closures and current ledger paths. Use only explicit opening evidence and complete immutable groups. Do not treat in-memory atomicity as a durable write protocol. |
@@ -40,7 +47,7 @@ Design only; implementation and activation remain separate gates.
 | `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `intake.py`, `migration.py`, `projection.py` | public candidate facades | Delegate through one explicitly pinned executor closure; do not duplicate rules. |
 | `tests/vnext/` | vNext behavior, isolation, and replay contracts | Pin the executor version being tested. Historical replay tests never follow a moving default. |
 | `oled/changes/wea-vnext-recreation/` | accepted target behavior and implementation gates | Start here when intended future behavior is unclear. |
-| `oled/changes/wea-vnext-block9-cutover/` | accepted cutover Outcome and BDD | Design next. Do not implement or activate until Design and tasks are also accepted. |
+| `oled/changes/wea-vnext-block9-cutover/` | accepted Outcome/Spec 1.0, canonical-pilot Spec 1.1, current Design 1.3, and active Tasks 2.2 | Verify the GitHub Actions path. Then build the exact package from merged `main`. The canonical root is `WeTheAgents/wetheagents`. `circle-1` is a Domain repository. Stop before activation and public visibility. |
 
 The legacy candidate facades share executor `0.6.3`. The inactive Resolution
 Plan facade is pinned to executor `0.8.0`. These pins do not make an executor
@@ -90,20 +97,20 @@ historical integrity checks. Do not reinterpret old records with vNext rules.
 ## Activation boundary
 
 Merging inactive vNext code does not activate it. The accepted activation
-contract is R-B9-05 in `oled/changes/wea-vnext-block9-cutover/spec.md`. It
+contract is R-B9-05 in `oled/changes/wea-vnext-block9-cutover/spec-1.1.md`. It
 requires a complete writer inventory,
 frozen and reconciled v1 evidence, shadow replay, `genesis.json`, the vNext
-epoch, separate authenticated immutable operator and Agent0 approvals of one
-exact bundle, `agent0@system` as the sole ledger writer through its approved
-active credential binding, disabled v1 writers, and an explicitly enabled
-vNext Tide adapter. An unknown writer, ambiguous record, substituted writer,
-or changed bundle blocks activation.
+epoch, an Agent0 GitHub Actions run, a separate operator merge, one exact
+bundle, disabled v1 writers, and a trusted GitHub pull-request guard. The
+operator merge transports a validated event. It is not a second ledger author.
+An unknown writer, ambiguous record, substituted writer, or changed bundle
+blocks activation.
 
 `tests/vnext/test_runtime_boundary.py` is a narrow pre-activation tripwire. It
-rejects literal vNext references in the current CLI, scripts of every file
-type, workflow files, and package entry points; it also checks the absent
-adapter and ledger namespace. Pull requests run it through
-`.github/workflows/guard-vnext-boundary.yml`.
+permits only the two accepted GitHub workflow entry points. It rejects other
+vNext entry points in the current CLI, scripts, workflows, and package setup.
+It also checks the absent adapter and ledger namespace. Pull requests run it
+through `.github/workflows/guard-vnext-boundary.yml`.
 
 This tripwire cannot prove the absence of dynamic loading, a renamed ledger
 destination, or writes through an existing v1 path. It is deliberately not

@@ -9,11 +9,11 @@ defaults:
     shell: bash
 jobs:
   validate:
-    runs-on: [self-hosted, windows, x64, wea-laptop]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.ADMIN_TOKEN }}
+          persist-credentials: false
       - uses: astral-sh/setup-uv@v4
         with:
           python-version: '3.12'

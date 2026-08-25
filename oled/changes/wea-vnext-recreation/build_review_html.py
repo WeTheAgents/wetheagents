@@ -112,7 +112,8 @@ CURRENT_DECISION_IDS = set(
 VERSION_MARKERS = {
     "HANDOFF.md": (
         r"Status: `([^`]+)`",
-        "Block 9 Outcome/BDD 1.0 accepted; Design required next",
+        "Block 9 Spec 1.1 and Design 1.3 select a real canonical private pilot;\n"
+        "active Tasks 2.2 has no hash gate; GitHub-native writer implementation is next",
     ),
     "open-decisions.md": (r"Статус кандидата `([^`]+)`", PACKAGE_REVISION),
     "outcome.md": (r"\| (1\.2) \| 2026-08-17", PACKAGE_REVISION),
@@ -159,7 +160,8 @@ def validate_package_contract() -> None:
     evidence = (ROOT / "evidence.md").read_text(encoding="utf-8")
     decision = current_decision(verification)
     current_block9_overlay = (
-        "Block 9 Outcome/BDD 1.0 accepted; Design required next" in handoff
+        "Block 9 Spec 1.1 and Design 1.3 select a real canonical private pilot"
+        in handoff
     )
     spec_implementation_review_pending = (
         decision
@@ -743,7 +745,7 @@ def build(*, check: bool = False) -> None:
     handoff_text = (ROOT / "HANDOFF.md").read_text(encoding="utf-8")
     decision = current_decision(verification_text)
     current_block9_overlay = (
-        "Block 9 Outcome/BDD 1.0 accepted; Design required next"
+        "Block 9 Spec 1.1 and Design 1.3 select a real canonical private pilot"
         in handoff_text
     )
     spec_implementation_review_pending = (
@@ -837,15 +839,14 @@ def build(*, check: bool = False) -> None:
         )
 
     if current_block9_overlay:
-        hero_kicker = "Block 9 BDD 1.0 · accepted · Design next"
+        hero_kicker = "Block 9 Spec 1.1 · GitHub-native implementation next"
         hero_lead = (
-            "70 текущих сценариев остаются реализованными. Девять Block 9 "
-            "сценариев приняты как accepted-future контракт для Design; "
-            "proposed-future set пуст. "
-            "Gauntlet mint и активные achievement writes не входят в первый "
-            "cutover. WEA vNext остаётся выключенным."
+            "Spec 1.1 и Design 1.3 выбирают настоящий canonical private pilot. "
+            "GitHub Actions и pull requests заменяют local Apps, locks и epoch "
+            "guards как authority. vNext остаётся выключенным до точного "
+            "activation merge."
         )
-        package_status = "Block 9 BDD accepted · Design next · Not live"
+        package_status = "Spec 1.1 current · Actions next · Not live"
         primary_href = "#doc-handoff"
         primary_label = "Открыть текущий handoff"
         core_status_label = "Блокеров для Design"

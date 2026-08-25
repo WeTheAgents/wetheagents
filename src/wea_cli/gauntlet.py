@@ -96,6 +96,7 @@ def cmd_gauntlet_mint(args: argparse.Namespace) -> int:
         _now_iso,
         emit,
         load_balances,
+        reject_retired_legacy_write,
         resolve_repo_root,
     )
     from wea_cli.config import resolve_agent
@@ -125,6 +126,8 @@ def cmd_gauntlet_mint(args: argparse.Namespace) -> int:
     except FileNotFoundError as exc:
         print(f"Error: {exc}")
         return EXIT_RUNTIME_ERROR
+    if reject_retired_legacy_write(root, "gauntlet mint"):
+        return EXIT_DOMAIN_ERROR
 
     # Load data
     mints_data = load_trajectory_mints(root)

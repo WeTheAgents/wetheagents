@@ -1,0 +1,12 @@
+WEA vNext — exact Block 9 Design 1.1 acceptance binding
+Design revision: 1.1
+Authority date: 2026-08-23
+Authority wording: Принимаю Block 9 Design 1.1 SHA-256 ffd0ad44323e596b6c23f53aba6d50d214dbc20668f260cd8b37ba7a2ab77b1a.
+Authority source: operator message in the current Codex task; this derived manifest is not standalone identity proof.
+Design path: oled/changes/wea-vnext-block9-cutover/design-1.1.md
+Design SHA-256: ffd0ad44323e596b6c23f53aba6d50d214dbc20668f260cd8b37ba7a2ab77b1a
+Base Design SHA-256: 70026e7551acc7c5f1ae56b1d49962045dec3b70e0647aaf3b5040f36e856283
+Meaning: the exact lean projection-transport delta is accepted and current; the Projection App may be deferred, while the ledger App and both rulesets remain required.
+Authority boundary: this acceptance authorizes preparation and code alignment only. It does not authorize an unseen GitHub, account, credential, ruleset, ledger, or activation mutation.
+Status rule: proposed wording inside the frozen Design delta is its preparation-time snapshot; this later manifest records acceptance.
+Drift rule: byte changes require a new Design revision and a new exact operator acceptance.

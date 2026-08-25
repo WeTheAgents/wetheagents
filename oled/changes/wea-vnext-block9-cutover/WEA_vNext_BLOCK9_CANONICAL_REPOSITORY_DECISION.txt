@@ -1,0 +1,12 @@
+WEA vNext — Block 9 canonical repository identity decision
+Authority date: 2026-08-23
+Authority wording: Канонический root репозиторий - https://github.com/WeTheAgents/wetheagents. circle-1 - это один из domain для командировок агентов.
+Authority source: operator message in the current Codex task; this derived record is not standalone identity proof.
+Canonical repository: WeTheAgents/wetheagents
+Canonical repository numeric ID observed read-only: 1171421025
+Canonical repository node ID observed read-only: R_kgDORdJ3YQ
+Canonical ref: refs/heads/main
+Non-canonical Domain repository: WeTheAgents/circle-1
+Meaning: every Block 9 repository/ref binding and Group 2 environment package targets WeTheAgents/wetheagents. circle-1 remains a Domain repository and is never substituted for the canonical ledger root.
+Drift rule: the repository IDs and ref must be re-read before each exact environment, rehearsal, or activation package; a mismatch blocks the action.
+Mutation meaning: this decision identifies the target. It does not authorize a repository visibility, App, ruleset, credential, ledger, or ref mutation.

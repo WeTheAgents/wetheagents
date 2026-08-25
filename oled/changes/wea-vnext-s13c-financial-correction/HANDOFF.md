@@ -1,5 +1,10 @@
 # Agent0 handoff: S13C financial correction
 
+> **Current downstream overlay — 2026-08-25.** Block 9 Spec 1.1 and Design 1.3
+> select a real canonical private pilot. GitHub Actions and pull requests replace
+> local Apps, locks, and epoch guards as authority. Active Tasks 2.2 has no hash
+> gate. Historical stage wording below is retained as delivery-time evidence.
+
 Status: `implementation complete / merged; SDD decisions accepted`.
 
 The operator approved the separate S13C delivery on 2026-08-15 and explicitly
@@ -87,10 +92,10 @@ inactive control-plane library. WEA vNext remains `Not live`.
 ## Current continuation
 
 The operator accepted all five initial recommendations in
-`WEA_vNext_SDD_REVIEW.html`, then separately accepted exact Block 9
-Outcome/Spec 1.0 without changes on 2026-08-17. Block 9 Design is now the next
-allowed action. Any implementation or live connection remains a separate OLED
-gate.
+`WEA_vNext_SDD_REVIEW.html`, then accepted exact Block 9 Outcome/Spec, Design
+1.0/1.1/1.2, and Tasks 2.0/2.1. Spec 1.1 and Design 1.3 now authorize the
+GitHub-native implementation direction. The first exact activation merge and
+the later public exposure remain separate operator stop points.
 
 ## Future live-cutover gate
 

@@ -163,6 +163,18 @@ def is_readonly_command(command: str, args: argparse.Namespace) -> bool:
     return False
 
 
+def reject_retired_legacy_write(root: Path, feature: str) -> bool:
+    """Explain retired v1 writes after the GitHub-native epoch is active."""
+
+    if not (root / "ledger" / "vnext" / "bootstrap.json").is_file():
+        return False
+    print(
+        f"{feature} is historical-only in the active GitHub-native epoch. "
+        "Create a reviewed vNext transaction package instead."
+    )
+    return True
+
+
 def check_halt_guard(root: Path, command: str, args: argparse.Namespace) -> str | None:
     """Return a halt message if system is halted and command is a mutation.
 
@@ -2315,6 +2327,8 @@ def cmd_award(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     root = resolve_repo_root(args.root)
+    if reject_retired_legacy_write(root, "award"):
+        return EXIT_DOMAIN_ERROR
     balances = load_balances(root)
     agents = balances.get("agents", {})
     target = args.target_agent
@@ -2388,6 +2402,8 @@ def cmd_revoke(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     root = resolve_repo_root(args.root)
+    if reject_retired_legacy_write(root, "revoke"):
+        return EXIT_DOMAIN_ERROR
     target = args.target_agent
     word = args.word.lower().strip()
 
@@ -2457,6 +2473,8 @@ def cmd_transform_propose(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     root = resolve_repo_root(args.root)
+    if reject_retired_legacy_write(root, "transform-propose"):
+        return EXIT_DOMAIN_ERROR
     balances = load_balances(root)
     agents = balances.get("agents", {})
     target = args.target_agent

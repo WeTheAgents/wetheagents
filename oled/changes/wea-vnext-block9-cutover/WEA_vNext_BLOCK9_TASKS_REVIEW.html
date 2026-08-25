@@ -181,8 +181,7 @@
         <button type="button" data-filter="gate" aria-pressed="false">Rehearsal</button>
         <button type="button" data-filter="blocked" aria-pressed="false">Activation</button>
       </div>
-      <div class="task-grid">
-    <article class="task-card" data-kind="build" id="task-1">
+      <div class="task-grid"><article class="task-card" data-kind="build" id="task-1">
       <div class="task-topline">
         <span class="task-number">1</span>
         <span class="badge build">Общая основа</span>
@@ -205,8 +204,7 @@
         <ol class="checklist"><li>Before the first implementation edit, require a clean worktree and write the exact <code>git rev-parse HEAD</code> value to <code>oled/changes/wea-vnext-block9-cutover/implementation-base.txt</code>. Group 7 uses this one base to derive the complete Block 9 changed-file manifest.</li><li>Create <code>tests/vnext/test_block9_writer_gate.py</code> and the transaction foundation in <code>tests/vnext/test_block9_cutover.py</code>.</li><li>Record the expected pre-change failures for omitted writers, guard bypass, wrong principals, ref drift, and non-atomic publication.</li><li>Add two independent writer-universe builders and the three accepted inventories from D-B9-02.</li><li>Add one transaction helper with the common-Git-directory lock, epoch guard, remote predecessor check, canonical JSON, and signed Git commit.</li><li>Add append-only <code>ledger/vnext/</code> event storage and disposable derived state. Keep the live adapter disabled.</li><li>Add the non-circular cutover-core, signed approval-envelope, sequence-zero, and final-tree validation path.</li><li>Route each retained v1 mutation entry point through the shared guard. Disable every retired writer path.</li><li>Add no-change inspection and provisioning tools for the accepted Windows identities, Apps, rulesets, keys, and permissions. Do not apply them here.</li><li>Prove the code kernel with <code>python -m pytest -q tests/vnext/test_block9_writer_gate.py tests/vnext/test_block9_cutover.py</code>.</li></ol>
       </details>
     </article>
-    
-    <article class="task-card" data-kind="setup" id="task-2">
+<article class="task-card" data-kind="setup" id="task-2">
       <div class="task-topline">
         <span class="task-number">2</span>
         <span class="badge setup">Нужен environment checkpoint</span>
@@ -229,8 +227,7 @@
         <ol class="checklist"><li>Run the no-change inspection mode. Record current accounts, ACLs, credentials, workflows, Apps, rulesets, worktrees, and writer processes.</li><li>Build the complete proposed environment diff and its recovery steps.</li><li>Stop and obtain one explicit operator approval for that exact dormant setup. Tasks 2.0 acceptance does not supply this approval.</li><li>After approval, create the Agent0, worker, and shadow identities. Apply the accepted ACL and token separation.</li><li>Install the ledger App and no-Contents projection App. Apply both layered rulesets and remove legacy canonical-ref authority.</li><li>Prove ledger-App fast-forward, force-push rejection, deletion rejection, projection-App ref rejection, worker secret denial, and shadow denial in a disposable repository and restricted accounts.</li><li>Record exact public identities, permissions, fingerprints, rulesets, and rejection evidence. Do not enable the vNext adapter.</li></ol>
       </details>
     </article>
-    
-    <article class="task-card" data-kind="parallel" id="task-3">
+<article class="task-card" data-kind="parallel" id="task-3">
       <div class="task-topline">
         <span class="task-number">3</span>
         <span class="badge parallel">Можно параллельно</span>
@@ -253,8 +250,7 @@
         <ol class="checklist"><li>Create <code>tests/vnext/test_block9_reconciliation.py</code>, <code>tests/vnext/test_block9_genesis.py</code>, and <code>tests/vnext/test_block9_legacy_retirement.py</code>.</li><li>Record the expected pre-change failures for incomplete pagination, missing inverse links, unexplained money, duplicate outcomes, and unstable genesis bytes.</li><li>Capture the complete offline GitHub and v1 input bundle from one exact test boundary. Keep the production capture path dormant.</li><li>Implement the four accepted reconciliation outcomes and complete money equality.</li><li>Implement the signed conversion-intent state machine. Do not create a converted Plan, Task, Contract, debit, or escrow in genesis.</li><li>Build genesis from the frozen input. Rebuild it independently and require identical bytes and state hashes.</li><li>Preserve gauntlet and achievement history as read-only evidence. Reject every new retired write.</li><li>Prove reconciliation and genesis with <code>python -m pytest -q tests/vnext/test_block9_reconciliation.py tests/vnext/test_block9_genesis.py tests/vnext/test_block9_legacy_retirement.py</code>.</li></ol>
       </details>
     </article>
-    
-    <article class="task-card" data-kind="parallel" id="task-4">
+<article class="task-card" data-kind="parallel" id="task-4">
       <div class="task-topline">
         <span class="task-number">4</span>
         <span class="badge parallel">Можно параллельно</span>
@@ -277,8 +273,7 @@
         <ol class="checklist"><li>Create <code>tests/vnext/test_block9_recovery_prerequisites.py</code> and <code>tests/vnext/test_block9_recovery.py</code>.</li><li>Record the expected pre-change failures for missing durable adapters, crash points, duplicate retry, authority rotation, and money-changing repair.</li><li>Adapt S13C 1.1 to the durable event transaction without weakening any financial, type, ordering, tamper, or idempotency rule.</li><li>Add durable <code>replay_repair</code> for the accepted non-financial operation set. Reject every repair that changes a financial projection.</li><li>Add correction checkpoints at the accepted 64-group boundary.</li><li>Exercise failures before file replacement, commit creation, push, remote confirmation, and projection confirmation.</li><li>Prove restart reconstruction, exact retry, tamper rejection, and no v1 fallback with <code>python -m pytest -q tests/vnext/test_block9_recovery_prerequisites.py tests/vnext/test_block9_recovery.py</code>.</li></ol>
       </details>
     </article>
-    
-    <article class="task-card" data-kind="parallel" id="task-5">
+<article class="task-card" data-kind="parallel" id="task-5">
       <div class="task-topline">
         <span class="task-number">5</span>
         <span class="badge parallel">Можно параллельно</span>
@@ -301,8 +296,7 @@
         <ol class="checklist"><li>Create <code>tests/vnext/test_block9_shadow.py</code> and <code>tests/vnext/test_block9_public_contract.py</code>.</li><li>Record the expected pre-change failures for live-path access, available network, credential access, unstable replay, duplicate comments, and stale public status.</li><li>Implement the restricted-account shadow harness with copied inputs, denied live paths, network-off proof, and bounded child processes.</li><li>Run the complete candidate twice from fresh test inputs. Require identical report bytes and no host-state change.</li><li>Make root docs, CLI help, Issue forms, and workflow guards epoch-aware in the dormant implementation.</li><li>Add the projection state machine, hidden comment marker, full pagination, exact read-back, desired-state label update, and <code>projection_degraded</code> status.</li><li>Bind projection work to the no-Contents projection App. Reject permission expansion or canonical-ref access.</li><li>Prove the group with <code>python -m pytest -q tests/vnext/test_block9_shadow.py tests/vnext/test_block9_public_contract.py</code>.</li></ol>
       </details>
     </article>
-    
-    <article class="task-card" data-kind="operation" id="task-6">
+<article class="task-card" data-kind="operation" id="task-6">
       <div class="task-topline">
         <span class="task-number">6</span>
         <span class="badge operation">Отдельная Delivery 2 authority</span>
@@ -325,8 +319,7 @@
         <ol class="checklist"><li>Stop every agent, writer, maintenance process, and writer workflow trigger. Keep the project frozen through Group 7.</li><li>Prove that local writer processes and running or pending GitHub writer jobs are empty before the first operational capture.</li><li>Capture the complete two-way Issue and v1 obligation universe.</li><li>Assign exactly one accepted outcome to every real obligation.</li><li>Build and hash a dry-run manifest for every planned v1 ledger action. Before each action, verify the exact escrow, available amount, idempotency key, expected predecessor, and expected result against the current ledger.</li><li>Perform each authorized <code>settle-v1</code>, <code>stop/refund</code>, <code>historical-close</code>, or conversion closure/refund as one controlled Agent0 transaction through current v1 authority and idempotency rules.</li><li>Immediately after each committed v1 transaction, run <code>python scripts/check_invariant.py</code>, <code>python scripts/check_ledger_schema.py</code>, and <code>python scripts/check_task_index_schema.py</code>. Classify any interruption as an exact retry, a conflict, or a partial failure. Resolve it before the next action. Never continue from an unverified ledger state.</li><li>For each conversion, capture the exact verified v1 closure or refund record and hash. Then validate the exact fresh Agent approval and create the canonical immutable conversion-intent record in <code>pending</code> state. Bind that closure evidence, every field required by Spec 1.0 lines 66 through 72, the terminal-state rules, and one-shot idempotency key. Preserve the exact intent bytes, hash, and approval evidence for the final boundary and genesis input. Do not create vNext money or objects.</li><li>Prove that active escrow, pending payments, duplicate outcomes, unexplained money, and unclassified obligations are absent. Keep writers stopped and capture a fresh final boundary for Group 7.</li></ol>
       </details>
     </article>
-    
-    <article class="task-card" data-kind="gate" id="task-7">
+<article class="task-card" data-kind="gate" id="task-7">
       <div class="task-topline">
         <span class="task-number">7</span>
         <span class="badge gate">Отдельный rehearsal</span>
@@ -349,8 +342,7 @@
         <ol class="checklist"><li>Recheck that every writer trigger stays disabled and that local and GitHub writer queues remain empty before reading the final boundary.</li><li>Capture and hash the final remote ref, v1 state, GitHub boundary, authority state, environment state, and runtime.</li><li>Rebuild both writer universes, all inventories, reconciliation, genesis, recovery prerequisites, shadow reports, and public-surface expectations.</li><li>Build the complete unsigned cutover core, exact bootstrap bytes, deterministic sequence-zero event blueprint, and closed activation path set.</li><li>With non-authoritative rehearsal keys, exercise both approval envelopes, sequence zero, final-tree manifest, signed commit, and remote confirmation in a disposable repository. Do not create canonical sequence zero.</li><li>Run every Block 9 focused proving target against this exact candidate.</li><li>Run <code>python -m pytest -q tests/vnext</code>.</li><li>From a clean final candidate, generate <code>evidence/vnext/block9-changed-python-files.txt</code>. Read the base from <code>oled/changes/wea-vnext-block9-cutover/implementation-base.txt</code>. The manifest includes every added, copied, modified, or renamed Python file anywhere in the repository; it excludes only deleted files. Use this exact PowerShell: <code>$base = (Get-Content -Raw oled/changes/wea-vnext-block9-cutover/implementation-base.txt).Trim(); if (git status --porcelain) { throw &#x27;dirty candidate&#x27; }; $files = @(git diff --name-only --diff-filter=ACMR &quot;${base}..HEAD&quot; -- &#x27;*.py&#x27;); [Array]::Sort($files, [StringComparer]::Ordinal); if (-not $files) { throw &#x27;empty Block 9 Python manifest&#x27; }; $files | Set-Content -Encoding utf8NoBOM evidence/vnext/block9-changed-python-files.txt</code>.</li><li>In PowerShell, run <code>$files = @(Get-Content evidence/vnext/block9-changed-python-files.txt); if (-not $files) { throw &#x27;empty Block 9 Python manifest&#x27; }; python -m ruff check -- $files</code>. Report the repository-wide Ruff baseline separately; unrelated legacy findings do not block this delivery.</li><li>Run <code>python -m pyright</code> with the repository configuration.</li><li>Run <code>python scripts/check_invariant.py</code>, <code>python scripts/check_ledger_schema.py</code>, <code>python scripts/check_task_index_schema.py</code>, and <code>python scripts/check_doc_sync.py</code>.</li><li>Run <code>python oled/changes/wea-vnext-block9-cutover/build_tasks_review.py --check</code>, <code>python oled/changes/wea-vnext-s13c-financial-correction/build_sdd_review.py --check</code>, and <code>python oled/changes/wea-vnext-recreation/build_review_html.py --check</code>.</li><li>Run the disposable GitHub integration proof for both Apps and both rulesets. Do not target the canonical repository.</li><li>Produce one readiness report with exact hashes and every remaining gap.</li><li>If any result is ambiguous, incomplete, stale, or different between the two shadow runs, stop.</li><li>After a clean report, stop. Do not publish canonical sequence zero or an activation commit.</li></ol>
       </details>
     </article>
-    
-    <article class="task-card" data-kind="blocked" id="task-8">
+<article class="task-card" data-kind="blocked" id="task-8">
       <div class="task-topline">
         <span class="task-number">8</span>
         <span class="badge blocked">Заблокировано</span>
@@ -372,8 +364,7 @@
         <summary>Показать точный технический checklist</summary>
         <ol class="checklist"><li>Do not start this group from Tasks 2.0.</li><li>After Group 7, create an activation-specific Tasks revision for the exact frozen boundary and candidate implementation.</li><li>Reconfirm that the Group 7 boundary and every authority source remain unchanged. Rebuild the candidate if any bound input changed.</li><li>Obtain the two accepted signed approval envelopes for that exact package.</li><li>Publish one Agent0-signed fast-forward commit through the ledger App.</li><li>Reconstruct from the remote ref, prove the invariant, and reconcile external projections through the projection App.</li><li>If publication did not occur, discard or rebuild the candidate from the current boundary.</li><li>If publication occurred, keep vNext authoritative and use forward repair. Never reactivate v1 automatically.</li></ol>
       </details>
-    </article>
-    </div>
+    </article></div>
     </section>
 
     <section aria-labelledby="lean-title">
@@ -382,70 +373,60 @@
       <div class="table-wrap">
         <table>
           <thead><tr><th>Сокращение</th><th>Что произойдёт</th><th>Влияние</th><th>Решение</th></tr></thead>
-          <tbody>
-            <tr data-cut="safe">
+          <tbody><tr data-cut="safe">
               <th>Параллельная работа</th>
               <td>После общей основы группы 3, 4 и 5 идут параллельно.</td>
               <td>Без изменения контракта</td>
               <td><span class="decision safe">Рекомендуется</span></td>
             </tr>
-            
-            <tr data-cut="safe">
+<tr data-cut="safe">
               <th>Одна dormant-поставка</th>
               <td>Группы 1–5 входят в один dormant package. Group 2 имеет один environment checkpoint.</td>
               <td>Без изменения контракта</td>
               <td><span class="decision safe">Рекомендуется</span></td>
             </tr>
-            
-            <tr data-cut="safe">
+<tr data-cut="safe">
               <th>Одна acceptance для Groups 6–7</th>
               <td>Controlled v1 cleanup и no-write rehearsal образуют одну Delivery 2.</td>
               <td>Соответствует Design</td>
               <td><span class="decision safe">Рекомендуется</span></td>
             </tr>
-            
-            <tr data-cut="risk">
+<tr data-cut="risk">
               <th>Rehearsal вместе с activation</th>
               <td>Система потеряет последнюю no-write проверку перед mutation.</td>
               <td>Новая версия Design</td>
               <td><span class="decision risk">Не рекомендуется</span></td>
             </tr>
-            
-            <tr data-cut="risk">
+<tr data-cut="risk">
               <th>Один writer inventory</th>
               <td>Пропущенный writer нельзя будет независимо обнаружить.</td>
               <td>Нарушает S-71</td>
               <td><span class="decision risk">Нельзя сокращать</span></td>
             </tr>
-            
-            <tr data-cut="risk">
+<tr data-cut="risk">
               <th>Один Windows account</th>
               <td>Worker получит тот же доступ к secrets, что и Agent0.</td>
               <td>Новая версия Design</td>
               <td><span class="decision risk">Не рекомендуется</span></td>
             </tr>
-            
-            <tr data-cut="risk">
+<tr data-cut="risk">
               <th>Один GitHub App</th>
               <td>Projection code получит право писать в canonical ref.</td>
               <td>Новая версия Design</td>
               <td><span class="decision risk">Не рекомендуется</span></td>
             </tr>
-            
-            <tr data-cut="risk">
+<tr data-cut="risk">
               <th>Один shadow run</th>
               <td>Повторяемость полного runtime останется недоказанной.</td>
               <td>Нарушает S-74</td>
               <td><span class="decision risk">Нельзя сокращать</span></td>
             </tr>
-            
-            <tr data-cut="risk">
+<tr data-cut="risk">
               <th>Recovery после activation</th>
               <td>В момент cutover не будет разрешённого repair path.</td>
               <td>Нарушает S-78</td>
               <td><span class="decision risk">Нельзя сокращать</span></td>
-            </tr>
-            </tbody>
+            </tr></tbody>
         </table>
       </div>
     </section>
