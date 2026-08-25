@@ -11,7 +11,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
 
-ARTIFACT_VERSION = "2026-08-18.1"
+ARTIFACT_VERSION = "2026-08-23.2"
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 OUTPUT = HERE / "WEA_vNext_SDD_REVIEW.html"
@@ -53,6 +53,8 @@ SOURCE_FILES = (
     BLOCK9 / "spec.md",
     BLOCK9 / "verification.md",
     BLOCK9 / "HANDOFF.md",
+    BLOCK9 / "design-1.2.md",
+    BLOCK9 / "WEA_vNext_BLOCK9_PUBLIC_ROLLOUT_DECISION.txt",
     ROOT / "docs/VNEXT_BOUNDARY.md",
     ROOT / "src/wea_vnext/financial_correction.py",
     ROOT / "tests/vnext/scenarios.py",
@@ -209,8 +211,9 @@ def acceptance_record(fingerprint: str) -> str:
             "proof of an operator act."
         ),
         (
-            "Scope: Block 9 Outcome/Spec 1.0 is accepted for Design; "
-            "implementation and activation remain unauthorized."
+            "Historical scope at this decision gate: Block 9 Outcome/Spec 1.0 "
+            "was accepted for Design; later exact manifests govern current "
+            "implementation authority."
         ),
         "",
     ]
@@ -308,20 +311,24 @@ def validate_sources() -> None:
         ),
         HERE / "tasks.md": (
             "**Version:** 1.4",
-            "Block 9 BDD accepted",
+            "Block 9 Design 1.0/1.1 and Tasks 2.0/2.1 are exact-accepted",
+            "public-after-private-tests path",
             "SDD-01",
             "NEXT-01",
         ),
         HERE / "verification.md": (
             "**Version:** 1.4",
-            "Block 9 BDD accepted; Design next",
+            "Block 9 Design 1.0/1.1",
+            "public-after-private-tests path",
             "ModuleNotFoundError: No module named 'wea_vnext.financial_correction'",
             "0ea6513",
         ),
         PARENT / "HANDOFF.md": (
             "70 current, 9 accepted-future, and zero",
             "proposed-future Block 9 scenarios",
-            "Block 9 Outcome/BDD 1.0 accepted",
+            "Block 9 Spec 1.1 and Design 1.3 select a real canonical private pilot",
+            "active Tasks 2.2 has no hash gate; GitHub-native writer implementation is next",
+            "WeTheAgents/wetheagents",
         ),
         PARENT / "outcome.md": (
             "Текущий составной Outcome: `1.2`",
@@ -376,6 +383,18 @@ def validate_sources() -> None:
             "Scenario S-71:",
             "Scenario S-79:",
             candidate_hash_token,
+        ),
+        BLOCK9 / "design-1.2.md": (
+            "Revision: `1.2`",
+            "Proposed for exact operator acceptance",
+            "DEFERRED",
+            "disposable public repository",
+            "Activation remains a later, separate gate",
+        ),
+        BLOCK9 / "WEA_vNext_BLOCK9_PUBLIC_ROLLOUT_DECISION.txt": (
+            "WeTheAgents/wetheagents",
+            "DEFERRED, not PASS",
+            "does not authorize visibility",
         ),
         ROOT / "tests/vnext/test_scenario_registry.py": (
             "== 70",
@@ -535,16 +554,16 @@ def build_html() -> str:
 </style>
 </head>
 <body>
-<header class="hero"><div class="wrap"><div class="topline"><span class="brand">WeTheAgents / WEA vNext</span><span class="version">Пакет __VERSION__ · fingerprint __FINGERPRINT_SHORT__</span></div><div class="hero-grid"><section class="hero-main"><p class="eyebrow">Принятый контракт для следующего этапа</p><h1>Block 9 BDD принят. Следующий шаг — Design.</h1><p class="lead">S13C готов и слит. Шесть решений оператора записаны в SDD. Точный Block 9 Outcome/Spec 1.0 принят без изменений. vNext всё ещё выключен.</p><div class="safe"><span aria-hidden="true">✓</span><div><strong>Безопасная граница</strong>Сейчас разрешён только Design. Реализация, ledger, credentials и live cutover остаются запрещены до следующих отдельных gates.</div></div></section><aside class="hero-aside" aria-label="Текущий статус"><p class="eyebrow">Текущий статус</p><div class="status-list"><div class="status"><b>v1</b><small>Авторитетен, операционно на паузе</small></div><div class="status"><b>vNext</b><small>Неактивен, live writer отсутствует</small></div><div class="status"><b>70 / 9 / 0</b><small>Текущие / accepted-future / proposed-future</small></div><div class="status"><b>Design</b><small>Следующий разрешённый gate</small></div></div></aside></div></div></header>
+<header class="hero"><div class="wrap"><div class="topline"><span class="brand">WeTheAgents / WEA vNext</span><span class="version">Пакет __VERSION__ · fingerprint __FINGERPRINT_SHORT__</span></div><div class="hero-grid"><section class="hero-main"><p class="eyebrow">Принятый контракт и текущая граница</p><h1>Private E2E пройдёт на настоящем ledger через GitHub Actions.</h1><p class="lead">S13C готов и слит. Для Block 9 приняты Spec 1.1 и Design 1.3. Tasks 2.2 активен без отдельного hash-gate. Сначала — private restart и реальные тестовые задачи, затем — отдельное решение о public.</p><div class="safe"><span aria-hidden="true">✓</span><div><strong>Безопасная граница</strong>Сейчас разрешена реализация GitHub Actions writer и доверенной PR-проверки. Этот документ не разрешает менять canonical ledger, GitHub settings, запускать restart или делать репозиторий public.</div></div></section><aside class="hero-aside" aria-label="Текущий статус"><p class="eyebrow">Текущий статус</p><div class="status-list"><div class="status"><b>v1</b><small>Авторитетен, операционно на паузе</small></div><div class="status"><b>vNext</b><small>GitHub-native путь ещё не реализован</small></div><div class="status"><b>70 / 9 / 0</b><small>Текущие / accepted-future / proposed-future</small></div><div class="status"><b>Tasks 2.2</b><small>Активен без нового hash-gate</small></div></div></aside></div></div></header>
 <nav class="sticky" aria-label="Разделы"><div class="wrap"><a href="#short">Коротко</a><a href="#terms">Термины</a><a href="#findings">Блокеры</a><a href="#decisions">Решения</a><a href="#block9">Block 9 BDD</a><a href="#after">Следующий шаг</a><a href="#evidence">Источники</a></div></nav>
-<div class="section"><div class="wrap"><div class="safe"><span aria-hidden="true">→</span><div><strong>Этот HTML сохраняет BDD-gate от 2026-08-17.</strong>Design 1.0 принят 2026-08-18. Текущий следующий gate — <a href="../wea-vnext-block9-cutover/WEA_vNext_BLOCK9_TASKS_REVIEW.html">review Tasks 2.0 в отдельном простом HTML</a>. Implementation и activation всё ещё не разрешены.</div></div></div></div>
+<div class="section"><div class="wrap"><div class="safe"><span aria-hidden="true">→</span><div><strong>Этот HTML сохраняет BDD-gate от 2026-08-17.</strong>Текущий статус изложен в <a href="../wea-vnext-block9-cutover/WEA_vNext_BLOCK9_GROUP2_REVIEW.html">простом Group 2 HTML</a>: private E2E использует настоящий canonical ledger; основная автоматика живёт в GitHub Actions; отдельный GitHub App пока не нужен; GitHub и ledger ещё не менялись.</div></div></div></div>
 <main>
-<section class="section" id="short"><div class="wrap"><p class="eyebrow">Главное за минуту</p><h2>Правила согласованы. Теперь можно проектировать механизм.</h2><p class="intro">Circle-1 опубликован. Domain/Access и S13C работают только как неактивные библиотеки. Block 9 Outcome/Spec 1.0 теперь является принятым контрактом из девяти проверяемых условий. Он разрешает Design, но не реализацию и не включение vNext.</p><div class="flow"><div class="step"><strong>Основа готова</strong><p>Domain/Access и S13C проверены без live-записи.</p></div><div class="step"><strong>Решения приняты</strong><p>Gauntlet mint и активные achievements не входят в первый cutover.</p></div><div class="step"><strong>BDD принят</strong><p>Девять условий S-71–S-79 обязательны для Design.</p></div><div class="step"><strong>Сейчас: Design</strong><p>Технический проект должен объяснить механизм без изменения принятого поведения.</p></div></div></div></section>
+<section class="section" id="short"><div class="wrap"><p class="eyebrow">Главное за минуту</p><h2>Оркестрация остаётся простой: GitHub хранит, запускает и проверяет.</h2><p class="intro">`WeTheAgents/wetheagents` — канонический root ledger repository. `circle-1` — отдельный Domain. Локальные агенты создают задачи и работу, но не являются скрытым authority для canonical ledger.</p><div class="flow"><div class="step"><strong>Actions готовит</strong><p>Ручной Agent0 workflow строит детерминированный candidate из текущего `main`.</p></div><div class="step"><strong>PR показывает</strong><p>Изменения ledger видны как обычный diff и сохраняются в GitHub history.</p></div><div class="step"><strong>Guard проверяет</strong><p>Доверенный workflow читает PR как данные и не запускает код из PR.</p></div><div class="step"><strong>Private E2E</strong><p>Минимум две реальные задачи проходят до отдельного решения о public.</p></div></div></div></section>
 <section class="section" id="terms"><div class="wrap"><p class="eyebrow">Без лишнего жаргона</p><h2>Четыре термина, которые нужны дальше</h2><div class="grid-4"><article class="plain-card"><h3>BDD</h3><p>Список наблюдаемых примеров: что дано, что происходит и какой результат обязателен.</p></article><article class="plain-card"><h3>SDD</h3><p>Полный пакет: цель, BDD-поведение, технический Design и Tasks. BDD является частью SDD.</p></article><article class="plain-card"><h3>Genesis</h3><p>Первая каноническая запись vNext. Она должна воспроизводить точное начальное состояние.</p></article><article class="plain-card"><h3>Cutover</h3><p>Будущий момент, когда право записи переходит от v1 к vNext.</p></article></div></div></section>
 <section class="section" id="findings"><div class="wrap"><p class="eyebrow">Blocking findings</p><h2>Все прежние блокеры закрыты на уровне решений</h2><p class="intro">Технические исправления S13C уже проверены. Историческое ограничение доказательства принято честно. OD-28 и OD-29 теперь имеют явный результат.</p><div class="findings"><article class="finding"><span class="tag fixed">ПРИНЯТО</span><h3>Исторический RED-лог</h3><p>Исходный вывод не сохранился. Мы используем позднюю проверку старого кода и не заявляем, что потерянный лог существует.</p></article><article class="finding"><span class="tag fixed">ИСПРАВЛЕНО</span><h3>Статусы и версии SDD</h3><p>Родительские документы, сценарный реестр, handoff и HTML показывают одну текущую картину.</p></article><article class="finding"><span class="tag fixed">РЕШЕНО</span><h3>Gauntlet mint</h3><p>Первый cutover не переносит mint. История читается, но не создаёт WEA.</p></article><article class="finding"><span class="tag fixed">РЕШЕНО</span><h3>Achievements</h3><p>История читается без активного эффекта. Будущий ikigai-механизм будет отдельной работой.</p></article></div></div></section>
-<section class="section" id="decisions"><div class="wrap"><p class="eyebrow">Зафиксированное согласование</p><h2>Шесть принятых решений</h2><p class="intro">Пять первых карточек фиксируют исходные бизнес-решения. Шестая отдельно фиксирует принятие точного Block 9 Outcome/Spec 1.0. Это производная запись чата, а не самостоятельное доказательство личности оператора. Итог можно скопировать или скачать.</p><div class="decision-shell"><div class="decision-list">__DECISION_CARDS__</div><aside class="review-panel"><h3>Готовность решений</h3><div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div><p class="progress-text" id="progress-text">6 из 6 решений приняты</p><div class="actions"><button class="btn primary" id="copy-decisions" type="button">Копировать итог</button><button class="btn secondary" id="download-decisions" type="button">Скачать .txt</button></div><p class="panel-note">Следующий gate — Block 9 Design. Реализация и live-активация запрещены.</p><p class="print-only" id="print-summary"></p></aside></div></div></section>
+<section class="section" id="decisions"><div class="wrap"><p class="eyebrow">Зафиксированное согласование</p><h2>Шесть исходных решений</h2><p class="intro">Пять первых карточек фиксируют исходные бизнес-решения. Шестая фиксирует принятие Block 9 Outcome/Spec 1.0. Более поздние записи фиксируют новые принятые решения. Это производные записи чата, а не самостоятельное доказательство личности оператора.</p><div class="decision-shell"><div class="decision-list">__DECISION_CARDS__</div><aside class="review-panel"><h3>Готовность исходных решений</h3><div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div><p class="progress-text" id="progress-text">6 из 6 решений приняты</p><div class="actions"><button class="btn primary" id="copy-decisions" type="button">Копировать итог</button><button class="btn secondary" id="download-decisions" type="button">Скачать .txt</button></div><p class="panel-note">Текущий шаг — GitHub-native code work. Активация и public остаются отдельными решениями.</p><p class="print-only" id="print-summary"></p></aside></div></div></section>
 <section class="section" id="block9"><div class="wrap"><p class="eyebrow">Принятый BDD для Block 9</p><h2>Девять обязательных условий безопасного перехода</h2><p class="intro">Это принятый контракт для Design, но ещё не код. Design должен сохранить эти наблюдаемые правила и объяснить, как система их обеспечивает.</p><div class="findings"><article class="finding"><h3>S-71 · Ни один writer не пропущен</h3><p>Инвентарь сравнивается с независимо собранным замороженным списком. Пропуск, поздний writer или обход epoch guard блокируют cutover.</p></article><article class="finding"><h3>S-72 · Обязательства и conversion закрыты</h3><p>v1 escrow сначала полностью закрывается. Intent фиксирует точный согласованный Plan и автора-плательщика. После cutover один атомарный переход создаёт debit, program escrow, Plan, Task и первый дочерний Contract. Прямой Contract и двойной escrow запрещены.</p></article><article class="finding"><h3>S-73 · Genesis воспроизводим</h3><p>Одинаковые входы создают одинаковое состояние. Conversion intents сохраняются без активных Plans, Tasks, Contracts и replacement escrow.</p></article><article class="finding"><h3>S-74 · Shadow ничего не пишет</h3><p>Теневой прогон создаёт только повторяемый отчёт и не меняет GitHub или ledger.</p></article><article class="finding"><h3>S-75 · Один авторитетный writer</h3><p>Epoch и ledger bootstrap атомарны. Единственный writer — точно agent0@system через одобренную активную credential binding. Внешние проекции отделены.</p></article><article class="finding"><h3>S-76 · Gauntlet только в истории</h3><p>Старые mint-записи читаются, но не создают WEA в genesis или после него.</p></article><article class="finding"><h3>S-77 · Achievements только в истории</h3><p>Genesis сохраняет отдельно сверенный genome snapshot и не изменяет его replay истории achievements.</p></article><article class="finding"><h3>S-78 · Recovery существует до cutover</h3><p>До переключения нужны durable correction и replay repair с crash/restart доказательствами. Correction сохраняет все финансовые и tamper-гарантии S13C 1.1; текущий inactive S13C этого не даёт.</p></article><article class="finding"><h3>S-79 · Ошибка проекции видна</h3><p>До retry канонический статус показывает degradation, а v1 остаётся закрытым. Idempotent retry сводит все публичные поверхности без повторения денег.</p></article></div></div></section>
-<section class="section" id="after"><div class="wrap"><p class="eyebrow">Следующий gate</p><h2>Что разрешено и что запрещено</h2><div class="after"><div class="do"><h3>Разрешено сейчас</h3><ol><li>Подготовить отдельный Block 9 Design.</li><li>Связать каждый механизм с принятыми S-71–S-79.</li><li>Проверить Design на деньги, authority, recovery и single-writer boundary.</li><li>Вернуться за отдельным принятием Design до implementation Tasks.</li></ol></div><div class="dont"><h3>Пока запрещено</h3><ul><li>Менять принятый BDD без новой версии и согласования.</li><li>Включать vNext.</li><li>Менять ledger.</li><li>Запускать writers.</li><li>Создавать genesis или bootstrap.</li><li>Менять credentials или permissions.</li><li>Подключать S13C к live-системе.</li></ul></div></div></div></section>
+<section class="section" id="after"><div class="wrap"><p class="eyebrow">Следующий шаг</p><h2>Что разрешено и где мы остановимся</h2><div class="after"><div class="do"><h3>Разрешено сейчас</h3><ol><li>Реализовать Agent0 workflow на GitHub Actions.</li><li>Реализовать доверенную data-only проверку ledger PR.</li><li>Убрать локальные App, lock и epoch guard из роли authority.</li><li>Подготовить точный activation package и остановиться.</li></ol></div><div class="dont"><h3>Требует отдельного решения</h3><ul><li>Первый merge, который активирует vNext на настоящем ledger.</li><li>Перевод canonical root в public после private E2E.</li><li>Создание отдельного GitHub App без доказанной необходимости.</li><li>Любое ослабление денежных, replay или idempotency проверок.</li></ul></div></div></div></section>
 <section class="section" id="evidence"><div class="wrap"><p class="eyebrow">Проверяемые источники</p><h2>Где находится точный принятый контракт</h2><p class="intro">HTML самодостаточен для чтения. Outcome/Spec сохранены ровно в том виде, в котором были приняты, поэтому внутри них остаются preparation-time метки proposed/pending. Более поздний manifest ниже фиксирует их точные SHA-256 и переводит эти неизменённые bytes в accepted-for-Design.</p><ul class="source-list"><li><a href="WEA_vNext_BLOCK9_ACCEPTANCE.txt">Точная SHA-256 привязка принятого Outcome/Spec 1.0</a></li><li><a href="WEA_vNext_ACCEPTED_DECISIONS.txt">Производная запись решений — не самостоятельное authority proof</a></li><li><a href="../wea-vnext-block9-cutover/outcome.md">Frozen Block 9 Outcome 1.0 snapshot</a></li><li><a href="../wea-vnext-block9-cutover/spec.md">Frozen Block 9 BDD / Spec 1.0 snapshot</a></li><li><a href="../wea-vnext-block9-cutover/tasks.md">Block 9 Tasks</a></li><li><a href="../wea-vnext-block9-cutover/verification.md">Block 9 Verification</a></li><li><a href="operator-review.md">Текстовая версия обзора</a></li><li><a href="verification.md">S13C Verification 1.4</a></li><li><a href="../wea-vnext-recreation/HANDOFF.md">Текущий общий handoff</a></li><li><a href="../wea-vnext-recreation/open-decisions.md">Реестр решений</a></li></ul><details><summary>Почему будущий ikigai-механизм отделён?</summary><p>Он важен для поиска идентичности, но ещё не имеет собственного поведения, полномочий и доказательств. Отдельный Outcome и Spec позволят разработать его осознанно, не пряча в миграции.</p></details><details><summary>Что значит accepted-future?</summary><p>Поведение уже обязательно для Design, но ещё не реализовано и не является текущей возможностью системы.</p></details><details><summary>Что осталось неблокирующим?</summary><p>OD-11 ждёт внутреннего прогона. OD-14 нужен до внешних вкладов. IKIGAI-01 станет отдельной продуктовой задачей.</p></details></div></section>
 </main>
 <footer><div class="wrap">Пакет __VERSION__. Fingerprint выбранных SDD, production-boundary и verification sources: <code>__FINGERPRINT__</code>. Decision payload: <code>__DECISION_PAYLOAD_HASH__</code>. Prepared candidate package: <code>__CANDIDATE_PACKAGE_ID__</code>. Локальная база: <code>0ea6513</code>.</div></footer><div class="toast" id="toast" role="status" aria-live="polite"></div>

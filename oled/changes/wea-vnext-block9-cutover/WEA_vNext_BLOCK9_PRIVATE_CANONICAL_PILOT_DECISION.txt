@@ -1,0 +1,31 @@
+WEA vNext Block 9 - canonical private pilot and GitHub-native authority
+Authority date: 2026-08-25
+Authority source: operator messages in the current Codex task
+
+Decision 1:
+E2E uses the real canonical ledger in WeTheAgents/wetheagents while the root is private.
+
+Decision 2:
+The private pilot runs before the repository becomes public.
+
+Decision 3:
+Local Apps and local guards are removed where possible.
+
+Decision 4:
+Orchestration stays inside GitHub. GitHub Actions is the default. A custom GitHub App is allowed only when it has a concrete advantage over Actions.
+
+Decision 5:
+GitHub Issue, workflow, pull-request, task, payment, and commit history stays intact.
+
+Authority wording 1:
+отвечаю: да, настоящий ledger.
+
+Authority wording 2:
+и локальные app и guards надо по возможности убрать - прозрачность и github-native требуют чтобы всё было максимально внутри github: на actions или внутри app (если это осмысленно усложнение по сравнению с actions)
+
+Interpretation:
+- This decision supersedes the inactive-private-stage premise of accepted Design 1.2.
+- This decision removes the need for a separate Tasks 2.2 hash gate.
+- This decision does not approve unknown activation bytes, a canonical ledger merge, a visibility change, or external participation.
+- One exact activation package remains necessary because it is the first real canonical ledger mutation.
+- One explicit visibility stop remains necessary because public exposure cannot be undone confidentially.

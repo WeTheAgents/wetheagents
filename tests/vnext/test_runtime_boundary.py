@@ -87,7 +87,7 @@ def test_resolution_plan_facade_is_explicitly_pinned_to_executor_0_8_0() -> None
     assert installed_executor("0.7.0").reference != resolution_plan._RUNTIME
 
 
-def test_pre_activation_entrypoint_surfaces_have_no_literal_vnext_reference() -> None:
+def test_pre_activation_entrypoints_only_expose_the_approved_github_path() -> None:
     roots = (Path("src/wea_cli"), Path("scripts"), Path(".github/workflows"))
     paths = [
         path
@@ -106,9 +106,16 @@ def test_pre_activation_entrypoint_surfaces_have_no_literal_vnext_reference() ->
         path: path.read_text(encoding="utf-8", errors="ignore") for path in paths
     }
     contents[Path("pyproject.toml:entry-points")] = repr(entry_points)
+    allowed = {
+        ".github\\workflows\\agent0-ledger-candidate.yml",
+        ".github\\workflows\\guard-vnext-ledger.yml",
+        ".github/workflows/agent0-ledger-candidate.yml",
+        ".github/workflows/guard-vnext-ledger.yml",
+    }
     violations = {
         str(path): "vnext reference"
         for path, content in contents.items()
+        if str(path) not in allowed
         if any(
             marker in content.casefold()
             for marker in ("wea_vnext", "wea-vnext", "ledger/vnext", "ledger\\vnext")

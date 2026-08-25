@@ -388,7 +388,7 @@ def render_group(group: TaskGroup) -> str:
         <ol class="checklist">{checklist}</ol>
       </details>
     </article>
-    """
+    """.strip()
 
 
 def render_lean_rows() -> str:
@@ -402,15 +402,15 @@ def render_lean_rows() -> str:
               <td>{html.escape(effect)}</td>
               <td><span class="decision {kind}">{html.escape(recommendation)}</span></td>
             </tr>
-            """
+            """.strip()
         )
-    return "".join(rows)
+    return "\n".join(rows)
 
 
 def build_html(groups: tuple[TaskGroup, ...]) -> str:
     fingerprint = source_fingerprint()
     tasks_hash = _sha256(TASKS)
-    group_cards = "".join(render_group(group) for group in groups)
+    group_cards = "\n".join(render_group(group) for group in groups)
     lean_rows = render_lean_rows()
     return f"""<!doctype html>
 <html lang="ru">

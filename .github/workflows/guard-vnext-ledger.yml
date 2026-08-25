@@ -1,0 +1,52 @@
+name: Trusted vNext ledger guard
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  trusted-ledger-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+      HEAD_CLONE_URL: ${{ github.event.pull_request.head.repo.clone_url }}
+      GITHUB_TOKEN: ${{ github.token }}
+      PYTHONPATH: src
+    steps:
+      - name: Checkout trusted base code only
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch candidate Git objects without checking them out
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
+          echo "::add-mask::$auth"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
+            fetch --no-tags --depth=2 "$HEAD_CLONE_URL" "$CANDIDATE_SHA"
+          test "$(git rev-parse FETCH_HEAD)" = "$CANDIDATE_SHA"
+
+      - name: Validate candidate bytes with trusted base code
+        run: >-
+          python -m wea_vnext.block9.github_native validate-pr
+          --root .
+          --base "$BASE_SHA"
+          --candidate "$CANDIDATE_SHA"
+          --verify-github

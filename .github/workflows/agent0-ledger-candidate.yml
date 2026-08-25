@@ -1,0 +1,128 @@
+name: Agent0 vNext ledger candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: GitHub Issue that contains the exact Agent0 command
+        required: true
+        type: string
+      comment_id:
+        description: Database ID of the exact command comment
+        required: true
+        type: string
+      command_sha256:
+        description: SHA-256 of the canonical command JSON after the marker
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+  issues: read
+
+concurrency:
+  group: vnext-agent0-candidate-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+    steps:
+      - name: Checkout the exact canonical predecessor
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read the exact GitHub command
+        id: command
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python -m wea_vnext.block9.github_native fetch-command
+          --repository "${{ github.repository }}"
+          --issue-number "${{ inputs.issue_number }}"
+          --comment-id "${{ inputs.comment_id }}"
+          --expected-sha256 "${{ inputs.command_sha256 }}"
+          --output "$RUNNER_TEMP/command.json"
+          --source-output "$RUNNER_TEMP/source.json"
+          --github-output "$GITHUB_OUTPUT"
+
+      - name: Fetch the exact package commit as data
+        env:
+          PACKAGE_COMMIT: ${{ steps.command.outputs.package_commit }}
+          PACKAGE_REF: ${{ steps.command.outputs.package_ref }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin \
+            "refs/heads/${PACKAGE_REF}:refs/remotes/origin/wea-vnext-package"
+          actual="$(git rev-parse refs/remotes/origin/wea-vnext-package)"
+          test "$actual" = "$PACKAGE_COMMIT"
+
+      - name: Build the candidate from trusted base code
+        run: >-
+          python -m wea_vnext.block9.github_native build
+          --root .
+          --command "$RUNNER_TEMP/command.json"
+          --source "$RUNNER_TEMP/source.json"
+          --actor "${{ github.actor }}"
+          --run-id "${{ github.run_id }}"
+          --run-attempt "${{ github.run_attempt }}"
+          --workflow-ref "${{ github.workflow_ref }}"
+          --workflow-sha "${{ github.workflow_sha }}"
+
+      - name: Run ledger invariants before publication
+        run: |
+          python scripts/check_invariant.py --root .
+          python scripts/check_ledger_schema.py --root .
+
+      - name: Commit and validate the non-authoritative candidate
+        id: commit
+        run: |
+          set -euo pipefail
+          git config user.name "agent0@system"
+          git config user.email "agent0@wetheagents.noreply.github.com"
+          git add ledger/vnext evidence/vnext/github-transactions
+          git diff --cached --quiet && {
+            echo "Candidate contains no change" >&2
+            exit 1
+          }
+          git commit -m "vnext: Agent0 candidate from run $GITHUB_RUN_ID"
+          candidate="$(git rev-parse HEAD)"
+          python -m wea_vnext.block9.github_native validate-pr \
+            --root . --base "$GITHUB_SHA" --candidate "$candidate"
+          echo "candidate=$candidate" >> "$GITHUB_OUTPUT"
+
+      - name: Push the candidate branch
+        id: push
+        env:
+          BRANCH: agent0/vnext-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          git push origin "HEAD:refs/heads/${BRANCH}"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Report the manual pull-request boundary
+        env:
+          BRANCH: ${{ steps.push.outputs.branch }}
+          CANDIDATE: ${{ steps.commit.outputs.candidate }}
+        run: |
+          {
+            echo "## Agent0 candidate prepared"
+            echo
+            echo "- Predecessor: \`$GITHUB_SHA\`"
+            echo "- Candidate: \`$CANDIDATE\`"
+            echo "- Branch: \`$BRANCH\`"
+            echo "- Compare: https://github.com/${GITHUB_REPOSITORY}/compare/main...${BRANCH}"
+            echo
+            echo "Open the pull request manually. This workflow does not merge it."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,24 @@
+WEA vNext — derived Block 9 public-rollout decision record
+
+Recorded: 2026-08-23
+Canonical repository: WeTheAgents/wetheagents
+Current visibility: private
+Target visibility: public, but only after the manual restart and first private tests
+
+Operator decision, paraphrased:
+- Keep the repository private through restart and the first tests.
+- Make it public only after those tests.
+- Keep every required protection mechanism.
+- It is acceptable if the private stage cannot verify every remote mechanism.
+
+Interpretation boundary:
+- An unavailable private-stage remote proof is DEFERRED, not PASS.
+- This record authorizes documentation of the rollout order only.
+- It does not authorize visibility, App, ruleset, account, key, ledger, restart,
+  rehearsal, or activation changes.
+- Exact acceptance of Design 1.2 is still required before Tasks 2.2.
+- Later environment changes require their own exact package approvals.
+
+Evidence note:
+This is a deterministic derived record of the operator conversation. It is not
+standalone authenticated authority for a GitHub or ledger mutation.

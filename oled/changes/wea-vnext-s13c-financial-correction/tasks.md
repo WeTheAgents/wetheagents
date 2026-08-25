@@ -2,7 +2,11 @@
 
 **Version:** 1.4
 **Date:** 2026-08-17
-**Status:** Implementation and SDD reconciliation complete; Block 9 BDD accepted
+**Status:** S13C implementation and SDD reconciliation complete. Downstream
+Block 9 Design 1.0/1.1 and Tasks 2.0/2.1 are exact-accepted; dormant Groups 1,
+3, 4, and 5 are implemented and verified. The public-after-private-tests path
+is selected. Group 2 waits for exact Design 1.2 acceptance, Tasks 2.2, and later
+exact environment-package approvals.
 **Outcome:** `outcome.md` version 1.0
 **Specification:** `spec.md` version 1.1
 **Design:** `design.md` revision 1.1
@@ -129,6 +133,6 @@ It does not mean that WEA vNext is live, that the current ledger can be
 corrected through this API, or that a durable financial transaction boundary
 exists.
 
-Post-merge SDD reconciliation is complete. The next allowed action is Block 9
-Design against the accepted Outcome/BDD. Implementation and live cutover
-remain separate approval gates.
+Post-merge SDD reconciliation is complete. The current downstream gate is exact
+review of proposed Block 9 Design 1.2. Tasks 2.2 may be prepared only after its
+acceptance. Environment mutation and live cutover remain separate gates.

@@ -1,5 +1,11 @@
 # WEA vNext: принятые решения и Block 9 BDD
 
+> **Текущий downstream-статус — 2026-08-25.** Spec 1.1 и Design 1.3 выбирают
+> настоящий canonical private pilot. GitHub Actions и pull requests заменяют
+> локальные Apps, locks и epoch guards как authority. Tasks 2.2 уже активен и
+> не требует отдельного hash-gate.
+> Текст ниже сохраняет состояние на момент BDD-review.
+
 **Версия пакета:** `2026-08-17.1`
 
 **Статус:** все шесть решений приняты. S13C готов и слит. Block 9 Outcome и

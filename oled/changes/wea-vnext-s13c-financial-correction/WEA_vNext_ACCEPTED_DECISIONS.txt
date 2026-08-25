@@ -1,13 +1,13 @@
 WEA vNext — deterministic record of operator decisions
-Artifact version: 2026-08-18.1
+Artifact version: 2026-08-23.2
 Authority dates: 2026-08-16 and 2026-08-17
 Authority source: operator messages in the current Codex task; no independently authenticated repository revision is available.
 Local base: 0ea6513
-Selected-source fingerprint SHA-256: 849f2c665a4c4cf3864108fd15bc0a0685f26721e874b9fa5b33f317206b455b
-Prepared candidate package SHA-256: 636e09e1f9c927d85128bd73e550ea480ee04ad9b3719419b5629f6d3f4977f5
+Selected-source fingerprint SHA-256: 588f0c80877d7eb062648b204fd134934e22d7627879b946868edc413884216a
+Prepared candidate package SHA-256: a482b7b909f23cf06c299a18a7d70e8005f3810a24706d34539ea00e02c351c5
 Decision payload SHA-256: fcec6617c9068dede2062045c231833dab24079a7bc1697bfc8b5cd551c27593
 Evidence meaning: derived self-consistency record; not standalone proof of an operator act.
-Scope: Block 9 Outcome/Spec 1.0 is accepted for Design; implementation and activation remain unauthorized.
+Historical scope at this decision gate: Block 9 Outcome/Spec 1.0 was accepted for Design; later exact manifests govern current implementation authority.
 
 SDD-01: Принять ограничение
 

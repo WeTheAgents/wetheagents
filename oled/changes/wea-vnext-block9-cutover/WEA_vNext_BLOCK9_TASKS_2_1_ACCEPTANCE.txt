@@ -1,0 +1,12 @@
+WEA vNext — exact Block 9 Tasks 2.1 acceptance binding
+Task revision: 2.1
+Authority date: 2026-08-23
+Authority wording: Принимаю Block 9 Tasks 2.1 SHA-256 a92cc5d0ab5ca4e133499689e450881d90098893dc2e74bc5d97a1e5f3d13988.
+Authority source: operator message in the current Codex task; this derived manifest is not standalone identity proof.
+Tasks path: oled/changes/wea-vnext-block9-cutover/tasks-2.1.md
+Tasks SHA-256: a92cc5d0ab5ca4e133499689e450881d90098893dc2e74bc5d97a1e5f3d13988
+Accepted Design 1.1 SHA-256: ffd0ad44323e596b6c23f53aba6d50d214dbc20668f260cd8b37ba7a2ab77b1a
+Meaning: the lean pipeline through one no-write rehearsal is accepted, including its explicit human checkpoints and deferred Projection App.
+Authority boundary: Group 2 provisioning still needs approval of one exact before/after environment package. Groups 6 and 7 still need one later exact real-v1 action manifest and rehearsal-procedure acceptance. Group 8 remains unauthorized.
+Status rule: proposed wording inside the frozen Tasks delta is its preparation-time snapshot; this later manifest records acceptance.
+Drift rule: byte changes require a new Tasks revision and a new exact operator acceptance.

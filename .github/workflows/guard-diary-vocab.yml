@@ -11,12 +11,12 @@ defaults:
     shell: bash
 jobs:
   vocab-check:
-    runs-on: [self-hosted, windows, x64, wea-laptop]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.ADMIN_TOKEN }}
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@v4
         with:
