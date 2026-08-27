@@ -303,6 +303,52 @@ def test_github_api_reader_rejects_noncanonical_network_targets() -> None:
         getter("/user")
 
 
+def test_github_api_reader_identifies_itself(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeResponse:
+        status = 200
+
+        @staticmethod
+        def read() -> bytes:
+            return b"{}"
+
+    class FakeConnection:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def request(
+            self,
+            method: str,
+            path: str,
+            *,
+            headers: dict[str, str],
+        ) -> None:
+            captured.update(method=method, path=path, headers=headers)
+
+        @staticmethod
+        def getresponse() -> FakeResponse:
+            return FakeResponse()
+
+        @staticmethod
+        def close() -> None:
+            pass
+
+    monkeypatch.setattr(
+        "wea_vnext.block9.github_native.http.client.HTTPSConnection",
+        FakeConnection,
+    )
+
+    getter = _api_getter("token", "https://api.github.com")
+    getter("/repos/WeTheAgents/wetheagents/issues/comments/5437221699")
+
+    headers = captured["headers"]
+    assert isinstance(headers, dict)
+    assert headers["User-Agent"] == "WeTheAgents-Agent0-vNext/1.0"
+
+
 def test_guard_selects_only_the_new_candidate_record(tmp_path: Path) -> None:
     root, _predecessor = _repo(tmp_path)
     old = root / "evidence/vnext/github-transactions/old/candidate.json"
