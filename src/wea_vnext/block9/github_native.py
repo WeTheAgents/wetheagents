@@ -34,6 +34,7 @@ TARGET_REF = "refs/heads/main"
 WRITER_AGENT_ID = "agent0@system"
 CANDIDATE_WORKFLOW = ".github/workflows/agent0-ledger-candidate.yml"
 GUARD_WORKFLOW = ".github/workflows/guard-vnext-ledger.yml"
+_GITHUB_USER_AGENT = "WeTheAgents-Agent0-vNext/1.0"
 _CANDIDATE_WORKFLOW_REF = (
     f"WeTheAgents/wetheagents/{CANDIDATE_WORKFLOW}@refs/heads/main"
 )
@@ -1168,9 +1169,10 @@ def _api_getter(token: str, api_url: str) -> Callable[[str], object]:
                 "GET",
                 path,
                 headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {token}",
-                "X-GitHub-Api-Version": "2022-11-28",
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                    "User-Agent": _GITHUB_USER_AGENT,
+                    "X-GitHub-Api-Version": "2022-11-28",
                 },
             )
             response = connection.getresponse()
