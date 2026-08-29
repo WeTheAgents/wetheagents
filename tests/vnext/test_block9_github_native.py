@@ -245,10 +245,10 @@ def _package(
 def _source(command: bytes) -> dict[str, object]:
     body = COMMAND_MARKER + command.decode("utf-8")
     return {
-        "author_association": "OWNER",
+        "author_association": "MEMBER",
         "body_sha256": sha256_hex(body.encode()),
         "command_sha256": sha256_hex(command),
-        "comment_author": "owner",
+        "comment_author": "peachgabba22",
         "comment_id": 41,
         "comment_url": "https://github.com/WeTheAgents/wetheagents/issues/9#issuecomment-41",
         "issue_number": 9,
@@ -258,7 +258,7 @@ def _source(command: bytes) -> dict[str, object]:
 
 def _workflow(predecessor: str) -> dict[str, object]:
     return {
-        "actor": "owner",
+        "actor": "peachgabba22",
         "run_attempt": 1,
         "run_id": 9001,
         "workflow_path": ".github/workflows/agent0-ledger-candidate.yml",
@@ -877,6 +877,32 @@ def test_candidate_record_rejects_source_evidence_substitution(tmp_path: Path) -
         )
 
 
+def test_candidate_requires_the_canonical_operator_source(tmp_path: Path) -> None:
+    root, predecessor = _repo(tmp_path)
+    _package_commit, _manifest, command = _package(root, predecessor)
+    _git(root, "checkout", "--detach", predecessor)
+
+    wrong_author = deepcopy(_source(command))
+    wrong_author["comment_author"] = "another-member"
+    with pytest.raises(Block9Error, match="canonical operator"):
+        build_candidate(
+            root,
+            command=command,
+            source_evidence=wrong_author,
+            workflow_evidence=_workflow(predecessor),
+        )
+
+    wrong_association = deepcopy(_source(command))
+    wrong_association["author_association"] = "COLLABORATOR"
+    with pytest.raises(Block9Error, match="organization member"):
+        build_candidate(
+            root,
+            command=command,
+            source_evidence=wrong_association,
+            workflow_evidence=_workflow(predecessor),
+        )
+
+
 def test_guard_confirms_the_exact_completed_github_workflow_run(tmp_path: Path) -> None:
     root, predecessor, candidate, command = _build(tmp_path)
     body = COMMAND_MARKER + command.decode("utf-8")
@@ -884,7 +910,7 @@ def test_guard_confirms_the_exact_completed_github_workflow_run(tmp_path: Path) 
     def api_get(path: str) -> object:
         if path.endswith("/issues/comments/41"):
             return {
-                "author_association": "OWNER",
+                "author_association": "MEMBER",
                 "body": body,
                 "html_url": (
                     "https://github.com/WeTheAgents/wetheagents/"
@@ -894,11 +920,11 @@ def test_guard_confirms_the_exact_completed_github_workflow_run(tmp_path: Path) 
                     "https://api.github.com/repos/WeTheAgents/"
                     "wetheagents/issues/9"
                 ),
-                "user": {"login": "owner"},
+                "user": {"login": "peachgabba22"},
             }
         if path.endswith("/actions/runs/9001"):
             return {
-                "actor": {"login": "owner"},
+                "actor": {"login": "peachgabba22"},
                 "conclusion": "success",
                 "event": "workflow_dispatch",
                 "head_sha": predecessor,
