@@ -892,25 +892,48 @@ def test_candidate_requires_the_canonical_operator_source(tmp_path: Path) -> Non
             workflow_evidence=_workflow(predecessor),
         )
 
-    wrong_association = deepcopy(_source(command))
-    wrong_association["author_association"] = "COLLABORATOR"
-    with pytest.raises(Block9Error, match="organization member"):
+    wrong_workflow = deepcopy(_workflow(predecessor))
+    wrong_workflow["actor"] = "another-member"
+    with pytest.raises(Block9Error, match="actor"):
         build_candidate(
             root,
             command=command,
-            source_evidence=wrong_association,
-            workflow_evidence=_workflow(predecessor),
+            source_evidence=_source(command),
+            workflow_evidence=wrong_workflow,
         )
 
 
-def test_guard_confirms_the_exact_completed_github_workflow_run(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "association", ["MEMBER", "OWNER", "COLLABORATOR", "CONTRIBUTOR", "NONE"]
+)
+def test_candidate_retains_operator_association_as_metadata(
+    tmp_path: Path, association: str
+) -> None:
+    root, predecessor = _repo(tmp_path)
+    _package_commit, _manifest, command = _package(root, predecessor)
+    _git(root, "checkout", "--detach", predecessor)
+    source = deepcopy(_source(command))
+    source["author_association"] = association
+    record = build_candidate(
+        root,
+        command=command,
+        source_evidence=source,
+        workflow_evidence=_workflow(predecessor),
+    )
+    assert record["source"]["author_association"] == association
+
+
+@pytest.mark.parametrize("association", ["MEMBER", "COLLABORATOR", "NONE"])
+def test_guard_confirms_the_exact_completed_github_workflow_run(
+    tmp_path: Path, association: str
+) -> None:
     root, predecessor, candidate, command = _build(tmp_path)
     body = COMMAND_MARKER + command.decode("utf-8")
 
     def api_get(path: str) -> object:
         if path.endswith("/issues/comments/41"):
             return {
-                "author_association": "MEMBER",
+                "author_association": association,
                 "body": body,
                 "html_url": (
                     "https://github.com/WeTheAgents/wetheagents/"

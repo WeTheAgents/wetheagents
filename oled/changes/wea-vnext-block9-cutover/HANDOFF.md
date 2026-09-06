@@ -1,5 +1,20 @@
 # Handoff: WEA vNext Block 9 cutover
 
+## Current update: 2026-09-06
+
+This update supersedes the implementation and next-action status below.
+Canonical main is `a741126153c204ca1495796185d0b43d55f42746`; the code merged, but activation failed.
+Run `33231456987` rejected association metadata before candidate construction.
+The operator accepted the correction in `../wea-vnext-operator-metadata/`.
+Its local tests pass; code publication and live evidence remain pending.
+The existing 2026-08-29 package rehearsal passes but cannot prove live authentication.
+After the correction merges, rebuild the package against the new predecessor.
+Read `agent0/vnext_first_loop.md` for the launch prompt and remaining lifecycle gap.
+The old scheduler is PAUSED. No canonical `ledger/vnext/` namespace exists.
+BDD alignment: S-71/S-75 live evidence and S-80 task-lifecycle evidence are missing; launch is NOT READY.
+
+## Historical handoff
+
 Status: `GitHub-native implementation is local. Activation is not run`.
 
 ## Current contract

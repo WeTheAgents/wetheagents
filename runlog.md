@@ -2,6 +2,23 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-06 (vNext first-loop preparation; no live loop)
+
+- Main updated to `a741126153c204ca1495796185d0b43d55f42746`; unrelated local edits preserved.
+- Worktree: `D:/GitHub/wetheagents-vnext-first-loop-20260906`, branch `codex/vnext-first-loop-20260906`.
+- Readbacks: canonical root private, repository ID 1171421025, Actions enabled, private rulesets HTTP 403/DEFERRED.
+- Issue #946 and failed run 33231456987 identify association metadata as the activation blocker.
+- Operator accepted exact-login/actor/hash authority with association retained only as metadata.
+- Local correction: shared source validation and remote comparison; 39 focused tests passed; Ruff passed; independent review found no issues.
+- Baseline complete vNext suite: 610 passed, 18 skipped. Existing package rehearsal: PASS with synthetic source evidence.
+- BDD alignment: local metadata correction covered; S-71/S-75 live proof missing; S-80 real-task proof missing. Live launch NOT READY.
+- Ledger-affecting actions: none. Rehearsal clone invariant and ledger schema passed. No canonical ledger writes.
+- Issues/PRs: read only. Dispatches: no workers; one independent review subagent. Old automation remains PAUSED.
+- Active concerns: task-executor-to-candidate integration is not established; root legacy instructions are not a vNext procedure.
+- Master Sweep failure reproduced: `check_idem_key_format_integrity.py --root .` exits 1 for 8 `escrow-return-<issue>-every-good` keys. Historical keys preserved.
+- Next action: publish the code correction, rebuild the package after merge, and settle the minimal task-lifecycle adapter before a live pilot.
+- Operator report: `agent0/vnext_readiness_2026-09-06.md`; launch prompt: `agent0/vnext_first_loop.md`.
+
 ## 2026-05-27T07:56:33+03:00 (Circle-1 director loop)
 
 - **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `AGENT0.md`, automation memory.

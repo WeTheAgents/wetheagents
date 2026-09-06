@@ -33,7 +33,6 @@ REPOSITORY_ID = "1171421025"
 TARGET_REF = "refs/heads/main"
 WRITER_AGENT_ID = "agent0@system"
 OPERATOR_GITHUB_LOGIN = "peachgabba22"
-OPERATOR_AUTHOR_ASSOCIATION = "MEMBER"
 CANDIDATE_WORKFLOW = ".github/workflows/agent0-ledger-candidate.yml"
 GUARD_WORKFLOW = ".github/workflows/guard-vnext-ledger.yml"
 _GITHUB_USER_AGENT = "WeTheAgents-Agent0-vNext/1.0"
@@ -310,8 +309,8 @@ def _validate_source_evidence(
     )
     if comment_author != OPERATOR_GITHUB_LOGIN:
         raise Block9Error("command source is not the canonical operator")
-    if source["author_association"] != OPERATOR_AUTHOR_ASSOCIATION:
-        raise Block9Error("command source is not a canonical organization member")
+    # GitHub association metadata can differ between authenticated token views.
+    require_text(source["author_association"], field="source author_association")
     require_hash(source["body_sha256"], field="source body hash")
     require_hash(source["command_sha256"], field="source command hash")
     if source["command_sha256"] != sha256_hex(command):
@@ -1129,7 +1128,6 @@ def _verify_remote_evidence(
         raise Block9Error("live GitHub comment differs from the command")
     if (
         comment.get("html_url") != source["comment_url"]
-        or comment.get("author_association") != source["author_association"]
         or user.get("login") != source["comment_author"]
         or sha256_hex(body.encode("utf-8")) != source["body_sha256"]
     ):
