@@ -10,6 +10,7 @@ Bindings: accepted Outcome 1.1 and Spec 1.0; Design remains in progress in this 
 - [x] Obtain the operator decision on the source-boundary and task-derived payment clarification.
 - [x] Record both accepted pilot ownership arrangements and common operator control.
 - [x] Select existing funded identities and prepare manual role prompts and inspection checkpoints.
+- [x] Step 0: remove legacy operational instructions from the newcomer path, retain historical references, and run the existing documentation checks.
 - [ ] Capture authenticated account IDs and construct the exact versioned pilot identity registry from accepted evidence.
 - [ ] Complete source schema, declaration mapping, runtime compatibility, and identity-history design.
 - [ ] Implement a raw-source-to-executor slice with faithful evidence and disk replay.

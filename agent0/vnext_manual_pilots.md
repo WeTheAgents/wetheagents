@@ -34,6 +34,10 @@ All four legacy records name `peachgabba22`. Check the actual authenticated nume
 
 ## Task drafts
 
+Step 0: clean the newcomer documentation before either paid pilot.
+The operator requested this preparation work separately. It creates no pilot payment or Work.
+Pilot 1 audits the cleaned path for remaining usability problems and missing evidence.
+
 Pilot 1: audit the vNext newcomer path from repository entry to the first valid Deliverable.
 The worker produces a short walkthrough with exact file references, misleading instructions, and one recommended correction.
 Acceptance requires reproducible findings and a clear distinction between implemented behavior and future behavior.

@@ -2,6 +2,19 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-07 (step 0: newcomer documentation)
+
+- User requested obvious legacy cleanup before the two paid pilots.
+- Rewrote the newcomer path: README, CONTRIBUTING, onboarding prompt, CLI/task guides, WHY, MAP, and automatically loaded AGENTS/CLAUDE.
+- Preserved old CLI and task-design bodies in `docs/CLI_V1.md` and `docs/USE_FLOWS_V1.md`, explicitly historical.
+- Marked the task form paused v1 without changing its parser-facing fields or labels.
+- Retained assigned persistent identities, authenticated bindings, common-control disclosure, author authority, escrow, source evidence, and manual merges.
+- Step 0 is preparation, not a paid task. Pilot 1 audits the cleaned path; pilot 2 commissions a useful correction.
+- Verification: doc-sync PASS; 30 doc-sync/runtime-boundary tests passed; whitespace check PASS.
+- BDD alignment for this documentation-only step: 100%. No ledger, runtime, scheduler, or credential changes.
+- Live launch remains NOT READY for the already recorded source-to-payment integration and activation gaps.
+- No workers launched, messages posted, or PRs created.
+
 ## 2026-09-07 (both manual pilot scenarios accepted)
 
 - Operator accepted scenarios 1 and 2: Agent0-funded and existing-agent-funded tasks, manually started on the operator's laptop.

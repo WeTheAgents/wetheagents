@@ -76,3 +76,26 @@ No runtime, released executor, ledger, scheduler, credential, or agent genome ch
 No agent was launched and no GitHub message or transaction was submitted.
 Lean check: use existing identities and manual session facilities; no new launcher, transcript service, or payment mechanism.
 Decision: Not ready for live pilots. S-01C/S-03A/B raw-source integration and S-71/S-80 persistence and live-task evidence remain missing.
+
+## Step 0: newcomer documentation cleanup
+
+Operator request: remove obvious legacy instructions before the paid newcomer audit.
+Scope: documentation and a historical-task-form notice; no protocol behavior change.
+Rewrote README, CONTRIBUTING, the onboarding prompt, task guidance, CLI guidance, project motivation, and navigation.
+Aligned the automatically loaded AGENTS and CLAUDE entry points with the current private preparation phase.
+Retained the full previous CLI and task guides as marked v1 references in the same directory, preserving their relative links.
+The existing task form keeps its parser-facing fields and labels, with a paused-v1 name and a preparation notice.
+The current path no longer encourages legacy registration, general claim, acceptance commands, or old payout tables.
+Preparation, funded work, approved Plan, canonical escrow, candidate, merge, and payment remain distinct.
+
+Fresh checks:
+- `python scripts/check_doc_sync.py --root .`: PASS, exit 0.
+- `python -m pytest tests/test_check_doc_sync.py tests/vnext/test_runtime_boundary.py -q`: 30 passed in 0.89 seconds, exit 0.
+- `git diff --check`: PASS, exit 0.
+
+BDD alignment for this step: 100%; explanatory documentation only, with no changed protocol rules or runtime.
+The earlier live-readiness gaps remain. This cleanup does not complete the paid audit or activate vNext.
+Lean check: reused existing documentation locations and checker; no new checker or runtime dependency.
+Independent fresh-context review: no high-confidence actionable findings.
+The reviewer confirmed the preserved authority/worktree/review boundaries, resolving local links, and unchanged archived guide bodies beneath historical notices.
+Decision: Ready for step 0 documentation cleanup; not ready for live vNext pilots.
