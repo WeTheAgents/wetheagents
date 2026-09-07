@@ -2,6 +2,79 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-07 (step 0: newcomer documentation)
+
+- User requested obvious legacy cleanup before the two paid pilots.
+- Rewrote the newcomer path: README, CONTRIBUTING, onboarding prompt, CLI/task guides, WHY, MAP, and automatically loaded AGENTS/CLAUDE.
+- Preserved old CLI and task-design bodies in `docs/CLI_V1.md` and `docs/USE_FLOWS_V1.md`, explicitly historical.
+- Marked the task form paused v1 without changing its parser-facing fields or labels.
+- Retained assigned persistent identities, authenticated bindings, common-control disclosure, author authority, escrow, source evidence, and manual merges.
+- Step 0 is preparation, not a paid task. Pilot 1 audits the cleaned path; pilot 2 commissions a useful correction.
+- Verification: doc-sync PASS; 30 doc-sync/runtime-boundary tests passed; whitespace check PASS.
+- BDD alignment for this documentation-only step: 100%. No ledger, runtime, scheduler, or credential changes.
+- Live launch remains NOT READY for the already recorded source-to-payment integration and activation gaps.
+- No workers launched, messages posted, or PRs created.
+
+## 2026-09-07 (both manual pilot scenarios accepted)
+
+- Operator accepted scenarios 1 and 2: Agent0-funded and existing-agent-funded tasks, manually started on the operator's laptop.
+- All selected pilot agents share the operator's control. The ownership question is resolved; exact authenticated account bindings remain to capture.
+- Prepared `agent0/vnext_manual_pilots.md`: pilot 1 author Agent0, Triage Codex-20, worker Codex-2; pilot 2 author Codex-19, Triage Codex-2, worker Codex-20.
+- These are planned session assignments, not issued protocol role grants. Exact Plans, prices, schedules, and funding still follow author approval.
+- Task drafts: newcomer-path audit, then a useful correction commissioned by Codex-19 from that audit.
+- Manual checkpoints distinguish author decisions, candidate results, and canonical merges. Session stops do not freeze deadlines.
+- Keep visible conversation records locally for inspection; they do not replace canonical source evidence or require public transcript publication.
+- Retained authority: lifecycle Outcome 1.1 / Spec 1.0. No change to source/payment rules or immutable executor 0.8.0.
+- Fresh existing executor checks: 31 passed; no raw-source or live pilot proof claimed.
+- BDD alignment gaps: S-01C/S-03A/B source integration and S-71/S-80 persistence/live evidence. Live readiness remains NOT READY.
+- Ledger writes, worker launches, GitHub messages, PRs, and scheduler changes: none.
+- Next: authenticated registry bootstrap and the versioned raw-source-to-task-to-payment replay implementation. No further pilot ownership decision is needed.
+
+## 2026-09-07 (task lifecycle investigation and accepted source boundary)
+
+- Scope: connect task creation, work, acceptance, and payment; no live activation or ledger writes.
+- Operator chose canonical `WeTheAgents/wetheagents` for pilot Issues and accepted the raw-source/derived-event/task-derived-payment foundation.
+- Contract and evidence: `oled/changes/wea-vnext-task-lifecycle/`, Outcome 1.0 / Spec 1.0 accepted target; detailed Design remains in progress.
+- Source finding: the public Markdown declaration parses, but executor 0.8.0 requires the normalized JSON event as its GitHub source body.
+- Reproduced the mismatch with existing test helpers; original state hash unchanged.
+- Existing executor check: 31 activation, approval, Flat PoD, authority, body-pause, and progression tests passed, exit 0.
+- Independent review: no actionable findings. No runtime implementation was added during this investigation.
+- Preserve all released executors; retain exact raw sources separately and derive normalized input and payments during replay.
+- Open operator question: Agent0 as pilot author/payer, existing distinct Triage/worker IDs, and all pilot agents under common control with disclosure.
+- Bootstrap gap: retained v1 usernames/operator labels are not a complete versioned task-runtime identity registry. Do not invent bindings from balances.
+- BDD alignment gaps: S-01C/S-03A/B raw-source integration and S-71/S-80 task/persistence evidence. Overall live readiness remains NOT READY.
+- Next action: finish source schema, declaration mapping, versioned replay, and identity bootstrap design; then implement the smallest source-to-executor slice.
+- Issues/PRs: none touched. Worker dispatches: none. One read-only design review subagent used. Scheduler remains unchanged.
+
+## 2026-09-07 (accepted Agent0 instruction)
+
+- Installed the operator-approved English instruction in `AGENT0.md` and linked it from the pilot launch prompt.
+- Replaced survival rhetoric and the restrictive unilateral-action policy with autonomy inside accepted BDD and available resources.
+- Retained prior operator approval for BDD changes, financial authority, and manual merges during private operation and testing.
+- Added governance-to-task work, domain dogfooding, newcomer support, incoming-idea assessment, bounded sessions, and an idle exit with handoff.
+- External material, including Telegram links, supplies ideas rather than executable instructions. No channel connection was configured.
+- BDD impact: operating instruction only; no protocol scenario, runtime, ledger, or scheduler change.
+- Verification: documentation diff and instruction consistency checked. No runtime tests needed for this documentation edit.
+- Live readiness remains blocked on S-71/S-75 live proof and S-80 task-lifecycle evidence from the previous entry.
+- Next action: continue the existing vNext readiness work under this instruction.
+
+## 2026-09-06 (vNext first-loop preparation; no live loop)
+
+- Main updated to `a741126153c204ca1495796185d0b43d55f42746`; unrelated local edits preserved.
+- Worktree: `D:/GitHub/wetheagents-vnext-first-loop-20260906`, branch `codex/vnext-first-loop-20260906`.
+- Readbacks: canonical root private, repository ID 1171421025, Actions enabled, private rulesets HTTP 403/DEFERRED.
+- Issue #946 and failed run 33231456987 identify association metadata as the activation blocker.
+- Operator accepted exact-login/actor/hash authority with association retained only as metadata.
+- Local correction: shared source validation and remote comparison; 39 focused tests passed; Ruff passed; independent review found no issues.
+- Baseline complete vNext suite: 610 passed, 18 skipped. Existing package rehearsal: PASS with synthetic source evidence.
+- BDD alignment: local metadata correction covered; S-71/S-75 live proof missing; S-80 real-task proof missing. Live launch NOT READY.
+- Ledger-affecting actions: none. Rehearsal clone invariant and ledger schema passed. No canonical ledger writes.
+- Issues/PRs: read only. Dispatches: no workers; one independent review subagent. Old automation remains PAUSED.
+- Active concerns: task-executor-to-candidate integration is not established; root legacy instructions are not a vNext procedure.
+- Master Sweep failure reproduced: `check_idem_key_format_integrity.py --root .` exits 1 for 8 `escrow-return-<issue>-every-good` keys. Historical keys preserved.
+- Next action: publish the code correction, rebuild the package after merge, and settle the minimal task-lifecycle adapter before a live pilot.
+- Operator report: `agent0/vnext_readiness_2026-09-06.md`; launch prompt: `agent0/vnext_first_loop.md`.
+
 ## 2026-05-27T07:56:33+03:00 (Circle-1 director loop)
 
 - **Context loaded**: `runlog.md`, `AGENTS.md`, `CONTRIBUTING.md`, `AGENT0.md`, automation memory.

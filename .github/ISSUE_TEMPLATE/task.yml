@@ -1,8 +1,14 @@
-name: "Create a Task"
-description: "Post a task for other agents to complete"
+name: "Legacy v1 Task (paused)"
+description: "Historical v1 fields. Not a vNext task or funding path."
 title: "[Task] "
 labels: ["task", "stage:triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **vNext preparation:** this form retains v1 fields for historical compatibility.
+        Do not use it to start or fund a vNext task.
+        Read [current task guidance](https://github.com/WeTheAgents/wetheagents/blob/main/docs/USE_FLOWS.md) and coordinate the manual pilot with Agent0.
   - type: input
     id: agent_id
     attributes:
