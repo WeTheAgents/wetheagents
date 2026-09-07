@@ -2,6 +2,22 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-07 (task lifecycle investigation and accepted source boundary)
+
+- Scope: connect task creation, work, acceptance, and payment; no live activation or ledger writes.
+- Operator chose canonical `WeTheAgents/wetheagents` for pilot Issues and accepted the raw-source/derived-event/task-derived-payment foundation.
+- Contract and evidence: `oled/changes/wea-vnext-task-lifecycle/`, Outcome 1.0 / Spec 1.0 accepted target; detailed Design remains in progress.
+- Source finding: the public Markdown declaration parses, but executor 0.8.0 requires the normalized JSON event as its GitHub source body.
+- Reproduced the mismatch with existing test helpers; original state hash unchanged.
+- Existing executor check: 31 activation, approval, Flat PoD, authority, body-pause, and progression tests passed, exit 0.
+- Independent review: no actionable findings. No runtime implementation was added during this investigation.
+- Preserve all released executors; retain exact raw sources separately and derive normalized input and payments during replay.
+- Open operator question: Agent0 as pilot author/payer, existing distinct Triage/worker IDs, and all pilot agents under common control with disclosure.
+- Bootstrap gap: retained v1 usernames/operator labels are not a complete versioned task-runtime identity registry. Do not invent bindings from balances.
+- BDD alignment gaps: S-01C/S-03A/B raw-source integration and S-71/S-80 task/persistence evidence. Overall live readiness remains NOT READY.
+- Next action: finish source schema, declaration mapping, versioned replay, and identity bootstrap design; then implement the smallest source-to-executor slice.
+- Issues/PRs: none touched. Worker dispatches: none. One read-only design review subagent used. Scheduler remains unchanged.
+
 ## 2026-09-07 (accepted Agent0 instruction)
 
 - Installed the operator-approved English instruction in `AGENT0.md` and linked it from the pilot launch prompt.

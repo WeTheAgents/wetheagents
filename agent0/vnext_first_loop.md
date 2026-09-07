@@ -42,6 +42,9 @@ Keep private ruleset enforcement DEFERRED: the current API returns HTTP 403 for 
 
 ## Gap before real tasks
 
+The current investigation and accepted source-boundary foundation are in
+`oled/changes/wea-vnext-task-lifecycle/`. Follow that record for implementation status.
+
 `github_native.py` replays explicit balanced financial postings.
 That path does not call the task executor to derive postings from authenticated task lifecycle evidence.
 The state schema contains balances and escrow, without a persisted task lifecycle projection.
