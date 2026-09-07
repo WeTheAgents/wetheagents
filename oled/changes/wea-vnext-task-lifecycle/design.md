@@ -24,6 +24,36 @@ If separating source evidence changes the executor boundary, release a new execu
 Do not relabel a normalized body as the original GitHub body to keep 0.8.0 tests green.
 Map raw declarations to existing authority decisions. Do not introduce a new approval role through normalization.
 
+The source-boundary change requires a new executor closure.
+In 0.8.0, `LifecycleEvent.__post_init__` requires `source_snapshot` to contain the normalized event JSON.
+Then `_apply_lifecycle_event_core` requires the accepted GitHub body to equal that same snapshot.
+Both checks must remain unchanged for historical 0.8.0 replay.
+An external wrapper that substitutes synthetic GitHub bodies would bypass the accepted raw-source boundary.
+The new closure must distinguish the raw source reference from the canonical derived-event snapshot.
+Its exact version and manifest follow the repository release procedure; no new runtime is registered by this design record.
+
+### Retained source and derivation records
+
+Reuse the existing accepted GitHub event representation for exact source bytes and source metadata.
+Reference sources by repository, object kind, object ID, and revision ID, with the exact content hash.
+Do not introduce a second source format that loses the accepted event's ordering or payload evidence.
+The source collection also retains its read-boundary evidence; a body hash alone proves neither authenticity nor completeness.
+
+The task journal binds each derived operation to its source references, pinned runtime triple, and predecessor task state.
+Computed actor authority, internal IDs, stage, eligibility, and settlement remain outputs of replay.
+A stored derived event is a comparison value, not an independently authorized instruction.
+The writer and guard reconstruct the event from retained raw sources and the same predecessor.
+Neither path accepts a serialized verification marker as proof.
+
+This model applies to intake sources as well as Work declarations.
+Draft body, Triage assignment and completion, assessment, Plan proposal, and author decision remain distinct source roles.
+The new runtime must retain their existing exact-source and canonical-order checks.
+System events require their own evidenced provenance; they must not inherit the comment-source assumption.
+
+The proving hooks are raw-source activation and Work acceptance, altered derived-event rejection,
+and replay from journal files in a fresh process with no retained in-memory state.
+These hooks remain unimplemented; the existing 31 passing executor tests do not prove them.
+
 ## Recovery and source collection
 
 Retain accepted raw evidence and replay versions in canonical history.
