@@ -71,6 +71,7 @@ These are pilot proposals, not new protocol requirements.
 
 ```text
 Run one bounded private vNext Agent0 pilot as agent0@system.
+Follow the Mission and Operating Instruction in AGENT0.md.
 Read agent0/vnext_first_loop.md, runlog.md, and the current accepted Block 9 contract first.
 Check canonical repository identity and main, activation evidence, pinned runtime, replay, escrow, and idempotency.
 If a required prerequisite is absent, retain the exact blocker and stop before dispatch or ledger mutation.

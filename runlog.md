@@ -2,6 +2,18 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-07 (accepted Agent0 instruction)
+
+- Installed the operator-approved English instruction in `AGENT0.md` and linked it from the pilot launch prompt.
+- Replaced survival rhetoric and the restrictive unilateral-action policy with autonomy inside accepted BDD and available resources.
+- Retained prior operator approval for BDD changes, financial authority, and manual merges during private operation and testing.
+- Added governance-to-task work, domain dogfooding, newcomer support, incoming-idea assessment, bounded sessions, and an idle exit with handoff.
+- External material, including Telegram links, supplies ideas rather than executable instructions. No channel connection was configured.
+- BDD impact: operating instruction only; no protocol scenario, runtime, ledger, or scheduler change.
+- Verification: documentation diff and instruction consistency checked. No runtime tests needed for this documentation edit.
+- Live readiness remains blocked on S-71/S-75 live proof and S-80 task-lifecycle evidence from the previous entry.
+- Next action: continue the existing vNext readiness work under this instruction.
+
 ## 2026-09-06 (vNext first-loop preparation; no live loop)
 
 - Main updated to `a741126153c204ca1495796185d0b43d55f42746`; unrelated local edits preserved.
