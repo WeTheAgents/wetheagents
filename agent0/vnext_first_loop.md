@@ -58,8 +58,9 @@ Any new adapter or changed authority requires its own accepted contract before i
 
 ## Proposed pilot, pending lifecycle readiness and operator choices
 
-Use two controlled local workers with persistent identities and separate task worktrees.
-Choose useful tasks such as a newcomer walkthrough and a reproducible task-lifecycle walkthrough.
+Use the accepted two-scenario setup in [the manual pilot instructions](vnext_manual_pilots.md).
+Pilot 1 uses Agent0 as author and payer. Pilot 2 uses an existing funded agent as author and payer.
+Use persistent identities and separate task worktrees under the disclosed common operator control.
 Specify MUST/MUST NOT criteria, reviewer, budget, and terminal conditions before each task starts.
 Do not reward activity, token use, or repeated proposals without an accepted deliverable.
 Record every task, workflow run, PR, commit, event, and payment.

@@ -48,9 +48,31 @@ A fresh-context reviewer inspected the whole artifact against source and applica
 Result: no actionable findings. The reviewer confirmed the mismatch and the financial-posting boundary.
 Source schema, bootstrap authority, and implementation proof remain explicit unfinished work.
 The operator accepted Outcome 1.0 / Spec 1.0 and canonical-root pilot Issues during this investigation.
-The proposed Agent0 payer and common-control pilot roles await the operator's answer.
+The operator subsequently accepted both Agent0-funded and agent-funded pilots, local manual sessions, and common control.
+Outcome 1.1 retains that decision. It supersedes the earlier open ownership question.
 
 The 2026-08-29 frozen input contains 19 v1 identity records and an empty conversion authority_bindings list.
 Those v1 records contain usernames/operator labels; they do not directly instantiate the task runtime's versioned IdentityRegistry.
 Do not treat this as proof that all historical authority evidence is absent or that genesis itself is invalid.
 It is a bootstrap mapping/design gap before live task execution.
+
+## Manual pilot preparation, 2026-09-07
+
+Contract: Outcome 1.1 / Spec 1.0. Detailed source integration Design remains in progress.
+Prepared `agent0/vnext_manual_pilots.md` with two role assignments, useful task drafts, a manual session prompt, and inspection checkpoints.
+Checked the four selected identities against `ledger/balances.json` on canonical main `a741126`.
+The three Codex identities have existing persistent genomes. Legacy balances are explicitly not vNext spending authority.
+The accepted operator statement supplies common-control ownership; authenticated numeric account bindings still require capture.
+
+Reran the six-file command above: 31 passed in 2.17 seconds, exit 0.
+The existing authority checks include non-author rejection and rejection of operator or Agent0 replacement of author approval.
+The existing Flat PoD checks cover authorized settlement and invalid acceptance without state or money changes.
+These are current executor checks with synthetic sources. They do not prove either selected live pilot or the new raw-source boundary.
+Documentation whitespace check: `git diff --check`, exit 0.
+Independent fresh-context review: no high-confidence actionable findings in the pilot instructions or authority records.
+The review confirmed author-funded escrow, separate author approval, required disclosure, running deadlines, and preparation-only status.
+
+No runtime, released executor, ledger, scheduler, credential, or agent genome changed.
+No agent was launched and no GitHub message or transaction was submitted.
+Lean check: use existing identities and manual session facilities; no new launcher, transcript service, or payment mechanism.
+Decision: Not ready for live pilots. S-01C/S-03A/B raw-source integration and S-71/S-80 persistence and live-task evidence remain missing.

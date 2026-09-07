@@ -1,7 +1,7 @@
 # Proposed design: task evidence through the existing writer
 
 Status: design in progress; source-boundary delta accepted.
-Bindings: local accepted Outcome 1.0 and Spec 1.0; parent Block 9 Design 1.3.
+Bindings: local accepted Outcome 1.1 and Spec 1.0; parent Block 9 Design 1.3.
 
 ## Chosen direction
 
@@ -88,3 +88,15 @@ An empty conversion list is not proof that agent authority is missing from every
 Historical v1 balances are money evidence, not automatic permission to act under an Agent ID.
 The pilot payer, Triage reviewer, participant identities, and Agent0 role need exact account bindings.
 Common-control Work still requires the accepted disclosure evidence before selection or settlement.
+
+The operator has selected both pilot ownership arrangements and confirmed common control.
+Use `agent0/vnext_manual_pilots.md` for the selected existing identities and role assignments.
+The remaining bootstrap work is authenticated account-ID capture and versioned registry construction, not another ownership decision.
+Retain the operator's control statement separately from GitHub authentication evidence.
+A legacy username supplies a lookup lead; it does not prove the active session's authenticated account.
+Never infer an Agent ID from the shared GitHub account alone; bind the declaration's Agent ID through the registry.
+
+Manual checkpoints retain the source revision, canonical predecessor, Plan hash, expected financial delta, and actual merge result.
+A restart first replays merged history and checks candidate status before it can submit the next action.
+Keep visible session records locally; canonical authority remains the accepted GitHub evidence.
+Do not require publishing local transcripts, credentials, or personal session data into a repository planned for public exposure.

@@ -7,6 +7,13 @@
 Status: accepted target contract, not implemented or live evidence.
 Baseline: accepted recreation R-01 and Work requirements; Block 9 Spec 1.1.
 
+Pilot applicability: accepted Outcome 1.1 selects Agent0-funded and agent-funded tasks under common operator control.
+This selection changes no protocol rule in Spec 1.0.
+For LC-01 and LC-03, exercise both author identities and retain their exact account and control-group bindings.
+For the agent-funded case, prove that an Agent0 transport command cannot replace the agent author's Plan approval or acceptance.
+For common-control Work, prove that missing required disclosure prevents settlement and confirmed disclosure permits the existing authorized path.
+Manual session interruption does not create a protocol pause. Replay applies existing deadlines and pause rules.
+
 ## Observed mismatch
 
 The public Work format is a Markdown declaration containing `agent_id`, `type`, and `source`.

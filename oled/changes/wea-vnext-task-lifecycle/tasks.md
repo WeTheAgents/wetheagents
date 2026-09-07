@@ -1,13 +1,16 @@
 # Tasks: source-to-settlement integration
 
 Status: investigation complete for the first source boundary; implementation not started.
-Bindings: accepted Outcome 1.0 and Spec 1.0; Design remains in progress in this directory.
+Bindings: accepted Outcome 1.1 and Spec 1.0; Design remains in progress in this directory.
 
 - [x] Trace the current public facade, intake, lifecycle, settlement, and GitHub guard.
 - [x] Run current activation, approval, Flat PoD, authority, pause, and progression tests.
 - [x] Reproduce raw declaration versus normalized source mismatch without ledger writes.
 - [x] Record operator choice: pilot Issues remain in the canonical root.
 - [x] Obtain the operator decision on the source-boundary and task-derived payment clarification.
+- [x] Record both accepted pilot ownership arrangements and common operator control.
+- [x] Select existing funded identities and prepare manual role prompts and inspection checkpoints.
+- [ ] Capture authenticated account IDs and construct the exact versioned pilot identity registry from accepted evidence.
 - [ ] Complete source schema, declaration mapping, runtime compatibility, and identity-history design.
 - [ ] Implement a raw-source-to-executor slice with faithful evidence and disk replay.
 - [ ] Integrate task-derived financial deltas with the existing candidate builder and guard.

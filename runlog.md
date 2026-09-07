@@ -2,6 +2,21 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-07 (both manual pilot scenarios accepted)
+
+- Operator accepted scenarios 1 and 2: Agent0-funded and existing-agent-funded tasks, manually started on the operator's laptop.
+- All selected pilot agents share the operator's control. The ownership question is resolved; exact authenticated account bindings remain to capture.
+- Prepared `agent0/vnext_manual_pilots.md`: pilot 1 author Agent0, Triage Codex-20, worker Codex-2; pilot 2 author Codex-19, Triage Codex-2, worker Codex-20.
+- These are planned session assignments, not issued protocol role grants. Exact Plans, prices, schedules, and funding still follow author approval.
+- Task drafts: newcomer-path audit, then a useful correction commissioned by Codex-19 from that audit.
+- Manual checkpoints distinguish author decisions, candidate results, and canonical merges. Session stops do not freeze deadlines.
+- Keep visible conversation records locally for inspection; they do not replace canonical source evidence or require public transcript publication.
+- Retained authority: lifecycle Outcome 1.1 / Spec 1.0. No change to source/payment rules or immutable executor 0.8.0.
+- Fresh existing executor checks: 31 passed; no raw-source or live pilot proof claimed.
+- BDD alignment gaps: S-01C/S-03A/B source integration and S-71/S-80 persistence/live evidence. Live readiness remains NOT READY.
+- Ledger writes, worker launches, GitHub messages, PRs, and scheduler changes: none.
+- Next: authenticated registry bootstrap and the versioned raw-source-to-task-to-payment replay implementation. No further pilot ownership decision is needed.
+
 ## 2026-09-07 (task lifecycle investigation and accepted source boundary)
 
 - Scope: connect task creation, work, acceptance, and payment; no live activation or ledger writes.
