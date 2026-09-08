@@ -126,23 +126,23 @@ def _is_executable_writer_surface(path: str) -> bool:
         and (
             extensionless_source
             or normalized.endswith(
-            (
-                ".bat",
-                ".cjs",
-                ".cmd",
-                ".cs",
-                ".go",
-                ".java",
-                ".js",
-                ".mjs",
-                ".php",
-                ".ps1",
-                ".py",
-                ".rb",
-                ".rs",
-                ".sh",
-                ".ts",
-            )
+                (
+                    ".bat",
+                    ".cjs",
+                    ".cmd",
+                    ".cs",
+                    ".go",
+                    ".java",
+                    ".js",
+                    ".mjs",
+                    ".php",
+                    ".ps1",
+                    ".py",
+                    ".rb",
+                    ".rs",
+                    ".sh",
+                    ".ts",
+                )
             )
         )
     ) or (
@@ -352,13 +352,24 @@ def _discover_canonical_workflows(captured: Mapping[str, bytes]) -> set[str]:
 
 
 _GITHUB_NATIVE_PINNED_FILES = {
-    ".github/workflows/agent0-ledger-candidate.yml",
+    ".github/workflows/tide.yml",
     ".github/workflows/guard-vnext-ledger.yml",
     "pyproject.toml",
+    "src/wea_vnext/__init__.py",
+    "src/wea_vnext/block9/__init__.py",
     "src/wea_vnext/block9/common.py",
     "src/wea_vnext/block9/github_native.py",
     "src/wea_vnext/block9/migration.py",
     "src/wea_vnext/block9/writer.py",
+    "src/wea_vnext/engine.py",
+    "src/wea_vnext/tide/__main__.py",
+    "src/wea_vnext/tide/__init__.py",
+    "src/wea_vnext/tide/activation.py",
+    "src/wea_vnext/tide/collection.py",
+    "src/wea_vnext/tide/github.py",
+    "src/wea_vnext/tide/ledger.py",
+    "src/wea_vnext/tide/records.py",
+    "src/wea_vnext/tide/replay.py",
     "src/wea_vnext/executors/v0_8_0/canonical.py",
 }
 
@@ -403,8 +414,7 @@ def validate_writer_boundary_sources(
     )
     if changed_existing_writers:
         raise Block9Error(
-            "existing writer boundary source changed: "
-            + changed_existing_writers[0]
+            "existing writer boundary source changed: " + changed_existing_writers[0]
         )
     if not _GITHUB_NATIVE_PINNED_FILES <= trusted.keys():
         raise Block9Error("trusted GitHub-native guard files are incomplete")
@@ -415,6 +425,11 @@ def validate_writer_boundary_sources(
         detail = changed[0] if changed else "unknown"
         raise Block9Error(f"candidate canonical workflow set changed: {detail}")
     protected = trusted_canonical | candidate_canonical | _GITHUB_NATIVE_PINNED_FILES
+    protected |= {
+        path
+        for path in trusted
+        if path.startswith(("src/wea_vnext/executors/", "src/wea_vnext/rulesets/"))
+    }
     for path in sorted(protected):
         if trusted.get(path) != candidate.get(path):
             raise Block9Error(f"candidate writer boundary changed: {path}")

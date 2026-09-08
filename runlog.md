@@ -2,6 +2,22 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-08 (automatic Tide implementation, not activated)
+
+- Operator accepted Tide as the automatic technical writer, one settlement PR per batch, manual private merges, and retirement of the old Actions path.
+- Worktree: `D:/GitHub/wetheagents-vnext-tide-20260908`, branch `codex/vnext-tide-20260908`, base `bfb8a6d91d4e3da6dc9c2935814e6b5fdc5c843d`.
+- Implemented a new immutable 0.9.0 closure with raw GitHub normalization, verified task/payment replay, global escrow accounting, clock/body/disclosure maintenance, and funding-before-Work checks.
+- Added stable authenticated collection, retained journals and projections, explicit initialization, one pending branch, automatic PR creation, independent trusted guard, stale-status invalidation, and crash recovery.
+- Replaced `agent0-ledger-candidate.yml` with hourly/manual `tide.yml`; updated the trusted guard. Existing executor/ruleset bytes and package initializers are protected from ordinary maintenance changes.
+- Added read-only `wea tide`; audit scripts verify the Tide journal when present. Updated Agent0/newcomer/pilot/startup instructions in `docs/TIDE.md` and the first-loop runbook.
+- Full vNext tests: 667 passed, 18 skipped. Final boundary suite: 44 passed. Codex review is still running. Doc-sync, schema, invariant, targeted CLI and claim checks passed. New executor manifest matches staged Git bytes.
+- Independent review findings were corrected: cross-Issue and pre-funding blockers, copied Triage declarations, edit reconciliation, canonical collector scope, mutable metadata, and publication recovery/provenance.
+- Pending operator decision: S-02H/T-04 initial clock treatment while funding PR waits for manual merge. Proposed shift is NOT implemented.
+- Live API found Actions PR creation disabled. Repository-level enable failed because the organization prohibits it; current token lacks admin:org. No policy changed. Organization-level authorization is pending; exact UI steps are in `docs/TIDE.md`.
+- No ledger/vnext namespace, activation, payment, worker launch, workflow dispatch, or visibility change. Legacy balances remain 19025 WEA / zero active escrow; historical closures are unchanged.
+- Keep `circle-1-agent0-autonomous-loop` paused. Do not reuse the August activation package or PR 949's one-time guard exception.
+- Next: finish review and publish a reviewable code-only change; resolve both pending decisions; use the manual writer-upgrade procedure, then prepare exact initialization from merged main.
+
 ## 2026-09-07 (step 0: newcomer documentation)
 
 - User requested obvious legacy cleanup before the two paid pilots.

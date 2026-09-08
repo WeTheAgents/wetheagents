@@ -1,6 +1,14 @@
 name: Trusted vNext ledger guard
 
 on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pull_request:
+        description: Canonical pull request number to verify
+        required: true
+        type: string
   pull_request_target:
     branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
@@ -10,15 +18,15 @@ permissions:
   contents: read
   issues: read
   pull-requests: read
+  statuses: write
 
 jobs:
   trusted-ledger-check:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
-      HEAD_CLONE_URL: ${{ github.event.pull_request.head.repo.clone_url }}
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pull_request }}
       GITHUB_TOKEN: ${{ github.token }}
       PYTHONPATH: src
     steps:
@@ -27,26 +35,54 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event.pull_request.base.sha || 'main' }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      - name: Resolve canonical PR identities
+        id: pr
+        run: python -m wea_vnext.tide resolve-pr --pull-request "$PR_NUMBER"
+
       - name: Fetch candidate Git objects without checking them out
+        env:
+          BASE_SHA: ${{ steps.pr.outputs.base }}
+          CANDIDATE_SHA: ${{ steps.pr.outputs.head }}
+          VERIFIED_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
           set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$BASE_SHA"
           auth="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
           echo "::add-mask::$auth"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" \
-            fetch --no-tags --depth=2 "$HEAD_CLONE_URL" "$CANDIDATE_SHA"
+            fetch --no-tags origin "refs/pull/${VERIFIED_NUMBER}/head"
           test "$(git rev-parse FETCH_HEAD)" = "$CANDIDATE_SHA"
 
       - name: Validate candidate bytes with trusted base code
+        env:
+          BASE_SHA: ${{ steps.pr.outputs.base }}
+          CANDIDATE_SHA: ${{ steps.pr.outputs.head }}
         run: >-
-          python -m wea_vnext.block9.github_native validate-pr
+          python -m wea_vnext.tide guard
           --root .
           --base "$BASE_SHA"
-          --candidate "$CANDIDATE_SHA"
-          --verify-github
+          --head "$CANDIDATE_SHA"
+
+  invalidate-stale-tide:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m wea_vnext.tide invalidate-pending

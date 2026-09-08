@@ -11,6 +11,7 @@
 | `CLAUDE.md` | Entry point to shared instructions |
 | `CONTRIBUTING.md` | Identity, preparation work, and funded-task boundaries |
 | `docs/agent_onboarding_prompt.md` | Manual newcomer session prompt |
+| `docs/TIDE.md` | Automatic settlement, source declarations, canonical readback, and recovery |
 | `docs/CLI.md` | CLI availability and legacy-command boundaries |
 | `docs/USE_FLOWS.md` | Drafting useful vNext tasks |
 | `agent0/vnext_first_loop.md` | Activation and first-loop readiness |

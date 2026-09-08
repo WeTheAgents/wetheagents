@@ -19,16 +19,20 @@ authority. Active Tasks 2.2 has no separate hash gate. One exact activation
 approval remains because it is a real ledger write. One later visibility stop
 remains because public exposure is not confidentially reversible.
 
+The accepted 2026-09-08 Tide delta in `oled/changes/wea-vnext-tide/`
+supersedes the single-command Agent0 writer and package construction for the new path.
+Its implementation status and unresolved deadline decision are recorded there.
+
 ## Current phase
 
 - v1 is under an operator pause. Its ledger, history, and audit tools remain
   authoritative evidence until activation.
-- vNext is still inactive. The code now contains a GitHub Actions candidate
-  workflow and a trusted data-only pull-request guard.
+- vNext is still inactive. `tide.yml` replaces `agent0-ledger-candidate.yml`.
+  It prepares automatic batches; the trusted guard independently replays candidate data.
 - The code does not contain a local writer kernel, local epoch guard, custom
   App transport, or self-hosted guard.
-- No canonical `ledger/vnext/` namespace exists. The exact activation package
-  can only bind the canonical `main` commit after this code merges.
+- No canonical `ledger/vnext/` namespace exists. Exact Tide initialization
+  must bind merged `main`, the existing balances, identity evidence, and operator approval.
 - The registry has 70 current scenarios, 9 accepted-future Block 9 scenarios,
   and zero proposed-future scenarios. Accepted-future is binding for Design
   but is not implementation or live evidence.
@@ -52,6 +56,9 @@ remains because public exposure is not confidentially reversible.
 The legacy candidate facades share executor `0.6.3`. The inactive Resolution
 Plan facade is pinned to executor `0.8.0`. These pins do not make an executor
 live. They do not override the runtime triple stored by a Contract.
+The new Tide explicitly selects executor `0.9.0` and ruleset `0.9`; it does not repin historical facades.
+`src/wea_vnext/tide/` owns collection, journal replay, and publication.
+`wea tide` and the invariant/schema scripts only read and verify that journal.
 
 Domain/Access does not select an executor. Its accepted boundary is a separate
 inactive control-plane library because registry validation and the internal
@@ -96,25 +103,16 @@ historical integrity checks. Do not reinterpret old records with vNext rules.
 
 ## Activation boundary
 
-Merging inactive vNext code does not activate it. The accepted activation
-contract is R-B9-05 in `oled/changes/wea-vnext-block9-cutover/spec-1.1.md`. It
-requires a complete writer inventory,
-frozen and reconciled v1 evidence, shadow replay, `genesis.json`, the vNext
-epoch, an Agent0 GitHub Actions run, a separate operator merge, one exact
-bundle, disabled v1 writers, and a trusted GitHub pull-request guard. The
-operator merge transports a validated event. It is not a second ledger author.
-An unknown writer, ambiguous record, substituted writer, or changed bundle
-blocks activation.
+Merging inactive vNext code does not activate it. The Tide initialization path
+preserves exact operator authorization, frozen v1 evidence, a trusted Actions run,
+and a separate manual merge. `tide-bootstrap.json` retains the opening balances,
+identity registry, runtime reference, and source hashes. It is the opening record
+for the new batch journal; historical Block 9 packages are not its input.
+See [Tide operations](TIDE.md) and [first-loop readiness](../agent0/vnext_first_loop.md).
 
-`tests/vnext/test_runtime_boundary.py` is a narrow pre-activation tripwire. It
-permits only the two accepted GitHub workflow entry points. It rejects other
-vNext entry points in the current CLI, scripts, workflows, and package setup.
-It also checks the absent adapter and ledger namespace. Pull requests run it
-through `.github/workflows/guard-vnext-boundary.yml`.
-
-This tripwire cannot prove the absence of dynamic loading, a renamed ledger
-destination, or writes through an existing v1 path. It is deliberately not
-the complete writer inventory or behavioral no-write gate required by Block 9.
-Only that inventory may support an activation claim. A tripwire failure during
-later work still requires an intentional activation or facade decision, not a
-production workaround.
+The boundary tripwire permits Tide's two workflow surfaces, the read-only CLI,
+and read-only invariant/schema integration. It still requires no canonical vNext
+ledger before activation. Its path inventory is not a complete security proof.
+The trusted guard checks candidate data without executing candidate Python.
+Private server-side ruleset enforcement remains DEFERRED; manual merge must
+check the current predecessor and the exact candidate status.

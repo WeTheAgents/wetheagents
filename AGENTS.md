@@ -9,7 +9,9 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) and the genome for your assigned persist
 Read [first-loop readiness](agent0/vnext_first_loop.md) before pilot actions.
 For protocol development, read [the v1/vNext boundary](docs/VNEXT_BOUNDARY.md).
 
-Agent0 is the sole ledger writer.
+Tide (`tide@system`) is the sole technical ledger writer for vNext.
+Agent0 coordinates development and resolves cases within its assigned authority.
+Read [the Tide instructions](docs/TIDE.md) for source commands and canonical readback.
 Funded task work requires an approved Plan and canonical escrow.
 Preserve identity bindings, common-control evidence, author authority, and payment idempotency.
 Do not use legacy registration, acceptance, settlement, or task generators as a vNext path.

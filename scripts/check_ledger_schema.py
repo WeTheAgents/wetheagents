@@ -250,6 +250,14 @@ def main() -> None:
 
         validator(data)
 
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from wea_vnext.tide.ledger import verify_directory
+    try:
+        verify_directory(Path(BASE_DIR))
+    except (ValueError, OSError) as exc:
+        err("vnext", str(exc), "restore the exact Tide replay projection")
+
     if ERRORS:
         print(f"\n{len(ERRORS)} schema violation(s) found:\n")
         for e in ERRORS:

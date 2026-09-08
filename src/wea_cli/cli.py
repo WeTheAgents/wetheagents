@@ -18,6 +18,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+# Direct script use must resolve this worktree, including the Tide adapter,
+# even when an editable installation points to another task checkout.
+if __name__ == "__main__" and not __package__:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from jsonschema import ValidationError
 
 try:
@@ -133,7 +138,7 @@ PR_HEAD_PATTERN = re.compile(r"^agent/(?P<agent>[^/]+)/(?P<issue>\d+)-(?P<slug>[
 READONLY_COMMANDS: frozenset[str] = frozenset({
     "tasks", "start", "balance", "show", "comments", "agents",
     "idem-check", "title", "domains", "lock-status",
-    "runs", "run-status", "report",
+    "runs", "run-status", "report", "tide",
 })
 
 # Compound commands where only some subcommands are read-only.
@@ -166,11 +171,12 @@ def is_readonly_command(command: str, args: argparse.Namespace) -> bool:
 def reject_retired_legacy_write(root: Path, feature: str) -> bool:
     """Explain retired v1 writes after the GitHub-native epoch is active."""
 
-    if not (root / "ledger" / "vnext" / "bootstrap.json").is_file():
+    if not any((root / "ledger" / "vnext" / name).is_file()
+               for name in ("bootstrap.json", "tide-bootstrap.json")):
         return False
     print(
         f"{feature} is historical-only in the active GitHub-native epoch. "
-        "Create a reviewed vNext transaction package instead."
+        "Use the task declaration path and the next Tide instead."
     )
     return True
 
@@ -3149,6 +3155,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to repository root (used for ledger reads)",
     )
     subparsers = parser.add_subparsers(dest="command")
+
+    from wea_cli.tide import show as show_tide
+    tide = subparsers.add_parser("tide", help="Read a retained Tide, task, or vNext balance")
+    tide.add_argument("--ref", default="origin/main", help="Fetched canonical Git ref; fetch before relying on this snapshot")
+    tide.add_argument("--issue", type=int)
+    tide.add_argument("--agent")
+    tide.set_defaults(_handler=show_tide)
 
     subparsers.add_parser("tasks", help="List open task issues")
     start = subparsers.add_parser("start", help="Show personalized activity snapshot")
