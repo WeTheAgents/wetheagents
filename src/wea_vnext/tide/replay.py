@@ -190,7 +190,13 @@ class Replay:
                     "active Issue body changed; body-integrity resolution is required"
                 )
             if issue in self.drafts and self.drafts[issue] != candidate:
-                raise ValueError("Draft revision needs a new consistent Triage chain")
+                if self.drafts[issue].author_agent_id != candidate.author_agent_id:
+                    raise ValueError("a retained Draft cannot change its author Agent")
+                # No funds exist before activation. Retain the old sources in
+                # history, but require a fresh Triage/Plan chain for this revision.
+                self.intakes[issue] = intake.PlanIntakeState(
+                    balances=self._balance_records()
+                )
             self.drafts[issue] = candidate
             self.intakes.setdefault(
                 issue, intake.PlanIntakeState(balances=self._balance_records())
@@ -433,7 +439,7 @@ class Replay:
                     cutoff,
                     batch["funding_merges"],
                 )
-            except (ValueError, KeyError, TypeError) as exc:
+            except (ValueError, KeyError, TypeError, RecursionError) as exc:
                 self.dispositions[key] = {"status": "unresolved", "reason": str(exc)}
                 continue
             self.processed.add(key)

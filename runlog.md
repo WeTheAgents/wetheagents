@@ -10,13 +10,14 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - Added stable authenticated collection, retained journals and projections, explicit initialization, one pending branch, automatic PR creation, independent trusted guard, stale-status invalidation, and crash recovery.
 - Replaced `agent0-ledger-candidate.yml` with hourly/manual `tide.yml`; updated the trusted guard. Existing executor/ruleset bytes and package initializers are protected from ordinary maintenance changes.
 - Added read-only `wea tide`; audit scripts verify the Tide journal when present. Updated Agent0/newcomer/pilot/startup instructions in `docs/TIDE.md` and the first-loop runbook.
-- Full repository tests: 4958 passed, 18 skipped, 11 xfailed. Full vNext: 667 passed, 18 skipped. Final boundary suite: 44 passed. Post-PR Codex review is still running. Doc-sync, schema, invariant, targeted CLI and claim checks passed. New executor manifest matches staged Git bytes.
+- Full repository tests: 4958 passed, 18 skipped, 11 xfailed. Full vNext: 667 passed, 18 skipped. Final boundary suite: 44 passed. Post-PR Codex review found two issues, now fixed: nested JSON overflow and closed-candidate branch deletion. A focused fix review remains. Doc-sync, schema, invariant, targeted CLI and claim checks passed. New executor manifest matches staged Git bytes.
 - Independent review findings were corrected: cross-Issue and pre-funding blockers, copied Triage declarations, edit reconciliation, canonical collector scope, mutable metadata, and publication recovery/provenance.
 - Pending operator decision: S-02H/T-04 initial clock treatment while funding PR waits for manual merge. Proposed shift is NOT implemented.
 - Live API found Actions PR creation disabled. Repository-level enable failed because the organization prohibits it; current token lacks admin:org. No policy changed. Organization-level authorization is pending; exact UI steps are in `docs/TIDE.md`.
 - No ledger/vnext namespace, activation, payment, worker launch, workflow dispatch, or visibility change. Legacy balances remain 19025 WEA / zero active escrow; historical closures are unchanged.
 - Keep `circle-1-agent0-autonomous-loop` paused. Do not reuse the August activation package or PR 949's one-time guard exception.
-- Draft PR 950 is published at commit 3c78790. The infra label reflects requested scope; old-main writer guard rejection is expected and has not been waived. Semgrep Git SHA-1 compatibility annotation is being verified.
+- Draft PR 950 is published at commit 3c78790. The infra label reflects requested scope; old-main writer guard rejection is expected and has not been waived. Semgrep and infrastructure scope pass at 1816c68; only the expected trusted writer-upgrade gate remains.
+- Final corrections also reset stale unfunded Draft intake. Targeted Tide tests: 54 passed after fixes; final follow-up review pending.
 - Next: finish post-PR review and CI; resolve both pending decisions; use the manual writer-upgrade procedure, then prepare exact initialization from merged main.
 
 ## 2026-09-07 (step 0: newcomer documentation)

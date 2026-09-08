@@ -144,6 +144,17 @@ def run(
             report(f"Pending Tide remains stable for manual review: {pr['html_url']}")
             return
         api.request("PATCH", f"{API_ROOT}/pulls/{pr['number']}", {"state": "closed"})
+    if not retry_closed:
+        for pr in prs:
+            if pr["state"] != "closed" or pr.get("merged_at"):
+                continue
+            commit = api.get(f"{API_ROOT}/git/commits/{pr['head']['sha']}")
+            if [item["sha"] for item in commit["parents"]] == [base]:
+                report(
+                    "The operator closed this Tide. Automatic publication is paused; "
+                    "use manual retry_closed to rebuild it."
+                )
+                return
     if old_head and git(root, "rev-parse", old_head + "^") == base:
         closed = [
             item

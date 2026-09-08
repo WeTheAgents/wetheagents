@@ -242,10 +242,9 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
         captured = retain_artifacts(
             captured, api.get, engine.modules["sources"].declaration
         )
-        if (
-            cutoff_evidence(captured) != cutoff_evidence(batch["collection"])
-            or captured["capture_hash"] != batch["collection"].get("capture_hash")
-        ):
+        if cutoff_evidence(captured) != cutoff_evidence(
+            batch["collection"]
+        ) or captured["capture_hash"] != batch["collection"].get("capture_hash"):
             raise ReplayError(
                 "candidate source evidence differs from authenticated GitHub reads"
             )

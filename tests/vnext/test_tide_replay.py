@@ -176,6 +176,41 @@ def test_raw_intake_funds_once_and_replays_from_json():
     assert actual == expected
 
 
+def test_deeply_nested_declaration_cannot_block_independent_funding():
+    sources, cutoff = setup_sources()
+    malformed = raw(
+        MARKER + "[" * 5000 + "0" + "]" * 5000,
+        "malformed-comment",
+        "malformed-revision",
+        "account-alpha",
+        cutoff - timedelta(seconds=1),
+    )
+    engine = Replay(bootstrap())
+    state = engine.apply(batch(engine, [*sources, malformed], cutoff))
+    assert state["escrow_wea"] == 100
+    assert state["dispositions"]["malformed-revision"]["status"] == "unresolved"
+    assert "nesting" in state["dispositions"]["malformed-revision"]["reason"]
+
+
+def test_unfunded_draft_revision_replaces_stale_intake_without_money_effects():
+    sources, cutoff = setup_sources()
+    engine = Replay(bootstrap())
+    engine.apply(batch(engine, sources[:-1], cutoff))
+    assert engine.intakes["issue-42"].plan_revisions
+    changed = dict(sources[0])
+    changed["body"] = changed["body"].replace(
+        "Solve the exact problem", "Solve the revised problem"
+    )
+    changed["content_hash"] = hashlib.sha256(changed["body"].encode()).hexdigest()
+    changed["revision_id"] = "revised-draft"
+    changed["effective_at"] = (cutoff + timedelta(minutes=1)).isoformat()
+    state = engine.apply(batch(engine, [changed], cutoff + timedelta(minutes=2)))
+    assert engine.drafts["issue-42"].issue_revision_id == "revised-draft"
+    assert not engine.intakes["issue-42"].plan_revisions
+    assert state["balances"] == bootstrap()["balances"]
+    assert state["escrow_wea"] == 0
+
+
 def test_missing_intermediate_issue_body_blocks_clock_settlement():
     engine, first, cutoff = funded()
     restored = dict(first["collection"]["sources"][0])

@@ -239,7 +239,12 @@ def test_more_than_one_hundred_historical_prs_do_not_stop_the_next_tide(
                 return []
             if path.endswith("page=1"):
                 return [
-                    {"number": number, "state": "closed"} for number in range(1, 101)
+                    {
+                        "number": number,
+                        "state": "closed",
+                        "merged_at": "2026-09-01T00:00:00Z",
+                    }
+                    for number in range(1, 101)
                 ]
             if path.endswith("page=2"):
                 return []
@@ -259,6 +264,47 @@ def test_more_than_one_hundred_historical_prs_do_not_stop_the_next_tide(
     )
     cli.run(root, API(), False)
     assert any(path.endswith("page=2") for path in calls)
+    assert git(root, "rev-parse", "HEAD") == base
+
+
+@pytest.mark.parametrize("branch_exists", [False, True])
+def test_closed_candidate_stays_paused_even_if_branch_is_deleted(
+    repo, monkeypatch, capsys, branch_exists
+):
+    root, base, head, _ = prepared(repo)
+    git(root, "reset", "--hard", base)
+    workflow_env(monkeypatch)
+
+    class API:
+        def get(self, path):
+            if path.endswith("git/ref/heads/main"):
+                return {"object": {"sha": base}}
+            if "matching-refs" in path:
+                return (
+                    [{"ref": "refs/heads/tide/pending", "object": {"sha": head}}]
+                    if branch_exists
+                    else []
+                )
+            if "/pulls?" in path:
+                return [
+                    {
+                        "number": 10,
+                        "state": "closed",
+                        "merged_at": None,
+                        "head": {"sha": head},
+                    }
+                ]
+            assert path.endswith(f"git/commits/{head}")
+            return {"parents": [{"sha": base}]}
+
+        def request(self, *args):
+            raise AssertionError("closed candidate must not be republished")
+
+        def graphql(self, *args):
+            raise AssertionError("paused writer must not start another capture")
+
+    cli.run(root, API(), False)
+    assert "operator closed" in capsys.readouterr().out
     assert git(root, "rev-parse", "HEAD") == base
 
 

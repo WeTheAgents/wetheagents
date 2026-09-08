@@ -44,7 +44,10 @@ def declaration(body: str) -> dict[str, Any] | None:
         return result
     if body.count(MARKER) != 1:
         raise ValueError("declaration: exactly one command marker is required")
-    data = json.loads(body.split(MARKER, 1)[1], object_pairs_hook=_unique)
+    try:
+        data = json.loads(body.split(MARKER, 1)[1], object_pairs_hook=_unique)
+    except RecursionError as exc:
+        raise ValueError("declaration: JSON nesting exceeds the parser limit") from exc
     if type(data) is not dict or type(data.get("kind")) is not str:
         raise ValueError("declaration: command requires an object and kind")
     return data
@@ -108,7 +111,12 @@ def normalized(source: Any) -> str:
         pass
     else:
         raise ValueError("declaration: unsupported source record")
-    return canonical_dumps(data).decode("utf-8")
+    try:
+        return canonical_dumps(data).decode("utf-8")
+    except RecursionError as exc:
+        raise ValueError(
+            "declaration: JSON nesting exceeds normalization limits"
+        ) from exc
 
 
 def work_event(

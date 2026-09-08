@@ -88,7 +88,8 @@ def retain_artifacts(
             continue
         if data is None or data.get("kind") != "work":
             continue
-        match = pattern.fullmatch(str(data.get("source", "")))
+        source_url = data.get("source")
+        match = pattern.fullmatch(source_url) if type(source_url) is str else None
         if match is None:
             source["artifact_error"] = (
                 "Work source must pin a canonical GitHub file to a full commit SHA"

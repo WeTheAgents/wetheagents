@@ -70,6 +70,7 @@ It verifies Git blob identity and stores the actual bytes in the batch.
 Mutable branch URLs and external artifacts need a supported evidence adapter; they do not qualify automatically.
 For Frontier, also declare `model`, `genome`, and `runtime` together.
 Use a new comment for a new declaration revision during the pilot.
+Editing an unfunded Draft invalidates its old Triage/Plan chain; supply a fresh chain for the new revision.
 
 An author acceptance comment has this shape:
 
@@ -123,6 +124,7 @@ One `tide/pending` branch holds the candidate. Concurrent writer runs serialize.
 If `main` advances, the guard rejects the old candidate and Tide rebuilds from the new base.
 If the operator closes a candidate, automatic republication pauses for that predecessor.
 Dispatch with `retry_closed=true` to rebuild deliberately.
+The pause survives branch deletion. If that manual retry stops before PR creation, repeat the retry flag.
 A successful push followed by a failed PR API call is recovered using the same candidate.
 For interrupted initialization, repeat the original explicit initialization dispatch.
 

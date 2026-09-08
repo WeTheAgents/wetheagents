@@ -44,7 +44,7 @@ Synthetic GitHub tests do not prove live token permissions or required branch en
 - Documentation sync, legacy invariant (19025 WEA, zero active escrow), and ledger schema passed.
 - Read-only CLI reports canonical origin/main inactive at the exact base above.
 - Independent review findings about source scope, mutable metadata, raw authority, ordering, and recovery have been addressed with regressions.
-- Initial broad Codex review found the direct-script import issue and obsolete claim/CLI fixture expectations; all were fixed. The moving-worktree review was stopped and restarted after publication against exact PR 950 commit `3c78790`, with scope limited to the actual semantic diff. The post-PR review is still running.
+- Initial broad Codex review found the direct-script import issue and obsolete claim/CLI fixture expectations; all were fixed. The moving-worktree review was stopped and restarted after publication against exact PR 950 commit `3c78790`, with scope limited to the actual semantic diff. The post-PR review found two actionable issues: excessive JSON nesting aborted all Tides, and deleting a closed candidate branch bypassed its pause. Both were corrected and now have regressions. A targeted follow-up review of the fixes is required before readiness.
 - Every new executor manifest entry was checked against staged Git blob bytes; all matched. New closure files use LF for consistent Linux verification.
 
 ## Live probes and unresolved prerequisites
@@ -74,8 +74,16 @@ runtime boundary, and the existing Workers build. The old main writer guard
 correctly rejected the new Tide writer. Semgrep flagged the Git-format SHA-1
 compatibility check; its precise call now documents the required Git format,
 uses `usedforsecurity=False`, and has a local suppression. Artifact and batch
-integrity still use SHA-256. Fresh CI for that annotation is pending.
+integrity still use SHA-256. CI for commit `1816c68` passed Semgrep, scope, documentation, runtime boundary, and the existing Workers build. Only the expected old-main writer-boundary rejection remained.
 
 No activation, paid transaction, worker launch, visibility change, or manual workflow dispatch
 has occurred in this implementation worktree. The parent activation and S-80/S-81
 live checks remain unfulfilled until actual canonical runs and pilot evidence exist.
+
+## Final review corrections
+
+- Parser and normalizer recursion overflow is an invalid declaration; unrelated funding continues. Artifact source URLs must be strings.
+- Operator-closed publication is checked from retained PR history independently of the branch ref. Branch deletion does not authorize republication.
+- An unfunded Draft revision clears stale Triage/Plan state without changing balances or its author. Active task bodies retain their existing integrity handling.
+- Targeted Tide replay/ledger/collection/activation suite after these corrections: **54 passed**.
+- The 4958-test full-repository result predates these bounded corrections; it is not represented as a new run on their final commit.
