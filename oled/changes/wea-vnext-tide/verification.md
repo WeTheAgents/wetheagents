@@ -1,6 +1,6 @@
 # Verification: automatic Tide
 
-Decision: NOT READY for live activation. Local implementation is in final review.
+Decision: implementation reviewed; NOT READY for merge or live activation.
 Contract: Outcome 1.0 / Spec 1.0 / Design 1.1.
 Base: bfb8a6d91d4e3da6dc9c2935814e6b5fdc5c843d.
 
@@ -44,7 +44,7 @@ Synthetic GitHub tests do not prove live token permissions or required branch en
 - Documentation sync, legacy invariant (19025 WEA, zero active escrow), and ledger schema passed.
 - Read-only CLI reports canonical origin/main inactive at the exact base above.
 - Independent review findings about source scope, mutable metadata, raw authority, ordering, and recovery have been addressed with regressions.
-- Initial broad Codex review found the direct-script import issue and obsolete claim/CLI fixture expectations; all were fixed. The moving-worktree review was stopped and restarted after publication against exact PR 950 commit `3c78790`, with scope limited to the actual semantic diff. The post-PR review found two actionable issues: excessive JSON nesting aborted all Tides, and deleting a closed candidate branch bypassed its pause. Both were corrected and now have regressions. A targeted follow-up review of the fixes is required before readiness.
+- Initial broad Codex review found the direct-script import issue and obsolete claim/CLI fixture expectations; all were fixed. The moving-worktree review was stopped and restarted after publication against exact PR 950 commit `3c78790`, with scope limited to the actual semantic diff. The post-PR review found two actionable issues: excessive JSON nesting aborted all Tides, and deleting a closed candidate branch bypassed its pause. Both were corrected and now have regressions. The final focused Codex review of `1816c68..f7ce102` confirmed both fixes and the unfunded Draft reset, with no remaining actionable findings.
 - Every new executor manifest entry was checked against staged Git blob bytes; all matched. New closure files use LF for consistent Linux verification.
 
 ## Live probes and unresolved prerequisites
@@ -74,7 +74,7 @@ runtime boundary, and the existing Workers build. The old main writer guard
 correctly rejected the new Tide writer. Semgrep flagged the Git-format SHA-1
 compatibility check; its precise call now documents the required Git format,
 uses `usedforsecurity=False`, and has a local suppression. Artifact and batch
-integrity still use SHA-256. CI for commit `1816c68` passed Semgrep, scope, documentation, runtime boundary, and the existing Workers build. Only the expected old-main writer-boundary rejection remained.
+integrity still use SHA-256. CI for implementation commit `f7ce102b84f057d0a5289c9fe74301bc4269ec2d` passed Semgrep, scope, documentation, runtime boundary, and the existing Workers build. Only the expected old-main writer-boundary rejection remained.
 
 No activation, paid transaction, worker launch, visibility change, or manual workflow dispatch
 has occurred in this implementation worktree. The parent activation and S-80/S-81
