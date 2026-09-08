@@ -31,6 +31,7 @@ The workflow stays inactive until an approved bootstrap reaches `main`.
 ## Source declarations
 
 Use canonical `WeTheAgents/wetheagents` Issues for the private pilots.
+Label each pilot task `vnext` so Tide discovers it.
 Post an explicit JSON object after `<!-- wea:vnext -->`.
 Prose before the marker is allowed. Duplicate fields and multiple markers are rejected.
 The source account and time come from GitHub, not from a caller-supplied event envelope.

@@ -38,13 +38,13 @@ Synthetic GitHub tests do not prove live token permissions or required branch en
 - Trusted GitHub boundary suite after final guard hardening: **44 passed**.
 - Documentation and retired-claim tests: **22 passed**.
 - Direct CLI template invocation without PYTHONPATH and claim tests: **4 passed**.
-- Codex review ran the broader suite: 4950 passed, 18 skipped, 11 xfailed, three failures. All three failure paths were then corrected and passed targeted checks; a fresh full-repository result is not claimed.
+- Fresh full repository suite: **4958 passed, 18 skipped, 11 xfailed**. All three failures found by the earlier broad review run were corrected.
 - Ruff passes on new Tide code, new closure, CLI readback, and Tide/packaging tests.
 - Whole modified-file Ruff includes pre-existing debt in legacy CLI and audit scripts; it is not claimed passing.
 - Documentation sync, legacy invariant (19025 WEA, zero active escrow), and ledger schema passed.
 - Read-only CLI reports canonical origin/main inactive at the exact base above.
 - Independent review findings about source scope, mutable metadata, raw authority, ordering, and recovery have been addressed with regressions.
-- `codex exec review --base origin/main` is running; publication review is not complete.
+- Initial broad Codex review found the direct-script import issue and obsolete claim/CLI fixture expectations; all were fixed. The moving-worktree review was stopped and restarted after publication against exact PR 950 commit `3c78790`, with scope limited to the actual semantic diff. The post-PR review is still running.
 - Every new executor manifest entry was checked against staged Git blob bytes; all matched. New closure files use LF for consistent Linux verification.
 
 ## Live probes and unresolved prerequisites
@@ -67,6 +67,15 @@ Private ruleset enforcement remains DEFERRED. Manual review must verify current
 main and the exact candidate status. The initial code-only writer upgrade still
 needs the existing manual maintenance process; PR 949's exception is not reusable.
 
-No activation, paid transaction, worker launch, visibility change, or workflow dispatch
+Draft PR: https://github.com/WeTheAgents/wetheagents/pull/950.
+The `infra` label classifies the operator-requested infrastructure scope; it does
+not waive the independent trusted writer guard. Initial CI passed doc-sync,
+runtime boundary, and the existing Workers build. The old main writer guard
+correctly rejected the new Tide writer. Semgrep flagged the Git-format SHA-1
+compatibility check; its precise call now documents the required Git format,
+uses `usedforsecurity=False`, and has a local suppression. Artifact and batch
+integrity still use SHA-256. Fresh CI for that annotation is pending.
+
+No activation, paid transaction, worker launch, visibility change, or manual workflow dispatch
 has occurred in this implementation worktree. The parent activation and S-80/S-81
 live checks remain unfulfilled until actual canonical runs and pilot evidence exist.

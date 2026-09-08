@@ -119,8 +119,11 @@ def retain_artifacts(
             raw = base64.b64decode("".join(item["content"].split()), validate=True)
             if len(raw) != item["size"]:
                 raise CollectionError("artifact length differs")
-            blob_hash = hashlib.sha1(
-                b"blob " + str(len(raw)).encode() + b"\0" + raw
+            # Git's object format requires SHA-1, not a new security signature.
+            # Retained artifact and batch integrity use SHA-256 below.
+            blob_hash = hashlib.sha1(  # nosemgrep
+                b"blob " + str(len(raw)).encode() + b"\0" + raw,
+                usedforsecurity=False,
             ).hexdigest()
             if item["sha"] != blob_hash:
                 raise CollectionError("artifact Git blob hash differs")
