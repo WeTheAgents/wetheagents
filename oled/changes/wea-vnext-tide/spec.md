@@ -1,5 +1,7 @@
 # Spec: a Tide is one checked settlement batch
 
+> Accepted extension, 2026-09-09: `../wea-tide-participants/spec.md` adds P-01 through P-08 for post-initialization admission. It extends T-01/T-02/T-03/T-06. T-07 initialization remains one-time. Schema 1 and task executor 0.9.0 retain historical semantics; schema 2 pins participant executor 0.10.0.
+
 Version 1.0; accepted Outcome 1.0. Verification status and exact evidence are in `verification.md`.
 On 2026-09-09 the operator chose to retain the existing S-02H first-stage clock for the private pilot. Waiting for manual funding merge consumes that window; no publication-time shift is implemented.
 Affected parent boundaries: S-01C, S-02A/C/H, S-03A/B/F, S-69/S-70, S-71/S-75/S-80.

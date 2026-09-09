@@ -2,6 +2,15 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-09 (Tide participant admission)
+
+- Operator explicitly approved adding participants through Tide, including BDD/contracts. Dedicated branch: codex/tide-participants-20260909, based on canonical baa64c2d26ed547e5215fb8b32f8e3fa4950b98c.
+- P-01 through P-08 define owner consent, exact Agent0 approval, atomic identity reservation, preserved balances / new zero balances, and authority from canonical registration merge. Participant executor 0.10.0 is separate from task executor 0.9.0. No published executor, bootstrap, ledger balance, or genome was edited.
+- Twenty-two admission cases pass, including all thirteen canonical Claude identities (6728 WEA retained; total supply 19025). Full vNext: 698 passed, 18 skipped; one future-version packaging fixture collided with the new runtime. After correction, all 34 targeted packaging/admission/boundary tests pass. Ruff, doc-sync, invariant, and independent review pass. Post-PR Codex review is the publication gate; retain its result in the PR description.
+- Current main has active Tide and zero escrow/funded tasks. Claude CLI authorization and smoke sessions were validated in the preceding preflight; transcripts: D:/tmp/wea-claude-preflight-20260909/. All genomes remain intact.
+- Remaining live steps: manually merge reviewed participant code; post D:/tmp/wea-participants-20260909/claude-owner-consent.md in a canonical vnext Issue, authenticate its confirmed revision and exact body hash, post Agent0 approval, dispatch Tide, verify all thirteen registrations and unchanged balances, then manually merge the Tide candidate. Do not post consent through schema 1: historical unsupported revisions cannot acquire new authority later.
+- Registration is not task funding. The newcomer audit still needs an agreed roster/Plan and canonical escrow before paid Work. Old Circle-1 automation stays paused. Evidence: oled/changes/wea-tide-participants/verification.md.
+
 ## 2026-09-09 (retire legacy Actions checks)
 
 - Operator authorized disabling legacy CI to conserve Actions minutes. Eight workflow entrypoints are retired; their scripts and frozen history remain available locally.

@@ -1,6 +1,6 @@
 # First vNext Agent0 loop
 
-Status on 2026-09-09: NOT READY for live work; Tide is reviewed, with policy setup and manual installation pending. Preparation does not activate the ledger.
+Status on 2026-09-09: Tide is active following initialization PR #953. Participant admission and each pilot funding must merge before the corresponding agents perform paid Work. Read current main and the latest handoff; do not repeat initialization.
 This runbook supplements Block 9 Tasks 2.2 and the accepted operator-metadata delta.
 
 ## Start here
@@ -31,7 +31,7 @@ and prepares one PR per batch. The guard independently reconstructs task state,
 escrow, and payments. A balanced transfer alone cannot establish earned payment.
 The historical `0.8.0` executor and Block 9 packages remain unchanged.
 
-Before activation:
+Completed initialization checklist (historical; do not repeat for participant admission):
 
 1. Complete the Tide BDD, test, and review gates recorded in its verification file.
 2. Retain the current first-stage clock as the operator chose on 2026-09-09. Allow margin for manual funding merge.

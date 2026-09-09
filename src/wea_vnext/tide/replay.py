@@ -13,6 +13,7 @@ from ..engine import installed_executor, load_executor
 from . import records
 
 EXECUTOR = "0.9.0"
+PARTICIPANT_EXECUTOR = "0.10.0"
 
 
 def json_data(value: Any) -> Any:
@@ -77,6 +78,9 @@ class Replay:
         self.last_cutoff: datetime | None = None
         self.last_hash = digest(bootstrap)
         self.dispositions: dict[str, dict[str, str]] = {}
+        self.participants: dict[str, dict[str, Any]] = {}
+        self.participant_module: Any = None
+        self.participant_revisions: set[str] = set()
 
     def _event(self, raw: dict[str, Any]) -> Any:
         payload = {"issue_number": raw["issue_number"], "issue_id": raw["issue_id"]}
@@ -163,6 +167,56 @@ class Replay:
         kind = data["kind"]
         if str(event.repository_id) != str(self.bootstrap["repository_id"]):
             raise ReplayError("source belongs to another repository")
+        if self.participant_module is not None and kind.startswith("participant_"):
+            if event.revision_id not in self.participant_revisions:
+                raise ValueError(
+                    "participant source predates schema 2; post a fresh comment"
+                )
+            participant = self.participant_module
+            if kind == "participant_request":
+                participant.request(data, raw, self.bootstrap["repository_id"])
+                return "participant consent retained; Agent0 approval required"
+            if kind != "participant_approval":
+                raise ValueError("unsupported participant command")
+            consent = self.sources[data["request_revision_id"]]
+            if consent["revision_id"] not in self.participant_revisions:
+                raise ValueError("participant consent predates schema 2")
+            if consent["revision_id"] not in self.processed:
+                raise ValueError("participant consent must be accepted before approval")
+            # An unapproved superseded request cannot acquire new authority.
+            if consent["revision_id"] not in self.participants and any(
+                other.object_id == consent["object_id"]
+                and other.object_kind == consent["object_kind"]
+                and other.canonical_order_key > self._event(consent).canonical_order_key
+                for other in events
+            ):
+                raise ValueError("participant consent was superseded before approval")
+            admission = participant.approve(
+                data,
+                raw,
+                consent,
+                sources.declaration(consent["body"]),
+                repository_id=self.bootstrap["repository_id"],
+                registry=self.registry.to_data(),
+                opening_balances=self.bootstrap["balances"],
+                admissions=self.participants,
+                batch_id=batch_id,
+            )
+            proposed = {**self.participants, consent["revision_id"]: admission}
+            # Validate the complete proposed registry before mutating any state.
+            prospective_merges = {
+                entry["batch_id"]: cutoff.isoformat() for entry in proposed.values()
+            }
+            records.registry(
+                self.modules,
+                participant.registry_at(
+                    self.bootstrap["identities"], proposed, prospective_merges
+                ),
+            )
+            self.participants = proposed
+            for agent in admission["agents"]:
+                self.balances.setdefault(agent["agent_id"], 0)
+            return "participant admission approved; canonical merge required"
         if kind == "draft_issue":
             if (
                 self.sources[event.revision_id].get("original_author_account_id")
@@ -337,6 +391,27 @@ class Replay:
             or batch["sequence"] != self.sequence + 1
         ):
             raise ReplayError("Tide predecessor or sequence differs")
+        schema = batch.get("schema", "wea-tide-batch-1")
+        if schema == "wea-tide-batch-2":
+            reference = installed_executor(PARTICIPANT_EXECUTOR).reference
+            if batch.get("participant_runtime") != list(reference):
+                raise ReplayError(
+                    "participant runtime differs from the pinned executor"
+                )
+            if self.participant_module is None:
+                self.participant_module = load_executor(reference).import_modules(
+                    ("sources",)
+                )["sources"]
+            self.registry = records.registry(
+                self.modules,
+                self.participant_module.registry_at(
+                    self.bootstrap["identities"],
+                    self.participants,
+                    batch["funding_merges"],
+                ),
+            )
+        elif schema != "wea-tide-batch-1" or self.participant_module is not None:
+            raise ReplayError("unsupported or regressing Tide batch schema")
         cutoff = records.timestamp(batch["collection"]["cutoff"])
         if self.last_cutoff is not None and cutoff <= self.last_cutoff:
             raise ReplayError("Tide cutoff must advance")
@@ -347,6 +422,8 @@ class Replay:
                 or f"unresolved:{raw['object_id']}:{raw['content_hash']}"
             )
             old = self.sources.get(key)
+            if old is None and schema == "wea-tide-batch-2":
+                self.participant_revisions.add(key)
             if old is not None:
                 stable = (
                     "body",
@@ -494,7 +571,14 @@ class Replay:
             raise ReplayError("global balances plus escrow do not equal opening supply")
         return json_data(
             {
-                "schema": "wea-tide-state-1",
+                "schema": "wea-tide-state-2"
+                if self.participant_module is not None
+                else "wea-tide-state-1",
+                **(
+                    {"participants": self.participants}
+                    if self.participant_module is not None
+                    else {}
+                ),
                 "sequence": self.sequence,
                 "last_hash": self.last_hash,
                 "cutoff": self.last_cutoff,

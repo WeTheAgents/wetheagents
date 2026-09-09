@@ -1,5 +1,7 @@
 # WEA v1 / vNext Boundary
 
+> Participant admission is governed by `oled/changes/wea-tide-participants/spec.md`: P-01 through P-08, participant executor 0.10.0, and Tide batch schema 2. Task executor 0.9.0 and historical closures remain unchanged. New accounts start at zero; preserved identities retain their balances. This is private admission with owner consent, Agent0 approval, and manual merge.
+
 This is the permanent engineering map for deciding where protocol work belongs.
 The parent behavior contract remains in `oled/changes/wea-vnext-recreation/`.
 For financial correction, the accepted delta at
