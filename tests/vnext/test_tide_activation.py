@@ -99,6 +99,36 @@ def test_activation_rejects_balanced_reallocation(legacy_repo):
         activation.validate_activation(root, base, commit(root), None)
 
 
+@pytest.mark.parametrize("association", ["MEMBER", "CONTRIBUTOR", None])
+def test_activation_replays_retained_metadata_across_tokens(legacy_repo, association):
+    root, base, source, _ = legacy_repo
+    values = activation.payloads(
+        root, base, source, {"run_id": "1", "run_attempt": "1"}
+    )
+    put(root, values)
+    head = commit(root)
+    comment = approval(source["body"])
+    comment["author_association"] = association
+
+    class API:
+        def get(self, path):
+            if path == f"{API_ROOT}/issues/comments/23":
+                return comment
+            if path == f"{API_ROOT}/actions/runs/1/attempts/1":
+                return {
+                    "head_sha": base,
+                    "path": ".github/workflows/tide.yml",
+                    "event": "workflow_dispatch",
+                    "head_branch": "main",
+                    "triggering_actor": {"id": activation.OPERATOR},
+                }
+            assert path == f"{API_ROOT}/git/ref/heads/main"
+            return {"object": {"sha": base}}
+
+    assert activation.validate_activation(root, base, head, API()) == values[STATE]
+    assert source["author_association"] == "COLLABORATOR"
+
+
 def test_activation_requires_fresh_exact_predecessor(legacy_repo):
     root, _base, source, _ = legacy_repo
     (root / "new.txt").write_text("main advanced")

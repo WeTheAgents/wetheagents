@@ -129,8 +129,12 @@ def validate_activation(root: Path, base: str, head: str, api: Any) -> dict[str,
     receipt = read(root, head, RECEIPT)
     source = receipt["source"]
     if api is not None:
-        source = fetch_source(api, source["comment_id"], source["body_sha256"])
-        if source != receipt["source"]:
+        authenticated = fetch_source(api, source["comment_id"], source["body_sha256"])
+        # GitHub returns token-dependent association metadata for the same author.
+        # Authenticate all other fields and retain the original observation for replay.
+        if {k: v for k, v in authenticated.items() if k != "author_association"} != {
+            k: v for k, v in source.items() if k != "author_association"
+        }:
             raise ReplayError(
                 "activation source is not the authenticated operator approval"
             )

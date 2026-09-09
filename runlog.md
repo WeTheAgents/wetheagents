@@ -2,6 +2,28 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-09 (live activation source metadata correction)
+
+- User approved agent0@system as the immutable account base and authorized activation. Exact unedited comment: https://github.com/WeTheAgents/wetheagents/issues/946#issuecomment-5601549490; SHA-256 e3c7f37cfc85a2cf3750c138c79ab7fedf5a461cab652ac82304b53c41f287c4.
+- Initialization workflow34349105540 succeeded and created PR951, head771dac68b93b78163f3c88055afddadc0825c45f on base083beb3bd3c9713875ba10cef36b0046c8fc65cf. Trusted tide/replay is green, but the parent operator-token check exposed a defect before manual merge.
+- Same comment appears as author_association=CONTRIBUTOR under Actions and MEMBER under the operator token. All other retained fields match. Original activation validation rejected this metadata difference.
+- Fix: authenticate every source field except author_association, then replay the original retained observation. Operator numeric ID/login, Issue, content hash, timestamps, run provenance, predecessor, and exact output checks remain unchanged. This implements the already approved metadata-only authority contract.
+- Verification: 10 activation tests passed; independent review has no actionable findings; modified-code verification of real PR951 with the operator token passed (Tide0 matches executor replay). Post-publication Codex review and CI pending.
+- Keep PR951 unmerged. Install the small writer correction manually, then generate a fresh predecessor-bound command and candidate with the same approved Agent0 base, four shared-owner identities, and all19 balances. The old source/PR remain audit evidence, not authorization for the new predecessor.
+- No canonical activation, payments, or worker launches. No new executor/ruleset bytes or ledger files are edited by this code correction.
+
+## 2026-09-09 (Tide merged; exact initialization draft)
+
+- Operator merged PR 950 at 2026-09-09T11:26:29Z. Canonical main: 083beb3bd3c9713875ba10cef36b0046c8fc65cf.
+- Organization Actions PR creation was enabled through authenticated Chrome as peachgabba22. Repository API readback: can_approve_pull_request_reviews=true, default_workflow_permissions=read. Existing token defaults and private visibility are preserved.
+- New Tide workflow is active; old agent0-ledger-candidate.yml is absent from the current workflow inventory. Manual ordinary smoke run 34346711672 succeeded and reported inactive, as expected before initialization.
+- New worktree: D:/GitHub/wetheagents-tide-activation-20260909, branch codex/tide-activation-20260909, based on the merged main above. Root and merged implementation worktrees are untouched.
+- Exact initialization draft and preflight: D:/tmp/wea-tide-activation-20260909/. Operator approved the corrected Agent0 base. Exact comment5601549490 was published unedited on Issue946; SHA-256 e3c7f37cfc85a2cf3750c138c79ab7fedf5a461cab652ac82304b53c41f287c4. Tide initialization was dispatched on main.
+- Import preserves all 19 balances, total 19025 WEA, zero active legacy escrow. Enabled pilot identities: agent0@system (8240), Codex-2@codex (1103), Codex-19@codex (1432), Codex-20@codex (108); shared owner peachgabba22/account129645949.
+- Operator-approved account base_agent_id is agent0@system; it creates no new identity or mint. Agent0 has both payer-agent and system-role bindings. New bindings start at the code merge time and have one shared control group.
+- Typed registry, installed runtime manifest, exact Git-byte legacy hashes, and local initialization payload derivation pass. This is a draft preflight, not authenticated source or live payment proof. Independent review passed: no implementation blocker. The operator corrected the base to Agent0 and approved shared account authority and preservation of 15 balances without active bindings. The corrected typed registry and payload derivation passed again.
+- Do not publish this handoff before the exact initialization flow without rebuilding its predecessor-bound draft. Next: inspect the dispatched initialization PR, trusted replay, and Codex review before manual merge. No ledger activation, payments, or workers yet.
+
 ## 2026-09-09 (Tide installation decisions)
 
 - Operator chose to retain the current first-stage clock for the private pilot. Waiting for manual funding merge consumes that window; use sufficient margin. No runtime change.
