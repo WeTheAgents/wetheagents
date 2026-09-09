@@ -173,3 +173,22 @@ Manual merge activates the journal. Ordinary scheduled runs then need no operato
 
 The previous August activation package and `agent0-ledger-candidate.yml` are retired paths.
 Initialization does not resume old Agent0 automation, launch workers, mint balances, or make the repository public.
+
+## CI cost policy
+
+The operator retired legacy Actions checks on 2026-09-09 to conserve runner minutes.
+Tide and the trusted ledger guard remain active, including stale-status invalidation after each main push.
+Pure `ledger/vnext/**` and `evidence/vnext/**` PRs skip doc-sync, Semgrep, and runtime-boundary jobs.
+Mixed PRs still run those checks. The portable boundary tests use Ubuntu.
+Superseded read-only CI runs are cancelled; Tide writer runs retain their existing serialization.
+
+The retired workflows are Master Sweep, Integrity Sweep, Protocol Conformance, ledger schema, PR scope, task format, diary incidents, and diary vocabulary.
+Their Python scripts remain available for local historical investigations.
+For example, `python scripts/run_all_checks.py --json` inspects historical checker results; legacy failures do not establish a current Tide defect.
+Use `python scripts/check_invariant.py --root .` for canonical state verification.
+No replacement scheduled sweep is required: ordinary Tide replays the canonical journal.
+
+Retiring vocabulary CI does not authorize publication of private material.
+The private synchronization workflow and its policy remain unchanged.
+To restore a retired workflow, recover its YAML from Git history and explicitly enable that workflow in GitHub.
+Private merges remain manual; the operator checks the exact candidate and current trusted Tide status.

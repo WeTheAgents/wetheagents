@@ -2,7 +2,14 @@ name: "Semgrep"
 
 on:
   pull_request:
+    paths-ignore:
+      - "ledger/vnext/**"
+      - "evidence/vnext/**"
     branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

@@ -87,7 +87,7 @@ def test_resolution_plan_facade_is_explicitly_pinned_to_executor_0_8_0() -> None
     assert installed_executor("0.7.0").reference != resolution_plan._RUNTIME
 
 
-def test_pre_activation_entrypoints_only_expose_the_approved_github_path() -> None:
+def test_entrypoints_only_expose_the_approved_github_path() -> None:
     roots = (Path("src/wea_cli"), Path("scripts"), Path(".github/workflows"))
     paths = [
         path
@@ -106,6 +106,11 @@ def test_pre_activation_entrypoints_only_expose_the_approved_github_path() -> No
         path: path.read_text(encoding="utf-8", errors="ignore") for path in paths
     }
     contents[Path("pyproject.toml:entry-points")] = repr(entry_points)
+    for name in ("guard-doc-sync.yml", "semgrep.yml", "guard-vnext-boundary.yml"):
+        path = Path(".github/workflows") / name
+        # This exact trigger filter is data, not an executable vNext entrypoint.
+        # Keep scanning the rest of each workflow, including all run steps.
+        contents[path] = contents[path].replace('      - "ledger/vnext/**"\n', "")
     allowed = {
         ".github/workflows/tide.yml",
         ".github/workflows/guard-vnext-ledger.yml",
@@ -125,7 +130,6 @@ def test_pre_activation_entrypoints_only_expose_the_approved_github_path() -> No
     }
     assert not violations
     assert not Path("scripts/tide_vnext.py").exists()
-    assert not Path("ledger/vnext").exists()
 
 
 def test_financial_correction_stays_outside_current_runtime_closures() -> None:
