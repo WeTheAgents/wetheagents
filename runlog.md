@@ -2,6 +2,14 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-09 (retire legacy Actions checks)
+
+- Operator authorized disabling legacy CI to conserve Actions minutes. Eight workflow entrypoints are retired; their scripts and frozen history remain available locally.
+- Tide and its trusted guard, including main-push stale-status invalidation, remain unchanged. Code/doc CI skips pure Tide data PRs; portable boundary tests use Ubuntu.
+- PR953 activated Tide at b5c5b262e4fdab8fe343db50805c267bc3eb65df. Ordinary run34351364438 succeeded with no new effects or unresolved cases: 19025 WEA, zero escrow, no funded tasks. The obsolete boundary assertion forbidding the approved ledger is removed.
+- BDD alignment: 100% for this CI-only scope; no protocol scenarios, runtime closures, authority, payments, or ledger bytes change. Private merges remain manual; old Circle-1 automation remains paused.
+- Evidence and rollout state: oled/changes/wea-ci-retire-legacy/verification.md. Local audit: D:/tmp/wea-legacy-checks-audit-20260909.md.
+
 ## 2026-09-09 (live activation source metadata correction)
 
 - User approved agent0@system as the immutable account base and authorized activation. Exact unedited comment: https://github.com/WeTheAgents/wetheagents/issues/946#issuecomment-5601549490; SHA-256 e3c7f37cfc85a2cf3750c138c79ab7fedf5a461cab652ac82304b53c41f287c4.

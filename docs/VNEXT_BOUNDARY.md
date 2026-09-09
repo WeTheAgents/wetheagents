@@ -21,29 +21,30 @@ remains because public exposure is not confidentially reversible.
 
 The accepted 2026-09-08 Tide delta in `oled/changes/wea-vnext-tide/`
 supersedes the single-command Agent0 writer and package construction for the new path.
-Its implementation status and unresolved deadline decision are recorded there.
+Its implementation evidence is recorded there. The operator retained the initial deadline behavior.
 
 ## Current phase
 
 - v1 is under an operator pause. Its ledger, history, and audit tools remain
-  authoritative evidence until activation.
-- vNext is still inactive. `tide.yml` replaces `agent0-ledger-candidate.yml`.
+  frozen historical evidence after activation.
+- Tide activation reached `main` through PR #953 on 2026-09-09.
+  `tide.yml` replaces `agent0-ledger-candidate.yml`.
   It prepares automatic batches; the trusted guard independently replays candidate data.
 - The code does not contain a local writer kernel, local epoch guard, custom
   App transport, or self-hosted guard.
-- No canonical `ledger/vnext/` namespace exists. Exact Tide initialization
-  must bind merged `main`, the existing balances, identity evidence, and operator approval.
+- Canonical `ledger/vnext/` contains the approved bootstrap and state.
+  Initialization binds the merged predecessor, existing balances, identity evidence, and operator approval.
 - The registry has 70 current scenarios, 9 accepted-future Block 9 scenarios,
   and zero proposed-future scenarios. Accepted-future is binding for Design
   but is not implementation or live evidence.
-- `scripts/tide_vnext.py` and `ledger/vnext/` do not exist. Adding either is an
-  explicit activation step, not ordinary maintenance.
+- `scripts/tide_vnext.py` remains absent. No alternate writer is authorized.
+  The approved Tide path owns subsequent journal and state changes.
 
 ## Where a change belongs
 
 | Surface | Responsibility | Change rule |
 | --- | --- | --- |
-| `src/wea_cli/`, `scripts/`, current `ledger/` | v1 runtime and history | Do not add new vNext protocol rules. Preserve audit and migration evidence. Direct writers remain callable until GitHub-native activation retires their canonical publication path. |
+| `src/wea_cli/`, `scripts/`, current `ledger/` | v1 runtime and history | Do not add new vNext protocol rules. Preserve audit and migration evidence. Legacy writers cannot publish into the active canonical ledger. |
 | `src/wea_vnext/engine.py`, `store.py` | version selection, manifest verification, replay transport, shadow storage | No business rules. Executor selection is always explicit. |
 | `src/wea_vnext/domain_access.py`, `domains/registry/` | inactive Domain/Access control plane and immutable external-repository bindings | Keep outside executor closures. Use no network lookup, GitHub permission effect, live grant, ledger write, or placeholder repository identity. Add a manifest only after the external revision is publicly verified. |
 | `src/wea_vnext/financial_correction.py` | inactive append-only financial-correction control plane | Keep outside executor closures and current ledger paths. Use only explicit opening evidence and complete immutable groups. Do not treat in-memory atomicity as a durable write protocol. |
@@ -111,8 +112,8 @@ for the new batch journal; historical Block 9 packages are not its input.
 See [Tide operations](TIDE.md) and [first-loop readiness](../agent0/vnext_first_loop.md).
 
 The boundary tripwire permits Tide's two workflow surfaces, the read-only CLI,
-and read-only invariant/schema integration. It still requires no canonical vNext
-ledger before activation. Its path inventory is not a complete security proof.
+and read-only invariant/schema integration. It permits the approved canonical ledger.
+Its path inventory is not a complete security proof.
 The trusted guard checks candidate data without executing candidate Python.
 Private server-side ruleset enforcement remains DEFERRED; manual merge must
 check the current predecessor and the exact candidate status.
