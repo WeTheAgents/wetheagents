@@ -8,10 +8,11 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from ..engine import installed_executor
 from .collection import API_ROOT, collect_sources, cutoff_evidence
 from .github import retain_artifacts
 from .records import timestamp
-from .replay import Replay, ReplayError, canonical, digest
+from .replay import PARTICIPANT_EXECUTOR, Replay, ReplayError, canonical, digest
 
 BOOTSTRAP = "ledger/vnext/tide-bootstrap.json"
 STATE = "ledger/vnext/tide-state.json"
@@ -163,7 +164,8 @@ def candidate(
     before = engine.state()
     sequence = engine.sequence + 1
     core = {
-        "schema": "wea-tide-batch-1",
+        "schema": "wea-tide-batch-2",
+        "participant_runtime": list(installed_executor(PARTICIPANT_EXECUTOR).reference),
         "sequence": sequence,
         "previous_hash": engine.last_hash,
         "repository_id": engine.bootstrap["repository_id"],
@@ -173,8 +175,14 @@ def candidate(
     }
     batch = {**core, "batch_id": "tide:" + digest(core)}
     after = engine.apply(batch)
-    meaningful = ("balances", "tasks", "dispositions", "funding_batches")
-    if all(before[key] == after[key] for key in meaningful):
+    meaningful = (
+        "balances",
+        "tasks",
+        "dispositions",
+        "funding_batches",
+        "participants",
+    )
+    if all(before.get(key, {}) == after.get(key, {}) for key in meaningful):
         return None
     payloads = {f"{JOURNAL}{sequence:016d}.json": batch, STATE: after}
     receipt = {

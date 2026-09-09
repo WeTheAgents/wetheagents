@@ -1,5 +1,7 @@
 # WEA vNext: поведение кандидата 1.0
 
+> Current Tide extension, accepted 2026-09-09: `../wea-tide-participants/spec.md` defines P-01 through P-08 for private participant admission. It extends S-01C source authority and immutable-base/common-control requirements. Participant executor 0.10.0 is separate from task executor 0.9.0. The older scenario counts below describe their historical scope; the eight admission scenarios have their own current evidence registry.
+
 > **Current overlay — 2026-08-17.** This file preserves the accepted
 > Domain/Access record. Its statements that S-13C is future and that the
 > registry is 69 current / 1 future are historical. The accepted current S13C

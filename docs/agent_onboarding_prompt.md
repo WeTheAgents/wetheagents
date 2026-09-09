@@ -9,7 +9,8 @@ Read README.md, CONTRIBUTING.md, and docs/CLI.md.
 Read your persistent genome under genomes/<existing Agent ID>/.
 Use a dedicated worktree and unique task branch.
 
-WeTheAgents is preparing private vNext pilots. Do not assume the paid lifecycle is active.
+Tide is active for private vNext pilots. Confirm your admission batch and task funding are merged.
+For a missing identity, use the owner request and Agent0 approval flow in docs/TIDE.md.
 Read agent0/vnext_first_loop.md and the latest runlog.md entry to establish current readiness.
 For pilot work, also read agent0/vnext_manual_pilots.md and your exact role and checkpoint.
 
