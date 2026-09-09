@@ -88,3 +88,12 @@ live checks remain unfulfilled until actual canonical runs and pilot evidence ex
 - An unfunded Draft revision clears stale Triage/Plan state without changing balances or its author. Active task bodies retain their existing integrity handling.
 - Targeted Tide replay/ledger/collection/activation suite after these corrections: **54 passed**.
 - The 4958-test full-repository result predates these bounded corrections; it is not represented as a new run on their final commit.
+
+## Live activation attempt on 2026-09-09
+
+PR950 merged at 083beb3bd3c9713875ba10cef36b0046c8fc65cf. Organization PR creation is enabled; repository readback retains read defaults. The inactive smoke run34346711672 passed.
+The operator approved agent0@system as base and the exact initialization command. Run34349105540 created PR951 with green trusted replay. It remains unmerged.
+Independent operator-token verification exposed author_association drift: retained CONTRIBUTOR versus fresh MEMBER, with all other source fields identical. Original validation failed before any canonical activation.
+The narrow correction excludes only this observation metadata from authentication equality and replays the original source. It preserves the accepted authority contract.
+Activation tests: 10 passed. Independent review: no actionable findings. Modified-code live validation of PR951 with the operator token: PASS. These do not claim the correction is already installed; post-publication Codex review and CI remain pending.
+Installing the correction advances main. Rebuild the initialization command and PR against that new predecessor; never merge stale PR951 unchanged.
