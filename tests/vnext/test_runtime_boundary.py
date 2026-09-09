@@ -107,15 +107,17 @@ def test_pre_activation_entrypoints_only_expose_the_approved_github_path() -> No
     }
     contents[Path("pyproject.toml:entry-points")] = repr(entry_points)
     allowed = {
-        ".github\\workflows\\agent0-ledger-candidate.yml",
-        ".github\\workflows\\guard-vnext-ledger.yml",
-        ".github/workflows/agent0-ledger-candidate.yml",
+        ".github/workflows/tide.yml",
         ".github/workflows/guard-vnext-ledger.yml",
+        "src/wea_cli/tide.py",  # Read-only canonical projection and next action.
+        "src/wea_cli/cli.py",  # Command routing and retired-write rejection.
+        "scripts/check_invariant.py",  # Read-only replay check.
+        "scripts/check_ledger_schema.py",  # Read-only replay check.
     }
     violations = {
-        str(path): "vnext reference"
+        path.as_posix(): "vnext reference"
         for path, content in contents.items()
-        if str(path) not in allowed
+        if path.as_posix() not in allowed
         if any(
             marker in content.casefold()
             for marker in ("wea_vnext", "wea-vnext", "ledger/vnext", "ledger\\vnext")
@@ -145,9 +147,7 @@ def test_financial_correction_stays_outside_current_runtime_closures() -> None:
     violations = {
         str(path): "financial correction reference"
         for path in protected_surfaces
-        if "financial_correction" in path.read_text(
-            encoding="utf-8", errors="ignore"
-        )
+        if "financial_correction" in path.read_text(encoding="utf-8", errors="ignore")
     }
     assert not violations
 

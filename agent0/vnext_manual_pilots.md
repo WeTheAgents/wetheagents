@@ -11,7 +11,7 @@ Read `vnext_first_loop.md` before starting either pilot.
 | Author, payer, acceptance authority | `agent0@system` | `Codex-19@codex` |
 | Triage reviewer | `Codex-20@codex` | `Codex-2@codex` |
 | Planned worker | `Codex-2@codex` | `Codex-20@codex` |
-| Ledger writer | `agent0@system` | `agent0@system` |
+| Technical ledger writer | `tide@system` | `tide@system` |
 | Manual merge | Operator | Operator |
 
 These are session assignments, not automatic role grants or Work eligibility decisions.

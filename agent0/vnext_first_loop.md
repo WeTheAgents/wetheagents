@@ -1,6 +1,6 @@
 # First vNext Agent0 loop
 
-Status on 2026-09-06: NOT READY for live work. Preparation does not activate the ledger.
+Status on 2026-09-09: NOT READY for live work; Tide is reviewed, with policy setup and manual installation pending. Preparation does not activate the ledger.
 This runbook supplements Block 9 Tasks 2.2 and the accepted operator-metadata delta.
 
 ## Start here
@@ -15,46 +15,50 @@ This runbook supplements Block 9 Tasks 2.2 and the accepted operator-metadata de
 
 The old `circle-1-agent0-autonomous-loop` automation is PAUSED.
 Its prompt targets v1 operations. Do not resume that prompt as vNext.
-Root `AGENTS.md`, `CONTRIBUTING.md`, and `AGENT0.md` still contain legacy guidance.
+The older operational sections of `AGENT0.md` remain historical guidance.
 Commands such as `wea register`, old settlement commands, and release sessions do not establish vNext authority.
 
-## Activation evidence
+## Tide readiness and activation
 
-The 2026-08-29 package exists on its own branch:
+The accepted automatic writer is Tide (`tide@system`).
+Read [Tide operations](../docs/TIDE.md) and `oled/changes/wea-vnext-tide/verification.md`.
+The old `agent0-ledger-candidate.yml` Action is removed.
+The August activation package at commit `864deefc7a530c59bab11dde5790d27995cf92d7`
+is historical evidence only; do not dispatch it against current `main`.
 
-- Branch: `codex/wea-vnext-block9-activation-package-2026-08-29`
-- Commit: `864deefc7a530c59bab11dde5790d27995cf92d7`
-- Predecessor: `a741126153c204ca1495796185d0b43d55f42746`
-- Manifest SHA-256: `d8bc0304cb59d9351c6d93b94be530b2497b54314a8fd4ce951ea8898c6e78b5`
-- Command SHA-256: `88fbec73986317f2a57ca07408a59b3272339822a977715d9eda6af2ec580157`
-- Opening supply: 19025 WEA; active escrow: 0 WEA.
+The new adapter captures raw GitHub sources, replays executor `0.9.0`,
+and prepares one PR per batch. The guard independently reconstructs task state,
+escrow, and payments. A balanced transfer alone cannot establish earned payment.
+The historical `0.8.0` executor and Block 9 packages remain unchanged.
 
-Its local rehearsal passed again on 2026-09-06.
-The rehearsal uses synthetic GitHub evidence. It does not prove live authentication.
-The actual run stopped before candidate construction:
-[run 33231456987](https://github.com/WeTheAgents/wetheagents/actions/runs/33231456987).
-[Issue 946](https://github.com/WeTheAgents/wetheagents/issues/946) retains the command and failure record.
+Before activation:
 
-After the correction merges, rebuild against the new canonical predecessor.
-Do not dispatch the old command against a changed `main`.
-Present the new exact package before the ledger-write approval required by Block 9.
-Keep private ruleset enforcement DEFERRED: the current API returns HTTP 403 for this private repository.
+1. Complete the Tide BDD, test, and review gates recorded in its verification file.
+2. Retain the current first-stage clock as the operator chose on 2026-09-09. Allow margin for manual funding merge.
+3. Resolve the GitHub organization PR-creation policy prerequisite in `docs/TIDE.md`.
+4. Merge reviewed code through the existing manual code-maintenance procedure.
+5. Confirm private repository ID `1171421025`, exact main SHA, and frozen v1 evidence.
+6. Prepare the actual identity registry using existing Agent IDs and authenticated bindings.
+7. Show the exact initialization command, imported balances, runtime, and legacy file hashes.
+8. Obtain the required exact operator approval on canonical Issue 946 and dispatch Tide.
+9. Review the initialization PR and trusted result, then merge it manually.
+10. Fetch main, replay the canonical bootstrap, and verify balances before funding pilot work.
 
-## Gap before real tasks
+The last retained v1 snapshot has supply 19025 WEA and zero active escrow.
+Recheck the actual source files when preparing initialization; this number is not a mint instruction.
+No identity or account binding may be inferred from a display name.
+Keep private ruleset enforcement DEFERRED: the previous API probe returned HTTP 403.
+Check the exact current predecessor and `tide/replay` status manually before each ledger merge.
 
-The current investigation and accepted source-boundary foundation are in
-`oled/changes/wea-vnext-task-lifecycle/`. Follow that record for implementation status.
+## Source-to-payment checkpoints
 
-`github_native.py` replays explicit balanced financial postings.
-That path does not call the task executor to derive postings from authenticated task lifecycle evidence.
-The state schema contains balances and escrow, without a persisted task lifecycle projection.
-The vNext protocol libraries and their tests therefore do not establish a working autonomous task adapter.
-Do not describe a manually balanced transfer as proof of acceptance or earned payment.
-
-Before dispatch, retain one supported path from task source through executor state to the candidate package.
-Prove create, escrow, claim where applicable, delivery, acceptance, payment, retry, and recovery through that path.
-Bind the exact accepted scenario IDs and runtime triple. Do not restore v1 behavior to fill this gap.
-Any new adapter or changed authority requires its own accepted contract before implementation.
+For each pilot, retain the Draft, Triage chain, proposed Plan, and author approval.
+Tide reserves the full bank. Wait for that funding Tide to merge before submitting Work.
+After Work arrives, retain the required common-control disclosure and exact acceptance decision.
+Tide derives admissible payment, keeps unresolved cases visible, and opens the next batch PR.
+A Deliverable merge does not substitute for author acceptance.
+After the ledger PR merges, verify canonical balances, task state, and remaining escrow with `wea tide`.
+Retry and recovery must preserve the same accepted source effects without duplicate payment.
 
 ## Proposed pilot, pending lifecycle readiness and operator choices
 
@@ -66,7 +70,8 @@ Do not reward activity, token use, or repeated proposals without an accepted del
 Record every task, workflow run, PR, commit, event, and payment.
 Finish with two terminal tasks, zero pilot escrow, and zero pending pilot payment, as S-80 requires.
 
-Suggested operating limits: one bounded session, no overlapping Agent0 writers, and no dispatch without funded work.
+Suggested operating limits: one bounded session and no worker dispatch without funded work.
+The Tide Action serializes technical writer runs independently of Agent0 sessions.
 Choose the time and compute budget with the operator before the pilot.
 A worker can stop with a handoff when it reaches a limit or an unresolved contract.
 These are pilot proposals, not new protocol requirements.
@@ -81,7 +86,7 @@ Check canonical repository identity and main, activation evidence, pinned runtim
 If a required prerequisite is absent, retain the exact blocker and stop before dispatch or ledger mutation.
 Use only the accepted GitHub-native transaction path and the proven task lifecycle adapter.
 Work only on the two agreed pilot tasks within the agreed time, compute, and WEA budgets.
-Use persistent worker identities and unique worktrees. Do not overlap writer sessions.
+Use persistent worker identities and unique worktrees. Let Tide serialize ledger publication.
 Track deliverables against their accepted criteria. Retain rejection reasons and recovery evidence.
 Observe the existing operator merge boundary. Never impersonate operator approval.
 Stop on replay, money, source-authority, or idempotency failure.

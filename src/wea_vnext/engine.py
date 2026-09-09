@@ -172,6 +172,11 @@ class _ReadOnlyModule:
                     "lifecycle runtime call is outside the verified closure"
                 )
             verified_calls["apply_lifecycle_event"] = candidate
+            maintenance = module.__dict__.pop("apply_tide_maintenance", None)
+            if maintenance is not None:
+                if not callable(maintenance):
+                    raise ManifestError("Tide maintenance entry point is invalid")
+                verified_calls["apply_tide_maintenance"] = maintenance
         _remember_verified_calls(self, reference, verified_calls)
 
     def __getattribute__(self, name: str) -> Any:
@@ -291,6 +296,7 @@ _PUBLIC_EXECUTOR_SUBMODULES = frozenset(
         "lifecycle",
         "projection",
         "rules",
+        "sources",
     }
 )
 _MANIFEST_KEYS = {

@@ -2,6 +2,32 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-09 (Tide installation decisions)
+
+- Operator chose to retain the current first-stage clock for the private pilot. Waiting for manual funding merge consumes that window; use sufficient margin. No runtime change.
+- Operator authorized Actions PR creation at organization and repository scope through Chrome. The browser is signed in as peachgabba-mc; the peachgabba22 login page is prepared for the operator. No policy setting changed yet.
+- Operator approved replacing the old writer with the reviewed PR 950. Keep the merge manual and bind the final reviewed head/current main; do not falsify the expected old-guard failure.
+- Canonical main is still bfb8a6d91d4e3da6dc9c2935814e6b5fdc5c843d. PR head ce85199701c955a8c2b341075ca37ebcf5b15dd9 has passing scope, doc-sync, Semgrep, runtime boundary, and Workers checks; only the known old-writer guard rejects it.
+- Next: complete browser policy setup and readback, publish this decision record, and prepare the manual merge. Initialization remains a separate exact source/registry approval after code merge. No activation, payment, or workers launched.
+
+## 2026-09-08 (automatic Tide implementation, not activated)
+
+- Operator accepted Tide as the automatic technical writer, one settlement PR per batch, manual private merges, and retirement of the old Actions path.
+- Worktree: `D:/GitHub/wetheagents-vnext-tide-20260908`, branch `codex/vnext-tide-20260908`, base `bfb8a6d91d4e3da6dc9c2935814e6b5fdc5c843d`.
+- Implemented a new immutable 0.9.0 closure with raw GitHub normalization, verified task/payment replay, global escrow accounting, clock/body/disclosure maintenance, and funding-before-Work checks.
+- Added stable authenticated collection, retained journals and projections, explicit initialization, one pending branch, automatic PR creation, independent trusted guard, stale-status invalidation, and crash recovery.
+- Replaced `agent0-ledger-candidate.yml` with hourly/manual `tide.yml`; updated the trusted guard. Existing executor/ruleset bytes and package initializers are protected from ordinary maintenance changes.
+- Added read-only `wea tide`; audit scripts verify the Tide journal when present. Updated Agent0/newcomer/pilot/startup instructions in `docs/TIDE.md` and the first-loop runbook.
+- Full repository tests: 4958 passed, 18 skipped, 11 xfailed. Full vNext: 667 passed, 18 skipped. Final boundary suite: 44 passed. Post-PR Codex review found two issues, now fixed: nested JSON overflow and closed-candidate branch deletion. Final focused review of 1816c68..f7ce102 is clean. Doc-sync, schema, invariant, targeted CLI and claim checks passed. New executor manifest matches staged Git bytes.
+- Independent review findings were corrected: cross-Issue and pre-funding blockers, copied Triage declarations, edit reconciliation, canonical collector scope, mutable metadata, and publication recovery/provenance.
+- Pending operator decision: S-02H/T-04 initial clock treatment while funding PR waits for manual merge. Proposed shift is NOT implemented.
+- Live API found Actions PR creation disabled. Repository-level enable failed because the organization prohibits it; current token lacks admin:org. No policy changed. Organization-level authorization is pending; exact UI steps are in `docs/TIDE.md`.
+- No ledger/vnext namespace, activation, payment, worker launch, workflow dispatch, or visibility change. Legacy balances remain 19025 WEA / zero active escrow; historical closures are unchanged.
+- Keep `circle-1-agent0-autonomous-loop` paused. Do not reuse the August activation package or PR 949's one-time guard exception.
+- Draft PR 950 implementation is published at f7ce102b84f057d0a5289c9fe74301bc4269ec2d. The infra label reflects requested scope; old-main writer guard rejection is expected and has not been waived. Semgrep, scope, documentation, runtime boundary, and Workers build pass at that commit; only the expected trusted writer-upgrade gate remains.
+- Final corrections also reset stale unfunded Draft intake. Targeted Tide tests: 54 passed after fixes; final follow-up review is clean. The full-suite result predates these bounded fixes.
+- Next: resolve both pending decisions; use the exact reviewed manual writer-upgrade procedure, then prepare initialization from merged main.
+
 ## 2026-09-07 (step 0: newcomer documentation)
 
 - User requested obvious legacy cleanup before the two paid pilots.

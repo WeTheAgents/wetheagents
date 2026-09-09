@@ -1,0 +1,59 @@
+name: Tide
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      activation_comment_id:
+        description: One-time operator approval comment on Issue 946; leave empty for an ordinary Tide
+        type: string
+        default: ""
+      activation_sha256:
+        description: Exact SHA-256 of that approval comment body
+        type: string
+        default: ""
+      retry_closed:
+        description: Rebuild a Tide that the operator closed without merging
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: wea-canonical-tide
+  cancel-in-progress: false
+
+jobs:
+  tide:
+    if: github.repository == 'WeTheAgents/wetheagents' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: src
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Capture, replay, and publish one candidate
+        env:
+          RETRY_CLOSED: ${{ inputs.retry_closed }}
+          ACTIVATION_COMMENT_ID: ${{ inputs.activation_comment_id }}
+          ACTIVATION_SHA256: ${{ inputs.activation_sha256 }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ "$RETRY_CLOSED" = "true" ]; then args+=(--retry-closed); fi
+          if [ -n "$ACTIVATION_COMMENT_ID" ]; then
+            args+=(--activation-comment-id "$ACTIVATION_COMMENT_ID" --activation-sha256 "$ACTIVATION_SHA256")
+          fi
+          python -m wea_vnext.tide run "${args[@]}"

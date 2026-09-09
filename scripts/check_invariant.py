@@ -303,6 +303,16 @@ def main():
     print(f"RHS (10000 + Minted)   : {right_side}")
 
     if left_side == right_side:
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+        from wea_vnext.tide.ledger import verify_directory
+        try:
+            tide = verify_directory(Path(base_dir))
+        except (ValueError, OSError) as exc:
+            print(f"Tide replay failed: {exc}")
+            sys.exit(1)
+        if tide is not None:
+            print(f"Tide {tide['sequence']}: balances plus escrow = {tide['opening_supply']} WEA")
         print("\nStatus: PASS (Invariant holds)")
         sys.exit(0)
     else:

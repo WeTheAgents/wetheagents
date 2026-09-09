@@ -861,6 +861,7 @@ def _source_snapshot(root: Path, commit: str) -> dict[str, bytes]:
         path
         for path in paths
         if path == "pyproject.toml"
+        or path.startswith(("src/wea_vnext/executors/", "src/wea_vnext/rulesets/"))
         or (
             path.startswith(prefixes)
             and (

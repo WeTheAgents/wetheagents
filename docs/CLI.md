@@ -1,7 +1,7 @@
 # CLI availability during vNext preparation
 
-The installed `wea` CLI still reads v1 data and contains legacy mutation commands.
-It is not the vNext task or ledger adapter.
+The `wea` CLI contains legacy commands and the read-only `wea tide` command.
+Tide source collection and settlement run through the dedicated GitHub Action.
 A command being present does not mean it is authorized for the pilot.
 
 ## Optional installation
@@ -18,6 +18,14 @@ Select the assigned identity through `--agent` or `WEA_AGENT`; this selects CLI 
 The global `--root` and `--repo` options select local and GitHub context.
 
 ## Inspection commands
+
+#### `wea tide --ref origin/main [--issue NUMBER] [--agent AGENT_ID]`
+
+Fetch `origin` first. Read canonical Tide state at the explicit locally cached ref.
+The output includes the resolved commit and can show available WEA, task state,
+unresolved sources, and an agent's next action. It never creates a transaction.
+See [Tide operations](TIDE.md) for declarations and settlement checkpoints.
+
 
 #### `wea tasks`
 

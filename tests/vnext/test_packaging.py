@@ -46,27 +46,27 @@ def _installed_python(
 
 def _install_future_executor(target: Path) -> None:
     package = target / "wea_vnext"
-    rules_path = package / "rulesets" / "0.9.json"
-    executor_path = package / "executors" / "v0_9_0"
+    rules_path = package / "rulesets" / "0.10.json"
+    executor_path = package / "executors" / "v0_10_0"
     executor_path.mkdir()
-    rules_raw = _canonical({"tide_interface_version": "0.9", "version": "0.9"})
+    rules_raw = _canonical({"tide_interface_version": "0.10", "version": "0.10"})
     init_raw = b'FUTURE_BEHAVIOR = "intentionally-distinct"\n'
     parent_init_raw = (package / "executors" / "__init__.py").read_bytes()
     rules_path.write_bytes(rules_raw)
     (executor_path / "__init__.py").write_bytes(init_raw)
     manifest = {
-        "executor_version": "0.9.0",
+        "executor_version": "0.10.0",
         "files": {
             "executors/__init__.py": _sha256(parent_init_raw),
-            "executors/v0_9_0/__init__.py": _sha256(init_raw),
-            "rulesets/0.9.json": _sha256(rules_raw),
+            "executors/v0_10_0/__init__.py": _sha256(init_raw),
+            "rulesets/0.10.json": _sha256(rules_raw),
         },
-        "module": "wea_vnext.executors.v0_9_0",
+        "module": "wea_vnext.executors.v0_10_0",
         "python_abi": "py3-none-any",
-        "ruleset_path": "rulesets/0.9.json",
+        "ruleset_path": "rulesets/0.10.json",
         "ruleset_sha256": _sha256(rules_raw),
         "semantic_dependencies": {},
-        "tide_interface_version": "0.9",
+        "tide_interface_version": "0.10",
     }
     (executor_path / "manifest.json").write_bytes(_canonical(manifest))
 
@@ -122,6 +122,10 @@ def test_wheel_resources_upgrade_isolation_and_preimport_verification(
     assert "wea_vnext/executors/v0_8_0/intake.py" in names
     assert "wea_vnext/executors/v0_8_0/lifecycle.py" in names
     assert "wea_vnext/executors/v0_8_0/get10.py" in names
+    assert "wea_vnext/rulesets/0.9.json" in names
+    assert "wea_vnext/executors/v0_9_0/manifest.json" in names
+    assert "wea_vnext/executors/v0_9_0/sources.py" in names
+    assert "wea_vnext/tide/__main__.py" in names
     assert "wea_vnext/resolution_plan.py" in names
     assert "wea_vnext/hello_world.py" in names
     assert "wea_vnext/intake.py" in names
@@ -221,7 +225,7 @@ print(base64.b64encode(report.state_bytes + b'\\0' + report.report_bytes).decode
         before.stdout.strip()
     )
 
-    future_init = installed / "wea_vnext" / "executors" / "v0_9_0" / "__init__.py"
+    future_init = installed / "wea_vnext" / "executors" / "v0_10_0" / "__init__.py"
     future_init.write_bytes(future_init.read_bytes() + b"# changed after install\n")
     with_unrelated_damage = _installed_python(installed, replay_code)
     assert with_unrelated_damage.returncode == 0, (
@@ -231,7 +235,9 @@ print(base64.b64encode(report.state_bytes + b'\\0' + report.report_bytes).decode
         before.stdout.strip()
     )
 
-    future_manifest = installed / "wea_vnext" / "executors" / "v0_9_0" / "manifest.json"
+    future_manifest = (
+        installed / "wea_vnext" / "executors" / "v0_10_0" / "manifest.json"
+    )
     malformed_manifests = (
         b'{"invalid-surrogate":"\\ud800"}',
         b'{"oversized-integer":' + (b"9" * 5000) + b"}",

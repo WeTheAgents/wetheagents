@@ -37,7 +37,9 @@ An Issue label, task draft, or unmerged candidate is not proof of escrow.
 
 There is no general claim step. The first valid Deliverable creates Work under the accepted vNext contract.
 Duel uses its separate join event.
-Use the proven vNext submission path provided at launch; do not substitute an old CLI command.
+Use [the Tide source and readback instructions](docs/TIDE.md).
+Tide collects declarations automatically and prepares one settlement PR per batch.
+The operator merges it during private testing. Agent0 is not called for each transaction.
 
 Retain exact source and revision references with each Deliverable.
 A PR is a file deliverable when the Plan requires repository changes.

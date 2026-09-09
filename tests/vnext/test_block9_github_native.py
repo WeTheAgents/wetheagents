@@ -157,9 +157,7 @@ def _repo(tmp_path: Path) -> tuple[Path, str]:
 
 def _install_pinned_boundary(root: Path) -> None:
     pinned = {
-        ".github/workflows/agent0-ledger-candidate.yml": (
-            b"permissions:\n  contents: write\n"
-        ),
+        ".github/workflows/tide.yml": (b"permissions:\n  contents: write\n"),
         ".github/workflows/guard-vnext-ledger.yml": (
             b"permissions:\n  contents: read\n"
         ),
@@ -170,6 +168,25 @@ def _install_pinned_boundary(root: Path) -> None:
         "src/wea_vnext/block9/writer.py": b"# writer boundary\n",
         "src/wea_vnext/executors/v0_8_0/canonical.py": b"# canonical\n",
     }
+    for relative in (
+        "src/wea_vnext/__init__.py",
+        "src/wea_vnext/block9/__init__.py",
+        "src/wea_vnext/engine.py",
+        *(
+            f"src/wea_vnext/tide/{name}.py"
+            for name in (
+                "__main__",
+                "__init__",
+                "activation",
+                "collection",
+                "github",
+                "ledger",
+                "records",
+                "replay",
+            )
+        ),
+    ):
+        pinned[relative] = b"# trusted boundary fixture\n"
     for relative, content in pinned.items():
         path = root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -360,9 +377,10 @@ def test_guard_selects_only_the_new_candidate_record(tmp_path: Path) -> None:
     new.write_text("{}\n", encoding="utf-8")
     candidate = _commit(root, "new candidate evidence")
 
-    assert _candidate_record_path(root, base, candidate) == new.relative_to(
-        root
-    ).as_posix()
+    assert (
+        _candidate_record_path(root, base, candidate)
+        == new.relative_to(root).as_posix()
+    )
 
 
 def test_candidate_rebuilds_exact_package_and_passes_guard(tmp_path: Path) -> None:
@@ -511,6 +529,33 @@ def test_ordinary_pr_rejects_a_new_javascript_ledger_writer(
             root,
             base_commit=base,
             candidate_commit=candidate,
+        )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "src/wea_vnext/executors/v0_9_0/lifecycle.py",
+        "src/wea_vnext/executors/v0_9_0/manifest.json",
+        "src/wea_vnext/rulesets/0.9.json",
+        "src/wea_vnext/tide/__init__.py",
+        "src/wea_vnext/__init__.py",
+    ],
+)
+def test_ordinary_pr_cannot_rewrite_existing_runtime_authority(
+    tmp_path: Path, path: str
+) -> None:
+    root, _initial = _repo(tmp_path)
+    _install_pinned_boundary(root)
+    target = root / path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("{}\n" if path.endswith(".json") else "VALUE = 1\n")
+    base = _commit(root, "trusted runtime")
+    target.write_text('{"changed":true}\n' if path.endswith(".json") else "VALUE = 2\n")
+    candidate = _commit(root, "changed runtime authority")
+    with pytest.raises(Block9Error, match="writer boundary changed"):
+        validate_pull_request_commits(
+            root, base_commit=base, candidate_commit=candidate
         )
 
 
@@ -734,9 +779,7 @@ def _append_transaction(
         "idempotency_key": idempotency_key,
         "operation": operation,
         "prior_financial_hash": sha256_hex(canonical_bytes(prior_financial)),
-        "resulting_financial_hash": sha256_hex(
-            canonical_bytes(resulting_financial)
-        ),
+        "resulting_financial_hash": sha256_hex(canonical_bytes(resulting_financial)),
     }
     core = {
         "payload": payload,
@@ -940,8 +983,7 @@ def test_guard_confirms_the_exact_completed_github_workflow_run(
                     "issues/9#issuecomment-41"
                 ),
                 "issue_url": (
-                    "https://api.github.com/repos/WeTheAgents/"
-                    "wetheagents/issues/9"
+                    "https://api.github.com/repos/WeTheAgents/wetheagents/issues/9"
                 ),
                 "user": {"login": "peachgabba22"},
             }
@@ -967,9 +1009,7 @@ def test_guard_confirms_the_exact_completed_github_workflow_run(
 
 def test_workflows_use_github_hosted_runner_and_no_app_or_admin_token() -> None:
     root = Path(__file__).resolve().parents[2]
-    candidate = (root / ".github/workflows/agent0-ledger-candidate.yml").read_text(
-        encoding="utf-8"
-    )
+    candidate = (root / ".github/workflows/tide.yml").read_text(encoding="utf-8")
     guard = (root / ".github/workflows/guard-vnext-ledger.yml").read_text(
         encoding="utf-8"
     )
@@ -977,20 +1017,22 @@ def test_workflows_use_github_hosted_runner_and_no_app_or_admin_token() -> None:
     assert "contents: write" in candidate
     assert "runs-on: ubuntu-latest" in candidate
     assert "ref: ${{ github.sha }}" in candidate
-    assert "Open the pull request manually" in candidate
+    assert "schedule:" in candidate
+    assert "python -m wea_vnext.tide run" in candidate
     assert "ADMIN_TOKEN" not in candidate
     assert "self-hosted" not in candidate
     assert "github-app" not in candidate.lower()
 
     assert "pull_request_target:" in guard
-    assert "ref: ${{ github.event.pull_request.base.sha }}" in guard
+    assert "ref: ${{ github.event.pull_request.base.sha || 'main' }}" in guard
     assert "Fetch candidate Git objects without checking them out" in guard
-    assert "fetch --no-tags --depth=2" in guard
+    assert "fetch --no-tags origin" in guard
     assert "http.https://github.com/.extraheader" in guard
     assert "::add-mask::" in guard
     assert "persist-credentials: false" in guard
     assert "actions/checkout@v4" in guard
-    assert guard.count("actions/checkout@v4") == 1
+    assert guard.count("actions/checkout@v4") == 2
+    assert "invalidate-pending" in guard
     assert "ADMIN_TOKEN" not in guard
     assert "self-hosted" not in guard
 
@@ -999,6 +1041,7 @@ def test_legacy_direct_write_workflows_are_absent_or_read_only() -> None:
     root = Path(__file__).resolve().parents[2]
     workflows = root / ".github/workflows"
     assert not (workflows / "label-paid.yml").exists()
+    assert not (workflows / "agent0-ledger-candidate.yml").exists()
     assert not (workflows / "genome-mutation-tracker.yml").exists()
     assert not (workflows / "guard-ledger.yml").exists()
     btc = (workflows / "btc-snapshot.yml").read_text(encoding="utf-8")
