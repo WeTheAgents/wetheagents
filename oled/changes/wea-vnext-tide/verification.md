@@ -1,6 +1,6 @@
 # Verification: automatic Tide
 
-Decision: implementation reviewed; NOT READY for merge or live activation.
+Decision: implementation reviewed; operator approved installation on 2026-09-09. NOT READY for live activation; browser policy setup and manual code merge remain pending.
 Contract: Outcome 1.0 / Spec 1.0 / Design 1.1.
 Base: bfb8a6d91d4e3da6dc9c2935814e6b5fdc5c843d.
 
@@ -55,17 +55,18 @@ Canonical main remains the base SHA above. No ledger/vnext namespace exists.
 
 The GitHub repository setting prevents Actions-created PRs. Enabling it at repository
 scope failed because of organization policy. The token lacks `admin:org`, so the
-organization-level change is awaiting the operator. No remote setting changed.
+organization-level change was authorized on 2026-09-09. Chrome login and policy application remain pending; no remote setting has changed yet.
 The exact UI procedure is in `docs/TIDE.md`.
 
-The S-02H / T-04 first-stage publication-time question remains unanswered.
-The proposed shift for manual funding-merge wait has NOT been implemented.
-Current clocks retain the original activation-time anchor. No live-readiness claim
-is permitted before the operator decision and its exact evidence are recorded.
+On 2026-09-09 the operator chose to retain the existing S-02H / T-04 clock for now.
+The proposed shift for manual funding-merge wait is not implemented. Current clocks
+retain the original activation-time anchor; waiting for merge consumes the window.
+This decision requires no runtime or BDD behavior change.
 
 Private ruleset enforcement remains DEFERRED. Manual review must verify current
 main and the exact candidate status. The initial code-only writer upgrade still
-needs the existing manual maintenance process; PR 949's exception is not reusable.
+has the operator's one-time approval for PR 950 on 2026-09-09. Manual installation
+must bind the final reviewed head and current main; PR 949's exception is not reused.
 
 Draft PR: https://github.com/WeTheAgents/wetheagents/pull/950.
 The `infra` label classifies the operator-requested infrastructure scope; it does

@@ -1,7 +1,7 @@
 # Tasks: automatic Tide
 
 Bound to Outcome 1.0 / Spec 1.0 / Design 1.1.
-Status: implementation reviewed and published as draft PR 950; operator decisions and live activation remain pending.
+Status: implementation reviewed and published as draft PR 950; operator decisions are recorded; browser policy setup, manual code merge, and live activation remain pending.
 
 - [x] Fetch current main and create a dedicated worktree from bfb8a6d.
 - [x] Retain accepted writer, batching, and human-decision boundaries.
@@ -13,8 +13,11 @@ Status: implementation reviewed and published as draft PR 950; operator decision
 - [x] Prove two-task batches, author/control authority, funding-before-work, retry, restart, stale candidates, and collection races in local tests.
 - [x] Reconcile current BDD evidence, guides, activation procedure, and pilot checkpoints; retain explicit live-evidence gaps.
 - [x] Complete independent review and post-publication codex exec review; fix until clean before requesting merge.
-- [ ] Record the operator decision on first-stage funding publication time.
-- [ ] Resolve organization Actions PR-creation policy with operator authorization.
+- [x] Record the operator decision on first-stage funding publication time: retain the current clock for now (2026-09-09).
+- [x] Obtain organization Actions PR-creation authorization (2026-09-09).
+- [ ] Apply the authorized policy through Chrome and verify the repository setting.
+- [x] Obtain the one-time operator decision to replace the old writer with PR 950.
+- [ ] Present the final reviewed head and current base for manual code merge.
 - [ ] Prepare exact activation only after merged code and all required checks.
 
 Previous metadata correction and newcomer cleanup are merged in PR 949.

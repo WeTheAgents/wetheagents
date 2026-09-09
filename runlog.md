@@ -2,6 +2,14 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-09 (Tide installation decisions)
+
+- Operator chose to retain the current first-stage clock for the private pilot. Waiting for manual funding merge consumes that window; use sufficient margin. No runtime change.
+- Operator authorized Actions PR creation at organization and repository scope through Chrome. The browser is signed in as peachgabba-mc; the peachgabba22 login page is prepared for the operator. No policy setting changed yet.
+- Operator approved replacing the old writer with the reviewed PR 950. Keep the merge manual and bind the final reviewed head/current main; do not falsify the expected old-guard failure.
+- Canonical main is still bfb8a6d91d4e3da6dc9c2935814e6b5fdc5c843d. PR head ce85199701c955a8c2b341075ca37ebcf5b15dd9 has passing scope, doc-sync, Semgrep, runtime boundary, and Workers checks; only the known old-writer guard rejects it.
+- Next: complete browser policy setup and readback, publish this decision record, and prepare the manual merge. Initialization remains a separate exact source/registry approval after code merge. No activation, payment, or workers launched.
+
 ## 2026-09-08 (automatic Tide implementation, not activated)
 
 - Operator accepted Tide as the automatic technical writer, one settlement PR per batch, manual private merges, and retirement of the old Actions path.

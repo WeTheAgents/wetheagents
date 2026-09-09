@@ -106,7 +106,9 @@ Work must be posted after its funding Tide merges.
 A pending funding PR does not authorize funded Work.
 Deliverable merge, author acceptance, and canonical payment are distinct checkpoints.
 Stopping a local session does not stop an active task's clock.
-The treatment of time spent awaiting the initial funding merge is awaiting an operator decision.
+For the private pilot, the operator chose to retain the current initial clock on 2026-09-09.
+Waiting for the funding PR merge consumes that window. Set deadlines with enough margin
+and merge funding promptly; funded Work still requires the merge first.
 
 ## Recovery and operator review
 
@@ -141,7 +143,8 @@ at repository scope failed: the organization prohibits this capability.
 The current token cannot inspect or edit the organization policy (`admin:org` is absent).
 No permission setting changed.
 
-After the operator authorizes the organization-level change:
+The operator authorized this organization-level change on 2026-09-09. Application and readback remain pending:
+
 
 1. Open [organization Actions settings](https://github.com/organizations/WeTheAgents/settings/actions).
 2. Under Workflow permissions, allow GitHub Actions to create and approve pull requests.
@@ -152,8 +155,8 @@ After the operator authorizes the organization-level change:
 
 GitHub combines PR creation and approving reviews in this setting.
 Tide's code creates PRs and never submits approval reviews or merges them.
-The organization contains nine repositories; changing its policy requires the
-pending operator decision. See [GitHub's permission API](https://docs.github.com/en/rest/actions/permissions).
+The organization contains nine repositories; the operator approved this scope. Preserve
+existing default token permissions and verify the WEA repository setting. See [GitHub's permission API](https://docs.github.com/en/rest/actions/permissions).
 
 ## Initialization
 

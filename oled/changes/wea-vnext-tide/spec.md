@@ -1,7 +1,7 @@
 # Spec: a Tide is one checked settlement batch
 
 Version 1.0; accepted Outcome 1.0. Verification status and exact evidence are in `verification.md`.
-The pending S-02H first-stage publication-time decision is not part of implemented behavior.
+On 2026-09-09 the operator chose to retain the existing S-02H first-stage clock for the private pilot. Waiting for manual funding merge consumes that window; no publication-time shift is implemented.
 Affected parent boundaries: S-01C, S-02A/C/H, S-03A/B/F, S-69/S-70, S-71/S-75/S-80.
 Existing task-mode and acceptance semantics remain unchanged.
 

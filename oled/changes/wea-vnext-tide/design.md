@@ -85,7 +85,7 @@ stale pending statuses. All private merges remain manual.
 
 Automatic PR creation also needs the organization policy prerequisite in `docs/TIDE.md`.
 The repository-level enable attempt was rejected by the organization, and the current token lacks `admin:org`.
-No policy was changed; operator authorization for the wider setting is pending.
+The operator authorized the organization and repository policy change on 2026-09-09. Browser application and authenticated readback remain pending.
 
 Private server-side ruleset enforcement remains DEFERRED after the recorded 403.
 Status checks are not an atomic server-side lock; the operator must verify current
@@ -111,10 +111,12 @@ The initial writer-boundary upgrade cannot approve itself through the old pinned
 guard. Finish code review and present the exact code-only maintenance PR before
 any one-time operator exception. The PR 949 exception is not a blanket waiver.
 
-## Open decision
+## Operator decisions on 2026-09-09
 
-S-02H / T-04: whether the first-stage window excludes time between preparing the
-funding Tide and its manual merge. The proposed publication confirmation would
-shift that initial window without rewriting original funding or later stages.
-No answer has been recorded and no such shift is implemented. Do not claim live
-readiness, activate the ledger, or start pilot workers until this is resolved.
+Retain the current S-02H / T-04 first-stage clock for the private pilot. Waiting
+for manual funding merge consumes the window. No publication confirmation or
+clock shift is added. Use sufficient deadline margin and merge funding promptly.
+
+The operator approved replacing the old writer with the reviewed Tide change in
+PR 950. This is a one-time code installation decision; it does not approve
+initialization data, waive future ledger checks, or enable automatic merges.

@@ -1,6 +1,6 @@
 # First vNext Agent0 loop
 
-Status on 2026-09-08: NOT READY for live work; Tide is under verification. Preparation does not activate the ledger.
+Status on 2026-09-09: NOT READY for live work; Tide is reviewed, with policy setup and manual installation pending. Preparation does not activate the ledger.
 This runbook supplements Block 9 Tasks 2.2 and the accepted operator-metadata delta.
 
 ## Start here
@@ -34,7 +34,7 @@ The historical `0.8.0` executor and Block 9 packages remain unchanged.
 Before activation:
 
 1. Complete the Tide BDD, test, and review gates recorded in its verification file.
-2. Resolve the pending first-stage deadline treatment during a manual funding merge.
+2. Retain the current first-stage clock as the operator chose on 2026-09-09. Allow margin for manual funding merge.
 3. Resolve the GitHub organization PR-creation policy prerequisite in `docs/TIDE.md`.
 4. Merge reviewed code through the existing manual code-maintenance procedure.
 5. Confirm private repository ID `1171421025`, exact main SHA, and frozen v1 evidence.
