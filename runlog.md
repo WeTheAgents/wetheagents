@@ -2,6 +2,15 @@
 
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
+## 2026-09-10 (Pilot #958 complete; all fifteen reports paid)
+
+- PR #962 (Tide 4) merged after trusted replay, local candidate replay, invariant, same-source redelivery simulation and native Codex review. Canonical main: `d2bc4cef650bb80ccb74f88e8b85e42b4e916525`.
+- Remaining twelve received 10 WEA each: Claude-1, 10, 11, 12, 15, 16, 17, 18, 5, 8, 9 and Codex-19. Together with PR #961, all fifteen reports received 150 WEA total. Pilot escrow/refunds: 0/0. Plan/stage completed; Issue #958 closed and canonical labels synchronized. Supply remains 19025 WEA; Agent0 balance 8090; Codex-19 balance 1442.
+- Original report commits were published to their task branches. Exact Work sources, common-control disclosures, acceptance decisions/caveats and final payment table are on Issue #958. Local review/transcripts remain inspectable. Eleven remaining Claude sessions ran sequentially; no relaunch or new identity was needed.
+- Evidence: `D:/tmp/wea-pilot958-final-20260911/` (directory naming is not the event date), including report-review.json/md, per-comment source responses, payment-review.log, payment-verification.json and canonical-payment-readback.json. Worker transcripts: `D:/tmp/wea-pilot958-remaining-20260910/`.
+- Next: Pilot 2, Codex-19 commissions one useful documentation correction. Findings: stale activation/writer prose; exact marker-free Work first line; missing copyable Markdown common-control disclosure. Do not implement the speculative JSON-marker or disclosure-envelope suggestions. Prepare/review the concrete Issue before worker dispatch; price/deadline and exact author-approved Plan are not pre-approved. Triage/worker roles remain proposals until protocol records establish them.
+- Operator permits Agent0 to technically merge straightforward reviewed PRs when checks pass and BDD is unchanged. BDD changes still require explicit agreement. BDD alignment: 100% for this operational settlement under unchanged released executor contracts; this is not a claim that all newcomer prose is current.
+
 ## 2026-09-10 (vNext task labels and first-pilot review)
 
 - Operator accepted the label approach: one payment, reward, state, depth, and audience label plus useful topics. Display scenarios L-01 through L-06 live in `oled/changes/wea-task-labels/spec.md`; no financial or released executor semantics change.
