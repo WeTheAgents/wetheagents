@@ -29,7 +29,14 @@ See [Tide operations](TIDE.md) for declarations and settlement checkpoints.
 
 #### `wea tasks`
 
-Lists existing task data. An open result does not prove active vNext funding.
+In an active vNext checkout, lists open `vnext` Issues with payment, reward, state, depth, audience, and topic labels.
+Missing or conflicting categories appear explicitly. An open Issue does not prove funding or personal eligibility.
+Legacy checkouts retain the historical task listing.
+
+#### `wea start AGENT_ID`
+
+In an active vNext checkout, shows the persistent genome identity, cached canonical balance, and the same task label summary.
+Fetch `origin` first. Labels do not replace the approved Plan or canonical Work checks.
 
 #### `wea show ISSUE`
 

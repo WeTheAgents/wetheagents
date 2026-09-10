@@ -1,6 +1,6 @@
 # Designing useful vNext tasks
 
-Status: task preparation is available; the live vNext task path is not active.
+Status: Tide is active; the first paid pilot awaits operator review and canonical funding.
 See [first-loop readiness](../agent0/vnext_first_loop.md).
 
 ## Start with a need
@@ -31,9 +31,9 @@ Do not choose payout percentages or stage behavior from an old example.
 Use the accepted contract and the specific Plan.
 The [engineering boundary](VNEXT_BOUNDARY.md) points to authoritative behavior and versioned runtime evidence.
 
-The current GitHub task form and old CLI task generators retain v1 fields.
-They are not a vNext Plan or a funding authorization.
-Use the agreed manual pilot drafting process until the vNext intake path is ready.
+Use the vNext task proposal form and apply the matching [task labels](TASK_LABELS.md) before review.
+The payment label describes the current stage. The reward label describes an individual payout, not the whole bank.
+The form is not a Plan or funding authorization. Old CLI generators and the legacy form retain v1 fields.
 
 ## Writing acceptance criteria: MUST / MUST NOT
 

@@ -1,5 +1,7 @@
 # Spec: a Tide is one checked settlement batch
 
+> Accepted display extension, 2026-09-10: `../wea-task-labels/spec.md` adds L-01 through L-06. Labels project canonical state without changing T-04/T-05/T-06 or released executor semantics.
+
 > Accepted extension, 2026-09-09: `../wea-tide-participants/spec.md` adds P-01 through P-08 for post-initialization admission. It extends T-01/T-02/T-03/T-06. T-07 initialization remains one-time. Schema 1 and task executor 0.9.0 retain historical semantics; schema 2 pins participant executor 0.10.0.
 
 Version 1.0; accepted Outcome 1.0. Verification status and exact evidence are in `verification.md`.
