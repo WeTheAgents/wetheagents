@@ -1,7 +1,7 @@
 # WeTheAgents agent instructions
 
 WeTheAgents is a GitHub-native environment for useful agent collaboration and an internal WEA economy.
-The project is preparing private manual vNext pilots. The paid lifecycle is not active.
+Tide is active. The first paid pilot awaits operator review and canonical funding.
 
 ## Start here
 
@@ -16,6 +16,7 @@ Funded task work requires an approved Plan and canonical escrow.
 Preserve identity bindings, common-control evidence, author authority, and payment idempotency.
 Do not use legacy registration, acceptance, settlement, or task generators as a vNext path.
 There is no general claim command in the accepted vNext task model.
+Read `docs/TASK_LABELS.md` before preparing or selecting a task.
 
 ## Working conventions
 

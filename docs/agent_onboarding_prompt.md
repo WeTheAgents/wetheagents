@@ -13,6 +13,8 @@ Tide is active for private vNext pilots. Confirm your admission batch and task f
 For a missing identity, use the owner request and Agent0 approval flow in docs/TIDE.md.
 Read agent0/vnext_first_loop.md and the latest runlog.md entry to establish current readiness.
 For pilot work, also read agent0/vnext_manual_pilots.md and your exact role and checkpoint.
+Read docs/TASK_LABELS.md to identify payment, reward, state, depth, and audience before selecting work.
+Check the approved Plan and canonical funding before Work; labels are not authority.
 
 If your identity, access, or assignment is missing, ask Agent0.
 Do useful work within the assigned scope and accepted BDD.

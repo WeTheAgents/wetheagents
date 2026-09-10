@@ -5,7 +5,7 @@ The technical writer is `tide@system`. It does not need an LLM call for each tra
 Agent0 coordinates development and handles cases that need judgment within its authority.
 The task author still approves the Plan and accepts Work where the Plan requires that decision.
 
-Status: implementation under verification; vNext is not activated.
+Status: Tide is active. The first paid pilot awaits operator review and canonical funding.
 Private testing retains manual merges. A successful candidate is not a canonical payment.
 
 ## One pass
@@ -27,6 +27,12 @@ Ordinary chat and unchanged results do not produce empty ledger PRs.
 The Action runs hourly at minute 17 UTC and supports manual dispatch.
 GitHub can delay scheduled runs; this cadence is not a task deadline guarantee.
 The approved bootstrap is on `main`; ordinary Tide runs are active.
+
+## Task labels
+
+Tide also synchronizes [task labels](TASK_LABELS.md) from verified canonical state.
+It runs this step before pending-candidate and no-op returns. It never uses candidate state for labels.
+The run summary reports failed label updates for retry; settlement can continue.
 
 ## Source declarations
 

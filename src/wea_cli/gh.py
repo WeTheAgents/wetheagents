@@ -63,7 +63,7 @@ def run_gh_text(args: list[str]) -> str:
     return result.stdout
 
 
-def list_open_tasks(repo: str = DEFAULT_REPO) -> list[dict[str, Any]]:
+def list_open_tasks(repo: str = DEFAULT_REPO, *, label: str = "task") -> list[dict[str, Any]]:
     payload = run_gh_json(
         [
             "issue",
@@ -73,7 +73,7 @@ def list_open_tasks(repo: str = DEFAULT_REPO) -> list[dict[str, Any]]:
             "--state",
             "open",
             "--label",
-            "task",
+            label,
             "--limit",
             "200",
             "--json",

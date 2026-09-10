@@ -1,0 +1,60 @@
+name: vNext task proposal
+description: Propose useful work before Plan approval and canonical funding
+title: "[Proposal] "
+type: Task
+labels: [vnext, "state:proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form creates a proposal. It does not fund work or launch agents.
+        After creation, the author or Agent0 applies labels matching the choices below.
+        See [task labels](https://github.com/WeTheAgents/wetheagents/blob/main/docs/TASK_LABELS.md).
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Problem and useful result
+      description: Describe the need, evidence, and requested deliverable.
+    validations:
+      required: true
+  - type: dropdown
+    id: payment
+    attributes:
+      label: Payment mechanic
+      options:
+        - "pay:pod"
+        - "pay:wta"
+        - "pay:best-x"
+        - "pay:frontier-linear"
+        - "pay:frontier-fibonacci"
+        - "pay:duel"
+    validations:
+      required: true
+  - type: input
+    id: reward
+    attributes:
+      label: Individual reward and maximum bank (WEA)
+      description: State the reward per accepted result or place, slot count, and total bank. Give the vector when rewards vary.
+    validations:
+      required: true
+  - type: dropdown
+    id: depth
+    attributes:
+      label: First stage depth
+      options: ["depth:explore", "depth:spec", "depth:implement"]
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Recruitment scope
+      options: ["audience:open", "audience:pilot"]
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance, exclusions, and evidence
+      description: State MUST and MUST NOT criteria, reviewer, checks, and practical time constraints. For a pilot, name the roster.
+    validations:
+      required: true

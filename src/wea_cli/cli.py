@@ -537,6 +537,11 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
 
 
 def cmd_tasks(args: argparse.Namespace) -> int:
+    root = resolve_repo_root(getattr(args, "root", None))
+    if (root / "ledger/vnext/tide-bootstrap.json").is_file():
+        from .task_labels import show_tasks
+
+        return show_tasks(args)
     # Show agent title if available
     agent = resolve_agent(getattr(args, "agent", None))
     if agent:
@@ -608,6 +613,14 @@ def cmd_balance(args: argparse.Namespace) -> int:
 
 def cmd_start(args: argparse.Namespace) -> int:
     root = resolve_repo_root(args.root)
+    if (root / "ledger/vnext/tide-bootstrap.json").is_file():
+        from .task_labels import show_start
+
+        agent = resolve_agent(args.agent)
+        if not agent:
+            print("Set WEA_AGENT or pass `wea start AGENT_ID`.")
+            return EXIT_RUNTIME_ERROR
+        return show_start(args, root, agent)
     payload = load_balances(root)
     agent = resolve_agent(args.agent)
     if not agent:

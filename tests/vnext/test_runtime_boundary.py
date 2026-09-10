@@ -115,6 +115,7 @@ def test_entrypoints_only_expose_the_approved_github_path() -> None:
         ".github/workflows/tide.yml",
         ".github/workflows/guard-vnext-ledger.yml",
         "src/wea_cli/tide.py",  # Read-only canonical projection and next action.
+        "src/wea_cli/task_labels.py",  # Read-only task labels and canonical balance.
         "src/wea_cli/cli.py",  # Command routing and retired-write rejection.
         "scripts/check_invariant.py",  # Read-only replay check.
         "scripts/check_ledger_schema.py",  # Read-only replay check.

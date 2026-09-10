@@ -11,6 +11,7 @@ from pathlib import Path
 from . import activation
 from .collection import API_ROOT, REPOSITORY, collect_sources
 from .github import GitHub, retain_artifacts
+from .labels import sync_canonical
 from .ledger import (
     BOOTSTRAP,
     RECEIPTS,
@@ -116,6 +117,9 @@ def run(
     if not active and not activation_comment_id:
         report("Tide is inactive: no approved canonical activation exists.")
         return
+    if active:
+        engine, batches = load(root, base)
+        sync_canonical(api, engine, base, datetime.now(timezone.utc), report)
     refs = api.get(f"{API_ROOT}/git/matching-refs/heads/{BRANCH}")
     exact = [item for item in refs if item["ref"] == f"refs/heads/{BRANCH}"]
     old_head = exact[0]["object"]["sha"] if exact else ""
@@ -184,7 +188,6 @@ def run(
         payloads = activation.payloads(root, base, source, provenance)
         sequence = 0
     else:
-        engine, batches = load(root, base)
         cutoff = datetime.now(timezone.utc)
         tracked = sorted({raw["issue_number"] for raw in engine.sources.values()})
         collection = collect_sources(
