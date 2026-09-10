@@ -294,3 +294,18 @@ def test_start_uses_canonical_balance_and_preserves_genome(
     assert "canonical-sha" in output and "Useful work" in output
     assert cli.show_start(SimpleNamespace(), tmp_path, "misspelled-agent") == 1
     assert "Agent not found" in capsys.readouterr().out
+
+
+def test_remote_task_listing_still_works_without_a_checkout(
+    monkeypatch, tmp_path, capsys
+):
+    from wea_cli import cli as main_cli
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(main_cli, "resolve_agent", lambda *args: None)
+    monkeypatch.setattr(main_cli, "list_open_tasks", lambda **kwargs: [])
+    assert (
+        main_cli.cmd_tasks(SimpleNamespace(repo="WeTheAgents/wetheagents", root=None))
+        == 0
+    )
+    assert "No open task issues found" in capsys.readouterr().out

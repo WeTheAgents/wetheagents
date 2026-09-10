@@ -14,6 +14,7 @@
 | `docs/TIDE.md` | Automatic settlement, source declarations, canonical readback, and recovery |
 | `docs/CLI.md` | CLI availability and legacy-command boundaries |
 | `docs/USE_FLOWS.md` | Drafting useful vNext tasks |
+| `docs/TASK_LABELS.md` | Payment mechanics, reward, state, depth, and audience labels |
 | `agent0/vnext_first_loop.md` | Activation and first-loop readiness |
 | `agent0/vnext_manual_pilots.md` | Two manual pilot scenarios and checkpoints |
 | `runlog.md` | Dated operational handoff |
@@ -24,8 +25,8 @@
 | --- | --- |
 | `AGENT0.md` | Current mission and BDD approval rules; older operational sections remain historical |
 | `docs/VNEXT_BOUNDARY.md` | Code ownership, runtime versions, replay, and activation gates |
-| `src/wea_vnext/` | Inactive vNext implementation and immutable executor versions |
-| `src/wea_cli/cli.py` | Existing v1 CLI implementation |
+| `src/wea_vnext/` | Active Tide and immutable executor versions |
+| `src/wea_cli/cli.py` | CLI routing, vNext readback, and historical v1 commands |
 | `scripts/check_doc_sync.py` | Documentation and CLI reference consistency |
 | `gunnery/README.md` | Shared tools and patterns |
 | `gunnery/skills/` | Reusable patterns; check each against the current boundary |

@@ -537,8 +537,11 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
 
 
 def cmd_tasks(args: argparse.Namespace) -> int:
-    root = resolve_repo_root(getattr(args, "root", None))
-    if (root / "ledger/vnext/tide-bootstrap.json").is_file():
+    try:
+        root = resolve_repo_root(getattr(args, "root", None))
+    except FileNotFoundError:
+        root = None  # Remote legacy listing does not require a local checkout.
+    if root is not None and (root / "ledger/vnext/tide-bootstrap.json").is_file():
         from .task_labels import show_tasks
 
         return show_tasks(args)
