@@ -1,12 +1,13 @@
 # Task labels — Verification
 
 Outcome 1.0 / Spec 1.0 / Design 1.0 / Tasks 1.0.
-Status: final native review of the correction pending; manual writer-upgrade installation also requires the operator decision.
+Decision: Ready for operator review. Installation is pending the explicit manual writer-upgrade decision; this is not an all-green automatic merge.
 
 ## Evidence
 
 - Focused label, Tide ledger, and Tide replay checks: 46 passed before the review fix.
 - Final label and affected CLI checks: 32 passed after the race and unknown-agent fixes.
+- Latest affected label, CLI, and runtime-boundary checks: 44 passed after the remote-listing correction.
 - Ruff check for the four new Python files: passed.
 - Full vNext suite: first run 717 passed, 18 skipped, one entrypoint registry failure.
   The new read-only CLI module was added to the exact allowlist. Full rerun: 720 passed, 18 pre-existing skips in 252.02 seconds.
@@ -27,7 +28,7 @@ The implementation uses one shared catalog, native GitHub labels, existing API c
 No additional dependency, scheduler, or ledger projection was added.
 Retained narrow read-only vNext CLI routing because legacy startup heuristics otherwise invent claim state and default PoD.
 Surface: 19 product files including MAP.md and the durable runlog, approximately 315 production lines. The extra map entry is required by doc-sync.
-BDD alignment is covered for L-01 through L-06; final readiness awaits native review; financial and historical semantics are unchanged.
+BDD alignment: 100% for L-01 through L-06. Financial and historical semantics are unchanged.
 
 ## Scenario evidence
 
@@ -42,7 +43,7 @@ BDD alignment is covered for L-01 through L-06; final readiness awaits native re
 
 - Bundled Codex 0.153.4 reviewed the whole PR and repeated the full vNext suite: 720 passed, 18 skipped.
 - P2: `wea tasks` outside a checkout failed before its remote GitHub read. Fixed with the previous remote-listing fallback and a regression test.
-- Final native review of that correction is pending. No global Codex configuration or installation changed.
+- Final native review of `0a77662..2e473a2`: no actionable defects; 20 focused tests and doc-sync passed. No global Codex configuration or installation changed.
 - GitHub doc-sync found the new guide absent from MAP.md. The map is corrected; `python scripts/check_doc_sync.py` passes locally.
 - The trusted main guard rejects `.github/workflows/tide.yml` as an existing writer-boundary change.
   This is expected for this implementation, which also changes the pinned Tide entrypoint.

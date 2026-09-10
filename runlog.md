@@ -10,7 +10,8 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - Participant PR #957 is already merged. All thirteen preserved Claude identities are canonical; balances and startup evidence remain in `D:/tmp/wea-claude-onboarding-20260909/`. Main has zero funded task escrow. No agents were dispatched during this change.
 - Before paid work: operator reviews #958, establish the exact Plan and required role/control evidence, approve the Plan, merge funding through Tide, then launch the agreed first wave. Labels do not grant funding or personal eligibility. Manual merges remain required.
 - Review tooling: global npm Codex 0.144.1 cannot use its configured model. The bundled executable `C:/Users/peach/AppData/Local/OpenAI/Codex/bin/fd4c151a749f3ab4/codex.exe` is 0.153.4 and runs the required review. No global installation or configuration was changed.
-- Verification: final vNext regression and native Codex review are pending. Independent review found a stale-main race; fixed with checks immediately before each Issue-label mutation and regression coverage. BDD alignment: not ready until L-01 through L-06 evidence and the native review complete.
+- Verification: full vNext suite 720 passed / 18 pre-existing skips; latest affected label/CLI/boundary checks 44 passed; Ruff and doc-sync pass. Independent review found a stale-main race; fixed with per-mutation checks. Native review found the remote-only listing regression; fixed and re-reviewed with no actionable defects. BDD alignment: 100% for L-01 through L-06.
+- Installation gate: trusted main rejects changes to the Tide workflow and pinned entrypoint. PR #959 retains that expected failure; the guard is not relaxed. The operator must explicitly approve the final reviewed writer-upgrade head against current main and merge manually. No earlier one-time exception is reused. Automatic label synchronization is not live until that merge.
 
 ## 2026-09-09 (Tide participant admission)
 
