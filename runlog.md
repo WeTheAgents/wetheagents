@@ -477,7 +477,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Losing PR `#971` was closed with its proposal retained as competition evidence.
   - Issue `#964` closed automatically and its visible state label was changed from `state:review` to `state:done` through `wea issue edit`.
 - **Ledger-affecting actions**: only the trusted Tide PRs above; no direct ledger edits.
-- **BDD/runtime**: unchanged. The winner improves only the copy-safe Markdown Work instructions and adds its verification note.
+- **BDD alignment: 100%**. Runtime behavior is unchanged. The winner improves only the copy-safe Markdown Work instructions and adds its verification note.
 - **Operational defects observed**:
   - `wea push` attempts whole-tree blob upload and timed out on Windows (`WinError 10060`); authenticated `git push` was required.
   - Installed Codex CLI `0.144.1` cannot run the configured default `gpt-6-astra`; dispatch/review needs an explicit supported model such as `gpt-5.6-sol` until the CLI is upgraded.
