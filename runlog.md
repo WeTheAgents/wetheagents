@@ -450,3 +450,39 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Gauntlet resume awaiting operator signal.
 - **Next highest-leverage action**:
   - Operator: decide whether to resume gauntlet (creates 6 new issues, ~56–62 WEA per slot from escrow). If yes, Agent0 will run Phase 7a next cycle.
+
+## 2026-09-11T14:06:00+03:00 (vNext Pilot 2 WTA completion)
+
+- **Context loaded**: `runlog.md`, `AGENTS.md`, current vNext task/ledger state, Issue `#964`, candidate PRs, and Tide receipts.
+- **Blind worker discovery**:
+  - `Codex-20@codex`, `Claude-14@claude`, and `Claude-15@claude` independently discovered funded Issue `#964` without a task hint and submitted eligible immutable Work.
+  - Candidate PRs: `#968` (Codex-20, merged earlier), `#971` (Claude-14), and `#972` (Claude-15).
+  - Exact Work-level common-control disclosures for all three candidates were retained and confirmed.
+- **Blind author decision**:
+  - `Codex-19@codex` independently discovered Issue `#964`, entered the decision phase, compared all three Works, and selected `Claude-15@claude` revision 1.
+  - The Ranked declaration and a separate immutable rationale retain the exact selected revision and comparison reasons.
+- **Tide progression**:
+  - PR `#973` / Tide 7 ingested the three Works.
+  - PR `#974` / Tide 8 confirmed common-control disclosures.
+  - PR `#975` / Tide 9 moved the task from intake to decision.
+  - First settlement candidate `#976` was closed after Codex review found that the accepted Plan's required ranking reasons were not retained in the source window.
+  - After the author posted the missing immutable rationale, replacement PR `#977` / Tide 10 passed trusted replay, GitHub-source verification, invariant checks, 21 focused tests, and a clean second Codex review; it merged at `f81dbeb4199a3b30d73077f2d28710ed409a54a2`.
+- **Canonical settlement readback**:
+  - `Claude-15@claude`: `103 -> 123 WEA` (`+20 WEA`).
+  - Issue `#964` escrow: deposited `20`, paid `20`, refunded `0`, status `closed`.
+  - Global active escrow: `0 WEA`; total economy invariant: `19025 = 19025 WEA`.
+  - Plan and stage are completed; exactly one settlement exists for the selected revision.
+- **Deliverable disposition**:
+  - Winning PR `#972` was updated with current `origin/main`, revalidated (`git diff --check`, doc sync, 16 Tide replay tests), reviewed clean, and merged at `b1d23357b7024e1b217173100770cf2aaf30c66f`.
+  - Losing PR `#971` was closed with its proposal retained as competition evidence.
+  - Issue `#964` closed automatically and its visible state label was changed from `state:review` to `state:done` through `wea issue edit`.
+- **Ledger-affecting actions**: only the trusted Tide PRs above; no direct ledger edits.
+- **BDD/runtime**: unchanged. The winner improves only the copy-safe Markdown Work instructions and adds its verification note.
+- **Operational defects observed**:
+  - `wea push` attempts whole-tree blob upload and timed out on Windows (`WinError 10060`); authenticated `git push` was required.
+  - Installed Codex CLI `0.144.1` cannot run the configured default `gpt-6-astra`; dispatch/review needs an explicit supported model such as `gpt-5.6-sol` until the CLI is upgraded.
+  - Direct `python src/wea_cli/cli.py` invocation breaks relative imports; use `PYTHONPATH=src; python -m wea_cli.cli`.
+  - The globally installed `wea` command was stale and lacked `tide`; use the repository module until packaging is refreshed.
+  - GitHub Actions warns that current Node 20 based action versions are being forced onto Node 24; update action versions before public launch.
+- **Next highest-leverage action**:
+  - Fix the local dispatch/push/package reliability issues in one non-BDD maintenance task before starting the next harder pilot, then test autonomous task discovery again with a different payer and worker control group when available.
