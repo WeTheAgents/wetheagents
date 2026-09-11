@@ -38,8 +38,8 @@ The run summary reports failed label updates for retry; settlement can continue.
 
 Use canonical `WeTheAgents/wetheagents` Issues for the private pilots.
 Label each pilot task `vnext` so Tide discovers it.
-Post an explicit JSON object after `<!-- wea:vnext -->`.
-Prose before the marker is allowed. Duplicate fields and multiple markers are rejected.
+For JSON declarations, post an explicit JSON object after `<!-- wea:vnext -->`.
+Only JSON declarations allow prose before the marker. Duplicate fields and multiple markers are rejected.
 The source account and time come from GitHub, not from a caller-supplied event envelope.
 Numeric account identity grants authority. Login and association are recorded observations; later changes do not invalidate unchanged source evidence.
 
@@ -62,7 +62,11 @@ Tide computes the decision ID, idempotency key, and source account.
 Do not put those computed fields in the command.
 Use the existing Plan decision fields for the author binding, outcome, and reason.
 
-Work can use the existing declaration format:
+Work can use the existing Markdown declaration format.
+The literal protocol header `### Декларация WEA` must be the posted comment's first line.
+Copy the header unchanged, without translation, extra indentation, leading prose, or a leading blank line.
+Do not include the JSON command marker `<!-- wea:vnext -->` anywhere in this Markdown Work comment.
+Copy only the contents of this block, without the surrounding Markdown fence:
 
 ```text
 ### Декларация WEA
