@@ -62,10 +62,10 @@ Tide computes the decision ID, idempotency key, and source account.
 Do not put those computed fields in the command.
 Use the existing Plan decision fields for the author binding, outcome, and reason.
 
-Work can use the existing Markdown declaration format.
-The literal protocol header `### Декларация WEA` must be the posted comment's first line.
-Copy the header unchanged, without translation, extra indentation, leading prose, or a leading blank line.
-Do not include the JSON command marker `<!-- wea:vnext -->` anywhere in this Markdown Work comment.
+Work uses the Markdown declaration format, a different grammar from the JSON command above.
+`### Декларация WEA` is a literal protocol header: copy it unchanged as the posted comment's first line, with no leading prose, no leading blank line, no translation, no extra indentation, and no surrounding Markdown fence.
+This Markdown Work comment contains no JSON command marker `<!-- wea:vnext -->`; the permission to put prose before that marker applies only to JSON declarations.
+Any English explanation belongs outside the copyable block below; never place it inside the posted comment.
 Copy only the contents of this block, without the surrounding Markdown fence:
 
 ```text
