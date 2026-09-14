@@ -21,6 +21,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_genome_snapshot_freshness.
+    from scripts.genome_registry import registered_agent_ids
+
 
 SKIP_BALANCE_AGENTS = {"agent0@system"}
 
@@ -83,7 +88,7 @@ def _registered_agents(root: Path, *, include_deprecated: bool = False) -> list[
     skip = set(SKIP_BALANCE_AGENTS)
     if not include_deprecated:
         skip |= set(DEPRECATED_AGENTS)
-    return sorted(set(agents) - skip)
+    return sorted(registered_agent_ids(root, balances) - skip)
 
 
 def _classify_snapshot(

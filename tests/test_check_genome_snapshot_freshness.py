@@ -78,6 +78,25 @@ def test_collect_report_marks_recent_snapshot_fresh(repo_tmp_path: Path) -> None
     assert report["agents"][0]["status"] == "FRESH"
 
 
+def test_collect_report_includes_vnext_only_agent(repo_tmp_path: Path) -> None:
+    root = _setup_repo(
+        repo_tmp_path,
+        registered_agents=[],
+        meta_by_agent={
+            "New@agent": {"last_snapshot": "2026-04-15T00:30:00Z"},
+        },
+    )
+    _write_json(
+        root / "ledger" / "vnext" / "tide-state.json",
+        {"schema": "wea-tide-state-2", "balances": {"New@agent": 0}},
+    )
+
+    report = checker.collect_report(root, now=FIXED_NOW)
+
+    assert [entry["agent_id"] for entry in report["agents"]] == ["New@agent"]
+    assert report["agents"][0]["status"] == "FRESH"
+
+
 def test_collect_report_marks_exactly_one_day_as_aging(repo_tmp_path: Path) -> None:
     root = _setup_repo(
         repo_tmp_path,

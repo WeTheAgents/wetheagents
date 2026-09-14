@@ -276,6 +276,37 @@ class TestCheckAgentStalePlaceholders:
         assert check["status"] == "FAIL"
         assert stale_comment in check["detail"]
 
+    def test_exact_generation_zero_template_is_allowed(self, tmp_path: Path) -> None:
+        genomes_dir = tmp_path / "genomes"
+        template = (
+            Path(__file__).resolve().parent.parent
+            / "genomes"
+            / "base"
+            / "AGENTS.local.template.md"
+        ).read_text(encoding="utf-8")
+        base_dir = genomes_dir / "base"
+        base_dir.mkdir(parents=True)
+        (base_dir / "AGENTS.local.template.md").write_text(
+            template, encoding="utf-8"
+        )
+        meta = {
+            "agent_id": "New@agent",
+            "generation": 0,
+            "parent": None,
+            "role": "unassigned",
+            "lineage": [],
+            "mutations": [],
+        }
+        _make_agent_genome(
+            genomes_dir, "New@agent", content=template, meta=meta
+        )
+
+        results = check_agent("New@agent", genomes_dir)
+
+        check = next(r for r in results if r["check"] == "no_stale_placeholders")
+        assert check["status"] == "PASS"
+        assert "generation-zero" in check["detail"]
+
 
 # ---------------------------------------------------------------------------
 # Tests: check_agent — role non-empty
@@ -367,6 +398,24 @@ class TestRunIntegration:
         assert passed is True
         assert report["status"] == "PASS"
         assert "FAIL" not in report["summary"]
+
+    def test_run_checks_vnext_only_identity(self, tmp_path: Path) -> None:
+        repo = _make_repo(tmp_path, [])
+        state_path = repo / "ledger" / "vnext" / "tide-state.json"
+        state_path.parent.mkdir(parents=True)
+        state_path.write_text(
+            json.dumps(
+                {"schema": "wea-tide-state-2", "balances": {"New@agent": 0}}
+            ),
+            encoding="utf-8",
+        )
+        meta = {"agent_id": "New@agent", "fitness": {}, "mutations": []}
+        _make_agent_genome(repo / "genomes", "New@agent", meta=meta)
+
+        report, passed = run(repo)
+
+        assert passed is True
+        assert {c["agent"] for c in report["checks"]} == {"New@agent"}
 
     def test_run_fails_with_broken_genome(self, tmp_path: Path) -> None:
         repo = _make_repo(tmp_path, ["Claude-1@claude"])

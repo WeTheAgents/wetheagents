@@ -26,6 +26,8 @@ Version 1.1. Authority: operator acceptance on 2026-09-14. Outcome 1.0.
   materialized by retained vNext Tide state. The commit guard MUST accept a
   regular agent's exact create-only self-genesis with a matching
   `Genome-Genesis` trailer while preserving release checks for later changes.
+  Content audit MUST accept placeholders only in the exact canonical
+  generation-zero template.
 
 ## Scenarios and evidence
 
