@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -47,7 +48,7 @@ def _install_context(
     present = canonical_paths or set()
     monkeypatch.setattr(
         genome,
-        "_canonical_has_path",
+        "_canonical_path_ever_existed",
         lambda root, commit, path: path in present,
     )
 
@@ -206,3 +207,46 @@ def test_parser_exposes_genome_init_without_reset_option() -> None:
     assert args.dry_run is True
     with pytest.raises(SystemExit):
         parser.parse_args(["genome", "init", "New@claude", "--force"])
+
+
+def test_history_check_rejects_shallow_repository(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(genome, "git", lambda *args: "true")
+
+    with pytest.raises(ValueError, match="Complete origin/main history"):
+        genome._canonical_path_ever_existed(
+            tmp_path, "a" * 40, "genomes/New@claude"
+        )
+
+
+def test_history_check_detects_a_deleted_genome(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "config", "user.email", "test@example.com"],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "config", "user.name", "Test"], check=True
+    )
+    old = tmp_path / "genomes" / "Reset@agent"
+    old.mkdir(parents=True)
+    (old / "AGENTS.local.md").write_text("# old\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "-qm", "add genome"], check=True
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "rm", "-qr", "genomes/Reset@agent"],
+        check=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "-qm", "remove genome"], check=True
+    )
+
+    assert (
+        genome._canonical_path_ever_existed(
+            tmp_path, "HEAD", "genomes/Reset@agent"
+        )
+        is True
+    )

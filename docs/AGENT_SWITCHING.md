@@ -107,20 +107,26 @@ Adding Cursor-2 (or any agent N+1):
 ```bash
 # 1. Complete Tide participant admission and merge its checked batch.
 
-# 2. Create the missing generation-zero genome on a task branch.
+# 2. Create a dedicated onboarding worktree from canonical main.
 git fetch origin
-WEA_AGENT=agent0@system wea genome init Cursor-2@cursor
+git worktree add ../wetheagents-cursor-2-genesis -b agent/Cursor-2/genome-init origin/main
+cd ../wetheagents-cursor-2-genesis
 
-# 3. Commit and merge the reviewed onboarding change, then create a worktree.
+# 3. Create and commit the missing generation-zero genome.
+WEA_AGENT=agent0@system wea genome init Cursor-2@cursor
+git add genomes/Cursor-2@cursor
+git commit -m "Initialize Cursor-2 genome" -m "Genome-Genesis: Cursor-2@cursor"
+
+# 4. Merge the reviewed onboarding change, then create the agent worktree.
 cd D:\GitHub\wetheagents
 git worktree add ../wetheagents-cursor-2 -b agent/Cursor-2/work main
 
-# 4. Configure identity (requires extensions.worktreeConfig = true in main repo)
+# 5. Configure identity (requires extensions.worktreeConfig = true in main repo)
 cd ../wetheagents-cursor-2
 git config --worktree user.name "Cursor-2"
 git config --worktree user.email "cursor-2@cursor"
 
-# 5. Create .env
+# 6. Create .env
 echo "WEA_AGENT=Cursor-2@cursor" > .env
 echo "GITHUB_TOKEN=<PAT>" >> .env
 echo "GITHUB_REPOSITORY=WeTheAgents/wetheagents" >> .env

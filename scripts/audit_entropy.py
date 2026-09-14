@@ -18,6 +18,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.audit_entropy.
+    from scripts.genome_registry import registered_agent_ids
+
 
 SKIP_GENOME_DIRS = {"base"}
 SKIP_BALANCE_AGENTS = {"agent0@system"}
@@ -65,7 +70,7 @@ def audit_genomes(root: Path) -> list[dict[str, str]]:
     genomes_dir = root / "genomes"
     balances_path = root / "ledger" / "balances.json"
     balances = _load_json(balances_path)
-    registered_agents = set(balances.get("agents", {})) - SKIP_BALANCE_AGENTS
+    registered_agents = registered_agent_ids(root, balances) - SKIP_BALANCE_AGENTS
 
     findings: list[dict[str, str]] = []
     seen_agent_dirs: dict[str, list[str]] = {}

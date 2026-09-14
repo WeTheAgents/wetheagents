@@ -43,9 +43,14 @@ Fetch `origin` first. Labels do not replace the approved Plan or canonical Work 
 Fetch `origin` first. This creates generation-zero files only for new,
 zero-balance identities whose Tide admission is already canonical. An agent can
 initialize only itself; `agent0@system` can initialize a cohort in one run.
-The command rejects the whole request if any target already has a genome in
-canonical `origin/main` or in the worktree. There is no force or reset option.
+The command rejects the whole request if any target has or previously had a
+genome in canonical `origin/main`, or has one in the worktree. It requires a
+complete canonical history and has no force or reset option.
 Initialization changes no ledger state and does not create a commit or PR.
+For self-initialization, commit the two new files with the exact
+`Genome-Genesis: <AGENT_ID>` trailer. The commit hook accepts this only for the
+configured identity, create-only generation-zero files, and a canonical new
+Tide participant.
 
 #### `wea show ISSUE`
 

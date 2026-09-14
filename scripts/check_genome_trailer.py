@@ -15,14 +15,21 @@ Usage (called by .githooks/commit-msg):
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from genome_registry import genesis_eligible_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_genome_trailer.
+    from scripts.genome_registry import genesis_eligible_agent_ids
+
 RELEASE_TRAILER = re.compile(r"^Release-Session:\s*#(\d+)", re.MULTILINE)
 AMENDMENT_TRAILER = re.compile(r"^Constitution-Amendment:\s*#(\d+)", re.MULTILINE)
+GENESIS_TRAILER = re.compile(r"^Genome-Genesis:\s*(\S+)\s*$", re.MULTILINE)
 
 AGENT0_IDENTITIES = {"agent0@system"}
 
@@ -67,6 +74,63 @@ def _is_agent0() -> bool:
     return False
 
 
+def _git(*args: str) -> str:
+    result = subprocess.run(
+        ["git", *args], capture_output=True, check=True, text=True
+    )
+    return result.stdout
+
+
+def _is_valid_self_genesis(commit_msg: str) -> bool:
+    """Allow one create-only, canonical, self-owned generation-zero genome."""
+    matches = GENESIS_TRAILER.findall(commit_msg)
+    actor = os.environ.get("WEA_AGENT", "").strip()
+    if len(matches) != 1 or not actor or matches[0] != actor:
+        return False
+    agent_id = actor
+    prefix = f"genomes/{agent_id}/"
+    expected = {
+        prefix + "AGENTS.local.md",
+        prefix + "genome_meta.json",
+    }
+    try:
+        root = Path(_git("rev-parse", "--show-toplevel").strip())
+        if agent_id not in genesis_eligible_agent_ids(root):
+            return False
+        if _git("rev-parse", "--is-shallow-repository").strip() != "false":
+            return False
+        staged = {
+            path.replace("\\", "/")
+            for path in _git(
+                "diff", "--cached", "--name-only", "--", "genomes"
+            ).splitlines()
+        }
+        added = {
+            path.replace("\\", "/")
+            for path in _git(
+                "diff", "--cached", "--diff-filter=A", "--name-only", "--", "genomes"
+            ).splitlines()
+        }
+        if staged != expected or added != expected:
+            return False
+        if _git("log", "-1", "--format=%H", "HEAD", "--", prefix).strip():
+            return False
+        meta = json.loads(_git("show", f":{prefix}genome_meta.json"))
+        template = _git("show", "HEAD:genomes/base/AGENTS.local.template.md")
+        genome = _git("show", f":{prefix}AGENTS.local.md")
+    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+        return False
+    return (
+        isinstance(meta, dict)
+        and meta.get("agent_id") == agent_id
+        and meta.get("generation") == 0
+        and meta.get("parent") is None
+        and meta.get("lineage") == []
+        and meta.get("mutations") == []
+        and genome == template
+    )
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print("Usage: check_genome_trailer.py <commit-msg-file>")
@@ -90,14 +154,19 @@ def main() -> int:
 
     errors = []
 
-    # Check agent genome files → need Release-Session trailer
-    if agent_genomes and not RELEASE_TRAILER.search(commit_msg):
+    # Existing genome changes need a release. One canonical create-only self-genesis
+    # can instead carry a Genome-Genesis trailer matching the configured identity.
+    if (
+        agent_genomes
+        and not _is_valid_self_genesis(commit_msg)
+        and not RELEASE_TRAILER.search(commit_msg)
+    ):
         files_list = ", ".join(agent_genomes)
         errors.append(
             f"GENOME DRIFT BLOCKED: commit modifies agent genome(s):\n"
             f"  {files_list}\n"
             f"\n"
-            f"  Genome changes are only allowed during Release sessions.\n"
+            f"  Existing genome changes are only allowed during Release sessions.\n"
             f"  Add this trailer to your commit message:\n"
             f"\n"
             f"    Release-Session: #<issue_number>\n"

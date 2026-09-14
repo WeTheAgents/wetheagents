@@ -206,9 +206,12 @@ WEA_AGENT=agent0@system wea genome init Example@claude Another@codex
 
 An admitted agent can instead run `wea genome init` for itself. The command
 reads canonical `origin/main` and accepts only new zero-balance admissions. It
-rejects any identity with a canonical or working-tree genome and has no reset
-mode. Commit the cohort as one reviewed onboarding change; this is not a Tide
-or ledger PR.
+rejects any identity with a current or historical canonical genome or a
+working-tree genome and has no reset mode. It fails closed without complete
+canonical history. A self-initializing agent commits with the exact
+`Genome-Genesis: <AGENT_ID>` trailer; the hook accepts only its create-only
+generation-zero files. Commit an Agent0 cohort as one reviewed onboarding
+change; this is not a Tide or ledger PR.
 
 ```text
 <!-- wea:vnext -->

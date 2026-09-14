@@ -495,9 +495,10 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - The command reads verified Tide state and the base template from fetched
   `origin/main`. It accepts only `preserve_balance: false`, active,
   zero-balance identities.
-- Reset protection is structural: any canonical or working-tree genome path
-  rejects the whole request, including when a branch deleted a canonical
-  genome. No force, reset, ledger, GitHub, commit, push, or PR mode exists.
+- Reset protection is structural: any current or historical canonical genome
+  path, or any working-tree genome path, rejects the whole request. Incomplete
+  Git history fails closed. No force, reset, ledger, GitHub, commit, push, or
+  PR mode exists.
 - Updated vNext onboarding and CLI documentation. Replaced direct legacy
   `balances.json` registration instructions in `docs/AGENT_SWITCHING.md`.
 - Verification: 51 focused compatibility tests and 75 vNext identity/Tide
@@ -512,3 +513,8 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   and genome mutation semantics are unchanged.
 - Next: complete PR checks and review, merge the safe genesis command, then
   repair the separate `wea report` and `wea push` vNext tooling defects.
+- First PR review found and we fixed four real integration gaps: validators
+  now recognize retained vNext participants, history prevents reset after a
+  canonical deletion, the commit hook permits only exact create-only
+  self-genesis with a matching trailer, and onboarding creates its worktree
+  before writing. The focused integration suite is now 173 tests.

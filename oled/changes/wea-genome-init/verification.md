@@ -1,8 +1,8 @@
 # Verification: safe genome genesis
 
-Status: implementation verified locally; PR review pending.
+Status: first PR review findings fixed; clean follow-up review pending.
 
-Accepted contract: Outcome 1.0, Spec 1.0, Design 1.0.
+Accepted contract: Outcome 1.0, Spec 1.1, Design 1.1.
 
 Evidence:
 
@@ -31,3 +31,10 @@ existing `Codex-20@codex` genome at 127 lines against its 120-line limit. This
 change neither reads that genome as a template nor modifies it.
 
 Remaining evidence: PR checks and Codex review with no actionable findings.
+
+First Codex review found four integration gaps: vNext-only agents were unknown
+to legacy validators, historical deletions were not checked, self-genesis was
+blocked by the commit hook, and the onboarding recipe did not create its task
+worktree before writing. Spec and Design 1.1 address all four. The focused
+integration suite now has 173 passing tests, including the retained vNext
+registry, validator, commit-guard, and historical deletion boundaries.

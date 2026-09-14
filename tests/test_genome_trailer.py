@@ -1,5 +1,6 @@
 """Tests for genome drift guard (check_genome_trailer.py)."""
 
+import json
 import os
 import subprocess
 import sys
@@ -64,6 +65,24 @@ class TestGenomeDriftGuard:
             with _mock_agent0(False):
                 sys.argv = ["check_genome_trailer.py", f]
                 assert cgt.main() == 0
+
+    def test_valid_self_genesis_passes_without_release_session(self, msg_file):
+        f = msg_file("initialize\n\nGenome-Genesis: New@agent\n")
+        with _mock_staged(agent_genomes=["genomes/New@agent/AGENTS.local.md"]):
+            with _mock_agent0(False), patch.object(
+                cgt, "_is_valid_self_genesis", return_value=True
+            ):
+                sys.argv = ["check_genome_trailer.py", f]
+                assert cgt.main() == 0
+
+    def test_invalid_genesis_still_requires_release_session(self, msg_file):
+        f = msg_file("initialize\n\nGenome-Genesis: Other@agent\n")
+        with _mock_staged(agent_genomes=["genomes/New@agent/AGENTS.local.md"]):
+            with _mock_agent0(False), patch.object(
+                cgt, "_is_valid_self_genesis", return_value=False
+            ):
+                sys.argv = ["check_genome_trailer.py", f]
+                assert cgt.main() == 1
 
     def test_template_without_trailer_blocked(self, msg_file):
         """Base template change without Constitution-Amendment trailer is blocked."""
@@ -132,6 +151,10 @@ class TestTrailerRegex:
         assert cgt.AMENDMENT_TRAILER.search("text\n\nConstitution-Amendment: #1\n")
         assert not cgt.AMENDMENT_TRAILER.search("Constitution-Amendment: 148")
 
+    def test_genesis_format(self):
+        assert cgt.GENESIS_TRAILER.search("Genome-Genesis: New@agent")
+        assert not cgt.GENESIS_TRAILER.search("genome-genesis: New@agent")
+
 
 class TestAgent0Detection:
     """Agent0 identity detection from env and git config."""
@@ -147,3 +170,46 @@ class TestAgent0Detection:
                     args=[], returncode=0, stdout="codex-2@codex\n"
                 )
                 assert cgt._is_agent0() is False
+
+
+def test_self_genesis_checks_identity_shape_template_and_history(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    agent_id = "New@agent"
+    prefix = f"genomes/{agent_id}/"
+    files = prefix + "AGENTS.local.md\n" + prefix + "genome_meta.json\n"
+    meta = json.dumps(
+        {
+            "agent_id": agent_id,
+            "generation": 0,
+            "parent": None,
+            "lineage": [],
+            "mutations": [],
+        }
+    )
+
+    def fake_git(*args: str) -> str:
+        if args == ("rev-parse", "--show-toplevel"):
+            return str(tmp_path)
+        if args == ("rev-parse", "--is-shallow-repository"):
+            return "false\n"
+        if args[:3] == ("diff", "--cached", "--name-only"):
+            return files
+        if args[:4] == ("diff", "--cached", "--diff-filter=A", "--name-only"):
+            return files
+        if args[0] == "log":
+            return ""
+        if args == ("show", f":{prefix}genome_meta.json"):
+            return meta
+        if args in {
+            ("show", "HEAD:genomes/base/AGENTS.local.template.md"),
+            ("show", f":{prefix}AGENTS.local.md"),
+        }:
+            return "# template\n"
+        raise AssertionError(args)
+
+    monkeypatch.setenv("WEA_AGENT", agent_id)
+    monkeypatch.setattr(cgt, "_git", fake_git)
+    monkeypatch.setattr(cgt, "genesis_eligible_agent_ids", lambda root: {agent_id})
+
+    assert cgt._is_valid_self_genesis(f"Genome-Genesis: {agent_id}\n") is True

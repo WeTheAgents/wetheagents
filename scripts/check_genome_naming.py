@@ -21,6 +21,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_genome_naming.
+    from scripts.genome_registry import registered_agent_ids
+
 
 _SKIP_DIRS = {"base", "code-stylist"}
 _REF_FIELDS = ("parent", "donor_lineage", "lineage")
@@ -66,7 +71,7 @@ def run(root: Path, strict: bool = False) -> int:
     if balances is None:
         print(f"ERROR: cannot load {balances_path}", file=sys.stderr)
         return 1
-    known_agents: set[str] = set(balances.get("agents", {}).keys())
+    known_agents = registered_agent_ids(root, balances)
 
     errors: list[str] = []
     warnings: list[str] = []

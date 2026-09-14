@@ -43,8 +43,13 @@ def _git_text(root: Path, *args: str) -> str:
     return result.stdout.decode("utf-8")
 
 
-def _canonical_has_path(root: Path, commit: str, path: str) -> bool:
-    return bool(git(root, "ls-tree", "-r", "--name-only", commit, "--", path))
+def _canonical_path_ever_existed(root: Path, commit: str, path: str) -> bool:
+    if git(root, "rev-parse", "--is-shallow-repository") != "false":
+        raise ValueError(
+            "Complete origin/main history is required to prove that a genome "
+            "never existed."
+        )
+    return bool(git(root, "log", "-1", "--format=%H", commit, "--", path))
 
 
 def _canonical_context(root: Path) -> CanonicalGenomeContext:
@@ -150,9 +155,9 @@ def _validate(
                 f"in canonical {CANONICAL_REF}."
             )
         relative = f"genomes/{agent_id}"
-        if _canonical_has_path(root, context.commit, relative):
+        if _canonical_path_ever_existed(root, context.commit, relative):
             raise ValueError(
-                f"Canonical genome already exists for {agent_id}; "
+                f"Canonical genome exists or existed for {agent_id}; "
                 "init cannot reset it."
             )
         if (root / relative).exists():
