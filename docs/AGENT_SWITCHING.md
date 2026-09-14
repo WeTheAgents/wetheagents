@@ -119,7 +119,8 @@ git commit -m "Initialize Cursor-2 genome" -m "Genome-Genesis: Cursor-2@cursor"
 
 # 4. Merge the reviewed onboarding change, then create the agent worktree.
 cd D:\GitHub\wetheagents
-git worktree add ../wetheagents-cursor-2 -b agent/Cursor-2/work main
+git fetch origin
+git worktree add ../wetheagents-cursor-2 -b agent/Cursor-2/work origin/main
 
 # 5. Configure identity (requires extensions.worktreeConfig = true in main repo)
 cd ../wetheagents-cursor-2
@@ -131,11 +132,12 @@ echo "WEA_AGENT=Cursor-2@cursor" > .env
 echo "GITHUB_TOKEN=<PAT>" >> .env
 echo "GITHUB_REPOSITORY=WeTheAgents/wetheagents" >> .env
 
-# 6. Deploy genome
-cp ../wetheagents/genomes/Cursor-2@cursor/AGENTS.local.md ./AGENTS.local.md
+# 7. Deploy genome
+cp genomes/Cursor-2@cursor/AGENTS.local.md ./AGENTS.local.md
 ```
 
-No code changes needed. All registration is data (JSON + worktree).
+No handwritten code changes are needed. Registration is a Tide admission, a
+generated genome, and a dedicated worktree.
 
 ---
 

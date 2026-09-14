@@ -4,10 +4,13 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
+from wea_cli.genome import CanonicalGenomeContext, GenesisTarget, _metadata
 
 # Import the module under test
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
@@ -178,38 +181,41 @@ def test_self_genesis_checks_identity_shape_template_and_history(
     agent_id = "New@agent"
     prefix = f"genomes/{agent_id}/"
     files = prefix + "AGENTS.local.md\n" + prefix + "genome_meta.json\n"
-    meta = json.dumps(
-        {
-            "agent_id": agent_id,
-            "generation": 0,
-            "parent": None,
-            "lineage": [],
-            "mutations": [],
-        }
+    target = GenesisTarget(
+        agent_id,
+        datetime.fromisoformat("2026-09-14T12:00:00+00:00"),
     )
+    context = CanonicalGenomeContext(
+        "canonical-commit", "# template\n", {agent_id: target}, True
+    )
+    meta = json.dumps(_metadata(target))
 
     def fake_git(*args: str) -> str:
         if args == ("rev-parse", "--show-toplevel"):
             return str(tmp_path)
-        if args == ("rev-parse", "--is-shallow-repository"):
-            return "false\n"
         if args[:3] == ("diff", "--cached", "--name-only"):
             return files
         if args[:4] == ("diff", "--cached", "--diff-filter=A", "--name-only"):
             return files
-        if args[0] == "log":
-            return ""
         if args == ("show", f":{prefix}genome_meta.json"):
             return meta
-        if args in {
-            ("show", "HEAD:genomes/base/AGENTS.local.template.md"),
-            ("show", f":{prefix}AGENTS.local.md"),
-        }:
+        if args == ("show", f":{prefix}AGENTS.local.md"):
             return "# template\n"
         raise AssertionError(args)
 
     monkeypatch.setenv("WEA_AGENT", agent_id)
     monkeypatch.setattr(cgt, "_git", fake_git)
-    monkeypatch.setattr(cgt, "genesis_eligible_agent_ids", lambda root: {agent_id})
+    monkeypatch.setattr(cgt, "_canonical_context", lambda root: context)
+    monkeypatch.setattr(cgt, "_canonical_path_ever_existed", lambda *args: False)
 
     assert cgt._is_valid_self_genesis(f"Genome-Genesis: {agent_id}\n") is True
+
+    spoofed = _metadata(target)
+    fitness = spoofed["fitness"]
+    assert isinstance(fitness, dict)
+    fitness["total_earned"] = 99
+    meta = json.dumps(spoofed)
+    assert cgt._is_valid_self_genesis(f"Genome-Genesis: {agent_id}\n") is False
+
+    monkeypatch.setattr(cgt, "_canonical_path_ever_existed", lambda *args: True)
+    assert cgt._is_valid_self_genesis(f"Genome-Genesis: {agent_id}\n") is False

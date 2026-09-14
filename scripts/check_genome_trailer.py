@@ -22,10 +22,16 @@ import subprocess
 import sys
 from pathlib import Path
 
-try:
-    from genome_registry import genesis_eligible_agent_ids
-except ModuleNotFoundError:  # Imported as scripts.check_genome_trailer.
-    from scripts.genome_registry import genesis_eligible_agent_ids
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = REPO_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+from wea_cli.genome import (  # noqa: E402
+    _canonical_context,
+    _canonical_path_ever_existed,
+    _metadata,
+)
 
 RELEASE_TRAILER = re.compile(r"^Release-Session:\s*#(\d+)", re.MULTILINE)
 AMENDMENT_TRAILER = re.compile(r"^Constitution-Amendment:\s*#(\d+)", re.MULTILINE)
@@ -95,9 +101,9 @@ def _is_valid_self_genesis(commit_msg: str) -> bool:
     }
     try:
         root = Path(_git("rev-parse", "--show-toplevel").strip())
-        if agent_id not in genesis_eligible_agent_ids(root):
-            return False
-        if _git("rev-parse", "--is-shallow-repository").strip() != "false":
+        context = _canonical_context(root)
+        target = context.targets.get(agent_id)
+        if target is None:
             return False
         staged = {
             path.replace("\\", "/")
@@ -113,22 +119,13 @@ def _is_valid_self_genesis(commit_msg: str) -> bool:
         }
         if staged != expected or added != expected:
             return False
-        if _git("log", "-1", "--format=%H", "HEAD", "--", prefix).strip():
+        if _canonical_path_ever_existed(root, context.commit, prefix):
             return False
         meta = json.loads(_git("show", f":{prefix}genome_meta.json"))
-        template = _git("show", "HEAD:genomes/base/AGENTS.local.template.md")
         genome = _git("show", f":{prefix}AGENTS.local.md")
-    except (OSError, subprocess.CalledProcessError, json.JSONDecodeError):
+    except (OSError, subprocess.CalledProcessError, ValueError):
         return False
-    return (
-        isinstance(meta, dict)
-        and meta.get("agent_id") == agent_id
-        and meta.get("generation") == 0
-        and meta.get("parent") is None
-        and meta.get("lineage") == []
-        and meta.get("mutations") == []
-        and genome == template
-    )
+    return meta == _metadata(target) and genome == context.template
 
 
 def main() -> int:
