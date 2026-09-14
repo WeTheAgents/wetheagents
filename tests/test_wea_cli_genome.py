@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from wea_cli import cli, genome
+from wea_cli import cli, genome, genome_context
 
 
 def _root(tmp_path: Path) -> Path:
@@ -188,9 +188,9 @@ def test_canonical_context_allows_only_new_active_zero_balance_identities(
             ]
         ),
     )
-    monkeypatch.setattr(genome, "git", lambda *args: "b" * 40)
-    monkeypatch.setattr(genome, "load", lambda *args: (engine, []))
-    monkeypatch.setattr(genome, "_git_text", lambda *args: "# template\n")
+    monkeypatch.setattr(genome_context, "git", lambda *args: "b" * 40)
+    monkeypatch.setattr(genome_context, "load", lambda *args: engine)
+    monkeypatch.setattr(genome_context, "_git_text", lambda *args: "# template\n")
 
     context = genome._canonical_context(root)
 
@@ -212,7 +212,7 @@ def test_parser_exposes_genome_init_without_reset_option() -> None:
 def test_history_check_rejects_shallow_repository(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(genome, "git", lambda *args: "true")
+    monkeypatch.setattr(genome_context, "git", lambda *args: "true")
 
     with pytest.raises(ValueError, match="Complete origin/main history"):
         genome._canonical_path_ever_existed(

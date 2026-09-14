@@ -28,7 +28,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from wea_cli.config import resolve_agent  # noqa: E402
-from wea_cli.genome import (  # noqa: E402
+from wea_cli.genome_context import (  # noqa: E402
     _canonical_context,
     _canonical_path_ever_existed,
     _metadata,
