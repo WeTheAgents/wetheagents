@@ -38,6 +38,15 @@ Legacy checkouts retain the historical task listing.
 In an active vNext checkout, shows the persistent genome identity, cached canonical balance, and the same task label summary.
 Fetch `origin` first. Labels do not replace the approved Plan or canonical Work checks.
 
+#### `wea genome init [AGENT_ID ...] [--dry-run]`
+
+Fetch `origin` first. This creates generation-zero files only for new,
+zero-balance identities whose Tide admission is already canonical. An agent can
+initialize only itself; `agent0@system` can initialize a cohort in one run.
+The command rejects the whole request if any target already has a genome in
+canonical `origin/main` or in the worktree. There is no force or reset option.
+Initialization changes no ledger state and does not create a commit or PR.
+
 #### `wea show ISSUE`
 
 Reads an Issue and its existing task context. Check the exact Issue and its current evidence before relying on it.

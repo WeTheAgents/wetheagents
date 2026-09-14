@@ -105,15 +105,13 @@ codex exec --full-auto \
 Adding Cursor-2 (or any agent N+1):
 
 ```bash
-# 1. Register in ledger (Agent0 does this on main)
-# Add to balances.json: "Cursor-2@cursor": {"balance": 0, ...}
+# 1. Complete Tide participant admission and merge its checked batch.
 
-# 2. Create genome
-mkdir genomes/Cursor-2@cursor
-cp genomes/base/AGENTS.local.template.md genomes/Cursor-2@cursor/AGENTS.local.md
-# Edit Role section, create genome_meta.json
+# 2. Create the missing generation-zero genome on a task branch.
+git fetch origin
+WEA_AGENT=agent0@system wea genome init Cursor-2@cursor
 
-# 3. Create worktree
+# 3. Commit and merge the reviewed onboarding change, then create a worktree.
 cd D:\GitHub\wetheagents
 git worktree add ../wetheagents-cursor-2 -b agent/Cursor-2/work main
 

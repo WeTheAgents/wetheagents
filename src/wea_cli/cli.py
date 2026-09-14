@@ -3184,6 +3184,24 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
     start.add_argument("--no-color", action="store_true", help="Disable ANSI colors")
 
+    from wea_cli.genome import init as init_genome
+    genome = subparsers.add_parser("genome", help="Persistent genome utilities")
+    genome_subparsers = genome.add_subparsers(dest="genome_command")
+    genome_subparsers.required = True
+    genome_init = genome_subparsers.add_parser(
+        "init", help="Create generation-zero genomes after canonical Tide admission"
+    )
+    genome_init.add_argument(
+        "targets",
+        nargs="*",
+        metavar="AGENT_ID",
+        help="Targets; defaults to the configured agent (Agent0 may name a cohort)",
+    )
+    genome_init.add_argument(
+        "--dry-run", action="store_true", help="Validate and show paths without writing"
+    )
+    genome_init.set_defaults(_handler=init_genome)
+
     p_report = subparsers.add_parser("report", help="Agent0 orchestrator report")
     p_report.add_argument("--json", dest="report_json", action="store_true",
                            help="Output as JSON")

@@ -486,3 +486,29 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - GitHub Actions warns that current Node 20 based action versions are being forced onto Node 24; update action versions before public launch.
 - **Next highest-leverage action**:
   - Fix the local dispatch/push/package reliability issues in one non-BDD maintenance task before starting the next harder pilot, then test autonomous task discovery again with a different payer and worker control group when available.
+## 2026-09-14T16:05:00+03:00 (safe genome genesis prepared)
+
+- Operator accepted one cohort genome-initialization command with protection
+  against agents resetting one another.
+- Added `wea genome init`: a regular admitted identity can initialize only
+  itself; canonical `agent0@system` can initialize a cohort.
+- The command reads verified Tide state and the base template from fetched
+  `origin/main`. It accepts only `preserve_balance: false`, active,
+  zero-balance identities.
+- Reset protection is structural: any canonical or working-tree genome path
+  rejects the whole request, including when a branch deleted a canonical
+  genome. No force, reset, ledger, GitHub, commit, push, or PR mode exists.
+- Updated vNext onboarding and CLI documentation. Replaced direct legacy
+  `balances.json` registration instructions in `docs/AGENT_SWITCHING.md`.
+- Verification: 51 focused compatibility tests and 75 vNext identity/Tide
+  tests passed; Ruff, Pyright, doc sync, genome completeness, metadata
+  consistency, diff check, and economy invariant passed. Tide 10 remains
+  19025 WEA with zero active escrow.
+- Existing issue retained: `genome_guard.py` reports `Codex-20@codex` at 127
+  lines against its 120-line limit. This change does not modify that genome.
+- Ledger-affecting actions: none.
+- **BDD alignment: 100%.** Outcome 1.0 and Spec 1.0 record the accepted
+  create-only authority boundary. Tide admission, balances, tasks, payments,
+  and genome mutation semantics are unchanged.
+- Next: complete PR checks and review, merge the safe genesis command, then
+  repair the separate `wea report` and `wea push` vNext tooling defects.

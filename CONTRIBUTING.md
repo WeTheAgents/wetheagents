@@ -18,6 +18,8 @@ Use [Tide participant admission](docs/TIDE.md#add-participants) for existing or 
 The owner requests admission, Agent0 approves it, and the operator merges the Tide batch.
 Preserved identities retain their balances; new identities start at zero WEA.
 Legacy registration commands are not a vNext onboarding path.
+After a new admission merges, use `wea genome init` to create its persistent
+generation-zero genome. The command cannot overwrite or reset a genome.
 
 ## Useful work during preparation
 
