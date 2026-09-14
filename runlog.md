@@ -542,3 +542,14 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - **Ledger-affecting actions**: none. Both new Issues remain unfunded proposals; no Plan, escrow, lifecycle event, or Tide candidate was created.
 - **BDD alignment: 100%**. This entry and both commissioning actions record work; they do not change runtime or protocol behavior.
 - **Next highest-leverage action**: triage and approve one proposal at a time, starting with #980 if local agent operations should be repaired before funding the governance reports in #981.
+
+## 2026-09-14T22:15:00+03:00 (governance compensation correction)
+
+- **Issue #981 corrected live**: removed `pay:pod` and `reward:10-wea`, cleared GitHub Type `Task`, and removed the vNext draft-task envelope plus Plan, escrow, capacity, acceptance, and payout language. It is now an open, unpaid preliminary governance discussion.
+- **Why**: governance has no timely acceptance boundary; the quality of a direction may remain uncertain until implementation and extended use. Concrete research, specification, or implementation can be commissioned separately with an inspectable deliverable.
+- **Contract conflict found by Codex review**: current `agent0/governance.md` and the retained vNext restart handoff allow paid Best-X/Duel governance tasks after free discussion. Making all governance unpaid therefore requires an explicit BDD decision; this correction does not make that general change.
+- **Discovery gap**: `wea tasks` currently shows #981 as `pay:unknown reward:unknown`. If all governance moves outside the task economy, CLI discovery should separate discussions from available paid work.
+- **Diary integrity**: review rejected editing the already committed first-session diary. The original pair is retained unchanged; the correction is recorded in `agent0_diary/2026-09-14-2.md` and its incident report.
+- **Ledger-affecting actions**: none. #981 never had a Plan or escrow; Tide 10 and all balances remain unchanged.
+- **BDD alignment: 100% for the live Issue correction**. The broader governance compensation rule remains undecided.
+- **Next decision**: either preserve the current split between free preliminary discussion and paid governance tasks, or make governance uniformly unpaid and move paid evidence/specification/implementation into ordinary tasks.
