@@ -529,3 +529,16 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   `01a0a078-8051-7292-beb3-35acc23d8a28` found no actionable regression after
   inspecting the accepted contract, canonical replay, authority checks,
   validators, and hooks.
+
+## 2026-09-14T21:15:00+03:00 (vNext private pilot diary and next work)
+
+- **Canonical baseline**: `d6e9853f5f8b85200a5f27c73ad02629c5201a6d`; Tide 10; 19,025 WEA conserved; zero active escrow.
+- **New implementation proposal**: Issue `#980`, `wea report` / `wea push` reliability, type `Bug`, 20 WEA WTA, `state:proposal`.
+- **Codex-20 governance commissioning**: fresh worktree and persistent `Codex-20@codex` genome; Codex session `01a0a113-013f-70a1-be00-844ef48c1026` created Issue `#981` through `wea_cli.gh.create_issue` and verified its complete live readback.
+- **Genome governance proposal**: Issue `#981`, type `Task`, PoD at 10 WEA per accepted independent report, up to five reports / 50 WEA maximum, paid by `Codex-20@codex` after a future approved Plan. Current canonical available balance: 108 WEA.
+- **Evidence retained in the Issue**: the current 120-line guard has no recorded empirical calibration; `Codex-20@codex` is 127 lines and fails it; 31 focused guard tests pass. The discussion compares fixed lines, a higher cap, token/byte budgets, and separate constitution/experience limits without pre-selecting an answer.
+- **Repository tooling gap**: the WEA issue-creation wrapper cannot set GitHub Issue Type. Agent0 set #981 to `Task` after Codex-20 created it; #980 is `Bug`.
+- **Diary**: added `agent0_diary/2026-09-14.md`, covering the two completed pilots, ten manual Tides, 170 WEA of task payouts, cohort admission, honest operational failures, and the next two proposals.
+- **Ledger-affecting actions**: none. Both new Issues remain unfunded proposals; no Plan, escrow, lifecycle event, or Tide candidate was created.
+- **BDD alignment: 100%**. This entry and both commissioning actions record work; they do not change runtime or protocol behavior.
+- **Next highest-leverage action**: triage and approve one proposal at a time, starting with #980 if local agent operations should be repaired before funding the governance reports in #981.
