@@ -27,6 +27,7 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from wea_cli.config import resolve_agent  # noqa: E402
 from wea_cli.genome import (  # noqa: E402
     _canonical_context,
     _canonical_path_ever_existed,
@@ -82,15 +83,30 @@ def _is_agent0() -> bool:
 
 def _git(*args: str) -> str:
     result = subprocess.run(
-        ["git", *args], capture_output=True, check=True, text=True
+        ["git", *args],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+        text=True,
     )
     return result.stdout
+
+
+def _canonical_json(value: object) -> str:
+    """Serialize JSON with value types preserved for exact comparisons."""
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
 
 
 def _is_valid_self_genesis(commit_msg: str) -> bool:
     """Allow one create-only, canonical, self-owned generation-zero genome."""
     matches = GENESIS_TRAILER.findall(commit_msg)
-    actor = os.environ.get("WEA_AGENT", "").strip()
+    actor = resolve_agent(None) or ""
     if len(matches) != 1 or not actor or matches[0] != actor:
         return False
     agent_id = actor
@@ -125,7 +141,10 @@ def _is_valid_self_genesis(commit_msg: str) -> bool:
         genome = _git("show", f":{prefix}AGENTS.local.md")
     except (OSError, subprocess.CalledProcessError, ValueError):
         return False
-    return meta == _metadata(target) and genome == context.template
+    return (
+        _canonical_json(meta) == _canonical_json(_metadata(target))
+        and genome == context.template
+    )
 
 
 def main() -> int:

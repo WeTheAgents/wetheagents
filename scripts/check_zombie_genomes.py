@@ -24,6 +24,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_zombie_genomes.
+    from scripts.genome_registry import registered_agent_ids
+
 SKIP_GENOME_DIRS: set[str] = {"base"}
 
 
@@ -75,7 +80,7 @@ def run(root: Path) -> tuple[dict[str, Any], bool]:
             "summary": "genomes/ directory not found",
         }, True
 
-    registered_agents = set(agents)
+    registered_agents = registered_agent_ids(root, balances)
     zombies: list[dict[str, str]] = []
 
     try:
@@ -107,20 +112,32 @@ def run(root: Path) -> tuple[dict[str, Any], bool]:
         return {
             "status": "FAIL",
             "zombies": zombies,
-            "summary": f"{count} zombie genome dir{'s' if count != 1 else ''} found: {names}",
+            "summary": (
+                f"{count} zombie genome dir{'s' if count != 1 else ''} "
+                f"found: {names}"
+            ),
         }, False
 
-    checked = sum(1 for entry in entries if entry.is_dir() and entry.name not in SKIP_GENOME_DIRS)
+    checked = sum(
+        1
+        for entry in entries
+        if entry.is_dir() and entry.name not in SKIP_GENOME_DIRS
+    )
     return {
         "status": "PASS",
         "zombies": [],
-        "summary": f"{checked} genome dir{'s' if checked != 1 else ''} checked, no zombies found",
+        "summary": (
+            f"{checked} genome dir{'s' if checked != 1 else ''} checked, "
+            "no zombies found"
+        ),
     }, True
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Detect genomes/ directories that do not belong to registered agents."
+        description=(
+            "Detect genomes/ directories that do not belong to registered agents."
+        )
     )
     parser.add_argument(
         "--root",

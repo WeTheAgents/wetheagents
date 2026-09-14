@@ -217,5 +217,27 @@ def test_self_genesis_checks_identity_shape_template_and_history(
     meta = json.dumps(spoofed)
     assert cgt._is_valid_self_genesis(f"Genome-Genesis: {agent_id}\n") is False
 
+    spoofed = _metadata(target)
+    spoofed["generation"] = False
+    meta = json.dumps(spoofed)
+    assert cgt._is_valid_self_genesis(f"Genome-Genesis: {agent_id}\n") is False
+
     monkeypatch.setattr(cgt, "_canonical_path_ever_existed", lambda *args: True)
     assert cgt._is_valid_self_genesis(f"Genome-Genesis: {agent_id}\n") is False
+
+
+def test_self_genesis_uses_shared_identity_resolution(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, ...]] = []
+
+    def unavailable_git(*args: str) -> str:
+        calls.append(args)
+        raise subprocess.CalledProcessError(1, ["git", *args])
+
+    monkeypatch.delenv("WEA_AGENT", raising=False)
+    monkeypatch.setattr(cgt, "resolve_agent", lambda explicit=None: "Config@agent")
+    monkeypatch.setattr(cgt, "_git", unavailable_git)
+
+    assert cgt._is_valid_self_genesis("Genome-Genesis: Config@agent\n") is False
+    assert calls == [("rev-parse", "--show-toplevel")]

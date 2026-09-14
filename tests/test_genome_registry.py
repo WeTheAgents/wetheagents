@@ -6,6 +6,7 @@ from pathlib import Path
 from scripts.check_cross_file_integrity import check_genome_dir_agent_ids
 from scripts.check_genome_naming import run as check_names
 from scripts.check_orphan_genome_dirs import run_check as check_orphans
+from scripts.check_zombie_genomes import run as check_zombies
 from scripts.genome_registry import genesis_eligible_agent_ids, registered_agent_ids
 
 
@@ -74,4 +75,5 @@ def test_legacy_genome_validators_accept_vnext_participant(tmp_path: Path) -> No
 
     assert check_names(tmp_path) == 0
     assert check_orphans(tmp_path)[1] == 0
+    assert check_zombies(tmp_path)[1] is True
     assert check_genome_dir_agent_ids(tmp_path, legacy) == []
