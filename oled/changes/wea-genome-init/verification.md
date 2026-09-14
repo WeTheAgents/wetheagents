@@ -1,7 +1,6 @@
 # Verification: safe genome genesis
 
-Status: implementation and integration review clean through commit `879e601`;
-exact-head review pending after the CI-boundary repair.
+Status: verified and review-clean at implementation head `f5ffea6`.
 
 Accepted contract: Outcome 1.0, Spec 1.1, Design 1.1.
 
@@ -51,3 +50,7 @@ worktree before writing. Spec and Design 1.1 address all four. The focused
 integration suite now has 307 passing tests and 3 expected failures, including
 the retained vNext registry, validator, commit-guard, historical deletion, Tide
 replay, and runtime-boundary checks.
+
+Final Codex review session `01a0a078-8051-7292-beb3-35acc23d8a28` inspected the
+complete change after the boundary repair, ran 106 affected tests, and reported
+no actionable regression.

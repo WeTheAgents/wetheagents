@@ -6,5 +6,5 @@
 - [x] Replace legacy manual onboarding instructions with the vNext command.
 - [x] Align genome validators and the commit hook with vNext genesis.
 - [x] Reject genomes that existed anywhere in canonical history.
-- [ ] Run focused tests, doc sync, invariant, and review until clean.
+- [x] Run focused tests, doc sync, invariant, and review until clean.
 - [x] Record implementation evidence in `verification.md` and `runlog.md`.
