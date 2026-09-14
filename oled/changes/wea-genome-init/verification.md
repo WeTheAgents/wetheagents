@@ -1,6 +1,7 @@
 # Verification: safe genome genesis
 
-Status: first PR review findings fixed; clean follow-up review pending.
+Status: implementation and integration review clean through commit `879e601`;
+exact-head review pending after the CI-boundary repair.
 
 Accepted contract: Outcome 1.0, Spec 1.1, Design 1.1.
 
@@ -25,16 +26,28 @@ Evidence:
 - `python scripts/check_invariant.py --root .`: pass, 19025 WEA equals 19025
   WEA at Tide 10.
 - `git diff --check`: pass.
+- Comprehensive genome, Tide identity/participant/ledger, and runtime-boundary
+  suite: 307 passed and 3 expected failures.
+- The read-only genesis replay produces the exact state returned by the
+  canonical Tide loader at the current `origin/main` commit.
 
 Known unrelated repository defect: the full `genome_guard.py` run rejects the
 existing `Codex-20@codex` genome at 127 lines against its 120-line limit. This
 change neither reads that genome as a template nor modifies it.
 
-Remaining evidence: PR checks and Codex review with no actionable findings.
+The GitHub runtime-boundary check originally rejected the new read-only command
+path. The approved allowlist now names the read-only genesis context, and the
+same test passes locally. The trusted writer guard still rejects the intentional
+change to `src/wea_cli/cli.py`: during the private pilot it rejects every edit to
+an existing writer-boundary source, including an approved command-router edit.
+This expected administrative override is limited to that one protected file;
+the genesis implementation and commit hook add no writer to the trusted
+universe.
 
 First Codex review found four integration gaps: vNext-only agents were unknown
 to legacy validators, historical deletions were not checked, self-genesis was
 blocked by the commit hook, and the onboarding recipe did not create its task
 worktree before writing. Spec and Design 1.1 address all four. The focused
-integration suite now has 173 passing tests, including the retained vNext
-registry, validator, commit-guard, and historical deletion boundaries.
+integration suite now has 307 passing tests and 3 expected failures, including
+the retained vNext registry, validator, commit-guard, historical deletion, Tide
+replay, and runtime-boundary checks.

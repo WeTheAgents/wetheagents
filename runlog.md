@@ -501,8 +501,8 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   PR mode exists.
 - Updated vNext onboarding and CLI documentation. Replaced direct legacy
   `balances.json` registration instructions in `docs/AGENT_SWITCHING.md`.
-- Verification: 51 focused compatibility tests and 75 vNext identity/Tide
-  tests passed; Ruff, Pyright, doc sync, genome completeness, metadata
+- Verification: 307 comprehensive genome and vNext identity/Tide/runtime tests
+  passed with 3 expected failures; Ruff, Pyright, doc sync, genome completeness, metadata
   consistency, diff check, and economy invariant passed. Tide 10 remains
   19025 WEA with zero active escrow.
 - Existing issue retained: `genome_guard.py` reports `Codex-20@codex` at 127
@@ -511,10 +511,17 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - **BDD alignment: 100%.** Outcome 1.0 and Spec 1.0 record the accepted
   create-only authority boundary. Tide admission, balances, tasks, payments,
   and genome mutation semantics are unchanged.
-- Next: complete PR checks and review, merge the safe genesis command, then
+- Next: complete exact-head review, merge the safe genesis command, then
   repair the separate `wea report` and `wea push` vNext tooling defects.
 - First PR review found and we fixed four real integration gaps: validators
   now recognize retained vNext participants, history prevents reset after a
   canonical deletion, the commit hook permits only exact create-only
   self-genesis with a matching trailer, and onboarding creates its worktree
-  before writing. The focused integration suite is now 173 tests.
+  before writing. Later review rounds closed identity, metadata, Windows Git
+  decoding, pristine-template audit, and vNext registry gaps. The comprehensive
+  integration suite is now 307 passing tests with 3 expected failures.
+- CI boundary readback: the runtime-boundary suite now passes. The trusted
+  writer guard still rejects the intentional `src/wea_cli/cli.py` router change
+  because private-pilot policy rejects every edit to an existing protected
+  writer source. No new writer is added; merge requires the accepted BDD
+  administrative override.
