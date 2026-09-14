@@ -9,7 +9,6 @@ import pytest
 
 from scripts.check_genome_completeness import run, REQUIRED_META_FIELDS
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -133,6 +132,29 @@ def test_missing_genome_meta_json(tmp_path: Path) -> None:
     assert passed is False
     fails = [c for c in result["checks"] if c["status"] == "FAIL"]
     assert any(c["check"] == "genome_meta_present" for c in fails)
+
+
+def test_vnext_only_genome_is_checked(tmp_path: Path) -> None:
+    """An identity materialized only by Tide receives full genome checks."""
+    root = _make_repo(tmp_path, [])
+    state_path = root / "ledger" / "vnext" / "tide-state.json"
+    state_path.parent.mkdir(parents=True)
+    state_path.write_text(
+        json.dumps({"schema": "wea-tide-state-2", "balances": {"New@agent": 0}}),
+        encoding="utf-8",
+    )
+    genome_dir = root / "genomes" / "New@agent"
+    genome_dir.mkdir()
+    (genome_dir / "AGENTS.local.md").write_text("# genome", encoding="utf-8")
+
+    result, passed = run(root)
+
+    assert passed is False
+    fails = [c for c in result["checks"] if c["status"] == "FAIL"]
+    assert any(
+        c["check"] == "genome_meta_present" and c["agent"] == "New@agent"
+        for c in fails
+    )
 
 
 def test_invalid_json_in_meta(tmp_path: Path) -> None:

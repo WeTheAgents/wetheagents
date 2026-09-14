@@ -270,14 +270,14 @@ def run(root: Path) -> tuple[dict[str, Any], bool]:
             "summary": "balances.json 'agents' is not a dictionary",
         }, False
 
-    agent_ids = {aid for aid in agents_data if aid not in _SKIP_AGENTS}
+    recognized_ids = registered_agent_ids(root, balances)
+    agent_ids = recognized_ids - _SKIP_AGENTS
 
     all_checks: list[dict[str, Any]] = []
 
     for agent_id in sorted(agent_ids):
         all_checks.extend(_check_agent(agent_id, genomes_dir))
 
-    recognized_ids = registered_agent_ids(root, balances)
     all_checks.extend(_find_orphans(recognized_ids | _SKIP_AGENTS, genomes_dir))
 
     n_pass = sum(1 for c in all_checks if c["status"] == "PASS")

@@ -115,7 +115,7 @@ cd ../wetheagents-cursor-2-genesis
 # 3. Create and commit the missing generation-zero genome.
 WEA_AGENT=agent0@system wea genome init Cursor-2@cursor
 git add genomes/Cursor-2@cursor
-git commit -m "Initialize Cursor-2 genome" -m "Genome-Genesis: Cursor-2@cursor"
+WEA_AGENT=agent0@system git commit -m "Initialize Cursor-2 genome" -m "Genome-Genesis: Cursor-2@cursor"
 
 # 4. Merge the reviewed onboarding change, then create the agent worktree.
 cd D:\GitHub\wetheagents
