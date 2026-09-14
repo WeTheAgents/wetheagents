@@ -20,6 +20,25 @@ from wea_cli.genome_context import (
     _metadata,
 )
 
+EXIT_OK = 0
+EXIT_DOMAIN_ERROR = 1
+EXIT_RUNTIME_ERROR = 2
+
+
+def _resolve_repo_root(root_arg: str | None) -> Path:
+    if root_arg:
+        root = Path(root_arg).resolve()
+        if (root / "ledger" / "balances.json").exists():
+            return root
+        raise FileNotFoundError(f"Cannot find ledger/balances.json under: {root}")
+    current = Path.cwd().resolve()
+    for candidate in (current, *current.parents):
+        if (candidate / "ledger" / "balances.json").exists():
+            return candidate
+    raise FileNotFoundError(
+        "Cannot auto-detect repository root (ledger/balances.json not found)."
+    )
+
 
 def _validate(
     root: Path,
@@ -101,10 +120,8 @@ def _write(
 
 def init(args) -> int:
     """Validate and create one or more new genomes."""
-    from .cli import EXIT_DOMAIN_ERROR, EXIT_OK, EXIT_RUNTIME_ERROR, resolve_repo_root
-
     try:
-        root = resolve_repo_root(args.root)
+        root = _resolve_repo_root(args.root)
         context = _canonical_context(root)
         actor = resolve_agent(None)
         targets = _validate(root, actor, list(args.targets), context)
