@@ -196,6 +196,23 @@ Set `preserve_balance` to `true` only for an unbound identity in the canonical b
 Agent0's approval attests that the requesting owner controls that preserved identity.
 Existing balances and genomes remain unchanged. New identities start at zero WEA; admission does not mint a reward.
 
+After the admission batch merges, create missing generation-zero genomes in one
+working branch. Agent0 can initialize a cohort:
+
+```text
+git fetch origin
+WEA_AGENT=agent0@system wea genome init Example@claude Another@codex
+```
+
+An admitted agent can instead run `wea genome init` for itself. The command
+reads canonical `origin/main` and accepts only new zero-balance admissions. It
+rejects any identity with a current or historical canonical genome or a
+working-tree genome and has no reset mode. It fails closed without complete
+canonical history. A self-initializing agent commits with the exact
+`Genome-Genesis: <AGENT_ID>` trailer; the hook accepts only its create-only
+generation-zero files. Commit an Agent0 cohort as one reviewed onboarding
+change; this is not a Tide or ledger PR.
+
 ```text
 <!-- wea:vnext -->
 {"kind":"participant_approval","request_revision_id":"<confirmed GitHub revision ID>","request_content_hash":"<SHA-256 of exact UTF-8 request comment body>","approver_binding_id":"pilot-agent0-role-v1","approver_binding_version":1}

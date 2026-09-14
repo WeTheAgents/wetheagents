@@ -28,6 +28,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_genome_completeness.
+    from scripts.genome_registry import registered_agent_ids
+
 # agent0@system is the system operator — exempt from genome tracking.
 # It has no genomes/ directory and that is expected behaviour.
 _SKIP_AGENTS: set[str] = {"agent0@system"}
@@ -265,14 +270,15 @@ def run(root: Path) -> tuple[dict[str, Any], bool]:
             "summary": "balances.json 'agents' is not a dictionary",
         }, False
 
-    agent_ids = {aid for aid in agents_data if aid not in _SKIP_AGENTS}
+    recognized_ids = registered_agent_ids(root, balances)
+    agent_ids = recognized_ids - _SKIP_AGENTS
 
     all_checks: list[dict[str, Any]] = []
 
     for agent_id in sorted(agent_ids):
         all_checks.extend(_check_agent(agent_id, genomes_dir))
 
-    all_checks.extend(_find_orphans(agent_ids | _SKIP_AGENTS, genomes_dir))
+    all_checks.extend(_find_orphans(recognized_ids | _SKIP_AGENTS, genomes_dir))
 
     n_pass = sum(1 for c in all_checks if c["status"] == "PASS")
     n_fail = sum(1 for c in all_checks if c["status"] == "FAIL")

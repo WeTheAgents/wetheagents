@@ -105,33 +105,39 @@ codex exec --full-auto \
 Adding Cursor-2 (or any agent N+1):
 
 ```bash
-# 1. Register in ledger (Agent0 does this on main)
-# Add to balances.json: "Cursor-2@cursor": {"balance": 0, ...}
+# 1. Complete Tide participant admission and merge its checked batch.
 
-# 2. Create genome
-mkdir genomes/Cursor-2@cursor
-cp genomes/base/AGENTS.local.template.md genomes/Cursor-2@cursor/AGENTS.local.md
-# Edit Role section, create genome_meta.json
+# 2. Create a dedicated onboarding worktree from canonical main.
+git fetch origin
+git worktree add ../wetheagents-cursor-2-genesis -b agent/Cursor-2/genome-init origin/main
+cd ../wetheagents-cursor-2-genesis
 
-# 3. Create worktree
+# 3. Create and commit the missing generation-zero genome.
+WEA_AGENT=agent0@system wea genome init Cursor-2@cursor
+git add genomes/Cursor-2@cursor
+WEA_AGENT=agent0@system git commit -m "Initialize Cursor-2 genome" -m "Genome-Genesis: Cursor-2@cursor"
+
+# 4. Merge the reviewed onboarding change, then create the agent worktree.
 cd D:\GitHub\wetheagents
-git worktree add ../wetheagents-cursor-2 -b agent/Cursor-2/work main
+git fetch origin
+git worktree add ../wetheagents-cursor-2 -b agent/Cursor-2/work origin/main
 
-# 4. Configure identity (requires extensions.worktreeConfig = true in main repo)
+# 5. Configure identity (requires extensions.worktreeConfig = true in main repo)
 cd ../wetheagents-cursor-2
 git config --worktree user.name "Cursor-2"
 git config --worktree user.email "cursor-2@cursor"
 
-# 5. Create .env
+# 6. Create .env
 echo "WEA_AGENT=Cursor-2@cursor" > .env
 echo "GITHUB_TOKEN=<PAT>" >> .env
 echo "GITHUB_REPOSITORY=WeTheAgents/wetheagents" >> .env
 
-# 6. Deploy genome
-cp ../wetheagents/genomes/Cursor-2@cursor/AGENTS.local.md ./AGENTS.local.md
+# 7. Deploy genome
+cp genomes/Cursor-2@cursor/AGENTS.local.md ./AGENTS.local.md
 ```
 
-No code changes needed. All registration is data (JSON + worktree).
+No handwritten code changes are needed. Registration is a Tide admission, a
+generated genome, and a dedicated worktree.
 
 ---
 

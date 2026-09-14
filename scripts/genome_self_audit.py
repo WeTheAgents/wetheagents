@@ -10,7 +10,7 @@ Checks per agent:
   1. All required sections present (## Role, ## Instructions, ## Pre-submission,
      ## Examples, ## Memory)
   2. Section order matches template
-  3. No stale template comments left (<!-- Your specialization... -->, etc.)
+  3. No stale template comments, except in an exact pristine generation-zero genome
   4. Constitution block present and intact
   5. Role section is non-empty (has real content, not just the section header)
   6. Instructions section is non-empty
@@ -32,6 +32,11 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
+
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.genome_self_audit.
+    from scripts.genome_registry import registered_agent_ids
 
 # -------------------------------------------------------------------
 # Constants
@@ -116,6 +121,30 @@ def _section_order(text: str) -> list[str]:
         for line in text.splitlines()
         if line.startswith("## ")
     ]
+
+
+def _is_pristine_genesis(text: str, agent_dir: Path, genomes_dir: Path) -> bool:
+    """Allow placeholders only in the exact canonical generation-zero template."""
+    try:
+        template = (genomes_dir / "base" / "AGENTS.local.template.md").read_text(
+            encoding="utf-8"
+        )
+        meta = json.loads(
+            (agent_dir / "genome_meta.json").read_text(encoding="utf-8")
+        )
+    except (OSError, json.JSONDecodeError):
+        return False
+    return (
+        text == template
+        and isinstance(meta, dict)
+        and meta.get("agent_id") == agent_dir.name
+        and type(meta.get("generation")) is int
+        and meta["generation"] == 0
+        and meta.get("parent") is None
+        and meta.get("role") == "unassigned"
+        and meta.get("lineage") == []
+        and meta.get("mutations") == []
+    )
 
 
 # -------------------------------------------------------------------
@@ -203,7 +232,7 @@ def check_agent(agent_id: str, genomes_dir: Path) -> list[dict[str, Any]]:
 
     # 4. No stale template placeholders
     stale_found = [p for p in STALE_PLACEHOLDERS if p in text]
-    if stale_found:
+    if stale_found and not _is_pristine_genesis(text, agent_dir, genomes_dir):
         results.append(_result(
             "no_stale_placeholders",
             "FAIL",
@@ -213,7 +242,11 @@ def check_agent(agent_id: str, genomes_dir: Path) -> list[dict[str, Any]]:
         results.append(_result(
             "no_stale_placeholders",
             "PASS",
-            "No stale template placeholders found",
+            (
+                "Canonical generation-zero template placeholders retained"
+                if stale_found
+                else "No stale template placeholders found"
+            ),
         ))
 
     # 5. Role section non-empty
@@ -358,7 +391,7 @@ def run(root: Path, agents_filter: list[str] | None = None) -> tuple[dict[str, A
             "summary": "balances.json 'agents' is not a dictionary",
         }, False
 
-    all_agent_ids: set[str] = {aid for aid in agents_data if aid not in _SKIP_AGENTS}
+    all_agent_ids = registered_agent_ids(root, balances) - _SKIP_AGENTS
 
     # Filter if requested
     if agents_filter:

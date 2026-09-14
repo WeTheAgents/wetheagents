@@ -12,6 +12,11 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_cross_file_integrity.
+    from scripts.genome_registry import registered_agent_ids
+
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
@@ -247,7 +252,7 @@ def check_genome_dir_agent_ids(root: Path, balances: dict[str, Any]) -> list[str
         return []
 
     failures: list[str] = []
-    known_agents = balances.get("agents", {})
+    known_agents = registered_agent_ids(root, balances)
 
     for genome_dir in sorted(path for path in genomes_dir.iterdir() if path.is_dir()):
         meta_path = genome_dir / "genome_meta.json"

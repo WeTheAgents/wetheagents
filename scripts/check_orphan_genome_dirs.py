@@ -19,6 +19,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_orphan_genome_dirs.
+    from scripts.genome_registry import registered_agent_ids
+
 SKIP_GENOME_DIRS = frozenset({"base"})
 EXEMPT_AGENTS = frozenset({"agent0@system"})
 
@@ -168,6 +173,8 @@ def run_check(root: Path) -> tuple[dict[str, Any], int]:
     try:
         balances_payload = load_json(balances_path)
         agents = get_agents(balances_payload)
+        for agent_id in registered_agent_ids(root, balances_payload):
+            agents.setdefault(agent_id, {})
         genome_dirs = list_genome_dirs(genomes_dir)
     except ValueError as exc:
         report = build_report(

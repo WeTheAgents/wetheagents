@@ -21,6 +21,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from genome_registry import registered_agent_ids
+except ModuleNotFoundError:  # Imported as scripts.check_genome_mutation_provenance.
+    from scripts.genome_registry import registered_agent_ids
+
 RELEVANT_HISTORY_EVENT_TYPES = {"payment", "trajectory_mint"}
 _INVALID_ESCAPE_RE = re.compile(r"\\(?![\"\\/bfnrtu])")
 BASE_CHECKS = (
@@ -485,7 +490,7 @@ def run_check(root: Path) -> tuple[dict[str, Any], int]:
         try:
             balances = load_json(balances_path)
             if isinstance(balances, dict):
-                known_agents = set(balances.get("agents", balances).keys())
+                known_agents = registered_agent_ids(root, balances)
         except ValueError:
             pass  # Unreadable balances.json — skip orphan check
 

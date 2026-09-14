@@ -486,3 +486,46 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - GitHub Actions warns that current Node 20 based action versions are being forced onto Node 24; update action versions before public launch.
 - **Next highest-leverage action**:
   - Fix the local dispatch/push/package reliability issues in one non-BDD maintenance task before starting the next harder pilot, then test autonomous task discovery again with a different payer and worker control group when available.
+## 2026-09-14T16:05:00+03:00 (safe genome genesis prepared)
+
+- Operator accepted one cohort genome-initialization command with protection
+  against agents resetting one another.
+- Added `wea genome init`: a regular admitted identity can initialize only
+  itself; canonical `agent0@system` can initialize a cohort.
+- The command reads verified Tide state and the base template from fetched
+  `origin/main`. It accepts only `preserve_balance: false`, active,
+  zero-balance identities.
+- Reset protection is structural: any current or historical canonical genome
+  path, or any working-tree genome path, rejects the whole request. Incomplete
+  Git history fails closed. No force, reset, ledger, GitHub, commit, push, or
+  PR mode exists.
+- Updated vNext onboarding and CLI documentation. Replaced direct legacy
+  `balances.json` registration instructions in `docs/AGENT_SWITCHING.md`.
+- Verification: 307 comprehensive genome and vNext identity/Tide/runtime tests
+  passed with 3 expected failures; Ruff, Pyright, doc sync, genome completeness, metadata
+  consistency, diff check, and economy invariant passed. Tide 10 remains
+  19025 WEA with zero active escrow.
+- Existing issue retained: `genome_guard.py` reports `Codex-20@codex` at 127
+  lines against its 120-line limit. This change does not modify that genome.
+- Ledger-affecting actions: none.
+- **BDD alignment: 100%.** Outcome 1.0 and Spec 1.0 record the accepted
+  create-only authority boundary. Tide admission, balances, tasks, payments,
+  and genome mutation semantics are unchanged.
+- Next: complete exact-head review, merge the safe genesis command, then
+  repair the separate `wea report` and `wea push` vNext tooling defects.
+- First PR review found and we fixed four real integration gaps: validators
+  now recognize retained vNext participants, history prevents reset after a
+  canonical deletion, the commit hook permits only exact create-only
+  self-genesis with a matching trailer, and onboarding creates its worktree
+  before writing. Later review rounds closed identity, metadata, Windows Git
+  decoding, pristine-template audit, and vNext registry gaps. The comprehensive
+  integration suite is now 307 passing tests with 3 expected failures.
+- CI boundary readback: the runtime-boundary suite now passes. The trusted
+  writer guard still rejects the intentional `src/wea_cli/cli.py` router change
+  because private-pilot policy rejects every edit to an existing protected
+  writer source. No new writer is added; merge requires the accepted BDD
+  administrative override.
+- Final exact-head Codex review session
+  `01a0a078-8051-7292-beb3-35acc23d8a28` found no actionable regression after
+  inspecting the accepted contract, canonical replay, authority checks,
+  validators, and hooks.
