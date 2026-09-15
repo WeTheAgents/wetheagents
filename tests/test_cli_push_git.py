@@ -364,6 +364,26 @@ def test_remote_sha_requires_exact_ref_match(repos: tuple[Path, Path]) -> None:
     assert _remote_sha(remote, "feature/x") == result["head_sha"]
 
 
+def test_push_url_rewrite_rule_rejected(repos: tuple[Path, Path]) -> None:
+    """A url.*.insteadOf rule that still matches the resolved push URL is refused.
+
+    `git remote get-url --push` applies the first rewrite (mid -> final); a second
+    rule whose FROM prefix matches that resolved URL would make `git push` rewrite
+    it again (final -> other), publishing to a different repo than the one
+    inspected. That ambiguity must be rejected.
+    """
+    work, _ = repos
+    _git(work, "config", "url.https://final.example/.insteadOf", "https://mid.example/")
+    _git(
+        work, "config", "url.https://other.example/.insteadOf", "https://final.example/"
+    )
+    _git(
+        work, "remote", "set-url", "--push", "push-origin", "https://mid.example/x.git"
+    )
+    with pytest.raises(GitPushError, match="rewrite the resolved push destination"):
+        push_git.effective_push_url(work, "push-origin")
+
+
 def test_multiple_push_urls_rejected(tmp_path: Path) -> None:
     a = tmp_path / "a.git"
     a.mkdir()

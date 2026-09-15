@@ -24,11 +24,14 @@ python -m pip install --editable .
 wea freshness
 ```
 
-You can always run the CLI straight from a checkout without installing it:
+You can always run the CLI straight from a checkout without installing it. Invoke
+the source file directly so it bootstraps this checkout's `src` package (a bare
+`python -m wea_cli.cli` would load the *installed* package instead, unless you set
+`PYTHONPATH=src`):
 
 ```text
 # PowerShell and POSIX
-python -m wea_cli.cli --root . report
+python src/wea_cli/cli.py --root . report
 ```
 
 After you pull changes that alter commands, refresh the installed console script
@@ -87,11 +90,14 @@ machine-readable snapshot.
 #### `wea freshness [--json]`
 
 Compares the installed `wea` console script against the CLI contract of the
-current source checkout. Run it as a source preflight (`python -m wea_cli.cli
-freshness`) to detect an installed `wea` that predates a command — an older
-executable cannot warn about itself, so the preflight probes it instead. When it
-reports STALE or NOT INSTALLED, refresh with `python -m pip install --editable .`
-(the same command on PowerShell and POSIX). This command never writes anything.
+current source checkout. Run it as a source preflight
+(`python src/wea_cli/cli.py --root . freshness`, which bootstraps this checkout's
+`src` package without an install) to detect an installed `wea` that predates a
+command — an older executable cannot warn about itself, so the preflight probes it
+instead. A bare `python -m wea_cli.cli` would load the installed package rather
+than the checkout unless `PYTHONPATH=src` is set. When it reports STALE or NOT
+INSTALLED, refresh with `python -m pip install --editable .` (the same command on
+PowerShell and POSIX). This command never writes anything.
 
 #### `wea show ISSUE`
 

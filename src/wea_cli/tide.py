@@ -112,20 +112,26 @@ CANONICAL_REMOTE = "origin"
 CANONICAL_BRANCH = "main"
 
 
-def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
+def build_report(root: Path, ref: str | None, agent: str | None) -> dict[str, Any]:
     """Fetch, verify, and replay canonical vNext/Tide state for `wea report`.
 
     Refreshes canonical ``origin/main`` independently of the requested ref,
     resolves the requested ref, and rejects any ref that is not contained in the
     freshly fetched canonical head (an arbitrary local, unmerged, or pending
-    branch is never rendered as canonical). Raises ``ReportError`` on any
-    fetch/ref/verify/replay failure; there is no stale fallback to legacy files.
+    branch is never rendered as canonical). ``ref`` of ``None`` (the default)
+    reads the fully-qualified ``refs/remotes/origin/main`` so a local tag named
+    ``origin/main`` cannot shadow the default snapshot; an explicit ref is honored
+    for historical reads and still validated for containment. Raises
+    ``ReportError`` on any fetch/ref/verify/replay failure; no stale fallback.
     """
     import subprocess
 
     # The trusted anchor is the fully-qualified remote-tracking ref, so a local
     # tag or branch literally named `origin/main` cannot shadow it.
     canonical_ref = f"refs/remotes/{CANONICAL_REMOTE}/{CANONICAL_BRANCH}"
+    # The default snapshot resolves the fully-qualified anchor, not a bare name.
+    report_ref = ref if ref else canonical_ref
+    display_ref = ref if ref else f"{CANONICAL_REMOTE}/{CANONICAL_BRANCH}"
 
     # 1. Refresh the canonical integration branch, independently of `ref`, with an
     #    explicit destination refspec so a restrictive `remote.origin.fetch` cannot
@@ -143,14 +149,14 @@ def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
 
     # 2. Resolve the requested ref and the canonical head separately.
     try:
-        commit = git(root, "rev-parse", "--verify", f"{ref}^{{commit}}")
+        commit = git(root, "rev-parse", "--verify", f"{report_ref}^{{commit}}")
         canonical_head = git(
             root, "rev-parse", "--verify", f"{canonical_ref}^{{commit}}"
         )
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
         raise ReportError(
-            f"Could not resolve canonical ref `{ref}`: "
+            f"Could not resolve canonical ref `{display_ref}`: "
             f"{detail or 'unknown git error'}. "
             "Fetch origin first (e.g. `git fetch origin`)."
         ) from exc
@@ -165,27 +171,28 @@ def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
         except subprocess.CalledProcessError as exc:
             detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
             raise ReportError(
-                f"Could not verify `{ref}` against `{canonical_ref}`: "
+                f"Could not verify `{display_ref}` against `{canonical_ref}`: "
                 f"{detail or 'unknown git error'}."
             ) from exc
         if merge_base != commit:
             raise ReportError(
-                f"Ref `{ref}` ({commit}) is not canonical: it is not contained in "
-                f"the fetched `{canonical_ref}` ({canonical_head}). Report only reads "
-                "canonical merged history, not local, unmerged, or pending branches."
+                f"Ref `{display_ref}` ({commit}) is not canonical: it is not "
+                f"contained in the fetched `{canonical_ref}` ({canonical_head}). "
+                "Report only reads canonical merged history, not local, unmerged, "
+                "or pending branches."
             )
 
     if not files(root, commit, BOOTSTRAP):
         raise ReportError(
-            f"Canonical Tide is not active at `{ref}` ({commit}); there is no vNext "
-            "state to report. This checkout predates Tide initialization."
+            f"Canonical Tide is not active at `{display_ref}` ({commit}); there is "
+            "no vNext state to report. This checkout predates Tide initialization."
         )
 
     try:
         engine, _batches = load(root, commit)
     except Exception as exc:
         raise ReportError(
-            f"Canonical replay failed at `{ref}` ({commit}): {exc}. "
+            f"Canonical replay failed at `{display_ref}` ({commit}): {exc}. "
             "Re-fetch origin and confirm the ref is a clean canonical commit."
         ) from exc
 
@@ -236,7 +243,7 @@ def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
     balances = state["balances"]
     legacy_files = sorted(engine.bootstrap.get("legacy_files", {}))
     return {
-        "ref": ref,
+        "ref": display_ref,
         "commit": commit,
         "sequence": state["sequence"],
         "cutoff": state["cutoff"],

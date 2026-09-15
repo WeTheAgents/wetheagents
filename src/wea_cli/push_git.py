@@ -174,8 +174,30 @@ def resolve_remote(root: Path, remote: str | None) -> str:
     )
 
 
+def _rewrite_prefixes(root: Path) -> list[str]:
+    """Return the FROM prefixes of any url.*.insteadOf / pushInsteadOf rules."""
+    completed = _run_git(
+        root,
+        ["config", "--get-regexp", r"^url\..*\.(insteadof|pushinsteadof)$"],
+        check=False,
+    )
+    prefixes: list[str] = []
+    for line in completed.stdout.splitlines():
+        parts = line.split(None, 1)
+        if len(parts) == 2 and parts[1].strip():
+            prefixes.append(parts[1].strip())
+    return prefixes
+
+
 def effective_push_url(root: Path, remote: str) -> str:
-    """Resolve exactly one effective push URL (honouring a separate pushurl)."""
+    """Resolve exactly one effective push URL used for both push and readback.
+
+    ``git remote get-url --push`` already applies ``insteadOf``/``pushInsteadOf``
+    rewrites; passing the result back to ``git push``/``ls-remote`` would apply a
+    matching rule a second time, sending traffic to a different repository than
+    the one inspected. If any configured rewrite prefix still matches the
+    resolved URL, refuse rather than publish to an ambiguous destination.
+    """
     completed = _run_git(root, ["remote", "get-url", "--push", "--all", remote])
     urls = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
     if not urls:
@@ -185,7 +207,15 @@ def effective_push_url(root: Path, remote: str) -> str:
             f"Remote `{remote}` has multiple push URLs; refusing an unbounded push. "
             "Configure a single push destination."
         )
-    return urls[0]
+    url = urls[0]
+    for prefix in _rewrite_prefixes(root):
+        if url.startswith(prefix):
+            raise GitPushError(
+                "A configured url.*.insteadOf/pushInsteadOf rule would rewrite the "
+                "resolved push destination a second time; refusing an ambiguous "
+                "push. Point the remote at a direct URL."
+            )
+    return url
 
 
 def _head_sha(root: Path) -> str:

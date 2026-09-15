@@ -101,6 +101,28 @@ def test_report_resolves_ref_and_commit(monkeypatch: pytest.MonkeyPatch) -> None
     assert report["sequence"] == 11
 
 
+def test_report_default_ref_uses_fully_qualified_anchor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`ref=None` (the default) resolves refs/remotes/origin/main, not a bare name."""
+    calls: list[tuple] = []
+    _patch_ok(monkeypatch)
+    patched_git = tide.git
+
+    def _record(root, *args):
+        calls.append(args)
+        return patched_git(root, *args)
+
+    monkeypatch.setattr(tide, "git", _record)
+    report = build_report(Path("."), None, "Claude-14@claude")
+    assert report["ref"] == "origin/main"
+    # The reported commit was resolved via the fully-qualified remote-tracking ref.
+    assert any(
+        a[0] == "rev-parse" and a[-1] == "refs/remotes/origin/main^{commit}"
+        for a in calls
+    )
+
+
 def test_report_invoking_agent_balance_and_next_action(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

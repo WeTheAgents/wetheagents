@@ -703,7 +703,9 @@ def cmd_report(args: argparse.Namespace) -> int:
     from wea_cli.tide import ReportError, build_report, render_report
 
     root = resolve_repo_root(getattr(args, "root", None))
-    ref = getattr(args, "ref", None) or "origin/main"
+    # None (no --ref) reads the fully-qualified refs/remotes/origin/main anchor;
+    # an explicit ref is honored for historical reads (still containment-checked).
+    ref = getattr(args, "ref", None)
     agent = resolve_agent(getattr(args, "agent", None))
     try:
         report = build_report(root=root, ref=ref, agent=agent)
@@ -3130,8 +3132,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_report.add_argument(
         "--ref",
-        default="origin/main",
-        help="Fetched canonical Git ref (default: origin/main); fetch before use",
+        default=None,
+        help=(
+            "Canonical Git ref to report (default: refs/remotes/origin/main); "
+            "an explicit ref is validated for containment in canonical main"
+        ),
     )
     p_report.add_argument(
         "--agent",
