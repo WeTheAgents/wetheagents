@@ -405,12 +405,27 @@ def test_token_auth_is_process_only_and_scoped(monkeypatch, tmp_path):
     assert os.environ["GIT_CONFIG_COUNT"] == "1"
 
 
-@pytest.mark.parametrize("requested", [None, "feature"])
-def test_branch_tag_collision_keeps_exact_destination(repository, requested):
+@pytest.mark.parametrize("branch", ["feature", "heads/feature"])
+@pytest.mark.parametrize("explicit", [False, True])
+def test_branch_tag_collision_keeps_exact_destination(repository, branch, explicit):
     root, remote = repository
-    git(root, "tag", "feature")
-    result = git_transport.push_branch(root, requested)
-    assert result["branch"] == "feature"
-    assert result["ref"] == "refs/heads/feature"
-    assert result["head"] == git(remote, "rev-parse", "refs/heads/feature")
-    assert git(remote, "for-each-ref", "--format=%(refname)") == "refs/heads/feature"
+    if branch != "feature":
+        git(root, "branch", "-m", branch)
+    git(root, "tag", branch)
+    result = git_transport.push_branch(root, branch if explicit else None)
+    ref = f"refs/heads/{branch}"
+    assert result["branch"] == branch
+    assert result["ref"] == ref
+    assert result["head"] == git(remote, "rev-parse", ref)
+    assert git(remote, "for-each-ref", "--format=%(refname)") == ref
+
+
+@pytest.mark.parametrize("branch", ["main", "master"])
+@pytest.mark.parametrize("explicit", [False, True])
+def test_protected_branch_collision_cannot_bypass_guard(repository, branch, explicit):
+    root, remote = repository
+    git(root, "branch", "-m", branch)
+    git(root, "tag", branch)
+    with pytest.raises(git_transport.TransportError, match="Main publication"):
+        git_transport.push_branch(root, branch if explicit else None)
+    assert git(remote, "for-each-ref", "--format=%(refname)") == ""

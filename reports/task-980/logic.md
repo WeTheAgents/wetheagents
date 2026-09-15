@@ -25,13 +25,13 @@ consumers. It does not change BDD, executors, ledger data, settlement or authori
 
 ## Scope and verification checklist
 
-- [ ] Focused report, push, freshness and subprocess regressions.
-- [ ] Required existing CLI tests and tests/vnext.
-- [ ] Whole changed-file Ruff lint/format and production Pyright.
-- [ ] Diff, documentation sync and invariant checks.
-- [ ] Live canonical report and disposable remote add/change/delete SHA proof.
-- [ ] Self-roast, draft PR, post-PR Codex review until clean.
-- [ ] Immutable UTF-8 verification note; no Work declaration or merge here.
+- [x] Focused report, push, freshness and subprocess regressions.
+- [x] Required existing CLI tests and tests/vnext.
+- [x] Whole changed-file Ruff lint/format and production Pyright.
+- [x] Diff, documentation sync and invariant checks.
+- [x] Live canonical report and disposable remote add/change/delete SHA proof.
+- [x] Self-roast, draft PR, post-PR Codex review until clean.
+- [x] Immutable UTF-8 verification note; no Work declaration or merge here.
 
 ## Design boundaries
 

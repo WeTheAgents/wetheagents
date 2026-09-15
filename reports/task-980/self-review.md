@@ -74,3 +74,8 @@ collision: symbolic-ref --short may return heads/feature, causing the wrong
 remote branch name. The corrected push resolves full symbolic HEAD, requires
 refs/heads/, and strips exactly that prefix. Regressions cover both omitted and
 explicit current-branch arguments while a matching tag exists.
+
+The expanded collision tests also cover protected main/master names and legitimate
+heads/feature branches. Both implicit and explicit arguments pass, with no
+protected publication. The final formatting check normalized mixed local line
+endings from the small patch; this produced no additional Git production delta.
