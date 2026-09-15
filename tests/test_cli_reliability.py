@@ -429,3 +429,42 @@ def test_protected_branch_collision_cannot_bypass_guard(repository, branch, expl
     with pytest.raises(git_transport.TransportError, match="Main publication"):
         git_transport.push_branch(root, branch if explicit else None)
     assert git(remote, "for-each-ref", "--format=%(refname)") == ""
+
+
+@pytest.mark.parametrize("different_nested_commit", [False, True])
+@pytest.mark.parametrize("intended_exists", [False, True])
+def test_remote_suffix_collision_uses_only_exact_ref(
+    repository, different_nested_commit, intended_exists
+):
+    root, remote = repository
+    nested_ref = "refs/heads/nested/refs/heads/feature"
+    nested_sha = git(root, "rev-parse", "HEAD")
+    git(root, "push", "push-origin", f"HEAD:{nested_ref}")
+    if different_nested_commit:
+        git(root, "commit", "--allow-empty", "-m", "intended branch advance")
+    head = git(root, "rev-parse", "HEAD")
+    if intended_exists:
+        git(root, "push", "push-origin", "HEAD:refs/heads/feature")
+    result = git_transport.push_branch(root)
+    assert result["status"] == ("unchanged" if intended_exists else "created")
+    assert result["head"] == head
+    assert git(remote, "rev-parse", "refs/heads/feature") == head
+    assert git(remote, "rev-parse", nested_ref) == nested_sha
+    assert git_transport.push_branch(root)["status"] == "unchanged"
+
+
+def test_remote_branch_lookup_rejects_duplicate_exact_refs(monkeypatch, tmp_path):
+    ref = "refs/heads/feature"
+    monkeypatch.setattr(
+        git_transport, "git", lambda *args, **kwargs: f"abc\t{ref}\nabc\t{ref}"
+    )
+    with pytest.raises(git_transport.TransportError, match="ambiguous"):
+        git_transport._remote_branch_sha(tmp_path, "unused", ref, "test")
+
+
+def test_remote_branch_lookup_ignores_suffix_only(monkeypatch, tmp_path):
+    ref = "refs/heads/feature"
+    monkeypatch.setattr(
+        git_transport, "git", lambda *args, **kwargs: f"abc\trefs/heads/nested/{ref}"
+    )
+    assert git_transport._remote_branch_sha(tmp_path, "unused", ref, "test") is None

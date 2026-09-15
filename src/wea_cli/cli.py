@@ -1413,6 +1413,19 @@ def canonical_commit(root: Path, ref: str) -> str:
     return commit
 
 
+def _remote_branch_sha(root: Path, url: str, ref: str, operation: str) -> str | None:
+    output = git(root, "ls-remote", "--refs", url, ref, operation=operation)
+    # ls-remote patterns also match suffixes of other refs, even fully qualified.
+    matches = [
+        fields[0]
+        for row in output.splitlines()
+        if len(fields := row.split()) == 2 and fields[1] == ref
+    ]
+    if len(matches) > 1:
+        raise TransportError("Remote branch lookup is ambiguous; inspect before retry.")
+    return matches[0] if matches else None
+
+
 def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
     symbolic = git(
         root,
@@ -1451,10 +1464,7 @@ def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
         )
     # Use the effective push URL for reads too: fetch and push URLs may differ.
     url = urls[0]
-    before = git(
-        root, "ls-remote", "--refs", url, ref, operation="Remote branch lookup"
-    )
-    old = before.split()[0] if before else None
+    old = _remote_branch_sha(root, url, ref, "Remote branch lookup")
     if old and old != head:
         git(root, "fetch", "--no-tags", url, ref, operation="Remote ancestry fetch")
         git(
@@ -1476,10 +1486,8 @@ def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
             f"{head}:{ref}",
             operation="Branch push",
         )
-    after = git(
-        root, "ls-remote", "--refs", url, ref, operation="Published SHA verification"
-    )
-    if not after or after.split()[0] != head:
+    after = _remote_branch_sha(root, url, ref, "Published SHA verification")
+    if after != head:
         raise TransportError(
             "Remote SHA differs from intended HEAD; inspect branch before retry."
         )
