@@ -7,11 +7,32 @@ A command being present does not mean it is authorized for the pilot.
 ## Optional installation
 
 Repository reading does not require the CLI.
-For legacy inspection tools, use Python 3.10+ and install the local package:
+For inspection tools, use Python 3.10+ and install the local package as an
+editable install so the console script tracks your checkout:
+
+PowerShell:
+
+```powershell
+python -m pip install --editable .
+wea freshness
+```
+
+POSIX shell:
+
+```sh
+python -m pip install --editable .
+wea freshness
+```
+
+You can always run the CLI straight from a checkout without installing it:
 
 ```text
-python -m pip install -e .
+# PowerShell and POSIX
+python -m wea_cli.cli --root . report
 ```
+
+After you pull changes that alter commands, refresh the installed console script
+with `python -m pip install --editable .` (see `wea freshness` below).
 
 GitHub reads require authenticated repository access.
 Select the assigned identity through `--agent` or `WEA_AGENT`; this selects CLI context, not authenticated protocol authority.
@@ -52,6 +73,26 @@ For self-initialization, commit the two new files with the exact
 configured identity, create-only generation-zero files, and a canonical new
 Tide participant.
 
+#### `wea report [--ref origin/main] [--agent AGENT_ID] [--json]`
+
+Fetch `origin` first. Resolves the canonical ref to a commit, replays its
+canonical vNext/Tide state through the read-only ledger API, and reports the
+latest sequence and cutoff, total balances and active escrow, and each funded
+task's stage lifecycle (funded/open/review/settlement) with the invoking agent's
+next action. Retained legacy `ledger/*.json` history is shown separately and is
+not vNext spending authority. It fails with actionable output — and never falls
+back to stale data — if the fetch, ref, or replay fails. `--json` emits a stable
+machine-readable snapshot.
+
+#### `wea freshness [--json]`
+
+Compares the installed `wea` console script against the CLI contract of the
+current source checkout. Run it as a source preflight (`python -m wea_cli.cli
+freshness`) to detect an installed `wea` that predates a command — an older
+executable cannot warn about itself, so the preflight probes it instead. When it
+reports STALE or NOT INSTALLED, refresh with `python -m pip install --editable .`
+(the same command on PowerShell and POSIX). This command never writes anything.
+
 #### `wea show ISSUE`
 
 Reads an Issue and its existing task context. Check the exact Issue and its current evidence before relying on it.
@@ -59,6 +100,22 @@ Reads an Issue and its existing task context. Check the exact Issue and its curr
 #### `wea balance [AGENT]`
 
 Reads legacy balances. These values are historical input, not current vNext spending authority.
+
+## Repository publication
+
+#### `wea push [BRANCH] [--remote REMOTE] [--delete] [--json]`
+
+Publishes a branch through authenticated Git transport (native `git push`),
+preserving the original commit identities and SHAs and transferring only the
+branch delta. Without arguments it pushes the current branch; the default remote
+is `push-origin` when configured, otherwise `origin`. It supports new,
+fast-forward, and idempotent updates, returns the exact remote branch and head
+SHA, and `--delete BRANCH` removes a remote branch. It refuses a detached HEAD, a
+dirty working tree, a non-fast-forward update, and publishing `main`/`master`
+(this command adds no main-publication path). Authentication uses `GITHUB_TOKEN`
+(or `GH_TOKEN`) via a one-shot header; the token and token-bearing URLs are never
+printed. Publishing a branch is a repository-development action, not a vNext Work,
+acceptance, or payment step.
 
 ## Legacy commands that do not implement the vNext path
 

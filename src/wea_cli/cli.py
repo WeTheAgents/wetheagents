@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import hashlib
 import json
 import math
@@ -11,9 +10,6 @@ import os
 import re
 import subprocess
 import sys
-import urllib.error
-import urllib.parse
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -138,7 +134,7 @@ PR_HEAD_PATTERN = re.compile(r"^agent/(?P<agent>[^/]+)/(?P<issue>\d+)-(?P<slug>[
 READONLY_COMMANDS: frozenset[str] = frozenset({
     "tasks", "start", "balance", "show", "comments", "agents",
     "idem-check", "title", "domains", "lock-status",
-    "runs", "run-status", "report", "tide",
+    "runs", "run-status", "report", "tide", "freshness",
 })
 
 # Compound commands where only some subcommands are read-only.
@@ -659,13 +655,19 @@ def cmd_start(args: argparse.Namespace) -> int:
 
 
 def cmd_report(args: argparse.Namespace) -> int:
-    from wea_cli.report_snapshot import build_report, render_report
+    """Report canonical vNext/Tide state from a fetched origin ref (read-only)."""
+    from wea_cli.tide import ReportError, build_report, render_report
 
     root = resolve_repo_root(getattr(args, "root", None))
-    repo = getattr(args, "repo", None) or DEFAULT_REPO
-    report = build_report(root=root, repo=repo)
+    ref = getattr(args, "ref", None) or "origin/main"
+    agent = resolve_agent(getattr(args, "agent", None))
+    try:
+        report = build_report(root=root, ref=ref, agent=agent)
+    except ReportError as exc:
+        print(f"Error: {exc}")
+        return EXIT_RUNTIME_ERROR
     if getattr(args, "report_json", False):
-        print(json.dumps(report, indent=2, default=str))
+        print(json.dumps(report, indent=2, ensure_ascii=False, default=str))
     else:
         print(render_report(report))
     return EXIT_OK
@@ -1247,424 +1249,59 @@ def cmd_pr(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-class PushError(WeaCliError):
-    """Raised when API-backed push cannot complete."""
-
-    def __init__(self, message: str, *, status: int | None = None) -> None:
-        super().__init__(message)
-        self.status = status
-
-
-def _run_git(root: Path, args: list[str], *, text: bool) -> subprocess.CompletedProcess[Any]:
-    command = ["git", "-c", f"safe.directory={root.as_posix()}", *args]
-    kwargs: dict[str, Any] = {
-        "cwd": root,
-        "capture_output": True,
-        "check": True,
-    }
-    if text:
-        kwargs.update({"text": True, "encoding": "utf-8", "errors": "replace"})
-
-    try:
-        return subprocess.run(command, **kwargs)
-    except FileNotFoundError as exc:
-        raise PushError("`git` CLI not found. Install Git to use `wea push`.") from exc
-    except subprocess.CalledProcessError as exc:
-        stderr = exc.stderr if text else (exc.stderr or b"").decode("utf-8", errors="replace")
-        raise PushError(
-            f"`git {' '.join(args)}` failed: {(stderr or '').strip() or 'unknown error'}"
-        ) from exc
-
-
-def _git_text(root: Path, *args: str) -> str:
-    return str(_run_git(root, list(args), text=True).stdout)
-
-
-def _git_bytes(root: Path, *args: str) -> bytes:
-    return bytes(_run_git(root, list(args), text=False).stdout)
-
-
-def _git_has_object(root: Path, object_name: str) -> bool:
-    command = [
-        "git",
-        "-c",
-        f"safe.directory={root.as_posix()}",
-        "cat-file",
-        "-e",
-        f"{object_name}^{{commit}}",
-    ]
-    result = subprocess.run(command, cwd=root, capture_output=True, check=False)
-    return result.returncode == 0
-
-
-def _git_has_ref(root: Path, ref_name: str) -> bool:
-    command = [
-        "git",
-        "-c",
-        f"safe.directory={root.as_posix()}",
-        "show-ref",
-        "--verify",
-        "--quiet",
-        ref_name,
-    ]
-    result = subprocess.run(command, cwd=root, capture_output=True, check=False)
-    return result.returncode == 0
-
-
-def _git_is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
-    command = [
-        "git",
-        "-c",
-        f"safe.directory={root.as_posix()}",
-        "merge-base",
-        "--is-ancestor",
-        ancestor,
-        descendant,
-    ]
-    result = subprocess.run(command, cwd=root, capture_output=True, check=False)
-    if result.returncode in (0, 1):
-        return result.returncode == 0
-    stderr = (result.stderr or b"").decode("utf-8", errors="replace").strip()
-    raise PushError(
-        f"`git merge-base --is-ancestor {ancestor} {descendant}` failed: {stderr or 'unknown error'}"
-    )
-
-
-def _git_rev_list(root: Path, revision_range: str) -> list[str]:
-    output = _git_text(root, "rev-list", "--reverse", "--topo-order", revision_range).strip()
-    if not output:
-        return []
-    return [line for line in output.splitlines() if line]
-
-
-def _current_branch(root: Path) -> str:
-    branch = _git_text(root, "branch", "--show-current").strip()
-    if not branch:
-        raise PushError("Detached HEAD: pass an explicit branch name to `wea push <branch>`.")
-    return branch
-
-
-def _resolve_push_branch(root: Path, branch: str | None) -> tuple[str, str]:
-    if branch:
-        ref_name = f"refs/heads/{branch}"
-        if not _git_has_ref(root, ref_name):
-            raise PushError(f"Local branch `{branch}` does not exist.")
-        branch_name = branch
-        head_sha = _git_text(root, "rev-parse", "--verify", ref_name).strip()
-        return branch_name, head_sha
-
-    branch_name = _current_branch(root)
-    head_sha = _git_text(root, "rev-parse", "--verify", "HEAD").strip()
-    return branch_name, head_sha
-
-
-def _base_remote_ref(root: Path) -> str:
-    for candidate in ("refs/remotes/origin/main", "refs/remotes/origin/HEAD"):
-        command = [
-            "git",
-            "-c",
-            f"safe.directory={root.as_posix()}",
-            "show-ref",
-            "--verify",
-            "--quiet",
-            candidate,
-        ]
-        result = subprocess.run(command, cwd=root, capture_output=True, check=False)
-        if result.returncode == 0:
-            return candidate
-    raise PushError("Cannot find `origin/main` or `origin/HEAD` to derive a push base.")
-
-
-def _branch_ref_path(branch: str) -> str:
-    return "/".join(urllib.parse.quote(part, safe="") for part in branch.split("/"))
-
-
-def _github_api(
-    *,
-    repo: str,
-    token: str,
-    method: str,
-    path: str,
-    payload: dict[str, Any] | None = None,
-    allow_404: bool = False,
-) -> Any:
-    url = f"https://api.github.com/repos/{repo}{path}"
-    data = None if payload is None else json.dumps(payload).encode("utf-8")
-    request = urllib.request.Request(
-        url,
-        data=data,
-        method=method,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
-            "User-Agent": "wea-cli",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-    )
-    try:
-        with urllib.request.urlopen(request) as response:  # nosemgrep: dynamic-urllib-use-detected  # URL is constructed from validated gh API endpoints, not user input
-            body = response.read()
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        if allow_404 and exc.code == 404:
-            return None
-        message = body
-        try:
-            parsed = json.loads(body)
-            if isinstance(parsed, dict):
-                message = str(parsed.get("message", body))
-        except json.JSONDecodeError:
-            pass
-        raise PushError(
-            f"GitHub API {method} {path} failed ({exc.code}): {message.strip() or 'unknown error'}",
-            status=exc.code,
-        ) from exc
-    except urllib.error.URLError as exc:
-        raise PushError(f"GitHub API {method} {path} failed: {exc.reason}") from exc
-
-    if not body:
-        return None
-    try:
-        return json.loads(body.decode("utf-8"))
-    except json.JSONDecodeError as exc:
-        raise PushError(f"GitHub API {method} {path} returned invalid JSON.") from exc
-
-
-def _github_get_ref(repo: str, token: str, branch: str) -> dict[str, Any] | None:
-    payload = _github_api(
-        repo=repo,
-        token=token,
-        method="GET",
-        path=f"/git/ref/heads/{_branch_ref_path(branch)}",
-        allow_404=True,
-    )
-    return payload if isinstance(payload, dict) else None
-
-
-def _github_commit_exists(repo: str, token: str, commit_sha: str) -> bool:
-    return _github_api(
-        repo=repo,
-        token=token,
-        method="GET",
-        path=f"/git/commits/{commit_sha}",
-        allow_404=True,
-    ) is not None
-
-
-def _github_create_blob(repo: str, token: str, content: bytes) -> str:
-    payload = _github_api(
-        repo=repo,
-        token=token,
-        method="POST",
-        path="/git/blobs",
-        payload={
-            "content": base64.b64encode(content).decode("ascii"),
-            "encoding": "base64",
-        },
-    )
-    if not isinstance(payload, dict) or not payload.get("sha"):
-        raise PushError("GitHub blob creation returned an invalid response.")
-    return str(payload["sha"])
-
-
-def _github_create_tree(repo: str, token: str, tree: list[dict[str, Any]]) -> str:
-    payload = _github_api(
-        repo=repo,
-        token=token,
-        method="POST",
-        path="/git/trees",
-        payload={"tree": tree},
-    )
-    if not isinstance(payload, dict) or not payload.get("sha"):
-        raise PushError("GitHub tree creation returned an invalid response.")
-    return str(payload["sha"])
-
-
-def _github_create_commit(repo: str, token: str, payload: dict[str, Any]) -> str:
-    response = _github_api(
-        repo=repo,
-        token=token,
-        method="POST",
-        path="/git/commits",
-        payload=payload,
-    )
-    if not isinstance(response, dict) or not response.get("sha"):
-        raise PushError("GitHub commit creation returned an invalid response.")
-    return str(response["sha"])
-
-
-def _github_create_ref(repo: str, token: str, branch: str, commit_sha: str) -> None:
-    _github_api(
-        repo=repo,
-        token=token,
-        method="POST",
-        path="/git/refs",
-        payload={"ref": f"refs/heads/{branch}", "sha": commit_sha},
-    )
-
-
-def _github_update_ref(repo: str, token: str, branch: str, commit_sha: str) -> None:
-    _github_api(
-        repo=repo,
-        token=token,
-        method="PATCH",
-        path=f"/git/refs/heads/{_branch_ref_path(branch)}",
-        payload={"sha": commit_sha, "force": False},
-    )
-
-
-def _commit_metadata(root: Path, commit_sha: str) -> dict[str, Any]:
-    raw = _git_text(
-        root,
-        "show",
-        "-s",
-        "--format=%an%x00%ae%x00%aI%x00%cn%x00%ce%x00%cI%x00%T%x00%P%x00%B",
-        commit_sha,
-    )
-    parts = raw.split("\x00", 8)
-    if len(parts) != 9:
-        raise PushError(f"Unable to parse metadata for commit {commit_sha}.")
-
-    parents_raw = parts[7].strip()
-    return {
-        "author": {"name": parts[0], "email": parts[1], "date": parts[2]},
-        "committer": {"name": parts[3], "email": parts[4], "date": parts[5]},
-        "tree": parts[6].strip(),
-        "parents": parents_raw.split() if parents_raw else [],
-        "message": parts[8],
-    }
-
-
-def _tree_entries(root: Path, treeish: str) -> list[dict[str, str]]:
-    raw = _git_bytes(root, "ls-tree", "-r", "-z", "--full-tree", treeish)
-    entries: list[dict[str, str]] = []
-    for item in raw.split(b"\x00"):
-        if not item:
-            continue
-        meta, path = item.split(b"\t", 1)
-        mode, object_type, object_sha = meta.decode("utf-8").split(" ", 2)
-        entries.append(
-            {
-                "path": path.decode("utf-8"),
-                "mode": mode,
-                "type": object_type,
-                "sha": object_sha,
-            }
-        )
-    return entries
-
-
-def _commits_to_push(root: Path, branch: str, head_sha: str, remote_sha: str | None) -> list[str]:
-    if remote_sha:
-        if remote_sha == head_sha:
-            return []
-        if not _git_has_object(root, remote_sha):
-            raise PushError(
-                f"Remote branch `{branch}` points to {remote_sha}, which is not present locally. "
-                "Fetch the branch before using `wea push`."
-            )
-        if not _git_is_ancestor(root, remote_sha, head_sha):
-            raise PushError(
-                f"Remote branch `{branch}` is not an ancestor of local `{head_sha}`. "
-                "`wea push` only supports fast-forward updates."
-            )
-        return _git_rev_list(root, f"{remote_sha}..{head_sha}")
-
-    merge_base = _git_text(root, "merge-base", _base_remote_ref(root), head_sha).strip()
-    if merge_base == head_sha:
-        return []
-    return _git_rev_list(root, f"{merge_base}..{head_sha}")
-
-
-def _push_branch_via_github_api(root: Path, repo: str, branch: str | None, token: str) -> str:
-    branch_name, head_sha = _resolve_push_branch(root, branch)
-    remote_ref = _github_get_ref(repo, token, branch_name)
-    remote_sha = None
-    if remote_ref:
-        remote_object = remote_ref.get("object", {})
-        if isinstance(remote_object, dict):
-            remote_sha = str(remote_object.get("sha") or "") or None
-
-    commits = _commits_to_push(root, branch_name, head_sha, remote_sha)
-    blob_cache: dict[str, str] = {}
-
-    for commit_sha in commits:
-        if _github_commit_exists(repo, token, commit_sha):
-            continue
-
-        metadata = _commit_metadata(root, commit_sha)
-        api_tree: list[dict[str, Any]] = []
-        for entry in _tree_entries(root, commit_sha):
-            entry_payload: dict[str, Any] = {
-                "path": entry["path"],
-                "mode": entry["mode"],
-                "type": entry["type"],
-            }
-            if entry["type"] == "blob":
-                blob_sha = blob_cache.get(entry["sha"])
-                if blob_sha is None:
-                    blob_sha = _github_create_blob(repo, token, _git_bytes(root, "cat-file", "blob", entry["sha"]))
-                    if blob_sha != entry["sha"]:
-                        raise PushError(
-                            f"Blob SHA mismatch for {entry['path']}: local {entry['sha']} vs remote {blob_sha}."
-                        )
-                    blob_cache[entry["sha"]] = blob_sha
-                entry_payload["sha"] = blob_sha
-            elif entry["type"] == "commit":
-                entry_payload["sha"] = entry["sha"]
-            else:
-                raise PushError(
-                    f"Unsupported tree entry type `{entry['type']}` at `{entry['path']}`."
-                )
-            api_tree.append(entry_payload)
-
-        tree_sha = _github_create_tree(repo, token, api_tree)
-        if tree_sha != metadata["tree"]:
-            raise PushError(
-                f"Tree SHA mismatch for commit {commit_sha}: local {metadata['tree']} vs remote {tree_sha}."
-            )
-
-        remote_commit_sha = _github_create_commit(
-            repo,
-            token,
-            {
-                "message": metadata["message"],
-                "tree": tree_sha,
-                "parents": metadata["parents"],
-                "author": metadata["author"],
-                "committer": metadata["committer"],
-            },
-        )
-        if remote_commit_sha != commit_sha:
-            raise PushError(
-                f"Commit SHA mismatch for {commit_sha}: remote created {remote_commit_sha} instead."
-            )
-
-    if remote_sha:
-        if remote_sha == head_sha:
-            return f"Branch `{branch_name}` already up to date at {head_sha}."
-        _github_update_ref(repo, token, branch_name, head_sha)
-        return f"Pushed {len(commits)} commit(s) to {repo}:{branch_name}."
-
-    _github_create_ref(repo, token, branch_name, head_sha)
-    return f"Created {repo}:{branch_name} at {head_sha} with {len(commits)} uploaded commit(s)."
+def _push_token() -> str:
+    """Read the authenticated token for git transport (never printed)."""
+    for name in ("GITHUB_TOKEN", "GH_TOKEN"):
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return ""
 
 
 def cmd_push(args: argparse.Namespace) -> int:
-    """Push a local branch to GitHub using the REST API instead of `git push`."""
-    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    """Publish a local branch through authenticated git transport (not REST)."""
+    from wea_cli.push_git import GitPushError, push_branch, render
+
+    token = _push_token()
     if not token:
-        print("GITHUB_TOKEN is required for `wea push`.")
+        print("GITHUB_TOKEN (or GH_TOKEN) is required for `wea push`.")
         return EXIT_RUNTIME_ERROR
 
     root = resolve_repo_root(args.root)
     try:
-        result = _push_branch_via_github_api(root, args.repo, args.branch, token)
-    except PushError as exc:
+        result = push_branch(
+            root,
+            token=token,
+            branch=getattr(args, "branch", None),
+            remote=getattr(args, "remote", None),
+            delete=getattr(args, "delete", False),
+        )
+    except GitPushError as exc:
         print(f"Failed to push branch: {exc}")
         return EXIT_RUNTIME_ERROR
 
-    print(result)
+    if getattr(args, "push_json", False):
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+    else:
+        print(render(result))
+    return EXIT_OK
+
+
+def cmd_freshness(args: argparse.Namespace) -> int:
+    """Compare the installed `wea` against the source checkout contract."""
+    from wea_cli import freshness
+
+    commands = sorted(_top_level_commands())
+    if getattr(args, "emit_contract", False):
+        freshness.emit_contract(commands)
+        return EXIT_OK
+
+    result = freshness.build_result(commands)
+    if getattr(args, "freshness_json", False):
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+    else:
+        print(freshness.render(result))
+    # A stale or missing install is a real, actionable gate, not a hard error.
     return EXIT_OK
 
 
@@ -3158,6 +2795,15 @@ def cmd_hooks_handle(args: argparse.Namespace) -> int:
 # =========================================================================
 
 
+def _top_level_commands() -> list[str]:
+    """Return the CLI's top-level command surface (used by the freshness contract)."""
+    parser = build_parser()
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return list(action.choices)
+    return []
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wea", description="WeTheAgents ergonomic CLI")
     parser.add_argument(
@@ -3202,7 +2848,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     genome_init.set_defaults(_handler=init_genome)
 
-    p_report = subparsers.add_parser("report", help="Agent0 orchestrator report")
+    p_report = subparsers.add_parser(
+        "report", help="Report canonical vNext/Tide state from a fetched origin ref"
+    )
+    p_report.add_argument(
+        "--ref",
+        default="origin/main",
+        help="Fetched canonical Git ref (default: origin/main); fetch before use",
+    )
+    p_report.add_argument(
+        "--agent",
+        help="Agent ID for balance and next-action guidance (defaults to config)",
+    )
     p_report.add_argument("--json", dest="report_json", action="store_true",
                            help="Output as JSON")
 
@@ -3280,8 +2937,38 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pr.add_argument("--dry-run", action="store_true", help="Preview without creating")
 
-    push = subparsers.add_parser("push", help="Push a local branch via the GitHub REST API")
+    push = subparsers.add_parser(
+        "push", help="Publish a branch via authenticated git transport (push-origin)"
+    )
     push.add_argument("branch", nargs="?", help="Branch to push (defaults to current branch)")
+    push.add_argument(
+        "--remote",
+        default=None,
+        help="Git remote to push to (default: push-origin if configured, else origin)",
+    )
+    push.add_argument(
+        "--delete",
+        action="store_true",
+        help="Delete the named remote branch instead of publishing it",
+    )
+    push.add_argument(
+        "--json", dest="push_json", action="store_true", help="Output as JSON"
+    )
+
+    freshness = subparsers.add_parser(
+        "freshness",
+        help="Check the installed `wea` against the source checkout contract",
+    )
+    freshness.add_argument(
+        "--json", dest="freshness_json", action="store_true", help="Output as JSON"
+    )
+    freshness.add_argument(
+        "--emit-contract",
+        dest="emit_contract",
+        action="store_true",
+        help="Print this process's CLI contract as JSON (for the source preflight)",
+    )
+    freshness.set_defaults(_handler=cmd_freshness)
 
     comment = subparsers.add_parser("comment", help="Post a free-form comment on an issue")
     comment.add_argument("issue", type=int, help="Issue number")
