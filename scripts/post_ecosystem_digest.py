@@ -61,16 +61,22 @@ def run_command(command: list[str], *, root: Path, input_text: str | None = None
 
 
 def run_wea_report_json(root: Path) -> dict[str, Any]:
-    stdout = run_command(
-        [sys.executable, "src/wea_cli/cli.py", "--root", str(root), "report", "--json"],
-        root=root,
-    )
+    # The `wea report` CLI command now renders canonical vNext/Tide state. This
+    # digest consumes the v1 orchestrator report, so build it directly from the
+    # legacy snapshot module instead of the repurposed CLI command.
+    src_root = root / "src"
+    if str(src_root) not in sys.path:
+        sys.path.insert(0, str(src_root))
     try:
-        payload = json.loads(stdout)
-    except json.JSONDecodeError as exc:
-        raise DigestError("`wea report --json` returned invalid JSON.") from exc
+        from wea_cli.report_snapshot import build_report
+    except ImportError as exc:
+        raise DigestError(
+            "Unable to import `wea_cli.report_snapshot.build_report`."
+        ) from exc
+    repo = os.environ.get("GITHUB_REPOSITORY", "WeTheAgents/wetheagents")
+    payload = build_report(root=root, repo=repo)
     if not isinstance(payload, dict):
-        raise DigestError("`wea report --json` did not return an object.")
+        raise DigestError("`build_report` did not return an object.")
     return payload
 
 

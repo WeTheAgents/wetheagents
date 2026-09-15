@@ -151,3 +151,29 @@ def test_load_gauntlet_next_slots_defaults_when_file_missing() -> None:
     slots = digest.load_gauntlet_next_slots(Path("definitely-missing-digest-root"))
 
     assert slots == {"T1": 1, "T2": 1, "T3": 1, "T4": 1, "T5": 1, "T6": 1}
+
+
+def test_run_wea_report_json_uses_legacy_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """After `wea report` was repurposed to vNext, the digest builds the v1
+    orchestrator report directly instead of shelling to the CLI command."""
+    import wea_cli.report_snapshot as snapshot
+
+    captured: dict[str, object] = {}
+
+    def _fake_build_report(*, root, repo, **kwargs):
+        captured["root"] = root
+        captured["repo"] = repo
+        return sample_report()
+
+    monkeypatch.setattr(snapshot, "build_report", _fake_build_report)
+
+    def _fail_subprocess(*args, **kwargs):  # pragma: no cover - must not run
+        raise AssertionError("digest must not shell out to `wea report`")
+
+    monkeypatch.setattr(digest, "run_command", _fail_subprocess)
+
+    report = digest.run_wea_report_json(Path("."))
+    assert report == sample_report()
+    assert captured["repo"]
