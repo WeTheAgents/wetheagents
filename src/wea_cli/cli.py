@@ -1293,10 +1293,12 @@ def cmd_freshness(args: argparse.Namespace) -> int:
 
     commands = sorted(_top_level_commands())
     if getattr(args, "emit_contract", False):
+        # Describe the runtime actually executing this process (the install).
         freshness.emit_contract(commands)
         return EXIT_OK
 
-    result = freshness.build_result(commands)
+    root = resolve_repo_root(getattr(args, "root", None))
+    result = freshness.build_result(commands, root)
     if getattr(args, "freshness_json", False):
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:

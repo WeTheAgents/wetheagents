@@ -73,12 +73,31 @@ def test_redact_replaces_secret() -> None:
     assert push_git._redact("token=abc123 leaked", ("abc123",)) == "token=*** leaked"
 
 
-def test_auth_config_encodes_token_without_url() -> None:
-    config = push_git._auth_config("s3cr3t")
-    assert config[0] == "-c"
-    assert config[1].startswith("http.extraheader=AUTHORIZATION: basic ")
-    encoded = config[1].split("basic ", 1)[1]
+def test_basic_header_encodes_token() -> None:
+    header = push_git._basic_header("s3cr3t")
+    assert header.startswith("AUTHORIZATION: basic ")
+    encoded = header.split("basic ", 1)[1]
     assert base64.b64decode(encoded).decode() == "x-access-token:s3cr3t"
+
+
+def test_auth_env_scopes_header_to_url_without_argv() -> None:
+    header = push_git._basic_header("s3cr3t")
+    env = push_git._auth_env("https://example.com/x.git", header)
+    assert env["GIT_CONFIG_COUNT"] == "1"
+    assert env["GIT_CONFIG_KEY_0"] == "http.https://example.com/x.git.extraheader"
+    assert env["GIT_CONFIG_VALUE_0"] == header
+
+
+def test_auth_material_only_for_https_and_redacts_header() -> None:
+    # Non-HTTPS transport uses no injected credential.
+    env, secrets = push_git._auth_material("/local/path.git", "tok")
+    assert env is None and secrets == ()
+    # HTTPS returns scoped env plus BOTH the token and its encoded header as
+    # secrets so neither can leak through an error surface.
+    env, secrets = push_git._auth_material("https://example.com/x.git", "tok")
+    assert env is not None
+    assert "tok" in secrets
+    assert any(s.startswith("AUTHORIZATION: basic ") for s in secrets)
 
 
 # --- new / fast-forward / idempotent / delete with exact SHAs ---------------
@@ -199,3 +218,105 @@ def test_result_and_render_never_leak_token(repos: tuple[Path, Path]) -> None:
     rendered = push_git.render(result)
     assert token not in repr(result)
     assert token not in rendered
+
+
+# --- current-branch enforcement & ref-collision edge cases ------------------
+
+
+def test_explicit_branch_must_match_current(repos: tuple[Path, Path]) -> None:
+    work, _ = repos
+    _git(work, "checkout", "-b", "feature/x")  # current branch
+    _git(work, "branch", "feature/y")  # exists but not checked out
+    with pytest.raises(GitPushError, match="current branch `feature/x`"):
+        push_git.push_branch(work, token="", branch="feature/y")
+
+
+def test_detached_head_rejected_even_with_explicit_branch(
+    repos: tuple[Path, Path],
+) -> None:
+    work, _ = repos
+    _git(work, "branch", "feature/x")
+    head = _git(work, "rev-parse", "HEAD")
+    _git(work, "checkout", head)  # detached
+    with pytest.raises(GitPushError, match="Detached HEAD"):
+        push_git.push_branch(work, token="", branch="feature/x")
+
+
+def test_default_push_uses_current_branch(repos: tuple[Path, Path]) -> None:
+    work, remote = repos
+    _git(work, "checkout", "-b", "feature/x")
+    head = _git(work, "rev-parse", "HEAD")
+    result = push_git.push_branch(work, token="")  # no explicit branch
+    assert result["branch"] == "feature/x"
+    assert _remote_sha(remote, "feature/x") == head
+
+
+def test_branch_named_like_ref_prefix_uses_full_ref(repos: tuple[Path, Path]) -> None:
+    """A branch literally named `heads/feature` (collides with `--short`)."""
+    work, remote = repos
+    _git(work, "checkout", "-b", "heads/feature")
+    head = _git(work, "rev-parse", "HEAD")
+    # default form
+    result = push_git.push_branch(work, token="")
+    assert result["branch"] == "heads/feature"
+    assert result["remote_ref"] == "refs/heads/heads/feature"
+    assert _remote_sha(remote, "heads/feature") == head
+    # explicit form must also resolve to the same full ref
+    idempotent = push_git.push_branch(work, token="", branch="heads/feature")
+    assert idempotent["status"] == "up-to-date"
+
+
+def test_main_rejected_even_with_same_named_tag(repos: tuple[Path, Path]) -> None:
+    work, remote = repos
+    _git(work, "tag", "main")  # tag collides with branch name
+    # current branch is main (fixture default); publishing it must be refused
+    with pytest.raises(GitPushError, match="protected branch"):
+        push_git.push_branch(work, token="")
+    assert _remote_sha(remote, "main") is None  # nothing published
+
+
+def test_effective_push_url_prefers_pushurl(tmp_path: Path) -> None:
+    """Push and readback use the configured pushurl, not the fetch URL."""
+    fetch_remote = tmp_path / "fetch.git"
+    fetch_remote.mkdir()
+    _git(fetch_remote, "init", "--bare", "--initial-branch=main")
+    push_remote = tmp_path / "push.git"
+    push_remote.mkdir()
+    _git(push_remote, "init", "--bare", "--initial-branch=main")
+
+    work = tmp_path / "w"
+    work.mkdir()
+    _git(work, "init", "--initial-branch=main")
+    _git(work, "config", "user.email", "c@example.com")
+    _git(work, "config", "user.name", "C")
+    _git(work, "remote", "add", "push-origin", str(fetch_remote))
+    _git(work, "remote", "set-url", "--push", "push-origin", str(push_remote))
+    (work / "f.txt").write_text("x\n", encoding="utf-8")
+    _git(work, "add", "f.txt")
+    _git(work, "commit", "-m", "c1")
+    _git(work, "checkout", "-b", "feature/z")
+    head = _git(work, "rev-parse", "HEAD")
+
+    assert push_git.effective_push_url(work, "push-origin") == str(push_remote)
+    result = push_git.push_branch(work, token="", branch="feature/z")
+    assert result["status"] == "created"
+    # Landed in the push repo, NOT the fetch repo.
+    assert _remote_sha(push_remote, "feature/z") == head
+    assert _remote_sha(fetch_remote, "feature/z") is None
+
+
+def test_multiple_push_urls_rejected(tmp_path: Path) -> None:
+    a = tmp_path / "a.git"
+    a.mkdir()
+    _git(a, "init", "--bare", "--initial-branch=main")
+    b = tmp_path / "b.git"
+    b.mkdir()
+    _git(b, "init", "--bare", "--initial-branch=main")
+    work = tmp_path / "w2"
+    work.mkdir()
+    _git(work, "init", "--initial-branch=main")
+    _git(work, "remote", "add", "push-origin", str(a))
+    _git(work, "remote", "set-url", "--push", "push-origin", str(a))
+    _git(work, "remote", "set-url", "--push", "--add", "push-origin", str(b))
+    with pytest.raises(GitPushError, match="multiple push URLs"):
+        push_git.effective_push_url(work, "push-origin")

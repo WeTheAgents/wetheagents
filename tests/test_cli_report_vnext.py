@@ -180,8 +180,32 @@ def test_report_fails_on_replay_error(monkeypatch: pytest.MonkeyPatch) -> None:
         ("active", {"status": "active", "phase": "decision"}, "review"),
         ("active", {"status": "closed", "phase": "closed"}, "settlement"),
         ("completed", {"status": "closed", "phase": "closed"}, "settlement"),
+        ("stopped", {"status": "closed", "phase": "closed"}, "settlement"),
+        # A paused plan is NOT terminal: keep it distinct from settlement even
+        # while its current stage is still an active intake.
+        ("paused", {"status": "active", "phase": "intake"}, "paused"),
         ("active", None, "funded"),
     ],
 )
 def test_stage_lifecycle(plan_status, stage, expected) -> None:
     assert tide._stage_lifecycle(plan_status, stage) == expected
+
+
+def test_report_rejects_noncanonical_ref(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A local/unmerged ref not contained in fetched origin/main is rejected."""
+
+    def _fake_git(root, *args):
+        if args[0] == "fetch":
+            return ""
+        if args[0] == "rev-parse":
+            target = args[-1]  # e.g. "origin/main^{commit}" or "local-pending^{commit}"
+            return ("a" * 40) if target.startswith("origin/main") else ("b" * 40)
+        if args[0] == "merge-base":
+            # merge-base(pending b..., canonical a...) == canonical a..., != ref b...
+            return "a" * 40
+        return ""
+
+    monkeypatch.setattr(tide, "git", _fake_git)
+    # A bare ref defaults the canonical comparison to origin/main.
+    with pytest.raises(ReportError, match="not canonical"):
+        build_report(Path("."), "local-pending", None)

@@ -1,7 +1,7 @@
 """Regression tests for `wea freshness` stale/missing install detection.
 
-Includes a real subprocess CLI test that runs the source preflight's
-`--emit-contract` probe as an external process.
+Covers the content-fingerprint comparison (an older runtime with the same
+command names must be STALE) and a real subprocess CLI test for the probe.
 """
 
 from __future__ import annotations
@@ -16,39 +16,65 @@ from wea_cli import freshness
 REPO_SRC = str(Path(__file__).resolve().parents[1] / "src")
 
 
-def _source(epoch: int = freshness.CONTRACT_EPOCH, commands=None) -> dict:
+def _contract(
+    *,
+    epoch: int = freshness.CONTRACT_EPOCH,
+    commands=None,
+    fingerprint: str | None = "fp-src",
+) -> dict:
     return {
         "epoch": epoch,
         "version": "9.9.9",
         "commands": sorted(commands or ["report", "push", "freshness"]),
+        "fingerprint": fingerprint,
     }
 
 
 # --- comparison logic -------------------------------------------------------
 
 
-def test_fresh_when_contract_matches() -> None:
-    src = _source()
-    probe = {"status": "present", "path": "/usr/bin/wea", "contract": _source()}
+def test_fresh_when_fingerprints_match() -> None:
+    src = _contract(fingerprint="same")
+    probe = {
+        "status": "present",
+        "path": "/usr/bin/wea",
+        "contract": _contract(fingerprint="same"),
+    }
     result = freshness.compare(src, probe)
     assert result["state"] == "fresh"
     assert result["fresh"] is True
 
 
-def test_stale_when_installed_epoch_behind() -> None:
-    src = _source(epoch=2)
-    probe = {"status": "present", "path": "/usr/bin/wea", "contract": _source(epoch=1)}
-    result = freshness.compare(src, probe)
-    assert result["state"] == "stale"
-    assert result["fresh"] is False
-
-
-def test_stale_when_command_missing() -> None:
-    src = _source(commands=["report", "push", "freshness"])
+def test_stale_when_runtime_bytes_differ_same_commands() -> None:
+    """Same command names + same epoch, but older shipped bytes -> STALE."""
+    src = _contract(fingerprint="checkout-aaaa")
     probe = {
         "status": "present",
         "path": "/usr/bin/wea",
-        "contract": _source(commands=["report", "push"]),
+        "contract": _contract(fingerprint="installed-bbbb"),
+    }
+    result = freshness.compare(src, probe)
+    assert result["state"] == "stale"
+    assert "bytes differ" in result["reason"]
+
+
+def test_stale_when_installed_epoch_behind_without_fingerprint() -> None:
+    src = _contract(epoch=2, fingerprint=None)
+    probe = {
+        "status": "present",
+        "path": "/usr/bin/wea",
+        "contract": _contract(epoch=1, fingerprint=None),
+    }
+    result = freshness.compare(src, probe)
+    assert result["state"] == "stale"
+
+
+def test_stale_when_command_missing_without_fingerprint() -> None:
+    src = _contract(commands=["report", "push", "freshness"], fingerprint=None)
+    probe = {
+        "status": "present",
+        "path": "/usr/bin/wea",
+        "contract": _contract(commands=["report", "push"], fingerprint=None),
     }
     result = freshness.compare(src, probe)
     assert result["state"] == "stale"
@@ -57,7 +83,7 @@ def test_stale_when_command_missing() -> None:
 
 def test_legacy_install_detected_as_stale() -> None:
     """An old executable that lacks the freshness command cannot self-warn."""
-    src = _source()
+    src = _contract()
     probe = {"status": "legacy", "path": "/usr/bin/wea", "contract": None}
     result = freshness.compare(src, probe)
     assert result["state"] == "stale"
@@ -65,17 +91,59 @@ def test_legacy_install_detected_as_stale() -> None:
 
 
 def test_not_installed_state() -> None:
-    src = _source()
+    src = _contract()
     probe = {"status": "missing", "path": None, "contract": None}
     result = freshness.compare(src, probe)
     assert result["state"] == "not_installed"
 
 
-def test_source_behind_when_installed_ahead() -> None:
-    src = _source(epoch=1)
-    probe = {"status": "present", "path": "/usr/bin/wea", "contract": _source(epoch=2)}
+def test_source_behind_when_installed_ahead_without_fingerprint() -> None:
+    src = _contract(epoch=1, fingerprint=None)
+    probe = {
+        "status": "present",
+        "path": "/usr/bin/wea",
+        "contract": _contract(epoch=2, fingerprint=None),
+    }
     result = freshness.compare(src, probe)
     assert result["state"] == "source_behind"
+
+
+# --- fingerprint over shipped files -----------------------------------------
+
+
+def _make_src_tree(root: Path, *, cli_body: str, engine_body: str) -> Path:
+    src = root / "src"
+    (src / "wea_cli").mkdir(parents=True)
+    (src / "wea_cli" / "cli.py").write_text(cli_body, encoding="utf-8")
+    # sibling protocol package: engine.py + executors/ marker
+    proto = src / "wea_proto"
+    (proto / "executors").mkdir(parents=True)
+    (proto / "engine.py").write_text(engine_body, encoding="utf-8")
+    (proto / "executors" / "manifest.json").write_text('{"v": 1}', encoding="utf-8")
+    return src
+
+
+def test_fingerprint_changes_when_a_byte_changes(tmp_path: Path) -> None:
+    a = tmp_path / "a"
+    _make_src_tree(a, cli_body="print(1)\n", engine_body="X = 1\n")
+    b = tmp_path / "b"
+    _make_src_tree(b, cli_body="print(1)\n", engine_body="X = 2\n")  # one byte differs
+    fa = freshness.fingerprint(a / "src")
+    fb = freshness.fingerprint(b / "src")
+    assert fa and fb and fa != fb
+
+
+def test_fingerprint_matches_identical_trees(tmp_path: Path) -> None:
+    a = tmp_path / "a"
+    _make_src_tree(a, cli_body="print(1)\n", engine_body="X = 1\n")
+    b = tmp_path / "b"
+    _make_src_tree(b, cli_body="print(1)\n", engine_body="X = 1\n")
+    assert freshness.fingerprint(a / "src") == freshness.fingerprint(b / "src")
+
+
+def test_fingerprint_none_when_no_packages(tmp_path: Path) -> None:
+    (tmp_path / "src").mkdir()
+    assert freshness.fingerprint(tmp_path / "src") is None
 
 
 # --- probe behaviour --------------------------------------------------------
@@ -100,12 +168,60 @@ def test_probe_legacy_when_executable_errors(tmp_path: Path) -> None:
     assert probe["status"] == "legacy"
 
 
+# --- build_result integration ----------------------------------------------
+
+
+def _fake_wea(tmp_path: Path, contract: dict) -> str:
+    # Emit the contract from a file to avoid shell quoting differences.
+    contract_file = tmp_path / "contract.json"
+    contract_file.write_text(json.dumps(contract), encoding="utf-8")
+    if sys.platform.startswith("win"):
+        fake = tmp_path / "wea.bat"
+        fake.write_text(f'@type "{contract_file}"\n', encoding="utf-8")
+    else:
+        fake = tmp_path / "wea"
+        fake.write_text(f'#!/bin/sh\ncat "{contract_file}"\n', encoding="utf-8")
+        fake.chmod(0o755)
+    return str(fake)
+
+
+def test_build_result_stale_when_installed_bytes_differ(tmp_path: Path) -> None:
+    checkout = tmp_path / "co"
+    _make_src_tree(checkout, cli_body="print('new')\n", engine_body="X = 1\n")
+    installed = {
+        "epoch": freshness.CONTRACT_EPOCH,
+        "version": "0.2.0",
+        "commands": sorted(["report", "push", "freshness"]),
+        "fingerprint": "totally-different-installed",
+    }
+    exe = _fake_wea(tmp_path, installed)
+    result = freshness.build_result(["report", "push", "freshness"], checkout, exe)
+    assert result["comparison"]["state"] == "stale"
+    assert result["source_contract"]["fingerprint"]
+
+
+def test_build_result_fresh_when_installed_matches_checkout(tmp_path: Path) -> None:
+    checkout = tmp_path / "co"
+    _make_src_tree(checkout, cli_body="print('x')\n", engine_body="X = 1\n")
+    fp = freshness.fingerprint(checkout / "src")
+    installed = {
+        "epoch": freshness.CONTRACT_EPOCH,
+        "version": "0.2.0",
+        "commands": sorted(["report", "push", "freshness"]),
+        "fingerprint": fp,
+    }
+    exe = _fake_wea(tmp_path, installed)
+    result = freshness.build_result(["report", "push", "freshness"], checkout, exe)
+    assert result["comparison"]["state"] == "fresh"
+
+
 # --- render -----------------------------------------------------------------
 
 
-def test_render_stale_includes_refresh_hint() -> None:
-    result = freshness.build_result(["report", "push", "freshness"], executable=None)
-    # Force a stale comparison for deterministic rendering.
+def test_render_stale_includes_refresh_hint(tmp_path: Path) -> None:
+    checkout = tmp_path / "co"
+    _make_src_tree(checkout, cli_body="print('x')\n", engine_body="X = 1\n")
+    result = freshness.build_result(["report", "push", "freshness"], checkout, None)
     result["comparison"] = {"state": "stale", "fresh": False, "reason": "old"}
     text = freshness.render(result)
     assert "STALE" in text
@@ -129,6 +245,8 @@ def test_emit_contract_subprocess_roundtrips() -> None:
     assert "freshness" in contract["commands"]
     assert "report" in contract["commands"]
     assert "push" in contract["commands"]
+    # The running installation fingerprint is present (real shipped bytes).
+    assert contract["fingerprint"]
 
 
 def _os_env() -> dict:

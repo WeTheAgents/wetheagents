@@ -1,12 +1,27 @@
-"""`wea push` — publish a branch through authenticated Git transport.
+"""`wea push` — publish the current branch through authenticated Git transport.
 
 This replaces the earlier per-blob GitHub REST reconstruction (which re-uploaded
 every tree and blob and could not preserve packed history efficiently). Native
 ``git push`` preserves original commit identities and SHAs, transfers only the
 delta, and supports new, fast-forward, and idempotent branch updates.
 
-Authentication is injected with a one-shot ``http.extraheader`` config so the
-token never appears in a remote URL, argv-visible refspec, or any printed error.
+Safety properties enforced here:
+
+- Publication always targets the *current checked-out branch* resolved from the
+  full ``refs/heads/...`` symbolic ref (never an abbreviated ref, which a
+  same-named tag/branch collision could corrupt). An explicit branch argument
+  must match the current branch.
+- Detached HEAD, a dirty working tree, non-fast-forward updates, and
+  ``main``/``master`` publication are refused.
+- Exactly one effective *push* destination URL is resolved (honouring a separate
+  ``pushurl``); it is used for the push and the readback so the inspected and
+  written destinations cannot diverge. Multiple push URLs are refused.
+- The transport is explicitly bounded: single refspec, ``--atomic``, no tag
+  following, no submodule recursion. Pushing by URL ignores ``remote.<n>.mirror``
+  and ``remote.<n>.push`` config.
+- The HTTPS credential is injected through per-invocation ``GIT_CONFIG_*``
+  environment scoped to the exact URL, so it never appears in argv; the token and
+  its encoded header are redacted from every error surface.
 
 No dependency on the vNext protocol package: this stays outside the writer
 surface guarded by ``tests/vnext/test_runtime_boundary``.
@@ -15,6 +30,7 @@ surface guarded by ``tests/vnext/test_runtime_boundary``.
 from __future__ import annotations
 
 import base64
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -25,6 +41,8 @@ PROTECTED_BRANCHES = frozenset({"main", "master"})
 
 # Preferred configured push remote, falling back to origin when absent.
 PREFERRED_REMOTES = ("push-origin", "origin")
+
+_HEADS_PREFIX = "refs/heads/"
 
 
 class GitPushError(Exception):
@@ -44,15 +62,20 @@ def _run_git(
     args: list[str],
     *,
     config: list[str] | None = None,
+    env: dict[str, str] | None = None,
     secrets: tuple[str, ...] = (),
     check: bool = True,
 ) -> subprocess.CompletedProcess[str]:
     """Run git with cwd=root, redacting secrets from any error surface.
 
-    ``config`` holds ``-c key=value`` pairs inserted before the subcommand; they
-    are never included in raised error text so authentication headers cannot leak.
+    ``config`` holds non-secret ``-c key=value`` pairs inserted before the
+    subcommand. Secrets are injected only through ``env`` (never argv).
     """
     command = ["git", "-C", str(root), *(config or []), *args]
+    run_env = None
+    if env is not None:
+        run_env = os.environ.copy()
+        run_env.update(env)
     try:
         completed = subprocess.run(
             command,
@@ -61,6 +84,7 @@ def _run_git(
             encoding="utf-8",
             errors="replace",
             check=False,
+            env=run_env,
         )
     except FileNotFoundError as exc:  # pragma: no cover - environment dependent
         raise GitPushError(
@@ -68,26 +92,49 @@ def _run_git(
         ) from exc
     if check and completed.returncode != 0:
         stderr = _redact((completed.stderr or "").strip(), secrets)
-        # Report only the subcommand (args), never the -c auth config.
+        # Report only the subcommand (args), never -c config or env auth.
         safe_args = " ".join(args)
         raise GitPushError(f"`git {safe_args}` failed: {stderr or 'unknown error'}")
     return completed
 
 
-def _auth_config(token: str) -> list[str]:
-    """Build a one-shot Authorization header config for HTTPS git transport."""
+def _basic_header(token: str) -> str:
     basic = base64.b64encode(f"x-access-token:{token}".encode()).decode("ascii")
-    return ["-c", f"http.extraheader=AUTHORIZATION: basic {basic}"]
+    return f"AUTHORIZATION: basic {basic}"
+
+
+def _auth_env(url: str, header: str) -> dict[str, str]:
+    """Scope an Authorization header to exactly ``url`` via GIT_CONFIG_* env.
+
+    Keeping the credential in the environment (not argv) means it never appears
+    in a process listing or an error message built from the command line.
+    """
+    return {
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": f"http.{url}.extraheader",
+        "GIT_CONFIG_VALUE_0": header,
+    }
+
+
+# Non-secret transport bounds applied to every push.
+_PUSH_BOUNDS = ["-c", "push.followTags=false", "-c", "push.recurseSubmodules=no"]
+_PUSH_FLAGS = ["--atomic", "--no-follow-tags", "--recurse-submodules=no"]
 
 
 def current_branch(root: Path) -> str | None:
-    """Return the checked-out branch, or ``None`` when HEAD is detached."""
-    completed = _run_git(
-        root, ["symbolic-ref", "--quiet", "--short", "HEAD"], check=False
-    )
+    """Return the checked-out branch, or ``None`` when HEAD is detached.
+
+    Uses the full ``refs/heads/...`` symbolic ref and strips the prefix exactly
+    once, so a branch literally named ``heads/feature`` (which ``--short`` would
+    render ambiguously against a same-named tag) is handled correctly.
+    """
+    completed = _run_git(root, ["symbolic-ref", "--quiet", "HEAD"], check=False)
     if completed.returncode != 0:
         return None
-    return completed.stdout.strip() or None
+    ref = completed.stdout.strip()
+    if not ref.startswith(_HEADS_PREFIX):
+        return None
+    return ref[len(_HEADS_PREFIX) :]
 
 
 def working_tree_dirty(root: Path) -> bool:
@@ -114,36 +161,36 @@ def resolve_remote(root: Path, remote: str | None) -> str:
     )
 
 
-def remote_url(root: Path, remote: str) -> str:
-    return _run_git(root, ["remote", "get-url", remote]).stdout.strip()
-
-
-def _resolve_branch(root: Path, branch: str | None) -> tuple[str, str]:
-    if branch:
-        ref = f"refs/heads/{branch}"
-        completed = _run_git(
-            root, ["rev-parse", "--verify", "--quiet", ref], check=False
-        )
-        head = completed.stdout.strip()
-        if completed.returncode != 0 or not head:
-            raise GitPushError(f"Local branch `{branch}` does not exist.")
-        return branch, head
-    name = current_branch(root)
-    if not name:
+def effective_push_url(root: Path, remote: str) -> str:
+    """Resolve exactly one effective push URL (honouring a separate pushurl)."""
+    completed = _run_git(root, ["remote", "get-url", "--push", "--all", remote])
+    urls = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+    if not urls:
+        raise GitPushError(f"Remote `{remote}` has no push URL configured.")
+    if len(urls) > 1:
         raise GitPushError(
-            "Detached HEAD: pass an explicit branch name to `wea push <branch>`."
+            f"Remote `{remote}` has multiple push URLs; refusing an unbounded push. "
+            "Configure a single push destination."
         )
-    head = _run_git(root, ["rev-parse", "--verify", "HEAD"]).stdout.strip()
-    return name, head
+    return urls[0]
+
+
+def _head_sha(root: Path) -> str:
+    return _run_git(root, ["rev-parse", "--verify", "HEAD"]).stdout.strip()
 
 
 def _remote_sha(
-    root: Path, remote: str, branch: str, config: list[str], secrets: tuple[str, ...]
+    root: Path,
+    url: str,
+    branch: str,
+    *,
+    env: dict[str, str] | None,
+    secrets: tuple[str, ...],
 ) -> str | None:
     completed = _run_git(
         root,
-        ["ls-remote", "--heads", remote, f"refs/heads/{branch}"],
-        config=config,
+        ["ls-remote", "--heads", url, f"{_HEADS_PREFIX}{branch}"],
+        env=env,
         secrets=secrets,
     )
     line = completed.stdout.strip()
@@ -166,6 +213,18 @@ def _is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
     )
 
 
+def _auth_material(
+    url: str, token: str
+) -> tuple[dict[str, str] | None, tuple[str, ...]]:
+    """Return (auth_env, secrets) for an HTTPS url; empty for other transports."""
+    if not url.startswith("https://"):
+        return None, ()
+    if not token:
+        raise GitPushError("An authenticated token is required for HTTPS `wea push`.")
+    header = _basic_header(token)
+    return _auth_env(url, header), (token, header)
+
+
 def push_branch(
     root: Path,
     *,
@@ -181,16 +240,8 @@ def push_branch(
     Never prints or returns the token or a token-bearing remote URL.
     """
     remote_name = resolve_remote(root, remote)
-    url = remote_url(root, remote_name)
-
-    # HTTPS transports authenticate with a one-shot Authorization header so the
-    # token never lands in a remote URL or an argv-visible refspec. Local/file
-    # or ssh remotes rely on ambient credentials and need no injected token.
-    use_auth = url.startswith("https://")
-    if use_auth and not token:
-        raise GitPushError("An authenticated token is required for HTTPS `wea push`.")
-    config = _auth_config(token) if use_auth else []
-    secrets = (token,) if token else ()
+    url = effective_push_url(root, remote_name)
+    env, secrets = _auth_material(url, token)
 
     if delete:
         if branch is None:
@@ -199,51 +250,59 @@ def push_branch(
             raise GitPushError(
                 f"Refusing to delete protected branch `{branch}` on `{remote_name}`."
             )
-        existing = _remote_sha(root, remote_name, branch, config, secrets)
+        existing = _remote_sha(root, url, branch, env=env, secrets=secrets)
         if existing is None:
             raise GitPushError(
                 f"Remote branch `{branch}` does not exist on `{remote_name}`."
             )
         _run_git(
             root,
-            ["push", remote_name, f":refs/heads/{branch}"],
-            config=config,
+            ["push", *_PUSH_FLAGS, url, f":{_HEADS_PREFIX}{branch}"],
+            config=_PUSH_BOUNDS,
+            env=env,
             secrets=secrets,
         )
-        if _remote_sha(root, remote_name, branch, config, secrets) is not None:
+        if _remote_sha(root, url, branch, env=env, secrets=secrets) is not None:
             raise GitPushError(f"Remote branch `{branch}` still present after delete.")
         return {
             "remote": remote_name,
             "branch": branch,
-            "remote_ref": f"refs/heads/{branch}",
+            "remote_ref": f"{_HEADS_PREFIX}{branch}",
             "head_sha": None,
             "previous_sha": existing,
             "status": "deleted",
         }
 
-    branch_name, head_sha = _resolve_branch(root, branch)
-
+    # Publication targets the current checked-out branch only.
+    branch_name = current_branch(root)
+    if branch_name is None:
+        raise GitPushError(
+            "Detached HEAD: check out the branch you intend to publish before "
+            "`wea push`."
+        )
+    if branch is not None and branch != branch_name:
+        raise GitPushError(
+            f"`wea push` publishes the current branch `{branch_name}`; refusing to "
+            f"publish a different branch `{branch}`. Check it out first."
+        )
     if branch_name in PROTECTED_BRANCHES and not allow_protected:
         raise GitPushError(
             f"Refusing to publish protected branch `{branch_name}`. "
             "This command does not add a main publication path."
         )
+    if working_tree_dirty(root):
+        raise GitPushError(
+            "Working tree has uncommitted changes; commit or stash before pushing "
+            f"`{branch_name}` to avoid publishing an ambiguous state."
+        )
 
-    # Dirty ambiguity: only meaningful when publishing the checked-out branch,
-    # where uncommitted changes make "the current branch delta" ambiguous.
-    if branch is None or branch_name == current_branch(root):
-        if working_tree_dirty(root):
-            raise GitPushError(
-                "Working tree has uncommitted changes; commit or stash before pushing "
-                f"`{branch_name}` to avoid publishing an ambiguous state."
-            )
-
-    remote_sha = _remote_sha(root, remote_name, branch_name, config, secrets)
+    head_sha = _head_sha(root)
+    remote_sha = _remote_sha(root, url, branch_name, env=env, secrets=secrets)
     if remote_sha == head_sha:
         return {
             "remote": remote_name,
             "branch": branch_name,
-            "remote_ref": f"refs/heads/{branch_name}",
+            "remote_ref": f"{_HEADS_PREFIX}{branch_name}",
             "head_sha": head_sha,
             "previous_sha": remote_sha,
             "status": "up-to-date",
@@ -257,12 +316,13 @@ def push_branch(
 
     _run_git(
         root,
-        ["push", remote_name, f"{head_sha}:refs/heads/{branch_name}"],
-        config=config,
+        ["push", *_PUSH_FLAGS, url, f"{head_sha}:{_HEADS_PREFIX}{branch_name}"],
+        config=_PUSH_BOUNDS,
+        env=env,
         secrets=secrets,
     )
 
-    published = _remote_sha(root, remote_name, branch_name, config, secrets)
+    published = _remote_sha(root, url, branch_name, env=env, secrets=secrets)
     if published != head_sha:
         raise GitPushError(
             f"Post-push verification failed: remote head is {published}, expected "
@@ -271,7 +331,7 @@ def push_branch(
     return {
         "remote": remote_name,
         "branch": branch_name,
-        "remote_ref": f"refs/heads/{branch_name}",
+        "remote_ref": f"{_HEADS_PREFIX}{branch_name}",
         "head_sha": head_sha,
         "previous_sha": remote_sha,
         "status": "created" if remote_sha is None else "updated",
