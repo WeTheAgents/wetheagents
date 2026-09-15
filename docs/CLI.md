@@ -17,6 +17,74 @@ GitHub reads require authenticated repository access.
 Select the assigned identity through `--agent` or `WEA_AGENT`; this selects CLI context, not authenticated protocol authority.
 The global `--root` and `--repo` options select local and GitHub context.
 
+## Reliable report, publication and freshness
+
+`wea report [--ref origin/main] [--agent AGENT_ID] [--json]` fetches the exact
+configured origin branch before every report. `WEA_CANONICAL_REF` supplies the
+optional default. Only `origin/<branch>` names are accepted. JSON uses schema
+`wea-report-vnext-1`; its commit, sequence, cutoff, balances, escrow, runtime
+stages, settlements and agent actions describe that fetched snapshot. Fetch or
+replay failure exits nonzero without cached output. Legacy balances are excluded.
+Human stage names are the runtime phases (such as intake and author_decision),
+not an alternate lifecycle. A report observes the cutoff, not later Issue activity.
+
+`wea push [CURRENT_BRANCH]` publishes one explicit branch through the worktree's
+configured `push-origin`. It uses native Git authentication (credential helper,
+SSH or the already configured HTTPS remote); no token environment variable is
+required by the CLI. Configure authentication through the existing agent setup.
+The command rejects detached HEAD, dirty tracked/untracked files, another branch,
+main/master, multiple push URLs and non-fast-forward updates. It preserves original
+commit identities and verifies the exact remote SHA. JSON returns remote, branch,
+ref, head and created/updated/unchanged status. Errors withhold Git output because
+remote URLs may contain credentials; check network access and authentication
+privately. A failure after publication may mean the readback failed: inspect the
+remote before retrying. Never use this command to merge or publish main.
+
+Use an isolated environment when working across task worktrees. Refresh the same
+Python environment whose `wea` executable you invoke. The supported installation
+is editable; a source-only invocation does not require a global install. An older
+executable cannot gain new warnings retroactively, so run the standalone source
+preflight before trusting an existing installation. It removes PYTHONPATH while
+probing the installed executable and compares the full CLI source fingerprint.
+Missing commands, stale bytes and broken installs return an actionable error.
+The current CLI also compares itself with the selected checkout before dispatch.
+
+PowerShell, from the checkout:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --editable .
+$env:WEA_AGENT = 'YOUR_ASSIGNED_AGENT_ID'
+python src/wea_cli/freshness.py --root . --executable wea
+wea --root . report --json
+wea --root . push
+$env:PYTHONPATH = (Join-Path $PWD 'src')
+python -m wea_cli.cli --root . report
+```
+
+POSIX, from the checkout:
+
+```sh
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install --editable .
+export WEA_AGENT=YOUR_ASSIGNED_AGENT_ID
+python src/wea_cli/freshness.py --root . --executable wea
+wea --root . report --json
+wea --root . push
+PYTHONPATH=src python -m wea_cli.cli --root . report
+```
+
+`--executable` may name an absolute installed executable. Re-run the preflight
+when switching task checkouts. `wea --cli-contract` exposes its machine-readable
+source contract without a network operation. Direct script invocation
+`python src/wea_cli/cli.py --root . report` also selects this checkout's source.
+
+The retained `report_snapshot` module and daily ecosystem digest use a historical
+schema. The digest explicitly rejects the new vNext report instead of posting
+invented zero-valued legacy counters. Use `wea report` for canonical agent state.
+
 ## Inspection commands
 
 #### `wea tide --ref origin/main [--issue NUMBER] [--agent AGENT_ID]`

@@ -1,0 +1,301 @@
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from wea_cli import freshness, git_transport, report
+
+
+def git(root, *args):
+    return subprocess.check_output(
+        ["git", "-C", str(root), *args],
+        text=True,
+        encoding="utf-8",
+        stderr=subprocess.PIPE,
+    ).strip()
+
+
+@pytest.fixture
+def repository(tmp_path):
+    remote = tmp_path / "remote.git"
+    local = tmp_path / "work"
+    subprocess.run(
+        ["git", "init", "--bare", str(remote)], check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "init", "-b", "feature", str(local)], check=True, capture_output=True
+    )
+    git(local, "config", "user.name", "Integration Author")
+    git(local, "config", "user.email", "author@example.test")
+    git(local, "config", "commit.gpgsign", "false")
+    git(local, "remote", "add", "origin", str(remote))
+    git(local, "remote", "add", "push-origin", str(remote))
+    git(local, "commit", "--allow-empty", "-m", "base")
+    return local, remote
+
+
+def commit(root, message):
+    git(root, "add", "-A")
+    git(root, "commit", "-m", message)
+    return git(root, "rev-parse", "HEAD")
+
+
+def test_push_add_change_delete_exact_sha_and_identity(repository):
+    root, remote = repository
+    sample = root / "one file.txt"
+    for content in ["initial\n", "changed\n", None]:
+        if content is None:
+            sample.unlink()
+        else:
+            sample.write_text(content)
+        head = commit(root, "change")
+        result = git_transport.push_branch(root)
+        assert result["head"] == head == git(remote, "rev-parse", "refs/heads/feature")
+        assert git(root, "cat-file", "commit", head) == git(
+            remote, "cat-file", "commit", head
+        )
+        assert result["ref"] == "refs/heads/feature"
+        assert git_transport.push_branch(root)["status"] == "unchanged"
+    assert git(remote, "ls-tree", "--name-only", "feature") == ""
+
+
+@pytest.mark.parametrize(
+    "condition", ["dirty", "untracked", "detached", "main", "other", "nonff"]
+)
+def test_push_rejects_ambiguous_or_unsafe_state(repository, condition):
+    root, remote = repository
+    git_transport.push_branch(root)
+    before = git(remote, "rev-parse", "feature")
+    requested = None
+    if condition in {"dirty", "untracked"}:
+        (root / "pending").write_text("pending")
+        if condition == "dirty":
+            git(root, "add", "pending")
+    elif condition == "detached":
+        git(root, "checkout", "--detach")
+        requested = "feature"
+    elif condition == "main":
+        git(root, "branch", "-m", "main")
+    elif condition == "other":
+        requested = "other"
+    elif condition == "nonff":
+        git(root, "commit", "--allow-empty", "-m", "remote advance")
+        git_transport.push_branch(root)
+        before = git(remote, "rev-parse", "feature")
+        git(root, "reset", "--hard", "HEAD~1")
+        git(root, "commit", "--allow-empty", "-m", "divergent")
+    with pytest.raises(git_transport.TransportError):
+        git_transport.push_branch(root, requested)
+    assert git(remote, "rev-parse", "feature") == before
+
+
+def test_push_uses_effective_push_url_and_does_not_publish_other_refs(
+    repository, tmp_path
+):
+    root, remote = repository
+    other = tmp_path / "other.git"
+    subprocess.run(
+        ["git", "init", "--bare", str(other)], check=True, capture_output=True
+    )
+    git(root, "remote", "set-url", "push-origin", str(other))
+    git(root, "remote", "set-url", "--push", "push-origin", str(remote))
+    git(root, "config", "push.followTags", "true")
+    git(root, "tag", "-a", "private-tag", "-m", "private")
+    git(root, "branch", "private-branch")
+    git_transport.push_branch(root)
+    assert git(remote, "for-each-ref", "--format=%(refname)") == "refs/heads/feature"
+    assert git(other, "for-each-ref", "--format=%(refname)") == ""
+
+
+def test_canonical_ref_fetches_exact_remote_branch(repository):
+    root, _ = repository
+    head = git(root, "rev-parse", "HEAD")
+    git(root, "push", "origin", "HEAD:refs/heads/canonical")
+    git(root, "commit", "--allow-empty", "-m", "local stale state must not be read")
+    assert git_transport.canonical_commit(root, "origin/canonical") == head
+    with pytest.raises(git_transport.TransportError, match="origin/<branch>"):
+        git_transport.canonical_commit(root, "HEAD")
+    with pytest.raises(git_transport.TransportError, match="Canonical fetch"):
+        git_transport.canonical_commit(root, "origin/missing")
+
+
+def test_fetch_failure_never_falls_back(repository):
+    root, remote = repository
+    git(root, "push", "origin", "HEAD:main")
+    git_transport.canonical_commit(root, "origin/main")
+    git(root, "remote", "set-url", "origin", str(remote / "missing"))
+    with pytest.raises(git_transport.TransportError, match="Canonical fetch"):
+        git_transport.canonical_commit(root, "origin/main")
+
+
+def test_ref_verification_failure(monkeypatch, tmp_path):
+    def fake_git(root, *args, **kwargs):
+        return "wrong" if "FETCH_HEAD^{commit}" in args else "head"
+
+    monkeypatch.setattr(git_transport, "git", fake_git)
+    with pytest.raises(git_transport.TransportError, match="changed during fetch"):
+        git_transport.canonical_commit(tmp_path, "origin/main")
+
+
+def test_transport_failure_redacts_credentials(monkeypatch, tmp_path):
+    secret = "https://user:SUPER_SECRET@example.test/repo"
+
+    def fail(command, **kwargs):
+        assert kwargs["env"]["GIT_TERMINAL_PROMPT"] == "0"
+        assert "GIT_TRACE" not in kwargs["env"]
+        raise subprocess.CalledProcessError(128, command, stderr=secret)
+
+    monkeypatch.setenv("GIT_TRACE", "1")
+    monkeypatch.setattr(subprocess, "run", fail)
+    with pytest.raises(git_transport.TransportError) as error:
+        git_transport.git(tmp_path, "push", secret)
+    assert "SUPER_SECRET" not in str(error.value)
+    assert "authentication" in str(error.value)
+
+
+def test_report_rendering_separates_legacy_and_delegates_actions(monkeypatch, tmp_path):
+    seen = []
+    state = {
+        "sequence": 11,
+        "cutoff": "2026-09-15T06:00:00Z",
+        "balances": {"worker": 80},
+        "escrow_wea": 20,
+        "opening_supply": 100,
+        "tasks": {
+            "42": {
+                "plan_id": "plan",
+                "plan_status": "active",
+                "current_stage_index": 0,
+                "escrow": {"status": "active"},
+                "roles": [],
+                "settlements": [{"settlement_id": "paid"}],
+                "stages": [
+                    {
+                        "stage_key": phase,
+                        "status": "active",
+                        "phase": phase,
+                        "paid_wea": 0,
+                        "refunded_wea": 0,
+                        "contract": {},
+                    }
+                    for phase in ["intake", "author_decision", "settlement"]
+                ],
+            }
+        },
+    }
+
+    def action(runtime, agent):
+        seen.append((runtime, agent))
+        return {"action": "submit", "reason": "runtime-owned"}
+
+    engine = SimpleNamespace(
+        state=lambda: state,
+        sources={"s": {"issue_id": "42", "issue_number": 980}},
+        runtimes={"42": "runtime"},
+        modules={"lifecycle": SimpleNamespace(next_action=action)},
+    )
+    monkeypatch.setattr(report, "canonical_commit", lambda root, ref: "a" * 40)
+    monkeypatch.setattr(report, "load", lambda root, sha: (engine, []))
+    (tmp_path / "ledger").mkdir()
+    (tmp_path / "ledger/balances.json").write_text('{"fake_legacy_balance":99999}')
+    result = report.build_report(tmp_path, "origin/approved", "worker")
+    assert result["schema"] == report.SCHEMA
+    assert result["ref"] == "origin/approved"
+    assert result["total_balances_wea"] == 80
+    assert result["active_escrow_wea"] == 20
+    assert seen == [("runtime", "worker")]
+    text = report.render_report(result)
+    assert all(
+        word in text
+        for word in ["intake", "author_decision", "settlement", "runtime-owned"]
+    )
+    assert "99999" not in text
+    assert result["legacy"]["included_in_live_report"] is False
+
+
+def test_replay_failure_does_not_emit_partial_report(monkeypatch, tmp_path):
+    monkeypatch.setattr(report, "canonical_commit", lambda root, ref: "a" * 40)
+
+    def fail(*args):
+        raise RuntimeError("private underlying diagnostic")
+
+    monkeypatch.setattr(report, "load", fail)
+    with pytest.raises(ValueError, match="No stale fallback") as error:
+        report.build_report(tmp_path, "origin/main", "worker")
+    assert "private" not in str(error.value)
+
+
+def test_source_freshness_and_subprocess_contract(tmp_path):
+    checkout = Path(__file__).resolve().parents[1]
+    source = checkout / "src/wea_cli"
+    result = subprocess.run(
+        [sys.executable, str(source / "cli.py"), "--cli-contract"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert json.loads(result.stdout) == freshness.contract(source)
+    target = tmp_path / "src/wea_cli"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("__pycache__"))
+    freshness.check_checkout(tmp_path)
+    (target / "cli.py").write_text("# older CLI\n")
+    with pytest.raises(ValueError, match="differs from checkout"):
+        freshness.check_checkout(tmp_path)
+
+
+@pytest.mark.parametrize("outcome", ["missing", "old", "different", "current"])
+def test_installed_preflight(monkeypatch, outcome):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.setenv("PYTHONPATH", "source-path-must-not-mask-install")
+    monkeypatch.setattr(
+        shutil,
+        "which",
+        lambda executable: None if outcome == "missing" else sys.executable,
+    )
+
+    def probe(*args, **kwargs):
+        assert "PYTHONPATH" not in kwargs["env"]
+        if outcome == "old":
+            raise subprocess.CalledProcessError(2, args)
+        payload = (
+            freshness.contract(root / "src/wea_cli") if outcome == "current" else {}
+        )
+        return SimpleNamespace(stdout=json.dumps(payload))
+
+    monkeypatch.setattr(subprocess, "run", probe)
+    if outcome == "current":
+        assert freshness.preflight(root, "wea")["status"] == "current"
+    else:
+        with pytest.raises(ValueError, match="pip install --editable"):
+            freshness.preflight(root, "wea")
+
+
+def test_cli_push_subprocess_preserves_sha(repository):
+    root, remote = repository
+    source = Path(__file__).resolve().parents[1] / "src/wea_cli/cli.py"
+    # CLI root recognition requires the repository's ledger directory.
+    (root / "ledger").mkdir()
+    (root / "ledger/balances.json").write_text("{}")
+    commit(root, "synthetic CLI root marker")
+    result = subprocess.run(
+        [sys.executable, str(source), "--root", str(root), "push"],
+        env=os.environ.copy(),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout)["head"] == git(remote, "rev-parse", "feature")
+
+
+def test_legacy_digest_rejects_new_report(tmp_path):
+    from scripts.post_ecosystem_digest import DigestError, _render_report_text
+
+    with pytest.raises(DigestError, match="unsupported"):
+        _render_report_text({"schema": report.SCHEMA}, root=tmp_path)

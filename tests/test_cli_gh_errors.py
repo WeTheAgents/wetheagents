@@ -27,13 +27,17 @@ def test_cmd_submit_returns_error_on_gh_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     submission = tmp_path / "sub.md"
-    submission.write_text("## Work\nDone.\n\n## Agent\nClaude-1@claude\n", encoding="utf-8")
+    submission.write_text(
+        "## Work\nDone.\n\n## Agent\nClaude-1@claude\n", encoding="utf-8"
+    )
     monkeypatch.setattr(
         cli,
         "view_issue",
         lambda issue, repo: {
             "number": issue,
-            "body": "### Verification Criteria\n\n- [ ] MUST: `pytest tests/ -q` exits 0\n- [ ] MUST NOT: modify files outside `src/`\n",
+            "body": "### Verification Criteria\n\n- [ ] MUST: `pytest "
+            "tests/ -q` exits 0\n- [ ] MUST NOT: modify files "
+            "outside `src/`\n",
         },
     )
     monkeypatch.setattr(cli, "post_issue_comment", _raise_gh_error)
@@ -82,77 +86,35 @@ def test_cmd_pr_returns_error_on_gh_failure(
 # ── cmd_push ───────────────────────────────────────────────────────────
 
 
-def test_cmd_push_requires_github_token(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+def test_cmd_push_uses_configured_transport_without_token(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    from wea_cli import git_transport
+
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
-
-    args = argparse.Namespace(
-        branch=None,
-        repo="WeTheAgents/wetheagents",
-        root=None,
+    monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
+    monkeypatch.setattr(
+        git_transport, "push_branch", lambda root, branch: {"head": "a" * 40}
     )
-    rc = cli.cmd_push(args)
-
-    assert rc == cli.EXIT_RUNTIME_ERROR
-    assert "GITHUB_TOKEN is required" in capsys.readouterr().out
+    args = argparse.Namespace(branch="feature", root=str(tmp_path))
+    assert cli.cmd_push(args) == cli.EXIT_OK
+    assert json.loads(capsys.readouterr().out)["head"] == "a" * 40
 
 
 def test_cmd_push_returns_error_on_push_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("GITHUB_TOKEN", "token")
+    from wea_cli import git_transport
+
     monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
 
-    def _raise_push_error(root: Path, repo: str, branch: str | None, token: str) -> str:
-        raise cli.PushError("push failed")
+    def fail(root, branch):
+        raise git_transport.TransportError("push failed")
 
-    monkeypatch.setattr(cli, "_push_branch_via_github_api", _raise_push_error)
-
-    args = argparse.Namespace(
-        branch="agent/codex-19/319-wea-push",
-        repo="WeTheAgents/wetheagents",
-        root=str(tmp_path),
-    )
-    rc = cli.cmd_push(args)
-
-    assert rc == cli.EXIT_RUNTIME_ERROR
+    monkeypatch.setattr(git_transport, "push_branch", fail)
+    args = argparse.Namespace(branch="feature", root=str(tmp_path))
+    assert cli.cmd_push(args) == cli.EXIT_RUNTIME_ERROR
     assert "Failed to push branch: push failed" in capsys.readouterr().out
-
-
-def test_cmd_push_prints_success_message(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    monkeypatch.setenv("GITHUB_TOKEN", "token")
-    monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
-
-    seen: dict[str, str | None] = {}
-
-    def _fake_push(root: Path, repo: str, branch: str | None, token: str) -> str:
-        seen["repo"] = repo
-        seen["branch"] = branch
-        seen["token"] = token
-        return "push ok"
-
-    monkeypatch.setattr(cli, "_push_branch_via_github_api", _fake_push)
-
-    args = argparse.Namespace(
-        branch="agent/codex-19/319-wea-push",
-        repo="WeTheAgents/wetheagents",
-        root=str(tmp_path),
-    )
-    rc = cli.cmd_push(args)
-
-    assert rc == cli.EXIT_OK
-    assert seen == {
-        "repo": "WeTheAgents/wetheagents",
-        "branch": "agent/codex-19/319-wea-push",
-        "token": "token",
-    }
-    assert "push ok" in capsys.readouterr().out
-
-
-# ── cmd_pipeline_submit ────────────────────────────────────────────────
 
 
 def test_cmd_pipeline_submit_returns_error_on_gh_failure(
