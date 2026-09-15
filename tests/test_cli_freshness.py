@@ -8,13 +8,20 @@ happens to be on the test machine's PATH. A subprocess test confirms the real
 
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
-from wea_cli import freshness
+from wea_cli import cli, freshness
+
+
+def test_freshness_is_classified_read_only() -> None:
+    # Read-only classification lets `wea freshness` run under a Tide halt and
+    # against a bare checkout without a ledger (the source-side preflight case).
+    assert cli.is_readonly_command("freshness", argparse.Namespace()) is True
 
 
 def _make_checkout(

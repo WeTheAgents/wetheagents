@@ -135,7 +135,7 @@ PR_HEAD_PATTERN = re.compile(r"^agent/(?P<agent>[^/]+)/(?P<issue>\d+)-(?P<slug>[
 READONLY_COMMANDS: frozenset[str] = frozenset({
     "tasks", "start", "balance", "show", "comments", "agents",
     "idem-check", "title", "domains", "lock-status",
-    "runs", "run-status", "report", "tide",
+    "runs", "run-status", "report", "tide", "freshness",
 })
 
 # Compound commands where only some subcommands are read-only.
