@@ -198,15 +198,15 @@ def test_report_rejects_noncanonical_ref(monkeypatch: pytest.MonkeyPatch) -> Non
         if args[0] == "fetch":
             return ""
         if args[0] == "rev-parse":
-            target = args[-1]  # e.g. "origin/main^{commit}" or "local-pending^{commit}"
-            return ("a" * 40) if target.startswith("origin/main") else ("b" * 40)
+            target = args[-1]  # anchor is refs/remotes/origin/main^{commit}
+            return ("a" * 40) if target.startswith("refs/remotes/") else ("b" * 40)
         if args[0] == "merge-base":
             # merge-base(pending b..., canonical a...) == canonical a..., != ref b...
             return "a" * 40
         return ""
 
     monkeypatch.setattr(tide, "git", _fake_git)
-    # A bare ref defaults the canonical comparison to origin/main.
+    # The requested ref resolves to a local commit not contained in origin/main.
     with pytest.raises(ReportError, match="not canonical"):
         build_report(Path("."), "local-pending", None)
 
@@ -225,8 +225,8 @@ def test_report_rejects_pending_tide_candidate_ref(
             return ""
         if args[0] == "rev-parse":
             target = args[-1]
-            # canonical origin/main is a...; the pending candidate is b...
-            return ("a" * 40) if target.startswith("origin/main") else ("b" * 40)
+            # fully-qualified canonical anchor is a...; the pending candidate is b...
+            return ("a" * 40) if target.startswith("refs/remotes/") else ("b" * 40)
         if args[0] == "merge-base":
             return "a" * 40  # base is canonical head, not the pending commit
         return ""
@@ -234,3 +234,39 @@ def test_report_rejects_pending_tide_candidate_ref(
     monkeypatch.setattr(tide, "git", _fake_git)
     with pytest.raises(ReportError, match="not canonical"):
         build_report(Path("."), "origin/tide/pending", None)
+
+
+def test_report_anchor_is_fully_qualified_against_spoof_tag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A local tag/branch named `origin/main` cannot shadow the trusted anchor.
+
+    The requested ref `origin/main` resolves to a spoof candidate, but the anchor
+    resolves the fully-qualified refs/remotes/origin/main, so containment fails.
+    """
+    calls: list[tuple] = []
+
+    def _fake_git(root, *args):
+        calls.append(args)
+        if args[0] == "fetch":
+            return ""
+        if args[0] == "rev-parse":
+            target = args[-1]
+            # fully-qualified anchor -> real canonical; bare name -> spoof candidate
+            return ("a" * 40) if target.startswith("refs/remotes/") else ("b" * 40)
+        if args[0] == "merge-base":
+            return "a" * 40
+        return ""
+
+    monkeypatch.setattr(tide, "git", _fake_git)
+    with pytest.raises(ReportError, match="not canonical"):
+        build_report(Path("."), "origin/main", None)
+    # The anchor was resolved via the fully-qualified remote-tracking ref.
+    assert any(
+        a[0] == "rev-parse" and a[-1].startswith("refs/remotes/origin/main")
+        for a in calls
+    )
+    # The fetch used an explicit destination refspec.
+    assert any(
+        a[0] == "fetch" and a[-1].endswith("refs/remotes/origin/main") for a in calls
+    )

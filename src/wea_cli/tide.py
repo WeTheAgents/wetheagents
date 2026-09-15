@@ -123,11 +123,16 @@ def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
     """
     import subprocess
 
-    canonical_ref = f"{CANONICAL_REMOTE}/{CANONICAL_BRANCH}"
+    # The trusted anchor is the fully-qualified remote-tracking ref, so a local
+    # tag or branch literally named `origin/main` cannot shadow it.
+    canonical_ref = f"refs/remotes/{CANONICAL_REMOTE}/{CANONICAL_BRANCH}"
 
-    # 1. Refresh the canonical integration branch, independently of `ref`.
+    # 1. Refresh the canonical integration branch, independently of `ref`, with an
+    #    explicit destination refspec so a restrictive `remote.origin.fetch` cannot
+    #    leave the remote-tracking ref stale.
+    refspec = f"refs/heads/{CANONICAL_BRANCH}:{canonical_ref}"
     try:
-        git(root, "fetch", "--quiet", CANONICAL_REMOTE, CANONICAL_BRANCH)
+        git(root, "fetch", "--quiet", CANONICAL_REMOTE, refspec)
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
         raise ReportError(
