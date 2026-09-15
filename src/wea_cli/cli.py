@@ -1418,8 +1418,8 @@ def _remote_branch_sha(root: Path, url: str, ref: str, operation: str) -> str | 
     # ls-remote patterns also match suffixes of other refs, even fully qualified.
     matches = [
         fields[0]
-        for row in output.splitlines()
-        if len(fields := row.split()) == 2 and fields[1] == ref
+        for row in output.split("\n")
+        if len(fields := row.split("\t", 1)) == 2 and fields[1] == ref
     ]
     if len(matches) > 1:
         raise TransportError("Remote branch lookup is ambiguous; inspect before retry.")

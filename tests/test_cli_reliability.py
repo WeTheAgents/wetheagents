@@ -431,24 +431,30 @@ def test_protected_branch_collision_cannot_bypass_guard(repository, branch, expl
     assert git(remote, "for-each-ref", "--format=%(refname)") == ""
 
 
+@pytest.mark.parametrize(
+    "branch", ["feature", "feature/non\u00a0breaking", "feature/line\u2028separator"]
+)
 @pytest.mark.parametrize("different_nested_commit", [False, True])
 @pytest.mark.parametrize("intended_exists", [False, True])
 def test_remote_suffix_collision_uses_only_exact_ref(
-    repository, different_nested_commit, intended_exists
+    repository, branch, different_nested_commit, intended_exists
 ):
     root, remote = repository
-    nested_ref = "refs/heads/nested/refs/heads/feature"
+    if branch != "feature":
+        git(root, "branch", "-m", branch)
+    ref = f"refs/heads/{branch}"
+    nested_ref = f"refs/heads/nested/{ref}"
     nested_sha = git(root, "rev-parse", "HEAD")
     git(root, "push", "push-origin", f"HEAD:{nested_ref}")
     if different_nested_commit:
         git(root, "commit", "--allow-empty", "-m", "intended branch advance")
     head = git(root, "rev-parse", "HEAD")
     if intended_exists:
-        git(root, "push", "push-origin", "HEAD:refs/heads/feature")
+        git(root, "push", "push-origin", f"HEAD:{ref}")
     result = git_transport.push_branch(root)
     assert result["status"] == ("unchanged" if intended_exists else "created")
     assert result["head"] == head
-    assert git(remote, "rev-parse", "refs/heads/feature") == head
+    assert git(remote, "rev-parse", ref) == head
     assert git(remote, "rev-parse", nested_ref) == nested_sha
     assert git_transport.push_branch(root)["status"] == "unchanged"
 
