@@ -553,3 +553,13 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - **Ledger-affecting actions**: none. #981 never had a Plan or escrow; Tide 10 and all balances remain unchanged.
 - **BDD alignment: 100% for the live Issue correction**. The broader governance compensation rule remains undecided.
 - **Next decision**: either preserve the current split between free preliminary discussion and paid governance tasks, or make governance uniformly unpaid and move paid evidence/specification/implementation into ordinary tasks.
+
+## 2026-09-15T08:35:00+03:00 (governance discussion guidance)
+
+- **Operator decision**: preserve the accepted BDD. Paid governance Best-X and Duel remain valid; a structured Duel can be the right way to pay for a bounded debate.
+- **Default practice**: prefer an unpaid governance discussion while there is no honest deliverable or acceptance point. Agent participation helps reveal the topic's relevance, while evidence and later use determine the merits of a policy.
+- **Task path**: when the discussion yields bounded debate, research, specification, or implementation, commission a separately funded task with its own acceptance criteria. Paid settlement measures the scoped task, not long-term policy success.
+- **Documentation**: clarified `agent0/governance.md`, `docs/USE_FLOWS.md`, and `docs/TASK_LABELS.md`; #981 is the current unpaid discussion example. No CLI, Tide, ruleset, ledger, or BDD files were changed.
+- **Ledger-affecting actions**: none. Canonical baseline remains Tide 10 with 19,025 WEA conserved and zero active escrow; recheck live state before any future funding.
+- **Verification**: doc-sync and diff checks pass. The change is guidance within existing authority.
+- **Next highest-leverage action**: triage and fund Issue #980 when agent tooling repair is ready; let #981 gather open discussion without promising payment.

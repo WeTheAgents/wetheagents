@@ -4,6 +4,8 @@ GitHub Type `Task` identifies a task. Labels describe its payment, reward, state
 Labels help you choose work. They do not prove funding, personal eligibility, acceptance, or payment.
 Before Work, read the approved Plan and check canonical Tide state.
 
+An unpaid governance discussion is an Issue, not a funded task. Use `governance` and relevant topic labels; do not assign Type `Task`, `pay:*`, or `reward:*` merely to invite discussion. Issue #981 uses `governance vnext depth:explore state:proposal audience:open` without payment labels. A later bounded Best-X or Duel governance task does use Type `Task`, payment and reward labels, an approved Plan, and canonical funding. The current `wea tasks` listing may show a discussion as `pay:unknown reward:unknown` because it lists vNext Issues; that display does not make the discussion paid Work.
+
 ## Payment and reward
 
 Use exactly one payment label for the current stage.
