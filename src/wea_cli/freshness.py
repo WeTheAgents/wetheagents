@@ -17,6 +17,7 @@ works from a bare source tree.
 from __future__ import annotations
 
 import ast
+import os
 import re
 import shutil
 import subprocess
@@ -100,9 +101,21 @@ def checkout_contract(root: Path) -> dict[str, Any]:
     }
 
 
+def _probe_env() -> dict[str, str]:
+    """Environment for probing the installed `wea`, without source shadowing.
+
+    The documented source invocation sets ``PYTHONPATH=src``; if the probe
+    inherited it, the installed entrypoint would import the checkout instead of
+    its own (possibly stale) package and always look fresh. Strip it so the
+    installed executable is measured as it actually runs.
+    """
+    return {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
+
+
 def _probe_installed(wea_path: str) -> dict[str, Any]:
     """Probe the on-PATH `wea` executable for its contract version and commands."""
     report: dict[str, Any] = {"found": True, "path": wea_path}
+    env = _probe_env()
 
     version_run = subprocess.run(
         [wea_path, "--version"],
@@ -110,6 +123,7 @@ def _probe_installed(wea_path: str) -> dict[str, Any]:
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
     )
     combined = f"{version_run.stdout}\n{version_run.stderr}"
     match = _VERSION_RE.search(combined)
@@ -125,6 +139,7 @@ def _probe_installed(wea_path: str) -> dict[str, Any]:
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
     )
     commands: set[str] = set()
     choice_match = _USAGE_CHOICES_RE.search(help_run.stdout)

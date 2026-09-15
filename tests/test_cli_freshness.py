@@ -55,6 +55,14 @@ def test_parse_top_level_commands_reads_subparser_literals() -> None:
     assert freshness.parse_top_level_commands(source) == {"report", "push"}
 
 
+def test_probe_env_strips_pythonpath(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The installed probe must not inherit the source PYTHONPATH, or the
+    # installed executable would import the checkout and always look fresh.
+    monkeypatch.setenv("PYTHONPATH", "src")
+    env = freshness._probe_env()
+    assert "PYTHONPATH" not in env
+
+
 def test_version_banner_contains_contract_stamp() -> None:
     banner = freshness.version_banner("0.2.0")
     assert banner == f"wea 0.2.0 (cli-contract {freshness.CONTRACT_VERSION})"

@@ -1434,10 +1434,15 @@ def _run_git_authenticated(
         ) from exc
 
 
-def _remote_url(root: Path, remote: str) -> str:
-    """Resolve a configured remote's URL, or raise an actionable error."""
+def _remote_push_url(root: Path, remote: str) -> str:
+    """Resolve a remote's effective *push* URL, or raise an actionable error.
+
+    A remote can carry a separate ``pushurl``; `git push` writes there while a
+    plain `git ls-remote <remote>` would read the fetch URL. Preflight,
+    publication, and readback must all target the same push destination.
+    """
     try:
-        return _git_text(root, "remote", "get-url", remote).strip()
+        return _git_text(root, "remote", "get-url", "--push", remote).strip()
     except PushError as exc:
         raise PushError(
             f"Remote `{remote}` is not configured for this worktree. "
@@ -1445,10 +1450,10 @@ def _remote_url(root: Path, remote: str) -> str:
         ) from exc
 
 
-def _remote_head_sha(root: Path, remote: str, branch: str, token: str) -> str | None:
-    """Return the remote branch head SHA via the authenticated Git transport."""
+def _remote_head_sha(root: Path, push_url: str, branch: str, token: str) -> str | None:
+    """Return the remote branch head SHA at the push destination URL."""
     result = _run_git_authenticated(
-        root, ["ls-remote", remote, f"refs/heads/{branch}"], token
+        root, ["ls-remote", push_url, f"refs/heads/{branch}"], token
     )
     line = result.stdout.strip()
     if not line:
@@ -1486,18 +1491,20 @@ def _push_branch_via_git(
             "push a feature branch instead."
         )
 
-    # Dirty ambiguity only matters for the checked-out branch: an explicit other
-    # branch publishes its committed ref regardless of the working tree.
-    if branch is None:
-        current = _git_text(root, "branch", "--show-current").strip()
-        if branch_name == current and _working_tree_dirty(root):
-            raise PushError(
-                "Working tree has uncommitted tracked changes; commit or stash "
-                "before pushing (dirty ambiguity)."
-            )
+    # Dirty ambiguity applies whenever the resolved branch is the checked-out
+    # branch, whether or not it was named explicitly; an explicit *other* branch
+    # publishes its committed ref regardless of the working tree.
+    current = _git_text(root, "branch", "--show-current").strip()
+    if branch_name == current and _working_tree_dirty(root):
+        raise PushError(
+            "Working tree has uncommitted tracked changes; commit or stash "
+            "before pushing (dirty ambiguity)."
+        )
 
-    _remote_url(root, remote)  # fail fast on an unconfigured remote
-    remote_sha = _remote_head_sha(root, remote, branch_name, token)
+    # `git push <remote>` writes the remote's push URL; read that same URL for
+    # preflight and readback so a `pushurl` split cannot skip or fail wrongly.
+    push_url = _remote_push_url(root, remote)
+    remote_sha = _remote_head_sha(root, push_url, branch_name, token)
 
     if remote_sha is not None:
         if remote_sha == head_sha:
@@ -1518,7 +1525,7 @@ def _push_branch_via_git(
         token,
     )
 
-    published = _remote_head_sha(root, remote, branch_name, token)
+    published = _remote_head_sha(root, push_url, branch_name, token)
     if published != head_sha:
         raise PushError(
             f"Post-push verification failed: {remote}/{branch_name} is at "

@@ -163,6 +163,40 @@ def test_push_rejects_dirty_working_tree(
         cli._push_branch_via_git(work, "origin", None, "tok")
 
 
+def test_push_rejects_dirty_when_current_branch_named_explicitly(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, _bare = repo_with_remote
+    _git(work, "checkout", "-qb", "feature")
+    (work / "f.txt").write_text("dirty\n", encoding="utf-8")
+    # Naming the checked-out branch explicitly must not bypass the dirty guard.
+    with pytest.raises(cli.PushError, match="dirty ambiguity"):
+        cli._push_branch_via_git(work, "origin", "feature", "tok")
+
+
+def test_push_targets_push_url_when_fetch_and_push_differ(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, fetch_bare = repo_with_remote
+    # Give origin a separate push URL; `git push` must write there and readback
+    # must verify there, not against the fetch repository.
+    push_bare = work.parent / "push.git"
+    subprocess.run(
+        ["git", "init", "-q", "-b", "main", str(push_bare), "--bare"],
+        check=True,
+        capture_output=True,
+    )
+    _git(work, "remote", "set-url", "--push", "origin", str(push_bare))
+    _git(work, "checkout", "-qb", "feature")
+    head = _head(work)
+
+    message = cli._push_branch_via_git(work, "origin", "feature", "tok")
+    assert head in message
+    # Landed in the push repository, absent from the fetch repository.
+    assert _remote_sha(push_bare, "feature") == head
+    assert _git(work, "ls-remote", str(fetch_bare), "refs/heads/feature") == ""
+
+
 def test_push_rejects_non_fast_forward(
     repo_with_remote: tuple[Path, Path],
 ) -> None:
