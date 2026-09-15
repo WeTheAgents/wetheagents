@@ -108,6 +108,44 @@ def test_source_behind_when_installed_ahead_without_fingerprint() -> None:
     assert result["state"] == "source_behind"
 
 
+def test_missing_source_fingerprint_never_certifies_fresh() -> None:
+    """Equal epoch/commands but no source fingerprint must not report fresh."""
+    src = _contract(fingerprint=None)
+    probe = {
+        "status": "present",
+        "path": "/usr/bin/wea",
+        "contract": _contract(fingerprint="installed-real"),
+    }
+    result = freshness.compare(src, probe)
+    assert result["state"] == "unknown"
+    assert result["fresh"] is False
+
+
+def test_missing_installed_fingerprint_never_certifies_fresh() -> None:
+    """Equal epoch/commands but no installed fingerprint must not report fresh."""
+    src = _contract(fingerprint="checkout-real")
+    probe = {
+        "status": "present",
+        "path": "/usr/bin/wea",
+        "contract": _contract(fingerprint=None),
+    }
+    result = freshness.compare(src, probe)
+    assert result["state"] == "unknown"
+    assert result["fresh"] is False
+
+
+def test_both_fingerprints_missing_never_certifies_fresh() -> None:
+    src = _contract(fingerprint=None)
+    probe = {
+        "status": "present",
+        "path": "/usr/bin/wea",
+        "contract": _contract(fingerprint=None),
+    }
+    result = freshness.compare(src, probe)
+    assert result["state"] == "unknown"
+    assert result["fresh"] is False
+
+
 # --- fingerprint over shipped files -----------------------------------------
 
 

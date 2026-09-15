@@ -173,6 +173,42 @@ def test_report_fails_on_unresolvable_ref(monkeypatch: pytest.MonkeyPatch) -> No
         build_report(Path("."), "origin/missing", None)
 
 
+def test_report_error_sanitizes_credential_bearing_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Raw Git stderr with a token-bearing URL must be redacted in ReportError."""
+    secret_url = "https://user:SUPERSECRET@github.com/WeTheAgents/wetheagents.git"
+
+    def _raise(root, *args):
+        raise subprocess.CalledProcessError(
+            128, ["git"], stderr=(f"fatal: unable to access '{secret_url}/'").encode()
+        )
+
+    monkeypatch.setattr(tide, "git", _raise)
+    with pytest.raises(ReportError) as excinfo:
+        build_report(Path("."), None, None)
+    message = str(excinfo.value)
+    assert "SUPERSECRET" not in message
+    assert "user:SUPERSECRET" not in message
+    assert "***@github.com" in message  # sanitized, still actionable
+
+
+def test_report_replay_error_sanitizes_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A replay exception carrying a credential URL is also sanitized."""
+    monkeypatch.setattr(tide, "git", lambda root, *a: "c" * 40)
+    monkeypatch.setattr(tide, "files", lambda root, c, prefix: [tide.BOOTSTRAP])
+
+    def _boom(root, c):
+        raise ValueError("boom https://x-access-token:LEAK@host/r.git failed")
+
+    monkeypatch.setattr(tide, "load", _boom)
+    with pytest.raises(ReportError) as excinfo:
+        build_report(Path("."), "origin/main", None)
+    assert "LEAK" not in str(excinfo.value)
+
+
 def test_report_fails_when_tide_inactive(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(tide, "git", lambda root, *a: "c" * 40)
     monkeypatch.setattr(tide, "files", lambda root, c, prefix: [])

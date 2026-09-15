@@ -222,22 +222,7 @@ def compare(source: dict[str, Any], probe: dict[str, Any]) -> dict[str, Any]:
     src_fp = source.get("fingerprint")
     inst_fp = installed.get("fingerprint")
 
-    # Primary signal: real shipped-runtime bytes. Different content -> stale even
-    # when the command names and epoch match.
-    if src_fp and inst_fp and src_fp != inst_fp:
-        return {
-            "state": "stale",
-            "fresh": False,
-            "reason": (
-                "Installed runtime bytes differ from the checkout "
-                f"(installed {inst_fp[:12]} vs checkout {src_fp[:12]})"
-                + (f"; missing commands: {', '.join(missing)}" if missing else "")
-                + "."
-            ),
-            "missing_commands": missing,
-        }
-
-    # Secondary signals when a fingerprint is unavailable.
+    # Definite-stale signals hold regardless of fingerprint availability.
     if installed_epoch < source_epoch or missing:
         return {
             "state": "stale",
@@ -262,12 +247,38 @@ def compare(source: dict[str, Any], probe: dict[str, Any]) -> dict[str, Any]:
             "missing_commands": [],
         }
 
+    # Epoch and commands match: certify only from real shipped-runtime bytes.
+    # A missing/invalid fingerprint on EITHER side cannot certify freshness.
+    if not src_fp or not inst_fp:
+        return {
+            "state": "unknown",
+            "fresh": False,
+            "reason": (
+                "Cannot certify freshness: runtime fingerprint unavailable on "
+                f"{'source' if not src_fp else 'the installed CLI'}"
+                f"{'' if src_fp or inst_fp else ' and the installed CLI'}. "
+                "Reinstall from this checkout to obtain a comparable fingerprint."
+            ),
+            "missing_commands": [],
+        }
+
+    if src_fp != inst_fp:
+        return {
+            "state": "stale",
+            "fresh": False,
+            "reason": (
+                "Installed runtime bytes differ from the checkout "
+                f"(installed {inst_fp[:12]} vs checkout {src_fp[:12]})."
+            ),
+            "missing_commands": [],
+        }
+
     return {
         "state": "fresh",
         "fresh": True,
         "reason": (
             f"Installed `{INSTALLED_ENTRYPOINT}` matches the checkout runtime "
-            f"(epoch {source_epoch})."
+            f"(epoch {source_epoch}, fingerprint {src_fp[:12]})."
         ),
         "missing_commands": [],
     }
@@ -327,6 +338,7 @@ def render(result: dict[str, Any]) -> str:
         "stale": "STALE",
         "source_behind": "SOURCE BEHIND",
         "not_installed": "NOT INSTALLED",
+        "unknown": "UNKNOWN (cannot certify)",
     }.get(state, state.upper())
     lines.append(f"  status: {label} — {comparison['reason']}")
     if not comparison.get("fresh"):

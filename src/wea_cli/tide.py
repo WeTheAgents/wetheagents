@@ -3,11 +3,21 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 from wea_vnext.tide.ledger import BOOTSTRAP, files, git, load
 from wea_vnext.tide.replay import json_data
+
+# Redact credentials embedded in a URL (scheme://user[:pass]@host) so raw Git
+# stderr surfaced in a report error cannot leak a token-bearing remote URL.
+_URL_CREDENTIALS_RE = re.compile(r"([a-zA-Z][\w+.-]*://)[^/@\s]+@")
+
+
+def _sanitize(text: str) -> str:
+    """Strip URL-embedded credentials from any diagnostic string."""
+    return _URL_CREDENTIALS_RE.sub(r"\1***@", text)
 
 
 class ReportError(Exception):
@@ -140,7 +150,7 @@ def build_report(root: Path, ref: str | None, agent: str | None) -> dict[str, An
     try:
         git(root, "fetch", "--quiet", CANONICAL_REMOTE, refspec)
     except subprocess.CalledProcessError as exc:
-        detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
+        detail = _sanitize((exc.stderr or b"").decode("utf-8", "replace").strip())
         raise ReportError(
             f"Could not fetch canonical `{canonical_ref}`: "
             f"{detail or 'unknown git error'}. "
@@ -154,7 +164,7 @@ def build_report(root: Path, ref: str | None, agent: str | None) -> dict[str, An
             root, "rev-parse", "--verify", f"{canonical_ref}^{{commit}}"
         )
     except subprocess.CalledProcessError as exc:
-        detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
+        detail = _sanitize((exc.stderr or b"").decode("utf-8", "replace").strip())
         raise ReportError(
             f"Could not resolve canonical ref `{display_ref}`: "
             f"{detail or 'unknown git error'}. "
@@ -169,7 +179,7 @@ def build_report(root: Path, ref: str | None, agent: str | None) -> dict[str, An
         try:
             merge_base = git(root, "merge-base", commit, canonical_head)
         except subprocess.CalledProcessError as exc:
-            detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
+            detail = _sanitize((exc.stderr or b"").decode("utf-8", "replace").strip())
             raise ReportError(
                 f"Could not verify `{display_ref}` against `{canonical_ref}`: "
                 f"{detail or 'unknown git error'}."
@@ -192,7 +202,8 @@ def build_report(root: Path, ref: str | None, agent: str | None) -> dict[str, An
         engine, _batches = load(root, commit)
     except Exception as exc:
         raise ReportError(
-            f"Canonical replay failed at `{display_ref}` ({commit}): {exc}. "
+            f"Canonical replay failed at `{display_ref}` ({commit}): "
+            f"{_sanitize(str(exc))}. "
             "Re-fetch origin and confirm the ref is a clean canonical commit."
         ) from exc
 

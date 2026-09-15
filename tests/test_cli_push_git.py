@@ -349,6 +349,31 @@ def test_effective_push_url_prefers_pushurl(tmp_path: Path) -> None:
     assert _remote_sha(fetch_remote, "feature/z") is None
 
 
+def test_remote_sha_handles_unicode_whitespace_refs(repos: tuple[Path, Path]) -> None:
+    """Ref names may contain Unicode whitespace (NBSP, line separator).
+
+    `str.split()`/`splitlines()` would corrupt these; the parser must use the
+    literal TAB field / LF record delimiters and keep the full ref text.
+    """
+    work, _remote = repos
+    nbsp = "feature/a" + chr(0x00A0) + "b"  # NO-BREAK SPACE in ref name
+    lsep = "feature/x" + chr(0x2028) + "y"  # LINE SEPARATOR in ref name
+    heads: dict[str, str] = {}
+    for name in (nbsp, lsep):
+        _git(work, "checkout", "-b", name)
+        push_git.push_branch(work, token="", branch=name)
+        heads[name] = _git(work, "rev-parse", "HEAD")
+        _git(work, "checkout", "main")
+
+    url = push_git.effective_push_url(work, "push-origin")
+    # Each Unicode ref resolves to its own exact head, not the other's.
+    assert push_git._remote_sha(work, url, nbsp, env=None, secrets=()) == heads[nbsp]
+    assert push_git._remote_sha(work, url, lsep, env=None, secrets=()) == heads[lsep]
+    # A non-existent Unicode sibling resolves to None.
+    absent = "feature/a" + chr(0x00A0) + "z"
+    assert push_git._remote_sha(work, url, absent, env=None, secrets=()) is None
+
+
 def test_remote_sha_requires_exact_ref_match(repos: tuple[Path, Path]) -> None:
     """`ls-remote` suffix matching must not report a sibling branch as the target."""
     work, remote = repos

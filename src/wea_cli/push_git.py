@@ -245,14 +245,17 @@ def _remote_sha(
         env=env,
         secrets=secrets,
     )
-    # `git ls-remote` matches ref-name suffixes, so a branch like
-    # `sub/feature/x` also answers a query for `feature/x`. Accept only the row
-    # whose ref name is exactly the requested branch; otherwise the branch is
-    # absent.
-    for line in completed.stdout.splitlines():
-        parts = line.split()
-        if len(parts) >= 2 and parts[1] == target:
-            return parts[0]
+    # `git ls-remote` emits `<sha>\t<ref>` rows separated by LF. Parse those exact
+    # delimiters — never str.split()/splitlines(), which also break on Unicode
+    # whitespace (NBSP U+00A0, line separator U+2028) that are LEGAL in ref names
+    # and would corrupt the ref. `git ls-remote` also matches ref-name suffixes,
+    # so accept only the row whose ref equals the requested branch exactly.
+    for line in completed.stdout.split("\n"):
+        if not line:
+            continue
+        sha, tab, ref = line.partition("\t")
+        if tab and ref == target:
+            return sha
     return None
 
 
