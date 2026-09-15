@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import os
 import subprocess
 from pathlib import Path
@@ -18,6 +19,16 @@ def git(root: Path, *args: str, operation: str = "Git operation") -> str:
     for key in tuple(env):
         if key.startswith("GIT_TRACE") or key == "GIT_CURL_VERBOSE":
             del env[key]
+    token = env.get("GH_TOKEN") or env.get("GITHUB_TOKEN")
+    if token:
+        # Git does not consume GH_TOKEN itself. Keep the credential out of argv,
+        # persisted config and logs; apply it only to the GitHub HTTPS host.
+        count = int(env.get("GIT_CONFIG_COUNT", "0"))
+        encoded = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+        for index, value in enumerate(("", f"AUTHORIZATION: basic {encoded}"), count):
+            env[f"GIT_CONFIG_KEY_{index}"] = "http.https://github.com/.extraheader"
+            env[f"GIT_CONFIG_VALUE_{index}"] = value
+        env["GIT_CONFIG_COUNT"] = str(count + 2)
     try:
         result = subprocess.run(
             ["git", "-C", str(root), "-c", "remote.push-origin.mirror=false", *args],

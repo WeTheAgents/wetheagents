@@ -46,3 +46,8 @@ requires configured aliases to equal fetched main, hashes shipped CLI/vNext Pyth
 and JSON, uses the existing tide.py reader boundary, and prints the runtime action
 with its deadline. Submodule recursion was already disabled before this feedback.
 These are review corrections, not competitor code reuse or BDD changes.
+
+The first real native push failed with the configured plain HTTPS push-origin:
+Git does not consume the approved token environment itself. The corrected adapter
+supplies a process-only HTTPS authorization header scoped to github.com. It keeps
+credentials out of argv/config/output and preserves existing environment config.

@@ -368,3 +368,29 @@ def test_push_does_not_recurse_into_submodules(repository, tmp_path):
     git(root, "config", "push.recurseSubmodules", "on-demand")
     git_transport.push_branch(root)
     assert git(subremote, "rev-parse", "HEAD") == previous
+
+
+def test_token_auth_is_process_only_and_scoped(monkeypatch, tmp_path):
+    import base64
+
+    monkeypatch.setenv("GH_TOKEN", "private-test-token")
+    monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+    monkeypatch.setenv("GIT_CONFIG_KEY_0", "user.name")
+    monkeypatch.setenv("GIT_CONFIG_VALUE_0", "existing")
+    encoded = base64.b64encode(b"x-access-token:private-test-token").decode()
+
+    def run(command, **kwargs):
+        assert all(
+            "private-test-token" not in arg and encoded not in arg for arg in command
+        )
+        env = kwargs["env"]
+        assert env["GIT_CONFIG_COUNT"] == "3"
+        assert env["GIT_CONFIG_VALUE_0"] == "existing"
+        assert env["GIT_CONFIG_KEY_1"] == "http.https://github.com/.extraheader"
+        assert env["GIT_CONFIG_VALUE_1"] == ""
+        assert env["GIT_CONFIG_VALUE_2"] == f"AUTHORIZATION: basic {encoded}"
+        return SimpleNamespace(stdout="success")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    assert git_transport.git(tmp_path, "push", "push-origin") == "success"
+    assert os.environ["GIT_CONFIG_COUNT"] == "1"

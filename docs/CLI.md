@@ -32,7 +32,10 @@ not an alternate lifecycle. A report observes the cutoff, not later Issue activi
 `wea push [CURRENT_BRANCH]` publishes one explicit branch through the worktree's
 configured `push-origin`. It uses native Git authentication (credential helper,
 SSH or the already configured HTTPS remote); no token environment variable is
-required by the CLI. Configure authentication through the existing agent setup.
+required by the CLI. When GH_TOKEN or GITHUB_TOKEN is supplied, the CLI passes
+a GitHub-scoped HTTPS authorization header through the child process environment.
+It does not persist credentials or put the token in command arguments. Configure
+authentication through the existing agent setup.
 The command rejects detached HEAD, dirty tracked/untracked files, another branch,
 main/master, multiple push URLs and non-fast-forward updates. It preserves original
 commit identities and verifies the exact remote SHA. JSON returns remote, branch,
