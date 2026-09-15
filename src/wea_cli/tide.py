@@ -122,8 +122,17 @@ def resolve_ref_commit(root: Path, ref: str, *, fetch: bool = True) -> str:
             f"not canonical financial authority."
         )
     if fetch:
+        # Force-update the canonical main tracking ref explicitly, so a remote
+        # whose configured fetch refspec excludes main cannot leave a stale
+        # `refs/remotes/<remote>/main` behind and report it as current.
         try:
-            git(root, "fetch", "--quiet", remote)
+            git(
+                root,
+                "fetch",
+                "--quiet",
+                remote,
+                f"+refs/heads/main:refs/remotes/{remote}/main",
+            )
         except subprocess.CalledProcessError as exc:
             raise TideReadError(
                 f"Cannot fetch canonical `{remote}` to refresh `{ref}`: "

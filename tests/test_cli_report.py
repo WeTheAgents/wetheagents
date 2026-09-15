@@ -97,6 +97,32 @@ def test_resolve_ref_commit_fails_when_fetch_fails(tmp_path: Path) -> None:
     assert "fetch" in str(excinfo.value).lower()
 
 
+def test_resolve_ref_commit_fetches_main_despite_restricted_refspec(
+    git_repo: Path,
+) -> None:
+    old = tide.resolve_ref_commit(git_repo, "origin/main", fetch=False)
+    # A fetch refspec that excludes main must not leave origin/main stale.
+    _git(
+        git_repo,
+        "config",
+        "remote.origin.fetch",
+        "+refs/heads/none:refs/remotes/origin/none",
+    )
+    _git(git_repo, "commit", "--allow-empty", "-qm", "advance canonical main")
+    _git(git_repo, "push", "-q", "origin", "main")
+    got = tide.resolve_ref_commit(git_repo, "origin/main", fetch=True)
+    assert got != old
+    assert (
+        got
+        == subprocess.run(
+            ["git", "-C", str(git_repo), "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    )
+
+
 def test_build_report_reports_inactive_when_no_bootstrap(git_repo: Path) -> None:
     report = tide.build_vnext_report(
         git_repo, ref="origin/main", agent="Claude-15@claude", fetch=False

@@ -1438,13 +1438,20 @@ def _git_auth_env(token: str) -> dict[str, str]:
     ``GIT_CONFIG_*`` environment protocol, so it never appears on the command
     line, in a remote URL, or in the reflog. ``GIT_TERMINAL_PROMPT=0`` makes a
     missing/invalid credential fail fast instead of blocking on a prompt.
+
+    ``extraheader`` is multivalued, so an empty value is injected first to reset
+    any inherited header (for example persisted checkout credentials) before the
+    selected token is appended; otherwise duplicate Authorization headers could
+    be sent and rejected.
     """
     header = base64.b64encode(f"x-access-token:{token}".encode()).decode("ascii")
     return {
         "GIT_TERMINAL_PROMPT": "0",
-        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_COUNT": "2",
         "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
-        "GIT_CONFIG_VALUE_0": f"Authorization: Basic {header}",
+        "GIT_CONFIG_VALUE_0": "",
+        "GIT_CONFIG_KEY_1": "http.https://github.com/.extraheader",
+        "GIT_CONFIG_VALUE_1": f"Authorization: Basic {header}",
     }
 
 

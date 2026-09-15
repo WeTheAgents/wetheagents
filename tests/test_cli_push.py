@@ -315,12 +315,51 @@ def test_push_surfaces_transport_failure_for_missing_remote(
 
 def test_auth_env_never_exposes_token_on_command_line() -> None:
     env = cli._git_auth_env("s3cr3t-token")
-    # Token appears only base64-encoded inside a config value, never verbatim.
-    assert "s3cr3t-token" not in env["GIT_CONFIG_VALUE_0"]
-    decoded = base64.b64decode(env["GIT_CONFIG_VALUE_0"].split()[-1]).decode()
+    # Token appears only base64-encoded inside the appended header value.
+    assert "s3cr3t-token" not in env["GIT_CONFIG_VALUE_1"]
+    decoded = base64.b64decode(env["GIT_CONFIG_VALUE_1"].split()[-1]).decode()
     assert decoded == "x-access-token:s3cr3t-token"
     assert env["GIT_TERMINAL_PROMPT"] == "0"
+    # An empty value is injected first to reset any inherited extraheader.
+    assert env["GIT_CONFIG_COUNT"] == "2"
     assert env["GIT_CONFIG_KEY_0"] == "http.https://github.com/.extraheader"
+    assert env["GIT_CONFIG_VALUE_0"] == ""
+    assert env["GIT_CONFIG_KEY_1"] == "http.https://github.com/.extraheader"
+
+
+def test_auth_env_replaces_inherited_extraheader(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    import os
+
+    work, _bare = repo_with_remote
+    # A persisted credential header already configured on the repo.
+    _git(
+        work,
+        "config",
+        "http.https://github.com/.extraheader",
+        "Authorization: Basic inherited-credential",
+    )
+    env = {**os.environ, **cli._git_auth_env("dummy")}
+    headers = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(work),
+            "config",
+            "--get-all",
+            "http.https://github.com/.extraheader",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
+    # git's HTTP layer resets the multivalued extraheader on an empty value, so
+    # the effective headers are those after the last empty entry: only ours.
+    last_reset = max(i for i, h in enumerate(headers) if h.strip() == "")
+    effective = [h for h in headers[last_reset + 1 :] if h.strip()]
+    assert effective == [env["GIT_CONFIG_VALUE_1"]]
 
 
 def test_sanitize_strips_token_and_url_credentials() -> None:
