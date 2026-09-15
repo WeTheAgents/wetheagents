@@ -104,10 +104,12 @@ def test_cmd_push_returns_error_on_push_failure(
     monkeypatch.setenv("GITHUB_TOKEN", "token")
     monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
 
-    def _raise_push_error(root: Path, repo: str, branch: str | None, token: str) -> str:
+    def _raise_push_error(
+        root: Path, remote: str, branch: str | None, token: str, *, allow_main: bool
+    ) -> str:
         raise cli.PushError("push failed")
 
-    monkeypatch.setattr(cli, "_push_branch_via_github_api", _raise_push_error)
+    monkeypatch.setattr(cli, "_push_branch_via_git", _raise_push_error)
 
     args = argparse.Namespace(
         branch="agent/codex-19/319-wea-push",
@@ -128,13 +130,16 @@ def test_cmd_push_prints_success_message(
 
     seen: dict[str, str | None] = {}
 
-    def _fake_push(root: Path, repo: str, branch: str | None, token: str) -> str:
-        seen["repo"] = repo
+    def _fake_push(
+        root: Path, remote: str, branch: str | None, token: str, *, allow_main: bool
+    ) -> str:
+        seen["remote"] = remote
         seen["branch"] = branch
         seen["token"] = token
+        seen["allow_main"] = str(allow_main)
         return "push ok"
 
-    monkeypatch.setattr(cli, "_push_branch_via_github_api", _fake_push)
+    monkeypatch.setattr(cli, "_push_branch_via_git", _fake_push)
 
     args = argparse.Namespace(
         branch="agent/codex-19/319-wea-push",
@@ -145,9 +150,10 @@ def test_cmd_push_prints_success_message(
 
     assert rc == cli.EXIT_OK
     assert seen == {
-        "repo": "WeTheAgents/wetheagents",
+        "remote": "origin",
         "branch": "agent/codex-19/319-wea-push",
         "token": "token",
+        "allow_main": "False",
     }
     assert "push ok" in capsys.readouterr().out
 
