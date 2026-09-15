@@ -38,7 +38,7 @@ def run(root: Path, *args: str, operation: str = "Git operation") -> str:
             "Check repository access, configured authentication and remote history. "
             "Fetch and reconcile divergent commits before retrying; do not force push."
         )
-    return result.stdout.strip()
+    return result.stdout.rstrip("\r\n")
 
 
 def fetch_canonical(root: Path, ref: str) -> str:
@@ -113,7 +113,7 @@ def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
         "--all",
         remote,
         operation="push-origin configuration lookup",
-    ).splitlines()
+    ).split("\n")
     if len(urls) != 1:
         raise GitTransportError(
             "Configure exactly one authenticated push-origin destination."
@@ -150,9 +150,9 @@ def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
         urls[0],
         target,
         operation="Published head verification",
-    ).splitlines()
+    ).split("\n")
     # ls-remote patterns also match suffixes of nested refs.
-    matching = [row.split() for row in observed if row.split()[1:] == [target]]
+    matching = [row.split("\t") for row in observed if row.partition("\t")[2] == target]
     if matching != [[head, target]]:
         raise GitTransportError(
             "Remote head changed during publication. Inspect it before retrying."

@@ -111,6 +111,20 @@ def test_push_readback_matches_exact_ref_among_suffix_matches(repository, same_c
 
 
 @pytest.mark.parametrize(
+    "branch_name", ["feature\u00a0tail", "feature\u2028tail", "feature\u00a0"]
+)
+def test_push_preserves_unicode_whitespace_in_valid_refs(repository, branch_name):
+    root, remote = repository
+    git(root, "check-ref-format", "refs/heads/" + branch_name)
+    git(root, "branch", "-m", branch_name)
+    head = git(root, "rev-parse", "HEAD")
+    result = git_transport.push_branch(root, branch_name)
+    assert result == {"remote": "push-origin", "branch": branch_name, "head": head}
+    assert git(remote, "rev-parse", "refs/heads/" + branch_name) == head
+    assert git_transport.push_branch(root) == result
+
+
+@pytest.mark.parametrize(
     "case",
     ["main", "detached", "dirty", "mismatch", "divergent", "mirror", "multi-url"],
 )
