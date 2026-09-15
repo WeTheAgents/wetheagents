@@ -244,12 +244,61 @@ def test_push_rejects_non_fast_forward(
         cli._push_branch_via_git(work, "origin", "feature", "tok")
 
 
-def test_push_rejects_unknown_local_branch(
+def test_push_rejects_explicit_branch_other_than_current(
     repo_with_remote: tuple[Path, Path],
 ) -> None:
     work, _bare = repo_with_remote
-    with pytest.raises(cli.PushError, match="does not exist"):
-        cli._push_branch_via_git(work, "origin", "no-such-branch", "tok")
+    _git(work, "checkout", "-qb", "feature")
+    # On `feature`, an explicit different branch must be rejected: push only
+    # publishes the current checked-out branch.
+    with pytest.raises(cli.PushError, match="only the current branch"):
+        cli._push_branch_via_git(work, "origin", "main", "tok")
+
+
+def test_push_handles_tag_colliding_with_current_branch(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, bare = repo_with_remote
+    _git(work, "checkout", "-qb", "feature")
+    # A tag named exactly like the branch must not be published in its place.
+    _git(work, "tag", "feature")
+    head = _head(work, "refs/heads/feature")
+    cli._push_branch_via_git(work, "origin", "feature", "tok")
+    assert _remote_sha(bare, "feature") == head
+    # The colliding tag was not pushed (transport is bounded to the branch).
+    assert _git(work, "ls-remote", "origin", "refs/tags/feature") == ""
+
+
+def test_push_resolves_current_branch_named_like_a_ref_prefix(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, bare = repo_with_remote
+    # A branch literally named `heads/feature` must strip refs/heads/ exactly once.
+    _git(work, "checkout", "-qb", "heads/feature")
+    assert cli._current_branch(work) == "heads/feature"
+    cli._push_branch_via_git(work, "origin", None, "tok")
+    assert _remote_sha(bare, "heads/feature") == _head(work)
+
+
+def test_push_rejects_mirror_remote(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, _bare = repo_with_remote
+    _git(work, "config", "remote.origin.mirror", "true")
+    _git(work, "checkout", "-qb", "feature")
+    with pytest.raises(cli.PushError, match="mirror"):
+        cli._push_branch_via_git(work, "origin", "feature", "tok")
+
+
+def test_push_does_not_publish_unrelated_tags(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, _bare = repo_with_remote
+    _git(work, "checkout", "-qb", "feature")
+    _git(work, "tag", "v9.9.9")  # annotated-free tag pointing at the pushed commit
+    cli._push_branch_via_git(work, "origin", "feature", "tok")
+    # --no-follow-tags: the tag must not ride along with the branch push.
+    assert _git(work, "ls-remote", "origin", "refs/tags/v9.9.9") == ""
 
 
 def test_push_surfaces_transport_failure_for_missing_remote(

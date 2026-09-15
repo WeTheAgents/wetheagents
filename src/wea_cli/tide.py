@@ -83,20 +83,52 @@ def show(args) -> int:
 # ---------------------------------------------------------------------------
 
 
-def resolve_ref_commit(root: Path, ref: str) -> str:
-    """Return the full commit SHA for a fetched, explicit canonical ref.
+def _canonical_remote(ref: str) -> str | None:
+    """The remote a canonical ref names (``origin`` for ``origin/main``)."""
+    remote = ref.split("/", 1)[0] if "/" in ref else ""
+    return remote or None
 
-    Fails with an actionable :class:`TideReadError` instead of falling back to
-    a stale working tree when the ref is missing (typically an un-fetched
-    ``origin/main``).
+
+def _git_stderr(exc: subprocess.CalledProcessError) -> str:
+    err = exc.stderr
+    if isinstance(err, bytes):
+        err = err.decode("utf-8", errors="replace")
+    return (err or "").strip()
+
+
+def resolve_ref_commit(root: Path, ref: str, *, fetch: bool = True) -> str:
+    """Resolve a *canonical* origin ref to its commit SHA.
+
+    The ref must be a remote-tracking ref (e.g. ``origin/main``); a local or
+    pending branch is rejected so it cannot be rendered as canonical. Unless
+    ``fetch`` is disabled, the naming remote is refreshed first so the resolved
+    commit reflects current canonical ``main``, never a stale local snapshot.
     """
+    remote = _canonical_remote(ref)
+    if remote is None:
+        raise TideReadError(
+            f"`{ref}` is not a canonical origin ref. Pass a remote-tracking ref "
+            f"such as `--ref origin/main`; a local or pending branch is not canonical."
+        )
+    if fetch:
+        try:
+            git(root, "fetch", "--quiet", remote)
+        except subprocess.CalledProcessError as exc:
+            raise TideReadError(
+                f"Cannot fetch canonical `{remote}` to refresh `{ref}`: "
+                f"{_git_stderr(exc) or 'fetch failed'}. Check network/auth; report "
+                f"does not fall back to stale state (use --no-fetch only if you just "
+                f"fetched)."
+            ) from exc
     try:
-        return git(root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+        return git(
+            root, "rev-parse", "--verify", "--quiet", f"refs/remotes/{ref}^{{commit}}"
+        )
     except subprocess.CalledProcessError as exc:
         raise TideReadError(
-            f"Cannot verify canonical ref `{ref}`. Fetch origin first "
-            f"(`git fetch origin`), then pass an existing ref such as "
-            f"`--ref origin/main`. Report does not fall back to a stale working tree."
+            f"Cannot verify canonical ref `{ref}` under remote `{remote}`. Fetch "
+            f"first (`git fetch {remote}`) and pass an existing remote-tracking ref "
+            f"such as `--ref origin/main`. Report does not use stale local state."
         ) from exc
 
 
@@ -159,14 +191,15 @@ def build_vnext_report(
     ref: str = "origin/main",
     agent: str | None = None,
     issue: int | None = None,
+    fetch: bool = True,
 ) -> dict[str, Any]:
     """Build a stable, machine-readable canonical vNext report.
 
-    The report is read only from the verified canonical ``ref`` through the same
-    read-only replay engine that backs ``wea tide``. It never writes and never
-    substitutes stale local state.
+    The report is read only from the fetched, verified canonical ``ref`` through
+    the same read-only replay engine that backs ``wea tide``. It never writes and
+    never substitutes stale local state.
     """
-    commit = resolve_ref_commit(root, ref)
+    commit = resolve_ref_commit(root, ref, fetch=fetch)
     if not files(root, commit, BOOTSTRAP):
         return {
             "ref": ref,

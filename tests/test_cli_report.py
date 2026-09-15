@@ -23,24 +23,34 @@ def _git(root: Path, *args: str) -> None:
 
 @pytest.fixture()
 def git_repo(tmp_path: Path) -> Path:
+    """A worktree with a canonical `origin/main` remote-tracking ref."""
+    origin = tmp_path / "origin.git"
     root = tmp_path / "repo"
+    subprocess.run(
+        ["git", "init", "-q", "-b", "main", str(origin), "--bare"],
+        check=True,
+        capture_output=True,
+    )
     root.mkdir()
     _git(root, "init", "-q", "-b", "main")
     _git(root, "config", "user.email", "a@b.c")
     _git(root, "config", "user.name", "tester")
+    _git(root, "remote", "add", "origin", str(origin))
     (root / "f.txt").write_text("one\n", encoding="utf-8")
     _git(root, "add", "f.txt")
     _git(root, "commit", "-qm", "one")
+    _git(root, "push", "-q", "origin", "main")
+    _git(root, "fetch", "-q", "origin")
     return root
 
 
-def test_resolve_ref_commit_returns_full_sha_for_existing_ref(git_repo: Path) -> None:
-    commit = tide.resolve_ref_commit(git_repo, "main")
+def test_resolve_ref_commit_returns_full_sha_for_canonical_ref(git_repo: Path) -> None:
+    commit = tide.resolve_ref_commit(git_repo, "origin/main")
     assert len(commit) == 40
     assert (
         commit
         == subprocess.run(
-            ["git", "-C", str(git_repo), "rev-parse", "main"],
+            ["git", "-C", str(git_repo), "rev-parse", "refs/remotes/origin/main"],
             check=True,
             capture_output=True,
             text=True,
@@ -48,19 +58,43 @@ def test_resolve_ref_commit_returns_full_sha_for_existing_ref(git_repo: Path) ->
     )
 
 
+def test_resolve_ref_commit_rejects_noncanonical_local_ref(git_repo: Path) -> None:
+    with pytest.raises(tide.TideReadError) as excinfo:
+        tide.resolve_ref_commit(git_repo, "main", fetch=False)
+    assert "not a canonical origin ref" in str(excinfo.value)
+
+
 def test_resolve_ref_commit_fails_actionably_for_missing_ref(git_repo: Path) -> None:
     with pytest.raises(tide.TideReadError) as excinfo:
-        tide.resolve_ref_commit(git_repo, "origin/main")
+        tide.resolve_ref_commit(git_repo, "origin/does-not-exist", fetch=False)
     message = str(excinfo.value)
-    assert "origin/main" in message
-    assert "git fetch origin" in message
+    assert "origin/does-not-exist" in message
     assert "stale" in message.lower()
 
 
+def test_resolve_ref_commit_fails_when_fetch_fails(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    _git(root, "init", "-q", "-b", "main")
+    _git(root, "config", "user.email", "a@b.c")
+    _git(root, "config", "user.name", "tester")
+    _git(root, "remote", "add", "origin", str(tmp_path / "nonexistent.git"))
+    (root / "f.txt").write_text("x\n", encoding="utf-8")
+    _git(root, "add", "f.txt")
+    _git(root, "commit", "-qm", "x")
+    with pytest.raises(tide.TideReadError) as excinfo:
+        tide.resolve_ref_commit(root, "origin/main", fetch=True)
+    assert "fetch" in str(excinfo.value).lower()
+
+
 def test_build_report_reports_inactive_when_no_bootstrap(git_repo: Path) -> None:
-    report = tide.build_vnext_report(git_repo, ref="main", agent="Claude-15@claude")
+    report = tide.build_vnext_report(
+        git_repo, ref="origin/main", agent="Claude-15@claude", fetch=False
+    )
     assert report["active"] is False
-    assert report["commit"] == tide.resolve_ref_commit(git_repo, "main")
+    assert report["commit"] == tide.resolve_ref_commit(
+        git_repo, "origin/main", fetch=False
+    )
     # Inactive still renders without raising.
     assert "not initialized" in tide.render_vnext_report(report).lower()
 
@@ -145,7 +179,7 @@ class _FakeEngine:
 
 @pytest.fixture()
 def fake_report(monkeypatch: pytest.MonkeyPatch) -> dict[str, object]:
-    monkeypatch.setattr(tide, "resolve_ref_commit", lambda root, ref: "f" * 40)
+    monkeypatch.setattr(tide, "resolve_ref_commit", lambda root, ref, **kw: "f" * 40)
     monkeypatch.setattr(tide, "files", lambda root, commit, prefix: ["bootstrap"])
     monkeypatch.setattr(tide, "load", lambda root, commit: (_FakeEngine(), []))
     monkeypatch.setattr(
@@ -193,7 +227,7 @@ def test_report_separates_unresolved_and_legacy(fake_report: dict[str, object]) 
 
 
 def test_report_issue_filter_restricts_tasks(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(tide, "resolve_ref_commit", lambda root, ref: "f" * 40)
+    monkeypatch.setattr(tide, "resolve_ref_commit", lambda root, ref, **kw: "f" * 40)
     monkeypatch.setattr(tide, "files", lambda root, commit, prefix: ["bootstrap"])
     monkeypatch.setattr(tide, "load", lambda root, commit: (_FakeEngine(), []))
     monkeypatch.setattr(tide, "_legacy_summary", lambda root, commit: None)
@@ -216,7 +250,7 @@ def test_render_report_is_human_readable(fake_report: dict[str, object]) -> None
 def test_build_report_wraps_replay_error(monkeypatch: pytest.MonkeyPatch) -> None:
     from wea_vnext.tide.replay import ReplayError
 
-    monkeypatch.setattr(tide, "resolve_ref_commit", lambda root, ref: "f" * 40)
+    monkeypatch.setattr(tide, "resolve_ref_commit", lambda root, ref, **kw: "f" * 40)
     monkeypatch.setattr(tide, "files", lambda root, commit, prefix: ["bootstrap"])
 
     def _boom(root: Path, commit: str) -> object:

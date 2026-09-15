@@ -13,7 +13,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 # Direct script use must resolve this worktree, including the Tide adapter,
 # even when an editable installation points to another task checkout.
@@ -38,23 +38,27 @@ except ModuleNotFoundError:
     validate_detailed = check_task_format.validate_detailed
 
 from wea_cli.config import resolve_agent
-try:
-    from wea_cli.errors import WeaCliError
-except ModuleNotFoundError:
-    # Editable installs from a sibling worktree may not have errors.py yet.
-    # Fall back to the local file (mirrors the check_task_format pattern above).
-    import importlib.util
 
-    _errors_path = Path(__file__).resolve().parent / "errors.py"
-    _errors_spec = importlib.util.spec_from_file_location(
-        "wea_cli_errors_local", _errors_path
-    )
-    if _errors_spec is None or _errors_spec.loader is None:
-        raise
-    _errors_mod = importlib.util.module_from_spec(_errors_spec)
-    sys.modules[_errors_spec.name] = _errors_mod
-    _errors_spec.loader.exec_module(_errors_mod)
-    WeaCliError = _errors_mod.WeaCliError
+if TYPE_CHECKING:
+    from wea_cli.errors import WeaCliError
+else:
+    try:
+        from wea_cli.errors import WeaCliError
+    except ModuleNotFoundError:
+        # Editable installs from a sibling worktree may not have errors.py yet.
+        # Fall back to the local file (mirrors the check_task_format pattern above).
+        import importlib.util
+
+        _errors_path = Path(__file__).resolve().parent / "errors.py"
+        _errors_spec = importlib.util.spec_from_file_location(
+            "wea_cli_errors_local", _errors_path
+        )
+        if _errors_spec is None or _errors_spec.loader is None:
+            raise
+        _errors_mod = importlib.util.module_from_spec(_errors_spec)
+        sys.modules[_errors_spec.name] = _errors_mod
+        _errors_spec.loader.exec_module(_errors_mod)
+        WeaCliError = _errors_mod.WeaCliError
 from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gauntlet import (
     cmd_gauntlet_history,
@@ -696,6 +700,7 @@ def cmd_report(args: argparse.Namespace) -> int:
             ref=ref,
             agent=agent,
             issue=getattr(args, "report_issue", None),
+            fetch=not getattr(args, "report_no_fetch", False),
         )
     except TideReadError as exc:
         print(str(exc))
@@ -1330,20 +1335,6 @@ def _git_has_object(root: Path, object_name: str) -> bool:
     return result.returncode == 0
 
 
-def _git_has_ref(root: Path, ref_name: str) -> bool:
-    command = [
-        "git",
-        "-c",
-        f"safe.directory={root.as_posix()}",
-        "show-ref",
-        "--verify",
-        "--quiet",
-        ref_name,
-    ]
-    result = subprocess.run(command, cwd=root, capture_output=True, check=False)
-    return result.returncode == 0
-
-
 def _git_is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
     command = [
         "git",
@@ -1363,25 +1354,59 @@ def _git_is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
     )
 
 
-def _current_branch(root: Path) -> str:
-    branch = _git_text(root, "branch", "--show-current").strip()
-    if not branch:
-        raise PushError("Detached HEAD: pass an explicit branch name to `wea push <branch>`.")
-    return branch
+def _current_branch(root: Path) -> str | None:
+    """The full current branch name, or ``None`` when HEAD is detached.
+
+    Uses ``symbolic-ref HEAD`` (the full ``refs/heads/<name>``) and strips the
+    prefix exactly once. ``symbolic-ref --short`` can emit ``heads/<name>`` when
+    a tag shares the branch name; the full ref avoids that protected-name bypass.
+    """
+    command = [
+        "git",
+        "-c",
+        f"safe.directory={root.as_posix()}",
+        "symbolic-ref",
+        "--quiet",
+        "HEAD",
+    ]
+    result = subprocess.run(
+        command,
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    ref = (result.stdout or "").strip()
+    prefix = "refs/heads/"
+    if not ref.startswith(prefix):
+        return None
+    return ref[len(prefix) :]
 
 
 def _resolve_push_branch(root: Path, branch: str | None) -> tuple[str, str]:
-    if branch:
-        ref_name = f"refs/heads/{branch}"
-        if not _git_has_ref(root, ref_name):
-            raise PushError(f"Local branch `{branch}` does not exist.")
-        branch_name = branch
-        head_sha = _git_text(root, "rev-parse", "--verify", ref_name).strip()
-        return branch_name, head_sha
+    """Resolve the branch to publish, enforcing the current-branch boundary.
 
-    branch_name = _current_branch(root)
-    head_sha = _git_text(root, "rev-parse", "--verify", "HEAD").strip()
-    return branch_name, head_sha
+    `wea push` publishes only the checked-out branch: a detached HEAD is
+    rejected, and an explicit branch argument must name that same current branch.
+    The head SHA is read from the full ``refs/heads/<branch>`` so a same-named
+    tag cannot be published in its place.
+    """
+    current = _current_branch(root)
+    if current is None:
+        raise PushError("Detached HEAD: check out the branch you want to publish.")
+    if branch is not None and branch != current:
+        raise PushError(
+            f"`wea push` publishes only the current branch (`{current}`); "
+            f"check out `{branch}` first or omit the argument."
+        )
+    head_sha = _git_text(
+        root, "rev-parse", "--verify", f"refs/heads/{current}^{{commit}}"
+    ).strip()
+    return current, head_sha
 
 
 _URL_CRED_RE = re.compile(r"(https?://)[^/@\s]+@")
@@ -1485,6 +1510,28 @@ def _working_tree_dirty(root: Path) -> bool:
     return bool(str(result.stdout).strip())
 
 
+def _remote_is_mirror(root: Path, remote: str) -> bool:
+    """True when the remote is configured as a mirror (push writes *all* refs)."""
+    command = [
+        "git",
+        "-c",
+        f"safe.directory={root.as_posix()}",
+        "config",
+        "--get",
+        f"remote.{remote}.mirror",
+    ]
+    result = subprocess.run(
+        command,
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    return result.returncode == 0 and (result.stdout or "").strip().lower() == "true"
+
+
 def _push_branch_via_git(
     root: Path,
     remote: str,
@@ -1497,9 +1544,11 @@ def _push_branch_via_git(
 
     Uses ``git push`` against the configured ``remote`` so only the missing
     objects for this branch travel the wire (no per-tree full-blob REST upload).
-    Commit identities and SHAs are preserved by the transport. Rejects detached
-    HEAD, dirty ambiguity, a `main` publication, and non-fast-forward updates.
-    Returns the exact remote branch and verified head SHA.
+    Commit identities and SHAs are preserved by the transport. Publishes only the
+    current checked-out branch; rejects a detached HEAD, a non-current explicit
+    branch, dirty ambiguity, a `main` publication, a non-fast-forward update, and
+    a mirror remote, and disables tag following and submodule recursion. Returns
+    the exact remote branch and verified head SHA.
     """
     branch_name, head_sha = _resolve_push_branch(root, branch)
 
@@ -1509,14 +1558,20 @@ def _push_branch_via_git(
             "push a feature branch instead."
         )
 
-    # Dirty ambiguity applies whenever the resolved branch is the checked-out
-    # branch, whether or not it was named explicitly; an explicit *other* branch
-    # publishes its committed ref regardless of the working tree.
-    current = _git_text(root, "branch", "--show-current").strip()
-    if branch_name == current and _working_tree_dirty(root):
+    # `_resolve_push_branch` guarantees this is the checked-out branch, so an
+    # uncommitted tracked change always makes the published commit ambiguous.
+    if _working_tree_dirty(root):
         raise PushError(
             "Working tree has uncommitted tracked changes; commit or stash "
             "before pushing (dirty ambiguity)."
+        )
+
+    # A mirror remote ignores an explicit refspec and rewrites every ref; that is
+    # outside this command's single-branch bound, so reject it explicitly.
+    if _remote_is_mirror(root, remote):
+        raise PushError(
+            f"Remote `{remote}` is configured as a mirror; `wea push` publishes "
+            f"only the current branch and will not mirror all refs."
         )
 
     # `git push <remote>` writes every configured push URL; read those same URLs
@@ -1540,10 +1595,18 @@ def _push_branch_via_git(
                 f"fetch and reconcile before pushing."
             )
 
-    # No --force: the server independently rejects any non-fast-forward update.
+    # Bounded transport: one explicit refspec, no --force (the server rejects any
+    # non-fast-forward), no tag following, and no submodule recursion, so only the
+    # intended branch delta is published.
     _run_git_authenticated(
         root,
-        ["push", remote, f"refs/heads/{branch_name}:refs/heads/{branch_name}"],
+        [
+            "push",
+            "--no-follow-tags",
+            "--recurse-submodules=no",
+            remote,
+            f"refs/heads/{branch_name}:refs/heads/{branch_name}",
+        ],
         token,
     )
 
@@ -3142,6 +3205,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
         help="Restrict the funded-task view to one Issue number",
+    )
+    p_report.add_argument(
+        "--no-fetch",
+        dest="report_no_fetch",
+        action="store_true",
+        help="Skip refreshing the remote (only if you just fetched the canonical ref)",
     )
     p_report.add_argument("--json", dest="report_json", action="store_true",
                            help="Output as stable machine-readable JSON")

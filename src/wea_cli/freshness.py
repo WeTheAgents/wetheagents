@@ -17,6 +17,7 @@ works from a bare source tree.
 from __future__ import annotations
 
 import ast
+import hashlib
 import os
 import re
 import shutil
@@ -30,13 +31,40 @@ from typing import Any
 CONTRACT_VERSION = 2
 
 _VERSION_RE = re.compile(r"cli-contract\s+(\d+)")
+_FINGERPRINT_RE = re.compile(r"cli-fingerprint\s+([0-9a-f]+)")
 _USAGE_CHOICES_RE = re.compile(r"\{([a-z0-9,_-]+)\}", re.IGNORECASE)
 _CONTRACT_ASSIGN_RE = re.compile(r"^CONTRACT_VERSION\s*=\s*(\d+)", re.MULTILINE)
 
+# This module intentionally imports nothing from `wea_cli` (in particular not
+# `wea_cli.cli`): it discovers the CLI surface by reading source *bytes* as data,
+# so it stays a leaf module rather than a writer-capable one.
+
+
+def source_fingerprint(package_dir: Path) -> str:
+    """Content hash of the shipped ``wea_cli`` Python bytes in ``package_dir``.
+
+    Fingerprints the actual implementation, not just a hand-maintained version
+    stamp, so a same-command but different-bytes (older) CLI is still detected
+    as drift. Returns ``""`` when the directory is absent.
+    """
+    if not package_dir.is_dir():
+        return ""
+    digest = hashlib.sha256()
+    for path in sorted(package_dir.glob("*.py")):
+        digest.update(path.name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()[:16]
+
 
 def version_banner(package_version: str) -> str:
-    """The `wea --version` line; freshness parses the ``cli-contract N`` token."""
-    return f"wea {package_version} (cli-contract {CONTRACT_VERSION})"
+    """The `wea --version` line; freshness parses ``cli-contract`` and fingerprint."""
+    fingerprint = source_fingerprint(Path(__file__).resolve().parent)
+    return (
+        f"wea {package_version} "
+        f"(cli-contract {CONTRACT_VERSION}; cli-fingerprint {fingerprint})"
+    )
 
 
 def parse_top_level_commands(cli_source: str) -> set[str]:
@@ -68,20 +96,30 @@ def parse_top_level_commands(cli_source: str) -> set[str]:
 
 
 def running_contract() -> dict[str, Any]:
-    """Contract of the CLI executing this process (source or installed package)."""
-    from wea_cli import cli
+    """Contract of the CLI executing this process (source or installed package).
 
-    source = Path(cli.__file__).read_text(encoding="utf-8", errors="replace")
+    The running ``cli.py`` sits beside this module; read it by path (as bytes)
+    rather than importing ``wea_cli.cli``, keeping freshness a non-writer leaf.
+    """
+    package_dir = Path(__file__).resolve().parent
+    cli_path = package_dir / "cli.py"
+    source = (
+        cli_path.read_text(encoding="utf-8", errors="replace")
+        if cli_path.is_file()
+        else ""
+    )
     return {
         "version": CONTRACT_VERSION,
         "commands": sorted(parse_top_level_commands(source)),
+        "fingerprint": source_fingerprint(package_dir),
     }
 
 
 def checkout_contract(root: Path) -> dict[str, Any]:
     """Contract read statically from the checked-out repository at ``root``."""
-    cli_path = root / "src" / "wea_cli" / "cli.py"
-    freshness_path = root / "src" / "wea_cli" / "freshness.py"
+    package_dir = root / "src" / "wea_cli"
+    cli_path = package_dir / "cli.py"
+    freshness_path = package_dir / "freshness.py"
     if not cli_path.is_file():
         return {"available": False, "reason": f"missing {cli_path.as_posix()}"}
     version = None
@@ -98,6 +136,7 @@ def checkout_contract(root: Path) -> dict[str, Any]:
         "available": True,
         "version": version,
         "commands": sorted(commands),
+        "fingerprint": source_fingerprint(package_dir),
     }
 
 
@@ -132,6 +171,8 @@ def _probe_installed(wea_path: str) -> dict[str, Any]:
     else:
         # An older executable predates `--version`/contract reporting entirely.
         report["version"] = None
+    fingerprint_match = _FINGERPRINT_RE.search(combined)
+    report["fingerprint"] = fingerprint_match.group(1) if fingerprint_match else None
 
     help_run = subprocess.run(
         [wea_path, "--help"],
@@ -173,13 +214,20 @@ def _evaluate(surface: dict[str, Any], checkout: dict[str, Any]) -> dict[str, An
         and surface["version"] < checkout_version
     )
     version_unknown = surface.get("version") is None
-    stale = bool(missing) or version_behind or version_unknown
+    checkout_fp = checkout.get("fingerprint")
+    surface_fp = surface.get("fingerprint")
+    # Only a decisive mismatch of two known fingerprints counts as drift; an
+    # unreported fingerprint is handled by the version/command signals.
+    fingerprint_drift = bool(checkout_fp and surface_fp and surface_fp != checkout_fp)
+    stale = bool(missing) or version_behind or version_unknown or fingerprint_drift
     return {
         "version": surface.get("version"),
         "commands": sorted(surface_commands),
+        "fingerprint": surface_fp,
         "missing_commands": missing,
         "version_behind": version_behind,
         "version_unknown": version_unknown,
+        "fingerprint_drift": fingerprint_drift,
         "stale": stale,
     }
 
@@ -198,7 +246,11 @@ def build_freshness(root: Path) -> dict[str, Any]:
 
     result: dict[str, Any] = {
         "checkout": checkout,
-        "running": {"version": running["version"], "commands": running["commands"]},
+        "running": {
+            "version": running["version"],
+            "commands": running["commands"],
+            "fingerprint": running["fingerprint"],
+        },
         "installed": installed,
         "refresh": refresh,
     }
@@ -236,17 +288,22 @@ def build_freshness(root: Path) -> dict[str, Any]:
 
     parts: list[str] = []
     if running_stale:
+        reason = (
+            "different implementation bytes"
+            if running_eval["fingerprint_drift"]
+            else f"version {running_eval['version']} vs {checkout.get('version')}"
+        )
         parts.append(
-            "The invoked CLI is behind the checkout contract "
-            f"(version {running_eval['version']} vs {checkout.get('version')}; "
+            f"The invoked CLI is behind the checkout contract ({reason}; "
             f"missing {running_eval['missing_commands'] or 'none'})."
         )
     if installed_stale and installed_eval is not None:
-        detail = (
-            "cannot report its version"
-            if installed_eval["version_unknown"]
-            else f"version {installed_eval['version']} vs {checkout.get('version')}"
-        )
+        if installed_eval["version_unknown"]:
+            detail = "cannot report its version"
+        elif installed_eval["fingerprint_drift"]:
+            detail = "different implementation bytes"
+        else:
+            detail = f"version {installed_eval['version']} vs {checkout.get('version')}"
         parts.append(
             f"The installed `wea` ({installed.get('path')}) is stale ({detail}; "
             f"missing {installed_eval['missing_commands'] or 'none'})."

@@ -63,9 +63,26 @@ def test_probe_env_strips_pythonpath(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "PYTHONPATH" not in env
 
 
-def test_version_banner_contains_contract_stamp() -> None:
+# The real repository root, so running and checkout resolve the same package
+# bytes (version, commands, and fingerprint all match) for the "fresh" cases.
+REPO_ROOT = Path(freshness.__file__).resolve().parents[2]
+
+
+def test_version_banner_contains_contract_and_fingerprint() -> None:
     banner = freshness.version_banner("0.2.0")
-    assert banner == f"wea 0.2.0 (cli-contract {freshness.CONTRACT_VERSION})"
+    assert banner.startswith("wea 0.2.0 ")
+    assert f"cli-contract {freshness.CONTRACT_VERSION}" in banner
+    assert "cli-fingerprint " in banner
+
+
+def test_source_fingerprint_changes_with_bytes(tmp_path: Path) -> None:
+    pkg = tmp_path / "wea_cli"
+    pkg.mkdir()
+    (pkg / "cli.py").write_text("a = 1\n", encoding="utf-8")
+    first = freshness.source_fingerprint(pkg)
+    (pkg / "cli.py").write_text("a = 2\n", encoding="utf-8")
+    assert freshness.source_fingerprint(pkg) != first
+    assert freshness.source_fingerprint(tmp_path / "absent") == ""
 
 
 def test_checkout_contract_reads_version_and_commands(tmp_path: Path) -> None:
@@ -77,26 +94,14 @@ def test_checkout_contract_reads_version_and_commands(tmp_path: Path) -> None:
 
 
 def test_freshness_fresh_when_running_matches_and_installed_absent(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # A checkout whose contract equals the running CLI's contract.
-    running = freshness.running_contract()
-    pkg = tmp_path / "src" / "wea_cli"
-    pkg.mkdir(parents=True)
-    commands = "\n    ".join(
-        f'subparsers.add_parser("{name}")' for name in running["commands"]
-    )
-    (pkg / "cli.py").write_text(
-        f"def build_parser():\n    {commands}\n", encoding="utf-8"
-    )
-    (pkg / "freshness.py").write_text(
-        f"CONTRACT_VERSION = {freshness.CONTRACT_VERSION}\n", encoding="utf-8"
-    )
+    # Against the real checkout the running package matches byte for byte.
     monkeypatch.setattr(freshness, "installed_contract", lambda: {"found": False})
-
-    report = freshness.build_freshness(tmp_path)
+    report = freshness.build_freshness(REPO_ROOT)
     assert report["status"] == "fresh"
     assert report["drift"] is False
+    assert report["running_vs_checkout"]["fingerprint_drift"] is False
     assert "No installed `wea`" in report["message"]
 
 
@@ -120,20 +125,8 @@ def test_freshness_flags_running_behind_checkout(
 
 
 def test_freshness_flags_installed_missing_command(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    running = freshness.running_contract()
-    pkg = tmp_path / "src" / "wea_cli"
-    pkg.mkdir(parents=True)
-    commands = "\n    ".join(
-        f'subparsers.add_parser("{name}")' for name in running["commands"]
-    )
-    (pkg / "cli.py").write_text(
-        f"def build_parser():\n    {commands}\n", encoding="utf-8"
-    )
-    (pkg / "freshness.py").write_text(
-        f"CONTRACT_VERSION = {freshness.CONTRACT_VERSION}\n", encoding="utf-8"
-    )
     # An installed wea that predates `tide` and cannot report its version.
     monkeypatch.setattr(
         freshness,
@@ -143,15 +136,40 @@ def test_freshness_flags_installed_missing_command(
             "path": "/usr/bin/wea",
             "version": None,
             "commands": ["tasks", "submit"],
+            "fingerprint": None,
         },
     )
-
-    report = freshness.build_freshness(tmp_path)
+    report = freshness.build_freshness(REPO_ROOT)
     assert report["status"] == "stale"
     assert report["drift"] is True
+    # The invoked CLI matches the real checkout; only the installed one is stale.
+    assert report["running_vs_checkout"]["stale"] is False
     installed_eval = report["installed_vs_checkout"]
     assert "tide" in installed_eval["missing_commands"]
     assert installed_eval["version_unknown"] is True
+
+
+def test_freshness_flags_installed_fingerprint_drift(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Same version and commands but different implementation bytes -> stale.
+    checkout = freshness.checkout_contract(REPO_ROOT)
+    monkeypatch.setattr(
+        freshness,
+        "installed_contract",
+        lambda: {
+            "found": True,
+            "path": "/usr/bin/wea",
+            "version": checkout["version"],
+            "commands": checkout["commands"],
+            "fingerprint": "deadbeefdeadbeef",
+        },
+    )
+    report = freshness.build_freshness(REPO_ROOT)
+    assert report["drift"] is True
+    installed_eval = report["installed_vs_checkout"]
+    assert installed_eval["fingerprint_drift"] is True
+    assert installed_eval["missing_commands"] == []
 
 
 def test_freshness_unknown_when_checkout_unreadable(
