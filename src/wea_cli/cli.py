@@ -26,8 +26,12 @@ try:
 except ModuleNotFoundError:
     import importlib.util
 
-    check_task_format_path = Path(__file__).resolve().parents[2] / "scripts" / "check_task_format.py"
-    spec = importlib.util.spec_from_file_location("check_task_format", check_task_format_path)
+    check_task_format_path = (
+        Path(__file__).resolve().parents[2] / "scripts" / "check_task_format.py"
+    )
+    spec = importlib.util.spec_from_file_location(
+        "check_task_format", check_task_format_path
+    )
     if spec is None or spec.loader is None:
         raise
     check_task_format = importlib.util.module_from_spec(spec)
@@ -37,6 +41,7 @@ except ModuleNotFoundError:
     validate_detailed = check_task_format.validate_detailed
 
 from wea_cli.config import resolve_agent
+
 try:
     from wea_cli.errors import WeaCliError
 except ModuleNotFoundError:
@@ -54,17 +59,12 @@ except ModuleNotFoundError:
     sys.modules[_errors_spec.name] = _errors_mod
     _errors_spec.loader.exec_module(_errors_mod)
     WeaCliError = _errors_mod.WeaCliError
+from wea_cli.circle1 import cmd_circle1_sweep
 from wea_cli.formatters import format_kv, format_task_row
 from wea_cli.gauntlet import (
     cmd_gauntlet_history,
     cmd_gauntlet_mint,
     cmd_gauntlet_status,
-)
-from wea_cli.release import (
-    cmd_release_open,
-    cmd_release_propose,
-    cmd_release_review,
-    cmd_release_status,
 )
 from wea_cli.gh import (
     DEFAULT_REPO,
@@ -77,19 +77,7 @@ from wea_cli.gh import (
     view_issue,
     view_issue_comments,
 )
-from wea_cli.hooks_adapter import handle_hook
-from wea_cli.parsers import inspect_acceptance_criteria, parse_task_metadata
-from wea_cli.pipeline_support import (
-    derive_status,
-    normalize_stage,
-    render_pipeline_comment,
-    render_pipeline_context,
-    validate_stage_payload,
-)
 from wea_cli.health import (
-    SPAWN_WARN_THRESHOLD,
-    STATUS_COOLDOWN,
-    STATUS_OFFLINE,
     VALID_EVENTS,
     apply_event,
     check_spawn_warning,
@@ -100,6 +88,7 @@ from wea_cli.health import (
     now_iso,
     save_health,
 )
+from wea_cli.hooks_adapter import handle_hook
 from wea_cli.knowledge import (
     DEFAULT_CAP,
     DEFAULT_HALF_LIFE_DAYS,
@@ -112,11 +101,24 @@ from wea_cli.knowledge import (
     save_entries,
     trim_entries,
 )
+from wea_cli.parsers import inspect_acceptance_criteria, parse_task_metadata
+from wea_cli.pipeline_support import (
+    derive_status,
+    normalize_stage,
+    render_pipeline_comment,
+    render_pipeline_context,
+    validate_stage_payload,
+)
+from wea_cli.release import (
+    cmd_release_open,
+    cmd_release_propose,
+    cmd_release_review,
+    cmd_release_status,
+)
 from wea_cli.runs import format_runs_table, list_runs, read_run_snapshot
 from wea_cli.spawn import run_spawn
 from wea_cli.start_snapshot import build_start_snapshot, render_start_snapshot
 from wea_cli.trace import emit_event
-from wea_cli.circle1 import cmd_circle1_sweep
 
 EXIT_OK = 0
 EXIT_DOMAIN_ERROR = 1
@@ -131,11 +133,25 @@ PR_HEAD_PATTERN = re.compile(r"^agent/(?P<agent>[^/]+)/(?P<issue>\d+)-(?P<slug>[
 
 # Commands that are safe to run even when the system is halted.
 # Default-deny: anything NOT in this set is blocked during a halt.
-READONLY_COMMANDS: frozenset[str] = frozenset({
-    "tasks", "start", "balance", "show", "comments", "agents",
-    "idem-check", "title", "domains", "lock-status",
-    "runs", "run-status", "report", "tide", "freshness",
-})
+READONLY_COMMANDS: frozenset[str] = frozenset(
+    {
+        "tasks",
+        "start",
+        "balance",
+        "show",
+        "comments",
+        "agents",
+        "idem-check",
+        "title",
+        "domains",
+        "lock-status",
+        "runs",
+        "run-status",
+        "report",
+        "tide",
+        "freshness",
+    }
+)
 
 # Compound commands where only some subcommands are read-only.
 # Key = top-level command, value = frozenset of safe subcommand names.
@@ -167,8 +183,10 @@ def is_readonly_command(command: str, args: argparse.Namespace) -> bool:
 def reject_retired_legacy_write(root: Path, feature: str) -> bool:
     """Explain retired v1 writes after the GitHub-native epoch is active."""
 
-    if not any((root / "ledger" / "vnext" / name).is_file()
-               for name in ("bootstrap.json", "tide-bootstrap.json")):
+    if not any(
+        (root / "ledger" / "vnext" / name).is_file()
+        for name in ("bootstrap.json", "tide-bootstrap.json")
+    ):
         return False
     print(
         f"{feature} is historical-only in the active GitHub-native epoch. "
@@ -192,7 +210,10 @@ def check_halt_guard(root: Path, command: str, args: argparse.Namespace) -> str 
     try:
         tide = json.loads(tide_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
-        return "System halt file (tide.json) is corrupted — mutations blocked as a safety measure"
+        return (
+            "System halt file (tide.json) is corrupted — mutations blocked as a safety "
+            "measure"
+        )
 
     halted_at = tide.get("halted_at")
     if halted_at:
@@ -224,7 +245,9 @@ def resolve_repo_root(root_arg: str | None) -> Path:
         if (candidate / "ledger" / "balances.json").exists():
             return candidate
 
-    raise FileNotFoundError("Cannot auto-detect repository root (ledger/balances.json not found).")
+    raise FileNotFoundError(
+        "Cannot auto-detect repository root (ledger/balances.json not found)."
+    )
 
 
 def load_balances(root: Path) -> dict[str, Any]:
@@ -246,7 +269,9 @@ def load_known_idem_keys(root: Path) -> set[str]:
     try:
         payload: Any = json.loads(path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as exc:
-        raise ValueError(f"idem_keys.json is corrupted and cannot be parsed: {exc}") from exc
+        raise ValueError(
+            f"idem_keys.json is corrupted and cannot be parsed: {exc}"
+        ) from exc
     if not isinstance(payload, dict):
         return set()
 
@@ -272,7 +297,9 @@ def load_pending(root: Path) -> tuple[Path, dict]:
 
 def save_pending(path: Path, pending: dict) -> None:
     pending["version"] = pending.get("version", 1) + 1
-    path.write_text(json.dumps(pending, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(pending, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def _now_iso() -> str:
@@ -285,7 +312,9 @@ def emit(text: str) -> None:
         print(text)
     except UnicodeEncodeError:
         encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
-        safe_text = text.encode(encoding, errors="replace").decode(encoding, errors="replace")
+        safe_text = text.encode(encoding, errors="replace").decode(
+            encoding, errors="replace"
+        )
         print(safe_text)
 
 
@@ -298,7 +327,8 @@ def configure_stdio() -> None:
             try:
                 reconfigure(encoding="utf-8", errors="replace")
             except ValueError:
-                # Some redirected streams cannot be reconfigured; the emit() fallback still applies.
+                # Some redirected streams cannot be reconfigured; the emit()
+                # fallback still applies.
                 pass
 
 
@@ -406,7 +436,8 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
     if reward_type is None:
         emit(
             "Error: reward type must be one of "
-            "`every_good`, `progressive`, `linear`, `winner_take_all`, `best_x`, or `duel`."
+            "`every_good`, `progressive`, `linear`, `winner_take_all`, `best_x`, or "
+            "`duel`."
         )
         return EXIT_DOMAIN_ERROR
 
@@ -416,7 +447,9 @@ def cmd_task_calc_budget(args: argparse.Namespace) -> int:
     }
 
     if reward_type == "every_good":
-        per_acceptance, error = _ensure_positive_arg(args.per_acceptance, "--per-acceptance")
+        per_acceptance, error = _ensure_positive_arg(
+            args.per_acceptance, "--per-acceptance"
+        )
         if error is not None:
             return error
         acceptances, error = _ensure_positive_arg(args.acceptances, "--acceptances")
@@ -565,8 +598,13 @@ def cmd_tasks(args: argparse.Namespace) -> int:
         print("No open task issues found.")
         return EXIT_OK
 
-    print("Issue   | Title                                                | Reward | Mechanic         | Deadline")
-    print("--------+------------------------------------------------------+--------+------------------+-------------------------")
+    print(
+        "Issue   | Title                                                | Reward | "
+        "Mechanic         | Deadline"
+    )
+    print(
+        "--------+------------------------------------------------------+--------+------------------+-------------------------"
+    )
     for task in tasks:
         number = int(task.get("number", 0))
         title = str(task.get("title", "")).strip()
@@ -588,7 +626,10 @@ def cmd_balance(args: argparse.Namespace) -> int:
     payload = load_balances(root)
     agent = resolve_agent(args.agent)
     if not agent:
-        print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `wea balance <agent>`.")
+        print(
+            "Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `wea balance "
+            "<agent>`."
+        )
         return EXIT_RUNTIME_ERROR
 
     agents = payload.get("agents", {})
@@ -623,7 +664,10 @@ def cmd_start(args: argparse.Namespace) -> int:
     payload = load_balances(root)
     agent = resolve_agent(args.agent)
     if not agent:
-        print("Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `wea start <agent>`.")
+        print(
+            "Agent is required. Set WEA_AGENT, ~/.wea_config, or pass `wea start "
+            "<agent>`."
+        )
         return EXIT_RUNTIME_ERROR
 
     agents = payload.get("agents", {})
@@ -723,8 +767,14 @@ def cmd_comments(args: argparse.Namespace) -> int:
 
     for idx, comment in enumerate(comments):
         author = comment.get("author", {}) if isinstance(comment, dict) else {}
-        login = str(author.get("login", "unknown")) if isinstance(author, dict) else "unknown"
-        created_at = str(comment.get("createdAt", "-")) if isinstance(comment, dict) else "-"
+        login = (
+            str(author.get("login", "unknown"))
+            if isinstance(author, dict)
+            else "unknown"
+        )
+        created_at = (
+            str(comment.get("createdAt", "-")) if isinstance(comment, dict) else "-"
+        )
         body_raw = str(comment.get("body", "")) if isinstance(comment, dict) else ""
         # GitHub API can return CRLF bodies; normalize to keep terminal output readable.
         body = body_raw.replace("\r\n", "\n").replace("\r", "\n").strip()
@@ -800,7 +850,10 @@ def _validate_pr_head(head: str, issue: int) -> tuple[str | None, list[str]]:
 
     branch_issue = int(match.group("issue"))
     if branch_issue != issue:
-        return None, [f"Head branch issue #{branch_issue} does not match requested issue #{issue}."]
+        return None, [
+            f"Head branch issue #{branch_issue} does not match requested issue "
+            f"#{issue}."
+        ]
 
     slug = match.group("slug").strip()
     if not slug:
@@ -868,7 +921,9 @@ def validate_pr_body_text(text: str, *, issue: int, expected_agent: str) -> list
     return errors
 
 
-def _load_text_arg(path_value: str | None, *, missing_label: str) -> tuple[str | None, int | None]:
+def _load_text_arg(
+    path_value: str | None, *, missing_label: str
+) -> tuple[str | None, int | None]:
     if not path_value:
         return None, None
 
@@ -907,9 +962,14 @@ def _load_acceptance_criteria_check(
     return issue_data, check, None
 
 
-def _emit_acceptance_criteria_report(issue: int, check: Any, *, remind_humans: bool = False) -> None:
+def _emit_acceptance_criteria_report(
+    issue: int, check: Any, *, remind_humans: bool = False
+) -> None:
     verdict = "PASS" if check.is_valid else "FAIL"
-    emit(f"Task #{issue} acceptance criteria check: {verdict} ({_criteria_source_label(check.source)})")
+    emit(
+        f"Task #{issue} acceptance criteria check: {verdict} "
+        f"({_criteria_source_label(check.source)})"
+    )
 
     if check.machine_criteria:
         emit("Machine-checkable criteria:")
@@ -917,7 +977,11 @@ def _emit_acceptance_criteria_report(issue: int, check: Any, *, remind_humans: b
             emit(f"- {criterion.text}")
 
     if check.human_criteria:
-        title = "Human-verification reminders:" if remind_humans else "Human-judgment criteria:"
+        title = (
+            "Human-verification reminders:"
+            if remind_humans
+            else "Human-judgment criteria:"
+        )
         emit(title)
         for criterion in check.human_criteria:
             emit(f"- {criterion.text}")
@@ -929,7 +993,9 @@ def _emit_acceptance_criteria_report(issue: int, check: Any, *, remind_humans: b
 
 
 def cmd_task_check_criteria(args: argparse.Namespace) -> int:
-    issue_data, check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
+    issue_data, check, error_code = _load_acceptance_criteria_check(
+        args.issue, args.repo
+    )
     if error_code is not None:
         return error_code
     assert issue_data is not None
@@ -943,13 +1009,14 @@ def cmd_task_check_criteria(args: argparse.Namespace) -> int:
         if str(root) not in sys.path:
             sys.path.insert(0, str(root))
         from scripts.check_task_format import validate
+
         format_errors = validate(str(issue_data.get("body", "")))
         if format_errors:
             emit("\nTask format validation failed:")
             for err in format_errors:
                 emit(f"- {err}")
             return EXIT_DOMAIN_ERROR
-    except Exception as exc:
+    except Exception:
         pass
 
     return EXIT_OK if check.is_valid else EXIT_DOMAIN_ERROR
@@ -978,7 +1045,9 @@ def cmd_task_lint(args: argparse.Namespace) -> int:
         payload = {
             "ok": not issues,
             "path": source,
-            "errors": [{"line": issue.line, "message": issue.message} for issue in issues],
+            "errors": [
+                {"line": issue.line, "message": issue.message} for issue in issues
+            ],
         }
         print(json.dumps(payload, indent=2))
     elif issues:
@@ -1014,7 +1083,9 @@ def cmd_submit(args: argparse.Namespace) -> int:
             print(f"- {err}")
         return EXIT_DOMAIN_ERROR
 
-    issue_data, criteria_check, error_code = _load_acceptance_criteria_check(args.issue, args.repo)
+    issue_data, criteria_check, error_code = _load_acceptance_criteria_check(
+        args.issue, args.repo
+    )
     if error_code is not None:
         return error_code
     assert issue_data is not None
@@ -1023,12 +1094,21 @@ def cmd_submit(args: argparse.Namespace) -> int:
     issue_number = int(issue_data.get("number", args.issue))
     _emit_acceptance_criteria_report(issue_number, criteria_check, remind_humans=True)
     if not criteria_check.is_valid:
-        emit("Submission blocked until the task has valid machine-checkable acceptance criteria.")
+        emit(
+            "Submission blocked until the task has valid machine-checkable "
+            "acceptance criteria."
+        )
         return EXIT_DOMAIN_ERROR
 
     # --- PR Authorship & Repository Validation ---
-    pr_matches = re.findall(r"(?:https?://)?(?:www\.|api\.)?github\.com/(?:repos/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)", content, re.IGNORECASE)
-    rel_matches = re.findall(r"\]\((?:/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)\)", content, re.IGNORECASE)
+    pr_matches = re.findall(
+        r"(?:https?://)?(?:www\.|api\.)?github\.com/(?:repos/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)",
+        content,
+        re.IGNORECASE,
+    )
+    rel_matches = re.findall(
+        r"\]\((?:/)?([^/]+)/([^/]+)/(?:pulls?|issues)/(\d+)\)", content, re.IGNORECASE
+    )
     for rm in rel_matches:
         if rm not in pr_matches:
             pr_matches.append(rm)
@@ -1061,7 +1141,7 @@ def cmd_submit(args: argparse.Namespace) -> int:
 
         target_repo = getattr(args, "repo", DEFAULT_REPO)
         from wea_cli.gh import view_pr
-        
+
         valid_prs_found = 0
 
         for owner, repo_name, pr_str in pr_matches:
@@ -1072,38 +1152,49 @@ def cmd_submit(args: argparse.Namespace) -> int:
             pr_number = int(pr_str)
             try:
                 pr_info = view_pr(pr_number, repo=target_repo)
-            except GhError as exc:
+            except GhError:
                 continue
 
             author_info = pr_info.get("author") or {}
             pr_author = author_info.get("login", "")
             if pr_author.lower() != gh_user.lower():
                 print("Submission validation failed:")
-                print(f"- PR #{pr_number} was authored by @{pr_author}, but submitting agent is mapped to @{gh_user}.")
+                print(
+                    f"- PR #{pr_number} was authored by @{pr_author}, but "
+                    f"submitting agent is mapped to @{gh_user}."
+                )
                 return EXIT_DOMAIN_ERROR
 
             pr_state = pr_info.get("state", "").upper()
             is_draft = pr_info.get("isDraft", False)
             if pr_state not in ("OPEN", "MERGED") or is_draft:
                 print("Submission validation failed:")
-                print(f"- PR #{pr_number} must be OPEN or MERGED (and not a draft). Current state: {pr_state}, Draft: {is_draft}.")
+                print(
+                    f"- PR #{pr_number} must be OPEN or MERGED (and not a draft). "
+                    f"Current state: {pr_state}, Draft: {is_draft}."
+                )
                 return EXIT_DOMAIN_ERROR
-                
+
             # Verify PR actually links to this issue
             pr_body = pr_info.get("body") or ""
             issue_target = f"#{args.issue}"
             if issue_target not in pr_body and str(args.issue) not in pr_body:
                 print("Submission validation failed:")
-                print(f"- PR #{pr_number} body does not seem to link to issue #{args.issue}.")
+                print(
+                    f"- PR #{pr_number} body does not seem to link to issue "
+                    f"#{args.issue}."
+                )
                 return EXIT_DOMAIN_ERROR
 
             valid_prs_found += 1
 
-                
         if len(pr_matches) > 0 and valid_prs_found == 0:
-             print("Submission validation failed:")
-             print(f"- Provided PR links but none target the expected repository {target_repo}.")
-             return EXIT_DOMAIN_ERROR
+            print("Submission validation failed:")
+            print(
+                f"- Provided PR links but none target the expected repository "
+                f"{target_repo}."
+            )
+            return EXIT_DOMAIN_ERROR
     # ---------------------------------------------
 
     if args.dry_run:
@@ -1204,7 +1295,10 @@ def cmd_pr(args: argparse.Namespace) -> int:
         if not deliverable_text or not deliverable_text.strip():
             _emit_validation_errors(
                 "PR validation failed:",
-                ["Provide `--deliverable`, `--deliverable-file`, `--body`, or `--body-file`."],
+                [
+                    "Provide `--deliverable`, `--deliverable-file`, `--body`, or "
+                    "`--body-file`."
+                ],
             )
             return EXIT_DOMAIN_ERROR
         body = build_pr_body(issue, deliverable_text, agent_id)
@@ -1230,7 +1324,10 @@ def cmd_pr(args: argparse.Namespace) -> int:
     if not branch_visible:
         _emit_validation_errors(
             "PR validation failed:",
-            [f"Head branch `{head}` is not visible on GitHub yet. Run `wea push {head}` and retry."],
+            [
+                f"Head branch `{head}` is not visible on GitHub yet. Run `wea push "
+                f"{head}` and retry."
+            ],
         )
         return EXIT_DOMAIN_ERROR
 
@@ -1360,7 +1457,10 @@ def cmd_verify(args: argparse.Namespace) -> int:
     save_pending(pending_path, pending)
 
     print(f"Verification queued: #{args.issue} -> {args.payee} verified")
-    print("Commit ledger/pending.json and push, then Agent0 runs: python scripts/process_pending.py")
+    print(
+        "Commit ledger/pending.json and push, then Agent0 runs: python "
+        "scripts/process_pending.py"
+    )
     return EXIT_OK
 
 
@@ -1435,7 +1535,10 @@ def cmd_accept(args: argparse.Namespace) -> int:
     }
 
     if args.dry_run:
-        print(f"Issue #{args.issue} | agent: {args.payee} | amount: {amount} WEA | mechanic: {label}")
+        print(
+            f"Issue #{args.issue} | agent: {args.payee} | amount: {amount} WEA | "
+            f"mechanic: {label}"
+        )
         print("\nPending entry preview:")
         print(json.dumps(entry, indent=2))
         return EXIT_OK
@@ -1444,8 +1547,13 @@ def cmd_accept(args: argparse.Namespace) -> int:
     pending.setdefault("queue", []).append(entry)
     save_pending(pending_path, pending)
 
-    print(f"Added to pending queue: #{args.issue} -> {args.payee} +{amount} WEA ({label})")
-    print("Commit ledger/pending.json and push, then Agent0 runs: python scripts/process_pending.py")
+    print(
+        f"Added to pending queue: #{args.issue} -> {args.payee} +{amount} WEA ({label})"
+    )
+    print(
+        "Commit ledger/pending.json and push, then Agent0 runs: python "
+        "scripts/process_pending.py"
+    )
     return EXIT_OK
 
 
@@ -1482,24 +1590,29 @@ def cmd_ranking(args: argparse.Namespace) -> int:
 
     ts = _now_iso()
     entries: list[dict[str, Any]] = []
-    for rank, (agent, payout) in enumerate(zip(agents, payouts), start=1):
-        entries.append({
-            "type": "payment",
-            "mechanic": "ranking",
-            "issue": args.issue,
-            "agent": agent,
-            "amount": payout,
-            "rank": rank,
-            "total_ranked": k,
-            "proposed_by": proposer,
-            "proposed_at": ts,
-            "event_at": ts,
-        })
+    for rank, (agent, payout) in enumerate(zip(agents, payouts, strict=False), start=1):
+        entries.append(
+            {
+                "type": "payment",
+                "mechanic": "ranking",
+                "issue": args.issue,
+                "agent": agent,
+                "amount": payout,
+                "rank": rank,
+                "total_ranked": k,
+                "proposed_by": proposer,
+                "proposed_at": ts,
+                "event_at": ts,
+            }
+        )
 
     # Dedup: refuse if ranking entries for this issue already queued
     _, pending_chk = load_pending(root)
-    existing = [e for e in pending_chk.get("queue", [])
-                if e.get("issue") == args.issue and e.get("mechanic") == "ranking"]
+    existing = [
+        e
+        for e in pending_chk.get("queue", [])
+        if e.get("issue") == args.issue and e.get("mechanic") == "ranking"
+    ]
     if existing:
         print(f"ERROR: Ranking entries for #{args.issue} already in pending queue:")
         for e in existing:
@@ -1514,7 +1627,10 @@ def cmd_ranking(args: argparse.Namespace) -> int:
 
     total = sum(e["amount"] for e in entries)
     if total != budget:
-        print(f"\nERROR: payouts sum to {total}, budget is {budget}. This should not happen.")
+        print(
+            f"\nERROR: payouts sum to {total}, budget is {budget}. This should not "
+            f"happen."
+        )
         return EXIT_RUNTIME_ERROR
 
     if args.dry_run:
@@ -1527,7 +1643,10 @@ def cmd_ranking(args: argparse.Namespace) -> int:
     save_pending(pending_path, pending)
 
     print(f"\nAdded {k} entries to pending queue.")
-    print("Commit ledger/pending.json and push, then Agent0 runs: python scripts/process_pending.py")
+    print(
+        "Commit ledger/pending.json and push, then Agent0 runs: python "
+        "scripts/process_pending.py"
+    )
     return EXIT_OK
 
 
@@ -1577,8 +1696,11 @@ def cmd_duel_winner(args: argparse.Namespace) -> int:
 
     # Dedup: refuse if duel entries for this issue already queued
     _, pending_chk = load_pending(root)
-    existing = [e for e in pending_chk.get("queue", [])
-                if e.get("issue") == args.issue and e.get("mechanic") == "duel"]
+    existing = [
+        e
+        for e in pending_chk.get("queue", [])
+        if e.get("issue") == args.issue and e.get("mechanic") == "duel"
+    ]
     if existing:
         print(f"ERROR: Duel entries for #{args.issue} already in pending queue:")
         for e in existing:
@@ -1600,9 +1722,11 @@ def cmd_duel_winner(args: argparse.Namespace) -> int:
     save_pending(pending_path, pending)
 
     print("\nAdded 2 entries to pending queue.")
-    print("Commit ledger/pending.json and push, then Agent0 runs: python scripts/process_pending.py")
+    print(
+        "Commit ledger/pending.json and push, then Agent0 runs: python "
+        "scripts/process_pending.py"
+    )
     return EXIT_OK
-
 
 
 AGENT0_ID = "agent0@system"
@@ -1612,7 +1736,10 @@ def cmd_rename(args: argparse.Namespace) -> int:
     """Atomically rename an agent across all ledger files. Agent0 only."""
     caller = resolve_agent(args.agent)
     if caller != AGENT0_ID:
-        print(f"rename is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        print(
+            f"rename is restricted to {AGENT0_ID}. Current agent: "
+            f"{caller or '(not set)'}."
+        )
         return EXIT_DOMAIN_ERROR
 
     old_id = args.old_id
@@ -1651,14 +1778,30 @@ def cmd_rename(args: argparse.Namespace) -> int:
 
     escrows = load_escrows(root)
     task_index_path = root / "ledger" / "task_index.json"
-    task_index = json.loads(task_index_path.read_text(encoding="utf-8-sig")) if task_index_path.exists() else {"tasks": {}}
+    task_index = (
+        json.loads(task_index_path.read_text(encoding="utf-8-sig"))
+        if task_index_path.exists()
+        else {"tasks": {}}
+    )
     registry_path = root / "sandbox" / "hello_world_registry.jsonl"
     ach_path = root / "ledger" / "achievements.json"
-    achievements = json.loads(ach_path.read_text(encoding="utf-8-sig")) if ach_path.exists() else None
+    achievements = (
+        json.loads(ach_path.read_text(encoding="utf-8-sig"))
+        if ach_path.exists()
+        else None
+    )
     pending_path = root / "ledger" / "pending.json"
-    pending = json.loads(pending_path.read_text(encoding="utf-8-sig")) if pending_path.exists() else None
+    pending = (
+        json.loads(pending_path.read_text(encoding="utf-8-sig"))
+        if pending_path.exists()
+        else None
+    )
     idem_path = root / "ledger" / "idem_keys.json"
-    idem_keys = json.loads(idem_path.read_text(encoding="utf-8-sig")) if idem_path.exists() else {"keys": {}}
+    idem_keys = (
+        json.loads(idem_path.read_text(encoding="utf-8-sig"))
+        if idem_path.exists()
+        else {"keys": {}}
+    )
 
     # --- Compute changes ---
     changes: list[str] = []
@@ -1668,7 +1811,7 @@ def cmd_rename(args: argparse.Namespace) -> int:
 
     # 2. escrows.json --update author + duel participant fields
     escrow_count = 0
-    for issue_key, escrow in escrows.get("active", {}).items():
+    for _issue_key, escrow in escrows.get("active", {}).items():
         touched = False
         if escrow.get("author") == old_id:
             touched = True
@@ -1684,7 +1827,7 @@ def cmd_rename(args: argparse.Namespace) -> int:
 
     # 3. task_index.json --update author fields
     ti_count = 0
-    for task_key, task_data in task_index.get("tasks", {}).items():
+    for _task_key, task_data in task_index.get("tasks", {}).items():
         if task_data.get("author") == old_id:
             ti_count += 1
     if ti_count:
@@ -1693,7 +1836,13 @@ def cmd_rename(args: argparse.Namespace) -> int:
     # 4. hello_world_registry.jsonl --update agent field
     hw_count = 0
     if registry_path.exists():
-        lines = [line_text for line_text in registry_path.read_text(encoding="utf-8").strip().split("\n") if line_text.strip()]
+        lines = [
+            line_text
+            for line_text in registry_path.read_text(encoding="utf-8")
+            .strip()
+            .split("\n")
+            if line_text.strip()
+        ]
         for line in lines:
             entry = json.loads(line)
             if entry.get("agent") == old_id:
@@ -1724,7 +1873,9 @@ def cmd_rename(args: argparse.Namespace) -> int:
             if new_key not in idem_keys["keys"]:
                 idem_new_keys[new_key] = val
     if idem_new_keys:
-        changes.append(f"idem_keys.json: {len(idem_new_keys)} key(s) duplicated for new ID")
+        changes.append(
+            f"idem_keys.json: {len(idem_new_keys)} key(s) duplicated for new ID"
+        )
 
     # --- Dry run ---
     if args.dry_run:
@@ -1741,10 +1892,12 @@ def cmd_rename(args: argparse.Namespace) -> int:
     agents[new_id] = agent_data
     balances["last_updated"] = _now_iso()
     bal_path = root / "ledger" / "balances.json"
-    bal_path.write_text(json.dumps(balances, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    bal_path.write_text(
+        json.dumps(balances, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     # 2. Escrows (author + duel fields)
-    for issue_key, escrow in escrows.get("active", {}).items():
+    for _issue_key, escrow in escrows.get("active", {}).items():
         if escrow.get("author") == old_id:
             escrow["author"] = new_id
         for duel_field in ("pro", "con"):
@@ -1755,17 +1908,27 @@ def cmd_rename(args: argparse.Namespace) -> int:
                 new_id if p == old_id else p for p in escrow["participants"]
             ]
     esc_path = root / "ledger" / "escrows.json"
-    esc_path.write_text(json.dumps(escrows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    esc_path.write_text(
+        json.dumps(escrows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     # 3. Task index
-    for task_key, task_data in task_index.get("tasks", {}).items():
+    for _task_key, task_data in task_index.get("tasks", {}).items():
         if task_data.get("author") == old_id:
             task_data["author"] = new_id
-    task_index_path.write_text(json.dumps(task_index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    task_index_path.write_text(
+        json.dumps(task_index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     # 4. Hello world registry
     if registry_path.exists() and hw_count > 0:
-        lines = [line_text for line_text in registry_path.read_text(encoding="utf-8").strip().split("\n") if line_text.strip()]
+        lines = [
+            line_text
+            for line_text in registry_path.read_text(encoding="utf-8")
+            .strip()
+            .split("\n")
+            if line_text.strip()
+        ]
         updated_lines = []
         for line in lines:
             entry = json.loads(line)
@@ -1777,7 +1940,10 @@ def cmd_rename(args: argparse.Namespace) -> int:
     # 5. Achievements
     if achievements and old_id in achievements.get("agents", {}):
         achievements["agents"][new_id] = achievements["agents"].pop(old_id)
-        ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        ach_path.write_text(
+            json.dumps(achievements, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
 
     # 6. Pending queue
     if pending and pending_count > 0:
@@ -1786,12 +1952,16 @@ def cmd_rename(args: argparse.Namespace) -> int:
                 entry["agent"] = new_id
             if entry.get("proposed_by") == old_id:
                 entry["proposed_by"] = new_id
-        pending_path.write_text(json.dumps(pending, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        pending_path.write_text(
+            json.dumps(pending, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
 
     # 7. Idem keys
     if idem_new_keys:
         idem_keys["keys"].update(idem_new_keys)
-        idem_path.write_text(json.dumps(idem_keys, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        idem_path.write_text(
+            json.dumps(idem_keys, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
 
     print(f"Renamed: {old_id} -> {new_id}")
     for c in changes:
@@ -1822,13 +1992,17 @@ def cmd_agents(args: argparse.Namespace) -> int:
         if not agents:
             print("No agents registered.")
             return EXIT_OK
-        print(f"{'H':<2} {'Agent':<30} {'Balance':>8}  {'Platform':<12} {'Operator':<15} {'GitHub':<18}")
+        print(
+            f"{'H':<2} {'Agent':<30} {'Balance':>8}  {'Platform':<12} "
+            f"{'Operator':<15} {'GitHub':<18}"
+        )
         print("-" * 99)
         for agent_id, info in sorted(agents.items()):
             if agent_id == AGENT0_ID:
                 continue
             print(
-                f"{_health_col(agent_id):<2} {agent_id:<30} {info.get('balance', 0):>8}  "
+                f"{_health_col(agent_id):<2} {agent_id:<30} "
+                f"{info.get('balance', 0):>8}  "
                 f"{info.get('platform', '?'):<12} "
                 f"{info.get('operator', '?'):<15} "
                 f"{info.get('github_username', '?'):<18}"
@@ -1844,11 +2018,14 @@ def cmd_agents(args: argparse.Namespace) -> int:
             gh_user = agents[agent_id].get("github_username", "")
 
     if not gh_user:
-        print("Specify --github-user or configure an agent (WEA_AGENT / ~/.wea_config).")
+        print(
+            "Specify --github-user or configure an agent (WEA_AGENT / ~/.wea_config)."
+        )
         return EXIT_RUNTIME_ERROR
 
     my_agents = {
-        aid: info for aid, info in agents.items()
+        aid: info
+        for aid, info in agents.items()
         if info.get("github_username", "").lower() == gh_user.lower()
     }
 
@@ -1859,7 +2036,10 @@ def cmd_agents(args: argparse.Namespace) -> int:
     total = sum(info.get("balance", 0) for info in my_agents.values())
     print(f"Agents for @{gh_user} ({len(my_agents)} agent(s), total: {total} WEA):\n")
     for agent_id, info in sorted(my_agents.items()):
-        print(f"  {agent_id:<30} {info.get('balance', 0):>6} WEA  (earned: {info.get('total_earned', 0)}, spent: {info.get('total_spent', 0)})")
+        print(
+            f"  {agent_id:<30} {info.get('balance', 0):>6} WEA  (earned: "
+            f"{info.get('total_earned', 0)}, spent: {info.get('total_spent', 0)})"
+        )
     return EXIT_OK
 
 
@@ -1867,7 +2047,10 @@ def cmd_register(args: argparse.Namespace) -> int:
     """Register a new agent directly. Agent0 only."""
     caller = resolve_agent(args.agent)
     if caller != AGENT0_ID:
-        print(f"register is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        print(
+            f"register is restricted to {AGENT0_ID}. Current agent: "
+            f"{caller or '(not set)'}."
+        )
         return EXIT_DOMAIN_ERROR
 
     agent_name = args.agent_id
@@ -1876,7 +2059,9 @@ def cmd_register(args: argparse.Namespace) -> int:
     operator = args.operator
     hello = (args.hello or "").strip()
     if hello:
-        print("--hello is no longer supported. Internal registration starts with 0 WEA.")
+        print(
+            "--hello is no longer supported. Internal registration starts with 0 WEA."
+        )
         return EXIT_DOMAIN_ERROR
 
     # Validate agent name format
@@ -1900,7 +2085,7 @@ def cmd_register(args: argparse.Namespace) -> int:
     # 24-hour cooldown per github_username
     ts = _now_iso()
     now_dt = datetime.now(timezone.utc)
-    for existing_id, data in agents.items():
+    for _existing_id, data in agents.items():
         if data.get("github_username", "").lower() == github_user.lower():
             reg_at = data.get("registered_at", "")
             if reg_at:
@@ -1909,7 +2094,10 @@ def cmd_register(args: argparse.Namespace) -> int:
                     delta = (now_dt - reg_dt).total_seconds()
                     if delta < 86400:
                         hours_left = (86400 - delta) / 3600
-                        print(f"Cooldown: 24h since last registration for {github_user}. {hours_left:.1f}h remaining.")
+                        print(
+                            f"Cooldown: 24h since last registration for "
+                            f"{github_user}. {hours_left:.1f}h remaining."
+                        )
                         return EXIT_DOMAIN_ERROR
                 except (ValueError, TypeError):
                     pass
@@ -1932,7 +2120,11 @@ def cmd_register(args: argparse.Namespace) -> int:
 
     # Check idem keys before any writes
     idem_path = root / "ledger" / "idem_keys.json"
-    idem_data = json.loads(idem_path.read_text(encoding="utf-8-sig")) if idem_path.exists() else {"keys": {}}
+    idem_data = (
+        json.loads(idem_path.read_text(encoding="utf-8-sig"))
+        if idem_path.exists()
+        else {"keys": {}}
+    )
     reg_key = f"register|{agent_name}"
     if reg_key in idem_data.get("keys", {}):
         print(f"Agent {agent_name} was already registered (idem key exists).")
@@ -1953,12 +2145,15 @@ def cmd_register(args: argparse.Namespace) -> int:
     }
     balances["last_updated"] = ts
     bal_path = root / "ledger" / "balances.json"
-    bal_path.write_text(json.dumps(balances, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    bal_path.write_text(
+        json.dumps(balances, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     # Write idem keys
     idem_data["keys"][reg_key] = ts
-    idem_path.write_text(json.dumps(idem_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
+    idem_path.write_text(
+        json.dumps(idem_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     # Append to history
     history_dir = root / "ledger" / "history"
@@ -1966,12 +2161,22 @@ def cmd_register(args: argparse.Namespace) -> int:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     history_path = history_dir / f"{today}.jsonl"
     with open(history_path, "a", encoding="utf-8") as f:
-        f.write(json.dumps({
-            "type": "registration", "agent": agent_name,
-            "github_username": github_user, "platform": platform,
-            "operator": operator, "event_at": ts,
-            "started_at": ts, "timestamp": ts,
-        }, ensure_ascii=False) + "\n")
+        f.write(
+            json.dumps(
+                {
+                    "type": "registration",
+                    "agent": agent_name,
+                    "github_username": github_user,
+                    "platform": platform,
+                    "operator": operator,
+                    "event_at": ts,
+                    "started_at": ts,
+                    "timestamp": ts,
+                },
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
     print(f"Registered: {agent_name} (starting balance: 0 WEA)")
     print(format_kv("GitHub", github_user))
     print(format_kv("Platform", platform))
@@ -1984,7 +2189,10 @@ def cmd_award(args: argparse.Namespace) -> int:
     """Award a skill word to an agent. Agent0 only."""
     caller = resolve_agent(args.agent)
     if caller != AGENT0_ID:
-        print(f"award is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        print(
+            f"award is restricted to {AGENT0_ID}. Current agent: "
+            f"{caller or '(not set)'}."
+        )
         return EXIT_DOMAIN_ERROR
 
     root = resolve_repo_root(args.root)
@@ -2011,7 +2219,9 @@ def cmd_award(args: argparse.Namespace) -> int:
     else:
         achievements = {"version": 1, "agents": {}}
 
-    agent_ach = achievements.get("agents", {}).get(target, {"title": "", "words": [], "history": []})
+    agent_ach = achievements.get("agents", {}).get(
+        target, {"title": "", "words": [], "history": []}
+    )
 
     # Check word count (max 3 active)
     if len(agent_ach.get("words", [])) >= 3:
@@ -2028,7 +2238,7 @@ def cmd_award(args: argparse.Namespace) -> int:
     reason = args.reason or ""
 
     if args.dry_run:
-        new_words = agent_ach.get("words", []) + [word]
+        new_words = [*agent_ach.get("words", []), word]
         title = "-".join(reversed(new_words))
         print(f"Award: '{word}' to {target}")
         print(format_kv("Title after", title))
@@ -2049,7 +2259,9 @@ def cmd_award(args: argparse.Namespace) -> int:
     agent_ach["title"] = "-".join(reversed(agent_ach["words"]))
 
     achievements.setdefault("agents", {})[target] = agent_ach
-    ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    ach_path.write_text(
+        json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     print(f"Awarded '{word}' to {target}. Title: {agent_ach['title']}")
     return EXIT_OK
@@ -2059,7 +2271,10 @@ def cmd_revoke(args: argparse.Namespace) -> int:
     """Revoke a skill word from an agent (title decay). Agent0 only."""
     caller = resolve_agent(args.agent)
     if caller != AGENT0_ID:
-        print(f"revoke is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        print(
+            f"revoke is restricted to {AGENT0_ID}. Current agent: "
+            f"{caller or '(not set)'}."
+        )
         return EXIT_DOMAIN_ERROR
 
     root = resolve_repo_root(args.root)
@@ -2082,7 +2297,10 @@ def cmd_revoke(args: argparse.Namespace) -> int:
 
     active_words = agent_ach.get("words", [])
     if word not in active_words:
-        print(f"Word '{word}' is not active for {target}. Active: {', '.join(active_words) or '(none)'}")
+        print(
+            f"Word '{word}' is not active for {target}. Active: "
+            f"{', '.join(active_words) or '(none)'}"
+        )
         return EXIT_DOMAIN_ERROR
 
     # First word protection --find the earliest awarded word still active
@@ -2094,7 +2312,9 @@ def cmd_revoke(args: argparse.Namespace) -> int:
             break
 
     if word == first_word:
-        print(f"Cannot revoke '{word}' -- it is the first (oldest) word and cannot decay.")
+        print(
+            f"Cannot revoke '{word}' -- it is the first (oldest) word and cannot decay."
+        )
         return EXIT_DOMAIN_ERROR
 
     ts = _now_iso()
@@ -2116,10 +2336,14 @@ def cmd_revoke(args: argparse.Namespace) -> int:
     agent_ach["history"].append(history_entry)
 
     agent_ach["words"] = [w for w in active_words if w != word]
-    agent_ach["title"] = "-".join(reversed(agent_ach["words"])) if agent_ach["words"] else ""
+    agent_ach["title"] = (
+        "-".join(reversed(agent_ach["words"])) if agent_ach["words"] else ""
+    )
 
     achievements["agents"][target] = agent_ach
-    ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    ach_path.write_text(
+        json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     title_display = agent_ach["title"] or "(no title)"
     print(f"Revoked '{word}' from {target}. Title: {title_display}")
@@ -2130,7 +2354,10 @@ def cmd_transform_propose(args: argparse.Namespace) -> int:
     """Propose a title transformation for an agent. Agent0 only."""
     caller = resolve_agent(args.agent)
     if caller != AGENT0_ID:
-        print(f"transform-propose is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        print(
+            f"transform-propose is restricted to {AGENT0_ID}. Current agent: "
+            f"{caller or '(not set)'}."
+        )
         return EXIT_DOMAIN_ERROR
 
     root = resolve_repo_root(args.root)
@@ -2229,9 +2456,14 @@ def cmd_transform_propose(args: argparse.Namespace) -> int:
     # Write pending state only after comment succeeds
     agent_ach["pending_transform"] = pending
     achievements.setdefault("agents", {})[target] = agent_ach
-    ach_path.write_text(json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    ach_path.write_text(
+        json.dumps(achievements, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
-    print(f"Transform proposed for {target}: {old_foundation} -> {new_word} on #{issue_num}")
+    print(
+        f"Transform proposed for {target}: {old_foundation} -> {new_word} on "
+        f"#{issue_num}"
+    )
     return EXIT_OK
 
 
@@ -2284,7 +2516,7 @@ def cmd_title(args: argparse.Namespace) -> int:
     history = ach.get("history", [])
 
     if title:
-        print(f"{target} -- \"{title}\"")
+        print(f'{target} -- "{title}"')
     else:
         print(f"{target} -- (no title)")
 
@@ -2307,20 +2539,27 @@ def cmd_title(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-
 def cmd_issue_edit(args: argparse.Namespace) -> int:
     swaps = [tuple(pair) for pair in (args.swap or [])]
     add_labels = args.add_label or []
     remove_labels = args.remove_label or []
 
     if not add_labels and not remove_labels and not swaps:
-        print("No label operations provided. Use --add-label, --remove-label, or --swap.")
+        print(
+            "No label operations provided. Use --add-label, --remove-label, or --swap."
+        )
         return EXIT_DOMAIN_ERROR
 
     if args.dry_run:
         print(format_kv("Issue", f"#{args.issue}"))
-        print(format_kv("Add labels", ", ".join(add_labels) if add_labels else "(none)"))
-        print(format_kv("Remove labels", ", ".join(remove_labels) if remove_labels else "(none)"))
+        print(
+            format_kv("Add labels", ", ".join(add_labels) if add_labels else "(none)")
+        )
+        print(
+            format_kv(
+                "Remove labels", ", ".join(remove_labels) if remove_labels else "(none)"
+            )
+        )
         if swaps:
             rendered = ", ".join(f"{old}->{new}" for old, new in swaps)
             print(format_kv("Swaps", rendered))
@@ -2395,7 +2634,9 @@ def cmd_pipeline_submit(args: argparse.Namespace) -> int:
     stage = normalize_stage(args.stage)
     submitted_stage = str(payload.get("station", "")).strip()
     if submitted_stage and submitted_stage.lower() != stage:
-        emit(f"Error: station mismatch: payload={submitted_stage!r}, command={stage!r}.")
+        emit(
+            f"Error: station mismatch: payload={submitted_stage!r}, command={stage!r}."
+        )
         return EXIT_DOMAIN_ERROR
 
     explicit_agent = resolve_agent(getattr(args, "agent", None))
@@ -2438,7 +2679,9 @@ def _load_pipeline_config(root: Path) -> dict[str, Any]:
         return {}
 
 
-def _parse_verify_comments(comments: list[dict[str, Any]]) -> tuple[list[dict], list[dict]]:
+def _parse_verify_comments(
+    comments: list[dict[str, Any]],
+) -> tuple[list[dict], list[dict]]:
     """Split issue comments into verify evaluations and refinement_requests.
 
     Returns (evaluations, refinement_requests). Both lists contain raw JSON payloads.
@@ -2447,7 +2690,10 @@ def _parse_verify_comments(comments: list[dict[str, Any]]) -> tuple[list[dict], 
     Refinement requests have type == 'refinement_request'.
     """
     import re as _re
-    _json_block_re = _re.compile(r"```json\s*(\{.*?\})\s*```", _re.DOTALL | _re.IGNORECASE)
+
+    _json_block_re = _re.compile(
+        r"```json\s*(\{.*?\})\s*```", _re.DOTALL | _re.IGNORECASE
+    )
     evaluations: list[dict] = []
     refinement_requests: list[dict] = []
     for comment in comments:
@@ -2495,7 +2741,8 @@ def cmd_pipeline_request_refinement(args: argparse.Namespace) -> int:
     # Iteration-jumping guard: block propagation of fabricated high-iteration states
     if iteration >= verify_max:
         emit(
-            f"Error: source evaluation is at or beyond verify_max_iterations ({verify_max})"
+            f"Error: source evaluation is at or beyond verify_max_iterations "
+            f"({verify_max})"
             " — run refinement-status to check escalation state."
         )
         return EXIT_DOMAIN_ERROR
@@ -2575,7 +2822,9 @@ def cmd_pipeline_refinement_status(args: argparse.Namespace) -> int:
     comments = data.get("comments", [])
     evaluations, refinement_requests = _parse_verify_comments(comments)
 
-    current_iteration = max((int(e.get("iteration", 1)) for e in evaluations), default=1)
+    current_iteration = max(
+        (int(e.get("iteration", 1)) for e in evaluations), default=1
+    )
     status = derive_status(evaluations, refinement_requests, verify_max)
 
     result = {
@@ -2660,7 +2909,8 @@ def cmd_run_status(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 _HEALTH_REPORT_HEADER = (
-    f"{'Agent':<30} {'Status':<12} {'Cooldown':>8}  {'Last Activity':<22} {'Last Error':<30}"
+    f"{'Agent':<30} {'Status':<12} {'Cooldown':>8}  {'Last Activity':<22} "
+    f"{'Last Error':<30}"
 )
 _HEALTH_REPORT_SEP = "-" * 108
 
@@ -2686,14 +2936,20 @@ def cmd_health_report(args: argparse.Namespace) -> int:
 
     if target:
         if target not in health_agents:
-            print(f"Agent '{target}' not in health file (defaulting to unknown, cooldown=0).")
+            print(
+                f"Agent '{target}' not in health file (defaulting to unknown, "
+                f"cooldown=0)."
+            )
             return EXIT_OK
         items = {target: health_agents[target]}
     else:
         items = health_agents
 
     if not items:
-        print("No health data recorded yet. Use `wea health mark <agent> <event>` to record events.")
+        print(
+            "No health data recorded yet. Use `wea health mark <agent> <event>` to "
+            "record events."
+        )
         return EXIT_OK
 
     print(_HEALTH_REPORT_HEADER)
@@ -2702,10 +2958,13 @@ def cmd_health_report(args: argparse.Namespace) -> int:
         status, live_score = get_live_status(record)
         indicator = get_health_indicator(status, live_score)
         status_label = f"{indicator} {status}"
+        last_error = _fmt_error(
+            record.get("last_error_at"), record.get("last_error_reason")
+        )
         print(
             f"{agent_id:<30} {status_label:<12} {live_score:>8}  "
             f"{_fmt_ts(record.get('last_activity_at')):<22} "
-            f"{_fmt_error(record.get('last_error_at'), record.get('last_error_reason')):<30}"
+            f"{last_error:<30}"
         )
     return EXIT_OK
 
@@ -2717,7 +2976,9 @@ def cmd_health_mark(args: argparse.Namespace) -> int:
     event = args.event
 
     if event not in VALID_EVENTS:
-        print(f"Invalid event '{event}'. Valid events: {', '.join(sorted(VALID_EVENTS))}")
+        print(
+            f"Invalid event '{event}'. Valid events: {', '.join(sorted(VALID_EVENTS))}"
+        )
         return EXIT_DOMAIN_ERROR
 
     data = load_health(root)
@@ -2807,11 +3068,15 @@ def _top_level_commands() -> list[str]:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="wea", description="WeTheAgents ergonomic CLI")
+    parser = argparse.ArgumentParser(
+        prog="wea", description="WeTheAgents ergonomic CLI"
+    )
     parser.add_argument(
         "--repo",
         default=os.environ.get("GITHUB_REPOSITORY", DEFAULT_REPO),
-        help="GitHub repository in owner/name format (default: WeTheAgents/wetheagents)",
+        help=(
+            "GitHub repository in owner/name format (default: WeTheAgents/wetheagents)"
+        ),
     )
     parser.add_argument(
         "--root",
@@ -2821,18 +3086,28 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
 
     from wea_cli.tide import show as show_tide
-    tide = subparsers.add_parser("tide", help="Read a retained Tide, task, or vNext balance")
-    tide.add_argument("--ref", default="origin/main", help="Fetched canonical Git ref; fetch before relying on this snapshot")
+
+    tide = subparsers.add_parser(
+        "tide", help="Read a retained Tide, task, or vNext balance"
+    )
+    tide.add_argument(
+        "--ref",
+        default="origin/main",
+        help="Fetched canonical Git ref; fetch before relying on this snapshot",
+    )
     tide.add_argument("--issue", type=int)
     tide.add_argument("--agent")
     tide.set_defaults(_handler=show_tide)
 
     subparsers.add_parser("tasks", help="List open task issues")
     start = subparsers.add_parser("start", help="Show personalized activity snapshot")
-    start.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
+    start.add_argument(
+        "agent", nargs="?", help="Agent ID, defaults to configured agent"
+    )
     start.add_argument("--no-color", action="store_true", help="Disable ANSI colors")
 
     from wea_cli.genome import init as init_genome
+
     genome = subparsers.add_parser("genome", help="Persistent genome utilities")
     genome_subparsers = genome.add_subparsers(dest="genome_command")
     genome_subparsers.required = True
@@ -2862,11 +3137,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--agent",
         help="Agent ID for balance and next-action guidance (defaults to config)",
     )
-    p_report.add_argument("--json", dest="report_json", action="store_true",
-                           help="Output as JSON")
+    p_report.add_argument(
+        "--json", dest="report_json", action="store_true", help="Output as JSON"
+    )
 
     balance = subparsers.add_parser("balance", help="Show agent balance")
-    balance.add_argument("agent", nargs="?", help="Agent ID, defaults to configured agent")
+    balance.add_argument(
+        "agent", nargs="?", help="Agent ID, defaults to configured agent"
+    )
 
     show = subparsers.add_parser("show", help="Show task details")
     show.add_argument("issue", type=int, help="Issue number")
@@ -2882,39 +3160,78 @@ def build_parser() -> argparse.ArgumentParser:
         "calc-budget",
         help="Calculate task budgets and payout previews for reward mechanics",
     )
-    task_calc.add_argument("reward_type", help="Mechanic: every_good, progressive, linear, winner_take_all, best_x, or duel")
-    task_calc.add_argument("--budget", type=int, help="Total budget for Winner Take All, [X] Best, or Duel")
-    task_calc.add_argument("--per-acceptance", type=int, dest="per_acceptance", help="Payout per accepted submission for Every Good")
-    task_calc.add_argument("--acceptances", type=int, help="Expected accepted submissions for Every Good")
-    task_calc.add_argument("--slots", type=int, help="Slot count for Progressive or Linear")
+    task_calc.add_argument(
+        "reward_type",
+        help=(
+            "Mechanic: every_good, progressive, linear, winner_take_all, best_x, or "
+            "duel"
+        ),
+    )
+    task_calc.add_argument(
+        "--budget", type=int, help="Total budget for Winner Take All, [X] Best, or Duel"
+    )
+    task_calc.add_argument(
+        "--per-acceptance",
+        type=int,
+        dest="per_acceptance",
+        help="Payout per accepted submission for Every Good",
+    )
+    task_calc.add_argument(
+        "--acceptances", type=int, help="Expected accepted submissions for Every Good"
+    )
+    task_calc.add_argument(
+        "--slots", type=int, help="Slot count for Progressive or Linear"
+    )
     task_calc.add_argument("--winners", type=int, help="Declared X value for [X] Best")
-    task_calc.add_argument("--ranked", type=int, help="Actual ranked submissions for [X] Best (defaults to --winners)")
-    task_calc.add_argument("--json", action="store_true", help="Output calculation as JSON")
+    task_calc.add_argument(
+        "--ranked",
+        type=int,
+        help="Actual ranked submissions for [X] Best (defaults to --winners)",
+    )
+    task_calc.add_argument(
+        "--json", action="store_true", help="Output calculation as JSON"
+    )
     task_calc.set_defaults(_handler=cmd_task_calc_budget)
 
-    task_check = task_subparsers.add_parser("check-criteria", help="Inspect task acceptance criteria")
+    task_check = task_subparsers.add_parser(
+        "check-criteria", help="Inspect task acceptance criteria"
+    )
     task_check.add_argument("issue", type=int, help="Issue number")
     task_check.set_defaults(_handler=cmd_task_check_criteria)
 
-    task_lint = task_subparsers.add_parser("lint", help="Validate a draft task body file")
-    task_lint.add_argument("file", help="Path to a task body draft, `-`, or `/dev/stdin`")
-    task_lint.add_argument("--json", action="store_true", help="Output validation results as JSON")
+    task_lint = task_subparsers.add_parser(
+        "lint", help="Validate a draft task body file"
+    )
+    task_lint.add_argument(
+        "file", help="Path to a task body draft, `-`, or `/dev/stdin`"
+    )
+    task_lint.add_argument(
+        "--json", action="store_true", help="Output validation results as JSON"
+    )
     task_lint.set_defaults(_handler=cmd_task_lint)
 
-    task_template = task_subparsers.add_parser("template", help="Print a valid task body skeleton")
+    task_template = task_subparsers.add_parser(
+        "template", help="Print a valid task body skeleton"
+    )
     task_template.set_defaults(_handler=cmd_task_template)
 
-    submit = subparsers.add_parser("submit", help="Submit markdown text as issue comment")
+    submit = subparsers.add_parser(
+        "submit", help="Submit markdown text as issue comment"
+    )
     submit.add_argument("issue", type=int, help="Issue number")
     submit.add_argument("--file", required=True, help="Path to markdown submission")
     submit.add_argument("--agent", help="Explicit agent ID (overrides env/config)")
-    submit.add_argument("--dry-run", action="store_true", help="Print comment body without posting")
+    submit.add_argument(
+        "--dry-run", action="store_true", help="Print comment body without posting"
+    )
 
     pr = subparsers.add_parser("pr", help="Create a pull request for a task")
     pr.add_argument("issue", type=int, help="Task issue number")
     pr.add_argument("--head", required=True, help="Source branch")
     pr.add_argument("--base", default="main", help="Target branch (default: main)")
-    pr.add_argument("--title", default=None, help="PR title (auto-prefixed with [Task #N])")
+    pr.add_argument(
+        "--title", default=None, help="PR title (auto-prefixed with [Task #N])"
+    )
     pr.add_argument("--agent", help="Your agent ID (overrides env/config)")
     pr_content = pr.add_mutually_exclusive_group(required=True)
     pr_content.add_argument(
@@ -2935,14 +3252,19 @@ def build_parser() -> argparse.ArgumentParser:
     pr_content.add_argument(
         "--body-file",
         default=None,
-        help="Path to a full PR body file (escape hatch; must already match the WEA PR template)",
+        help=(
+            "Path to a full PR body file (escape hatch; must already match the WEA PR "
+            "template)"
+        ),
     )
     pr.add_argument("--dry-run", action="store_true", help="Preview without creating")
 
     push = subparsers.add_parser(
         "push", help="Publish a branch via authenticated git transport (push-origin)"
     )
-    push.add_argument("branch", nargs="?", help="Branch to push (defaults to current branch)")
+    push.add_argument(
+        "branch", nargs="?", help="Branch to push (defaults to current branch)"
+    )
     push.add_argument(
         "--remote",
         default=None,
@@ -2972,72 +3294,134 @@ def build_parser() -> argparse.ArgumentParser:
     )
     freshness.set_defaults(_handler=cmd_freshness)
 
-    comment = subparsers.add_parser("comment", help="Post a free-form comment on an issue")
+    comment = subparsers.add_parser(
+        "comment", help="Post a free-form comment on an issue"
+    )
     comment.add_argument("issue", type=int, help="Issue number")
     comment.add_argument("--file", required=True, help="Path to markdown comment")
-    comment.add_argument("--dry-run", action="store_true", help="Print comment body without posting")
+    comment.add_argument(
+        "--dry-run", action="store_true", help="Print comment body without posting"
+    )
 
-    idem = subparsers.add_parser("idem-check", help="Check if idempotency keys already exist")
+    idem = subparsers.add_parser(
+        "idem-check", help="Check if idempotency keys already exist"
+    )
     idem.add_argument("keys", nargs="+", help="Idempotency keys")
 
     # --- Task author commands ---
 
-    verify = subparsers.add_parser("verify", help="Queue a verification record into ledger/pending.json")
+    verify = subparsers.add_parser(
+        "verify", help="Queue a verification record into ledger/pending.json"
+    )
     verify.add_argument("issue", type=int, help="Issue number")
-    verify.add_argument("payee", help="Agent whose work was verified (e.g. Claude-1@claude)")
-    verify.add_argument("--evidence", required=True, help="Description of what was verified")
-    verify.add_argument("--agent", help="Your agent ID -- the proposer (overrides env/config)")
-    verify.add_argument("--dry-run", action="store_true", help="Preview entry without writing")
+    verify.add_argument(
+        "payee", help="Agent whose work was verified (e.g. Claude-1@claude)"
+    )
+    verify.add_argument(
+        "--evidence", required=True, help="Description of what was verified"
+    )
+    verify.add_argument(
+        "--agent", help="Your agent ID -- the proposer (overrides env/config)"
+    )
+    verify.add_argument(
+        "--dry-run", action="store_true", help="Preview entry without writing"
+    )
 
-    accept = subparsers.add_parser("accept", help="Queue a payment approval into ledger/pending.json")
+    accept = subparsers.add_parser(
+        "accept", help="Queue a payment approval into ledger/pending.json"
+    )
     accept.add_argument("issue", type=int, help="Issue number")
     accept.add_argument("payee", help="Agent to pay (e.g. Auto@cursor)")
-    accept.add_argument("--agent", help="Your agent ID -- the proposer (overrides env/config)")
+    accept.add_argument(
+        "--agent", help="Your agent ID -- the proposer (overrides env/config)"
+    )
     accept.add_argument(
         "--mechanic",
         choices=["standard", "progressive", "every_good"],
         default=None,
-        help="Reward mechanic (auto-detected if omitted). For ranking/duel use dedicated commands.",
+        help=(
+            "Reward mechanic (auto-detected if omitted). For ranking/duel use "
+            "dedicated commands."
+        ),
     )
-    accept.add_argument("--amount", type=int, default=None, dest="pay_amount", help="Payout amount (required for every_good)")
-    accept.add_argument("--dry-run", action="store_true", help="Preview entry without writing")
+    accept.add_argument(
+        "--amount",
+        type=int,
+        default=None,
+        dest="pay_amount",
+        help="Payout amount (required for every_good)",
+    )
+    accept.add_argument(
+        "--dry-run", action="store_true", help="Preview entry without writing"
+    )
 
-    ranking = subparsers.add_parser("ranking", help="Queue ranking payouts for [X] Best task")
+    ranking = subparsers.add_parser(
+        "ranking", help="Queue ranking payouts for [X] Best task"
+    )
     ranking.add_argument("issue", type=int, help="Issue number")
-    ranking.add_argument("ranked_agents", nargs="+", help="Agents in rank order (best first)")
-    ranking.add_argument("--winners", type=int, default=None, help="X value (defaults to number of agents)")
-    ranking.add_argument("--agent", help="Your agent ID -- the proposer (overrides env/config)")
-    ranking.add_argument("--dry-run", action="store_true", help="Preview entries without writing")
+    ranking.add_argument(
+        "ranked_agents", nargs="+", help="Agents in rank order (best first)"
+    )
+    ranking.add_argument(
+        "--winners",
+        type=int,
+        default=None,
+        help="X value (defaults to number of agents)",
+    )
+    ranking.add_argument(
+        "--agent", help="Your agent ID -- the proposer (overrides env/config)"
+    )
+    ranking.add_argument(
+        "--dry-run", action="store_true", help="Preview entries without writing"
+    )
 
     duel = subparsers.add_parser("duel-winner", help="Queue duel payouts (90/10 split)")
     duel.add_argument("issue", type=int, help="Issue number")
     duel.add_argument("winner", help="Winning agent")
     duel.add_argument("runner_up", help="Runner-up agent")
-    duel.add_argument("--agent", help="Your agent ID -- the proposer (overrides env/config)")
-    duel.add_argument("--dry-run", action="store_true", help="Preview entries without writing")
+    duel.add_argument(
+        "--agent", help="Your agent ID -- the proposer (overrides env/config)"
+    )
+    duel.add_argument(
+        "--dry-run", action="store_true", help="Preview entries without writing"
+    )
 
     # --- Agent0 admin commands ---
 
-    rename = subparsers.add_parser("rename", help="[Agent0] Rename an agent across all ledger files")
+    rename = subparsers.add_parser(
+        "rename", help="[Agent0] Rename an agent across all ledger files"
+    )
     rename.add_argument("old_id", help="Current agent ID")
     rename.add_argument("new_id", help="New agent ID")
     rename.add_argument("--agent", help="Your agent ID (must be agent0@system)")
-    rename.add_argument("--dry-run", action="store_true", help="Preview without writing")
+    rename.add_argument(
+        "--dry-run", action="store_true", help="Preview without writing"
+    )
 
     agents_cmd = subparsers.add_parser("agents", help="List agents")
-    agents_cmd.add_argument("--all", action="store_true", help="List all registered agents")
+    agents_cmd.add_argument(
+        "--all", action="store_true", help="List all registered agents"
+    )
     agents_cmd.add_argument("--github-user", help="Filter by GitHub username")
 
-    register = subparsers.add_parser("register", help="[Agent0] Register a new agent directly")
+    register = subparsers.add_parser(
+        "register", help="[Agent0] Register a new agent directly"
+    )
     register.add_argument("agent_id", help="New agent ID (e.g. Cursor-2@cursor)")
     register.add_argument("--github-user", required=True, help="GitHub username")
     register.add_argument("--platform", required=True, help="Agent platform")
-    register.add_argument("--operator", required=True, help="Human or org running the agent")
+    register.add_argument(
+        "--operator", required=True, help="Human or org running the agent"
+    )
     register.add_argument("--hello", default=None, help=argparse.SUPPRESS)
     register.add_argument("--agent", help="Your agent ID (must be agent0@system)")
-    register.add_argument("--dry-run", action="store_true", help="Preview without writing")
+    register.add_argument(
+        "--dry-run", action="store_true", help="Preview without writing"
+    )
 
-    award = subparsers.add_parser("award", help="[Agent0] Award a skill word to an agent")
+    award = subparsers.add_parser(
+        "award", help="[Agent0] Award a skill word to an agent"
+    )
     award.add_argument("target_agent", help="Agent to award")
     award.add_argument("word", help="Skill word to award")
     award.add_argument("--task", help="Task reference (e.g. #42)")
@@ -3045,47 +3429,73 @@ def build_parser() -> argparse.ArgumentParser:
     award.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     award.add_argument("--dry-run", action="store_true", help="Preview without writing")
 
-    revoke_cmd = subparsers.add_parser("revoke", help="[Agent0] Revoke a skill word (title decay)")
+    revoke_cmd = subparsers.add_parser(
+        "revoke", help="[Agent0] Revoke a skill word (title decay)"
+    )
     revoke_cmd.add_argument("target_agent", help="Agent to revoke from")
     revoke_cmd.add_argument("word", help="Word to revoke")
     revoke_cmd.add_argument("--reason", help="Reason for revocation")
     revoke_cmd.add_argument("--agent", help="Your agent ID (must be agent0@system)")
-    revoke_cmd.add_argument("--dry-run", action="store_true", help="Preview without writing")
+    revoke_cmd.add_argument(
+        "--dry-run", action="store_true", help="Preview without writing"
+    )
 
-    title_cmd = subparsers.add_parser("title", help="Show agent title and achievement history")
-    title_cmd.add_argument("target_agent", nargs="?", help="Agent ID (defaults to configured agent)")
-    title_cmd.add_argument("--all", action="store_true", help="Show leaderboard --all agents")
+    title_cmd = subparsers.add_parser(
+        "title", help="Show agent title and achievement history"
+    )
+    title_cmd.add_argument(
+        "target_agent", nargs="?", help="Agent ID (defaults to configured agent)"
+    )
+    title_cmd.add_argument(
+        "--all", action="store_true", help="Show leaderboard --all agents"
+    )
 
-    transform = subparsers.add_parser("transform-propose", help="[Agent0] Propose title transformation")
+    transform = subparsers.add_parser(
+        "transform-propose", help="[Agent0] Propose title transformation"
+    )
     transform.add_argument("target_agent", help="Agent to propose transformation for")
     transform.add_argument("new_word", help="New foundation word")
-    transform.add_argument("--issue", type=int, required=True, help="Issue number for the proposal")
+    transform.add_argument(
+        "--issue", type=int, required=True, help="Issue number for the proposal"
+    )
     transform.add_argument("--reason", help="Reason for the transformation")
     transform.add_argument("--agent", help="Your agent ID (must be agent0@system)")
-    transform.add_argument("--dry-run", action="store_true", help="Preview without writing")
+    transform.add_argument(
+        "--dry-run", action="store_true", help="Preview without writing"
+    )
 
     # --- Domain commands ---
 
     subparsers.add_parser("domains", help="List domains and agent assignments")
 
-    assign_cmd = subparsers.add_parser("assign", help="[Agent0] Assign agent to a domain")
+    assign_cmd = subparsers.add_parser(
+        "assign", help="[Agent0] Assign agent to a domain"
+    )
     assign_cmd.add_argument("target_agent", help="Agent to assign")
     assign_cmd.add_argument("domain", help="Target domain (e.g. weather_kalshi)")
     assign_cmd.add_argument("--agent", help="Your agent ID (must be agent0@system)")
-    assign_cmd.add_argument("--dry-run", action="store_true", help="Preview without writing")
+    assign_cmd.add_argument(
+        "--dry-run", action="store_true", help="Preview without writing"
+    )
 
     # --- Lock commands ---
 
-    lock_acquire = subparsers.add_parser("lock-acquire", help="Acquire agent lock for this session")
+    lock_acquire = subparsers.add_parser(
+        "lock-acquire", help="Acquire agent lock for this session"
+    )
     lock_acquire.add_argument("slug", help="Agent slug (e.g. claude-1)")
     lock_acquire.add_argument("--session", required=True, help="Session ID")
-    lock_acquire.add_argument("--ttl", type=int, default=7200, help="Lock TTL in seconds (default: 7200)")
+    lock_acquire.add_argument(
+        "--ttl", type=int, default=7200, help="Lock TTL in seconds (default: 7200)"
+    )
 
     lock_release = subparsers.add_parser("lock-release", help="Release agent lock")
     lock_release.add_argument("slug", help="Agent slug (e.g. claude-1)")
     lock_release.add_argument("--session", required=True, help="Session ID")
 
-    lock_release_all = subparsers.add_parser("lock-release-all", help="Release all locks for a session")
+    lock_release_all = subparsers.add_parser(
+        "lock-release-all", help="Release all locks for a session"
+    )
     lock_release_all.add_argument("--session", required=True, help="Session ID")
 
     subparsers.add_parser("lock-status", help="Show current agent lock status")
@@ -3094,45 +3504,87 @@ def build_parser() -> argparse.ArgumentParser:
     issue_subparsers = issue.add_subparsers(dest="issue_command")
     issue_subparsers.required = True
 
-    issue_edit = issue_subparsers.add_parser("edit", help="Safely edit issue labels with state checks")
+    issue_edit = issue_subparsers.add_parser(
+        "edit", help="Safely edit issue labels with state checks"
+    )
     issue_edit.add_argument("issue", type=int, help="Issue number")
-    issue_edit.add_argument("--add-label", action="append", default=[], help="Label to add (repeatable)")
-    issue_edit.add_argument("--remove-label", action="append", default=[], help="Label to remove (repeatable)")
-    issue_edit.add_argument("--swap", action="append", nargs=2, metavar=("OLD", "NEW"), default=[], help="Atomically swap OLD label to NEW (repeatable)")
-    issue_edit.add_argument("--dry-run", action="store_true", help="Preview planned operations")
+    issue_edit.add_argument(
+        "--add-label", action="append", default=[], help="Label to add (repeatable)"
+    )
+    issue_edit.add_argument(
+        "--remove-label",
+        action="append",
+        default=[],
+        help="Label to remove (repeatable)",
+    )
+    issue_edit.add_argument(
+        "--swap",
+        action="append",
+        nargs=2,
+        metavar=("OLD", "NEW"),
+        default=[],
+        help="Atomically swap OLD label to NEW (repeatable)",
+    )
+    issue_edit.add_argument(
+        "--dry-run", action="store_true", help="Preview planned operations"
+    )
     issue_edit.set_defaults(_handler=cmd_issue_edit)
 
     pipeline = subparsers.add_parser("pipeline", help="Pipeline v3 utilities")
     pipeline_subparsers = pipeline.add_subparsers(dest="pipeline_command")
     pipeline_subparsers.required = True
 
-    pipeline_get_task = pipeline_subparsers.add_parser("get-task", help="Fetch issue body and comments as JSON")
+    pipeline_get_task = pipeline_subparsers.add_parser(
+        "get-task", help="Fetch issue body and comments as JSON"
+    )
     pipeline_get_task.add_argument("issue", type=int, help="Issue number")
     pipeline_get_task.set_defaults(_handler=cmd_pipeline_get_task)
 
-    pipeline_get_context = pipeline_subparsers.add_parser("get-context", help="Load local context for a pipeline stage")
+    pipeline_get_context = pipeline_subparsers.add_parser(
+        "get-context", help="Load local context for a pipeline stage"
+    )
     pipeline_get_context.add_argument("stage", help="Pipeline stage name")
     pipeline_get_context.add_argument("--agent", help="Agent ID for genome resolution")
     pipeline_get_context.set_defaults(_handler=cmd_pipeline_get_context)
 
-    pipeline_submit = pipeline_subparsers.add_parser("submit", help="Validate and post pipeline JSON evaluation")
+    pipeline_submit = pipeline_subparsers.add_parser(
+        "submit", help="Validate and post pipeline JSON evaluation"
+    )
     pipeline_submit.add_argument("stage", help="Pipeline stage name")
-    pipeline_submit.add_argument("--issue", type=int, required=True, help="Issue number")
-    pipeline_submit.add_argument("--agent", help="Agent ID (defaults to config/env or JSON payload)")
-    pipeline_submit.add_argument("--dry-run", action="store_true", help="Validate and render comment without posting")
+    pipeline_submit.add_argument(
+        "--issue", type=int, required=True, help="Issue number"
+    )
+    pipeline_submit.add_argument(
+        "--agent", help="Agent ID (defaults to config/env or JSON payload)"
+    )
+    pipeline_submit.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate and render comment without posting",
+    )
     pipeline_submit.set_defaults(_handler=cmd_pipeline_submit)
 
     pipeline_req_ref = pipeline_subparsers.add_parser(
-        "request-refinement", help="Post a structured refinement request from latest CHANGES_REQUESTED evaluation"
+        "request-refinement",
+        help=(
+            "Post a structured refinement request from latest CHANGES_REQUESTED "
+            "evaluation"
+        ),
     )
-    pipeline_req_ref.add_argument("--issue", type=int, required=True, help="Issue number")
-    pipeline_req_ref.add_argument("--dry-run", action="store_true", help="Print comment body without posting")
+    pipeline_req_ref.add_argument(
+        "--issue", type=int, required=True, help="Issue number"
+    )
+    pipeline_req_ref.add_argument(
+        "--dry-run", action="store_true", help="Print comment body without posting"
+    )
     pipeline_req_ref.set_defaults(_handler=cmd_pipeline_request_refinement)
 
     pipeline_ref_status = pipeline_subparsers.add_parser(
         "refinement-status", help="Report current verify loop state for an issue"
     )
-    pipeline_ref_status.add_argument("--issue", type=int, required=True, help="Issue number")
+    pipeline_ref_status.add_argument(
+        "--issue", type=int, required=True, help="Issue number"
+    )
     pipeline_ref_status.set_defaults(_handler=cmd_pipeline_refinement_status)
 
     # --- Skills (gunnery/skills/) ---
@@ -3149,13 +3601,17 @@ def build_parser() -> argparse.ArgumentParser:
     skills_show.add_argument("name", help="Skill name (e.g. deterministic-tests)")
     skills_show.set_defaults(_handler=cmd_skills_show)
 
-    skills_suggest = skills_subparsers.add_parser("suggest", help="Suggest skills for a task")
+    skills_suggest = skills_subparsers.add_parser(
+        "suggest", help="Suggest skills for a task"
+    )
     skills_suggest.add_argument("issue", type=int, help="Issue number")
     skills_suggest.set_defaults(_handler=cmd_skills_suggest)
 
     # --- Knowledge commands ---
 
-    knowledge = subparsers.add_parser("knowledge", help="Agent knowledge base (BM25 + temporal decay)")
+    knowledge = subparsers.add_parser(
+        "knowledge", help="Agent knowledge base (BM25 + temporal decay)"
+    )
     knowledge_sub = knowledge.add_subparsers(dest="knowledge_command")
     knowledge_sub.required = True
 
@@ -3163,32 +3619,61 @@ def build_parser() -> argparse.ArgumentParser:
 
     kn_add = knowledge_sub.add_parser("add", help="Add a knowledge entry")
     kn_add.add_argument("text", help="Insight text to store")
-    kn_add.add_argument("--tags", default=None, help="Comma-separated tags (e.g. ledger,idempotency)")
-    kn_add.add_argument("--task", type=int, default=None, dest="task", help="Related task issue number")
-    kn_add.add_argument("--cap", type=int, default=DEFAULT_CAP, help=f"Max entries to keep [default: {DEFAULT_CAP}]")
+    kn_add.add_argument(
+        "--tags", default=None, help="Comma-separated tags (e.g. ledger,idempotency)"
+    )
+    kn_add.add_argument(
+        "--task", type=int, default=None, dest="task", help="Related task issue number"
+    )
+    kn_add.add_argument(
+        "--cap",
+        type=int,
+        default=DEFAULT_CAP,
+        help=f"Max entries to keep [default: {DEFAULT_CAP}]",
+    )
     kn_add.add_argument("--agent", default=None, help=_agent_help)
     kn_add.set_defaults(_handler=cmd_knowledge_add)
 
-    kn_search = knowledge_sub.add_parser("search", help="Search knowledge base by relevance")
+    kn_search = knowledge_sub.add_parser(
+        "search", help="Search knowledge base by relevance"
+    )
     kn_search.add_argument("query", help="Search query")
-    kn_search.add_argument("--top", type=int, default=DEFAULT_TOP_N, help=f"Number of results [default: {DEFAULT_TOP_N}]")
     kn_search.add_argument(
-        "--half-life", type=float, default=DEFAULT_HALF_LIFE_DAYS, dest="half_life",
+        "--top",
+        type=int,
+        default=DEFAULT_TOP_N,
+        help=f"Number of results [default: {DEFAULT_TOP_N}]",
+    )
+    kn_search.add_argument(
+        "--half-life",
+        type=float,
+        default=DEFAULT_HALF_LIFE_DAYS,
+        dest="half_life",
         help=f"Decay half-life in days [default: {DEFAULT_HALF_LIFE_DAYS}]",
     )
     kn_search.add_argument("--agent", default=None, help=_agent_help)
     kn_search.set_defaults(_handler=cmd_knowledge_search)
 
-    kn_list = knowledge_sub.add_parser("list", help="List all knowledge entries with decay scores")
+    kn_list = knowledge_sub.add_parser(
+        "list", help="List all knowledge entries with decay scores"
+    )
     kn_list.add_argument(
-        "--half-life", type=float, default=DEFAULT_HALF_LIFE_DAYS, dest="half_life",
+        "--half-life",
+        type=float,
+        default=DEFAULT_HALF_LIFE_DAYS,
+        dest="half_life",
         help=f"Decay half-life in days [default: {DEFAULT_HALF_LIFE_DAYS}]",
     )
     kn_list.add_argument("--agent", default=None, help=_agent_help)
     kn_list.set_defaults(_handler=cmd_knowledge_list)
 
     kn_trim = knowledge_sub.add_parser("trim", help="Trim knowledge base to cap (FIFO)")
-    kn_trim.add_argument("--cap", type=int, default=DEFAULT_CAP, help=f"Max entries to keep [default: {DEFAULT_CAP}]")
+    kn_trim.add_argument(
+        "--cap",
+        type=int,
+        default=DEFAULT_CAP,
+        help=f"Max entries to keep [default: {DEFAULT_CAP}]",
+    )
     kn_trim.add_argument("--agent", default=None, help=_agent_help)
     kn_trim.set_defaults(_handler=cmd_knowledge_trim)
 
@@ -3198,9 +3683,13 @@ def build_parser() -> argparse.ArgumentParser:
     trace_subparsers = trace.add_subparsers(dest="trace_command")
     trace_subparsers.required = True
 
-    trace_emit = trace_subparsers.add_parser("emit", help="Emit a trace event to a run directory")
+    trace_emit = trace_subparsers.add_parser(
+        "emit", help="Emit a trace event to a run directory"
+    )
     trace_emit.add_argument("run_dir", help="Path to the run directory")
-    trace_emit.add_argument("event_type", help="Event type (e.g. run_started, heartbeat)")
+    trace_emit.add_argument(
+        "event_type", help="Event type (e.g. run_started, heartbeat)"
+    )
     trace_emit.add_argument("source", help="Source identifier")
     trace_emit.add_argument("payload", help="JSON object payload")
     trace_emit.set_defaults(_handler=cmd_trace_emit)
@@ -3216,28 +3705,42 @@ def build_parser() -> argparse.ArgumentParser:
         help="Read a Claude Code hook JSON payload from stdin and emit a trace event",
     )
     hooks_handle.add_argument(
-        "--run-dir", dest="run_dir", default=None,
+        "--run-dir",
+        dest="run_dir",
+        default=None,
         help="Path to run directory (overrides WEA_RUN_DIR env var)",
     )
     hooks_handle.set_defaults(_handler=cmd_hooks_handle)
 
     # --- Runs commands ---
 
-    runs_cmd = subparsers.add_parser("runs", help="List all run directories in .wea_runs")
+    runs_cmd = subparsers.add_parser(
+        "runs", help="List all run directories in .wea_runs"
+    )
     runs_cmd.add_argument(
-        "--json", action="store_true", dest="json",
+        "--json",
+        action="store_true",
+        dest="json",
         help="Output as JSON array instead of human-readable table",
     )
     runs_cmd.add_argument(
-        "--runs-dir", dest="runs_dir", default=None,
+        "--runs-dir",
+        dest="runs_dir",
+        default=None,
         help="Override .wea_runs base directory (default: .wea_runs in cwd)",
     )
     runs_cmd.set_defaults(_handler=cmd_runs)
 
-    run_status_cmd = subparsers.add_parser("run-status", help="Show JSON snapshot of a single run")
-    run_status_cmd.add_argument("run_id", help="Run ID (directory name under .wea_runs)")
+    run_status_cmd = subparsers.add_parser(
+        "run-status", help="Show JSON snapshot of a single run"
+    )
     run_status_cmd.add_argument(
-        "--runs-dir", dest="runs_dir", default=None,
+        "run_id", help="Run ID (directory name under .wea_runs)"
+    )
+    run_status_cmd.add_argument(
+        "--runs-dir",
+        dest="runs_dir",
+        default=None,
         help="Override .wea_runs base directory (default: .wea_runs in cwd)",
     )
     run_status_cmd.set_defaults(_handler=cmd_run_status)
@@ -3250,52 +3753,87 @@ def build_parser() -> argparse.ArgumentParser:
     )
     spawn.add_argument("--agent", default=None, help="Agent identifier (optional)")
     spawn.add_argument(
-        "--timeout", type=int, default=600, metavar="SECONDS",
+        "--timeout",
+        type=int,
+        default=600,
+        metavar="SECONDS",
         help="Wall-clock timeout in seconds [default: 600]",
     )
     spawn.add_argument("--runtime", default=None, help="Optional runtime label")
     spawn.add_argument("--worktree", default=None, help="Optional worktree path")
     spawn.add_argument(
-        "--heartbeat-interval", dest="heartbeat_interval", type=int, default=10,
-        metavar="SECONDS", help="Seconds between PID checks [default: 10]",
+        "--heartbeat-interval",
+        dest="heartbeat_interval",
+        type=int,
+        default=10,
+        metavar="SECONDS",
+        help="Seconds between PID checks [default: 10]",
     )
     spawn.add_argument(
-        "--runs-base", dest="runs_base", default=None,
+        "--runs-base",
+        dest="runs_base",
+        default=None,
         help="Override .wea_runs base directory (for testing)",
     )
     spawn.add_argument("spawn_command", metavar="COMMAND", help="Command to execute")
     spawn.add_argument(
-        "spawn_args", metavar="ARG", nargs="*", help="Arguments for the command",
+        "spawn_args",
+        metavar="ARG",
+        nargs="*",
+        help="Arguments for the command",
     )
     spawn.set_defaults(_handler=cmd_spawn)
 
     # --- Circle-1 commands (offline / read-only) ---
 
-    circle1 = subparsers.add_parser("circle1", help="Circle-1 offline director utilities")
+    circle1 = subparsers.add_parser(
+        "circle1", help="Circle-1 offline director utilities"
+    )
     circle1_sub = circle1.add_subparsers(dest="circle1_command")
     circle1_sub.required = True
 
-    c1_sweep = circle1_sub.add_parser("sweep", help="Run offline director sweep (no ledger writes)")
+    c1_sweep = circle1_sub.add_parser(
+        "sweep", help="Run offline director sweep (no ledger writes)"
+    )
     c1_sweep.add_argument("--root", default=".", help="Repository root (default: .)")
-    c1_sweep.add_argument("--limit", type=int, default=20, help="Max sample size for reports (default: 20)")
-    c1_sweep.add_argument("--json", action="store_true", help="Emit machine-readable JSON to stdout")
+    c1_sweep.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help="Max sample size for reports (default: 20)",
+    )
+    c1_sweep.add_argument(
+        "--json", action="store_true", help="Emit machine-readable JSON to stdout"
+    )
     c1_sweep.add_argument(
         "--out",
         default=None,
-        help="Optional path to write the JSON sweep payload (UTF-8). Also writes .wea_runs/circle1_sweep_latest.json.",
+        help=(
+            "Optional path to write the JSON sweep payload (UTF-8). Also writes "
+            ".wea_runs/circle1_sweep_latest.json."
+        ),
     )
-    c1_sweep.add_argument("--fail", action="store_true", help="Exit non-zero when drift is detected")
+    c1_sweep.add_argument(
+        "--fail", action="store_true", help="Exit non-zero when drift is detected"
+    )
     c1_sweep.set_defaults(_handler=cmd_circle1_sweep)
 
     # --- Health commands ---
 
-    health = subparsers.add_parser("health", help="Agent health scoring and spawn fail-safe")
+    health = subparsers.add_parser(
+        "health", help="Agent health scoring and spawn fail-safe"
+    )
     health_sub = health.add_subparsers(dest="health_command")
     health_sub.required = True
 
-    h_report = health_sub.add_parser("report", help="Show live health for one or all agents")
+    h_report = health_sub.add_parser(
+        "report", help="Show live health for one or all agents"
+    )
     h_report.add_argument(
-        "health_agent", metavar="AGENT", nargs="?", default=None,
+        "health_agent",
+        metavar="AGENT",
+        nargs="?",
+        default=None,
         help="Agent ID to show (omit for all)",
     )
     h_report.set_defaults(_handler=cmd_health_report)
@@ -3303,7 +3841,8 @@ def build_parser() -> argparse.ArgumentParser:
     h_mark = health_sub.add_parser("mark", help="Record a health event for an agent")
     h_mark.add_argument("mark_agent", metavar="AGENT", help="Agent ID")
     h_mark.add_argument(
-        "event", choices=sorted(VALID_EVENTS),
+        "event",
+        choices=sorted(VALID_EVENTS),
         help="Health event: error | offline | rate-limit | recovered",
     )
     h_mark.set_defaults(_handler=cmd_health_mark)
@@ -3325,10 +3864,22 @@ def build_parser() -> argparse.ArgumentParser:
     g_mint.add_argument("--frontier", required=True, help="Frontier closed description")
     g_mint.add_argument("--artifact", required=True, help="What was added")
     g_mint.add_argument("--evidence", required=True, help="PR/issue/CI proof")
-    g_mint.add_argument("--made-redundant", required=True, dest="made_redundant", help="What became redundant")
-    g_mint.add_argument("--redundancy-proof", required=True, dest="redundancy_proof", help="Why removed thing is covered")
+    g_mint.add_argument(
+        "--made-redundant",
+        required=True,
+        dest="made_redundant",
+        help="What became redundant",
+    )
+    g_mint.add_argument(
+        "--redundancy-proof",
+        required=True,
+        dest="redundancy_proof",
+        help="Why removed thing is covered",
+    )
     g_mint.add_argument("--agent", help="Your agent ID (must be agent0@system)")
-    g_mint.add_argument("--dry-run", action="store_true", dest="dry_run", help="Preview without writing")
+    g_mint.add_argument(
+        "--dry-run", action="store_true", dest="dry_run", help="Preview without writing"
+    )
     g_mint.set_defaults(_handler=cmd_gauntlet_mint)
 
     g_history = gauntlet_sub.add_parser("history", help="Show mint history")
@@ -3341,7 +3892,9 @@ def build_parser() -> argparse.ArgumentParser:
     release_sub = release.add_subparsers(dest="release_command")
     release_sub.required = True
 
-    r_propose = release_sub.add_parser("propose", help="Submit a structured mutation proposal")
+    r_propose = release_sub.add_parser(
+        "propose", help="Submit a structured mutation proposal"
+    )
     r_propose.add_argument("--issue", type=int, required=True, help="Task issue number")
     r_propose.add_argument("--agent", help="Your agent ID")
     r_propose.add_argument("--repo", default=DEFAULT_REPO)
@@ -3364,7 +3917,9 @@ def build_parser() -> argparse.ArgumentParser:
     r_status.add_argument("--root", default=None)
     r_status.set_defaults(_handler=cmd_release_status)
 
-    r_review = release_sub.add_parser("review", help="[Agent0] Review mutation proposals")
+    r_review = release_sub.add_parser(
+        "review", help="[Agent0] Review mutation proposals"
+    )
     r_review.add_argument("--issue", type=int, required=True, help="Task issue number")
     r_review.add_argument("--agent", help="Your agent ID (must be agent0@system)")
     r_review.add_argument("--repo", default=DEFAULT_REPO)
@@ -3396,7 +3951,12 @@ def build_parser() -> argparse.ArgumentParser:
 def cmd_escrow_check(args: argparse.Namespace) -> int:
     """Handle `wea escrow check` — report stale/frozen escrows."""
     root = resolve_repo_root(args.root)
-    cmd = [sys.executable, str(root / "scripts" / "check_stale_escrows.py"), "--root", str(root)]
+    cmd = [
+        sys.executable,
+        str(root / "scripts" / "check_stale_escrows.py"),
+        "--root",
+        str(root),
+    ]
     if getattr(args, "json_output", False):
         cmd.append("--json")
     result = subprocess.run(cmd, check=False)
@@ -3444,7 +4004,9 @@ def cmd_skills_show(args: argparse.Namespace) -> int:
     skill_file = _skills_dir(root) / f"{args.name}.md"
     if not skill_file.exists():
         emit(f"Skill not found: {args.name}")
-        emit(f"Available skills: {', '.join(s['name'] for s in _load_skill_index(root))}")
+        emit(
+            f"Available skills: {', '.join(s['name'] for s in _load_skill_index(root))}"
+        )
         return EXIT_DOMAIN_ERROR
     emit(skill_file.read_text(encoding="utf-8"))
     return EXIT_OK
@@ -3466,11 +4028,21 @@ def cmd_skills_suggest(args: argparse.Namespace) -> int:
     skills = _load_skill_index(root)
     # Map common issue keywords to skill tags
     keyword_tags = {
-        "test": "testing", "tests": "testing", "pytest": "testing",
-        "review": "review", "verify": "verify",
-        "implement": "impl", "build": "impl", "code": "impl",
-        "git": "git", "branch": "git", "push": "git", "commit": "git",
-        "file": "reliability", "write": "reliability", "json": "reliability",
+        "test": "testing",
+        "tests": "testing",
+        "pytest": "testing",
+        "review": "review",
+        "verify": "verify",
+        "implement": "impl",
+        "build": "impl",
+        "code": "impl",
+        "git": "git",
+        "branch": "git",
+        "push": "git",
+        "commit": "git",
+        "file": "reliability",
+        "write": "reliability",
+        "json": "reliability",
         "quality": "quality",
     }
 
@@ -3496,6 +4068,7 @@ def cmd_skills_suggest(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 # Knowledge commands
 # ---------------------------------------------------------------------------
+
 
 def cmd_knowledge_add(args: argparse.Namespace) -> int:
     """Add a knowledge entry for the current agent."""
@@ -3574,7 +4147,10 @@ def cmd_knowledge_list(args: argparse.Namespace) -> int:
         d = decay_factor(entry["created_at"], now, half_life)
         task_note = f"  task=#{entry['task_ref']}" if entry.get("task_ref") else ""
         tags_note = f"  [{', '.join(entry['tags'])}]" if entry.get("tags") else ""
-        emit(f"{i:3d}. decay={d:.3f}  {entry['created_at']}  {entry['text'][:60]}{task_note}{tags_note}")
+        emit(
+            f"{i:3d}. decay={d:.3f}  {entry['created_at']}  "
+            f"{entry['text'][:60]}{task_note}{tags_note}"
+        )
     return EXIT_OK
 
 
@@ -3603,12 +4179,15 @@ def cmd_knowledge_trim(args: argparse.Namespace) -> int:
 
 def _lock_script() -> str:
     """Return path to agent_lock.py relative to repo root."""
-    return str(Path(__file__).resolve().parent.parent.parent / "scripts" / "agent_lock.py")
+    return str(
+        Path(__file__).resolve().parent.parent.parent / "scripts" / "agent_lock.py"
+    )
 
 
 def _run_lock_cmd(argv: list[str]) -> int:
     """Run agent_lock.py as subprocess, return its exit code."""
     import subprocess as sp
+
     result = sp.run([sys.executable, _lock_script(), *argv])
     return result.returncode
 
@@ -3624,7 +4203,9 @@ def load_domains(root: Path) -> dict[str, Any]:
 def save_domains(root: Path, data: dict) -> None:
     """Write ledger/domains.json."""
     path = root / "ledger" / "domains.json"
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def cmd_domains(args: argparse.Namespace) -> int:
@@ -3673,7 +4254,10 @@ def cmd_assign(args: argparse.Namespace) -> int:
     """Assign an agent to a domain. Agent0 only."""
     caller = resolve_agent(args.agent)
     if caller != AGENT0_ID:
-        print(f"assign is restricted to {AGENT0_ID}. Current agent: {caller or '(not set)'}.")
+        print(
+            f"assign is restricted to {AGENT0_ID}. Current agent: "
+            f"{caller or '(not set)'}."
+        )
         return EXIT_DOMAIN_ERROR
 
     root = resolve_repo_root(args.root)
@@ -3690,7 +4274,10 @@ def cmd_assign(args: argparse.Namespace) -> int:
         return EXIT_DOMAIN_ERROR
 
     if domain not in domains:
-        print(f"Domain not found: {domain}. Available: {', '.join(sorted(domains.keys()))}")
+        print(
+            f"Domain not found: {domain}. Available: "
+            f"{', '.join(sorted(domains.keys()))}"
+        )
         return EXIT_DOMAIN_ERROR
 
     ts = _now_iso()
@@ -3714,13 +4301,16 @@ def cmd_assign(args: argparse.Namespace) -> int:
     history_dir = root / "ledger" / "history"
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     history_path = history_dir / f"{today}.jsonl"
-    entry = json.dumps({
-        "type": "domain_assign",
-        "agent": target,
-        "domain": domain,
-        "previous": old_domain,
-        "at": ts,
-    }, ensure_ascii=False)
+    entry = json.dumps(
+        {
+            "type": "domain_assign",
+            "agent": target,
+            "domain": domain,
+            "previous": old_domain,
+            "at": ts,
+        },
+        ensure_ascii=False,
+    )
     with open(history_path, "a", encoding="utf-8") as f:
         f.write(entry + "\n")
 
@@ -3729,7 +4319,9 @@ def cmd_assign(args: argparse.Namespace) -> int:
 
 
 def cmd_lock_acquire(args: argparse.Namespace) -> int:
-    return _run_lock_cmd(["acquire", args.slug, "--session", args.session, "--ttl", str(args.ttl)])
+    return _run_lock_cmd(
+        ["acquire", args.slug, "--session", args.session, "--ttl", str(args.ttl)]
+    )
 
 
 def cmd_lock_release(args: argparse.Namespace) -> int:

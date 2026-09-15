@@ -7,7 +7,6 @@ import pytest
 
 from scripts import post_ecosystem_digest as digest
 
-
 FIXED_NOW = datetime(2026, 4, 13, 7, 30, tzinfo=timezone.utc)
 
 
@@ -46,7 +45,10 @@ def test_build_digest_comment_contains_required_sections() -> None:
     assert "## Daily Ecosystem Digest" in body
     assert "_Generated 2026-04-13 07:30 UTC_" in body
     assert "### WEA Summary" in body
-    assert "5 active / 8 registered agents, 12 paid / 3 open tasks, 7 transactions today." in body
+    assert (
+        "5 active / 8 registered agents, 12 paid / 3 open tasks, 7 transactions today."
+        in body
+    )
     assert "### Escrow Count" in body
     assert "4 active escrows holding 55 WEA." in body
     assert "### Gauntlet Next Slots" in body
@@ -86,7 +88,9 @@ def test_main_posts_comment_successfully(
 def test_post_issue_comment_uses_gh_command(monkeypatch: pytest.MonkeyPatch) -> None:
     called: dict[str, object] = {}
 
-    def _fake_run(command: list[str], *, root: Path, input_text: str | None = None) -> str:
+    def _fake_run(
+        command: list[str], *, root: Path, input_text: str | None = None
+    ) -> str:
         called["command"] = command
         called["root"] = root
         called["input_text"] = input_text
@@ -105,7 +109,9 @@ def test_post_issue_comment_uses_gh_command(monkeypatch: pytest.MonkeyPatch) -> 
 
 def test_build_digest_comment_rejects_empty_report_text() -> None:
     with pytest.raises(digest.DigestError, match="empty"):
-        digest.build_digest_comment(sample_report(), "   ", sample_gauntlet(), now=FIXED_NOW)
+        digest.build_digest_comment(
+            sample_report(), "   ", sample_gauntlet(), now=FIXED_NOW
+        )
 
 
 def test_main_handles_wea_report_failure(
