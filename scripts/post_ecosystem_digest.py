@@ -60,18 +60,21 @@ def run_command(command: list[str], *, root: Path, input_text: str | None = None
     return result.stdout
 
 
-def run_wea_report_json(root: Path) -> dict[str, Any]:
-    stdout = run_command(
-        [sys.executable, "src/wea_cli/cli.py", "--root", str(root), "report", "--json"],
-        root=root,
-    )
+def build_legacy_report(root: Path) -> dict[str, Any]:
+    """Build the legacy Agent0 orchestrator snapshot in-process.
+
+    `wea report` now renders canonical vNext state; this digest consumes the
+    legacy orchestrator snapshot, so it builds that report directly from
+    ``report_snapshot`` instead of the CLI to avoid mixing the two schemas.
+    """
+    src_root = root / "src"
+    if str(src_root) not in sys.path:
+        sys.path.insert(0, str(src_root))
     try:
-        payload = json.loads(stdout)
-    except json.JSONDecodeError as exc:
-        raise DigestError("`wea report --json` returned invalid JSON.") from exc
-    if not isinstance(payload, dict):
-        raise DigestError("`wea report --json` did not return an object.")
-    return payload
+        from wea_cli.report_snapshot import build_report
+    except ImportError as exc:
+        raise DigestError("Unable to import `report_snapshot.build_report`.") from exc
+    return build_report(root=root, repo="WeTheAgents/wetheagents")
 
 
 def load_gauntlet_next_slots(root: Path) -> dict[str, int]:
@@ -100,7 +103,7 @@ def load_gauntlet_next_slots(root: Path) -> dict[str, int]:
 
 
 def gather_digest_inputs(root: Path) -> tuple[dict[str, Any], str, dict[str, int]]:
-    report = run_wea_report_json(root)
+    report = build_legacy_report(root)
     report_text = _render_report_text(report, root=root)
     gauntlet_slots = load_gauntlet_next_slots(root)
     return report, report_text, gauntlet_slots

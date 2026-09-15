@@ -1384,6 +1384,21 @@ def _resolve_push_branch(root: Path, branch: str | None) -> tuple[str, str]:
     return branch_name, head_sha
 
 
+_URL_CRED_RE = re.compile(r"(https?://)[^/@\s]+@")
+
+
+def _sanitize_git_output(text: str, token: str) -> str:
+    """Strip the token and any URL-embedded credentials from surfaced output.
+
+    Applied to the *whole* surfaced message (command args and stderr): a
+    configured remote URL can carry `https://user:secret@host/...`, so redacting
+    only stderr would still leak credentials through the echoed command.
+    """
+    if token and token in text:
+        text = text.replace(token, "***")
+    return _URL_CRED_RE.sub(r"\1***@", text)
+
+
 def _redact(text: str, token: str) -> str:
     """Remove a token substring from surfaced subprocess output (defense in depth)."""
     if token and token in text:
@@ -1428,26 +1443,29 @@ def _run_git_authenticated(
     except FileNotFoundError as exc:
         raise PushError("`git` CLI not found. Install Git to use `wea push`.") from exc
     except subprocess.CalledProcessError as exc:
-        stderr = _redact((exc.stderr or "").strip(), token)
-        raise PushError(
-            f"`git {' '.join(args)}` failed: {stderr or 'unknown error'}"
-        ) from exc
+        detail = (exc.stderr or "").strip() or "unknown error"
+        message = _sanitize_git_output(f"`git {' '.join(args)}` failed: {detail}", token)
+        raise PushError(message) from exc
 
 
-def _remote_push_url(root: Path, remote: str) -> str:
-    """Resolve a remote's effective *push* URL, or raise an actionable error.
+def _remote_push_urls(root: Path, remote: str) -> list[str]:
+    """Resolve every effective *push* URL for a remote, or raise actionably.
 
-    A remote can carry a separate ``pushurl``; `git push` writes there while a
-    plain `git ls-remote <remote>` would read the fetch URL. Preflight,
-    publication, and readback must all target the same push destination.
+    A remote can carry a separate ``pushurl`` (and more than one); `git push`
+    writes to all of them, while a plain `git ls-remote <remote>` reads the fetch
+    URL. Preflight, publication, and readback must target the same destinations.
     """
     try:
-        return _git_text(root, "remote", "get-url", "--push", remote).strip()
+        output = _git_text(root, "remote", "get-url", "--push", "--all", remote)
     except PushError as exc:
         raise PushError(
             f"Remote `{remote}` is not configured for this worktree. "
             f"Set a `push-origin`/authenticated remote or pass `--remote`."
         ) from exc
+    urls = [line.strip() for line in output.splitlines() if line.strip()]
+    if not urls:
+        raise PushError(f"Remote `{remote}` has no push URL configured.")
+    return urls
 
 
 def _remote_head_sha(root: Path, push_url: str, branch: str, token: str) -> str | None:
@@ -1501,19 +1519,23 @@ def _push_branch_via_git(
             "before pushing (dirty ambiguity)."
         )
 
-    # `git push <remote>` writes the remote's push URL; read that same URL for
-    # preflight and readback so a `pushurl` split cannot skip or fail wrongly.
-    push_url = _remote_push_url(root, remote)
-    remote_sha = _remote_head_sha(root, push_url, branch_name, token)
+    # `git push <remote>` writes every configured push URL; read those same URLs
+    # for preflight and readback so a `pushurl` split cannot skip or fail wrongly.
+    push_urls = _remote_push_urls(root, remote)
+    remote_shas = [_remote_head_sha(root, url, branch_name, token) for url in push_urls]
 
-    if remote_sha is not None:
-        if remote_sha == head_sha:
-            return f"{remote}/{branch_name} already up to date at {head_sha}."
-        if _git_has_object(root, remote_sha) and not _git_is_ancestor(
-            root, remote_sha, head_sha
+    if all(sha == head_sha for sha in remote_shas):
+        return f"{remote}/{branch_name} already up to date at {head_sha}."
+
+    for sha in remote_shas:
+        if (
+            sha is not None
+            and sha != head_sha
+            and _git_has_object(root, sha)
+            and not _git_is_ancestor(root, sha, head_sha)
         ):
             raise PushError(
-                f"Remote `{remote}/{branch_name}` at {remote_sha} is not an ancestor "
+                f"Remote `{remote}/{branch_name}` at {sha} is not an ancestor "
                 f"of local {head_sha}. `wea push` performs only fast-forward updates; "
                 f"fetch and reconcile before pushing."
             )
@@ -1525,14 +1547,15 @@ def _push_branch_via_git(
         token,
     )
 
-    published = _remote_head_sha(root, push_url, branch_name, token)
-    if published != head_sha:
-        raise PushError(
-            f"Post-push verification failed: {remote}/{branch_name} is at "
-            f"{published or 'missing'}, expected {head_sha}."
-        )
+    for url in push_urls:
+        published = _remote_head_sha(root, url, branch_name, token)
+        if published != head_sha:
+            raise PushError(
+                f"Post-push verification failed: {_sanitize_git_output(url, token)} "
+                f"is at {published or 'missing'}, expected {head_sha}."
+            )
 
-    verb = "Updated" if remote_sha is not None else "Created"
+    verb = "Updated" if any(sha is not None for sha in remote_shas) else "Created"
     return f"{verb} {remote}/{branch_name} at {head_sha}."
 
 

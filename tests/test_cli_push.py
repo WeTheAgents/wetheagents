@@ -197,6 +197,29 @@ def test_push_targets_push_url_when_fetch_and_push_differ(
     assert _git(work, "ls-remote", str(fetch_bare), "refs/heads/feature") == ""
 
 
+def test_push_verifies_every_push_destination(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, _fetch_bare = repo_with_remote
+    # Two push destinations; git push writes both, and both must be verified.
+    push_a = work.parent / "push_a.git"
+    push_b = work.parent / "push_b.git"
+    for bare in (push_a, push_b):
+        subprocess.run(
+            ["git", "init", "-q", "-b", "main", str(bare), "--bare"],
+            check=True,
+            capture_output=True,
+        )
+    _git(work, "remote", "set-url", "--push", "origin", str(push_a))
+    _git(work, "remote", "set-url", "--push", "--add", "origin", str(push_b))
+    _git(work, "checkout", "-qb", "feature")
+    head = _head(work)
+
+    cli._push_branch_via_git(work, "origin", "feature", "tok")
+    assert _remote_sha(push_a, "feature") == head
+    assert _remote_sha(push_b, "feature") == head
+
+
 def test_push_rejects_non_fast_forward(
     repo_with_remote: tuple[Path, Path],
 ) -> None:
@@ -249,6 +272,16 @@ def test_auth_env_never_exposes_token_on_command_line() -> None:
     assert decoded == "x-access-token:s3cr3t-token"
     assert env["GIT_TERMINAL_PROMPT"] == "0"
     assert env["GIT_CONFIG_KEY_0"] == "http.https://github.com/.extraheader"
+
+
+def test_sanitize_strips_token_and_url_credentials() -> None:
+    out = cli._sanitize_git_output(
+        "`git push https://alice:s3cr3t@github.com/x.git` failed: tok-xyz denied",
+        "tok-xyz",
+    )
+    assert "s3cr3t" not in out
+    assert "tok-xyz" not in out
+    assert "https://***@github.com/x.git" in out
 
 
 def test_redact_removes_token_from_surfaced_output() -> None:
