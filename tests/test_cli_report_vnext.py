@@ -209,3 +209,28 @@ def test_report_rejects_noncanonical_ref(monkeypatch: pytest.MonkeyPatch) -> Non
     # A bare ref defaults the canonical comparison to origin/main.
     with pytest.raises(ReportError, match="not canonical"):
         build_report(Path("."), "local-pending", None)
+
+
+def test_report_rejects_pending_tide_candidate_ref(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`--ref origin/tide/pending` must NOT be validated against itself.
+
+    The canonical head is resolved from origin/main independently, so a
+    replayable but unmerged Tide candidate is rejected, not reported as canonical.
+    """
+
+    def _fake_git(root, *args):
+        if args[0] == "fetch":
+            return ""
+        if args[0] == "rev-parse":
+            target = args[-1]
+            # canonical origin/main is a...; the pending candidate is b...
+            return ("a" * 40) if target.startswith("origin/main") else ("b" * 40)
+        if args[0] == "merge-base":
+            return "a" * 40  # base is canonical head, not the pending commit
+        return ""
+
+    monkeypatch.setattr(tide, "git", _fake_git)
+    with pytest.raises(ReportError, match="not canonical"):
+        build_report(Path("."), "origin/tide/pending", None)

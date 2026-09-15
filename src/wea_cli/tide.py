@@ -105,48 +105,42 @@ def _stage_lifecycle(plan_status: str, stage: dict[str, Any] | None) -> str:
     return "funded"
 
 
-def _split_ref(ref: str) -> tuple[str, str]:
-    """Split a remote-tracking ref like ``origin/main`` into (remote, branch).
-
-    A bare ref (no ``/``) defaults to the ``origin`` remote and ``main`` branch
-    for the canonical-freshness fetch.
-    """
-    if "/" in ref:
-        remote, branch = ref.split("/", 1)
-        if remote and branch:
-            return remote, branch
-    return "origin", "main"
+# The canonical integration anchor. Report validation always resolves this
+# independently of the requested ref, so a replayable but unmerged candidate
+# (e.g. origin/tide/pending) can never be rendered as canonical state.
+CANONICAL_REMOTE = "origin"
+CANONICAL_BRANCH = "main"
 
 
 def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
     """Fetch, verify, and replay canonical vNext/Tide state for `wea report`.
 
-    Refreshes the canonical remote branch, resolves the requested ref, and
-    rejects any ref that is not contained in the freshly fetched canonical head
-    (an arbitrary local or unmerged/pending branch is never rendered as
-    canonical). Raises ``ReportError`` on any fetch/ref/verify/replay failure;
-    there is no stale fallback to legacy files.
+    Refreshes canonical ``origin/main`` independently of the requested ref,
+    resolves the requested ref, and rejects any ref that is not contained in the
+    freshly fetched canonical head (an arbitrary local, unmerged, or pending
+    branch is never rendered as canonical). Raises ``ReportError`` on any
+    fetch/ref/verify/replay failure; there is no stale fallback to legacy files.
     """
     import subprocess
 
-    remote, branch = _split_ref(ref)
+    canonical_ref = f"{CANONICAL_REMOTE}/{CANONICAL_BRANCH}"
 
-    # 1. Refresh the canonical remote branch so origin/<branch> is current.
+    # 1. Refresh the canonical integration branch, independently of `ref`.
     try:
-        git(root, "fetch", "--quiet", remote, branch)
+        git(root, "fetch", "--quiet", CANONICAL_REMOTE, CANONICAL_BRANCH)
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
         raise ReportError(
-            f"Could not fetch canonical `{remote}/{branch}`: "
+            f"Could not fetch canonical `{canonical_ref}`: "
             f"{detail or 'unknown git error'}. "
             "Fetch origin first (network access to the canonical remote is required)."
         ) from exc
 
-    # 2. Resolve the requested ref and the freshly fetched canonical head.
+    # 2. Resolve the requested ref and the canonical head separately.
     try:
         commit = git(root, "rev-parse", "--verify", f"{ref}^{{commit}}")
         canonical_head = git(
-            root, "rev-parse", "--verify", f"{remote}/{branch}^{{commit}}"
+            root, "rev-parse", "--verify", f"{canonical_ref}^{{commit}}"
         )
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
@@ -156,23 +150,24 @@ def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
             "Fetch origin first (e.g. `git fetch origin`)."
         ) from exc
 
-    # 3. Verify the ref is canonical: equal to, or an ancestor of, the fetched
-    #    canonical head. `git merge-base A B` == A exactly when A is an ancestor
-    #    of B, so a local/unmerged/pending branch (ahead of or off main) fails.
+    # 3. Verify the ref is canonical: equal to, or an ancestor of, canonical
+    #    origin/main. `git merge-base A B` == A exactly when A is an ancestor of
+    #    B, so a pending candidate branch (a child of, or off, main) is rejected
+    #    even though it would replay — it is not merged canonical history.
     if commit != canonical_head:
         try:
             merge_base = git(root, "merge-base", commit, canonical_head)
         except subprocess.CalledProcessError as exc:
             detail = (exc.stderr or b"").decode("utf-8", "replace").strip()
             raise ReportError(
-                f"Could not verify `{ref}` against `{remote}/{branch}`: "
+                f"Could not verify `{ref}` against `{canonical_ref}`: "
                 f"{detail or 'unknown git error'}."
             ) from exc
         if merge_base != commit:
             raise ReportError(
-                f"Ref `{ref}` ({commit}) is not canonical: it is not contained in the "
-                f"fetched `{remote}/{branch}` ({canonical_head}). Report only reads "
-                "canonical merged history, not local or pending branches."
+                f"Ref `{ref}` ({commit}) is not canonical: it is not contained in "
+                f"the fetched `{canonical_ref}` ({canonical_head}). Report only reads "
+                "canonical merged history, not local, unmerged, or pending branches."
             )
 
     if not files(root, commit, BOOTSTRAP):

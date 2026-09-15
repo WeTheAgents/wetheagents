@@ -31,9 +31,13 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
+
+# Matches userinfo credentials embedded in a URL: scheme://user[:pass]@host
+_URL_CREDENTIALS_RE = re.compile(r"([a-zA-Z][\w+.-]*://)[^/@\s]+@")
 
 # Branch names that `wea push` refuses to publish. Publishing the canonical
 # integration branch needs an explicitly protected path this task does not add.
@@ -49,12 +53,19 @@ class GitPushError(Exception):
     """Raised when a bounded git push cannot complete safely."""
 
 
+def _strip_url_credentials(text: str) -> str:
+    """Redact any ``scheme://user:pass@`` credentials embedded in a URL."""
+    return _URL_CREDENTIALS_RE.sub(r"\1***@", text)
+
+
 def _redact(text: str, secrets: tuple[str, ...]) -> str:
     result = text
     for secret in secrets:
         if secret:
             result = result.replace(secret, "***")
-    return result
+    # Also strip credentials embedded in any URL (e.g. a configured pushurl),
+    # which can appear in argv-derived diagnostics, not just stderr.
+    return _strip_url_credentials(result)
 
 
 def _run_git(
@@ -91,10 +102,12 @@ def _run_git(
             "`git` CLI not found. Install Git to use `wea push`."
         ) from exc
     if check and completed.returncode != 0:
-        stderr = _redact((completed.stderr or "").strip(), secrets)
-        # Report only the subcommand (args), never -c config or env auth.
-        safe_args = " ".join(args)
-        raise GitPushError(f"`git {safe_args}` failed: {stderr or 'unknown error'}")
+        stderr = (completed.stderr or "").strip()
+        # Report only the subcommand (args), never -c config or env auth. Redact
+        # the complete diagnostic (args may carry a credential-bearing push URL),
+        # not just stderr.
+        message = f"`git {' '.join(args)}` failed: {stderr or 'unknown error'}"
+        raise GitPushError(_redact(message, secrets))
     return completed
 
 

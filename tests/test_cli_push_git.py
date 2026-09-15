@@ -80,6 +80,24 @@ def test_basic_header_encodes_token() -> None:
     assert base64.b64decode(encoded).decode() == "x-access-token:s3cr3t"
 
 
+def test_strip_url_credentials() -> None:
+    assert (
+        push_git._strip_url_credentials("https://user:secretpass@host/x.git")
+        == "https://***@host/x.git"
+    )
+    assert (
+        push_git._strip_url_credentials("ls-remote https://x-access-token:tok@h/r a")
+        == "ls-remote https://***@h/r a"
+    )
+
+
+def test_redact_strips_embedded_url_credentials() -> None:
+    msg = "`git push https://user:pw@example.com/x.git` failed: boom"
+    out = push_git._redact(msg, ())
+    assert "user:pw" not in out
+    assert "***@example.com" in out
+
+
 def test_auth_env_scopes_header_to_url_without_argv() -> None:
     header = push_git._basic_header("s3cr3t")
     env = push_git._auth_env("https://example.com/x.git", header)
@@ -208,6 +226,28 @@ def test_transport_failure_is_reported_and_redacted(
     with pytest.raises(GitPushError) as excinfo:
         push_git.push_branch(work, token=token, branch="feature/x", remote="broken")
     assert token not in str(excinfo.value)
+
+
+def test_push_error_does_not_leak_credential_bearing_url(
+    repos: tuple[Path, Path],
+) -> None:
+    work, _ = repos
+    # A pushurl carrying embedded credentials to an unreachable host.
+    _git(work, "remote", "add", "creds", "https://fetch.invalid/x.git")
+    _git(
+        work,
+        "remote",
+        "set-url",
+        "--push",
+        "creds",
+        "https://user:secretpass@nonexistent.invalid/x.git",
+    )
+    _git(work, "checkout", "-b", "feature/x")
+    with pytest.raises(GitPushError) as excinfo:
+        push_git.push_branch(work, token="tok", branch="feature/x", remote="creds")
+    message = str(excinfo.value)
+    assert "secretpass" not in message
+    assert "user:secretpass" not in message
 
 
 def test_result_and_render_never_leak_token(repos: tuple[Path, Path]) -> None:
