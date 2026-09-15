@@ -67,6 +67,30 @@ def test_push_add_change_delete_exact_sha_and_idempotence(repository):
     assert "delta.txt" not in git(remote, "ls-tree", "-r", "--name-only", head)
 
 
+@pytest.mark.parametrize("branch_name", ["feature", "heads/feature"])
+@pytest.mark.parametrize("explicit", [False, True])
+def test_push_branch_tag_collision_preserves_exact_target(
+    repository, branch_name, explicit
+):
+    root, remote = repository
+    git(root, "branch", "-m", branch_name)
+    git(root, "tag", branch_name)
+    head = commit(root, "branch advances past colliding tag")
+    result = git_transport.push_branch(root, branch_name if explicit else None)
+    assert result == {"remote": "push-origin", "branch": branch_name, "head": head}
+    assert git(remote, "show-ref") == f"{head} refs/heads/{branch_name}"
+
+
+@pytest.mark.parametrize("explicit", [False, True])
+def test_push_protected_branch_tag_collision_is_rejected(repository, explicit):
+    root, remote = repository
+    git(root, "branch", "-m", "main")
+    git(root, "tag", "main")
+    with pytest.raises(git_transport.GitTransportError, match="Protected branch"):
+        git_transport.push_branch(root, "main" if explicit else None)
+    assert git(remote, "for-each-ref") == ""
+
+
 @pytest.mark.parametrize(
     "case",
     ["main", "detached", "dirty", "mismatch", "divergent", "mirror", "multi-url"],

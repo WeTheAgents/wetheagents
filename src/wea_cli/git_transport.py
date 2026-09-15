@@ -74,14 +74,18 @@ def fetch_canonical(root: Path, ref: str) -> str:
 
 
 def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
-    current = run(
+    target = run(
         root,
         "symbolic-ref",
         "--quiet",
-        "--short",
         "HEAD",
         operation="Current branch lookup (detached HEAD is unsupported)",
     )
+    if not target.startswith("refs/heads/"):
+        raise GitTransportError(
+            "HEAD must reference a local branch before publication."
+        )
+    current = target.removeprefix("refs/heads/")
     if current in {"main", "master"}:
         raise GitTransportError(
             "Protected branch publication is not supported by wea push."
@@ -129,7 +133,6 @@ def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
             "Mirror push-origin is unsupported; configure a normal remote."
         )
     head = run(root, "rev-parse", "--verify", "HEAD^{commit}")
-    target = f"refs/heads/{current}"
     run(
         root,
         "push",
