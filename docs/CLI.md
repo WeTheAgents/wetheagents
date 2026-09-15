@@ -23,7 +23,7 @@ An older executable cannot warn about a command added after its installation.
 Run the source preflight below after updating the checkout. It compares both the
 invoked source and the `wea` executable found on PATH against this checkout.
 Exit zero means both match; a nonzero result includes the refresh command.
-It removes `PYTHONPATH` and uses a temporary working directory when probing the
+It removes `PYTHONPATH` and uses the executable's installation directory when probing the
 installed executable, so a source invocation does not mask an old installation.
 
 PowerShell, from the intended checkout:
@@ -75,6 +75,8 @@ and runtime-derived next actions for the selected agent. `--json` returns schema
 settlements. Legacy data is explicitly labelled as retained history and is not
 added to current totals. The report describes the latest canonical Tide cutoff;
 it does not predict uncaptured declarations or advance clocks locally.
+The legacy ecosystem digest rejects this versioned report before publication;
+it cannot substitute missing legacy metrics with zero values.
 
 #### `wea push [BRANCH]`
 

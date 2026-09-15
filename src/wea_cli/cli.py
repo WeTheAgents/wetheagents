@@ -709,9 +709,15 @@ def cmd_report(args: argparse.Namespace) -> int:
 
 
 def cmd_freshness(args: argparse.Namespace) -> int:
-    from wea_cli.freshness import check
+    from wea_cli.freshness import check, version_info
+    from wea_cli.tide import runtime_contract_files
 
-    result = check(resolve_repo_root(args.root))
+    root = resolve_repo_root(args.root)
+    result = check(
+        root,
+        version_info(runtime_contract_files(Path(__file__).parent)),
+        runtime_contract_files(root / "src/wea_cli"),
+    )
     print(json.dumps(result, indent=2))
     return EXIT_OK if result["status"] == "current" else EXIT_RUNTIME_ERROR
 
@@ -1523,9 +1529,8 @@ def _github_api(
         },
     )
     try:
-        with urllib.request.urlopen(
-            request
-        ) as response:  # nosemgrep: dynamic-urllib-use-detected
+        # nosemgrep: dynamic-urllib-use-detected
+        with urllib.request.urlopen(request) as response:
             body = response.read()
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -4726,8 +4731,9 @@ def main() -> int:
     args = parser.parse_args()
     if args.version:
         from wea_cli.freshness import version_info
+        from wea_cli.tide import runtime_contract_files
 
-        print(json.dumps(version_info()))
+        print(json.dumps(version_info(runtime_contract_files(Path(__file__).parent))))
         return EXIT_OK
     if not args.command:
         parser.print_help()

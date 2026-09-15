@@ -266,8 +266,9 @@ def test_freshness_detects_old_missing_and_current_install(
     package = tmp_path / "src/wea_cli"
     package.mkdir(parents=True)
     (package / "cli.py").write_text("contract")
-    contract = freshness.fingerprint(package)
-    monkeypatch.setattr(freshness, "version_info", lambda: {"fingerprint": contract})
+    contract = freshness.fingerprint(
+        package, canonical_report.runtime_contract_files(package)
+    )
     monkeypatch.setattr(
         freshness.shutil, "which", lambda name: "wea" if installed else None
     )
@@ -283,12 +284,20 @@ def test_freshness_detects_old_missing_and_current_install(
         )
 
     monkeypatch.setattr(subprocess, "run", probe)
-    report = freshness.check(tmp_path)
+    report = freshness.check(
+        tmp_path,
+        {"fingerprint": contract},
+        canonical_report.runtime_contract_files(package),
+    )
     assert report["invoked_matches_checkout"]
     assert report["installed_matches_checkout"] == (installed == "current")
     assert "pip install --editable" in report["refresh"]
     (package / "cli.py").write_text("changed contract")
-    assert not freshness.check(tmp_path)["invoked_matches_checkout"]
+    assert not freshness.check(
+        tmp_path,
+        {"fingerprint": contract},
+        canonical_report.runtime_contract_files(package),
+    )["invoked_matches_checkout"]
 
 
 def test_freshness_includes_shipped_runtime_and_manifest(tmp_path):
@@ -299,9 +308,16 @@ def test_freshness_includes_shipped_runtime_and_manifest(tmp_path):
     runtime.mkdir()
     source = runtime / "engine.py"
     source.write_text("old runtime")
-    initial = freshness.fingerprint(package)
+    initial = freshness.fingerprint(
+        package, canonical_report.runtime_contract_files(package)
+    )
     source.write_text("new runtime")
-    changed = freshness.fingerprint(package)
+    changed = freshness.fingerprint(
+        package, canonical_report.runtime_contract_files(package)
+    )
     assert changed != initial
     (runtime / "manifest.json").write_text('{"version": "new"}')
-    assert freshness.fingerprint(package) != changed
+    assert (
+        freshness.fingerprint(package, canonical_report.runtime_contract_files(package))
+        != changed
+    )

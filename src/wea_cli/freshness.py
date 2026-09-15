@@ -7,24 +7,22 @@ import json
 import os
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
 from typing import Any
 
 from . import __version__
-from .tide import runtime_contract_files
 
 REFRESH = "From this checkout run: python -m pip install --editable ."
 
 
-def fingerprint(package: Path) -> str:
+def fingerprint(package: Path, runtime_files: list[Path]) -> str:
     digest = hashlib.sha256()
     paths = sorted(package.glob("*.py"))
     if not paths:
         raise ValueError(
             "Checkout CLI source is missing. Select the repository with --root."
         )
-    paths += runtime_contract_files(package)
+    paths += runtime_files
     for path in paths:
         digest.update(path.relative_to(package.parent).as_posix().encode())
         digest.update(b"\0")
@@ -32,35 +30,35 @@ def fingerprint(package: Path) -> str:
     return digest.hexdigest()
 
 
-def version_info() -> dict[str, str]:
+def version_info(runtime_files: list[Path]) -> dict[str, str]:
     return {
         "schema": "wea-cli-version-1",
         "version": __version__,
-        "fingerprint": fingerprint(Path(__file__).parent),
+        "fingerprint": fingerprint(Path(__file__).parent, runtime_files),
     }
 
 
-def check(root: Path) -> dict[str, Any]:
-    expected = fingerprint(root / "src/wea_cli")
-    invoked = version_info()
+def check(
+    root: Path, invoked: dict[str, str], runtime_files: list[Path]
+) -> dict[str, Any]:
+    expected = fingerprint(root / "src/wea_cli", runtime_files)
     installed: dict[str, Any] | None = None
     executable = shutil.which("wea")
     if executable:
         env = dict(os.environ)
         env.pop("PYTHONPATH", None)
         try:
-            with tempfile.TemporaryDirectory(prefix="wea-freshness-") as directory:
-                result = subprocess.run(
-                    [executable, "--version"],
-                    cwd=directory,
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                    timeout=30,
-                    check=False,
-                )
+            result = subprocess.run(
+                [executable, "--version"],
+                cwd=Path(executable).resolve().parent,
+                env=env,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=30,
+                check=False,
+            )
             if result.returncode == 0:
                 value = json.loads(result.stdout)
                 if (
