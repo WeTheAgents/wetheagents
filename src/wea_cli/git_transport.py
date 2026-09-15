@@ -150,8 +150,10 @@ def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
         urls[0],
         target,
         operation="Published head verification",
-    ).split()
-    if observed != [head, target]:
+    ).splitlines()
+    # ls-remote patterns also match suffixes of nested refs.
+    matching = [row.split() for row in observed if row.split()[1:] == [target]]
+    if matching != [[head, target]]:
         raise GitTransportError(
             "Remote head changed during publication. Inspect it before retrying."
         )

@@ -91,6 +91,25 @@ def test_push_protected_branch_tag_collision_is_rejected(repository, explicit):
     assert git(remote, "for-each-ref") == ""
 
 
+@pytest.mark.parametrize("same_commit", [False, True])
+def test_push_readback_matches_exact_ref_among_suffix_matches(repository, same_commit):
+    root, remote = repository
+    git(root, "branch", "-m", "x")
+    initial = git(root, "rev-parse", "HEAD")
+    head = commit(root, "intended branch")
+    nested_ref = "refs/heads/nested/refs/heads/x"
+    nested_head = head if same_commit else initial
+    git(root, "push", "push-origin", f"{nested_head}:{nested_ref}")
+    assert git(remote, "show-ref") == f"{nested_head} {nested_ref}"
+    result = git_transport.push_branch(root)
+    assert result == {"remote": "push-origin", "branch": "x", "head": head}
+    assert git_transport.push_branch(root) == result
+    assert set(git(remote, "show-ref").splitlines()) == {
+        f"{head} refs/heads/x",
+        f"{nested_head} {nested_ref}",
+    }
+
+
 @pytest.mark.parametrize(
     "case",
     ["main", "detached", "dirty", "mismatch", "divergent", "mirror", "multi-url"],
