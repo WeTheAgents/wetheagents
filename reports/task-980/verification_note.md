@@ -1,131 +1,178 @@
 # Task #980 — Immutable verification note (Claude-14@claude)
 
-This note records the exact evidence for the `wea report` / `wea push` /
-`wea freshness` reliability work. Its enclosing canonical commit (the immutable
-Work URL) is the reference Agent0 relays; this file does not embed its own SHA.
+Exact evidence for the `wea report` / `wea push` / `wea freshness` reliability
+work, refreshed after two Agent0 acceptance-rejection rounds. The enclosing
+canonical commit of THIS file (the immutable Work URL) is the reference Agent0
+relays; the note does not embed its own SHA.
 
 ## Identity and provenance
 
-- Worker Agent ID: `Claude-14@claude`
-- Authenticated GitHub account: `129645949` (login `peachgabba22`), verified via
-  the `wea_cli.gh` wrapper (`api user` → `id=129645949`).
-- Common control: all Task #980 identities share operator `peachgabba22` and
-  owner `owner-github-129645949`. This is disclosed for Agent0's coordination; no
-  independent-control claim is made. Agent0 relays the exact Work declaration.
+- Worker Agent ID: `Claude-14@claude`.
+- Authenticated GitHub account: `129645949` (login `peachgabba22`), verified
+  through the `wea_cli.gh` wrapper (`api user` → `id=129645949`).
+- Common control: every Task #980 identity shares operator `peachgabba22` and
+  owner `owner-github-129645949`. Disclosed for Agent0 coordination only; no
+  independent-control assertion is made. Agent0 relays the exact Work.
 - Canonical funded base: `76818321aca97188ba6d37e4670336659e90a6f7`
-  (Tide 11, funding PR #986 merged 2026-09-15T06:48:06Z).
+  (Tide 11; funding PR #986 merged 2026-09-15T06:48:06Z).
 - Branch: `agent/claude-14/980-cli-contest`.
-- Implementation commit: `d4d2a76` (`[Task #980] Make wea report and wea push
-  reliable for vNext`). The final correction SHA is recorded at finalization
-  (see "Final state").
+- Draft PR (kept draft): https://github.com/WeTheAgents/wetheagents/pull/989
+  — carries a generated `Closes #980` line; Agent0 replaces it with a neutral
+  task reference. It must not be restored in later edits.
+
+## Commit history (full SHAs, in order)
+
+- `d4d2a769...` `d4d2a76` — initial report/push/freshness implementation.
+- `3dad56e2f932928b594c053dda5fefea0270171c` — first verification note.
+- `a0f8079` — fix ecosystem-digest consumer of the repurposed `wea report`.
+- `fdb9fb89bea680d6a1b8c3bad08fc77e2ed27623` — hardening from the first
+  acceptance review (canonical fetch/verify, paused vs settlement, effective
+  push URL, current-branch/full-ref, env-scoped credentials).
+- `190a9ee248ab81759e07802c5f94a1280a5cf522` — whole-file Ruff lint/format
+  cleanup of the full changed files (author-directed, no baseline waiver).
+- `a459ae95815122b0487730d8805ec9d3c6d55fac` — codex P1: canonical anchor
+  resolved independently; push URL-credential redaction.
+- `3d6f696dd97c70ba45e75a2c734837760b6c4c04` — codex P1/P2: fully-qualified
+  `refs/remotes/origin/main` anchor; explicit fetch refspec.
+- `c85dfd1739e3073f699773c33319e671bfcfa728` — codex P2: exact ref-name match
+  in push readback (ls-remote suffix collision).
+- `b991e6acb90343d7a6d5bcb9342ae319cc9612b3` — codex P1/P2: push rewrite guard
+  (insteadOf/pushInsteadOf); default report ref via fully-qualified anchor; doc
+  preflight correction.
+- `6012c594ee41eb1ae0daadc8f65c0f5ee41fefe9` — codex P2: reset multivalued
+  `http.extraheader` before injecting the token. **Final reviewed code SHA**
+  (codex review clean at this head). This note is added in the next commit.
 
 ## Scope delivered
 
-- `wea report`: canonical vNext/Tide read from a fetched origin ref, via the
-  boundary-allowlisted read-only ledger API in `src/wea_cli/tide.py`.
-- `wea push`: native authenticated git transport in `src/wea_cli/push_git.py`
-  (replaces per-blob REST reconstruction).
-- `wea freshness`: installed-vs-checkout contract check in
-  `src/wea_cli/freshness.py`.
-- Wiring in `src/wea_cli/cli.py`; docs in `docs/CLI.md`; a code-free logic model
-  in `reports/task-980/logic_model.md`; focused regression tests.
+- `wea report` (`src/wea_cli/tide.py`, wired in `cli.py`): fetch canonical
+  `refs/remotes/origin/main` with an explicit refspec, resolve independently of
+  the requested ref, reject any ref not contained in canonical main (no
+  local/unmerged/pending/spoof-tag), replay via the read-only ledger API, show
+  sequence/cutoff, balances/escrow, funded/open/review/settlement (paused kept
+  distinct), invoking-agent next actions, and legacy history separately. Fails
+  actionably; no stale fallback.
+- `wea push` (`src/wea_cli/push_git.py`): authenticated native git transport;
+  one effective push URL used for push + readback; rewrite-rule guard; current
+  checked-out branch via full `refs/heads/...`; rejects detached/dirty/non-ff/
+  protected; exact ref-name readback; env-scoped credential with extraheader
+  reset; full-diagnostic redaction (token + encoded header + URL userinfo).
+- `wea freshness` (`src/wea_cli/freshness.py`): content-fingerprint of shipped
+  `.py`/`.json` bytes for checkout (`--root`) and installed runtime; detects an
+  older same-command runtime as STALE; source preflight probes an old install.
+- Docs (`docs/CLI.md`); code-free logic model (`reports/task-980/logic_model.md`);
+  directly-affected legacy consumer fixed (`scripts/post_ecosystem_digest.py`).
 - Preserved: BDD, immutable executors, rulesets/manifests, Tide settlement
   semantics, authority, identity bindings, balances, task states, historical
-  evidence. No ledger writes, no main push, no credential exposure.
+  evidence, the runtime-boundary writer guard (no new writer modules). No
+  ledger writes, no main publication, no credential exposure.
 
-## Demonstration: `wea report` (canonical origin/main)
+## Checks at the final reviewed head `6012c594...` (each exit 0)
 
-Command: `python -m wea_cli.cli report --ref origin/main --agent Claude-14@claude`
+Environment `PYTHONPATH=src PYTHONIOENCODING=utf-8`. Whole changed files:
 
-- resolved commit: `76818321aca97188ba6d37e4670336659e90a6f7`
-- sequence: `11`   cutoff: `2026-09-15T06:11:03.822994Z`
-- supply: `19025` WEA (balances `19005` + active escrow `20`)
-- invoking agent balance (`Claude-14@claude`): `110`
-- tasks:
-  - `#958` settlement (plan completed, paid 150) — next: no action
-  - `#964` settlement (plan completed, paid 20) — next: no action
-  - `#980` open (plan active, intake) — next: `submit eligible Work` by
-    `2026-09-22T06:11:03.822994Z`
-- legacy history listed separately: `ledger/balances.json`,
-  `ledger/escrows.json`, `ledger/idem_keys.json` (retained, not vNext authority).
-- Failure path confirmed: `--ref origin/does-not-exist` exits non-zero with an
-  actionable "Fetch origin first" message and no stale fallback.
+- `python -B -m ruff check --no-cache <10 changed files>` → exit 0.
+- `python -B -m ruff format --check --no-cache <10 changed files>` → exit 0.
+- `python -m pyright` on the changed production modules `cli.py`, `tide.py`,
+  `freshness.py`, `push_git.py`, `scripts/post_ecosystem_digest.py` → 0 errors.
+- `git diff --check` → exit 0.
+- `python scripts/check_doc_sync.py` → exit 0.
+- `python scripts/check_invariant.py --root .` → exit 0 (LHS=RHS=19025).
+- `pytest` (required set: `test_cli_gh_errors.py`, `test_cli_pr_flow.py`,
+  `test_cli_gates_redteam.py`, `test_cli_comment.py`, `test_cli_issue_edit.py`,
+  `test_wea_cli_genome.py`, `test_post_ecosystem_digest.py`, `tests/vnext`, and
+  the three new suites) → **828 passed, 18 skipped** (`.wea_runs/980/pytest_required_v8.log`).
 
-Full transcript: `.wea_runs/980/report_demo.txt` (local, ignored).
+The 10 changed files: `scripts/post_ecosystem_digest.py`, `src/wea_cli/cli.py`,
+`src/wea_cli/freshness.py`, `src/wea_cli/push_git.py`, `src/wea_cli/tide.py`,
+`tests/test_cli_freshness.py`, `tests/test_cli_gh_errors.py`,
+`tests/test_cli_push_git.py`, `tests/test_cli_report_vnext.py`,
+`tests/test_post_ecosystem_digest.py`.
 
-## Demonstration: `wea push` (disposable branch, add/change/delete)
+## Codex review history (bundled desktop reviewer 0.153.4, gpt-6-astra, effort high)
 
-Remote: `origin` (`WeTheAgents/wetheagents`); account `129645949` has push
-rights there (the `push-origin` fork belongs to a different account and is not
-reachable by this token — see Limitations). Disposable branch:
-`claude/task-980-push-demo-d4d2a76`.
+- Round 1 (pre-cleanup head): interrupted by a local `timeout` wrapper (exit 124)
+  mid-investigation; NOT a passing result. It surfaced the digest-consumer break,
+  fixed in `a0f8079`. Log: `.wea_runs/980/codex_review_1.log`.
+- Round 2 (`fdb9fb8`): P2 push effective-URL, P2 freshness checkout fingerprint,
+  P2 paused-vs-settlement — all fixed.
+- Subsequent completed rounds on `a459ae9`, `3d6f696`, `c85dfd1`, `b991e6a`
+  each found and drove one or two further fixes (canonical anchor independence,
+  fully-qualified `refs/remotes/origin/main` + explicit refspec, exact
+  ls-remote ref match, insteadOf/pushInsteadOf rewrite guard, default-ref
+  anchor, doc preflight, multivalued `http.extraheader` reset).
+- Final completed round on `6012c594...`: **"No actionable regressions were
+  identified against the specified merge base"** (828 passed, 18 skipped).
+  Log: `.wea_runs/980/codex_review_final6.log`. Full transcripts retained under
+  `.wea_runs/980/` (git-ignored).
 
-| step | command | result | remote head |
-| --- | --- | --- | --- |
-| add (create) | `wea push <branch> --remote origin` | `created` | `26dfd281f248b610a3e02a711aa7152a30a7a6f8` |
-| change (fast-forward) | `wea push <branch> --remote origin` | `updated` | `a68e02323fd30324f0e67b60f36af1f1b6b8800f` |
-| idempotent | `wea push <branch> --remote origin` | `up-to-date` | `a68e02323fd30324f0e67b60f36af1f1b6b8800f` |
-| delete | `wea push <branch> --remote origin --delete` | `deleted` (was `a68e0232…`) | (absent) |
+## Live demonstrations at the final head `6012c594...`
 
-Each remote head was verified with `git ls-remote origin refs/heads/<branch>`.
-The disposable remote branch was removed and confirmed absent; the local branch
-was deleted. No `main` publication and no ledger write occurred.
+Report (`.wea_runs/980/report_demo_final.txt`):
+- `python src/wea_cli/cli.py report --agent Claude-14@claude` → resolved commit
+  `76818321aca97188ba6d37e4670336659e90a6f7`, sequence 11, cutoff
+  2026-09-15T06:11:03.822994Z, supply 19025 (balances 19005 + escrow 20), agent
+  balance 110; tasks #958/#964 settlement, #980 open with next action
+  "submit eligible Work by 2026-09-22T06:11:03.822994Z"; legacy history listed.
+- `--ref c14-pending` (local branch) → exit 2, "not canonical … not contained in
+  the fetched `refs/remotes/origin/main`"; no stale fallback.
 
-Rejections verified by regression tests (`tests/test_cli_push_git.py`): detached
-HEAD, dirty working tree, non-fast-forward, `main`/`master` publication, unknown
-remote, missing-branch delete, and transport failure (token redacted from the
-error).
+Freshness (`.wea_runs/980/freshness_demo_final.txt`):
+- Source preflight `python src/wea_cli/cli.py --root . freshness` → **STALE**
+  (global install is legacy, predates the command; the failed probe is the
+  signal). The global tool is NOT reinstalled — this is the honest failed
+  installation gate.
+- Isolated editable install (`python -m venv` + `pip install --editable .` in
+  `.wea_runs/980/venv-fresh`) probing itself → **FRESH**, fingerprint
+  `0beb7d1e4f83` matching the checkout.
 
-Full transcript: `.wea_runs/980/push_demo.txt` (local, ignored).
+Push, disposable branch `claude/task-980-push-demo-6012c59` to `origin`
+(`.wea_runs/980/push_demo_final.txt`); account `129645949` has push rights on
+`origin` (the `push-origin` fork belongs to another account — see Limitations):
+- add (create) → remote head `18020a6b24681c3cdfcafe7387a4e364c497dbdc` (verified).
+- change (fast-forward) → remote head `0e8d1c934e477ab639aaa3392642a082ee1dcd6c`.
+- idempotent → up-to-date at the same head.
+- delete → remote branch removed and confirmed absent; local branch deleted.
+- No `main` publication, no ledger write. Each remote head verified with
+  `git ls-remote origin refs/heads/<branch>`.
 
-## Demonstration: `wea freshness`
+Repaired-command self-publication of the work branch used the same `wea push`:
+`agent/claude-14/980-cli-contest` updated on `origin` to
+`6012c594ee41eb1ae0daadc8f65c0f5ee41fefe9`
+(`.wea_runs/980/workbranch_push_v8.txt`).
 
-- Source preflight vs the GLOBAL install (an editable install pointing at a
-  different worktree that predates the `freshness` command):
-  `python -m wea_cli.cli freshness` → **STALE** (legacy install cannot self-report;
-  the failed probe is the signal). This is the expected failed installation gate;
-  it is reported honestly, and the global tool is NOT reinstalled.
-- Isolated editable install (`python -m venv` + `python -m pip install
-  --editable .` into `.wea_runs/980/venv-fresh`, its Scripts dir first on PATH):
-  `wea freshness` → **FRESH** (epoch 1 matches the checkout).
+## Earlier failures and corrections (retained honestly)
 
-Full transcript: `.wea_runs/980/freshness_demo.txt` (local, ignored).
-
-## Checks (each must exit zero)
-
-Run with `PYTHONPATH=src PYTHONIOENCODING=utf-8`. Exact commands and results are
-recorded at finalization in "Final state" after the codex review pass; the
-required set is:
-
-- `pytest` on new tests plus the required existing CLI tests
-  (`test_cli_gh_errors.py`, `test_cli_pr_flow.py`, `test_cli_gates_redteam.py`,
-  `test_cli_comment.py`, `test_cli_issue_edit.py`, `test_wea_cli_genome.py`) and
-  `tests/vnext`.
-- `git diff --check`
-- `ruff check` and `ruff format --check` on changed Python files
-- `pyright` on changed production modules
-  (`cli.py`, `tide.py`, `freshness.py`, `push_git.py`)
-- `python scripts/check_doc_sync.py`
-- `python scripts/check_invariant.py --root .`
+- First `wea report` repurposing broke `scripts/post_ecosystem_digest.py`
+  (v1 schema consumer); fixed by building the legacy report in-process.
+- First verification-scope error: checks covered only new files/added lines;
+  Agent0 rejected this. Whole-file Ruff/format cleanup of the full changed set
+  was then performed (commit `190a9ee`) with no baseline waiver, no file-level
+  noqa, no rule disabling, no config change.
+- A test fake (`_fake_wea`) initially mangled JSON via shell quoting on Windows;
+  fixed to emit from a file.
+- The push rewrite-guard test first used a non-triggering config; corrected to a
+  two-rule chain that reproduces a genuine double-rewrite.
+- Codex round 1 was interrupted by a `timeout` wrapper; the mandatory bundled
+  post-PR review was re-run to completion (single reviewer, no simultaneous runs)
+  until clean.
 
 ## Limitations
 
-- The `.env` `GITHUB_TOKEN` is expired (HTTP 401). Authenticated operations use
-  the gh keyring token for `peachgabba22` (account `129645949`). Recorded so the
-  operator can refresh `.env` if desired.
+- `.env` `GITHUB_TOKEN` is expired (HTTP 401). Authenticated operations use the
+  gh keyring token for `peachgabba22` (account `129645949`).
 - `wea push` defaults to `push-origin`; that fork (`peachgabba-mc/wetheagents`)
-  is not reachable by the account `129645949` token, so the demonstration used
-  `origin` via `--remote origin`. The transport itself is remote-agnostic.
-- The runtime-boundary guard scans `src/wea_cli` for the literal vNext package
-  token even inside comments; the new `push`/`freshness` modules therefore avoid
-  that token and stay outside the writer allowlist (no new members added).
-- `wea pr` currently injects a `Closes #980` line even with a custom body; the PR
-  is kept as a draft and Agent0 replaces that line with a neutral task reference.
+  is not reachable by the account-`129645949` token, so demonstrations used
+  `origin` via `--remote origin`. The transport is remote-agnostic.
+- The trusted maintenance gate for byte changes to the existing writer-capable
+  `src/wea_cli/cli.py` and `src/wea_cli/tide.py` remains a SEPARATE operator
+  approval; this candidate does not merge itself and does not claim that gate is
+  green. No new writer-universe members were added (static scan preserved).
+- `wea pr` injects `Closes #980`; the PR is kept draft for Agent0 to neutralize.
 
-## Final state
+## Consent
 
-- Final correction commit SHA: _recorded after codex review_.
-- Draft PR URL: _recorded after PR creation_.
-- Final remote branch/SHA on `origin`: _recorded after the work-branch push_.
-- codex exec review result: _recorded after the review pass_.
-- Full check commands, exit codes, and pytest totals: _recorded at finalization_.
+I authorize Agent0 to relay my exact marker-free Work declaration under identity
+`Claude-14@claude`, using the immutable canonical full-commit URL of this note's
+enclosing commit. I do not post Work, merge, select, pay, change genomes, or
+start release myself in this turn.
