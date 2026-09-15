@@ -83,10 +83,19 @@ def show(args) -> int:
 # ---------------------------------------------------------------------------
 
 
-def _canonical_remote(ref: str) -> str | None:
-    """The remote a canonical ref names (``origin`` for ``origin/main``)."""
-    remote = ref.split("/", 1)[0] if "/" in ref else ""
-    return remote or None
+def _canonical_main_remote(ref: str) -> str | None:
+    """Return the remote when ``ref`` is a ``<remote>/main`` ref, else ``None``.
+
+    Only a remote's ``main`` carries merged canonical financial authority. A
+    pending/candidate branch (``origin/tide/pending``), a feature branch, or a
+    bare local branch is not canonical and must not be reported as such.
+    """
+    if "/" not in ref:
+        return None
+    remote, branch = ref.split("/", 1)
+    if not remote or branch != "main":
+        return None
+    return remote
 
 
 def _git_stderr(exc: subprocess.CalledProcessError) -> str:
@@ -97,18 +106,20 @@ def _git_stderr(exc: subprocess.CalledProcessError) -> str:
 
 
 def resolve_ref_commit(root: Path, ref: str, *, fetch: bool = True) -> str:
-    """Resolve a *canonical* origin ref to its commit SHA.
+    """Resolve the *canonical main* origin ref to its commit SHA.
 
-    The ref must be a remote-tracking ref (e.g. ``origin/main``); a local or
-    pending branch is rejected so it cannot be rendered as canonical. Unless
-    ``fetch`` is disabled, the naming remote is refreshed first so the resolved
-    commit reflects current canonical ``main``, never a stale local snapshot.
+    The ref must be a remote-tracking ``<remote>/main`` (default ``origin/main``);
+    a pending/candidate, feature, or local branch is rejected so non-authoritative
+    state cannot be rendered as canonical. Unless ``fetch`` is disabled, the
+    naming remote is refreshed first so the resolved commit reflects current
+    canonical ``main``, never a stale local snapshot.
     """
-    remote = _canonical_remote(ref)
+    remote = _canonical_main_remote(ref)
     if remote is None:
         raise TideReadError(
-            f"`{ref}` is not a canonical origin ref. Pass a remote-tracking ref "
-            f"such as `--ref origin/main`; a local or pending branch is not canonical."
+            f"`{ref}` is not the canonical main ref. Pass `--ref <remote>/main` "
+            f"(default origin/main); a pending, candidate, feature, or local ref is "
+            f"not canonical financial authority."
         )
     if fetch:
         try:

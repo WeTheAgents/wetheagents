@@ -61,14 +61,24 @@ def test_resolve_ref_commit_returns_full_sha_for_canonical_ref(git_repo: Path) -
 def test_resolve_ref_commit_rejects_noncanonical_local_ref(git_repo: Path) -> None:
     with pytest.raises(tide.TideReadError) as excinfo:
         tide.resolve_ref_commit(git_repo, "main", fetch=False)
-    assert "not a canonical origin ref" in str(excinfo.value)
+    assert "not the canonical main ref" in str(excinfo.value)
+
+
+def test_resolve_ref_commit_rejects_pending_candidate_ref(git_repo: Path) -> None:
+    # A Tide candidate branch is replayable but not merged canonical authority.
+    _git(git_repo, "update-ref", "refs/remotes/origin/tide/pending", "HEAD")
+    with pytest.raises(tide.TideReadError) as excinfo:
+        tide.resolve_ref_commit(git_repo, "origin/tide/pending", fetch=False)
+    assert "not the canonical main ref" in str(excinfo.value)
 
 
 def test_resolve_ref_commit_fails_actionably_for_missing_ref(git_repo: Path) -> None:
+    # Canonical-shaped (<remote>/main) but the remote-tracking ref is not fetched.
+    _git(git_repo, "remote", "add", "upstream", str(git_repo.parent / "origin.git"))
     with pytest.raises(tide.TideReadError) as excinfo:
-        tide.resolve_ref_commit(git_repo, "origin/does-not-exist", fetch=False)
+        tide.resolve_ref_commit(git_repo, "upstream/main", fetch=False)
     message = str(excinfo.value)
-    assert "origin/does-not-exist" in message
+    assert "upstream/main" in message
     assert "stale" in message.lower()
 
 
