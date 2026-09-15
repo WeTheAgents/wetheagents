@@ -345,6 +345,25 @@ def test_effective_push_url_prefers_pushurl(tmp_path: Path) -> None:
     assert _remote_sha(fetch_remote, "feature/z") is None
 
 
+def test_remote_sha_requires_exact_ref_match(repos: tuple[Path, Path]) -> None:
+    """`ls-remote` suffix matching must not report a sibling branch as the target."""
+    work, remote = repos
+    # Publish a colliding branch whose ref name ends with `feature/x`.
+    _git(work, "checkout", "-b", "sub/feature/x")
+    push_git.push_branch(work, token="", branch="sub/feature/x")
+    assert _remote_sha(remote, "sub/feature/x") is not None
+
+    # A brand-new `feature/x` does not yet exist on the remote.
+    _git(work, "checkout", "main")
+    _git(work, "checkout", "-b", "feature/x")
+    url = push_git.effective_push_url(work, "push-origin")
+    assert push_git._remote_sha(work, url, "feature/x", env=None, secrets=()) is None
+    # And publishing it actually creates the branch (not a false up-to-date).
+    result = push_git.push_branch(work, token="", branch="feature/x")
+    assert result["status"] == "created"
+    assert _remote_sha(remote, "feature/x") == result["head_sha"]
+
+
 def test_multiple_push_urls_rejected(tmp_path: Path) -> None:
     a = tmp_path / "a.git"
     a.mkdir()

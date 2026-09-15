@@ -200,16 +200,22 @@ def _remote_sha(
     env: dict[str, str] | None,
     secrets: tuple[str, ...],
 ) -> str | None:
+    target = f"{_HEADS_PREFIX}{branch}"
     completed = _run_git(
         root,
-        ["ls-remote", "--heads", url, f"{_HEADS_PREFIX}{branch}"],
+        ["ls-remote", "--heads", url, target],
         env=env,
         secrets=secrets,
     )
-    line = completed.stdout.strip()
-    if not line:
-        return None
-    return line.split()[0]
+    # `git ls-remote` matches ref-name suffixes, so a branch like
+    # `sub/feature/x` also answers a query for `feature/x`. Accept only the row
+    # whose ref name is exactly the requested branch; otherwise the branch is
+    # absent.
+    for line in completed.stdout.splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == target:
+            return parts[0]
+    return None
 
 
 def _is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
