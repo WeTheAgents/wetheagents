@@ -43,6 +43,7 @@ def canonical_commit(root: Path, ref: str) -> str:
     branch = ref.removeprefix("origin/")
     git(root, "check-ref-format", f"refs/heads/{branch}", operation="Ref validation")
     target = f"refs/remotes/origin/{branch}"
+    canonical = canonical_commit(root, "origin/main") if branch != "main" else None
     git(
         root,
         "fetch",
@@ -67,6 +68,11 @@ def canonical_commit(root: Path, ref: str) -> str:
     )
     if commit != fetched:
         raise TransportError("Canonical ref changed during fetch; retry report.")
+    if canonical is not None and commit != canonical:
+        raise TransportError(
+            "Configured ref is not current canonical origin/main; "
+            "use --ref origin/main."
+        )
     return commit
 
 

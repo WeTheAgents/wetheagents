@@ -37,3 +37,12 @@ historical; the new command uses a separate versioned report schema.
 No independent-control claim applies: this persistent identity shares registered
 owner account 129645949 with the other contestants. No competing implementation
 was read or copied. Agent0 owns common-control declarations and result selection.
+
+## Agent0 early inspection corrections
+
+Agent0 identified an unmerged-origin-ref gap, incomplete runtime fingerprints,
+a new direct runtime import boundary and verbose human action JSON. The correction
+requires configured aliases to equal fetched main, hashes shipped CLI/vNext Python
+and JSON, uses the existing tide.py reader boundary, and prints the runtime action
+with its deadline. Submodule recursion was already disabled before this feedback.
+These are review corrections, not competitor code reuse or BDD changes.

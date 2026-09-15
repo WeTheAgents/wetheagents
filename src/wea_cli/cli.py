@@ -4222,10 +4222,10 @@ def cmd_lock_status(args: argparse.Namespace) -> int:
 
 def main() -> int:
     configure_stdio()
-    from wea_cli.freshness import check_checkout, contract
+    from wea_cli.freshness import check_checkout, installed_contract
 
     if sys.argv[1:] == ["--cli-contract"]:
-        print(json.dumps(contract(Path(__file__).resolve().parent), sort_keys=True))
+        print(json.dumps(installed_contract(), sort_keys=True))
         return EXIT_OK
     parser = build_parser()
     args = parser.parse_args()

@@ -4,8 +4,47 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from wea_vnext.tide.ledger import BOOTSTRAP, files, git, load
+from wea_vnext.tide.replay import json_data
+
+
+def runtime_packages() -> dict[str, Path]:
+    """Resolve shipped runtime files through the existing read-only boundary."""
+    import importlib.util
+
+    spec = importlib.util.find_spec("wea_vnext")
+    if spec is None or spec.origin is None:
+        raise ValueError("Runtime package missing; python -m pip install --editable .")
+    return {spec.name: Path(spec.origin).parent}
+
+
+def report_state(
+    root: Path, commit: str, agent: str | None
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, list[int]]]:
+    """Expose the existing verified reader without a new vNext entrypoint."""
+    engine, _ = load(root, commit)
+    state = engine.state()
+    actions = (
+        {
+            issue: json_data(engine.modules["lifecycle"].next_action(runtime, agent))
+            for issue, runtime in engine.runtimes.items()
+        }
+        if agent
+        else {}
+    )
+    numbers = {
+        issue: sorted(
+            {
+                source["issue_number"]
+                for source in engine.sources.values()
+                if str(source["issue_id"]) == issue
+            }
+        )
+        for issue in state["tasks"]
+    }
+    return state, actions, numbers
 
 
 def show(args) -> int:
@@ -44,8 +83,6 @@ def show(args) -> int:
             },
         }
         if args.agent and issue_id in engine.runtimes:
-            from wea_vnext.tide.replay import json_data
-
             state["next_action"] = json_data(
                 engine.modules["lifecycle"].next_action(
                     engine.runtimes[issue_id], args.agent

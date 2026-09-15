@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from wea_cli import freshness, git_transport, report
+from wea_cli import freshness, git_transport, report, tide
 
 
 def git(root, *args):
@@ -117,9 +117,12 @@ def test_push_uses_effective_push_url_and_does_not_publish_other_refs(
 def test_canonical_ref_fetches_exact_remote_branch(repository):
     root, _ = repository
     head = git(root, "rev-parse", "HEAD")
-    git(root, "push", "origin", "HEAD:refs/heads/canonical")
+    git(root, "push", "origin", "HEAD:refs/heads/canonical", "HEAD:refs/heads/main")
     git(root, "commit", "--allow-empty", "-m", "local stale state must not be read")
     assert git_transport.canonical_commit(root, "origin/canonical") == head
+    git(root, "push", "origin", "HEAD:refs/heads/tide/pending")
+    with pytest.raises(git_transport.TransportError, match="not current canonical"):
+        git_transport.canonical_commit(root, "origin/tide/pending")
     with pytest.raises(git_transport.TransportError, match="origin/<branch>"):
         git_transport.canonical_commit(root, "HEAD")
     with pytest.raises(git_transport.TransportError, match="Canonical fetch"):
@@ -202,7 +205,7 @@ def test_report_rendering_separates_legacy_and_delegates_actions(monkeypatch, tm
         modules={"lifecycle": SimpleNamespace(next_action=action)},
     )
     monkeypatch.setattr(report, "canonical_commit", lambda root, ref: "a" * 40)
-    monkeypatch.setattr(report, "load", lambda root, sha: (engine, []))
+    monkeypatch.setattr(tide, "load", lambda root, sha: (engine, []))
     (tmp_path / "ledger").mkdir()
     (tmp_path / "ledger/balances.json").write_text('{"fake_legacy_balance":99999}')
     result = report.build_report(tmp_path, "origin/approved", "worker")
@@ -214,7 +217,7 @@ def test_report_rendering_separates_legacy_and_delegates_actions(monkeypatch, tm
     text = report.render_report(result)
     assert all(
         word in text
-        for word in ["intake", "author_decision", "settlement", "runtime-owned"]
+        for word in ["intake", "author_decision", "settlement", "Next: submit"]
     )
     assert "99999" not in text
     assert result["legacy"]["included_in_live_report"] is False
@@ -226,7 +229,7 @@ def test_replay_failure_does_not_emit_partial_report(monkeypatch, tmp_path):
     def fail(*args):
         raise RuntimeError("private underlying diagnostic")
 
-    monkeypatch.setattr(report, "load", fail)
+    monkeypatch.setattr(report, "report_state", fail)
     with pytest.raises(ValueError, match="No stale fallback") as error:
         report.build_report(tmp_path, "origin/main", "worker")
     assert "private" not in str(error.value)
@@ -244,6 +247,11 @@ def test_source_freshness_and_subprocess_contract(tmp_path):
     assert json.loads(result.stdout) == freshness.contract(source)
     target = tmp_path / "src/wea_cli"
     shutil.copytree(source, target, ignore=shutil.ignore_patterns("__pycache__"))
+    shutil.copytree(
+        source.parent / "wea_vnext",
+        target.parent / "wea_vnext",
+        ignore=shutil.ignore_patterns("__pycache__"),
+    )
     freshness.check_checkout(tmp_path)
     (target / "cli.py").write_text("# older CLI\n")
     with pytest.raises(ValueError, match="differs from checkout"):
@@ -299,3 +307,64 @@ def test_legacy_digest_rejects_new_report(tmp_path):
 
     with pytest.raises(DigestError, match="unsupported"):
         _render_report_text({"schema": report.SCHEMA}, root=tmp_path)
+
+
+@pytest.mark.parametrize(
+    "relative", ["executors/nested/model.py", "rulesets/contract.json"]
+)
+def test_freshness_includes_runtime_python_and_json(tmp_path, relative):
+    package = tmp_path / "wea_cli"
+    runtime = tmp_path / "wea_vnext"
+    for directory in (package, runtime):
+        directory.mkdir()
+        (directory / "__init__.py").write_text("")
+    target = runtime / relative
+    target.parent.mkdir(parents=True)
+    target.write_text("before")
+    before = freshness.contract(package)
+    target.write_text("after")
+    assert freshness.contract(package) != before
+    target.unlink()
+    assert freshness.contract(package) != before
+
+
+def test_push_does_not_recurse_into_submodules(repository, tmp_path):
+    root, _ = repository
+    subremote = tmp_path / "subremote.git"
+    subprocess.run(
+        ["git", "init", "--bare", str(subremote)], check=True, capture_output=True
+    )
+    seed = tmp_path / "seed"
+    subprocess.run(
+        ["git", "clone", str(subremote), str(seed)], check=True, capture_output=True
+    )
+    git(seed, "config", "user.name", "Test Author")
+    git(seed, "config", "user.email", "test@example.test")
+    git(seed, "config", "commit.gpgsign", "false")
+    git(seed, "commit", "--allow-empty", "-m", "submodule base")
+    git(seed, "push", "origin", "HEAD")
+    previous = git(subremote, "rev-parse", "HEAD")
+    git(
+        root,
+        "-c",
+        "protocol.file.allow=always",
+        "submodule",
+        "add",
+        str(subremote),
+        "sub",
+    )
+    git(root / "sub", "config", "user.name", "Test Author")
+    git(root / "sub", "config", "user.email", "test@example.test")
+    git(
+        root / "sub",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "--allow-empty",
+        "-m",
+        "private commit",
+    )
+    commit(root, "reference unpublished submodule commit")
+    git(root, "config", "push.recurseSubmodules", "on-demand")
+    git_transport.push_branch(root)
+    assert git(subremote, "rev-parse", "HEAD") == previous

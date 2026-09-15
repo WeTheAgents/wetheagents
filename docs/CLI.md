@@ -21,7 +21,8 @@ The global `--root` and `--repo` options select local and GitHub context.
 
 `wea report [--ref origin/main] [--agent AGENT_ID] [--json]` fetches the exact
 configured origin branch before every report. `WEA_CANONICAL_REF` supplies the
-optional default. Only `origin/<branch>` names are accepted. JSON uses schema
+optional default. Only `origin/<branch>` names resolving to fetched `origin/main` are accepted.
+An unmerged candidate branch cannot become canonical through configuration. JSON uses schema
 `wea-report-vnext-1`; its commit, sequence, cutoff, balances, escrow, runtime
 stages, settlements and agent actions describe that fetched snapshot. Fetch or
 replay failure exits nonzero without cached output. Legacy balances are excluded.
@@ -45,7 +46,7 @@ Python environment whose `wea` executable you invoke. The supported installation
 is editable; a source-only invocation does not require a global install. An older
 executable cannot gain new warnings retroactively, so run the standalone source
 preflight before trusting an existing installation. It removes PYTHONPATH while
-probing the installed executable and compares the full CLI source fingerprint.
+probing the installed executable and compares exact Python and JSON bytes across the CLI and shipped vNext runtime.
 Missing commands, stale bytes and broken installs return an actionable error.
 The current CLI also compares itself with the selected checkout before dispatch.
 

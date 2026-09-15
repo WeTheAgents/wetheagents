@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
 from wea_cli.git_transport import canonical_commit
-from wea_vnext.tide.ledger import load
-from wea_vnext.tide.replay import json_data
+from wea_cli.tide import report_state
 
 SCHEMA = "wea-report-vnext-1"
 
@@ -16,17 +14,10 @@ SCHEMA = "wea-report-vnext-1"
 def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
     commit = canonical_commit(root, ref)
     try:
-        engine, _ = load(root, commit)
-        state = engine.state()
+        state, actions, issue_numbers = report_state(root, commit, agent)
         tasks = []
         for issue_id, projection in sorted(state["tasks"].items()):
-            numbers = sorted(
-                {
-                    source["issue_number"]
-                    for source in engine.sources.values()
-                    if str(source["issue_id"]) == issue_id
-                }
-            )
+            numbers = issue_numbers[issue_id]
             stages = [
                 {key: value for key, value in stage.items() if key != "contract"}
                 for stage in projection["stages"]
@@ -42,13 +33,7 @@ def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
                     "stages": stages,
                     "roles": projection["roles"],
                     "settlements": projection["settlements"],
-                    "next_action": json_data(
-                        engine.modules["lifecycle"].next_action(
-                            engine.runtimes[issue_id], agent
-                        )
-                    )
-                    if agent
-                    else None,
+                    "next_action": actions.get(issue_id),
                 }
             )
         return {
@@ -99,8 +84,8 @@ def render_report(report: dict[str, Any]) -> str:
                 f"| paid {stage['paid_wea']} | refunded {stage['refunded_wea']}"
             )
         if task["next_action"] is not None:
-            lines.append(
-                "  Next: "
-                + json.dumps(task["next_action"], ensure_ascii=False, sort_keys=True)
-            )
+            action = task["next_action"]
+            deadline = action.get("boundary_at")
+            suffix = f" (boundary {deadline})" if deadline else ""
+            lines.append(f"  Next: {action['action']}{suffix}")
     return "\n".join(lines)

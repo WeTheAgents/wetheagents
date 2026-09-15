@@ -15,11 +15,27 @@ from typing import Any
 REFRESH = "Refresh in this checkout: python -m pip install --editable ."
 
 
-def contract(package: Path) -> dict[str, Any]:
+def contract(package: Path, packages: dict[str, Path] | None = None) -> dict[str, Any]:
     digest = hashlib.sha256()
-    for path in sorted(package.glob("*.py")):
-        digest.update(path.name.encode("utf-8") + b"\0")
-        digest.update(path.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+    roots = (
+        packages
+        if packages is not None
+        else {
+            directory.name: directory
+            for directory in package.parent.iterdir()
+            if directory.is_dir() and (directory / "__init__.py").is_file()
+        }
+    )
+    if package.name not in roots:
+        raise ValueError("Checkout package inventory is incomplete. " + REFRESH)
+    for name, directory in sorted(roots.items()):
+        if not (directory / "__init__.py").is_file():
+            raise ValueError(f"Required {name} package is missing. " + REFRESH)
+        for path in sorted(directory.rglob("*")):
+            if path.is_file() and path.suffix in {".py", ".json"}:
+                relative = f"{name}/{path.relative_to(directory).as_posix()}"
+                digest.update(relative.encode("utf-8") + b"\0")
+                digest.update(path.read_bytes() + b"\0")
     return {
         "schema": "wea-cli-contract-1",
         "sha256": digest.hexdigest(),
@@ -27,11 +43,16 @@ def contract(package: Path) -> dict[str, Any]:
     }
 
 
+def installed_contract() -> dict[str, Any]:
+    from wea_cli.tide import runtime_packages
+
+    package = Path(__file__).resolve().parent
+    return contract(package, {package.name: package, **runtime_packages()})
+
+
 def check_checkout(root: Path) -> None:
     source = root / "src" / "wea_cli"
-    if source.is_dir() and contract(Path(__file__).resolve().parent) != contract(
-        source
-    ):
+    if source.is_dir() and installed_contract() != contract(source):
         raise ValueError("Invoked CLI differs from checkout source. " + REFRESH)
 
 
