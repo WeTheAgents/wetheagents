@@ -51,3 +51,18 @@ The first real native push failed with the configured plain HTTPS push-origin:
 Git does not consume the approved token environment itself. The corrected adapter
 supplies a process-only HTTPS authorization header scoped to github.com. It keeps
 credentials out of argv/config/output and preserves existing environment config.
+
+## Trusted guard correction
+
+The first published guard failed with `candidate writer universe changed:
+src/wea_cli/freshness.py`, because helper imports reached the existing writer
+boundary transitively. That is not the permitted installation limitation. The
+correction keeps all native Git operations in existing cli.py, lets that CLI call
+existing tide.py, and passes verified primitives into pure report/fingerprint
+helpers. No new writer entrypoint or guard exception is introduced.
+
+Operational diagnosis correction: the live setup fault was the inherited
+push-origin URL pointing to the retired peachgabba-mc fork. Only this worktree's
+pushurl was set to canonical WeTheAgents/wetheagents. The token bridge separately
+supports the Plan's approved token-authenticated HTTPS path and has an isolated
+process/config/argv regression; it does not conceal a wrong remote.

@@ -10,7 +10,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from wea_cli import freshness, git_transport, report, tide
+from wea_cli import cli as git_transport
+from wea_cli import freshness, report, tide
 
 
 def git(root, *args):
@@ -204,11 +205,16 @@ def test_report_rendering_separates_legacy_and_delegates_actions(monkeypatch, tm
         runtimes={"42": "runtime"},
         modules={"lifecycle": SimpleNamespace(next_action=action)},
     )
-    monkeypatch.setattr(report, "canonical_commit", lambda root, ref: "a" * 40)
+    monkeypatch.setattr(git_transport, "canonical_commit", lambda root, ref: "a" * 40)
     monkeypatch.setattr(tide, "load", lambda root, sha: (engine, []))
     (tmp_path / "ledger").mkdir()
     (tmp_path / "ledger/balances.json").write_text('{"fake_legacy_balance":99999}')
-    result = report.build_report(tmp_path, "origin/approved", "worker")
+    result = report.build_report(
+        "origin/approved",
+        "a" * 40,
+        "worker",
+        *tide.report_state(tmp_path, "a" * 40, "worker"),
+    )
     assert result["schema"] == report.SCHEMA
     assert result["ref"] == "origin/approved"
     assert result["total_balances_wea"] == 80
@@ -224,14 +230,17 @@ def test_report_rendering_separates_legacy_and_delegates_actions(monkeypatch, tm
 
 
 def test_replay_failure_does_not_emit_partial_report(monkeypatch, tmp_path):
-    monkeypatch.setattr(report, "canonical_commit", lambda root, ref: "a" * 40)
+    monkeypatch.setattr(git_transport, "canonical_commit", lambda root, ref: "a" * 40)
 
     def fail(*args):
         raise RuntimeError("private underlying diagnostic")
 
-    monkeypatch.setattr(report, "report_state", fail)
+    monkeypatch.setattr(tide, "report_state", fail)
+    monkeypatch.setattr(git_transport, "resolve_repo_root", lambda root: tmp_path)
     with pytest.raises(ValueError, match="No stale fallback") as error:
-        report.build_report(tmp_path, "origin/main", "worker")
+        git_transport.cmd_report(
+            SimpleNamespace(root=str(tmp_path), ref="origin/main", agent="worker")
+        )
     assert "private" not in str(error.value)
 
 
@@ -252,10 +261,10 @@ def test_source_freshness_and_subprocess_contract(tmp_path):
         target.parent / "wea_vnext",
         ignore=shutil.ignore_patterns("__pycache__"),
     )
-    freshness.check_checkout(tmp_path)
+    freshness.check_checkout(tmp_path, freshness.contract(source))
     (target / "cli.py").write_text("# older CLI\n")
     with pytest.raises(ValueError, match="differs from checkout"):
-        freshness.check_checkout(tmp_path)
+        freshness.check_checkout(tmp_path, freshness.contract(source))
 
 
 @pytest.mark.parametrize("outcome", ["missing", "old", "different", "current"])

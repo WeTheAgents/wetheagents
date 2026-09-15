@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import math
@@ -680,13 +681,20 @@ def cmd_start(args: argparse.Namespace) -> int:
 
 def cmd_report(args: argparse.Namespace) -> int:
     from wea_cli.report import build_report, render_report
+    from wea_cli.tide import report_state
 
     root = resolve_repo_root(getattr(args, "root", None))
-    report = build_report(
-        root,
-        getattr(args, "ref", os.environ.get("WEA_CANONICAL_REF", "origin/main")),
-        resolve_agent(getattr(args, "agent", None)),
-    )
+    ref = getattr(args, "ref", os.environ.get("WEA_CANONICAL_REF", "origin/main"))
+    agent = resolve_agent(getattr(args, "agent", None))
+    commit = canonical_commit(root, ref)
+    try:
+        state, actions, numbers = report_state(root, commit, agent)
+        report = build_report(ref, commit, agent, state, actions, numbers)
+    except Exception as exc:
+        raise ValueError(
+            "Canonical Tide replay failed. Check fetched journal, projection and "
+            "installed executor files; refresh the CLI. No stale fallback."
+        ) from exc
     if getattr(args, "report_json", False):
         print(json.dumps(report, indent=2, ensure_ascii=False, sort_keys=True))
     else:
@@ -1326,9 +1334,163 @@ def cmd_pr(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def cmd_push(args: argparse.Namespace) -> int:
-    from wea_cli.git_transport import TransportError, push_branch
+class TransportError(ValueError):
+    """A Git precondition or transport failed without disclosing remote details."""
 
+
+def git(root: Path, *args: str, operation: str = "Git operation") -> str:
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    # A caller may have enabled traces containing credential-bearing URLs.
+    for key in tuple(env):
+        if key.startswith("GIT_TRACE") or key == "GIT_CURL_VERBOSE":
+            del env[key]
+    token = env.get("GH_TOKEN") or env.get("GITHUB_TOKEN")
+    if token:
+        # Git does not consume GH_TOKEN itself. Keep the credential out of argv,
+        # persisted config and logs; apply it only to the GitHub HTTPS host.
+        count = int(env.get("GIT_CONFIG_COUNT", "0"))
+        encoded = base64.b64encode(f"x-access-token:{token}".encode()).decode()
+        for index, value in enumerate(("", f"AUTHORIZATION: basic {encoded}"), count):
+            env[f"GIT_CONFIG_KEY_{index}"] = "http.https://github.com/.extraheader"
+            env[f"GIT_CONFIG_VALUE_{index}"] = value
+        env["GIT_CONFIG_COUNT"] = str(count + 2)
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "-c", "remote.push-origin.mirror=false", *args],
+            env=env,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=180,
+            check=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise TransportError(
+            f"{operation} failed. Check Git, network access, remote configuration "
+            "and authentication; then retry. Transport details are withheld."
+        ) from exc
+    return result.stdout.strip()
+
+
+def canonical_commit(root: Path, ref: str) -> str:
+    if not ref.startswith("origin/"):
+        raise TransportError("Canonical ref must be origin/<branch>, e.g. origin/main.")
+    branch = ref.removeprefix("origin/")
+    git(root, "check-ref-format", f"refs/heads/{branch}", operation="Ref validation")
+    target = f"refs/remotes/origin/{branch}"
+    canonical = canonical_commit(root, "origin/main") if branch != "main" else None
+    git(
+        root,
+        "fetch",
+        "--no-tags",
+        "origin",
+        f"+refs/heads/{branch}:{target}",
+        operation="Canonical fetch",
+    )
+    commit = git(
+        root,
+        "rev-parse",
+        "--verify",
+        f"{target}^{{commit}}",
+        operation="Canonical ref verification",
+    )
+    fetched = git(
+        root,
+        "rev-parse",
+        "--verify",
+        "FETCH_HEAD^{commit}",
+        operation="Fetched commit verification",
+    )
+    if commit != fetched:
+        raise TransportError("Canonical ref changed during fetch; retry report.")
+    if canonical is not None and commit != canonical:
+        raise TransportError(
+            "Configured ref is not current canonical origin/main; "
+            "use --ref origin/main."
+        )
+    return commit
+
+
+def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
+    current = git(
+        root,
+        "symbolic-ref",
+        "--quiet",
+        "--short",
+        "HEAD",
+        operation="Branch lookup (detached HEAD is unsupported)",
+    )
+    if branch is not None and branch != current:
+        raise TransportError(
+            "Push only the checked-out branch; switch worktrees first."
+        )
+    if current in {"main", "master"}:
+        raise TransportError("Main publication is prohibited; use a feature branch PR.")
+    if git(root, "status", "--porcelain=v1", "--untracked-files=all"):
+        raise TransportError(
+            "Working tree is dirty; commit or stash intended changes first."
+        )
+    ref = f"refs/heads/{current}"
+    head = git(root, "rev-parse", "--verify", "HEAD^{commit}")
+    urls = git(
+        root,
+        "remote",
+        "get-url",
+        "--push",
+        "--all",
+        "push-origin",
+        operation="push-origin configuration",
+    ).splitlines()
+    if len(urls) != 1:
+        raise TransportError(
+            "Configure exactly one push-origin push URL before publishing."
+        )
+    # Use the effective push URL for reads too: fetch and push URLs may differ.
+    url = urls[0]
+    before = git(
+        root, "ls-remote", "--refs", url, ref, operation="Remote branch lookup"
+    )
+    old = before.split()[0] if before else None
+    if old and old != head:
+        git(root, "fetch", "--no-tags", url, ref, operation="Remote ancestry fetch")
+        git(
+            root,
+            "merge-base",
+            "--is-ancestor",
+            old,
+            head,
+            operation="Fast-forward check (non-fast-forward update rejected)",
+        )
+    if old != head:
+        git(
+            root,
+            "push",
+            "--porcelain",
+            "--no-follow-tags",
+            "--recurse-submodules=no",
+            "push-origin",
+            f"{head}:{ref}",
+            operation="Branch push",
+        )
+    after = git(
+        root, "ls-remote", "--refs", url, ref, operation="Published SHA verification"
+    )
+    if not after or after.split()[0] != head:
+        raise TransportError(
+            "Remote SHA differs from intended HEAD; inspect branch before retry."
+        )
+    return {
+        "remote": "push-origin",
+        "branch": current,
+        "ref": ref,
+        "head": head,
+        "status": "unchanged" if old == head else "updated" if old else "created",
+    }
+
+
+def cmd_push(args: argparse.Namespace) -> int:
     root = resolve_repo_root(args.root)
     try:
         result = push_branch(root, args.branch)
@@ -4223,14 +4385,18 @@ def cmd_lock_status(args: argparse.Namespace) -> int:
 def main() -> int:
     configure_stdio()
     from wea_cli.freshness import check_checkout, installed_contract
+    from wea_cli.tide import runtime_packages
 
     if sys.argv[1:] == ["--cli-contract"]:
-        print(json.dumps(installed_contract(), sort_keys=True))
+        print(json.dumps(installed_contract(runtime_packages()), sort_keys=True))
         return EXIT_OK
     parser = build_parser()
     args = parser.parse_args()
     try:
-        check_checkout(resolve_repo_root(getattr(args, "root", None)))
+        check_checkout(
+            resolve_repo_root(getattr(args, "root", None)),
+            installed_contract(runtime_packages()),
+        )
     except FileNotFoundError:
         pass  # Commands with no checkout keep their existing root handling.
     except ValueError as exc:

@@ -43,16 +43,14 @@ def contract(package: Path, packages: dict[str, Path] | None = None) -> dict[str
     }
 
 
-def installed_contract() -> dict[str, Any]:
-    from wea_cli.tide import runtime_packages
-
+def installed_contract(packages: dict[str, Path]) -> dict[str, Any]:
     package = Path(__file__).resolve().parent
-    return contract(package, {package.name: package, **runtime_packages()})
+    return contract(package, {package.name: package, **packages})
 
 
-def check_checkout(root: Path) -> None:
+def check_checkout(root: Path, invoked: dict[str, Any]) -> None:
     source = root / "src" / "wea_cli"
-    if source.is_dir() and installed_contract() != contract(source):
+    if source.is_dir() and invoked != contract(source):
         raise ValueError("Invoked CLI differs from checkout source. " + REFRESH)
 
 

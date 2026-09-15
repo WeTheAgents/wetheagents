@@ -89,7 +89,7 @@ def test_cmd_pr_returns_error_on_gh_failure(
 def test_cmd_push_uses_configured_transport_without_token(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    from wea_cli import git_transport
+    from wea_cli import cli as git_transport
 
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
@@ -104,7 +104,7 @@ def test_cmd_push_uses_configured_transport_without_token(
 def test_cmd_push_returns_error_on_push_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    from wea_cli import git_transport
+    from wea_cli import cli as git_transport
 
     monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
 

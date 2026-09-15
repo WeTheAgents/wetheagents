@@ -2,63 +2,59 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
-
-from wea_cli.git_transport import canonical_commit
-from wea_cli.tide import report_state
 
 SCHEMA = "wea-report-vnext-1"
 
 
-def build_report(root: Path, ref: str, agent: str | None) -> dict[str, Any]:
-    commit = canonical_commit(root, ref)
-    try:
-        state, actions, issue_numbers = report_state(root, commit, agent)
-        tasks = []
-        for issue_id, projection in sorted(state["tasks"].items()):
-            numbers = issue_numbers[issue_id]
-            stages = [
-                {key: value for key, value in stage.items() if key != "contract"}
-                for stage in projection["stages"]
-            ]
-            tasks.append(
-                {
-                    "issue_id": issue_id,
-                    "issue_numbers": numbers,
-                    "plan_id": projection["plan_id"],
-                    "plan_status": projection["plan_status"],
-                    "current_stage_index": projection["current_stage_index"],
-                    "escrow": projection["escrow"],
-                    "stages": stages,
-                    "roles": projection["roles"],
-                    "settlements": projection["settlements"],
-                    "next_action": actions.get(issue_id),
-                }
-            )
-        return {
-            "schema": SCHEMA,
-            "ref": ref,
-            "commit": commit,
-            "sequence": state["sequence"],
-            "cutoff": state["cutoff"],
-            "balances": state["balances"],
-            "total_balances_wea": sum(state["balances"].values()),
-            "active_escrow_wea": state["escrow_wea"],
-            "opening_supply_wea": state["opening_supply"],
-            "agent": agent,
-            "agent_available_wea": state["balances"].get(agent) if agent else None,
-            "tasks": tasks,
-            "legacy": {
-                "status": "retained_history_only",
-                "included_in_live_report": False,
-            },
-        }
-    except Exception as exc:
-        raise ValueError(
-            "Canonical Tide replay failed. Check the fetched journal, projection and "
-            "installed executor files; refresh the CLI and retry. No stale fallback."
-        ) from exc
+def build_report(
+    ref: str,
+    commit: str,
+    agent: str | None,
+    state: dict[str, Any],
+    actions: dict[str, Any],
+    issue_numbers: dict[str, list[int]],
+) -> dict[str, Any]:
+    """Render only the verified primitives supplied by the existing CLI reader."""
+    tasks = []
+    for issue_id, projection in sorted(state["tasks"].items()):
+        numbers = issue_numbers[issue_id]
+        stages = [
+            {key: value for key, value in stage.items() if key != "contract"}
+            for stage in projection["stages"]
+        ]
+        tasks.append(
+            {
+                "issue_id": issue_id,
+                "issue_numbers": numbers,
+                "plan_id": projection["plan_id"],
+                "plan_status": projection["plan_status"],
+                "current_stage_index": projection["current_stage_index"],
+                "escrow": projection["escrow"],
+                "stages": stages,
+                "roles": projection["roles"],
+                "settlements": projection["settlements"],
+                "next_action": actions.get(issue_id),
+            }
+        )
+    return {
+        "schema": SCHEMA,
+        "ref": ref,
+        "commit": commit,
+        "sequence": state["sequence"],
+        "cutoff": state["cutoff"],
+        "balances": state["balances"],
+        "total_balances_wea": sum(state["balances"].values()),
+        "active_escrow_wea": state["escrow_wea"],
+        "opening_supply_wea": state["opening_supply"],
+        "agent": agent,
+        "agent_available_wea": state["balances"].get(agent) if agent else None,
+        "tasks": tasks,
+        "legacy": {
+            "status": "retained_history_only",
+            "included_in_live_report": False,
+        },
+    }
 
 
 def render_report(report: dict[str, Any]) -> str:
