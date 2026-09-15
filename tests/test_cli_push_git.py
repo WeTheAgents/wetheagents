@@ -101,9 +101,13 @@ def test_redact_strips_embedded_url_credentials() -> None:
 def test_auth_env_scopes_header_to_url_without_argv() -> None:
     header = push_git._basic_header("s3cr3t")
     env = push_git._auth_env("https://example.com/x.git", header)
-    assert env["GIT_CONFIG_COUNT"] == "1"
-    assert env["GIT_CONFIG_KEY_0"] == "http.https://example.com/x.git.extraheader"
-    assert env["GIT_CONFIG_VALUE_0"] == header
+    key = "http.https://example.com/x.git.extraheader"
+    # Two entries: reset the (multivalued) extraheader list, then inject ours.
+    assert env["GIT_CONFIG_COUNT"] == "2"
+    assert env["GIT_CONFIG_KEY_0"] == key
+    assert env["GIT_CONFIG_VALUE_0"] == ""  # reset any pre-existing header
+    assert env["GIT_CONFIG_KEY_1"] == key
+    assert env["GIT_CONFIG_VALUE_1"] == header
 
 
 def test_auth_material_only_for_https_and_redacts_header() -> None:

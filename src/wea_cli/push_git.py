@@ -121,11 +121,19 @@ def _auth_env(url: str, header: str) -> dict[str, str]:
 
     Keeping the credential in the environment (not argv) means it never appears
     in a process listing or an error message built from the command line.
+
+    ``http.extraheader`` is multivalued, so an already-configured Authorization
+    header (general or URL-scoped, from file config) would be *added to* rather
+    than replaced. An empty value resets the accumulated list, so we clear it
+    first and then inject exactly our credential.
     """
+    key = f"http.{url}.extraheader"
     return {
-        "GIT_CONFIG_COUNT": "1",
-        "GIT_CONFIG_KEY_0": f"http.{url}.extraheader",
-        "GIT_CONFIG_VALUE_0": header,
+        "GIT_CONFIG_COUNT": "2",
+        "GIT_CONFIG_KEY_0": key,
+        "GIT_CONFIG_VALUE_0": "",
+        "GIT_CONFIG_KEY_1": key,
+        "GIT_CONFIG_VALUE_1": header,
     }
 
 
