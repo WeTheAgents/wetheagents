@@ -403,3 +403,14 @@ def test_token_auth_is_process_only_and_scoped(monkeypatch, tmp_path):
     monkeypatch.setattr(subprocess, "run", run)
     assert git_transport.git(tmp_path, "push", "push-origin") == "success"
     assert os.environ["GIT_CONFIG_COUNT"] == "1"
+
+
+@pytest.mark.parametrize("requested", [None, "feature"])
+def test_branch_tag_collision_keeps_exact_destination(repository, requested):
+    root, remote = repository
+    git(root, "tag", "feature")
+    result = git_transport.push_branch(root, requested)
+    assert result["branch"] == "feature"
+    assert result["ref"] == "refs/heads/feature"
+    assert result["head"] == git(remote, "rev-parse", "refs/heads/feature")
+    assert git(remote, "for-each-ref", "--format=%(refname)") == "refs/heads/feature"

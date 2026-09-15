@@ -1414,14 +1414,16 @@ def canonical_commit(root: Path, ref: str) -> str:
 
 
 def push_branch(root: Path, branch: str | None = None) -> dict[str, str]:
-    current = git(
+    symbolic = git(
         root,
         "symbolic-ref",
         "--quiet",
-        "--short",
         "HEAD",
         operation="Branch lookup (detached HEAD is unsupported)",
     )
+    if not symbolic.startswith("refs/heads/"):
+        raise TransportError("HEAD must point to a local branch under refs/heads/.")
+    current = symbolic.removeprefix("refs/heads/")
     if branch is not None and branch != current:
         raise TransportError(
             "Push only the checked-out branch; switch worktrees first."

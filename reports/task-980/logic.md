@@ -9,7 +9,7 @@ consumers. It does not change BDD, executors, ledger data, settlement or authori
 
 ## Code-free logic
 
-- Resolve the configured canonical origin branch, fetch that exact branch and
+- Resolve and fetch the configured origin branch, verify it equals fetched main, and
   bind the report to its verified commit. Replay through the existing ledger API.
   Return a versioned report with actual runtime stages, escrow and next actions.
   Fetch/ref/replay failure returns an error without stale data. Legacy history
@@ -18,7 +18,8 @@ consumers. It does not change BDD, executors, ledger data, settlement or authori
   push-origin destination. New branches are permitted; existing branches require
   fast-forward ancestry. Git publishes one explicit branch ref with existing
   commit identities. Verify the destination SHA before reporting success.
-- Fingerprint CLI source bytes and compare the invoked CLI with the checkout.
+- Fingerprint shipped CLI/runtime Python and JSON bytes and compare the invoked
+  installation with the checkout.
   A standalone source preflight probes the installed executable without a source
   PYTHONPATH. Old executables that cannot answer are diagnosed as stale.
 
@@ -36,7 +37,8 @@ consumers. It does not change BDD, executors, ledger data, settlement or authori
 
 Git diagnostics are withheld because raw errors can contain token URLs.
 Existing Git authentication and worktree-specific push-origin remain authoritative.
-No credential or remote configuration is modified. Native Git supports SSH,
+The runtime does not persist credentials or modify remote configuration.
+Validation corrected only this task worktree's inherited pushurl. Native Git supports SSH,
 credential helpers and token-bearing configured HTTPS remotes on both platforms.
 The writer guard remains unchanged; its expected rejection of existing cli.py
 maintenance is an installation gate for Agent0 and the operator.

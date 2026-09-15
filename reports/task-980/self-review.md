@@ -66,3 +66,11 @@ push-origin URL pointing to the retired peachgabba-mc fork. Only this worktree's
 pushurl was set to canonical WeTheAgents/wetheagents. The token bridge separately
 supports the Plan's approved token-authenticated HTTPS path and has an isolated
 process/config/argv regression; it does not conceal a wrong remote.
+
+## Post-PR review correction
+
+Review 1 found no actionable regressions. Review 2 reproduced a branch/tag name
+collision: symbolic-ref --short may return heads/feature, causing the wrong
+remote branch name. The corrected push resolves full symbolic HEAD, requires
+refs/heads/, and strips exactly that prefix. Regressions cover both omitted and
+explicit current-branch arguments while a matching tag exists.
