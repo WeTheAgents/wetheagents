@@ -1371,7 +1371,7 @@ def git(root: Path, *args: str, operation: str = "Git operation") -> str:
             f"{operation} failed. Check Git, network access, remote configuration "
             "and authentication; then retry. Transport details are withheld."
         ) from exc
-    return result.stdout.strip()
+    return result.stdout.rstrip("\r\n")
 
 
 def canonical_commit(root: Path, ref: str) -> str:

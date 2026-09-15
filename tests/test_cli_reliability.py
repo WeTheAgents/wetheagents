@@ -432,7 +432,14 @@ def test_protected_branch_collision_cannot_bypass_guard(repository, branch, expl
 
 
 @pytest.mark.parametrize(
-    "branch", ["feature", "feature/non\u00a0breaking", "feature/line\u2028separator"]
+    "branch",
+    [
+        "feature",
+        "feature/non\u00a0breaking",
+        "feature/line\u2028separator",
+        "feature/trailing\u00a0",
+        "feature/trailing\u2028",
+    ],
 )
 @pytest.mark.parametrize("different_nested_commit", [False, True])
 @pytest.mark.parametrize("intended_exists", [False, True])
@@ -452,6 +459,8 @@ def test_remote_suffix_collision_uses_only_exact_ref(
     if intended_exists:
         git(root, "push", "push-origin", f"HEAD:{ref}")
     result = git_transport.push_branch(root)
+    assert result["branch"] == branch
+    assert result["ref"] == ref
     assert result["status"] == ("unchanged" if intended_exists else "created")
     assert result["head"] == head
     assert git(remote, "rev-parse", ref) == head
