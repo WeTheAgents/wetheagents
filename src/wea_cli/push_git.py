@@ -152,7 +152,11 @@ def current_branch(root: Path) -> str | None:
     completed = _run_git(root, ["symbolic-ref", "--quiet", "HEAD"], check=False)
     if completed.returncode != 0:
         return None
-    ref = completed.stdout.strip()
+    # Trim ONLY Git's trailing CR/LF record delimiter — never str.strip(), which
+    # also removes Unicode whitespace (NBSP U+00A0, line separator U+2028) that is
+    # LEGAL and significant at the end of a ref name and would silently target the
+    # wrong branch. Git forbids CR/LF inside a ref, so this is delimiter-only.
+    ref = completed.stdout.rstrip("\r\n")
     if not ref.startswith(_HEADS_PREFIX):
         return None
     return ref[len(_HEADS_PREFIX) :]

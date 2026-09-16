@@ -374,6 +374,38 @@ def test_remote_sha_handles_unicode_whitespace_refs(repos: tuple[Path, Path]) ->
     assert push_git._remote_sha(work, url, absent, env=None, secrets=()) is None
 
 
+def test_current_branch_preserves_trailing_unicode_whitespace(
+    repos: tuple[Path, Path],
+) -> None:
+    """A ref ending in Unicode whitespace must not be trimmed to the wrong branch.
+
+    `str.strip()` on the symbolic-ref output would drop a trailing NBSP/U+2028 and
+    target `review` instead of `review<NBSP>`. Verify the exact current branch and
+    that push publishes exactly the intended remote ref/SHA (idempotent), without
+    ever creating the stripped-name branch.
+    """
+    work, _remote = repos
+    for trailing in (chr(0x00A0), chr(0x2028)):  # NBSP, LINE SEPARATOR
+        name = "review" + trailing
+        _git(work, "checkout", "-b", name)
+        assert push_git.current_branch(work) == name  # exact, not "review"
+
+        head = _git(work, "rev-parse", "HEAD")
+        result = push_git.push_branch(work, token="")  # default form, current branch
+        assert result["branch"] == name
+        assert result["remote_ref"] == f"refs/heads/{name}"
+        assert result["head_sha"] == head
+
+        url = push_git.effective_push_url(work, "push-origin")
+        assert push_git._remote_sha(work, url, name, env=None, secrets=()) == head
+        # The stripped-name branch was never created on the remote.
+        assert push_git._remote_sha(work, url, "review", env=None, secrets=()) is None
+
+        again = push_git.push_branch(work, token="")
+        assert again["status"] == "up-to-date"
+        _git(work, "checkout", "main")
+
+
 def test_remote_sha_requires_exact_ref_match(repos: tuple[Path, Path]) -> None:
     """`ls-remote` suffix matching must not report a sibling branch as the target."""
     work, remote = repos
