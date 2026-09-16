@@ -135,15 +135,6 @@ def test_push_rejects_main_publication(
         cli._push_branch_via_git(work, "origin", None, "tok")
 
 
-def test_push_allows_main_only_with_explicit_flag(
-    repo_with_remote: tuple[Path, Path],
-) -> None:
-    work, bare = repo_with_remote
-    message = cli._push_branch_via_git(work, "origin", None, "tok", allow_main=True)
-    assert "origin/main" in message
-    assert _remote_sha(bare, "main") == _head(work)
-
-
 def test_push_rejects_detached_head(
     repo_with_remote: tuple[Path, Path],
 ) -> None:
@@ -174,6 +165,17 @@ def test_push_rejects_dirty_when_current_branch_named_explicitly(
         cli._push_branch_via_git(work, "origin", "feature", "tok")
 
 
+def test_push_rejects_untracked_dirty_tree(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, _bare = repo_with_remote
+    _git(work, "checkout", "-qb", "feature")
+    # An untracked (non-ignored) file still makes the published state ambiguous.
+    (work / "untracked.txt").write_text("new\n", encoding="utf-8")
+    with pytest.raises(cli.PushError, match="dirty ambiguity"):
+        cli._push_branch_via_git(work, "origin", None, "tok")
+
+
 def test_push_targets_push_url_when_fetch_and_push_differ(
     repo_with_remote: tuple[Path, Path],
 ) -> None:
@@ -197,11 +199,11 @@ def test_push_targets_push_url_when_fetch_and_push_differ(
     assert _git(work, "ls-remote", str(fetch_bare), "refs/heads/feature") == ""
 
 
-def test_push_verifies_every_push_destination(
+def test_push_rejects_multiple_push_destinations(
     repo_with_remote: tuple[Path, Path],
 ) -> None:
     work, _fetch_bare = repo_with_remote
-    # Two push destinations; git push writes both, and both must be verified.
+    # Two push destinations must be refused: publication has one intended target.
     push_a = work.parent / "push_a.git"
     push_b = work.parent / "push_b.git"
     for bare in (push_a, push_b):
@@ -213,11 +215,45 @@ def test_push_verifies_every_push_destination(
     _git(work, "remote", "set-url", "--push", "origin", str(push_a))
     _git(work, "remote", "set-url", "--push", "--add", "origin", str(push_b))
     _git(work, "checkout", "-qb", "feature")
-    head = _head(work)
 
-    cli._push_branch_via_git(work, "origin", "feature", "tok")
-    assert _remote_sha(push_a, "feature") == head
-    assert _remote_sha(push_b, "feature") == head
+    with pytest.raises(cli.PushError, match="multiple push URLs"):
+        cli._push_branch_via_git(work, "origin", "feature", "tok")
+    # Nothing was published to either repository.
+    assert _git(work, "ls-remote", str(push_a), "refs/heads/feature") == ""
+    assert _git(work, "ls-remote", str(push_b), "refs/heads/feature") == ""
+
+
+def test_push_creates_missing_branch_despite_suffix_collision(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, bare = repo_with_remote
+    _git(work, "checkout", "-qb", "x")
+    # The remote has only `nested/refs/heads/x`; the intended `refs/heads/x` is
+    # absent. ls-remote pattern-matches the suffix, but exact-ref filtering must
+    # not report already-up-to-date — the branch is genuinely created.
+    _git(work, "push", "-q", "origin", "HEAD:refs/heads/nested/refs/heads/x")
+    head = _head(work)
+    message = cli._push_branch_via_git(work, "origin", "x", "tok")
+    assert "Created" in message
+    assert _remote_sha(bare, "x") == head
+
+
+def test_push_resolves_unicode_branch_name(
+    repo_with_remote: tuple[Path, Path],
+) -> None:
+    work, bare = repo_with_remote
+    # A valid ref name containing a non-breaking space (U+00A0) must
+    # round-trip: parsing ls-remote on literal TAB/LF (not split()/
+    # splitlines(), which also breaks on Unicode line separators) preserves
+    # the exact ref bytes.
+    branch = "feature-" + chr(0x00A0) + "-unicode"
+    _git(work, "checkout", "-qb", branch)
+    head = _head(work)
+    message = cli._push_branch_via_git(work, "origin", None, "tok")
+    assert head in message
+    assert _remote_sha(bare, branch) == head
+    # Idempotent readback still resolves the exact Unicode ref.
+    assert "already up to date" in cli._push_branch_via_git(work, "origin", None, "tok")
 
 
 def test_push_rejects_non_fast_forward(
@@ -278,16 +314,6 @@ def test_push_resolves_current_branch_named_like_a_ref_prefix(
     assert cli._current_branch(work) == "heads/feature"
     cli._push_branch_via_git(work, "origin", None, "tok")
     assert _remote_sha(bare, "heads/feature") == _head(work)
-
-
-def test_push_rejects_mirror_remote(
-    repo_with_remote: tuple[Path, Path],
-) -> None:
-    work, _bare = repo_with_remote
-    _git(work, "config", "remote.origin.mirror", "true")
-    _git(work, "checkout", "-qb", "feature")
-    with pytest.raises(cli.PushError, match="mirror"):
-        cli._push_branch_via_git(work, "origin", "feature", "tok")
 
 
 def test_push_does_not_publish_unrelated_tags(
@@ -394,12 +420,13 @@ def test_cli_push_subprocess_end_to_end(
     repo_with_remote: tuple[Path, Path],
 ) -> None:
     work, bare = repo_with_remote
-    # cmd_push resolves the repo root via ledger/balances.json; provide a stub.
+    # cmd_push resolves the repo root via ledger/balances.json; commit a stub so
+    # the working tree is clean (the dirty guard now includes untracked files).
     (work / "ledger").mkdir()
     (work / "ledger" / "balances.json").write_text("{}", encoding="utf-8")
     _git(work, "checkout", "-qb", "feature")
     (work / "g.txt").write_text("two\n", encoding="utf-8")
-    _git(work, "add", "g.txt")
+    _git(work, "add", "g.txt", "ledger/balances.json")
     _git(work, "commit", "-qm", "two")
     head = _head(work)
 

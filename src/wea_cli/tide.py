@@ -3,12 +3,21 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
 
 from wea_vnext.tide.ledger import BOOTSTRAP, files, git, load
 from wea_vnext.tide.replay import ReplayError, json_data
+
+# URL userinfo (e.g. https://user:secret@host) that a raw Git error could echo.
+_URL_CRED_RE = re.compile(r"(https?://)[^/@\s]+@")
+
+
+def _sanitize(text: str) -> str:
+    """Redact URL-embedded credentials from any surfaced Git/replay message."""
+    return _URL_CRED_RE.sub(r"\1***@", text)
 
 
 class TideReadError(RuntimeError):
@@ -102,17 +111,19 @@ def _git_stderr(exc: subprocess.CalledProcessError) -> str:
     err = exc.stderr
     if isinstance(err, bytes):
         err = err.decode("utf-8", errors="replace")
-    return (err or "").strip()
+    return _sanitize((err or "").strip())
 
 
-def resolve_ref_commit(root: Path, ref: str, *, fetch: bool = True) -> str:
+def resolve_ref_commit(root: Path, ref: str) -> str:
     """Resolve the *canonical main* origin ref to its commit SHA.
 
     The ref must be a remote-tracking ``<remote>/main`` (default ``origin/main``);
     a pending/candidate, feature, or local branch is rejected so non-authoritative
-    state cannot be rendered as canonical. Unless ``fetch`` is disabled, the
-    naming remote is refreshed first so the resolved commit reflects current
-    canonical ``main``, never a stale local snapshot.
+    state cannot be rendered as canonical. The command always refreshes the naming
+    remote first — it fetches ``refs/heads/main`` explicitly so a restricted fetch
+    refspec cannot leave a stale tracking ref — and fails actionably rather than
+    reading a stale local snapshot. (For cached inspection without a fetch, use
+    ``wea tide``.)
     """
     remote = _canonical_main_remote(ref)
     if remote is None:
@@ -121,34 +132,32 @@ def resolve_ref_commit(root: Path, ref: str, *, fetch: bool = True) -> str:
             f"(default origin/main); a pending, candidate, feature, or local ref is "
             f"not canonical financial authority."
         )
-    if fetch:
-        # Force-update the canonical main tracking ref explicitly, so a remote
-        # whose configured fetch refspec excludes main cannot leave a stale
-        # `refs/remotes/<remote>/main` behind and report it as current.
-        try:
-            git(
-                root,
-                "fetch",
-                "--quiet",
-                remote,
-                f"+refs/heads/main:refs/remotes/{remote}/main",
-            )
-        except subprocess.CalledProcessError as exc:
-            raise TideReadError(
-                f"Cannot fetch canonical `{remote}` to refresh `{ref}`: "
-                f"{_git_stderr(exc) or 'fetch failed'}. Check network/auth; report "
-                f"does not fall back to stale state (use --no-fetch only if you just "
-                f"fetched)."
-            ) from exc
+    # Force-update the canonical main tracking ref explicitly, so a remote whose
+    # configured fetch refspec excludes main cannot leave a stale
+    # `refs/remotes/<remote>/main` behind and report it as current.
+    try:
+        git(
+            root,
+            "fetch",
+            "--quiet",
+            remote,
+            f"+refs/heads/main:refs/remotes/{remote}/main",
+        )
+    except subprocess.CalledProcessError as exc:
+        raise TideReadError(
+            f"Cannot fetch canonical `{remote}` to refresh `{ref}`: "
+            f"{_git_stderr(exc) or 'fetch failed'}. Check network/auth; report does "
+            f"not fall back to stale state. Use `wea tide` for cached inspection."
+        ) from exc
     try:
         return git(
             root, "rev-parse", "--verify", "--quiet", f"refs/remotes/{ref}^{{commit}}"
         )
     except subprocess.CalledProcessError as exc:
         raise TideReadError(
-            f"Cannot verify canonical ref `{ref}` under remote `{remote}`. Fetch "
-            f"first (`git fetch {remote}`) and pass an existing remote-tracking ref "
-            f"such as `--ref origin/main`. Report does not use stale local state."
+            f"Cannot verify canonical ref `{ref}` under remote `{remote}` after "
+            f"fetch: {_git_stderr(exc) or 'unknown error'}. Pass an existing "
+            f"canonical `--ref <remote>/main`. Report does not use stale local state."
         ) from exc
 
 
@@ -211,15 +220,14 @@ def build_vnext_report(
     ref: str = "origin/main",
     agent: str | None = None,
     issue: int | None = None,
-    fetch: bool = True,
 ) -> dict[str, Any]:
     """Build a stable, machine-readable canonical vNext report.
 
-    The report is read only from the fetched, verified canonical ``ref`` through
-    the same read-only replay engine that backs ``wea tide``. It never writes and
+    The report always fetches and reads the verified canonical ``ref`` through the
+    same read-only replay engine that backs ``wea tide``. It never writes and
     never substitutes stale local state.
     """
-    commit = resolve_ref_commit(root, ref, fetch=fetch)
+    commit = resolve_ref_commit(root, ref)
     if not files(root, commit, BOOTSTRAP):
         return {
             "ref": ref,
@@ -234,8 +242,9 @@ def build_vnext_report(
         state = engine.state()
     except ReplayError as exc:
         raise TideReadError(
-            f"Canonical Tide replay failed at {commit[:12]} ({ref}): {exc}. "
-            f"Re-fetch origin and retry; do not treat local state as canonical."
+            f"Canonical Tide replay failed at {commit[:12]} ({ref}): "
+            f"{_sanitize(str(exc))}. Re-fetch origin and retry; do not treat local "
+            f"state as canonical."
         ) from exc
 
     numbers = _issue_numbers(engine)

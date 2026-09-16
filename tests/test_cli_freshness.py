@@ -75,14 +75,33 @@ def test_version_banner_contains_contract_and_fingerprint() -> None:
     assert "cli-fingerprint " in banner
 
 
-def test_source_fingerprint_changes_with_bytes(tmp_path: Path) -> None:
-    pkg = tmp_path / "wea_cli"
-    pkg.mkdir()
+def test_source_fingerprint_covers_cli_and_sibling_runtime(tmp_path: Path) -> None:
+    src = tmp_path / "src"
+    pkg = src / "wea_cli"
+    runtime = src / "wea_vnext"
+    pkg.mkdir(parents=True)
+    runtime.mkdir()
     (pkg / "cli.py").write_text("a = 1\n", encoding="utf-8")
-    first = freshness.source_fingerprint(pkg)
+    (runtime / "engine.py").write_text("old runtime\n", encoding="utf-8")
+    first = freshness.source_fingerprint(pkg, "wea_vnext")
+    # A change to the CLI surface is detected.
     (pkg / "cli.py").write_text("a = 2\n", encoding="utf-8")
-    assert freshness.source_fingerprint(pkg) != first
-    assert freshness.source_fingerprint(tmp_path / "absent") == ""
+    second = freshness.source_fingerprint(pkg, "wea_vnext")
+    assert second != first
+    # A change to the named sibling runtime package (py or json) is also detected.
+    (runtime / "engine.py").write_text("new runtime\n", encoding="utf-8")
+    third = freshness.source_fingerprint(pkg, "wea_vnext")
+    assert third != second
+    (runtime / "manifest.json").write_text('{"v": 1}\n', encoding="utf-8")
+    assert freshness.source_fingerprint(pkg, "wea_vnext") != third
+    # Runtime changes are invisible only when the runtime package is not named.
+    cli_only = freshness.source_fingerprint(pkg)
+    (runtime / "engine.py").write_text("newer runtime\n", encoding="utf-8")
+    assert freshness.source_fingerprint(pkg) == cli_only
+    # No shipped files under the base -> empty (missing byte evidence).
+    empty = tmp_path / "empty" / "wea_cli"
+    empty.mkdir(parents=True)
+    assert freshness.source_fingerprint(empty, "wea_vnext") == ""
 
 
 def test_checkout_contract_reads_version_and_commands(tmp_path: Path) -> None:
@@ -170,6 +189,39 @@ def test_freshness_flags_installed_fingerprint_drift(
     installed_eval = report["installed_vs_checkout"]
     assert installed_eval["fingerprint_drift"] is True
     assert installed_eval["missing_commands"] == []
+
+
+def test_freshness_flags_installed_missing_fingerprint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Matching version/commands but NO installed fingerprint must fail actionable,
+    # not certify fresh (missing byte evidence).
+    checkout = freshness.checkout_contract(REPO_ROOT)
+    monkeypatch.setattr(
+        freshness,
+        "installed_contract",
+        lambda: {
+            "found": True,
+            "path": "/usr/bin/wea",
+            "version": checkout["version"],
+            "commands": checkout["commands"],
+            "fingerprint": None,
+        },
+    )
+    report = freshness.build_freshness(REPO_ROOT)
+    assert report["drift"] is True
+    assert report["installed_vs_checkout"]["fingerprint_missing"] is True
+
+
+def test_evaluate_missing_source_fingerprint_is_stale() -> None:
+    # A surface (source/running) with no fingerprint against a known checkout
+    # fingerprint is stale rather than fresh.
+    result = freshness._evaluate(
+        {"version": 2, "commands": ["report"], "fingerprint": None},
+        {"version": 2, "commands": ["report"], "fingerprint": "checkout-bytes"},
+    )
+    assert result["fingerprint_missing"] is True
+    assert result["stale"] is True
 
 
 def test_freshness_unknown_when_checkout_unreadable(

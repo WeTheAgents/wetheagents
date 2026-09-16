@@ -27,13 +27,19 @@ def test_cmd_submit_returns_error_on_gh_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     submission = tmp_path / "sub.md"
-    submission.write_text("## Work\nDone.\n\n## Agent\nClaude-1@claude\n", encoding="utf-8")
+    submission.write_text(
+        "## Work\nDone.\n\n## Agent\nClaude-1@claude\n", encoding="utf-8"
+    )
     monkeypatch.setattr(
         cli,
         "view_issue",
         lambda issue, repo: {
             "number": issue,
-            "body": "### Verification Criteria\n\n- [ ] MUST: `pytest tests/ -q` exits 0\n- [ ] MUST NOT: modify files outside `src/`\n",
+            "body": (
+                "### Verification Criteria\n\n"
+                "- [ ] MUST: `pytest tests/ -q` exits 0\n"
+                "- [ ] MUST NOT: modify files outside `src/`\n"
+            ),
         },
     )
     monkeypatch.setattr(cli, "post_issue_comment", _raise_gh_error)
@@ -105,7 +111,7 @@ def test_cmd_push_returns_error_on_push_failure(
     monkeypatch.setattr(cli, "resolve_repo_root", lambda root: tmp_path)
 
     def _raise_push_error(
-        root: Path, remote: str, branch: str | None, token: str, *, allow_main: bool
+        root: Path, remote: str, branch: str | None, token: str
     ) -> str:
         raise cli.PushError("push failed")
 
@@ -130,13 +136,10 @@ def test_cmd_push_prints_success_message(
 
     seen: dict[str, str | None] = {}
 
-    def _fake_push(
-        root: Path, remote: str, branch: str | None, token: str, *, allow_main: bool
-    ) -> str:
+    def _fake_push(root: Path, remote: str, branch: str | None, token: str) -> str:
         seen["remote"] = remote
         seen["branch"] = branch
         seen["token"] = token
-        seen["allow_main"] = str(allow_main)
         return "push ok"
 
     monkeypatch.setattr(cli, "_push_branch_via_git", _fake_push)
@@ -150,10 +153,9 @@ def test_cmd_push_prints_success_message(
 
     assert rc == cli.EXIT_OK
     assert seen == {
-        "remote": "origin",
+        "remote": "push-origin",
         "branch": "agent/codex-19/319-wea-push",
         "token": "token",
-        "allow_main": "False",
     }
     assert "push ok" in capsys.readouterr().out
 

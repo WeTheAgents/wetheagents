@@ -59,26 +59,33 @@ def test_resolve_ref_commit_returns_full_sha_for_canonical_ref(git_repo: Path) -
 
 
 def test_resolve_ref_commit_rejects_noncanonical_local_ref(git_repo: Path) -> None:
+    # The shape check rejects a non-`<remote>/main` ref before any fetch.
     with pytest.raises(tide.TideReadError) as excinfo:
-        tide.resolve_ref_commit(git_repo, "main", fetch=False)
+        tide.resolve_ref_commit(git_repo, "main")
     assert "not the canonical main ref" in str(excinfo.value)
 
 
 def test_resolve_ref_commit_rejects_pending_candidate_ref(git_repo: Path) -> None:
-    # A Tide candidate branch is replayable but not merged canonical authority.
-    _git(git_repo, "update-ref", "refs/remotes/origin/tide/pending", "HEAD")
+    # A Tide candidate branch is replayable but not merged canonical authority;
+    # rejected by shape before any fetch.
     with pytest.raises(tide.TideReadError) as excinfo:
-        tide.resolve_ref_commit(git_repo, "origin/tide/pending", fetch=False)
+        tide.resolve_ref_commit(git_repo, "origin/tide/pending")
     assert "not the canonical main ref" in str(excinfo.value)
 
 
-def test_resolve_ref_commit_fails_actionably_for_missing_ref(git_repo: Path) -> None:
-    # Canonical-shaped (<remote>/main) but the remote-tracking ref is not fetched.
-    _git(git_repo, "remote", "add", "upstream", str(git_repo.parent / "origin.git"))
+def test_resolve_ref_commit_fails_when_remote_lacks_main(git_repo: Path) -> None:
+    # Canonical-shaped `<remote>/main`, but the remote has no main to fetch.
+    empty = git_repo.parent / "empty.git"
+    subprocess.run(
+        ["git", "init", "-q", "-b", "trunk", str(empty), "--bare"],
+        check=True,
+        capture_output=True,
+    )
+    _git(git_repo, "remote", "add", "upstream", str(empty))
     with pytest.raises(tide.TideReadError) as excinfo:
-        tide.resolve_ref_commit(git_repo, "upstream/main", fetch=False)
+        tide.resolve_ref_commit(git_repo, "upstream/main")
     message = str(excinfo.value)
-    assert "upstream/main" in message
+    assert "upstream" in message
     assert "stale" in message.lower()
 
 
@@ -93,14 +100,19 @@ def test_resolve_ref_commit_fails_when_fetch_fails(tmp_path: Path) -> None:
     _git(root, "add", "f.txt")
     _git(root, "commit", "-qm", "x")
     with pytest.raises(tide.TideReadError) as excinfo:
-        tide.resolve_ref_commit(root, "origin/main", fetch=True)
+        tide.resolve_ref_commit(root, "origin/main")
     assert "fetch" in str(excinfo.value).lower()
 
 
 def test_resolve_ref_commit_fetches_main_despite_restricted_refspec(
     git_repo: Path,
 ) -> None:
-    old = tide.resolve_ref_commit(git_repo, "origin/main", fetch=False)
+    old = subprocess.run(
+        ["git", "-C", str(git_repo), "rev-parse", "refs/remotes/origin/main"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
     # A fetch refspec that excludes main must not leave origin/main stale.
     _git(
         git_repo,
@@ -110,7 +122,7 @@ def test_resolve_ref_commit_fetches_main_despite_restricted_refspec(
     )
     _git(git_repo, "commit", "--allow-empty", "-qm", "advance canonical main")
     _git(git_repo, "push", "-q", "origin", "main")
-    got = tide.resolve_ref_commit(git_repo, "origin/main", fetch=True)
+    got = tide.resolve_ref_commit(git_repo, "origin/main")
     assert got != old
     assert (
         got
@@ -125,12 +137,10 @@ def test_resolve_ref_commit_fetches_main_despite_restricted_refspec(
 
 def test_build_report_reports_inactive_when_no_bootstrap(git_repo: Path) -> None:
     report = tide.build_vnext_report(
-        git_repo, ref="origin/main", agent="Claude-15@claude", fetch=False
+        git_repo, ref="origin/main", agent="Claude-15@claude"
     )
     assert report["active"] is False
-    assert report["commit"] == tide.resolve_ref_commit(
-        git_repo, "origin/main", fetch=False
-    )
+    assert report["commit"] == tide.resolve_ref_commit(git_repo, "origin/main")
     # Inactive still renders without raising.
     assert "not initialized" in tide.render_vnext_report(report).lower()
 
@@ -297,3 +307,22 @@ def test_build_report_wraps_replay_error(monkeypatch: pytest.MonkeyPatch) -> Non
         tide.build_vnext_report(Path("."), ref="origin/main", agent="a@b")
     assert "replay failed" in str(excinfo.value).lower()
     assert "projection mismatch" in str(excinfo.value)
+
+
+def test_resolve_ref_commit_redacts_url_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A raw Git error carrying URL userinfo must not leak into TideReadError.
+    def _boom(root: Path, *args: str) -> str:
+        raise subprocess.CalledProcessError(
+            128,
+            ["git"],
+            stderr=b"fatal: https://user:SYNTHETIC_SECRET@example.invalid/r.git",
+        )
+
+    monkeypatch.setattr(tide, "git", _boom)
+    with pytest.raises(tide.TideReadError) as excinfo:
+        tide.resolve_ref_commit(Path("."), "origin/main")
+    message = str(excinfo.value)
+    assert "SYNTHETIC_SECRET" not in message
+    assert "https://***@example.invalid" in message

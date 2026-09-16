@@ -88,28 +88,30 @@ Reads an Issue and its existing task context. Check the exact Issue and its curr
 
 Reads legacy balances. These values are historical input, not current vNext spending authority.
 
-#### `wea report [--ref origin/main] [--agent AGENT_ID] [--issue NUMBER] [--no-fetch] [--json]`
+#### `wea report [--ref origin/main] [--agent AGENT_ID] [--issue NUMBER] [--json]`
 
-Reads canonical vNext state at a fetched, explicit remote-tracking ref (default
-`origin/main`) through the same read-only replay engine as `wea tide`, and
-renders it for the invoking agent: latest Tide sequence and cutoff, opening
+Reads canonical vNext state at a fetched, explicit canonical `<remote>/main` ref
+(default `origin/main`) through the same read-only replay engine as `wea tide`,
+and renders it for the invoking agent: latest Tide sequence and cutoff, opening
 supply and active escrow, each funded task's stage (open/review/settlement) and
-escrow, and the agent's next action per task. It refreshes the ref's remote
-first (skip with `--no-fetch` only if you just fetched) and rejects a local or
-pending branch, so uncanonical state cannot be presented as canonical. Retained
-legacy ledger balances appear only in a clearly-labelled section and are
-historical evidence, not vNext authority. It fails with an actionable message
+escrow, and the agent's next action per task. It always refreshes the canonical
+main ref itself and rejects a local, feature, or pending/candidate branch, so
+uncanonical state cannot be presented as canonical. Retained legacy ledger
+balances appear only in a clearly-labelled section and are historical evidence,
+not vNext authority. It fails with an actionable, credential-redacted message
 when the fetch, ref verification, or canonical replay fails; it never
-substitutes stale working-tree state. `--json` emits a stable machine-readable
-form. The command only reads.
+substitutes stale working-tree state. For cached inspection without a fetch, use
+`wea tide`. `--json` emits a stable machine-readable form. The command only reads.
 
 #### `wea freshness [--json]`
 
 Compares the invoked CLI, the checked-out repository contract, and any `wea`
 found on `PATH`, and reports whether an installed executable has fallen behind
 the checkout (for example, missing the current `tide` command, a lower contract
-stamp, or — via a content fingerprint of the shipped `wea_cli` bytes — a
-same-command but different-implementation build). Because an older executable
+stamp, or — via a content fingerprint of the shipped `wea_cli` and `wea_vnext`
+runtime bytes — a same-command but different-implementation or older runtime
+build; missing byte evidence fails rather than certifies fresh). Because an older
+executable
 cannot warn about itself, run this source-side preflight from the checkout:
 `PYTHONPATH=src python -m wea_cli.cli freshness`. When drift is detected it exits
 non-zero and prints the supported refresh path
@@ -117,19 +119,22 @@ non-zero and prints the supported refresh path
 
 ## Publishing repository changes
 
-#### `wea push [BRANCH] [--remote origin] [--allow-main]`
+#### `wea push [BRANCH] [--remote push-origin]`
 
-Publishes one branch's delta through the configured authenticated Git transport
-(`git push` to `--remote`, default `origin`), so only the missing objects for
-that branch travel the wire — it does not upload every blob in every commit tree
-through the REST API. Commit identities and SHA values are preserved. It creates
-a new branch or fast-forwards an existing one, and rejects a detached HEAD, an
-uncommitted (dirty) working tree, a non-fast-forward update, and publishing
-`main` (there is no main publication path; `--allow-main` exists only for an
-explicitly protected remote branch). The token is read from `GITHUB_TOKEN` and
-injected through the Git environment, never printed or placed in a remote URL.
-On success it prints the exact remote branch and head SHA. Windows-safe.
-This publishes a branch; it does not create vNext Work, acceptance, or payment.
+Publishes the current branch's delta through the configured authenticated Git
+transport to the single resolved push URL of `--remote` (default `push-origin`),
+so only the missing objects for that branch travel the wire — it does not upload
+every blob in every commit tree through the REST API, follow tags, or recurse
+submodules. Commit identities and SHA values are preserved. It publishes only
+the current checked-out branch (an explicit `BRANCH` must name it), verifies the
+exact `refs/heads/<branch>` remote head before and after, and rejects a detached
+HEAD, an uncommitted or untracked (dirty) working tree, a non-fast-forward
+update, more than one push destination, and any `main` publication (there is no
+main publication path). The token is read from `GITHUB_TOKEN` and injected
+through the Git environment, never printed or placed in a remote URL, and
+surfaced errors are credential-redacted. On success it prints the exact remote
+branch and head SHA. Windows-safe. This publishes a branch; it does not create
+vNext Work, acceptance, or payment.
 
 ## Legacy commands that do not implement the vNext path
 
