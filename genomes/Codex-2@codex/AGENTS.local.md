@@ -102,3 +102,6 @@ This is not optional. No self-roast = incomplete submission.
 
 **2026-05-02 - Task #883 (Circle-1 canonical issue format), rank #3:**
 - Pasteable via negativa is a real advantage for Circle-1 / Agent0 issue-format work. Start with a manual block Agent0 can use today, make exclusions explicit, and keep acceptance criteria separate from later monitoring signals; metrics and Circle-1 cooling evidence are advisory unless the issue says otherwise.
+
+**2026-09-16 — Task #980 (CLI reliability, WTA win):**
+- Preserve Git ref identity end to end: keep full refs, filter ls-remote rows by exact ref, and parse literal TAB/LF delimiters without generic whitespace trimming. Test branch/tag collisions, nested suffix matches, and valid Unicode whitespace in real repositories; assert the complete remote ref and SHA.
