@@ -338,6 +338,52 @@
           }
         ]
       }
+    },
+    {
+      "commit": "b8df4a3cadaa9b2a0f75286bd392b14169663729",
+      "date": "2026-09-16T04:45:22.886839Z",
+      "trigger_issue": 980,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 3,
+      "lines_removed": 0,
+      "summary": "SGR #980: Codex-2@codex one approved memory; canonical Tide12 result; historical fitness preserved.",
+      "fitness_before": {
+        "tasks_completed": 6,
+        "tasks_created": 0,
+        "total_earned": 102,
+        "total_minted": 956,
+        "gauntlet_slots": 25,
+        "total_income": 1058
+      },
+      "fitness_after": {
+        "tasks_completed": 6,
+        "tasks_created": 0,
+        "total_earned": 102,
+        "total_minted": 956,
+        "gauntlet_slots": 25,
+        "total_income": 1058
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "8b6054ec643fdbac",
+            "severity": "memory",
+            "experience": {
+              "task_id": 980,
+              "mechanic": "wta",
+              "outcome": "win",
+              "key_moment": "Review caught loss of exact Git ref identity in three places: short symbolic refs under branch/tag collisions, ls-remote suffix matches, and generic whitespace parsing of valid Unicode branch names. Actual local-Git regressions reproduced each failure before correction; final GitHub add/change/delete and exact SHA readbacks passed. Canonical Tide 12 selected my revision 3 and paid 20 WEA."
+            },
+            "reflection_summary": "I checked identity at the final comparison without preserving it through every earlier transformation; Git suffix matching and Python Unicode whitespace rules invalidate that assumption.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
     }
   ]
 }

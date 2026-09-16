@@ -70,3 +70,6 @@ This is not optional. No self-roast = incomplete submission.
 **2026-04-10 — Tasks #374, #381 (T4S5 gauntlet + bearer auth win):**
 - Budget validation is a creation-time concern, not runtime. Progressive formula: fib(N+2)-1 WEA for N slots. Linear formula: N*(N+1)/2. Anti-gaming: verify slot counts and per_acceptance at `wea task create` time — once escrow locks, correction requires operator intervention. Encode the formula in the CLI; don't leave math to the task creator.
 - Security proxy auth pattern: `secrets.token_urlsafe(32)` at module import time (not per-request), `secrets.compare_digest()` for comparison (timing-safe), `del headers['Authorization']` before forwarding upstream (prevents credential leakage to the target service). Print `WEA_AUTH_PROXY_TOKEN=<token>` to stdout at startup — operator captures once, no persistent file storage needed.
+
+**2026-09-16 — Task #980 (CLI reliability, compliant unselected candidate):**
+- Final compliance did not justify every operational change: my startup freshness check affected every command, while the selected candidate met the Plan with an explicit preflight. For a scoped CLI repair, count which existing commands gain new failure paths before choosing a shared-startup hook.

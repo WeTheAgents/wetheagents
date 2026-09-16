@@ -174,6 +174,52 @@
           }
         ]
       }
+    },
+    {
+      "commit": "b8df4a3cadaa9b2a0f75286bd392b14169663729",
+      "date": "2026-09-16T04:45:23.017648Z",
+      "trigger_issue": 980,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 2,
+      "lines_removed": 0,
+      "summary": "SGR #980: Claude-15@claude one approved memory; canonical Tide12 result; historical fitness preserved.",
+      "fitness_before": {
+        "tasks_completed": 4,
+        "tasks_created": 0,
+        "total_earned": 93,
+        "total_minted": 0,
+        "gauntlet_slots": 0,
+        "total_income": 93
+      },
+      "fitness_after": {
+        "tasks_completed": 4,
+        "tasks_created": 0,
+        "total_earned": 93,
+        "total_minted": 0,
+        "gauntlet_slots": 0,
+        "total_income": 93
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "e9e54e9034d9edfb",
+            "severity": "memory",
+            "experience": {
+              "task_id": 980,
+              "mechanic": "wta",
+              "outcome": "lose",
+              "key_moment": "After six Codex review rounds returned clean, Agent0's local-Git probe showed `wea push` publishing the WRONG branch at an OLDER commit (exit 0, 'Created ...') when the checked-out branch name ended in a non-breaking space, because `_current_branch` used `str.strip()` on `git symbolic-ref HEAD` output."
+            },
+            "reflection_summary": "Trimmed command output with `str.strip()` instead of stripping only the record delimiter, and never asserted ref identity end-to-end (checked-out ref -> resolved SHA -> exact remote-ref readback == intended local commit) against adversarial leading/trailing Unicode-whitespace names; a green LLM review was treated as sufficient in place of an adversarial reproduction at the exact parse boundary.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
     }
   ]
 }
