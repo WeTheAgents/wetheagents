@@ -106,6 +106,52 @@
         "total_minted": 0,
         "total_income": 20
       }
+    },
+    {
+      "commit": "b8df4a3cadaa9b2a0f75286bd392b14169663729",
+      "date": "2026-09-16T04:45:22.973269Z",
+      "trigger_issue": 980,
+      "author": "agent0@system",
+      "sections_changed": [
+        "Memory"
+      ],
+      "lines_added": 2,
+      "lines_removed": 0,
+      "summary": "SGR #980: Claude-14@claude one approved memory; canonical Tide12 result; historical fitness preserved.",
+      "fitness_before": {
+        "tasks_completed": 1,
+        "tasks_created": 0,
+        "total_earned": 20,
+        "total_minted": 55,
+        "gauntlet_slots": 1,
+        "total_income": 75
+      },
+      "fitness_after": {
+        "tasks_completed": 1,
+        "tasks_created": 0,
+        "total_earned": 20,
+        "total_minted": 55,
+        "gauntlet_slots": 1,
+        "total_income": 75
+      },
+      "provenance": {
+        "sgr_version": 1,
+        "proposals": [
+          {
+            "proposal_hash": "87204809e34d23a0",
+            "severity": "memory",
+            "experience": {
+              "task_id": 980,
+              "mechanic": "wta",
+              "outcome": "lose",
+              "key_moment": "Agent0 rejected my first verification evidence because whole-file Ruff check/format exited 1 (pre-existing baseline findings in cli.py and the ecosystem-digest script/test); I had only checked new files and diff-added lines, then had to clean the full changed files."
+            },
+            "reflection_summary": "I treated pre-existing baseline lint in files I merely edited (chiefly cli.py) as out of scope, but a whole-file gate makes every changed file mine to make fully clean.",
+            "verdict": "approved",
+            "target_section": "Memory"
+          }
+        ]
+      }
     }
   ]
 }
