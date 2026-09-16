@@ -31,11 +31,15 @@ def _render_report_text(report: dict[str, Any], *, root: Path) -> str:
     try:
         from wea_cli.report_snapshot import render_report
     except ImportError as exc:
-        raise DigestError("Unable to import `wea_cli.report_snapshot.render_report`.") from exc
+        raise DigestError(
+            "Unable to import `wea_cli.report_snapshot.render_report`."
+        ) from exc
     return render_report(report).strip()
 
 
-def run_command(command: list[str], *, root: Path, input_text: str | None = None) -> str:
+def run_command(
+    command: list[str], *, root: Path, input_text: str | None = None
+) -> str:
     env = os.environ.copy()
     env.setdefault("WEA_AGENT", DEFAULT_AGENT)
     try:
@@ -71,6 +75,11 @@ def run_wea_report_json(root: Path) -> dict[str, Any]:
         raise DigestError("`wea report --json` returned invalid JSON.") from exc
     if not isinstance(payload, dict):
         raise DigestError("`wea report --json` did not return an object.")
+    if payload.get("schema") is not None:
+        raise DigestError(
+            "This legacy digest does not support versioned report schemas. "
+            "Use `wea report` for canonical state; no digest was published."
+        )
     return payload
 
 
@@ -95,7 +104,9 @@ def load_gauntlet_next_slots(root: Path) -> dict[str, int]:
         try:
             slots[trajectory] = int(next_slot)
         except (TypeError, ValueError) as exc:
-            raise DigestError(f"Invalid next_slot for {trajectory}: {next_slot!r}") from exc
+            raise DigestError(
+                f"Invalid next_slot for {trajectory}: {next_slot!r}"
+            ) from exc
     return slots
 
 
@@ -109,7 +120,9 @@ def gather_digest_inputs(root: Path) -> tuple[dict[str, Any], str, dict[str, int
 def _parse_generated_at(value: str | None) -> datetime:
     if value:
         try:
-            return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+            return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=timezone.utc
+            )
         except ValueError:
             pass
     return datetime.now(timezone.utc)
@@ -131,8 +144,10 @@ def build_digest_comment(
     stamp = timestamp.strftime("%Y-%m-%d %H:%M UTC")
 
     summary = (
-        f"{economy.get('active_agents', 0)} active / {economy.get('total_agents', 0)} registered "
-        f"agents, {economy.get('tasks_paid', 0)} paid / {economy.get('tasks_open', 0)} open tasks, "
+        f"{economy.get('active_agents', 0)} active / "
+        f"{economy.get('total_agents', 0)} registered "
+        f"agents, {economy.get('tasks_paid', 0)} paid / "
+        f"{economy.get('tasks_open', 0)} open tasks, "
         f"{economy.get('transactions_today', 0)} transactions today."
     )
     escrow_line = (
@@ -140,7 +155,8 @@ def build_digest_comment(
         f"{escrow.get('total_locked', 0)} WEA."
     )
     gauntlet_line = ", ".join(
-        f"{trajectory}->{gauntlet_slots.get(trajectory, 1)}" for trajectory in TRAJECTORIES
+        f"{trajectory}->{gauntlet_slots.get(trajectory, 1)}"
+        for trajectory in TRAJECTORIES
     )
     invariant_label = "OK" if escrow.get("invariant_ok") else "BROKEN"
     invariant_line = (
@@ -190,7 +206,9 @@ def validate_comment(body: str) -> None:
     )
     missing = [section for section in required_sections if section not in body]
     if missing:
-        raise DigestError(f"Digest comment missing required sections: {', '.join(missing)}")
+        raise DigestError(
+            f"Digest comment missing required sections: {', '.join(missing)}"
+        )
 
 
 def post_issue_comment(issue: int, body: str, *, root: Path) -> None:
@@ -205,7 +223,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run `wea report` and post a formatted daily ecosystem digest."
     )
-    parser.add_argument("--issue", type=int, required=True, help="Issue number to comment on")
+    parser.add_argument(
+        "--issue", type=int, required=True, help="Issue number to comment on"
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",

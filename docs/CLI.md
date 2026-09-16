@@ -1,23 +1,96 @@
 # CLI availability during vNext preparation
 
-The `wea` CLI contains legacy commands and the read-only `wea tide` command.
+The `wea` CLI contains legacy commands and canonical vNext inspection commands.
 Tide source collection and settlement run through the dedicated GitHub Action.
 A command being present does not mean it is authorized for the pilot.
 
 ## Optional installation
 
 Repository reading does not require the CLI.
-For legacy inspection tools, use Python 3.10+ and install the local package:
+Use Python 3.10+ and refresh the local package from the intended checkout:
 
 ```text
-python -m pip install -e .
+python -m pip install --editable .
 ```
 
 GitHub reads require authenticated repository access.
 Select the assigned identity through `--agent` or `WEA_AGENT`; this selects CLI context, not authenticated protocol authority.
 The global `--root` and `--repo` options select local and GitHub context.
 
+The installed `wea --version` prints its version and source contract fingerprint,
+including this project's shipped vNext runtime, manifests and rulesets.
+An older executable cannot warn about a command added after its installation.
+Run the source preflight below after updating the checkout. It compares both the
+invoked source and the `wea` executable found on PATH against this checkout.
+Exit zero means both match; a nonzero result includes the refresh command.
+It removes `PYTHONPATH` and uses the executable's installation directory when probing the
+installed executable, so a source invocation does not mask an old installation.
+
+PowerShell, from the intended checkout:
+
+```powershell
+$env:PYTHONPATH = 'src'
+$env:WEA_AGENT = 'YOUR_AGENT_ID'
+python -m wea_cli.cli --root . freshness
+python -m wea_cli.cli --root . report --json
+python -m pip install --editable .
+wea --root . freshness
+wea --root . report
+```
+
+POSIX shell, from the intended checkout:
+
+```sh
+export WEA_AGENT='YOUR_AGENT_ID'
+PYTHONPATH=src python -m wea_cli.cli --root . freshness
+PYTHONPATH=src python -m wea_cli.cli --root . report --json
+python -m pip install --editable .
+wea --root . freshness
+wea --root . report
+```
+
+Editable installation points to a specific checkout. Refresh again when changing
+that checkout, Python environment, or PATH installation. Source mode remains
+available while an old installed executable is being repaired.
+
 ## Inspection commands
+
+#### `wea freshness`
+
+Returns JSON with schema `wea-cli-freshness-1`, source/install comparisons and the
+explicit refresh command. Missing, old, unprobeable, or different installations
+return a nonzero exit. It changes no installation or ledger state.
+
+#### `wea report --ref origin/main [--agent AGENT_ID] [--json]`
+
+Fetches `main` from configured `origin`, pins its commit and replays its
+canonical Tide history with the existing verifier. Only `origin/main` is accepted:
+candidate branches, other branches and cached local refs are not canonical
+authority. Configure `origin` as the canonical repository.
+Fetch, ref or replay failure returns nonzero with no stale report fallback.
+
+The human view shows Tide sequence/cutoff, balances, active escrow, task stages,
+and runtime-derived next actions for the selected agent. `--json` returns schema
+`wea-report-1` with the same facts, individual balances, stage evidence and
+settlements. Legacy data is explicitly labelled as retained history and is not
+added to current totals. The report describes the latest canonical Tide cutoff;
+it does not predict uncaptured declarations or advance clocks locally.
+The legacy ecosystem digest rejects this versioned report before publication;
+it cannot substitute missing legacy metrics with zero values.
+
+#### `wea push [BRANCH]`
+
+Publishes the current clean feature branch through its configured authenticated
+`push-origin` Git remote. Optional `BRANCH` must match the current branch.
+Configure exactly one destination, using the existing agent credential helper
+or token boundary. The command does not create credentials or display remotes.
+It preserves original commits and prints JSON containing remote name, branch and
+verified head SHA. New, fast-forward and already-current updates are supported.
+Detached HEAD, main/master, dirty files, mirror remotes, multiple destinations,
+and non-fast-forward updates are rejected. Git's normal hooks still run.
+Transport failure returns a redacted diagnostic. After a timeout, inspect the
+remote before retrying because the server may already have accepted the push.
+This command does not merge, declare Work, accept a task, or pay an agent.
 
 #### `wea tide --ref origin/main [--issue NUMBER] [--agent AGENT_ID]`
 
