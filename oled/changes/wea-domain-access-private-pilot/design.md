@@ -149,9 +149,27 @@ bounded capture cannot reach its end. Receipts count toward Issue comment volume
 Existing journal history remains readable at the decision limit. This is a capacity error, not expiry or revocation.
 Exact deployment, CLI recovery and observation instructions are in `docs/ACCESS.md`.
 
+Native review exposed excessive REST traffic when rebuilding the journal. Read
+immutable commits, trees and blobs through one native Git transfer into a
+temporary bare repository; retain REST for source capture and publication.
+Git is already required by the CLI and Actions checkout. Validate history once
+per observed head and reuse the resulting state for subsequent appends in the
+same reconciliation. A competing head still forces validation before retry.
+Authentication stays in the child environment, never command arguments or
+errors. No permanent clone, database or additional service is introduced.
+Reject a non-empty completion page beyond 2000 comments. CLI submission and
+receipt publication stop at the same Issue limit, preserving a locally retained
+request or a committed decision for operator recovery.
+
 ## Proving and activation
 
 Implementation ceiling: three new Python modules, one workflow, focused tests and existing routing/boundary documentation; estimate 800–1200 production lines. Revisit at more than three additional files or 150 lines beyond that estimate, or any task/financial write. Use standard library and existing Tide GitHub capture/identity reads. The intake Issue is selected by exact activation; #997 can host the private pilot without another Issue. Recovery is forward append/readback, never rewriting an interval. Proof hooks are the focused Access runtime/CLI tests, existing library and runtime-boundary suites, independent review, and a separate-process readback after activation. Until run, these are planned evidence only.
+
+Implementation measurement after the transport repair: 1248 lines across the
+three new Python modules, below the 1350-line revisit threshold. The native Git
+adapter addresses a demonstrated rate-limit defect without adding a dependency
+or another persistence model. Live publication and seven-day observation remain
+separate from these implementation checks.
 
 DA-01..08 require authority, concurrency, retry, replay, failure recovery, clock, expiry, isolation, and activation evidence.
 The existing 28 library tests do not cover this handler.

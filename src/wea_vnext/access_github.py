@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import atexit
 import base64
 import hashlib
 import io
@@ -11,12 +12,14 @@ import os
 import re
 import subprocess
 import tarfile
+import tempfile
 from pathlib import Path
 from typing import Any
 
 from . import access_control as control
 from .tide.collection import API_ROOT, REPOSITORY, REPOSITORY_ID, _pages, _source
-from .tide.github import GitHub, GitHubError
+from .tide.github import GitHub as GitHubClient
+from .tide.github import GitHubError
 from .tide.ledger import load
 from .tide.replay import canonical, digest, json_data
 
@@ -26,6 +29,153 @@ WORKFLOW = ".github/workflows/access.yml"
 MAX_GRANTS = 500
 # Twenty full comment pages require one more request to confirm completion.
 COMMENT_PAGES = 21
+COMMENT_LIMIT = 2000
+
+
+class GitHub(GitHubClient):
+    """Use native Git for immutable objects, avoiding one REST call per object."""
+
+    def __init__(self, token: str):
+        super().__init__(token)
+        self._objects: dict[str, dict[str, Any]] = {}
+        self._directory: Any = None
+        self._batch: Any = None
+
+    def _git(self, *args: str) -> None:
+        env = dict(os.environ)
+        env.update(
+            GIT_CONFIG_NOSYSTEM="1",
+            GIT_CONFIG_GLOBAL=os.devnull,
+            GIT_TERMINAL_PROMPT="0",
+            GIT_CONFIG_COUNT="2",
+            GIT_CONFIG_KEY_0="http.https://github.com/.extraheader",
+            GIT_CONFIG_VALUE_0="AUTHORIZATION: basic "
+            + base64.b64encode(("x-access-token:" + self.token).encode()).decode(),
+            GIT_CONFIG_KEY_1="http.followRedirects",
+            GIT_CONFIG_VALUE_1="false",
+        )
+        try:
+            subprocess.run(
+                ["git", "-C", self._directory.name, *args],
+                env=env,
+                capture_output=True,
+                check=True,
+                timeout=120,
+            )
+        except (OSError, subprocess.SubprocessError):
+            raise GitHubError("canonical Access Git object transfer failed") from None
+
+    def close(self) -> None:
+        if self._batch is not None:
+            self._batch.stdin.close()
+            try:
+                self._batch.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self._batch.kill()
+                self._batch.wait()
+            self._batch.stdout.close()
+            self._batch.stderr.close()
+            self._batch = None
+        if self._directory is not None:
+            self._directory.cleanup()
+            self._directory = None
+
+    def _raw(self, sha: str) -> tuple[str, bytes]:
+        if self._directory is None:
+            self._directory = tempfile.TemporaryDirectory(prefix="wea-access-git-")
+            atexit.register(self.close)
+            self._git("init", "--bare", "--quiet")
+            self._batch = subprocess.Popen(
+                ["git", "-C", self._directory.name, "cat-file", "--batch"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        for attempt in range(2):
+            self._batch.stdin.write(sha.encode() + b"\n")
+            self._batch.stdin.flush()
+            header = self._batch.stdout.readline().decode("ascii").strip().split()
+            if header == [sha, "missing"] and attempt == 0:
+                self._git(
+                    "fetch",
+                    "--quiet",
+                    "--no-tags",
+                    "--no-recurse-submodules",
+                    "--no-auto-gc",
+                    f"https://github.com/{REPOSITORY}.git",
+                    sha,
+                )
+                continue
+            if len(header) != 3 or header[0] != sha or not header[2].isdigit():
+                raise GitHubError("Git object header differs")
+            size = int(header[2])
+            if size > 4 * 1024 * 1024:
+                raise GitHubError("Git object exceeds the retained evidence bound")
+            raw = self._batch.stdout.read(size)
+            if len(raw) != size or self._batch.stdout.read(1) != b"\n":
+                raise GitHubError("Git object stream is incomplete")
+            return header[1], raw
+        raise GitHubError("canonical Git object is unavailable")
+
+    def get(self, path: str) -> Any:
+        match = re.fullmatch(
+            re.escape(API_ROOT) + r"/git/(commits|trees|blobs)/([0-9a-f]{40})", path
+        )
+        if match is None:
+            return super().get(path)
+        kind, sha = match.groups()
+        if sha not in self._objects:
+            actual, raw = self._raw(sha)
+            if actual != {"commits": "commit", "trees": "tree", "blobs": "blob"}[kind]:
+                raise GitHubError("Git object type differs")
+            if actual == "commit":
+                headers = raw.split(b"\n\n", 1)[0].splitlines()
+                trees = [
+                    h[5:].decode("ascii") for h in headers if h.startswith(b"tree ")
+                ]
+                if len(trees) != 1:
+                    raise GitHubError("Git commit has no unique tree")
+                value = {
+                    "tree": {"sha": trees[0]},
+                    "parents": [
+                        {"sha": h[7:].decode("ascii")}
+                        for h in headers
+                        if h.startswith(b"parent ")
+                    ],
+                }
+            elif actual == "tree":
+                rows = []
+                while raw:
+                    name, rest = raw.split(b"\0", 1)
+                    mode, filename = name.split(b" ", 1)
+                    rows.append(
+                        {
+                            "mode": mode.decode(),
+                            "path": filename.decode("utf-8"),
+                            "sha": rest[:20].hex(),
+                            "type": "tree" if mode == b"40000" else "blob",
+                        }
+                    )
+                    raw = rest[20:]
+                value = {"tree": rows, "truncated": False}
+            else:
+                value = {
+                    "encoding": "base64",
+                    "content": base64.b64encode(raw).decode(),
+                }
+            self._objects[sha] = {**value, "sha": sha}
+        return self._objects[sha]
+
+
+def comments(api: Any, issue: int) -> list[dict[str, Any]]:
+    rows = _pages(
+        api.get,
+        f"{API_ROOT}/issues/{issue}/comments?sort=created&direction=asc",
+        COMMENT_PAGES,
+    )
+    if len(rows) > COMMENT_LIMIT:
+        raise ValueError("Access intake exceeds 2000 comments; capture refused")
+    return rows
 
 
 def git(root: Path, *args: str) -> str:
@@ -97,6 +247,8 @@ class Journal:
 
     def __init__(self, api: Any):
         self.api = api
+        self._snapshot: Any = None
+        self.state: Any = None
 
     def head(self) -> str | None:
         refs = self.api.get(f"{API_ROOT}/git/matching-refs/heads/{BRANCH}")
@@ -109,6 +261,8 @@ class Journal:
         self,
     ) -> tuple[str | None, dict[str, Any] | None, list[dict[str, Any]], list[str]]:
         head = self.head()
+        if self._snapshot is not None and self._snapshot[0] == head:
+            return self._snapshot
         if head is None:
             return None, None, [], []
         history = []
@@ -166,8 +320,20 @@ class Journal:
             documents.append(data)
             commits.append(commit_sha)
             previous = files
-        control.replay(documents[0], documents[1:])
-        return head, documents[0], documents[1:], commits[1:]
+        self.state = control.replay(documents[0], documents[1:])
+        self._snapshot = head, documents[0], documents[1:], commits[1:]
+        return self._snapshot
+
+    def remember(
+        self,
+        head: str,
+        genesis: dict[str, Any],
+        entries: list[dict[str, Any]],
+        commits: list[str],
+        state: Any,
+    ) -> None:
+        self._snapshot = head, genesis, entries, commits
+        self.state = state
 
     def append(self, parent: str | None, path: str, data: dict[str, Any]) -> str:
         if (parent is None and path != "genesis.json") or (
@@ -345,8 +511,9 @@ def process(
     identity_commit: str,
     provenance: dict[str, Any],
     clock: Any = control.utcnow,
+    journal: Journal | None = None,
 ) -> dict[str, Any]:
-    journal = Journal(api)
+    journal = journal or Journal(api)
     for _ in range(3):
         head, genesis, entries, commits = journal.read()
         if genesis is None:
@@ -364,7 +531,7 @@ def process(
         accepted = json_data(clock())
         candidate_state, decision = control.decide(
             genesis,
-            control.replay(genesis, entries),
+            journal.state,
             entries,
             source,
             identities,
@@ -383,9 +550,15 @@ def process(
             "provenance": provenance,
             "decision": decision,
         }
-        control.replay(genesis, [*entries, entry])
+        if entries and control.timestamp(accepted) < control.timestamp(
+            entries[-1]["accepted_at"]
+        ):
+            raise ValueError("trusted acceptance clock moved backwards")
         try:
             commit = journal.append(head, f"decision-{source['object_id']}.json", entry)
+            journal.remember(
+                commit, genesis, [*entries, entry], [*commits, commit], candidate_state
+            )
             return control.view(entry, commit, clock())
         except GitHubError:
             # Readback resolves both a competing append and a lost acknowledgement.
@@ -399,11 +572,7 @@ def repair_receipts(
     api: Any, genesis: dict[str, Any], entries: list[dict[str, Any]], commits: list[str]
 ) -> None:
     issue = genesis["issue_number"]
-    comments = _pages(
-        api.get,
-        f"{API_ROOT}/issues/{issue}/comments?sort=created&direction=asc",
-        COMMENT_PAGES,
-    )
+    observed = comments(api, issue)
     for entry, commit in zip(entries, commits, strict=True):
         marker = f"<!-- wea-access-receipt:{commit} -->"
         body = (
@@ -421,10 +590,15 @@ def repair_receipts(
             c.get("user", {}).get("type") == "Bot"
             and c.get("user", {}).get("login") == "github-actions[bot]"
             and c.get("body") == body
-            for c in comments
+            for c in observed
         ):
             continue
-        api.request("POST", f"{API_ROOT}/issues/{issue}/comments", {"body": body})
+        if len(observed) >= COMMENT_LIMIT:
+            raise ValueError("Access receipt pending: Issue comment capacity reached")
+        receipt = api.request(
+            "POST", f"{API_ROOT}/issues/{issue}/comments", {"body": body}
+        )
+        observed.append(receipt)
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
@@ -466,7 +640,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             args.activation_sha256,
             provenance,
         )
-    head, genesis, entries, _ = Journal(api).read()
+    journal = Journal(api)
+    head, genesis, entries, _ = journal.read()
     if genesis is None:
         return {"status": "disabled"}
     issue = repository(api, genesis["issue_number"])
@@ -478,11 +653,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     engine, _ = load(root, base)
     identities = json_data(engine.registry)
     processed = {e["source"]["object_id"] for e in entries}
-    rows = _pages(
-        api.get,
-        f"{API_ROOT}/issues/{genesis['issue_number']}/comments?sort=created&direction=asc",
-        COMMENT_PAGES,
-    )
+    rows = comments(api, genesis["issue_number"])
     for row in sorted(rows, key=lambda r: (r["created_at"], r["id"])):
         if str(row["id"]) in processed or not (row.get("body") or "").startswith(
             control.MARKER
@@ -493,8 +664,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         source = capture(api, genesis["issue_number"], row)
         if api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base:
             raise ValueError("canonical identity snapshot changed; dispatch again")
-        process(api, source, identities, base, provenance)
-    head, genesis, entries, commits = Journal(api).read()
+        process(api, source, identities, base, provenance, journal=journal)
+    head, genesis, entries, commits = journal.read()
     repair_receipts(api, genesis, entries, commits)
     return {"status": "reconciled", "journal_commit": head, "decisions": len(entries)}
 

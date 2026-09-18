@@ -11,9 +11,9 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from wea_vnext import access_control as control
-from wea_vnext.access_github import COMMENT_PAGES, Journal, repository
-from wea_vnext.tide.collection import API_ROOT, REPOSITORY, _pages
-from wea_vnext.tide.github import GitHub, GitHubError
+from wea_vnext.access_github import COMMENT_LIMIT, GitHub, Journal, comments, repository
+from wea_vnext.tide.collection import API_ROOT, REPOSITORY
+from wea_vnext.tide.github import GitHubError
 from wea_vnext.tide.replay import canonical
 
 
@@ -48,8 +48,10 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
     show.set_defaults(_handler=command)
 
 
-def read(api: GitHub, args: argparse.Namespace, account: str) -> dict:
-    head, genesis, entries, commits = Journal(api).read()
+def read(
+    api: GitHub, args: argparse.Namespace, account: str, journal: Journal | None = None
+) -> dict:
+    head, genesis, entries, commits = (journal or Journal(api)).read()
     if genesis is None:
         return {"status": "disabled"}
     repository(api, genesis["issue_number"])
@@ -69,11 +71,7 @@ def read(api: GitHub, args: argparse.Namespace, account: str) -> dict:
             selected.append(control.view(entry, commit, now))
     pending = []
     processed = {e["source"]["object_id"] for e in entries}
-    for row in _pages(
-        api.get,
-        f"{API_ROOT}/issues/{genesis['issue_number']}/comments?sort=created&direction=asc",
-        COMMENT_PAGES,
-    ):
+    for row in comments(api, genesis["issue_number"]):
         if str(row["id"]) in processed or control.timestamp(
             row["created_at"]
         ) <= control.timestamp(genesis["cutoff"]):
@@ -103,7 +101,8 @@ def read(api: GitHub, args: argparse.Namespace, account: str) -> dict:
 
 
 def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> dict:
-    _, genesis, _, _ = Journal(api).read()
+    journal = Journal(api)
+    _, genesis, _, _ = journal.read()
     if genesis is None:
         return {"status": "disabled"}
     repository(api, genesis["issue_number"])
@@ -161,12 +160,16 @@ def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> d
         flush=True,
     )
     args.request_id = identifier
-    observed = read(api, args, account)
+    observed = read(api, args, account, journal)
     if observed["status"] != "not-found":
         matches = observed.get("decisions", []) + observed.get("pending", [])
         if any(item.get("request") != request for item in matches):
             raise ValueError("request ID already belongs to a different payload")
         return observed
+    if len(comments(api, genesis["issue_number"])) >= COMMENT_LIMIT:
+        raise ValueError(
+            "Access request pending locally: Issue comment capacity reached"
+        )
     try:
         api.request(
             "POST",
@@ -174,7 +177,7 @@ def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> d
             {"body": body},
         )
     except GitHubError:
-        observed = read(api, args, account)
+        observed = read(api, args, account, journal)
         if observed["status"] == "not-found":
             return {
                 "status": "submission-unconfirmed",
@@ -185,7 +188,7 @@ def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> d
     for attempt in range(3):
         if attempt:
             time.sleep(2)
-        observed = read(api, args, account)
+        observed = read(api, args, account, journal)
         if observed["status"] == "observed":
             break
     return observed

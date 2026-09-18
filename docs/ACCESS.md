@@ -97,11 +97,20 @@ Git ancestry and append-only tree checks retain ordering without a second hash
 chain. A replay/integrity error stops issuance and is reported explicitly.
 Recovery proceeds by readback and new appends; never rewrite accepted intervals.
 
+The reader fetches immutable journal objects through native Git into a temporary
+bare repository and validates them locally. Within one reconciliation, it reuses
+the validated state while the head is unchanged. A competing append invalidates
+that snapshot. Git credentials are passed through the process environment;
+the temporary object store is removed when the process closes.
+
 The bounded pilot supports at most 500 grants and 2000 intake comments per
 bounded capture. Rejections and duplicate requests do not consume grant capacity;
 they remain retained in the journal. Grant-capacity exhaustion stops new issuance
 while existing history remains readable. Extending these bounds or changing the pinned implementation
 requires a separately reviewed change; do not force-push around the check.
+The 2000-comment bound includes receipts. An over-limit capture fails before
+processing requests. At capacity, CLI submission retains its local request and
+receipt repair reports pending without changing a committed Access interval.
 
 Expiry is evaluated from `[starts_at, ends_at)`. It needs no timer, Issue edit,
 PR or financial event. Disabling the Actions workflow stops new issuance but

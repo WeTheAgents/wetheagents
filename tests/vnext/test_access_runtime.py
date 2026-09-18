@@ -663,7 +663,9 @@ def test_trusted_workflow_reconciles_two_agents_and_skips_old_sources(
     # Override the default-bound clock explicitly for this synthetic workflow run.
     real_process = g.process
     monkeypatch.setattr(
-        g, "process", lambda *args: real_process(*args, clock=lambda: AT)
+        g,
+        "process",
+        lambda *args, **kwargs: real_process(*args, clock=lambda: AT, **kwargs),
     )
     for key, value in {
         "GITHUB_REPOSITORY": REPOSITORY,
@@ -856,3 +858,122 @@ def test_invalid_sources_do_not_consume_grant_capacity(
     _, retained, entries, _ = g.Journal(api).read()
     assert len(entries) == 4
     assert len(c.replay(retained, entries).grants) == 1
+
+
+def test_native_git_transfers_history_once_and_reads_new_objects(tmp_path, monkeypatch):
+    repository = tmp_path / "source"
+    repository.mkdir()
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(repository), *args],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+
+    git("init", "--quiet")
+    git("config", "user.name", "Access test")
+    git("config", "user.email", "access@example.invalid")
+    git("config", "commit.gpgsign", "false")
+    (repository / "record.json").write_bytes(b'{"first":true}\n')
+    git("add", "record.json")
+    git("commit", "--quiet", "-m", "first")
+    first = git("rev-parse", "HEAD")
+    api = g.GitHub("test-token-never-on-command-line")
+    run = subprocess.run
+    fetches = []
+
+    def local_transfer(argv, **kwargs):
+        if "fetch" in argv:
+            assert api.token not in " ".join(argv)
+            assert kwargs["env"]["GIT_CONFIG_VALUE_1"] == "false"
+            fetches.append(argv[-1])
+            argv = [*argv[:-2], str(repository), argv[-1]]
+        return run(argv, **kwargs)
+
+    monkeypatch.setattr(g.subprocess, "run", local_transfer)
+    try:
+        commit = api.get(f"{API_ROOT}/git/commits/{first}")
+        tree = api.get(f"{API_ROOT}/git/trees/{commit['tree']['sha']}")
+        blob = api.get(f"{API_ROOT}/git/blobs/{tree['tree'][0]['sha']}")
+        assert commit["parents"] == []
+        assert tree["tree"][0]["mode"] == "100644"
+        assert base64.b64decode(blob["content"]) == b'{"first":true}\n'
+        assert fetches == [first]
+        (repository / "record.json").write_bytes(b'{"second":true}\n')
+        git("add", "record.json")
+        git("commit", "--quiet", "-m", "second")
+        second = git("rev-parse", "HEAD")
+        assert api.get(f"{API_ROOT}/git/commits/{second}")["parents"] == [
+            {"sha": first}
+        ]
+        assert fetches == [first, second]
+        assert api.get(f"{API_ROOT}/git/commits/{first}") == commit
+        assert len(fetches) == 2
+    finally:
+        directory = Path(api._directory.name)
+        api.close()
+    assert not directory.exists()
+
+
+def test_reconciliation_reuses_validated_history(api, genesis, identities, monkeypatch):
+    original = c.replay
+    replay_sizes = []
+
+    def replay(start, entries):
+        replay_sizes.append(len(entries))
+        return original(start, entries)
+
+    monkeypatch.setattr(c, "replay", replay)
+    journal = g.Journal(api)
+    for number, agent in enumerate(("Codex-2@codex", "Codex-19@codex"), 1):
+        assert (
+            g.process(
+                api,
+                declaration(genesis, number=number, agent=agent),
+                identities,
+                "b" * 40,
+                {},
+                lambda: AT,
+                journal=journal,
+            )["status"]
+            == "active"
+        )
+    assert len(journal.read()[2]) == 2
+    assert replay_sizes == [0]
+    assert len(g.Journal(api).read()[2]) == 2
+    assert replay_sizes == [0, 2]
+
+
+def test_2001st_comment_refuses_capture_and_preserves_journal(api, genesis):
+    api.comments = [comment_row(declaration(genesis, number=i)) for i in range(1, 2002)]
+    head = api.ref
+    writes = len(api.writes)
+    with pytest.raises(ValueError, match="exceeds 2000"):
+        g.comments(api, 997)
+    assert api.ref == head
+    assert len(api.writes) == writes
+
+
+def test_full_issue_refuses_receipt_and_retains_cli_request(
+    api, genesis, identities, tmp_path
+):
+    publish(api, genesis, identities)
+    _, retained, entries, commits = g.Journal(api).read()
+    api.comments = [comment_row(source("unrelated", i, T0)) for i in range(1, 2001)]
+    writes = len(api.writes)
+    with pytest.raises(ValueError, match="receipt pending"):
+        g.repair_receipts(api, retained, entries, commits)
+    args = argparse.Namespace(
+        request_id=None,
+        agent="Codex-19@codex",
+        domain="circle-1",
+        issuer="agent0",
+        binding_id="pilot-agent0-role-v1",
+        binding_version=1,
+    )
+    with pytest.raises(ValueError, match="pending locally"):
+        cli.submit(api, args, ACCOUNT, tmp_path)
+    assert len(list((tmp_path / ".wea_runs/access-requests").glob("*.json"))) == 1
+    assert len(api.writes) == writes
