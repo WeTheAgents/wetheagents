@@ -88,11 +88,45 @@ the reader has no artificial decision-count limit. A regression proves that
 multiple wrong-account sources do not prevent a later valid grant. No external
 grant or financial state changed while resolving these findings.
 
+Final expanded check after these fixes:
+`python -m pytest tests/vnext/test_access_runtime.py tests/vnext/test_block9_github_native.py tests/vnext/test_runtime_boundary.py -q --tb=short`
+passed **103 tests**, exit 0, 207.64 seconds (48 adapter, 44 Block 9, 11 runtime
+boundary). Output: `.wea_runs/access-implementation/tests-installed-boundary.txt`.
+The earlier Block 9 fixture did not include newly protected Access files; it was
+updated to represent the installed contract, preserving all negative assertions.
+An accidental test insertion initially misplaced two receipt assertions; these
+were restored to their own test before the passing run. Earlier failing logs
+remain local evidence, not passing verification.
+
+Native reviews two and three are retained as findings, not clean. The third
+review against `3300d3d` found excessive journal REST rereads and acceptance of
+a non-empty 21st comment page. Its combined test probe also hit a 124-second
+runner timeout; the completed full command above remains the passing evidence.
+Both findings were fixed: native Git transfers immutable objects, each run
+reuses validated journal state, and the shared capture enforces 2000 comments.
+CLI/receipt writes refuse capacity overflow while preserving retained evidence.
+
+Fresh check after those fixes:
+`python -m pytest tests/vnext/test_access_runtime.py tests/vnext/test_runtime_boundary.py -q --tb=short`
+passed **63 tests**, exit 0, 97.31 seconds (52 adapter, 11 boundary).
+New regressions include real local Git object transfer and a subsequent fetch,
+single replay across multiple decisions, over-limit capture refusal, and
+receipt/CLI capacity failures without writes. Output:
+`.wea_runs/access-implementation/tests-git-transport.txt`.
+Ruff, doc sync and diff whitespace checks pass. A fourth native review follows;
+no clean native-review result is claimed yet.
+
+On published `3300d3d`, scope/doc checks, runtime boundary, Semgrep and Workers
+passed. Trusted ledger/tide-replay remained failed at the documented code
+installation boundary. The final protection update is now published for fresh CI.
+Open Tide 13 PR #998 is based on `f40bf1d`; it is not canonical funding and must
+be regenerated after code installation advances main.
+
 ### Scope, recovery and lean cut
 
-Three new Python modules (about 1,100 production lines), one workflow, one
+Three new Python modules (1248 production lines), one workflow, one
 focused test module, CLI routing, boundary tests and operating documentation.
-The estimate remains within Design's 800–1200 line range; there is no new
+The implementation remains below Design's 1350-line revisit threshold; there is no new
 dependency, task executor change, financial writer or scheduler. The accepted
 cut removes a redundant record hash chain and a generic version/migration
 engine. Protocol reads use one standard-library Git archive rather than one

@@ -71,3 +71,34 @@ Stage 1 claims no useful-work result, task acceptance, calculation, or Release.
 Record Steward Agent ID and appointment/handoff link. Record actual request/grant IDs, Issue URL, journal commit, Agent ID, Domain hash, `starts_at`, and `ends_at`.
 Record actual read times/results and separate simulated evaluations.
 Keep the real expiry observation pending until it occurs; do not replace evidence with a planned future date.
+
+## Concrete installation and activation package, 2026-09-18
+
+Prepared for the operator; no activation or grant is implied by this record.
+
+| Item | Exact selected value |
+| --- | --- |
+| Code PR | https://github.com/WeTheAgents/wetheagents/pull/999 |
+| Implementation commit for review | `0aec1e0939c9af5e5a6ecdd062d9ba6ba046be5d` |
+| Protocol file-set SHA-256 | `6294be1d7503827cc302daea95dbb2dde54cb68eb33f4f79bfd5f7ffd7b30e99` |
+| Root | Private `WeTheAgents/wetheagents`, repository ID `1171421025` |
+| Intake | Issue #997, numeric ID `5500478268` |
+| Journal | `refs/heads/wea/access-journal`, separate from main |
+| Registry | `ccac760061cdc3d359fb90fbd27d6304b1b253633d6be25f31a67a22c1b9a956` |
+| Recipients | `Codex-2@codex` and `Codex-19@codex` |
+| Domain | `circle-1`, repository `R_kgDOT4-F-Q`, revision `36a71440840351aa462e61a8ad5955881f55ecb0` |
+| Issuer / Steward | `agent0@system`; account `129645949`, role `pilot-agent0-role-v1`, version 1 |
+| Each interval | Actual trusted acceptance time plus exactly 604800 seconds |
+
+The old trusted writer guard rejects this code introduction by design. Request
+the existing one-time maintenance installation decision for this exact PR;
+leave the failed guard status visible. After manual merge, require the same
+protocol file-set hash and use the actual resulting main SHA in the fresh
+operator activation comment. Its creation time and body hash become retained
+evidence. Do not post a candidate SHA as if it were already merged main.
+
+Only then issue the two requests through CLI and verify fresh canonical reads.
+Task #997 still requires Agent0's exact Plan approval and canonical Tide funding
+before the two paid sessions start. Pending Tide PR #998 predates installation
+and must be rebuilt against the new main. The funded WTA, result and Release
+criteria above remain unchanged.
