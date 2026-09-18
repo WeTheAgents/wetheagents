@@ -4,6 +4,7 @@ import argparse
 import io
 import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -25,6 +26,47 @@ from wea_cli.pipeline_support import (
     normalize_stage,
     validate_stage_payload,
 )
+
+
+@pytest.mark.parametrize("module_name", ["scripts.pipeline_parser", "pipeline_parser"])
+def test_parser_import_preserves_sys_path(module_name: str) -> None:
+    # Relative paths keep dependencies available without masking the old shim.
+    # -I -S excludes editable installs, PYTHONPATH and cached parent modules.
+    probe = """
+import importlib
+import json
+import sys
+
+sys.path[:0] = [".", "scripts", "src", "src"]
+before = list(sys.path)
+parser = importlib.import_module(sys.argv[1])
+from wea_cli import pipeline_support
+
+print(json.dumps({
+    "module": sys.argv[1],
+    "before": before,
+    "after": sys.path,
+    "parser_origin": parser.__file__,
+    "dependency_origin": pipeline_support.__file__,
+}))
+"""
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-c", probe, module_name],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30,
+    )
+    observed = json.loads(result.stdout)
+    print(result.stdout, end="")
+    assert Path(observed["parser_origin"]).resolve() == (
+        ROOT / "scripts/pipeline_parser.py"
+    )
+    assert Path(observed["dependency_origin"]).resolve() == (
+        ROOT / "src/wea_cli/pipeline_support.py"
+    )
+    assert observed["after"] == observed["before"], result.stdout
 
 
 def _prepare_repo(root: Path) -> None:

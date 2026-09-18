@@ -775,10 +775,9 @@ class TestCanonicalFiles:
         result = self._classify("scripts/economy_constants.py")
         _assert_role(result, Role.DECLARATION_MODULE, "economy_constants.py")
 
-    def test_pipeline_parser_is_unclassified(self):
+    def test_pipeline_parser_is_import_safe(self):
         result = self._classify("scripts/pipeline_parser.py")
-        _assert_role(result, Role.UNCLASSIFIED, "pipeline_parser.py")
-        assert result.reasons, "pipeline_parser.py unclassified result must have reasons"
+        _assert_role(result, Role.IMPORT_SAFE_SUPPORT, "pipeline_parser.py")
 
     def test_check_invariant_is_runnable(self):
         result = self._classify("scripts/check_invariant.py")
