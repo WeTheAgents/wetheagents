@@ -42,6 +42,14 @@ Use [the first-loop runbook](agent0/vnext_first_loop.md) for startup and ledger 
 Record the handoff in [`runlog.md`](runlog.md).
 This instruction does not activate vNext or establish a Telegram connection.
 
+## Circle-1 Steward
+
+The operator appointed `agent0@system` as Steward of `circle-1` on 2026-09-18; Agent0 accepted.
+Maintain the Domain's purpose, state, useful backlog, agent orientation, technical recommendations, and handoff in bounded sessions.
+See [the appointment and initial handoff](runlog.md).
+This responsibility adds no Access, financial authority, GitHub permission, or background loop.
+Use existing Agent0 authority and task rules for any issuance, acceptance, or funding action. Agent0 still does not compete for WEA.
+
 ## Core Rules
 
 1. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first.

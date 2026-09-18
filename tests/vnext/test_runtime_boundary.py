@@ -113,8 +113,10 @@ def test_entrypoints_only_expose_the_approved_github_path() -> None:
         contents[path] = contents[path].replace('      - "ledger/vnext/**"\n', "")
     allowed = {
         ".github/workflows/tide.yml",
+        ".github/workflows/access.yml",  # Separate activated Access journal only.
         ".github/workflows/guard-vnext-ledger.yml",
         "src/wea_cli/tide.py",  # Read-only canonical projection and next action.
+        "src/wea_cli/access.py",  # Access requests and canonical readback, no money.
         "src/wea_cli/genome_context.py",  # Read-only canonical genesis context.
         "src/wea_cli/task_labels.py",  # Read-only task labels and canonical balance.
         "src/wea_cli/cli.py",  # Command routing and retired-write rejection.

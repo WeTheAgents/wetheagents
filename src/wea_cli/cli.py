@@ -152,6 +152,7 @@ READONLY_SUBCOMMANDS: dict[str, frozenset[str]] = {
     "escrow": frozenset({"check"}),
     "knowledge": frozenset({"search", "list"}),
     "circle1": frozenset({"sweep"}),
+    "access": frozenset({"show"}),
 }
 
 
@@ -3501,6 +3502,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to repository root (used for ledger reads)",
     )
     subparsers = parser.add_subparsers(dest="command")
+
+    from wea_cli.access import add_parser as add_access_parser
+
+    add_access_parser(subparsers)
 
     from wea_cli.tide import show as show_tide
 

@@ -157,6 +157,7 @@ def _repo(tmp_path: Path) -> tuple[Path, str]:
 
 def _install_pinned_boundary(root: Path) -> None:
     pinned = {
+        ".github/workflows/access.yml": b"permissions:\n  contents: write\n",
         ".github/workflows/tide.yml": (b"permissions:\n  contents: write\n"),
         ".github/workflows/guard-vnext-ledger.yml": (
             b"permissions:\n  contents: read\n"
@@ -172,6 +173,10 @@ def _install_pinned_boundary(root: Path) -> None:
         "src/wea_vnext/__init__.py",
         "src/wea_vnext/block9/__init__.py",
         "src/wea_vnext/engine.py",
+        "src/wea_vnext/domain_access.py",
+        "src/wea_vnext/access_control.py",
+        "src/wea_vnext/access_github.py",
+        "src/wea_cli/access.py",
         *(
             f"src/wea_vnext/tide/{name}.py"
             for name in (

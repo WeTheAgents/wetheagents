@@ -1,6 +1,9 @@
 # CLI availability during vNext preparation
 
 The `wea` CLI contains legacy commands and canonical vNext inspection commands.
+The private Access adapter adds `wea access grant` and `wea access show`.
+It remains disabled until exact operator activation after manual code merge;
+see [Access deployment and recovery](ACCESS.md). Access does not fund Work.
 Tide source collection and settlement run through the dedicated GitHub Action.
 A command being present does not mean it is authorized for the pilot.
 
