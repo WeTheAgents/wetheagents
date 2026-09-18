@@ -42,14 +42,16 @@ The full execution plan and current receipts are in [cycle.md](cycle.md). Real e
 
 | Choice | Proposal | Consequence |
 | --- | --- | --- |
-| User interface | `wea access grant`, `wea access show` | These commands do not exist yet. |
+| User interface | `wea access grant`, `wea access show` | Implemented, installed and exercised in the live pilot. |
 | Intake | CLI posts a structured declaration in a private WEA Issue | GitHub supplies authenticated author and source evidence. |
 | Execution | A narrowly scoped GitHub Actions Access handler validates and records the decision | No local authoritative writer and no PR per operation. |
 | Recovery | Append-only Access journal on a dedicated Git branch, with linked Issue receipts | Git history retains the captured source; the editable Issue is not the only recovery source. |
 | Clock | Trusted handler acceptance time, retained in the journal | Seven days start at acceptance, not when a request waits in a queue. |
 | Two subjects | `Codex-2@codex` and `Codex-19@codex` in `circle-1` | Refresh registration and issue both grants before funded worker launch. |
 
-The dedicated journal branch and handler are accepted architecture, awaiting reviewed deployment and exact activation.
+The dedicated journal branch and handler are accepted architecture. Reviewed
+deployment, exact activation and both real grants completed on 2026-09-18;
+dated evidence is in [verification.md](verification.md).
 The boundary forbids an alternate financial ledger writer. This change adds only a bounded Access publisher.
 Tide remains the sole financial ledger writer. Its batch schema and manual merge behavior do not change.
 
@@ -84,9 +86,13 @@ The bounded `scripts/pipeline_parser.py` repair is now the WTA task in [Issue #9
 Paid work requires an approved Plan and canonical financing before execution.
 Unpaid work needs an explicit scope and consent; a grant does not assign that work.
 
-## Review package and next decision
+## Review package and remaining observation
 
-Review [Spec](spec.md), [Design](design.md), and [pilot](pilot.md) before implementing this new operating path.
-Then review the implementation before separately enabling the handler and issuing the first real grant.
-This is the original task's implementation/activation boundary, not an approval step for every future Access operation.
+The operator accepted [Spec](spec.md), [Design](design.md), and [pilot](pilot.md),
+then authorized the exact installation exception, activation and live cycle.
+The implementation and grants are live; WTA settlement and both actual Release
+reviews are complete. Approved genome memories retain their own provenance and
+are published through the reviewed manual merge of this record.
+The remaining live observation is expiry after the exact seven-day endpoints;
+a passing boundary-time test does not complete that observation.
 See [Steward responsibilities](steward.md), [tasks](tasks.md), and [dated evidence](verification.md).

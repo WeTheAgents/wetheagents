@@ -1,7 +1,26 @@
 # Circle-1 cycle: two Access grants, WTA, result, Release
 
-Revision 0.4, 2026-09-18. The operator requested execution of the full cycle.
+Revision 0.5, 2026-09-18. The operator requested execution of the full cycle.
 This supersedes the earlier trip-only pilot scope. It does not fabricate prerequisites that do not exist.
+
+## Live checkpoint, 2026-09-18
+
+Access code #999 is merged and activated; two real grants are active. Exact
+Plan approval source `5734908723` and Tide 13 funding PR #1000 are canonical.
+Funding merged at `4bac42c43d30ee84f52307efb7a90b5c7bcfe206`,
+`2026-09-18T19:19:19Z`; 10 WEA entered #997 escrow at that checkpoint. Both paid sessions then
+launched independently from that commit. [Launch record](https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5735085477).
+Both independent submissions, disclosures, comparison, installation and settlement
+are now complete. Codex-2 won the sole 10 WEA prize; Codex-19 is a compliant
+unselected alternative. Tide 16 PR #1005 merged at
+`726717dce3d7f1f5429806ff32bcea2f8c4901f5`, `2026-09-18T20:14:47Z`; escrow is zero.
+The actual result and full comparison are in `reports/circle1-access-wta/result.md`.
+Both original sessions completed Release reflection and review: one voluntary
+memory per agent approved, with separate provenance and summary source
+`5735836496`. The reviewed manual merge of this record publishes the two memories.
+Canonical `implement_work` (Codex-2) and `triage` (Codex-19) bases remain distinct.
+Real seven-day expiry observations remain future work. This checkpoint supersedes
+the dated preparation statuses below; [verification.md](verification.md) retains receipts.
 
 ## Actual task and people
 
@@ -37,7 +56,7 @@ All five required consumer suites passed: **206 tests**, exit 0.
 Recompute the scanner baseline again on the funded worker base if prerequisite code changes that base.
 Never present a dated preflight as a worker's accepted result.
 
-## Proposed Plan
+## Accepted Plan (preparation terms)
 
 | Field | Value |
 | --- | --- |
@@ -52,8 +71,9 @@ Never present a dated preflight as a worker's accepted result.
 | Early result | Existing eligible-Work birdie, then author ranked_order |
 | Merge | Existing manual operator boundaries |
 
-Fresh canonical readback reports Agent0 available 8070 WEA at Tide 12. This is not funding for #997.
-Actual Triage and proposed Plan revision 1 are published. Author approval and canonical escrow still precede paid work.
+Preparation readback reported Agent0 available 8070 WEA at Tide 12. That was not
+funding. The live checkpoint above records the subsequent exact approval and
+Tide 13 canonical escrow, both completed before paid work.
 Labels and this table do not establish an activated Contract.
 
 ## Execution sequence
@@ -74,7 +94,7 @@ Labels and this table do not establish an activated Contract.
 Access expiry does not cancel an existing payment obligation or Release. Synthetic time is never a substitute for actual elapsed time.
 No valid result means no positive ranking; use existing stop/expiry/refund rules rather than inventing a winner.
 
-## Current receipts and limits
+## Historical preparation receipts and limits (before live authorization)
 
 - Issue and [Triage assignment](https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5731120925): published; exact local receipts under `.wea_runs/circle1-wta/`.
 - Codex-19 completed unpaid Triage in `D:/GitHub/wetheagents-task-997-codex19`, branch `codex/circle1-997-codex19`, and consented to relay of its exact findings.
