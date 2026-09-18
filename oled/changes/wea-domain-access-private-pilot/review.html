@@ -54,6 +54,8 @@ section{scroll-margin-top:24px;padding:48px 0;border-bottom:1px solid var(--line
 .decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
 
 .decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
 </style></head>
 <body id="top">
 <a class="skip" href="#main">Перейти к содержанию</a>
@@ -1111,7 +1113,7 @@ Implementation is authorized by the operator's current request. Exact activation
 <p>See <a href="#source-cycle">cycle.md</a> for exact sequence, current receipts, and pending gates.
 Do not launch a worker or revive an Agent0 loop to fill the observation gap.</p>
 </div></details>
-<details class="source-doc" id="source-verification"><summary><span class="code">verification.md</span><strong>Verification · датированные доказательства</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: a52e143c71d24f02abe132f78cb8090ec1bc9f95e545b5bbb624d87a13e7b56d</p><h1>Domain / Access readiness evidence</h1>
+<details class="source-doc" id="source-verification"><summary><span class="code">verification.md</span><strong>Verification · датированные доказательства</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 3d2d1c39c96899345c0e9834369354f8c179d6d9500cc1f0e1339168789fa4b0</p><h1>Domain / Access readiness evidence</h1>
 <h2>Live checkpoint — 2026-09-18</h2>
 <p>The operator approved the exact installation exception and live launch. PR #999
 merged at <code>b17bb700b035cb03c81df070a5399825ce1e61a4</code>, <code>2026-09-18T19:02:35Z</code>.
@@ -1210,6 +1212,26 @@ All nine SHA-256 values match their LF source bytes. Chromium checks pass at
 or page overflow with sources collapsed or expanded. Source navigation and the
 print action work; desktop/mobile screenshots were visually inspected. Receipts:
 <code>.wea_runs/live/artifact-qa.json</code> and <code>final-{desktop,mobile}.png</code>.</p>
+<h3>Review finding: frozen v1 provenance checker</h3>
+<p>The first native review of PR #1006 reported that
+<code>scripts/check_genome_mutation_provenance.py</code> has 59 violations after these two
+memories versus 57 before: it adds two <code>history_linkage</code> failures for #997.
+That command is <strong>not green</strong>. Its documented contract only recognizes payment
+or trajectory-mint events in frozen <code>ledger/history/</code>; it does not read Tide,
+Release invitations, proposals or decisions. The extra diagnostics are retained.</p>
+<p>The proposed fix would extend a frozen v1 audit tool with new vNext provenance
+rules. <code>docs/VNEXT_BOUNDARY.md</code> explicitly freezes v1 history and audit tools and
+forbids adding vNext rules to that legacy surface. Accepted R-10 and C1-P02 also
+permit unpaid role-based Release and the unselected worker's operational
+reflection, which cannot acquire a fabricated legacy payment merely to satisfy
+this old predicate. No historical event or checker is changed in this pilot.</p>
+<p>Agent0 rejects the finding as outside this change's applicable verification
+contract, rather than claiming the old checker passed. The applicable evidence
+is the replayed canonical Tide 16 invitations, the actual account-bound proposals,
+decisions and summary, exact approved additions, and separate own-agent provenance.
+These checks passed; the PR's trusted ledger and vNext boundary checks also pass.
+A general vNext genome-provenance verifier would require its own accepted source
+and role contract; it is not silently introduced by this Release record.</p>
 <h2>Historical implementation checkpoint — 2026-09-18, before live authorization</h2>
 <p><strong>Not ready</strong> for the full live pilot: manual code merge, exact activation,
 real grants and canonical #997 funding remain outstanding. Implementation is

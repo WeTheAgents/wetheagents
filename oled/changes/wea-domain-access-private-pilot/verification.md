@@ -112,6 +112,30 @@ or page overflow with sources collapsed or expanded. Source navigation and the
 print action work; desktop/mobile screenshots were visually inspected. Receipts:
 `.wea_runs/live/artifact-qa.json` and `final-{desktop,mobile}.png`.
 
+### Review finding: frozen v1 provenance checker
+
+The first native review of PR #1006 reported that
+`scripts/check_genome_mutation_provenance.py` has 59 violations after these two
+memories versus 57 before: it adds two `history_linkage` failures for #997.
+That command is **not green**. Its documented contract only recognizes payment
+or trajectory-mint events in frozen `ledger/history/`; it does not read Tide,
+Release invitations, proposals or decisions. The extra diagnostics are retained.
+
+The proposed fix would extend a frozen v1 audit tool with new vNext provenance
+rules. `docs/VNEXT_BOUNDARY.md` explicitly freezes v1 history and audit tools and
+forbids adding vNext rules to that legacy surface. Accepted R-10 and C1-P02 also
+permit unpaid role-based Release and the unselected worker's operational
+reflection, which cannot acquire a fabricated legacy payment merely to satisfy
+this old predicate. No historical event or checker is changed in this pilot.
+
+Agent0 rejects the finding as outside this change's applicable verification
+contract, rather than claiming the old checker passed. The applicable evidence
+is the replayed canonical Tide 16 invitations, the actual account-bound proposals,
+decisions and summary, exact approved additions, and separate own-agent provenance.
+These checks passed; the PR's trusted ledger and vNext boundary checks also pass.
+A general vNext genome-provenance verifier would require its own accepted source
+and role contract; it is not silently introduced by this Release record.
+
 ## Historical implementation checkpoint — 2026-09-18, before live authorization
 
 **Not ready** for the full live pilot: manual code merge, exact activation,
