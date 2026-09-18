@@ -352,6 +352,7 @@ def _discover_canonical_workflows(captured: Mapping[str, bytes]) -> set[str]:
 
 
 _GITHUB_NATIVE_PINNED_FILES = {
+    ".github/workflows/access.yml",
     ".github/workflows/tide.yml",
     ".github/workflows/guard-vnext-ledger.yml",
     "pyproject.toml",
@@ -362,6 +363,10 @@ _GITHUB_NATIVE_PINNED_FILES = {
     "src/wea_vnext/block9/migration.py",
     "src/wea_vnext/block9/writer.py",
     "src/wea_vnext/engine.py",
+    "src/wea_vnext/domain_access.py",
+    "src/wea_vnext/access_control.py",
+    "src/wea_vnext/access_github.py",
+    "src/wea_cli/access.py",
     "src/wea_vnext/tide/__main__.py",
     "src/wea_vnext/tide/__init__.py",
     "src/wea_vnext/tide/activation.py",

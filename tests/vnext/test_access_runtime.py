@@ -762,10 +762,17 @@ def test_fresh_cli_retry_rejects_conflicting_payload(
 def test_capacity_does_not_make_prior_history_unreadable(
     api, genesis, identities, monkeypatch
 ):
-    monkeypatch.setattr(g, "MAX_RECORDS", 1)
+    monkeypatch.setattr(g, "MAX_GRANTS", 1)
     publish(api, genesis, identities)
     with pytest.raises(ValueError, match="capacity reached"):
-        publish(api, genesis, identities, number=2)
+        g.process(
+            api,
+            declaration(genesis, number=2, agent="Codex-19@codex"),
+            identities,
+            "b" * 40,
+            {},
+            lambda: AT,
+        )
     assert len(g.Journal(api).read()[2]) == 1
 
 
@@ -797,9 +804,55 @@ def test_exact_2000_comment_boundary_preserves_read_and_receipt_repair(
     ]
     g.repair_receipts(api, retained, entries, commits)
     assert len(api.comments) == 2000
+
     g.repair_receipts(api, retained, entries, commits)
     observed = cli.read(
         api, argparse.Namespace(agent="Codex-2@codex", request_id=None), ACCOUNT
     )
     assert observed["status"] == "observed"
     assert len(api.comments) == 2000
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        g.WORKFLOW,
+        "src/wea_vnext/domain_access.py",
+        "src/wea_vnext/access_control.py",
+        "src/wea_vnext/access_github.py",
+        "src/wea_cli/access.py",
+    ],
+)
+def test_installed_guard_pins_access_writer_closure(target):
+    from wea_vnext.block9.common import Block9Error
+    from wea_vnext.block9.writer import validate_writer_boundary_sources
+
+    paths = [
+        *Path("src").rglob("*.py"),
+        *Path("src").rglob("*.json"),
+        *Path(".github/workflows").glob("*.yml"),
+        Path("pyproject.toml"),
+    ]
+    snapshot = {p.as_posix(): p.read_bytes() for p in paths}
+    validate_writer_boundary_sources(snapshot, snapshot)
+    changed = dict(snapshot)
+    changed[target] += b"\n# changed writer\n"
+    with pytest.raises(Block9Error, match="boundary"):
+        validate_writer_boundary_sources(snapshot, changed)
+
+
+def test_invalid_sources_do_not_consume_grant_capacity(
+    api, genesis, identities, monkeypatch
+):
+    monkeypatch.setattr(g, "MAX_GRANTS", 1)
+    for number in range(1, 4):
+        src = declaration(genesis, number=number)
+        src["actor_account_id"] = src["original_author_account_id"] = "123"
+        assert (
+            g.process(api, src, identities, "b" * 40, {}, lambda: AT)["status"]
+            == "rejected"
+        )
+    assert publish(api, genesis, identities, number=4)["status"] == "active"
+    _, retained, entries, _ = g.Journal(api).read()
+    assert len(entries) == 4
+    assert len(c.replay(retained, entries).grants) == 1

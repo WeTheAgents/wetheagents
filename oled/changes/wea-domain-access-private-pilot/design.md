@@ -20,6 +20,10 @@ Tide financial batches retain their existing publication, schema, and manual mer
 This is a new Access publication surface, accepted with delta 0.5.
 Implementation explicitly updates that boundary and its tests; deployment still requires manual merge and exact activation.
 It must not add a financial ledger writer or change a released executor closure.
+The existing guard's protected-file set also pins the Access workflow, pure
+Domain library, adapter, GitHub handler and CLI after installation. This closes
+the observed static-discovery gap for API calls in the new handler. The guard
+does not grant Access authority or publish its journal.
 
 ## Proposed path
 
@@ -137,7 +141,9 @@ Expected surfaces: CLI, Access adapter/journal replay, one workflow, focused tes
 No scanner, task executor, admission, payment, or GitHub permission policy changes belong to this stage.
 The useful parser repair belongs to the separately funded #997 cycle, after Access is ready; see [cycle.md](cycle.md).
 
-The bounded pilot stops before a 501st decision. Comment reads support 20 full
+The bounded pilot stops before a 501st grant. Rejected and duplicate sources
+remain auditable without consuming issuance capacity; history has no artificial
+decision-count limit. Comment reads support 20 full
 pages of 100 comments plus a completion request, and fail explicitly if the
 bounded capture cannot reach its end. Receipts count toward Issue comment volume.
 Existing journal history remains readable at the decision limit. This is a capacity error, not expiry or revocation.

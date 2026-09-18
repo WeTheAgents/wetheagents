@@ -42,6 +42,8 @@ section{scroll-margin-top:24px;padding:48px 0;border-bottom:1px solid var(--line
 .decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
 
 .decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
 </style></head>
 <body id="top">
 <a class="skip" href="#main">Перейти к содержанию</a>
@@ -469,7 +471,7 @@ This resolves the manual pilot responsibility without activating DA-01..08 or cl
 </ul>
 <p>These are pilot composition criteria. Existing task/executor, money, and Release rules do not change.</p>
 </div></details>
-<details class="source-doc" id="source-design"><summary><span class="code">design.md</span><strong>Design · согласованный механизм</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: ce8c667f89df232b442bef2e47a0bc2c0a5f31d56c64627f159ffca567398143</p><h1>Accepted Design: CLI and GitHub Access journal</h1>
+<details class="source-doc" id="source-design"><summary><span class="code">design.md</span><strong>Design · согласованный механизм</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 2b2401195b3dd1e9158263573e4c64bfa2d8a771eeddda6e39fbf25353fdd69f</p><h1>Accepted Design: CLI and GitHub Access journal</h1>
 <p>Revision 0.5, accepted 2026-09-18; bound to accepted Outcome 0.5 and Spec 0.5.
 CLI, retained GitHub, no per-Access PR, and two trips before the funded WTA task are the operator's selected direction.
 The operator authorized implementation with the simplifications below. Activation remains separate.</p>
@@ -486,7 +488,11 @@ The handler appends Access decisions directly to a private Git journal branch, w
 Tide financial batches retain their existing publication, schema, and manual merge path.</p>
 <p>This is a new Access publication surface, accepted with delta 0.5.
 Implementation explicitly updates that boundary and its tests; deployment still requires manual merge and exact activation.
-It must not add a financial ledger writer or change a released executor closure.</p>
+It must not add a financial ledger writer or change a released executor closure.
+The existing guard's protected-file set also pins the Access workflow, pure
+Domain library, adapter, GitHub handler and CLI after installation. This closes
+the observed static-discovery gap for API calls in the new handler. The guard
+does not grant Access authority or publish its journal.</p>
 <h2>Proposed path</h2>
 <p>Accepted commands implemented by this change:</p>
 <pre><code class="language-text">wea access grant --agent Codex-19@codex --domain circle-1
@@ -578,7 +584,9 @@ GitHub availability remains necessary for issuance and fresh canonical readback.
 <p>Expected surfaces: CLI, Access adapter/journal replay, one workflow, focused tests, and approved operating/boundary documentation.
 No scanner, task executor, admission, payment, or GitHub permission policy changes belong to this stage.
 The useful parser repair belongs to the separately funded #997 cycle, after Access is ready; see <a href="#source-cycle">cycle.md</a>.</p>
-<p>The bounded pilot stops before a 501st decision. Comment reads support 20 full
+<p>The bounded pilot stops before a 501st grant. Rejected and duplicate sources
+remain auditable without consuming issuance capacity; history has no artificial
+decision-count limit. Comment reads support 20 full
 pages of 100 comments plus a completion request, and fail explicitly if the
 bounded capture cannot reach its end. Receipts count toward Issue comment volume.
 Existing journal history remains readable at the decision limit. This is a capacity error, not expiry or revocation.
@@ -972,7 +980,7 @@ Implementation is authorized by the operator's current request. Exact activation
 <p>See <a href="#source-cycle">cycle.md</a> for exact sequence, current receipts, and pending gates.
 Do not launch a worker or revive an Agent0 loop to fill the observation gap.</p>
 </div></details>
-<details class="source-doc" id="source-verification"><summary><span class="code">verification.md</span><strong>Verification · датированные доказательства</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 7f6d6fcb838cae9fd6c1375ecb6c4908e83d5f6ae087828293fe1430264c71cf</p><h1>Domain / Access readiness evidence</h1>
+<details class="source-doc" id="source-verification"><summary><span class="code">verification.md</span><strong>Verification · датированные доказательства</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 895af1c8a71aa722aceec09e157f3f53a1055e7d12b87887062167e352dfc1d5</p><h1>Domain / Access readiness evidence</h1>
 <h2>Current implementation checkpoint — 2026-09-18</h2>
 <p><strong>Not ready</strong> for the full live pilot: manual code merge, exact activation,
 real grants and canonical #997 funding remain outstanding. Implementation is
@@ -1085,6 +1093,21 @@ checkpoint, described in the accepted Tide Design: old trusted code cannot
 approve its own writer-boundary expansion. Preserve the failed status and
 obtain a one-time operator decision for this exact PR after review. There is
 no waiver of later ledger validation and no change to the guard itself.</p>
+<p>Subsequent boundary verification showed that the existing guard discovered the
+new workflow but did not automatically pin the Access Python handler. The
+candidate now extends the guard's protected file list to the Access workflow,
+library, adapter, GitHub handler and CLI. It preserves every existing protected
+file and does not modify released executors. This supersedes the preceding
+&quot;no change to the guard itself&quot; statement: protection is extended, never weakened.
+Five parameterized regressions require rejection of edits to these exact files.
+An initial probe incorrectly passed <code>HEAD</code> where a full SHA was required;
+the corrected probe exposed this real missing protection before activation.</p>
+<p>The second native review found that rejected comments could exhaust the
+500-decision capacity. The final policy limits actual grants instead: rejected
+and duplicate sources remain retained without consuming grant capacity, and
+the reader has no artificial decision-count limit. A regression proves that
+multiple wrong-account sources do not prevent a later valid grant. No external
+grant or financial state changed while resolving these findings.</p>
 <h3>Scope, recovery and lean cut</h3>
 <p>Three new Python modules (about 1,100 production lines), one workflow, one
 focused test module, CLI routing, boundary tests and operating documentation.

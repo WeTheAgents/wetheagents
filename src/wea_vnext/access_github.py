@@ -23,7 +23,7 @@ from .tide.replay import canonical, digest, json_data
 BRANCH = "wea/access-journal"
 REF = "refs/heads/" + BRANCH
 WORKFLOW = ".github/workflows/access.yml"
-MAX_RECORDS = 500
+MAX_GRANTS = 500
 # Twenty full comment pages require one more request to confirm completion.
 COMMENT_PAGES = 21
 
@@ -115,8 +115,8 @@ class Journal:
         cursor = head
         visited: set[str] = set()
         while cursor:
-            if cursor in visited or len(history) > MAX_RECORDS:
-                raise ValueError("Access journal cycle or size bound exceeded")
+            if cursor in visited:
+                raise ValueError("Access journal cycle detected")
             visited.add(cursor)
             commit = self.api.get(f"{API_ROOT}/git/commits/{cursor}")
             if commit["sha"] != cursor or len(commit["parents"]) > 1:
@@ -361,13 +361,8 @@ def process(
         )
         if existing is not None:
             return control.view(entries[existing], commits[existing], clock())
-        if len(entries) >= MAX_RECORDS:
-            raise ValueError(
-                "Access pilot journal capacity reached; "
-                "existing history remains readable"
-            )
         accepted = json_data(clock())
-        _, decision = control.decide(
+        candidate_state, decision = control.decide(
             genesis,
             control.replay(genesis, entries),
             entries,
@@ -375,6 +370,10 @@ def process(
             identities,
             accepted,
         )
+        if len(candidate_state.grants) > MAX_GRANTS:
+            raise ValueError(
+                "Access pilot grant capacity reached; existing history remains readable"
+            )
         entry = {
             "schema": control.SCHEMA,
             "source": source,

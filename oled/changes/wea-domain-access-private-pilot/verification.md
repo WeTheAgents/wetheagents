@@ -71,6 +71,23 @@ approve its own writer-boundary expansion. Preserve the failed status and
 obtain a one-time operator decision for this exact PR after review. There is
 no waiver of later ledger validation and no change to the guard itself.
 
+Subsequent boundary verification showed that the existing guard discovered the
+new workflow but did not automatically pin the Access Python handler. The
+candidate now extends the guard's protected file list to the Access workflow,
+library, adapter, GitHub handler and CLI. It preserves every existing protected
+file and does not modify released executors. This supersedes the preceding
+"no change to the guard itself" statement: protection is extended, never weakened.
+Five parameterized regressions require rejection of edits to these exact files.
+An initial probe incorrectly passed `HEAD` where a full SHA was required;
+the corrected probe exposed this real missing protection before activation.
+
+The second native review found that rejected comments could exhaust the
+500-decision capacity. The final policy limits actual grants instead: rejected
+and duplicate sources remain retained without consuming grant capacity, and
+the reader has no artificial decision-count limit. A regression proves that
+multiple wrong-account sources do not prevent a later valid grant. No external
+grant or financial state changed while resolving these findings.
+
 ### Scope, recovery and lean cut
 
 Three new Python modules (about 1,100 production lines), one workflow, one
