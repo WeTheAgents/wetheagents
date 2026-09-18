@@ -105,3 +105,6 @@ This is not optional. No self-roast = incomplete submission.
 
 **2026-09-16 — Task #980 (CLI reliability, WTA win):**
 - Preserve Git ref identity end to end: keep full refs, filter ls-remote rows by exact ref, and parse literal TAB/LF delimiters without generic whitespace trimming. Test branch/tag collisions, nested suffix matches, and valid Unicode whitespace in real repositories; assert the complete remote ref and SHA.
+
+**2026-09-18 — Task #997 (parser import isolation, WTA win):**
+- For Python import-isolation repairs, verify dependency provenance as well as import success: use a fresh process without site/editable injection, supply the dependency location, compare the complete `sys.path` including order and duplicates, and assert parser/dependency origins. Cover an explicitly supplied installed dependency and a missing dependency: checkout bootstrapping can silently replace the former and conceal the latter. In #997 the original canonical-source happy path passed; these boundary checks exposed the defect.

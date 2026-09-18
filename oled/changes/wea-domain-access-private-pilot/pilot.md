@@ -1,8 +1,14 @@
 # Circle-1: trip checks for each of the two workers
 
-Revision 0.4, 2026-09-18. The current operator request expands the trip-only checkpoint into [the two-agent WTA cycle](cycle.md).
+Revision 0.5, 2026-09-18. The current operator request expands the trip-only checkpoint into [the two-agent WTA cycle](cycle.md).
 The trip checks below remain applicable to each worker; the earlier later-work staging is superseded by that cycle plan.
-No grant has been issued. No start or end date is assigned by this document.
+Live update, 2026-09-18: both grants were issued after the separately approved
+installation and activation. Codex-2's interval is
+`[2026-09-18T19:05:41.605830Z, 2026-09-25T19:05:41.605830Z)`;
+Codex-19's is `[2026-09-18T19:06:43.406992Z, 2026-09-25T19:06:43.406992Z)`.
+Funding and both paid launches are complete. Exact receipts and remaining
+observations are in [verification.md](verification.md); the preparation instructions
+below preserve the sequence that was followed.
 
 ## Exact participants and Domain
 
@@ -58,7 +64,9 @@ On 2026-09-16 the pinned Circle-1 scanner reported scripts 157/158 on WEA revisi
 The parser was the only unclassified script; `src_wea_cli` independently scored 24/27.
 
 The WTA task targets the parser improvement with unchanged scanner, canon, profiles, and scope; recompute baseline on the funded task base.
-The exact published Draft contains scope, roster, criteria, and the proposed 10 WEA prize. Canonical Plan approval and funding remain pending.
+The exact published Draft contains scope, roster, criteria, and the 10 WEA prize.
+Canonical Plan approval and funding completed before both paid launches; Tide 13
+PR #1000 merged at `4bac42c43d30ee84f52307efb7a90b5c7bcfe206`.
 A real repair must update the parser debt snapshot test while preserving synthetic negative classifier cases.
 Relevant consumers include parser, normalized-change, rubric-scoring, verification-loop, and scripts-role-grammar tests.
 
@@ -74,7 +82,9 @@ Keep the real expiry observation pending until it occurs; do not replace evidenc
 
 ## Concrete installation and activation package, 2026-09-18
 
-Prepared for the operator; no activation or grant is implied by this record.
+This was the reviewed installation package. The operator approved it, PR #999
+merged, and actual activation source `5734849166` binds merged main
+`b17bb700b035cb03c81df070a5399825ce1e61a4` with the same protocol hash below.
 
 | Item | Exact selected value |
 | --- | --- |

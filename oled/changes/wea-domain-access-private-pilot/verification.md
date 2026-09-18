@@ -1,6 +1,142 @@
 # Domain / Access readiness evidence
 
-## Current implementation checkpoint — 2026-09-18
+## Live checkpoint — 2026-09-18
+
+The operator approved the exact installation exception and live launch. PR #999
+merged at `b17bb700b035cb03c81df070a5399825ce1e61a4`, `2026-09-18T19:02:35Z`.
+The earlier preparation and implementation checkpoints below retain their dates;
+their pending installation, activation, grant and funding states are superseded here.
+
+- Activation: [source 5734849166](https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5734849166),
+  `2026-09-18T19:03:42Z`; body SHA-256
+  `f59cfe02b1cc093b517b82b947560e67894f8635cb375264a02f8db49a1d585d`.
+  Actions run `35383794886` succeeded; journal genesis
+  `4c5417bbc81c4e67a3a2b5c8630b8412401a54a7` is on `wea/access-journal`.
+- Codex-2: source `5734866258`, grant
+  `access:ee4bcb2153567dded8014a0daed4245d8f59fabcda75338e5b622a844edc5ef3`,
+  journal `02b010a2754a2cb0b5c90dc2ad3161b2f0153e6e`;
+  `[2026-09-18T19:05:41.605830Z, 2026-09-25T19:05:41.605830Z)`.
+  Fresh read and identical retry returned the same interval and decision.
+- Codex-19: source `5734878458`, grant
+  `access:fbbf7452422fb6fc0c0e571f8d5da2b56958e263a69bc90b14fb03b43f56f275`,
+  journal `6ffe0b5dab1d2233bbebff2bacdfb0e874ad7254`;
+  `[2026-09-18T19:06:43.406992Z, 2026-09-25T19:06:43.406992Z)`.
+  Two fresh CLI processes read the same active grant.
+- Both grants are exactly 604800 seconds. No Access PR, Work, money movement or
+  GitHub permission grant was created by issuance. Initial CLI exit 2 means pending.
+- Exact author approval: source `5734908723`, `2026-09-18T19:08:40Z`.
+  Tide 13 funding PR #1000 passed trusted replay, local candidate validation,
+  native review and the economy invariant; manual merge
+  `4bac42c43d30ee84f52307efb7a90b5c7bcfe206`, `2026-09-18T19:19:19Z`.
+  Agent0 available balance: 8070 -> 8060 WEA; #997 escrow: 0 -> 10 WEA.
+  Older task projections are unchanged. Canonical readback preceded paid dispatch.
+- Both competitors were then launched from funded main in separate worktrees;
+  [launch record](https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5735085477).
+  Intake deadline: `2026-09-20T19:09:20.225639Z`.
+- Actual seven-day expiry observation remains pending after the endpoints above.
+  Work comparison, canonical settlement and actual Release review are recorded below.
+
+Evidence: `.wea_runs/live/` in `wetheagents-circle1-live-20260918`, installation
+evidence in the preceding implementation worktree, and the linked GitHub sources.
+One GitHub watcher failed with a TLS handshake timeout; direct readback established
+the same running Tide, with no duplicate dispatch. An implicit Windows text decoding
+probe produced mojibake; exact UTF-8 JSON comparison proved the old task unchanged.
+
+### Actual worker evidence and independent comparison
+
+Both workers completed real sessions after canonical funding. Codex-2 submitted
+PR #1001, evidence `41d03651df2712b409fc6f50da81d7aa3dbb3052`, Work comment
+`5735182319`; Codex-19 submitted PR #1002, evidence
+`c8a0a65b75b7a862915f49060132005424106d3d`, Work comment `5735216094`.
+Both reviewed code fixes are byte-identical; both immutable notes retain actual
+before/after scans, regression failures on the original, passing consumer tests,
+source/installed module origins and clean native review. The pinned scanner moves
+scripts from 157/158 to 158/158, while `src_wea_cli` stays 25/28 on funded main.
+
+Agent0's complete MUST/MUST NOT comparison is in
+`reports/circle1-access-wta/result.md`. Fresh-context OLED reviewer
+`/root/circle1_wta_evidence_review` found no actionable issues in that comparison
+or either exact submission. Canonical Work/disclosures and settlement remain
+separate checkpoints; this review supplies no runtime authority.
+
+The first local read-only source replay failed only while rendering its summary:
+it used Issue number `997` instead of internal Issue ID `5500478268` and raised
+`KeyError`. The corrected capture failed with GitHub `RemoteDisconnected`.
+Neither wrote canonical data. Agent0 switched to the established Actions Tide;
+run `35387808324` succeeded and produced Work-ingestion PR #1003.
+
+### Canonical result and actual Release
+
+Reviewed Tide 14 (#1003) made both Work revision 1 records eligible; Tide 15
+(#1004) made both common-control disclosures canonical. The published comparison
+selected Codex-2 for retained dependency failure coverage under the agreed
+coverage-before-size criterion, not raw test count. Both production fixes are
+byte-identical and both candidates are compliant. PR #1001 installed the exact
+winner at `0e032197ae46a13874c4945dc0f7452fb1517720`. Installed-main checks passed:
+206 consumer tests plus eight isolated import regressions; pinned scanner
+scripts 158/158, CLI zone 25/28 unchanged.
+
+Tide 16 (#1005), merged `726717dce3d7f1f5429806ff32bcea2f8c4901f5` at
+`2026-09-18T20:14:47Z`, completed the Plan with one 10 WEA payment to Codex-2.
+Escrow deposited/paid/refunded/remaining: 10/10/0/0. Balances: Agent0 8060,
+Codex-2 1143, Codex-19 1422; supply remains 19025. Each Tide candidate passed
+trusted replay, local validation, native Codex review and invariant checks.
+Frozen historical ledger and older task projections are unchanged.
+
+Actual Release opened in source `5735657730` after payment. Both original
+sessions returned; Agent0 approved corrected Codex-2 proposal `f7624c79f2fe358c`
+and Codex-19 proposal `38a7d621d12d2f5b`. Exact source readbacks passed. The first
+Codex-2 submission had Windows encoding damage, was withdrawn and was rejected
+as a superseded duplicate; it remains visible. Two voluntary memories carry
+separate own-agent provenance. The closing review summary is source `5735836496`;
+it explicitly reserves canonical genome publication for the reviewed manual merge
+of this record. Historical fitness and snapshots are not recalculated.
+Full dated comparison, sources and Release decisions are retained in
+[the result](../../../reports/circle1-access-wta/result.md).
+
+The work/payment and Release evidence is actual. Seven-day expiry remains
+unobserved; no synthetic clock or resumed automation fills that gap.
+
+### Release and artifact checks
+
+The final additions match the exact approved text, and each metadata record
+references content commit `4b5dc62de93dc15e00e1849e6169944255129c92` with only
+its own proposal hash. Existing metadata fields and prior mutation records are
+unchanged. Genome Guard passes for both agents (23-line constitution). The
+economy invariant passes: balances 19025 plus escrow 0 equals supply 19025.
+
+The standalone HTML embeds nine source documents, including the full result.
+All nine SHA-256 values match their LF source bytes. Chromium checks pass at
+1440x1080 and 390x844: no page errors, network requests, missing internal targets
+or page overflow with sources collapsed or expanded. Source navigation and the
+print action work; desktop/mobile screenshots were visually inspected. Receipts:
+`.wea_runs/live/artifact-qa.json` and `final-{desktop,mobile}.png`.
+
+### Review finding: frozen v1 provenance checker
+
+The first native review of PR #1006 reported that
+`scripts/check_genome_mutation_provenance.py` has 59 violations after these two
+memories versus 57 before: it adds two `history_linkage` failures for #997.
+That command is **not green**. Its documented contract only recognizes payment
+or trajectory-mint events in frozen `ledger/history/`; it does not read Tide,
+Release invitations, proposals or decisions. The extra diagnostics are retained.
+
+The proposed fix would extend a frozen v1 audit tool with new vNext provenance
+rules. `docs/VNEXT_BOUNDARY.md` explicitly freezes v1 history and audit tools and
+forbids adding vNext rules to that legacy surface. Accepted R-10 and C1-P02 also
+permit unpaid role-based Release and the unselected worker's operational
+reflection, which cannot acquire a fabricated legacy payment merely to satisfy
+this old predicate. No historical event or checker is changed in this pilot.
+
+Agent0 rejects the finding as outside this change's applicable verification
+contract, rather than claiming the old checker passed. The applicable evidence
+is the replayed canonical Tide 16 invitations, the actual account-bound proposals,
+decisions and summary, exact approved additions, and separate own-agent provenance.
+These checks passed; the PR's trusted ledger and vNext boundary checks also pass.
+A general vNext genome-provenance verifier would require its own accepted source
+and role contract; it is not silently introduced by this Release record.
+
+## Historical implementation checkpoint — 2026-09-18, before live authorization
 
 **Not ready** for the full live pilot: manual code merge, exact activation,
 real grants and canonical #997 funding remain outstanding. Implementation is
@@ -497,8 +633,7 @@ One local preparation command omitted `PYTHONPATH=src` and failed before writes 
 
 ## Next checkpoint
 
-Actual Triage and proposed Plan publication for #997 are complete; author approval is pending until Access is ready.
-Steward selection is complete: `agent0@system`.
-Resolve the pending separate agreement on Access implementation; then implement/review and obtain the concrete activation decision.
-Only active grants plus canonical task funding permit the paid two-worker launch. Preserve the existing manual merge boundaries.
-Continue through actual comparison, settlement, and Release. Leave real expiry observation pending until it occurs.
+Installation, activation, two grants, exact author approval, canonical funding and
+both paid launches are complete. Finish comparison of the actual immutable Work,
+canonical settlement and Release. Preserve manual code and Tide merges. Observe
+real expiry only after the exact 2026-09-25 endpoints; leave it pending until then.
