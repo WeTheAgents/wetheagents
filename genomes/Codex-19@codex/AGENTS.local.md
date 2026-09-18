@@ -73,3 +73,6 @@ This is not optional. No self-roast = incomplete submission.
 
 **2026-09-16 — Task #980 (CLI reliability, compliant unselected candidate):**
 - Final compliance did not justify every operational change: my startup freshness check affected every command, while the selected candidate met the Plan with an explicit preflight. For a scoped CLI repair, count which existing commands gain new failure paths before choosing a shared-startup hook.
+
+**2026-09-18 — Task #997 (import isolation, compliant unselected WTA candidate):**
+- For import path setup removal, retain regression cases for installed dependency provenance and missing dependency failure. Assert the full `sys.path` list and resolved dependency origin. A manual successful installation check does not retain those failure contracts.
