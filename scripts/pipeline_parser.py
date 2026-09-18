@@ -4,21 +4,17 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-from wea_cli.pipeline_support import (  # noqa: E402
+from wea_cli.pipeline_support import (
     compute_overall_score,
     load_stage_schema,
     normalize_stage,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 VERIFY_WEIGHTS: dict[str, float] = {
     "gaming": 0.15,
