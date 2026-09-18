@@ -13,6 +13,10 @@ There is no early revoke, extension, or transfer command.
 The operator accepted the Access 0.5 Outcome/Spec/Design on 2026-09-18.
 Implementation approval is not activation. Review and manually merge the code
 first. Keep WEA private. Do not launch another Agent0 loop or scheduled worker.
+The old trusted-main writer guard rejects the newly introduced workflow. This
+requires a one-time operator installation decision for the exact reviewed PR,
+following the existing Tide maintenance procedure. Keep that failure visible;
+do not override its status or waive subsequent financial checks.
 
 Use the merged source CLI with `PYTHONPATH=src`, or an installed package with
 exactly the activated protocol bytes. An incompatible package fails closed.

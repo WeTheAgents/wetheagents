@@ -11,7 +11,7 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from wea_vnext import access_control as control
-from wea_vnext.access_github import Journal, repository
+from wea_vnext.access_github import COMMENT_PAGES, Journal, repository
 from wea_vnext.tide.collection import API_ROOT, REPOSITORY, _pages
 from wea_vnext.tide.github import GitHub, GitHubError
 from wea_vnext.tide.replay import canonical
@@ -72,7 +72,7 @@ def read(api: GitHub, args: argparse.Namespace, account: str) -> dict:
     for row in _pages(
         api.get,
         f"{API_ROOT}/issues/{genesis['issue_number']}/comments?sort=created&direction=asc",
-        20,
+        COMMENT_PAGES,
     ):
         if str(row["id"]) in processed or control.timestamp(
             row["created_at"]

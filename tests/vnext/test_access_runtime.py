@@ -10,6 +10,7 @@ import json
 import subprocess
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
 import pytest
@@ -304,7 +305,9 @@ class GitAPI:
         if path == f"{API_ROOT}/issues/997":
             return {"id": 997997, "number": 997}
         if "/comments?" in path:
-            return copy.deepcopy(self.comments)
+            query = parse_qs(urlparse(path).query)
+            page, size = int(query["page"][0]), int(query["per_page"][0])
+            return copy.deepcopy(self.comments[(page - 1) * size : page * size])
         if "/issues/comments/" in path:
             return next(
                 copy.deepcopy(c)
@@ -776,3 +779,27 @@ def test_corrupted_receipt_is_replaced_without_regrant(api, genesis, identities)
     assert len(api.comments) == 2
     assert "wrong body" not in api.comments[-1]["body"]
     assert g.Journal(api).head() == head
+
+
+def test_exact_2000_comment_boundary_preserves_read_and_receipt_repair(
+    api, genesis, identities
+):
+    publish(api, genesis, identities)
+    _, retained, entries, commits = g.Journal(api).read()
+    api.comments = [
+        {
+            "id": 10000 + i,
+            "created_at": json_data(T0),
+            "body": "historical unrelated comment",
+            "user": {"type": "User"},
+        }
+        for i in range(1999)
+    ]
+    g.repair_receipts(api, retained, entries, commits)
+    assert len(api.comments) == 2000
+    g.repair_receipts(api, retained, entries, commits)
+    observed = cli.read(
+        api, argparse.Namespace(agent="Codex-2@codex", request_id=None), ACCOUNT
+    )
+    assert observed["status"] == "observed"
+    assert len(api.comments) == 2000

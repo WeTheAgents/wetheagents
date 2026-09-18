@@ -54,6 +54,23 @@ artifact under OLED Verify. Five findings were confirmed and fixed:
 Each finding has a regression in `test_access_runtime.py`. Post-PR
 `codex exec review` and remote checks remain required before code-merge readiness.
 
+PR [#999](https://github.com/WeTheAgents/wetheagents/pull/999) was published as
+protocol maintenance, not #997 Work. Its first native review found one further
+pagination boundary: 20 full comment pages need a 21st completion request.
+The handler and CLI now share that bound. The regression proves readback and
+receipt repair at exactly 2000 comments. Fresh Access/runtime-boundary checks:
+53 passed, exit 0 (42 adapter plus 11 boundary), 17.65 seconds.
+
+CI also found the required Git blob SHA-1 operation. It now carries the same
+narrow documented Semgrep exception as Tide's Git object verification; all
+source and protocol security hashes remain SHA-256. The scan must rerun.
+The trusted ledger guard rejects `candidate writer universe changed:
+.github/workflows/access.yml`. This is the established code-installation
+checkpoint, described in the accepted Tide Design: old trusted code cannot
+approve its own writer-boundary expansion. Preserve the failed status and
+obtain a one-time operator decision for this exact PR after review. There is
+no waiver of later ledger validation and no change to the guard itself.
+
 ### Scope, recovery and lean cut
 
 Three new Python modules (about 1,100 production lines), one workflow, one

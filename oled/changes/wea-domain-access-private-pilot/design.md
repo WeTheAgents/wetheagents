@@ -7,6 +7,12 @@ The operator authorized implementation with the simplifications below. Activatio
 ## Two kinds of change
 
 Code changes retain review and manual merge.
+The existing trusted-main writer guard intentionally rejects introduction of
+`access.yml`; it cannot authorize its own expanded writer universe. Use the
+existing one-time, exact-code maintenance procedure documented in
+`oled/changes/wea-vnext-tide/design.md`. Finish review and present the exact PR
+for the operator's installation decision. Do not falsify its failed status,
+weaken the guard, or treat earlier infrastructure exceptions as authorization.
 Routine Access uses CLI, a GitHub Issue, and a dedicated trusted Actions handler.
 The handler appends Access decisions directly to a private Git journal branch, without PRs.
 Tide financial batches retain their existing publication, schema, and manual merge path.
@@ -131,7 +137,9 @@ Expected surfaces: CLI, Access adapter/journal replay, one workflow, focused tes
 No scanner, task executor, admission, payment, or GitHub permission policy changes belong to this stage.
 The useful parser repair belongs to the separately funded #997 cycle, after Access is ready; see [cycle.md](cycle.md).
 
-The bounded pilot stops before a 501st decision or intake beyond 20 pages of 100 comments.
+The bounded pilot stops before a 501st decision. Comment reads support 20 full
+pages of 100 comments plus a completion request, and fail explicitly if the
+bounded capture cannot reach its end. Receipts count toward Issue comment volume.
 Existing journal history remains readable at the decision limit. This is a capacity error, not expiry or revocation.
 Exact deployment, CLI recovery and observation instructions are in `docs/ACCESS.md`.
 

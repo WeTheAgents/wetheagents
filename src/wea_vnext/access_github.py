@@ -24,6 +24,8 @@ BRANCH = "wea/access-journal"
 REF = "refs/heads/" + BRANCH
 WORKFLOW = ".github/workflows/access.yml"
 MAX_RECORDS = 500
+# Twenty full comment pages require one more request to confirm completion.
+COMMENT_PAGES = 21
 
 
 def git(root: Path, *args: str) -> str:
@@ -142,7 +144,8 @@ class Journal:
             if blob.get("encoding") != "base64":
                 raise ValueError("journal blob is not base64")
             raw = base64.b64decode("".join(blob["content"].split()), validate=True)
-            actual = hashlib.sha1(
+            # Git blob object IDs require SHA-1. Source/protocol hashes use SHA-256.
+            actual = hashlib.sha1(  # nosemgrep
                 b"blob " + str(len(raw)).encode() + b"\0" + raw, usedforsecurity=False
             ).hexdigest()
             if (
@@ -398,7 +401,9 @@ def repair_receipts(
 ) -> None:
     issue = genesis["issue_number"]
     comments = _pages(
-        api.get, f"{API_ROOT}/issues/{issue}/comments?sort=created&direction=asc", 20
+        api.get,
+        f"{API_ROOT}/issues/{issue}/comments?sort=created&direction=asc",
+        COMMENT_PAGES,
     )
     for entry, commit in zip(entries, commits, strict=True):
         marker = f"<!-- wea-access-receipt:{commit} -->"
@@ -477,7 +482,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     rows = _pages(
         api.get,
         f"{API_ROOT}/issues/{genesis['issue_number']}/comments?sort=created&direction=asc",
-        20,
+        COMMENT_PAGES,
     )
     for row in sorted(rows, key=lambda r: (r["created_at"], r["id"])):
         if str(row["id"]) in processed or not (row.get("body") or "").startswith(
