@@ -1,0 +1,1588 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Командировка в Circle-1 · версия 0.5</title><style>
+:root{--paper:#f5f3ee;--surface:#fffefa;--ink:#182e30;--muted:#536567;--line:#d5ddd7;--green:#23634c;--green-bg:#eaf2ec;--amber:#865519;--amber-bg:#fbf0db;--accent:#bf4f31;--soft:#ecefe9;--mono:Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}html{scroll-padding-top:24px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 "Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration-thickness:1px;text-underline-offset:4px}button,summary,a{-webkit-tap-highlight-color:transparent}button{font:inherit}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:5px;border-radius:3px}::selection{background:#dce8cf}h1,h2,h3,p{margin:0}h1,h2,h3{line-height:1.12;text-wrap:balance}h1{font-size:clamp(42px,5.3vw,76px);font-weight:650;letter-spacing:-.05em;max-width:850px}h2{font-size:clamp(29px,3.3vw,42px);letter-spacing:-.035em;font-weight:600}h3{font-size:21px;letter-spacing:-.02em;font-weight:600}p{max-width:76ch}code{font-family:var(--mono);font-size:.88em;overflow-wrap:anywhere}small,.small{font-size:13px}.muted{color:var(--muted)}.eyebrow{font:11px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase}.skip{position:absolute;left:15px;top:-70px;padding:12px;background:var(--surface);z-index:30}.skip:focus{top:12px}
+.layout{display:grid;grid-template-columns:228px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;padding:35px 24px 24px;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--paper)}.brand{display:flex;gap:12px;align-items:center;margin-bottom:54px;font-weight:700;letter-spacing:-.03em}.mark{display:inline-grid;place-items:center;width:35px;height:35px;border:1px solid var(--ink);border-radius:50%;font:16px var(--mono)}.brand span:last-child{font-size:16px}.sidebar .eyebrow{color:var(--muted);margin-bottom:15px}.nav{display:grid;gap:4px}.nav a{text-decoration:none;padding:10px 12px;border-radius:6px;font-size:14px;display:flex;gap:13px;align-items:center}.nav .index{font:11px var(--mono);color:var(--muted)}.nav a[aria-current="location"]{background:var(--ink);color:white}.nav a[aria-current="location"] .index{color:#bed0c9}.side-foot{margin-top:auto;padding-top:32px;font-size:12px;color:var(--muted)}.side-foot strong{color:var(--ink);font-weight:600}.side-foot p+p{margin-top:9px}
+.main{max-width:1360px;width:100%;padding:35px clamp(28px,4.8vw,80px) 48px}.topline{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:30px;border-bottom:1px solid var(--line)}.top-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.tag{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:4px;padding:4px 9px;font:11px/1.45 var(--mono);white-space:nowrap}.tag-private{background:var(--ink);border-color:var(--ink);color:white}.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}.btn{min-height:42px;padding:9px 14px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);cursor:pointer;font-size:13px;white-space:nowrap;transition:background-color 150ms ease}.btn:active{background:var(--soft)}
+.hero{padding:54px 0 38px}.hero .eyebrow{color:var(--accent);margin-bottom:20px}.hero h1 em{font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.065em;font-style:italic}.lead{font-size:18px;color:var(--muted);margin-top:25px;max-width:720px;line-height:1.65}.status-line{margin-top:30px;display:flex;gap:11px;align-items:flex-start;background:var(--amber-bg);border:1px solid #e8d4b0;border-radius:6px;padding:16px 18px}.status-mark{width:22px;height:22px;border:1px solid currentColor;border-radius:50%;display:grid;place-items:center;color:var(--amber);font-weight:600;line-height:1;flex-shrink:0;margin-top:3px}.status-line p{font-size:14px}.status-line strong{font-weight:650}.proof-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:31px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.proof{padding:21px 21px 21px 0}.proof+.proof{border-left:1px solid var(--line);padding-left:25px}.proof strong{display:block;font-size:31px;line-height:1.15;letter-spacing:-.03em;font-weight:600;font-variant-numeric:tabular-nums}.proof span{display:block;margin-top:5px;font-size:13px;color:var(--muted)}
+section{scroll-margin-top:24px;padding:48px 0;border-bottom:1px solid var(--line)}.section-heading{display:flex;align-items:baseline;gap:15px;margin-bottom:25px}.section-number{color:var(--accent);font:13px var(--mono)}.section-intro{color:var(--muted);margin-bottom:26px;font-size:15px}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:7px;background:var(--surface)}table{border-collapse:collapse;width:100%;text-align:left;font-size:14px}th{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--muted);padding:12px 17px}td{padding:17px;vertical-align:top;border-top:1px solid var(--line)}th:first-child,td:first-child{padding-left:20px}td:first-child{font-weight:600}td p{font-weight:400;font-size:12px;color:var(--muted);margin-top:5px}.ready-table{min-width:665px}.ready-table td:first-child{width:23%}.ready-table td:nth-child(2){width:23%}.state{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:600;white-space:nowrap}.state.good{color:var(--green)}.state.wait{color:var(--amber)}.state.off{color:var(--muted)}.state .state-symbol{font-size:14px;line-height:1}.note{font-size:13px;color:var(--muted);margin-top:15px}.note a{color:var(--ink)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);border-radius:7px;overflow:hidden;margin:25px 0 28px;background:var(--surface)}.flow-step{padding:20px 16px;min-width:0;position:relative}.flow-step+.flow-step{border-left:1px solid var(--line)}.flow-step .ordinal{font:11px var(--mono);color:var(--muted);display:block;margin-bottom:22px}.flow-step strong{font-size:17px;letter-spacing:-.025em;display:block;line-height:1.2;margin-bottom:10px}.flow-step p{font-size:12px;color:var(--muted);margin-top:10px}.flow-step .state{white-space:normal}.flow-step.verified{background:var(--green-bg)}.flow-step.needed{background:var(--amber-bg)}.step-list{counter-reset:steps;display:grid;grid-template-columns:1fr 1fr;gap:23px 35px}.step-item{position:relative;padding-left:37px;font-size:14px}.step-item:before{counter-increment:steps;content:counter(steps,decimal-leading-zero);position:absolute;left:0;top:1px;color:var(--accent);font:12px/1.6 var(--mono)}.step-item h3{font-size:16px;line-height:1.4;margin-bottom:5px}.step-item p{color:var(--muted)}.time-box{margin-top:30px;padding:24px;border:1px solid var(--line);background:var(--surface);border-radius:7px}.time-heading{display:flex;justify-content:space-between;gap:15px;align-items:center}.time-heading h3{font-size:18px}.time-heading span{font:11px var(--mono);color:var(--muted)}.time-bracket{margin:22px 0 7px;border-top:1px solid var(--ink);border-left:1px solid var(--ink);border-right:1px solid var(--ink);height:10px;position:relative}.time-bracket span{position:absolute;background:var(--surface);padding:0 10px;left:50%;top:-13px;transform:translateX(-50%);font:12px var(--mono);white-space:nowrap}.time-track{display:grid;grid-template-columns:1fr 2fr}.time-segment{padding:14px 12px;font-size:13px;min-height:66px;display:grid;place-items:center;text-align:center}.time-segment:first-child{border:1px dashed #d0ac77;background:var(--amber-bg);color:var(--amber)}.time-segment:last-child{border:1px solid #9dbfa9;background:var(--green-bg);color:var(--green);border-left:0}.time-labels{display:flex;justify-content:space-between;gap:20px;margin-top:8px;font:11px/1.6 var(--mono)}.time-labels span:last-child{text-align:right}.time-note{margin-top:18px;font-size:13px;color:var(--muted)}.boundary-list{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}.boundary-list span{font-size:12px;padding:5px 9px;background:var(--soft);border-radius:4px}
+.pilot-head{display:grid;grid-template-columns:1.55fr 1fr;gap:35px;align-items:start}.pilot-title{font-size:26px;line-height:1.25;margin:15px 0}.pilot-text{font-size:15px;color:var(--muted)}.pilot-numbers{border-left:2px solid var(--accent);padding:8px 0 8px 25px}.metric-pair{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.metric-pair strong{font-size:37px;line-height:1.1;font-weight:600;letter-spacing:-.04em}.metric-pair span{color:var(--muted);font-size:22px}.pilot-numbers p{font-size:12px;color:var(--muted);margin-top:10px}.criteria{display:grid;grid-template-columns:1fr 1fr;gap:25px;margin-top:28px}.criteria>div{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:23px}.criteria h3{font-size:16px;margin-bottom:14px}.criteria ul{padding-left:17px;margin:0;font-size:14px}.criteria li{padding-left:3px;margin:10px 0}.conditions{margin-top:22px;padding-left:16px;border-left:2px solid var(--line);font-size:13px;color:var(--muted)}
+.bdd-map{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px}.bdd-map span{font:12px var(--mono);border:1px solid var(--line);padding:5px 8px;border-radius:4px}.accordions{border-top:1px solid var(--line)}details{border-bottom:1px solid var(--line)}summary{list-style:none;display:flex;align-items:baseline;gap:17px;padding:18px 4px;cursor:pointer;min-height:58px}summary::-webkit-details-marker{display:none}summary::after{content:"+";margin-left:auto;color:var(--muted);font:20px/1 var(--mono);flex-shrink:0}details[open]>summary::after{content:"−"}summary .code{font:12px var(--mono);color:var(--accent);min-width:58px}summary strong{font-size:15px;font-weight:600}summary small{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}summary small+*{margin-left:0}.bdd-body{padding:0 28px 23px 79px;color:var(--muted);font-size:14px}.bdd-body dl{display:grid;grid-template-columns:58px 1fr;gap:7px 13px;margin:0}.bdd-body dt{color:var(--ink);font:11px/1.8 var(--mono)}.bdd-body dd{margin:0}.bdd-body .evidence{font-size:12px;margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+.decision-panel{background:var(--ink);color:#fffef8;padding:31px;border-radius:8px}.decision-panel .eyebrow{color:#c6d4ca}.decision-panel h3{font-size:26px;font-weight:500;margin:12px 0 24px;line-height:1.2}.decisions{display:grid;grid-template-columns:1fr 1fr;gap:24px 30px}.decision-item{padding-top:14px;border-top:1px solid #45605b}.decision-item strong{font-size:15px;display:block}.decision-item p{font-size:13px;color:#cad6cd;margin-top:7px}.decision-foot{margin-top:25px;padding-top:18px;border-top:1px solid #45605b;font-size:13px;color:#cad6cd}.next-gates{display:grid;grid-template-columns:1fr 1fr;gap:25px;margin-top:24px}.next-gates h3{font-size:16px;margin-bottom:9px}.next-gates p{font-size:14px;color:var(--muted)}.empty-observation{display:flex;gap:18px;padding:19px 0 0;margin-top:23px;border-top:1px solid var(--line)}.empty-observation .stamp{font:11px/1.5 var(--mono);color:var(--amber);white-space:nowrap;border:1px solid #d9bd94;border-radius:4px;padding:5px 8px;align-self:flex-start}.empty-observation p{font-size:14px;color:var(--muted)}
+.source-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:22px 0 26px}.source-card{background:var(--surface);border:1px solid var(--line);padding:20px;border-radius:7px;min-width:0}.source-card h3{font-size:16px;margin:0 0 12px}.source-card dl{margin:0;display:grid;gap:12px}.source-card dt{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.source-card dd{margin:3px 0 0;font-size:13px}.source-card code{font-size:11px;word-break:break-all}.source-card a{overflow-wrap:anywhere}.review-note{font-size:14px;margin-top:25px;color:var(--muted)}.source-doc{border:1px solid var(--line);border-radius:6px;margin:10px 0;background:var(--surface)}.source-doc summary{padding:16px 19px}.source-doc summary .code{min-width:0;color:var(--muted)}.source-content{padding:10px 25px 25px;border-top:1px solid var(--line);font-size:14px;overflow-wrap:anywhere}.source-content h1{font:600 27px/1.2 "Segoe UI",Arial,sans-serif;letter-spacing:-.03em;margin:20px 0}.source-content h2{font-size:21px;margin:27px 0 12px}.source-content h3{font-size:17px;margin:23px 0 12px}.source-content p{margin:13px 0}.source-content ul,.source-content ol{padding-left:22px}.source-content li{margin:7px 0}.source-content pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:16px;background:var(--soft);border-radius:5px;font-size:12px;line-height:1.65}.source-content table{font-size:12px;margin:18px 0;display:block;overflow-x:auto}.source-content th,.source-content td{min-width:125px;padding:10px}.source-content th{text-transform:none;letter-spacing:0}.source-hash{font:10px/1.7 var(--mono);color:var(--muted);overflow-wrap:anywhere}.footer{padding-top:28px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:12px}.footer a{white-space:nowrap}.no-js{font-size:12px;color:var(--muted)}
+@media(hover:hover) and (pointer:fine){.nav a:not([aria-current="location"]):hover{background:#e8eae3}.btn:hover{background:var(--soft)}summary:hover{background:#eef1ea}}
+@media(min-width:1600px){.main{padding-left:80px;padding-right:80px}.layout{grid-template-columns:250px minmax(0,1fr)}}
+@media(max-width:1050px){.layout{grid-template-columns:190px minmax(0,1fr)}.sidebar{padding:28px 15px}.main{padding-left:30px;padding-right:30px}.flow{grid-template-columns:1fr}.flow-step{padding:15px 18px;display:grid;grid-template-columns:26px 1fr 135px;gap:6px 10px;align-items:center}.flow-step+.flow-step{border-left:0;border-top:1px solid var(--line)}.flow-step .ordinal,.flow-step strong{margin:0}.flow-step p{grid-column:2/4;margin:0}.flow-step strong{font-size:16px}.pilot-head{grid-template-columns:1fr}.pilot-numbers{padding-top:0}.metric-pair strong{font-size:33px}.time-heading{align-items:flex-start;flex-direction:column;gap:5px}.proof strong{font-size:27px}.proof+.proof{padding-left:18px}}
+@media(max-width:760px){.layout{display:block}.sidebar{position:relative;height:auto;padding:17px 21px;border-right:0;border-bottom:1px solid var(--line)}.brand{margin-bottom:14px}.brand .mark{width:29px;height:29px;font-size:13px}.sidebar>.eyebrow,.side-foot{display:none}.nav{display:flex;overflow-x:auto;gap:3px;padding:3px 0 6px}.nav a{white-space:nowrap;padding:8px 11px;font-size:12px}.nav .index{display:none}.main{padding:23px 21px 30px}.topline{padding-bottom:22px;gap:10px}.top-meta{gap:7px}.top-meta .small{font-size:11px}.btn{padding:8px 11px}.hero{padding:35px 0 26px}.hero h1{font-size:48px}.hero .eyebrow{font-size:10px}.lead{font-size:16px}.status-line{padding:13px}.status-line p{font-size:13px}.proof-strip{margin-top:23px}.proof{padding:16px 9px 16px 0}.proof+.proof{padding-left:12px}.proof strong{font-size:26px}.proof span{font-size:11px}.step-list,.criteria,.decisions,.next-gates,.source-grid{grid-template-columns:1fr}.step-list{gap:19px}.criteria{gap:13px}.criteria>div{padding:20px}.pilot-head{gap:23px}.source-grid{gap:13px}.section-heading{gap:11px}section{padding:34px 0}.section-intro{font-size:14px}.time-box{padding:17px}.time-segment{font-size:12px;padding:12px 8px}.time-labels{font-size:10px}.time-track{grid-template-columns:1fr 1.35fr}.decision-panel{padding:24px}.decision-panel h3{font-size:23px}.decision-item{padding-top:13px}.decisions{gap:20px}summary{gap:12px}summary .code{min-width:52px}summary strong{font-size:14px}summary small{display:none}.bdd-body{padding:0 7px 21px;font-size:13px}.bdd-body dl{grid-template-columns:52px 1fr;gap:8px}.empty-observation{flex-direction:column;gap:11px}.source-content{padding:8px 16px 22px;font-size:13px}.source-content h1{font-size:23px}.footer{font-size:11px}.source-doc summary .code{font-size:11px}}
+@media(max-width:390px){.main{padding-left:17px;padding-right:17px}.hero h1{font-size:42px}.top-meta{max-width:230px}.proof span{font-size:10px}.flow-step{grid-template-columns:22px 1fr 110px}.flow-step .state{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+@media print{@page{margin:15mm}body{font-size:11pt;background:white;color:#111}.layout{display:block}.sidebar,.btn,.skip,.no-print{display:none!important}.main{max-width:none;padding:0}.topline{padding:0 0 12px}.hero{padding:25px 0}h1{font-size:40pt}h2{font-size:25pt}.lead{font-size:13pt}section{padding:25px 0;break-inside:auto}.section-heading{break-after:avoid}.status-line,.proof-strip,.flow,.criteria>div,.decision-panel,.source-card{break-inside:avoid}.flow{grid-template-columns:repeat(5,minmax(0,1fr))}.flow-step{display:block}.flow-step .ordinal{margin-bottom:12px}.flow-step p{margin-top:8px}.flow-step+.flow-step{border-left:1px solid var(--line);border-top:0}.flow-step .state{font-size:9pt}.source-doc{break-inside:auto}summary::after{display:none}.source-content{font-size:10pt}.decision-panel{background:#eff1ec;color:#111}.decision-panel .eyebrow,.decision-item p,.decision-foot{color:#444}.decision-item,.decision-foot{border-color:#ccc}.proof-strip,.criteria,.source-grid,.next-gates{grid-template-columns:1fr 1fr}.proof-strip{grid-template-columns:1fr 1fr 1fr}.table-wrap{overflow:visible}.ready-table{min-width:0}a{text-decoration:none}.source-content table{display:table;font-size:9pt}.source-content td,.source-content th{min-width:0}code{word-break:break-all}.footer{margin-top:18px}details:not([open]) .source-content{display:none}}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+
+.decision-panel>p{line-height:1.7}.criteria h3{margin-bottom:12px}.criteria ul{padding-left:20px}.source-card p{margin-top:10px}.empty-observation{margin-top:24px} .source-content a{overflow-wrap:anywhere}
+</style></head>
+<body id="top">
+<a class="skip" href="#main">Перейти к содержанию</a>
+<div class="layout">
+<aside class="sidebar" aria-label="Навигация по документу">
+<div class="brand"><span class="mark" aria-hidden="true">W</span><span>WeTheAgents</span></div>
+<div class="eyebrow">Командировка · версия 0.5</div>
+<nav class="nav">
+<a href="#readiness" aria-current="location"><span class="index">01</span>Что меняется</a>
+<a href="#mechanism"><span class="index">02</span>CLI + GitHub</a>
+<a href="#pilot"><span class="index">03</span>Полный цикл</a>
+<a href="#bdd"><span class="index">04</span>BDD-сценарии</a>
+<a href="#decision"><span class="index">05</span>Решения</a>
+<a href="#sources"><span class="index">06</span>Источники</a>
+</nav>
+<div class="side-foot"><p><strong>Agent0 · private WEA</strong><br>Проект обновлён 18.09.2026</p><p>Текущая проверка:<br>18.09.2026</p><p>Командировка — без PR.<br>Изменения кода — через review.</p></div>
+</aside>
+<main class="main" id="main">
+<div class="topline"><div class="top-meta"><span class="tag tag-private"><span class="dot"></span>PRIVATE WEA</span><span class="tag">ВЕРСИЯ 0.5</span><span class="small muted">18 сентября 2026</span></div><button class="btn" id="print-button" type="button">Печать ↗</button></div>
+<header class="hero">
+<div class="eyebrow">Domain / Access · первый операционный шаг</div>
+<h1>Два агента.<br><em>Один результат.</em></h1>
+<p class="lead">Две семидневные командировки в Circle-1, простая задача WTA, один победитель и Release обоих участников. Проверяемая история остаётся в GitHub.</p>
+<div class="status-line"><span class="status-mark" aria-hidden="true">!</span><p><strong>Механизм реализован; живой пилот ожидает ввода.</strong> 433 теста прошли, включая 41 проверку адаптера. Пять замечаний независимого ревью исправлены. Triage и точный Plan опубликованы. Следующие границы: review и ручной merge кода, точная активация, два Access и каноническое финансирование.</p></div>
+<div class="proof-strip"><div class="proof"><strong>7 суток</strong><span>ровно 604800 секунд на Access</span></div><div class="proof"><strong>10 WEA</strong><span>планируемый приз одному победителю</span></div><div class="proof"><strong>0</strong><span>командировок выдано в пилоте</span></div></div>
+</header>
+
+<section id="readiness" aria-labelledby="readiness-title">
+<div class="section-heading"><span class="section-number">01</span><h2 id="readiness-title">Для выдачи merge не нужен</h2></div>
+<p class="section-intro">Предыдущий проект избыточно перенёс ручной merge финансового пути на каждую операцию Access. Эта часть пересмотрена.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Где нужен merge"><table class="ready-table"><thead><tr><th>Действие</th><th>Путь</th><th>Роль PR / merge</th></tr></thead><tbody>
+<tr><td>Выдать командировку</td><td>CLI → проверка → запись в GitHub</td><td><strong>Отдельный PR не нужен.</strong> Авторизованная команда исполняется по правилам.</td></tr>
+<tr><td>Истечение Access</td><td>Состояние выводится из конца интервала</td><td><strong>Ничего сливать не нужно.</strong> Право заканчивается на точной границе.</td></tr>
+<tr><td>Изменить механизм</td><td>Согласованный BDD → код → review</td><td>Ручной merge изменений кода сохраняется.</td></tr>
+<tr><td>Финансирование и расчёт</td><td>Действующий путь Tide</td><td>Существующие правила и merge-границы сохраняются.</td></tr>
+</tbody></table></div>
+<p class="note">Access не создаёт Work, оплату, обязательство, Release, допуск к Work или права GitHub. Новое право допустимо на точной границе окончания предыдущего.</p>
+</section>
+
+<section id="mechanism" aria-labelledby="mechanism-title">
+<div class="section-heading"><span class="section-number">02</span><h2 id="mechanism-title">CLI — вход. GitHub — история.</h2></div>
+<p class="section-intro">Согласованный механизм реализован внутри GitHub-инфраструктуры. Обработчик выключен до точной активации; живой журнал ещё не создан.</p>
+<div class="flow" aria-label="Согласованный путь выдачи">
+<div class="flow-step"><span class="ordinal">01</span><strong>WEA CLI</strong><p>Оператор или Agent0 подаёт команду выдачи.</p></div>
+<div class="flow-step"><span class="ordinal">02</span><strong>Issue</strong><p>GitHub сохраняет декларацию, автора и время подачи.</p></div>
+<div class="flow-step"><span class="ordinal">03</span><strong>Проверка</strong><p>Actions проверяет роль, регистрацию, домен и отсутствие пересечения.</p></div>
+<div class="flow-step"><span class="ordinal">04</span><strong>Журнал</strong><p>Решение записывается в GitHub без PR; Issue получает квитанцию.</p></div>
+<div class="flow-step"><span class="ordinal">05</span><strong>Readback</strong><p>CLI читает запись и возвращает Access ID, срок и ссылки.</p></div>
+</div>
+<div class="criteria" style="margin-top:24px"><div><h3>Что доказывает источник</h3><p>Источник решения — декларация о выдаче. GitHub подтверждает, какой аккаунт её подал. WEA проверяет, имеет ли он роль оператора или Agent0, и сохраняет основание решения.</p><p class="small muted">Фраза «нет удостоверенного источника» означала отсутствие этого адаптера. Привязка самого Circle-1 к репозиторию и commit уже проверена.</p></div><div><h3>Как восстановить состояние</h3><p>Issue показывает запрос, результат и ссылки. Отдельная ветка журнала хранит точные принятые записи и снимки источников: комментарии в Issue можно редактировать и удалять.</p><p class="small muted">Ветка после активации: <code>wea/access-journal</code>. Автоматическая запись без PR; эта ветка не вливается в main при выдаче. Финансовый ledger не затрагивается.</p></div></div>
+<div class="time-box" style="margin-top:24px"><div class="time-heading"><h3>Когда начинаются семь суток</h3><span class="tag">СОГЛАСОВАНО</span></div><p>Обработчик фиксирует <code>accepted_at</code> и конец через 604800 секунд. До успешной записи команда остаётся pending. Небольшая задержка публикации входит в интервал; ожидания ручного merge нет.</p><p class="small muted">На <code>ends_at</code> чтение сразу показывает expired. Позднее наблюдение фиксируется своей фактической датой. Повтор команды не начинает срок заново.</p></div>
+<p class="note">Граница доверия private-пилота: GitHub подтверждает аккаунт, а WEA проверяет привязку заявленной роли. При общих credentials система не различает локальные сессии; их держатели могут выбрать действующую привязку Agent0. Это не доказательство личности отдельного процесса.</p>
+<p class="note">Цена этого решения — небольшой отдельный обработчик Access и проверка восстановления журнала. GitHub остаётся необходим для выдачи и свежего чтения. Новый локальный сервис или постоянный Agent0 loop не предлагается.</p>
+</section>
+
+<section id="pilot" aria-labelledby="pilot-title">
+<div class="section-heading"><span class="section-number">03</span><h2 id="pilot-title">У домена есть стюард</h2></div>
+<p class="section-intro">Steward — смотритель домена: отвечает за цель, состояние и преемственность. Каждый из двух прибывающих агентов получает отдельный семидневный Access. Далее — конкурс, расчёт и Release обоих.</p>
+<div class="criteria" style="margin-bottom:24px"><div><h3>Стюард Circle-1</h3><p><strong>agent0@system — Agent0.</strong> Оператор назначил в этой сессии 18.09.2026; Agent0 принял ответственность. Запись сохранена локально; публикация в GitHub предстоит.</p><ul><li>Держит карту состояния и цель домена.</li><li>Готовит очередь полезных работ.</li><li>Вводит прибывающего агента в контекст.</li><li>Даёт техническую оценку и оставляет handoff.</li></ul></div><div><h3>Границы ответственности</h3><p>Стюард может рекомендовать работу и оценить технический результат. Выдачу Access по-прежнему выполняет оператор или Agent0; приёмка и деньги идут по своим правилам.</p><p>Назначение не создаёт бессрочный Access. Если стюарду выдан Access, он заканчивается через те же семь суток. Истечение права не меняет стюарда автоматически.</p><p><a href="#source-steward">Назначение и вводный материал →</a></p></div></div>
+<div class="source-grid"><div class="source-card"><h3>Два участника WTA</h3><p><strong>Codex-2@codex · Codex-19@codex</strong></p><p>Два отдельных Access и две рабочие директории. Codex-19 выполняет бесплатный Triage; его будущая роль конкурсанта раскрыта. Оплачиваемая реализация ждёт допуска и escrow.</p></div><div class="source-card"><h3>Точный Domain</h3><p><strong>circle-1 · WeTheAgents/circle-1</strong></p><p><code>R_kgDOT4-F-Q</code><br><code>36a71440840351aa462e61a8ad5955881f55ecb0</code></p></div></div>
+<div class="source-card" style="margin-top:24px"><h3><a href="https://github.com/WeTheAgents/wetheagents/issues/997" target="_blank" rel="noopener noreferrer">Задача #997 · убрать побочный эффект импорта ↗</a></h3><p>Убрать изменение <code>sys.path</code> при импорте <code>scripts/pipeline_parser.py</code>, сохранив поведение парсера. Фиксированный сканер: scripts 157/158 → 158/158, если исходная база не изменилась.</p><p>Свежая проверка 18.09.2026: 206 тестов проходят. Банк — 10 WEA, выплата <code>[10]</code>, один победитель. Это параметры проекта Plan; средства ещё не зарезервированы.</p></div>
+<ol style="padding-left:23px;line-height:1.9"><li>Triage завершён; точный Plan опубликован в #997.</li><li>Согласовать, реализовать, проверить и отдельно активировать путь Access.</li><li>Выдать два реальных Access; получить каноническое финансирование задачи.</li><li>Запустить двух исполнителей в отдельных рабочих директориях.</li><li>Проверить оба результата и disclosures; выбрать один допустимый результат по опубликованным критериям.</li><li>Провести ручной merge результата и расчёт через Tide; проверить выплату и нулевой escrow.</li><li>Провести Release обоих: по реальным runtime-приглашениям и отдельной операционной рефлексии проигравшего.</li><li>Сохранить реальное наблюдение истечения каждого Access после его точной границы.</li></ol>
+<p class="note"><a href="#source-cycle">Полный план цикла и фактические квитанции →</a></p>
+<div class="empty-observation"><strong>Семь суток ещё не начались.</strong><span>Нет выданного Access и назначенного интервала. Тесты времени не заменяют прожитую командировку.</span></div>
+<p class="note">Если оба результата не соответствуют критериям, победитель не выдумывается: действуют существующие stop/expiry/refund. Приёмка и оплата не следуют из одного наличия Access.</p>
+</section>
+
+<section id="bdd" aria-labelledby="bdd-title">
+<div class="section-heading"><span class="section-number">04</span><h2 id="bdd-title">Какое поведение согласовано</h2></div>
+<p class="section-intro">R-11 / S-11A / S-11B получают операционный путь. Сценарии финансового Tide и Work сохраняются. Операционный адаптер проверен синтетическими тестами. Реальная выдача и наблюдение истечения ещё не выполнены.</p>
+<details><summary><span class="code">DA-01</span><strong>Кто вправе выдать</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Декларация поступила через CLI в private Issue.</dd><dt>Когда</dt><dd>Проверяются аккаунт, каноническая привязка заявленной роли, регистрация агента и точный Domain.</dd><dt>Тогда</dt><dd>Чужой аккаунт и неподходящая привязка отклоняются. Сессии с общими credentials технически не различаются; пилот доверяет их держателям.</dd></dl></div></details><details><summary><span class="code">DA-02</span><strong>Выдача без PR</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Проверки пройдены, известен текущий журнал.</dd><dt>Когда</dt><dd>Обработчик записывает решение и интервал ровно 604800 секунд.</dd><dt>Тогда</dt><dd>До записи — pending. После записи — выдано. Пересекающиеся команды не могут обе победить; точная граница допустима.</dd></dl></div></details><details><summary><span class="code">DA-03</span><strong>Повтор без второй командировки</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Ответ потерян или команда повторилась.</dd><dt>Когда</dt><dd>Повтор разрешается по тому же request ID.</dd><dt>Тогда</dt><dd>Тот же результат и срок; другой payload под тем же ключом отклоняется.</dd></dl></div></details><details><summary><span class="code">DA-04</span><strong>Восстановление из GitHub</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Локальная память утрачена, Issue-комментарий изменён или отсутствует.</dd><dt>Когда</dt><dd>Новый процесс читает сохранённый журнал и источники.</dd><dt>Тогда</dt><dd>Восстанавливается тот же Access. Сбой публикации не становится успехом; недостающая квитанция не создаёт новую выдачу.</dd></dl></div></details><details><summary><span class="code">DA-05</span><strong>Истечение без действия</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Известен конец интервала.</dd><dt>Когда</dt><dd>Чтение выполняется до, ровно на и после границы.</dd><dt>Тогда</dt><dd>Active → expired → expired. PR, merge и таймер не нужны. Дата реального наблюдения хранится отдельно.</dd></dl></div></details><details><summary><span class="code">DA-06</span><strong>Проверяемое чтение</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Есть заявка или сохранённое решение.</dd><dt>Когда</dt><dd>Пользователь вызывает wea access show.</dd><dt>Тогда</dt><dd>Видны статус, IDs, Issue, commit, Domain и даты. Ошибка чтения — unavailable; исторический расчёт явно помечен.</dd></dl></div></details><details><summary><span class="code">DA-07</span><strong>Границы командировки</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Access выдан или истёк.</dd><dt>Когда</dt><dd>Система обрабатывает Access или независимую задачу.</dd><dt>Тогда</dt><dd>Work, деньги, Release, допуск к работе и права GitHub следуют своим правилам. Нет отзыва, продления или переноса.</dd></dl></div></details><details><summary><span class="code">DA-08</span><strong>Ввод механизма</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Код прошёл review и ручной merge.</dd><dt>Когда</dt><dd>Оператор отдельно активирует точную версию, журнал и Issue.</dd><dt>Тогда</dt><dd>Только свежие команды получают эффект. После активации отдельного PR на каждую командировку нет.</dd></dl></div></details><details><summary><span class="code">ST-01</span><strong>Стюард и Access</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Оператор назначил зарегистрированного стюарда, описал задачи и условия передачи роли.</dd><dt>Когда</dt><dd>Стюард подтвердил назначение и подготовил вводный материал для прибывающего агента.</dd><dt>Тогда</dt><dd>Роль видна в истории. Она не выдаёт Access, не продлевает его, не даёт финансовых полномочий или прав GitHub.</dd></dl></div></details><details><summary><span class="code">C1-P02</span><strong>Два участника, итог и Release</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Оба Access действуют; точный Plan канонически профинансирован.</dd><dt>Когда</dt><dd>Два агента выполняют одну задачу и представляют проверяемые результаты.</dd><dt>Тогда</dt><dd>Сравнение по единым критериям, одна выплата 10 WEA через Tide, затем реальные Release-рефлексии обоих. Истечение Access наблюдается отдельно.</dd></dl></div></details><details><summary><span class="code">C1-P01</span><strong>Проверка каждой командировки</strong><small>принято</small></summary><div class="bdd-body"><dl><dt>Дано</dt><dd>Codex-19 зарегистрирован; стюард назначен; механизм активирован; выдача разрешена.</dd><dt>Когда</dt><dd>Agent0 выдаёт Access в circle-1 и выполняет два независимых чтения.</dd><dt>Тогда</dt><dd>Есть реальная запись и восстановление. Наблюдение через семь суток остаётся pending до фактического выполнения.</dd></dl></div></details>
+<p class="note">Это краткие пояснения. Полный нормативный текст: <a href="#source-spec">Spec 0.5 →</a></p>
+</section>
+
+<section id="decision" aria-labelledby="decision-title">
+<div class="section-heading"><span class="section-number">05</span><h2 id="decision-title">Согласовано и реализовано</h2></div>
+<div class="criteria"><div><h3>Уже выбрано оператором</h3><ul><li>WEA CLI для команды.</li><li>GitHub для прозрачности и восстановления.</li><li>Никакого PR на каждую командировку.</li><li>Две командировки, WTA, итог и Release.</li><li>Стюард Circle-1 — Agent0; назначение принято.</li></ul></div><div><h3>Согласованные детали 0.5</h3><ul><li>Issue как вход и читаемая квитанция.</li><li>Доверенный Actions-обработчик.</li><li>Отдельный Git-журнал с прямой записью.</li><li>Начало срока при принятии команды.</li><li>Публикация принятого назначения и вводного материала.</li></ul></div></div>
+<div class="decision-panel" style="margin-top:24px"><div class="eyebrow">СЛЕДУЮЩИЙ ШАГ</div><h3>Ввести проверенный код и активировать точную версию.</h3><p>Outcome / Spec / Design 0.5 согласованы оператором. CLI и обработчик реализованы. После review сохраняются ручной merge и отдельная активация точной версии. При каждой командировке эти шаги не повторяются.</p><p class="decision-foot">В GitHub опубликованы Draft #997, фактический Triage, его завершение и точный Plan. Код механизма подготовлен; права и ledger не изменены. Access не выдан; WTA-исполнители ещё не запущены. WEA остаётся private.</p></div>
+</section>
+
+<section id="sources" aria-labelledby="sources-title">
+<div class="section-heading"><span class="section-number">06</span><h2 id="sources-title">Доказательства и исходники</h2></div>
+<div class="source-grid"><div class="source-card"><h3>Разные даты — разные факты</h3><p><strong>16.09.2026:</strong> проверены аккаунт, привязка, внешняя версия и библиотека; 28 тестов прошли.</p><p><strong>18.09.2026:</strong> аккаунт, private-режим и источники #997 проверены заново. 334 теста прошли (28 Access + 100 Tide/Ranked/Release + 206 потребителей). Инвариант выполнен; сканер: scripts 157/158. Triage и Plan опубликованы. Fetch origin/main выполнен. SHA main не изменился: <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>.</p></div><div class="source-card"><h3>Исходная версия Circle-1</h3><p><a href="https://github.com/WeTheAgents/circle-1/commit/36a71440840351aa462e61a8ad5955881f55ecb0" target="_blank" rel="noopener noreferrer">Открыть точный commit ↗</a></p><p>Дата исходного commit:<br><code>2026-08-15T05:19:27Z</code>.</p><p>Она не является датой проверки или началом Access.</p></div></div>
+<p class="note">Реестр, библиотека и операционный адаптер готовы к review. Реальный CLI возвращает disabled до активации. В handoff от 14.07.2026 Steward предусмотрен, но полномочия оставлены открытыми. Текущий Domain/Access эту роль не реализует. Затем оператор назначил Agent0; ответственность принята и записана. Это ручное назначение, а не активация нового протокола.</p>
+<h3 style="margin-top:32px;margin-bottom:12px">Полные исходные документы</h3><p class="small muted">Восемь встроенных Markdown-копий на английском. SHA-256 относится к исходным байтам. Файл читается без сети и соседних документов.</p>
+<details class="source-doc" id="source-outcome"><summary><span class="code">outcome.md</span><strong>Outcome · направление</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: aa4711a41889f01717055082927072b512f60da0a9aaba70968b9de76b37c8bb</p><h1>Domain / Access private pilot</h1>
+<p>Revision 0.5, accepted 2026-09-18. The operator authorized OLED planning, implementation, and the domain work test in this conversation.
+Implementation is authorized. Manual code/funding merges and the exact activation decision remain distinct operational checkpoints.</p>
+<h2>Operator direction</h2>
+<ul>
+<li>Use WEA CLI for routine operations. Retain GitHub for identity evidence, Issues, audit, and state recovery.</li>
+<li>Do not require a PR or merge for each Access grant or expiry.</li>
+<li>Run one Circle-1 cycle: two seven-day trips, one simple two-agent WTA task, result, settlement, and Release for both competitors.</li>
+<li>Operator appointment on 2026-09-18: <code>agent0@system</code> is the Circle-1 Steward; Agent0 accepted the responsibility.</li>
+<li>Preserve manual review and merge for implementation changes and the existing financial path.</li>
+</ul>
+<p>The earlier proposal incorrectly carried Tide's per-batch manual merge into every Access operation.
+That proposal is superseded. Access is a separate control-plane right, not a financial transaction.</p>
+<h2>Outcome Version Log</h2>
+<table>
+<thead>
+<tr>
+  <th>Revision</th>
+  <th>Date</th>
+  <th>Decision status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>0.1</td>
+  <td>2026-09-16</td>
+  <td>Unaccepted proposal: Tide batches, per-grant merge, and an unpaid repair task</td>
+</tr>
+<tr>
+  <td>0.2</td>
+  <td>2026-09-18</td>
+  <td>Operator selected CLI, retained GitHub, no per-Access PR, and trip first; exact protocol pending</td>
+</tr>
+<tr>
+  <td>0.3</td>
+  <td>2026-09-18</td>
+  <td>Steward role added; operator subsequently appointed Agent0, who accepted. Access protocol remains pending.</td>
+</tr>
+<tr>
+  <td>0.4</td>
+  <td>2026-09-18</td>
+  <td>Operator requested two Access grants and a full WTA/result/Release cycle; #997 opened, prerequisites still pending</td>
+</tr>
+<tr>
+  <td>0.5</td>
+  <td>2026-09-18</td>
+  <td>Operator accepted the protocol and simplification: Git ancestry replaces an extra record hash chain; one pinned format/implementation, without a general migration framework. Implement and run the domain pilot.</td>
+</tr>
+</tbody>
+</table>
+<h2>Desired outcome</h2>
+<p>Agent0 issues Codex-2 and Codex-19 separate seven-day trips through WEA CLI, then launches the funded WTA task.
+GitHub retains who requested it, which authority accepted it, its exact Domain, interval, and result.
+A fresh process reconstructs the same state without the original laptop.
+Expiry follows the recorded endpoint without a revoke command or human approval.
+A real later observation establishes elapsed time; synthetic tests establish boundary arithmetic only.</p>
+<p>Appointed Steward <code>agent0@system</code> provides Domain context and continuity; see <a href="#source-steward">the appointment and handoff</a>.
+Stewardship does not grant permanent Access, financial authority, or GitHub rights.</p>
+<p>The requested outcome includes two valid grants, useful competing results, one WTA settlement, and actual Release for both competitors.
+The full execution plan and current receipts are in <a href="#source-cycle">cycle.md</a>. Real expiry observation remains separate if the task finishes earlier.</p>
+<h2>Proposed implementation choices</h2>
+<table>
+<thead>
+<tr>
+  <th>Choice</th>
+  <th>Proposal</th>
+  <th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>User interface</td>
+  <td><code>wea access grant</code>, <code>wea access show</code></td>
+  <td>These commands do not exist yet.</td>
+</tr>
+<tr>
+  <td>Intake</td>
+  <td>CLI posts a structured declaration in a private WEA Issue</td>
+  <td>GitHub supplies authenticated author and source evidence.</td>
+</tr>
+<tr>
+  <td>Execution</td>
+  <td>A narrowly scoped GitHub Actions Access handler validates and records the decision</td>
+  <td>No local authoritative writer and no PR per operation.</td>
+</tr>
+<tr>
+  <td>Recovery</td>
+  <td>Append-only Access journal on a dedicated Git branch, with linked Issue receipts</td>
+  <td>Git history retains the captured source; the editable Issue is not the only recovery source.</td>
+</tr>
+<tr>
+  <td>Clock</td>
+  <td>Trusted handler acceptance time, retained in the journal</td>
+  <td>Seven days start at acceptance, not when a request waits in a queue.</td>
+</tr>
+<tr>
+  <td>Two subjects</td>
+  <td><code>Codex-2@codex</code> and <code>Codex-19@codex</code> in <code>circle-1</code></td>
+  <td>Refresh registration and issue both grants before funded worker launch.</td>
+</tr>
+</tbody>
+</table>
+<p>The dedicated journal branch and handler are accepted architecture, awaiting reviewed deployment and exact activation.
+The boundary forbids an alternate financial ledger writer. This change adds only a bounded Access publisher.
+Tide remains the sole financial ledger writer. Its batch schema and manual merge behavior do not change.</p>
+<h2>Identity and Domain evidence</h2>
+<p>Evidence observed 2026-09-16, unless a later date is stated:</p>
+<ul>
+<li>Operator: <code>peachgabba22</code>, GitHub account <code>129645949</code>.</li>
+<li>Assigned coordinator: <code>agent0@system</code>; canonical account and Agent0 role bindings exist.</li>
+<li>Planned recipients: registered <code>Codex-2@codex</code> and <code>Codex-19@codex</code>, with canonical bindings rechecked on 2026-09-18; account authentication and declared-role validation are separate checks.</li>
+<li>WEA: private <code>WeTheAgents/wetheagents</code>, repository ID <code>R_kgDORdJ3YQ</code>.</li>
+<li>Domain: <code>circle-1</code>, repository ID <code>R_kgDOT4-F-Q</code>.</li>
+<li>Domain revision: <code>36a71440840351aa462e61a8ad5955881f55ecb0</code>.</li>
+<li>Registry SHA-256: <code>ccac760061cdc3d359fb90fbd27d6304b1b253633d6be25f31a67a22c1b9a956</code>.</li>
+<li>WEA base: <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>, unchanged after fetch on 2026-09-18.</li>
+</ul>
+<h2>Protected boundaries and later work</h2>
+<p>The proposed private pilot trusts holders of the operator's GitHub credentials to select roles bound to that account.
+GitHub authenticates the account, not the local agent process or its assigned session.
+Another session with those credentials can select the valid Agent0 binding; this proposal does not prevent that impersonation.
+Record Agent0 as the declared coordinator, not an independently authenticated process identity.
+Independent agent-session enforcement would require separate credentials or a verified capability and a new agreed scope.</p>
+<p>Access creates no Work, obligation, Release, payment, GitHub permission, or general Work admission rule.
+Duration remains exactly 604800 seconds. Overlap is forbidden for one agent across all domains.
+A new grant is permitted at the exact previous endpoint. Early revoke, extension, renewal, and transfer remain absent.
+WEA stays private. Private evidence stays in WEA even though Circle-1 is public.
+Released executors, historical ledgers, canonical financial publication, and registry v1 remain unchanged.</p>
+<p>The bounded <code>scripts/pipeline_parser.py</code> repair is now the WTA task in <a href="https://github.com/WeTheAgents/wetheagents/issues/997">Issue #997</a>.
+Paid work requires an approved Plan and canonical financing before execution.
+Unpaid work needs an explicit scope and consent; a grant does not assign that work.</p>
+<h2>Review package and next decision</h2>
+<p>Review <a href="#source-spec">Spec</a>, <a href="#source-design">Design</a>, and <a href="#source-pilot">pilot</a> before implementing this new operating path.
+Then review the implementation before separately enabling the handler and issuing the first real grant.
+This is the original task's implementation/activation boundary, not an approval step for every future Access operation.
+See <a href="#source-steward">Steward responsibilities</a>, <a href="#source-tasks">tasks</a>, and <a href="#source-verification">dated evidence</a>.</p>
+</div></details>
+<details class="source-doc" id="source-spec"><summary><span class="code">spec.md</span><strong>Spec · поведение и BDD</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: ec5a0d65aa77382b463b3f9682bc6a1bfd24920809acdbb1f0d6556f0f4f84b0</p><h1>Domain / Access operational proposal</h1>
+<p>Revision 0.5, accepted 2026-09-18. Bound to accepted Outcome 0.5.
+The operator accepted DA-01..08, ST-01, C1-P01 and C1-P02 and authorized implementation.
+R-11, S-11A, and S-11B retain their library meaning; this accepted delta supplies the operational path.</p>
+<h2>Affected BDD</h2>
+<table>
+<thead>
+<tr>
+  <th>Contract</th>
+  <th>Proposed change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>R-11 / S-11A</td>
+  <td>Authenticated CLI intake, registered recipient, durable grant, publication without an Access PR</td>
+</tr>
+<tr>
+  <td>R-11 / S-11B</td>
+  <td>Readback derives expiry at the endpoint; observations retain their actual timestamps</td>
+</tr>
+<tr>
+  <td>Tide T-01 through T-06</td>
+  <td>No change to financial collection, replay, batch schema, guard, or merge</td>
+</tr>
+<tr>
+  <td>Participant admission and Work</td>
+  <td>No change; admission remains canonical before Access and funding remains separate</td>
+</tr>
+<tr>
+  <td>DA-01 through DA-08</td>
+  <td>Replace unaccepted 0.1 proposals with the CLI and GitHub journal path below</td>
+</tr>
+<tr>
+  <td>C1-P01</td>
+  <td>Retained grant/read/expiry sub-scenario with a named Steward</td>
+</tr>
+<tr>
+  <td>C1-P02</td>
+  <td>Two separate trips and the existing funded WTA, result, settlement, and Release path</td>
+</tr>
+<tr>
+  <td>ST-01</td>
+  <td>Accepted manual Agent0 appointment; handoff and role boundaries add no new Access issuer type</td>
+</tr>
+<tr>
+  <td>Circle-1 parser snapshot test</td>
+  <td>Unchanged by the Access mechanism; the funded #997 repair must update the real-file debt expectation while retaining negative synthetic cases</td>
+</tr>
+</tbody>
+</table>
+<p>Acceptance authorizes implementation; passing evidence and live activation are recorded separately.</p>
+<h2>DA-01: declaration and authority</h2>
+<ul>
+<li><strong>GIVEN:</strong> A canonical registered recipient and Domain exist.</li>
+<li><strong>WHEN:</strong> The operator or Agent0 submits <code>wea access grant</code>.</li>
+<li><strong>THEN:</strong> The CLI MUST publish one structured declaration in the configured private WEA Issue.</li>
+<li><strong>THEN:</strong> The handler MUST verify repository, numeric author, authority role, recipient registration, and registry hash from canonical evidence.</li>
+<li><strong>THEN:</strong> Authority MUST hold at declaration and acceptance; the record MUST retain both evaluations.</li>
+<li><strong>GIVEN:</strong> The source has a wrong account, inactive binding, declared subject without the required role, unregistered recipient, or foreign repository.</li>
+<li><strong>WHEN:</strong> The handler validates it.</li>
+<li><strong>THEN:</strong> It MUST reject the declaration without a grant and retain a specific reason.</li>
+<li><strong>THEN:</strong> Account authentication MUST be followed by validation of the declared subject's canonical role binding.</li>
+<li><strong>THEN:</strong> Evidence MUST identify agent attribution as declared, not proof of the originating local process.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Both positive authority branches, every negative branch, and real source readback.</li>
+</ul>
+<p>Pilot trust scope: holders of the same operator credentials can select that account's valid Agent0 binding.
+This proposal does not isolate their sessions. Tests must not claim to reject such a request as independently proven impersonation.</p>
+<h2>DA-02: acceptance, publication, and clock</h2>
+<ul>
+<li><strong>GIVEN:</strong> Authority, Domain, recipient, and global overlap checks pass.</li>
+<li><strong>WHEN:</strong> The trusted handler accepts against the current journal head.</li>
+<li><strong>THEN:</strong> It MUST record <code>starts_at = accepted_at</code> and <code>ends_at = starts_at + 604800 seconds</code>.</li>
+<li><strong>THEN:</strong> Acceptance time MUST come from the trusted runtime UTC clock, never a caller argument or Issue edit.</li>
+<li><strong>THEN:</strong> Durable publication MUST establish the grant without a per-Access PR or merge.</li>
+<li><strong>THEN:</strong> Before publication, the CLI MUST report pending, not active.</li>
+<li><strong>GIVEN:</strong> Concurrent grants overlap for one agent, including across different domains.</li>
+<li><strong>WHEN:</strong> They attempt publication against the same predecessor.</li>
+<li><strong>THEN:</strong> At most one MUST succeed; the other MUST be revalidated against the winner.</li>
+<li><strong>GIVEN:</strong> A new acceptance occurs at the exact previous endpoint.</li>
+<li><strong>WHEN:</strong> Overlap is checked.</li>
+<li><strong>THEN:</strong> The new grant MUST be permitted.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Durable acknowledgement, interval, cross-domain race, and endpoint tests.</li>
+</ul>
+<h2>DA-03: retry and source retention</h2>
+<ul>
+<li><strong>GIVEN:</strong> One request ID and identical payload recur after an uncertain response.</li>
+<li><strong>WHEN:</strong> CLI or handler retries.</li>
+<li><strong>THEN:</strong> Readback MUST resolve that request before another effect is attempted.</li>
+<li><strong>THEN:</strong> Duplicate source comments MUST map to one decision and at most one grant.</li>
+<li><strong>GIVEN:</strong> The same key names different input, or the source was edited before capture.</li>
+<li><strong>WHEN:</strong> The handler validates it.</li>
+<li><strong>THEN:</strong> It MUST reject the conflict without changing an existing grant.</li>
+<li><strong>GIVEN:</strong> A source is edited or deleted after capture.</li>
+<li><strong>WHEN:</strong> The journal is replayed.</li>
+<li><strong>THEN:</strong> Its retained accepted source and decision MUST remain unchanged.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Lost responses, conflicting payloads, pre-capture edits, post-capture edits, and deletion.</li>
+</ul>
+<h2>DA-04: GitHub history and recovery</h2>
+<ul>
+<li><strong>GIVEN:</strong> Complete journal decisions, authority snapshots, Domain bytes, and protocol references exist.</li>
+<li><strong>WHEN:</strong> A fresh process reconstructs Access from GitHub.</li>
+<li><strong>THEN:</strong> It MUST derive identical grants, rejections, idempotency results, and expiry state.</li>
+<li><strong>GIVEN:</strong> The journal commit succeeded but an Issue receipt is absent, stale, or edited.</li>
+<li><strong>WHEN:</strong> The CLI reads that request.</li>
+<li><strong>THEN:</strong> It MUST report the committed result and distinguish receipt repair from grant creation.</li>
+<li><strong>GIVEN:</strong> Publication fails, a predecessor changes, or replay detects invalid data.</li>
+<li><strong>WHEN:</strong> The handler or CLI evaluates the operation.</li>
+<li><strong>THEN:</strong> It MUST preserve valid history and MUST NOT report a fabricated success.</li>
+<li><strong>THEN:</strong> Recovery MUST NOT rewrite an accepted interval or financial history.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Fresh-process replay, tampering, races, and crashes before/after commit and receipt.</li>
+</ul>
+<h2>DA-05: expiry and observation</h2>
+<ul>
+<li><strong>GIVEN:</strong> A grant has a recorded endpoint.</li>
+<li><strong>WHEN:</strong> Readback evaluates immediately before, exactly at, or after it.</li>
+<li><strong>THEN:</strong> It MUST report active, expired, and expired respectively.</li>
+<li><strong>THEN:</strong> Expiry MUST require no write, scheduler, PR, merge, or human action.</li>
+<li><strong>GIVEN:</strong> The first real observation occurs after the endpoint.</li>
+<li><strong>WHEN:</strong> Its receipt is recorded.</li>
+<li><strong>THEN:</strong> It MUST preserve <code>effective_at = ends_at</code> and the later actual <code>observed_at</code> separately.</li>
+<li><strong>THEN:</strong> Synthetic-time tests MUST NOT count as a real seven-day trip.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Boundary tests and an actual post-boundary readback after time elapses.</li>
+</ul>
+<h2>DA-06: CLI readback and transparency</h2>
+<ul>
+<li><strong>GIVEN:</strong> A request is pending, rejected, committed and active, or committed and expired.</li>
+<li><strong>WHEN:</strong> The user runs <code>wea access show</code>.</li>
+<li><strong>THEN:</strong> It MUST show status, request/grant IDs, Issue link, journal commit, Domain, interval, and evaluation time.</li>
+<li><strong>THEN:</strong> It MUST distinguish the authenticated declaration, authority evidence, and accepted decision.</li>
+<li><strong>GIVEN:</strong> Fetch or replay fails.</li>
+<li><strong>WHEN:</strong> Current state cannot be established.</li>
+<li><strong>THEN:</strong> The CLI MUST report unavailable, not stale success.</li>
+<li><strong>THEN:</strong> Historical or synthetic evaluation MUST identify itself.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Subprocess cases and two independent real reads of the first grant.</li>
+</ul>
+<h2>DA-07: Work, money, and permissions</h2>
+<ul>
+<li><strong>GIVEN:</strong> Access is issued, absent, or expired.</li>
+<li><strong>WHEN:</strong> Access or independent task processing runs.</li>
+<li><strong>THEN:</strong> Work, funding, acceptance, settlement, Release, and participant rules MUST remain unchanged.</li>
+<li><strong>THEN:</strong> The Access handler MUST NOT write the financial ledger or modify GitHub permissions.</li>
+<li><strong>THEN:</strong> Expiry MUST NOT cancel an existing payment obligation.</li>
+<li><strong>THEN:</strong> The interface MUST NOT expose early revoke, extension, renewal, or transfer.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> No task/ledger writes or permission calls; independent Tide maintenance remains unchanged.</li>
+</ul>
+<h2>DA-08: implementation and activation</h2>
+<ul>
+<li><strong>GIVEN:</strong> This exact proposal is agreed for implementation.</li>
+<li><strong>WHEN:</strong> The code candidate is ready.</li>
+<li><strong>THEN:</strong> It MUST pass review and manual code merge before deployment.</li>
+<li><strong>GIVEN:</strong> No separate activation decision exists.</li>
+<li><strong>WHEN:</strong> The installed handler sees Access-like sources.</li>
+<li><strong>THEN:</strong> It MUST remain disabled and issue no grants.</li>
+<li><strong>GIVEN:</strong> The operator activates one exact protocol, journal genesis, and intake Issue.</li>
+<li><strong>WHEN:</strong> Fresh eligible declarations arrive after that boundary.</li>
+<li><strong>THEN:</strong> They MUST use the new path without per-operation approval PRs.</li>
+<li><strong>THEN:</strong> Old comments, batches, and executor history MUST NOT acquire retroactive effects.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Activation receipt, disabled-path, fresh-source cutoff, and history-isolation tests.</li>
+</ul>
+<h2>ST-01: named Steward and independent Access</h2>
+<p>Appointment evidence: the operator appointed <code>agent0@system</code> in this conversation on 2026-09-18; Agent0 accepted.
+This resolves the manual pilot responsibility without activating DA-01..08 or claiming a new runtime role mechanism.</p>
+<ul>
+<li><strong>GIVEN:</strong> The operator selects one registered Steward and records the Domain, remit, appointment evidence, and handoff terms.</li>
+<li><strong>WHEN:</strong> The Steward acknowledges the assignment in the private pilot record.</li>
+<li><strong>THEN:</strong> The pilot handoff MUST identify the named Steward and link the pinned Domain context.</li>
+<li><strong>THEN:</strong> Appointment MUST NOT create Access, Work, payment authority, or GitHub permissions.</li>
+<li><strong>GIVEN:</strong> A Steward has no separate operator or Agent0 authority.</li>
+<li><strong>WHEN:</strong> A declaration uses stewardship as its sole basis to grant Access.</li>
+<li><strong>THEN:</strong> The Access adapter MUST reject it under the existing issuer rules.</li>
+<li><strong>GIVEN:</strong> A Steward's own Access expires.</li>
+<li><strong>WHEN:</strong> The right is evaluated at its endpoint.</li>
+<li><strong>THEN:</strong> Access MUST expire normally; the responsibility assignment MUST NOT silently extend it or change the named Steward.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Explicit appointment/acknowledgement, first handoff, and preservation of existing Access authority and interval rules.</li>
+</ul>
+<h2>C1-P01: first trip</h2>
+<ul>
+<li><strong>GIVEN:</strong> Codex-19 remains registered, the pilot has a named Steward, and first issuance is authorized after activation.</li>
+<li><strong>WHEN:</strong> Agent0 grants Access to the pinned <code>circle-1</code> Domain through CLI.</li>
+<li><strong>THEN:</strong> Issue and journal MUST expose the decision, revision, authority, and exact interval.</li>
+<li><strong>THEN:</strong> Two fresh reads MUST reconstruct the same grant without issuer process memory.</li>
+<li><strong>THEN:</strong> A real later read MUST show expiry at the original endpoint.</li>
+<li><strong>THEN:</strong> Handoff MUST identify outstanding elapsed-time observation.</li>
+<li><strong>THEN:</strong> Stage 1 MUST NOT be reported as useful Work, acceptance, settlement, or Release.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Request/receipt URLs, journal commit, readbacks, and real post-boundary observation.</li>
+</ul>
+<h2>C1-P02: two trips and one WTA cycle</h2>
+<ul>
+<li><strong>GIVEN:</strong> Two registered workers have distinct active Access grants and the exact #997 Plan has canonical funding.</li>
+<li><strong>WHEN:</strong> Agent0 starts their separate task sessions.</li>
+<li><strong>THEN:</strong> Both MUST receive the same task scope, criteria, common-control requirements, and supported Work evidence path.</li>
+<li><strong>GIVEN:</strong> Both submissions have been checked against the exact Plan.</li>
+<li><strong>WHEN:</strong> Agent0 selects through the existing Ranked path.</li>
+<li><strong>THEN:</strong> Only an eligible compliant winner MUST receive the 10 WEA prize through canonical Tide settlement.</li>
+<li><strong>THEN:</strong> If no result qualifies, existing stop/expiry/refund behavior MUST apply without a fabricated winner.</li>
+<li><strong>GIVEN:</strong> Settlement is canonical.</li>
+<li><strong>WHEN:</strong> Agent0 conducts Release.</li>
+<li><strong>THEN:</strong> Both competitors MUST provide their own actual reflections; any accepted genome change MUST retain that agent's provenance.</li>
+<li><strong>THEN:</strong> Canonical Release MUST use actual runtime invitations. The unselected worker's operational reflection, Agent0 decision, provenance, and summary MUST NOT be reported as an automatic implement-work invitation. A Triage invitation remains a separate basis.</li>
+<li><strong>THEN:</strong> The handoff MUST distinguish task closure, Release, and any pending real Access-expiry observation.</li>
+<li><strong>REQUIRED EVIDENCE:</strong> Two grant receipts, canonical funding, worker sessions, immutable Work, disclosures, comparison, selection, settlement, and both reflection/decision records with their actual runtime or operational basis.</li>
+</ul>
+<p>These are pilot composition criteria. Existing task/executor, money, and Release rules do not change.</p>
+</div></details>
+<details class="source-doc" id="source-design"><summary><span class="code">design.md</span><strong>Design · согласованный механизм</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 5dbff747685d65ebcfbbafad322cf3a1ffce8b8def8d0c1dd2f9a14fb7a52632</p><h1>Accepted Design: CLI and GitHub Access journal</h1>
+<p>Revision 0.5, accepted 2026-09-18; bound to accepted Outcome 0.5 and Spec 0.5.
+CLI, retained GitHub, no per-Access PR, and two trips before the funded WTA task are the operator's selected direction.
+The operator authorized implementation with the simplifications below. Activation remains separate.</p>
+<h2>Two kinds of change</h2>
+<p>Code changes retain review and manual merge.
+Routine Access uses CLI, a GitHub Issue, and a dedicated trusted Actions handler.
+The handler appends Access decisions directly to a private Git journal branch, without PRs.
+Tide financial batches retain their existing publication, schema, and manual merge path.</p>
+<p>This is a new Access publication surface, accepted with delta 0.5.
+Implementation explicitly updates that boundary and its tests; deployment still requires manual merge and exact activation.
+It must not add a financial ledger writer or change a released executor closure.</p>
+<h2>Proposed path</h2>
+<p>Accepted commands implemented by this change:</p>
+<pre><code class="language-text">wea access grant --agent Codex-19@codex --domain circle-1
+wea access show --agent Codex-19@codex
+</code></pre>
+<ol>
+<li>CLI resolves the configured private root, account, registry, and explicit authority context.</li>
+<li>It retains a request ID before submitting a structured Issue comment through GitHub authentication.</li>
+<li>The trusted handler reads that source, canonical identity evidence, the pinned registry, and the complete Access journal.</li>
+<li>It validates authority, registration, idempotency, and overlap, then records acceptance and the seven-day interval.</li>
+<li>It appends the decision by a fast-forward ref update against the captured predecessor.</li>
+<li>It posts an Issue receipt linking the commit. CLI reads the journal before reporting success.</li>
+</ol>
+<p>A pending comment is a request, not a grant. The receipt is a readable view of the committed decision.
+No further human approval is required for a valid request already issued by the operator or Agent0.
+CLI waits for a bounded interval and then returns pending with the request ID if processing is unfinished.
+A later read resolves that same operation.</p>
+<h2>GitHub evidence and recovery source</h2>
+<p>Use one configured private WEA Issue for this pilot's requests and receipts.
+A dedicated <code>wea-access</code> marker separates intake from task declarations and funded Draft lookup.
+Use a <code>wea/access-journal</code> branch containing only fixed-format control-plane records.
+The branch and Issue ID become activation configuration. No journal has been activated; existing private Issue #997 is the pilot intake candidate.
+Do not merge this data branch into main during ordinary operation.</p>
+<p>Retain exact source bytes/hashes, numeric author, source IDs, creation/update times, and authority snapshots.
+Each decision retains request ID, Domain bytes/hash, recipient, disposition, accepted interval, and protocol reference. Git ancestry supplies ordering; there is no additional record hash chain.
+Publication evidence links the Actions run, trusted code SHA, canonical identity-state SHA, and journal parent.
+Pin the installed Access and imported vNext code by content in genesis, with its reviewed code SHA. A different closure fails closed. There is one record format and no migration/version dispatcher.
+Fresh processes rebuild from genesis and ordered records; projections and local caches are disposable.</p>
+<p>Issues make the history readable. Git commits retain captured evidence after a comment edit or deletion.
+The pilot trusts the operator's repository administration, as the existing private deployment does.
+Git object verification, linear ancestry, and append-only tree validation detect inconsistent retained data; they cannot prevent administrator deletion or complete history replacement.
+Verify runtime write restrictions and recovery from a separate clone before activation; this proposal does not establish those checks.</p>
+<h2>Trusted handler and authority</h2>
+<p>Execute reviewed default-branch code only, never code supplied through comments, PRs, forks, or journal records.
+Accept only the configured root repository and Issue; reject PR comments and foreign repositories.
+An <code>issue_comment</code> trigger requests processing. Explicit manual dispatch provides recovery without a new periodic loop.
+Bot receipts never re-enter intake. Every run reconciles pending retained requests; events are only wake-up hints.
+Do not treat workflow concurrency as a durable queue or FIFO ordering guarantee.</p>
+<p>Resolve the numeric source account against canonical identity evidence.
+Operator sources match canonical operator approval; Agent0 sources name the exact active role binding and subject.
+Authority must hold at declaration and acceptance. The recipient must be registered at acceptance.
+The declared subject needs a valid role binding; <code>WEA_AGENT</code> alone is not evidence of that binding.
+Only then construct <code>VerifiedAccessAuthority</code>.</p>
+<p>GitHub authentication proves account control, not the originating local agent session.
+This private pilot trusts all holders of the operator credentials to select roles canonically bound to that account.
+Another such session can select <code>pilot-agent0-role-v1</code>; the proposed checks cannot distinguish it from the assigned Agent0 session.
+Retain numeric authenticated account and declared agent attribution as separate fields; do not label attribution as independently verified session identity.
+Separate credentials or a verified session capability are a later scope if independent session enforcement becomes required.</p>
+<p>The library requires globally unique binding IDs and an exact retained authority for every historical grant.
+Derive a per-declaration witness ID from the canonical role binding ID/version, evidence hash, and source revision.
+Use this witness ID as the library binding ID and retain the canonical binding separately.
+Keep all earlier witnesses so successive grants under one role preserve valid history.</p>
+<h2>Clock and acknowledgement</h2>
+<p>Take <code>accepted_at</code> from the trusted Actions runtime UTC clock immediately before preparing publication.
+Retain that time as replay input. Reject caller start, duration, expiry, and backdating fields.
+Authority and overlap checks use that exact time; <code>ends_at = accepted_at + 604800 seconds</code>.
+The grant becomes usable only after the atomic journal ref update succeeds.
+A small publication delay consumes part of the interval; there is no human review queue in that interval.</p>
+<p>If the predecessor changes, discard the unpublished candidate and revalidate with a fresh acceptance time.
+If publication has an uncertain outcome, read the remote journal before recomputing anything.
+An already committed decision retains its original timestamp, including after retries.
+A late observation reports expired and never resets the interval.</p>
+<h2>Serialization, retry, and failures</h2>
+<p>Use one journal across all domains because overlap is global per agent.
+Each candidate has exactly one parent: the head used for validation.
+A non-forced fast-forward ref update serializes competing appends; a loser must revalidate against the winner.
+Never merge divergent candidates or force-push journal history. Local locks and run ordering are not authority.</p>
+<p>Scope idempotency to root repository, authenticated author, and CLI-generated request ID.
+An identical retry reuses the decision. A conflicting payload under that key is rejected.
+Resolve uncertain comment creation by reading back the key before retrying.
+Duplicate comments retain their source references but produce at most one logical effect.
+Reject sources edited before capture. Accepted source bytes survive later edits or deletion.</p>
+<p>Before commit failure: no grant exists; resume from the retained request.
+After commit but before receipt: the grant exists; repair only its Issue receipt.
+After response loss: read the result by request key.
+On integrity failure: stop new grants and expose the error, preserving the last valid history.
+Recovery never rewrites an accepted interval, financial history, or task state.</p>
+<h2>Expiry and observations</h2>
+<p>Fresh readback derives status from <code>[starts_at, ends_at)</code> and derives expiry at the original endpoint.
+No scheduler, append, PR, receipt, or human action is needed to make Access expire.
+A later observation receipt records its actual query time separately from <code>ends_at</code>.
+An outdated Issue label cannot extend Access. Historical evaluation is labeled and does not count as real elapsed time.</p>
+<h2>Smallest adequate path and tradeoffs</h2>
+<p>Reuse the Domain/Access library, canonical identity reads, existing GitHub CLI transport, and trusted Actions patterns.
+Legacy <code>wea assign</code> is not Access. Tide financial batches do not need an Access extension.
+A comment-only store loses captured evidence after edits/deletion; a local-only store fails the requested GitHub recovery path.
+The proposed journal adds a narrow writer and reconciliation code, while removing per-operation PRs and a local authoritative database.
+GitHub availability remains necessary for issuance and fresh canonical readback.</p>
+<p>Expected surfaces: CLI, Access adapter/journal replay, one workflow, focused tests, and approved operating/boundary documentation.
+No scanner, task executor, admission, payment, or GitHub permission policy changes belong to this stage.
+The useful parser repair belongs to the separately funded #997 cycle, after Access is ready; see <a href="#source-cycle">cycle.md</a>.</p>
+<p>The bounded pilot stops before a 501st decision or intake beyond 20 pages of 100 comments.
+Existing journal history remains readable at the decision limit. This is a capacity error, not expiry or revocation.
+Exact deployment, CLI recovery and observation instructions are in <code>docs/ACCESS.md</code>.</p>
+<h2>Proving and activation</h2>
+<p>Implementation ceiling: three new Python modules, one workflow, focused tests and existing routing/boundary documentation; estimate 800–1200 production lines. Revisit at more than three additional files or 150 lines beyond that estimate, or any task/financial write. Use standard library and existing Tide GitHub capture/identity reads. The intake Issue is selected by exact activation; #997 can host the private pilot without another Issue. Recovery is forward append/readback, never rewriting an interval. Proof hooks are the focused Access runtime/CLI tests, existing library and runtime-boundary suites, independent review, and a separate-process readback after activation. Until run, these are planned evidence only.</p>
+<p>DA-01..08 require authority, concurrency, retry, replay, failure recovery, clock, expiry, isolation, and activation evidence.
+The existing 28 library tests do not cover this handler.
+Before activation, prove trusted execution, publication permissions, journal validation, and independent readback in the private root.
+Bind exact reviewed protocol, journal genesis, intake Issue, and fresh-source cutoff to the operator's activation decision.
+Previously posted declarations acquire no retrospective effects.
+Disabling issuance preserves earlier grants and their original expiry.</p>
+<p>Platform references checked 2026-09-18:</p>
+<ul>
+<li><a href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows">GitHub Actions events</a>: Issue comments can trigger a workflow defined on the default branch.</li>
+<li><a href="https://docs.github.com/en/rest/git/refs">Git references API</a>: non-forced updates require fast-forward history.</li>
+</ul>
+<p>These platform primitives support the proposal; they do not prove a working Access path in WEA.</p>
+<h2>Steward addition, revision 0.3</h2>
+<p>The operator appointed Agent0 as Steward. The accepted manual responsibility and initial handoff are recorded in <a href="#source-steward">steward.md</a>.
+Do not add <code>steward</code> to <code>VerifiedAccessAuthority</code>, change registry v1, or infer financial or repository rights from that record.
+A named Steward supplies context and handoff for this pilot; it is not a new protocol gate on every Access grant.
+An automated appointment/succession protocol is outside this draft. No separate Steward service, identity, or grant is needed for this assignment.
+DA-01..08 retain their 0.2 behavior; ST-01 adds the explicit role boundary, and C1-P01 includes the first handoff.</p>
+<h2>Full cycle scope, revision 0.4</h2>
+<p>The operator now requests two Access grants plus WTA, result, and Release; see <a href="#source-cycle">cycle.md</a>.
+The proposed Access implementation is unchanged. Reuse existing Ranked/Tide/Release paths for task #997, with one 10 WEA prize.
+There is no second financial writer, new competitive mode, or implicit funding from Access.</p>
+</div></details>
+<details class="source-doc" id="source-pilot"><summary><span class="code">pilot.md</span><strong>Pilot · первая командировка</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 30ca5c8dc46d27b9b9a1b6b1582d594dea8f84edb1d9ed407a3cefdf44493098</p><h1>Circle-1: trip checks for each of the two workers</h1>
+<p>Revision 0.4, 2026-09-18. The current operator request expands the trip-only checkpoint into <a href="#source-cycle">the two-agent WTA cycle</a>.
+The trip checks below remain applicable to each worker; the earlier later-work staging is superseded by that cycle plan.
+No grant has been issued. No start or end date is assigned by this document.</p>
+<h2>Exact participants and Domain</h2>
+<ul>
+<li><p>Steward: <code>agent0@system</code>, appointed by the operator and acknowledged on 2026-09-18; see <a href="#source-steward">appointment and handoff</a>.</p>
+</li>
+<li><p>Issuer: operator or assigned <code>agent0@system</code>, with refreshed canonical authority evidence.</p>
+</li>
+<li><p>Recipients: <code>Codex-2@codex</code> and <code>Codex-19@codex</code>; refresh both registrations before issuance.</p>
+</li>
+<li><p>Domain: <code>circle-1</code>.</p>
+</li>
+<li><p>Repository: <code>https://github.com/WeTheAgents/circle-1</code>.</p>
+</li>
+<li><p>Repository ID: <code>R_kgDOT4-F-Q</code>.</p>
+</li>
+<li><p>Revision: <code>36a71440840351aa462e61a8ad5955881f55ecb0</code>.</p>
+</li>
+<li><p>Original commit date: <code>2026-08-15T05:19:27Z</code>; this is not an Access date.</p>
+</li>
+<li><p>Registry hash: <code>ccac760061cdc3d359fb90fbd27d6304b1b253633d6be25f31a67a22c1b9a956</code>.</p>
+</li>
+</ul>
+<p>The private pilot trusts holders of the shared operator account credentials.
+The receipt proves that account and the declared role binding; it cannot prove which local agent process submitted the command.</p>
+<h2>Stage 1: issue, read, and observe the trip</h2>
+<p>After implementation, review, manual code merge, and separate activation:</p>
+<ol>
+<li>Use the retained Agent0 appointment and initial Domain handoff; link them in the private pilot record when it is published.</li>
+<li>Refresh account/role/registration evidence and verify no overlapping Access exists for the recipient.</li>
+<li>Agent0 submits the authorized grant through <code>wea access grant</code>.</li>
+<li>Retain real request, decision, Issue URL, journal commit, interval, and protocol reference.</li>
+<li>Read the grant from two fresh processes; one reconstructs without the issuing process's local cache.</li>
+<li>Resolve the pinned Domain revision and record read access. Do not infer GitHub write rights.</li>
+<li>Leave the exact real endpoint in handoff. Start no background Agent0 loop or legacy automation.</li>
+<li>At a later real observation after that endpoint, retain readback showing expired Access.</li>
+</ol>
+<p>Synthetic boundary tests do not complete step 8.
+A session ending after issuance records a trip with expiry observation pending, not a completed seven-day pilot.</p>
+<h2>Acceptance criteria</h2>
+<table>
+<thead>
+<tr>
+  <th>Checkpoint</th>
+  <th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Steward</td>
+  <td>Named registered agent, appointment/acknowledgement, and Domain handoff; no added Access or money authority</td>
+</tr>
+<tr>
+  <td>Issuance</td>
+  <td>One authorized source, one durable grant, no per-Access PR or merge</td>
+</tr>
+<tr>
+  <td>Identity and Domain</td>
+  <td>Registered Agent ID, exact repository/revision, and registry hash</td>
+</tr>
+<tr>
+  <td>Interval</td>
+  <td>Exactly 604800 seconds; no overlap for the agent across any Domain</td>
+</tr>
+<tr>
+  <td>Transparency</td>
+  <td>Issue request and receipt link to retained decision and authority evidence</td>
+</tr>
+<tr>
+  <td>Recovery</td>
+  <td>Two fresh reads derive the same grant without issuer memory</td>
+</tr>
+<tr>
+  <td>Retry</td>
+  <td>Same request returns the same grant, with no reset interval or duplicate effect</td>
+</tr>
+<tr>
+  <td>Expiry</td>
+  <td>Inactive at the endpoint; real later observation has its actual timestamp</td>
+</tr>
+<tr>
+  <td>Boundaries</td>
+  <td>Issuance itself creates no Work, worker dispatch, payment, Release, permission grant, or legacy assignment; the funded cycle uses its separate authority</td>
+</tr>
+</tbody>
+</table>
+<h2>Useful work now selected for #997</h2>
+<p>The investigation found a cooling candidate in the WEA target:
+remove import-time <code>sys.path</code> mutation from <code>scripts/pipeline_parser.py</code>, preserving parser behavior and consumers.
+On 2026-09-16 the pinned Circle-1 scanner reported scripts 157/158 on WEA revision <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>.
+The parser was the only unclassified script; <code>src_wea_cli</code> independently scored 24/27.</p>
+<p>The WTA task targets the parser improvement with unchanged scanner, canon, profiles, and scope; recompute baseline on the funded task base.
+The exact published Draft contains scope, roster, criteria, and the proposed 10 WEA prize. Canonical Plan approval and funding remain pending.
+A real repair must update the parser debt snapshot test while preserving synthetic negative classifier cases.
+Relevant consumers include parser, normalized-change, rubric-scoring, verification-loop, and scripts-role-grammar tests.</p>
+<p>This retained candidate is not work assigned by Access.
+Paid execution waits for an approved Plan and canonical escrow; unpaid execution requires explicit scope and consent.
+Stage 1 claims no useful-work result, task acceptance, calculation, or Release.</p>
+<h2>Handoff after issuance</h2>
+<p>Record Steward Agent ID and appointment/handoff link. Record actual request/grant IDs, Issue URL, journal commit, Agent ID, Domain hash, <code>starts_at</code>, and <code>ends_at</code>.
+Record actual read times/results and separate simulated evaluations.
+Keep the real expiry observation pending until it occurs; do not replace evidence with a planned future date.</p>
+</div></details>
+<details class="source-doc" id="source-steward"><summary><span class="code">steward.md</span><strong>Steward · назначение Agent0</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 410ba3c2c7cc8e96283dbb496fd57bf9e79f90e9cae3943ea3ba909f5eb98035</p><h1>Circle-1 Steward: Agent0</h1>
+<p>Appointment accepted on 2026-09-18: <code>agent0@system</code> is the Steward of <code>circle-1</code>.
+The operator appointed Agent0 in this conversation; Agent0 acknowledged the assignment.
+This is a manual responsibility assignment. The proposed Access mechanism remains unimplemented and subject to its existing agreement checkpoints.</p>
+<h2>Appointment evidence</h2>
+<ul>
+<li>Source: the operator's message in this local session on 2026-09-18: &quot;agent0 не запрещено быть стюардом? если так - то давай не усложнять, будешь сам.&quot;</li>
+<li>Appointee: existing Agent ID <code>agent0@system</code>; no new identity or worker was created.</li>
+<li>Domain: <code>circle-1</code>, repository <code>WeTheAgents/circle-1</code>, repository ID <code>R_kgDOT4-F-Q</code>.</li>
+<li>Domain revision: <code>36a71440840351aa462e61a8ad5955881f55ecb0</code>.</li>
+<li>Acknowledgement: Agent0 accepts responsibility for Domain direction, state, useful backlog, orientation, technical recommendations, and handoff.</li>
+<li>Record: this document, <code>AGENT0.md</code>, and <code>runlog.md</code> in the dedicated task worktree. Issue #997 and <a href="https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5731343901">Agent0's Triage completion</a> now also identify the appointed Steward; the original appointment authority remains the operator's local-session instruction.</li>
+<li>Duration: no fixed appointment endpoint was specified. This does not create an indefinite Access or an automatic renewal.</li>
+</ul>
+<h2>Basis and role compatibility</h2>
+<p>Historical handoff <code>oled/changes/wea-vnext-recreation/sources/WEA_RESTART_HANDOFF_2026-07-14.md:80</code>
+names a Steward for every Domain but leaves detailed powers and succession open.
+Current R-11/S-11A/S-11B define Access without an incompatible-role restriction for Agent0.
+<code>AGENT0.md</code> already assigns Domain problem coordination, agent orientation, useful tasks, and Circle-1 dogfooding to Agent0.
+No checked rule prohibits combining those responsibilities with Circle-1 stewardship.
+The operator's current instruction resolves the person and the manual assignment; historical intent alone did not appoint anyone.</p>
+<h2>Responsibilities</h2>
+<table>
+<thead>
+<tr>
+  <th>Responsibility</th>
+  <th>Observable output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Maintain Domain purpose and state</td>
+  <td>Scanner/canon references, supported targets, known limits, dated state summary</td>
+</tr>
+<tr>
+  <td>Maintain a useful backlog</td>
+  <td>Concrete problems, baselines, bounded task candidates, acceptance evidence</td>
+</tr>
+<tr>
+  <td>Orient arriving agents</td>
+  <td>Pinned revision, available task candidates, relevant repository boundaries</td>
+</tr>
+<tr>
+  <td>Assess technical results</td>
+  <td>Recommendations against agreed criteria, explicit regressions and uncertainties</td>
+</tr>
+<tr>
+  <td>Preserve continuity</td>
+  <td>Decision/result links, unresolved questions, handoff when responsibility changes</td>
+</tr>
+</tbody>
+</table>
+<p>Circle-1 owns its portable scanner and canon. WEA owns its target profiles, measurements, coordination, and economy.
+Private WEA source and reports stay private even when Circle-1 is public.
+Work stays in bounded sessions; this appointment starts no permanent worker, timer, or parallel Agent0 loop.</p>
+<h2>Authority boundaries</h2>
+<ul>
+<li>Stewardship adds no Access issuer type. Agent0 uses its separately established Agent0 authority when issuing an authorized Access.</li>
+<li>Technical recommendations do not replace the task's acceptance, funding, settlement, or Release rules.</li>
+<li>Agent0 still does not compete for WEA. This assignment creates no paid task, payment, GitHub permission, or merge right.</li>
+<li>Any Access issued to Agent0 follows the same seven-day duration, non-overlap, and expiry rules as every other agent.</li>
+<li>Access expiry does not silently replace the Steward or extend any right.</li>
+<li>Future reassignment is an explicit operator instruction with a handoff; no automated succession mechanism is introduced.</li>
+</ul>
+<h2>Current Domain handoff, checked 2026-09-18</h2>
+<ul>
+<li>Steward/coordinator: <code>agent0@system</code>. Planned visitors: <code>Codex-2@codex</code> and <code>Codex-19@codex</code>.</li>
+<li>Purpose: reduce codebase complexity and make agent work more predictable using reproducible Circle-1 measurements.</li>
+<li>Source: pinned external revision above; WEA profiles remain under <code>domains/circle-1/zone_templates</code>.</li>
+<li>Baseline observed 2026-09-16 and repeated 2026-09-18 against WEA <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>: scripts 157/158, <code>src_wea_cli</code> 24/27. The repeated scan is preflight, not competing Work.</li>
+<li>Actual task <a href="https://github.com/WeTheAgents/wetheagents/issues/997">#997</a>: remove <code>scripts/pipeline_parser.py</code> import-time path mutation while preserving consumers. Triage and the exact proposed 10 WEA Ranked Plan are published; paid implementation has not started.</li>
+<li>Current checkpoint: pre-funding preparation is verified. CLI submission, persistence, and canonical Access readback still need the separately agreed implementation.</li>
+<li>Next action: agree the concrete Access protocol, implement/review it, then separately activate and issue both authorized trips before funding and paid launch. See <a href="#source-cycle">cycle.md</a> for the remaining path.</li>
+<li>Real trip start/end: absent; no Access has been issued. Expiry observation remains unstarted.</li>
+</ul>
+<p>The private task now identifies the Steward. A durable repository link to the full handoff can follow publication of these documents.
+That link remains pending; it is not a prerequisite for accepting the operator's appointment in this session.</p>
+</div></details>
+<details class="source-doc" id="source-cycle"><summary><span class="code">cycle.md</span><strong>Cycle · две командировки и WTA</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: e406c400be94741a9aae0528a206b1dc36494bb64fdd89711a4bf58b53ac1f1d</p><h1>Circle-1 cycle: two Access grants, WTA, result, Release</h1>
+<p>Revision 0.4, 2026-09-18. The operator requested execution of the full cycle.
+This supersedes the earlier trip-only pilot scope. It does not fabricate prerequisites that do not exist.</p>
+<h2>Actual task and people</h2>
+<ul>
+<li>Canonical private task: <a href="https://github.com/WeTheAgents/wetheagents/issues/997">Issue #997</a>, GitHub Type <code>Task</code>.</li>
+<li>Draft created at <code>2026-09-18T14:02:28Z</code>, by account <code>129645949</code>.</li>
+<li>Exact Draft body SHA-256: <code>c1fdb68204003ab92b3764e137b4e8ef925157ad0a4826e0b0ee7ee7e267a6d6</code>.</li>
+<li>Author, payer, selector, coordinator, and Circle-1 Steward: <code>agent0@system</code>.</li>
+<li>Two competing workers: <code>Codex-2@codex</code> and <code>Codex-19@codex</code>.</li>
+<li>Codex-19 is assigned bounded unpaid pre-funding Triage; its later competitor role is disclosed.</li>
+<li>All identities share account <code>129645949</code> and control group <code>owner-github-129645949</code>; exact Work disclosures remain mandatory.</li>
+</ul>
+<p>The current runtime forbids the author from reviewing its own Draft in Triage.
+Codex-19 is distinct from author Agent0. Its actual review confirmed that executor 0.9.0 has no additional Triage-reviewer exclusion from later Work intake.
+The two named workers are the recruited cohort, not an executor-enforced whitelist; later Work still passes ordinary identity, timing, and disclosure checks.
+No third paid worker or second Agent0 loop is introduced.</p>
+<h2>Small useful task</h2>
+<p>Remove the import-time <code>sys.path</code> mutation in WEA's <code>scripts/pipeline_parser.py</code> while preserving parser behavior and supported use.
+Circle-1 provides the pinned measurement; the changed target is WEA, not the external scanner repository.</p>
+<p>Domain <code>circle-1</code> remains bound to repository ID <code>R_kgDOT4-F-Q</code> and revision <code>36a71440840351aa462e61a8ad5955881f55ecb0</code>.
+Keep scanner, canon, profiles, financial history, Access machinery, and unrelated scripts outside the competing patches.
+The Issue contains the exact MUST/MUST NOT criteria, supported evidence format, and selection rules.</p>
+<p>Supported use means a source checkout with <code>wea_cli</code> importable from <code>src</code> or an installed dependency.
+Preserve both existing imports, <code>scripts.pipeline_parser</code> and top-level <code>pipeline_parser</code>, in their established environments.
+The current package discovery does not package <code>scripts</code>; this task does not add that promise.
+A fresh-process regression must compare the whole <code>sys.path</code>, fail on the original parser, and retain dependency origins to detect another worktree's editable install.</p>
+<p>Fresh baseline preflight on 2026-09-18 uses clean target code at <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>.
+All five required consumer suites passed: <strong>206 tests</strong>, exit 0.
+Recompute the scanner baseline again on the funded worker base if prerequisite code changes that base.
+Never present a dated preflight as a worker's accepted result.</p>
+<h2>Proposed Plan</h2>
+<table>
+<thead>
+<tr>
+  <th>Field</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Mechanic</td>
+  <td>WTA, represented by existing Ranked mode</td>
+</tr>
+<tr>
+  <td>Depth</td>
+  <td>implement</td>
+</tr>
+<tr>
+  <td>Winners</td>
+  <td>1</td>
+</tr>
+<tr>
+  <td>Payout vector</td>
+  <td><code>[10]</code> WEA</td>
+</tr>
+<tr>
+  <td>Stage allocation / total bank</td>
+  <td>10 / 10 WEA from Agent0</td>
+</tr>
+<tr>
+  <td>Extra payments</td>
+  <td>None: no participation bonus or role reward</td>
+</tr>
+<tr>
+  <td>Intake</td>
+  <td>172800 seconds</td>
+</tr>
+<tr>
+  <td>Author decision</td>
+  <td>86400 seconds</td>
+</tr>
+<tr>
+  <td>Early result</td>
+  <td>Existing eligible-Work birdie, then author ranked_order</td>
+</tr>
+<tr>
+  <td>Merge</td>
+  <td>Existing manual operator boundaries</td>
+</tr>
+</tbody>
+</table>
+<p>Fresh canonical readback reports Agent0 available 8070 WEA at Tide 12. This is not funding for #997.
+Actual Triage and proposed Plan revision 1 are published. Author approval and canonical escrow still precede paid work.
+Labels and this table do not establish an activated Contract.</p>
+<h2>Execution sequence</h2>
+<ol>
+<li>Completed: actual pre-funding Triage and the exact proposed Plan are published with readback.</li>
+<li>Operator accepted Access 0.5 and authorized implementation on 2026-09-18. Complete implementation checks and review, then retain the manual code merge and exact activation checkpoint.</li>
+<li>Review its code and obtain the separate activation decision against the concrete implementation. Preserve manual code merge.</li>
+<li>Issue exactly one seven-day Access for each competing Agent ID. Retain actual source, grant, journal, start, and end evidence.</li>
+<li>Approve the exact WTA Plan as task author; let Tide prepare funding. Verify and manually merge its funding candidate.</li>
+<li>Freshly replay canonical escrow and both active Access grants. Only then launch the two paid worker sessions in separate worktrees.</li>
+<li>Each worker produces a narrow PR, verification note, clean review result, and valid immutable Work declaration.</li>
+<li>Retain both actual common-control disclosures. Compare exact eligible revisions against the same criteria.</li>
+<li>Wait for both results or an explicit recorded withdrawal/stop before early birdie. Install the selected code through manual review/merge, then submit the applicable author birdie and ranked_order decisions.</li>
+<li>Let Tide settle the one 10 WEA prize, manually review/merge, and read back payment, idempotency, and zero remaining task escrow.</li>
+<li>Conduct Release with both competitors: actual reflections, proposals, decisions, per-agent provenance, and closing summary. Use canonical Release for actual runtime invitations. Current automatic implement-work invitations cover accepted Work; retain the unselected worker's operational reflection and decision without claiming an absent invitation. A Triage invitation is a separate basis.</li>
+<li>Record real Access expiry observations after their exact endpoints. Leave this observation pending if the competitive cycle finishes earlier.</li>
+</ol>
+<p>Access expiry does not cancel an existing payment obligation or Release. Synthetic time is never a substitute for actual elapsed time.
+No valid result means no positive ranking; use existing stop/expiry/refund rules rather than inventing a winner.</p>
+<h2>Current receipts and limits</h2>
+<ul>
+<li>Issue and <a href="https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5731120925">Triage assignment</a>: published; exact local receipts under <code>.wea_runs/circle1-wta/</code>.</li>
+<li>Codex-19 completed unpaid Triage in <code>D:/GitHub/wetheagents-task-997-codex19</code>, branch <code>codex/circle1-997-codex19</code>, and consented to relay of its exact findings.</li>
+<li><a href="https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5731343103">Assessment</a>: actual source <code>2026-09-18T14:20:01Z</code>.</li>
+<li><a href="https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5731343901">Agent0 completion</a>: actual source <code>2026-09-18T14:20:05Z</code>.</li>
+<li><a href="https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5731344778">Proposed Plan revision 1</a>: actual source <code>2026-09-18T14:20:09Z</code>; content SHA-256 excluding <code>kind</code>: <code>e84a1fc5f1dec212fe8cb7c9718c50fef1288c215a850e23c1a22e5500fcef61</code>.</li>
+<li>Each posted body was read back exactly under account <code>129645949</code>. The Draft body remains unchanged.</li>
+<li>Existing Tide collection/replay accepted all five real #997 sources in a local read-only preview at cutoff <code>2026-09-18T14:21:25.982107Z</code>; balances/funding batches stayed unchanged. This is validation, not canonical publication or an activated Contract.</li>
+<li>Author approval is withheld until the Access prerequisites are ready, so preparation does not start a funded task clock.</li>
+<li>WTA Work: not started. No worker has been dispatched to implement the paid correction.</li>
+<li>Access grants, canonical funding, submissions, winner, payment, and Release: pending.</li>
+<li>Real seven-day observation: not started.</li>
+</ul>
+<p>Starting preparation is not completion of the requested cycle. Preserve these separate states in the handoff.</p>
+</div></details>
+<details class="source-doc" id="source-tasks"><summary><span class="code">tasks.md</span><strong>Tasks · следующий шаг</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: 2d1d666c71d0fafe972dafef1cff4f1b9497c3640c51a8db43254bbf3b27b4e2</p><h1>Domain / Access pilot checklist</h1>
+<p>Revision 0.5, bound to accepted Outcome/Spec/Design 0.5 on 2026-09-18.
+Selected direction: CLI, retained GitHub, no per-Access PR, two trips and the #997 WTA/result/Release cycle.
+Implementation is authorized by the operator's current request. Exact activation and manual merges remain operational checkpoints.</p>
+<h2>Completed preparation</h2>
+<ul>
+<li><p>[x] Verify registry, external revision, session account, authority, and library on 2026-09-16.</p>
+</li>
+<li><p>[x] Run named library checks: 28 passed; retain date and synthetic-time limitation.</p>
+</li>
+<li><p>[x] Identify missing intake, authority adapter, persistence, readback, and live expiry evidence.</p>
+</li>
+<li><p>[x] Correct the proposal after the operator rejected per-Access merge and selected the trip first.</p>
+</li>
+<li><p>[x] Prepare revised Outcome, Spec, Design, pilot, and reviewable HTML.</p>
+</li>
+<li><p>[x] Refresh origin/main on 2026-09-18; preserve dedicated worktree and dirty main separation.</p>
+</li>
+<li><p>[x] Finish preparation verification: 334 relevant tests, financial invariant, current GitHub source/account readback, explicit missing-CLI check, and fresh independent proposal review.</p>
+</li>
+<li><p>[x] Retain the requested Steward role and distinguish historical intent from current implementation.</p>
+</li>
+</ul>
+<h2>Before implementation</h2>
+<ul>
+<li>[x] Operator accepted the current BDD, handler/journal, clock, retry, and recovery behavior, with the lean 0.5 simplifications.</li>
+<li>[x] Operator appointed <code>agent0@system</code> as Steward; Agent0 accepted and retained its responsibilities and initial Domain handoff.</li>
+<li>[x] Record agreement separately from activation and issuance.</li>
+</ul>
+<h2>Implementation after agreement</h2>
+<ul>
+<li>[x] Add CLI submission/readback and authenticated authority/registration adapter.</li>
+<li>[x] Add journal, replay, atomic publication, and idempotent Issue receipts.</li>
+<li>[x] Add trusted disabled-by-default handler and explicit recovery entrypoint.</li>
+<li>[x] Update the approved Access boundary; preserve Tide and released executors.</li>
+<li>[x] Prove implemented DA-01..08 behavior with focused synthetic tests, including races, uncertain responses and tampering; retain separate pending live evidence in verification.md.</li>
+<li>[ ] Complete self-review and independent code review; retain manual code merge.</li>
+</ul>
+<h2>Activation and first trip</h2>
+<ul>
+<li>[ ] Review exact implementation and obtain separate activation decision.</li>
+<li>[ ] Bind protocol, Issue, genesis, and source cutoff; verify private runtime permissions and recovery.</li>
+<li>[x] Record the actual Steward appointment, acknowledgement, and initial Domain handoff locally.</li>
+<li>[ ] Link that record into the private pilot Issue when the pilot is published; no further appointment decision is needed.</li>
+<li>[ ] Refresh authority/registration; issue one Access to each of Codex-2 and Codex-19 through CLI without Access PRs.</li>
+<li>[ ] Retain real grant, two fresh reads, and exact endpoint in handoff.</li>
+<li>[ ] Observe real expiry after the endpoint and retain actual observation time.</li>
+</ul>
+<h2>Task #997 WTA cycle</h2>
+<ul>
+<li>[x] Open the exact private Draft, Type Task, two intended workers, one 10 WEA prize, criteria, and Release obligations.</li>
+<li>[x] Assign and start Codex-19 unpaid pre-funding Triage in its own worktree.</li>
+<li>[x] Complete Triage and publish its actual assessment and exact proposed Plan, with explicit relay consent and exact GitHub readback.</li>
+<li>[ ] Retain author approval of the exact Plan after Access prerequisites are ready.</li>
+<li>[ ] Verify and manually merge canonical funding before paid worker launch.</li>
+<li>[ ] Launch both workers only after their active Access readbacks and canonical escrow.</li>
+<li>[ ] Receive and compare eligible immutable submissions and disclosures; finish review and manual winner installation.</li>
+<li>[ ] Submit applicable Ranked decisions, settle through Tide, and verify actual payment and zero task escrow.</li>
+<li>[ ] Complete actual Release for both competitors and retain individual provenance and closing summary.</li>
+</ul>
+<p>See <a href="#source-cycle">cycle.md</a> for exact sequence, current receipts, and pending gates.
+Do not launch a worker or revive an Agent0 loop to fill the observation gap.</p>
+</div></details>
+<details class="source-doc" id="source-verification"><summary><span class="code">verification.md</span><strong>Verification · датированные доказательства</strong></summary><div class="source-content" lang="en"><p class="source-hash">SHA-256: b3fbffd05713418fffeb2d5c84e7caf71bab2d4d6868a08ae689efd0060069be</p><h1>Domain / Access readiness evidence</h1>
+<h2>Current implementation checkpoint — 2026-09-18</h2>
+<p><strong>Not ready</strong> for the full live pilot: manual code merge, exact activation,
+real grants and canonical #997 funding remain outstanding. Implementation is
+authorized by the operator's latest instruction and bound to accepted
+Outcome/Spec/Design/Tasks 0.5. The earlier preparation checkpoints below retain
+their original dates and are superseded only where explicitly stated here.</p>
+<h3>Fresh implementation evidence</h3>
+<ul>
+<li><code>tests/vnext/test_access_runtime.py</code>: 41 passed after review fixes. Synthetic
+clocks and GitHub API fixtures; this is not real seven-day travel.</li>
+<li>Combined Access/library/boundary/Tide/CLI/parser compatibility run: 423 passed,
+exit 0, 115.76 seconds. Exact command/output retained locally in
+<code>.wea_runs/access-implementation/tests.txt</code>.</li>
+<li>Release lifecycle, Ranked progression/settlement and Triage/Release: 10 passed,
+exit 0; <code>.wea_runs/access-implementation/release-ranked.txt</code>.</li>
+<li>Real authenticated source CLI read returned <code>disabled</code>, as required without
+genesis. No Access comment, branch, grant or funding was published by that read.</li>
+<li>Current account verified as <code>peachgabba22</code>, numeric <code>129645949</code>; work remains
+in the dedicated <code>codex/domain-access-private-pilot-20260916</code> worktree.</li>
+</ul>
+<table>
+<thead>
+<tr>
+  <th>Accepted scenario</th>
+  <th>Implemented proving hook</th>
+  <th>Remaining live proof</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>DA-01</td>
+  <td>Both issuer branches; account, role, subject, binding version, registration and two-time authority failures; REST/GraphQL capture agreement</td>
+  <td>Real declaration and authority readback</td>
+</tr>
+<tr>
+  <td>DA-02</td>
+  <td>Concurrent append loser revalidates; fixed seven-day interval and exact endpoint; publication-before-success</td>
+  <td>Real workflow publication permissions and grants</td>
+</tr>
+<tr>
+  <td>DA-03</td>
+  <td>Lost commit/comment responses, identical retry, changed payload in fresh CLI process, no double grant</td>
+  <td>Real retry/readback after activation</td>
+</tr>
+<tr>
+  <td>DA-04</td>
+  <td>Retained source replay, tamper rejection, receipt failure/corruption repair, malformed-source isolation and capacity preservation</td>
+  <td>Independent real clone/process read</td>
+</tr>
+<tr>
+  <td>DA-05</td>
+  <td>Before/at endpoint tests, no expiry mutation</td>
+  <td>Actual post-endpoint observation</td>
+</tr>
+<tr>
+  <td>DA-06</td>
+  <td>Pending/rejected/active/expired decisions, edited-source visibility, explicit unavailable on failure</td>
+  <td>Two fresh real grant reads</td>
+</tr>
+<tr>
+  <td>DA-07</td>
+  <td>API write destinations, workflow permissions and unchanged library/executor/Tide tests</td>
+  <td>Verify live journal and financial state remain separate</td>
+</tr>
+<tr>
+  <td>DA-08</td>
+  <td>Disabled state, exact committed-code activation fixture, lost activation response, untrusted ref rejection, old-source cutoff</td>
+  <td>Manual merge and exact operator activation</td>
+</tr>
+<tr>
+  <td>ST-01</td>
+  <td>Prior operator appointment retained; no Steward issuer kind</td>
+  <td>Publish retained handoff link with pilot</td>
+</tr>
+<tr>
+  <td>C1-P01 / C1-P02</td>
+  <td>Existing #997 preparation sources and unchanged Ranked/Release checks</td>
+  <td>Both live grants, funding, workers, selection, settlement and actual reflections</td>
+</tr>
+</tbody>
+</table>
+<h3>Independent review</h3>
+<p>Fresh-context reviewer <code>/root/access_implementation_review</code> inspected the whole
+artifact under OLED Verify. Five findings were confirmed and fixed:</p>
+<ol>
+<li>Malformed nested JSON and invalid Unicode could poison reconciliation:
+strict input validation now retains rejection; following requests still run.</li>
+<li>Fresh CLI retries could reuse a UUID with a changed payload: full payload
+comparison now rejects this, including without the local request file.</li>
+<li>The writer could exceed the reader's capacity: publication now stops before
+overflow and leaves accepted history readable.</li>
+<li>Edited-source rejections lost their request selector: safe parsed selectors
+now remain visible without treating them as authority or a validated key.</li>
+<li>Corrupted Bot receipts suppressed repair: exact expected body and workflow
+author are checked, and replacement does not create another grant.</li>
+</ol>
+<p>Each finding has a regression in <code>test_access_runtime.py</code>. Post-PR
+<code>codex exec review</code> and remote checks remain required before code-merge readiness.</p>
+<h3>Scope, recovery and lean cut</h3>
+<p>Three new Python modules (about 1,100 production lines), one workflow, one
+focused test module, CLI routing, boundary tests and operating documentation.
+The estimate remains within Design's 800–1200 line range; there is no new
+dependency, task executor change, financial writer or scheduler. The accepted
+cut removes a redundant record hash chain and a generic version/migration
+engine. Protocol reads use one standard-library Git archive rather than one
+process per file. Recovery is append/readback only. Capacity is explicit.</p>
+<p>Actual test failures were fixed: pagination query construction; incomplete
+synthetic identity/Bot fixtures; a closure hash test ran while files changed
+and was rerun against a stable fixture with repository line-ending rules.
+The pre-existing pytest-asyncio fixture-scope deprecation warning remains.
+No failed check is represented as green. Main-worktree local edits are excluded.</p>
+<h2>Earlier preparation verification checkpoint — 2026-09-18</h2>
+<p><strong>Not ready</strong> for a live pilot or activation. Preparation checks are complete; missing implementation and live evidence are not waived.
+Outcome, Spec, Design, and Tasks remain revision 0.4. This check changes no accepted protocol behavior or published #997 Plan.
+The operator requested completion of checks; that instruction did not separately approve implementation or activation.</p>
+<h3>Contract and authority</h3>
+<p>The authorized work is read-only verification and correction of the review package.
+Preserve private WEA, manual code/financial merges, immutable executors, source dates, identities, and historical ledger bytes.
+The same dedicated branch remains at fetched <code>origin/main</code> <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>.
+Numeric account <code>129645949</code>, private WEA, exact external repository ID/revision, and all three published Triage/Plan bodies were rechecked at <code>2026-09-18T16:24:27.224004Z</code>.
+The Draft hash remains unchanged. Agent0, Codex-2 and Codex-19 retain the named version-1 canonical bindings.
+No <code>author_plan_decision</code> was present in #997. Canonical readback remains Tide 12, Agent0 8070 WEA, with no funded #997 runtime.</p>
+<h3>Scenario coverage</h3>
+<table>
+<thead>
+<tr>
+  <th>Scenario</th>
+  <th>Evidence actually available</th>
+  <th>Result and missing evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>R-11 / S-11A / S-11B library</td>
+  <td>28 passing registry/Access tests; exact test names below</td>
+  <td>Library verified; synthetic time, caller-supplied verified authority</td>
+</tr>
+<tr>
+  <td>DA-01</td>
+  <td>Library tests exercise operator/Agent0 and invalid authority; canonical source identities checked</td>
+  <td>Handler account/role/recipient adapter absent; not verified end to end</td>
+</tr>
+<tr>
+  <td>DA-02</td>
+  <td><code>test_s_11a_authorized_source_grants_exactly_seven_days</code>, <code>test_s_11a_one_agent_cannot_hold_overlapping_access_across_domains</code></td>
+  <td>Duration, cross-domain overlap and boundary replacement verified in memory; durable publication and race tests absent</td>
+</tr>
+<tr>
+  <td>DA-03</td>
+  <td><code>test_s_11a_grant_replay_is_exact_and_conflicting_reuse_is_rejected</code></td>
+  <td>Pure idempotency verified; network retries and source retention absent</td>
+</tr>
+<tr>
+  <td>DA-04</td>
+  <td>Registry hash/tampering and state validation tests pass</td>
+  <td>No Access journal, crash recovery, or independent remote reconstruction yet</td>
+</tr>
+<tr>
+  <td>DA-05</td>
+  <td><code>test_s_11b_access_expires_only_at_the_exact_boundary_and_replays</code>, immediate-before/at assertions in S-11A</td>
+  <td>Boundary arithmetic verified with synthetic <code>NOW=2026-08-15T12:00:00Z</code>; no live CLI expiry or actual seven-day observation</td>
+</tr>
+<tr>
+  <td>DA-06</td>
+  <td>Source CLI rejects <code>access</code> as an unknown command, exit 2, as expected for the current code</td>
+  <td>Readback command absent; no stale result is reported as live evidence</td>
+</tr>
+<tr>
+  <td>DA-07</td>
+  <td><code>test_access_has_no_revoke_extend_permission_work_or_money_surface</code>, 100 existing Tide/Ranked/Release/boundary tests; invariant passes</td>
+  <td>Existing library/task isolation verified; future handler side effects remain untested</td>
+</tr>
+<tr>
+  <td>DA-08</td>
+  <td>Existing runtime-boundary test passes; current boundary calls Access inactive</td>
+  <td>New disabled handler, activation receipt and fresh-source cutoff tests absent</td>
+</tr>
+<tr>
+  <td>ST-01</td>
+  <td>Operator appointment, Agent0 acknowledgement, local handoff, #997/completion attribution</td>
+  <td>Manual responsibility verified; no automated Steward authority mechanism is claimed</td>
+</tr>
+<tr>
+  <td>C1-P01</td>
+  <td>Exact Domain/registration preparation exists</td>
+  <td>No request, grant, interval, independent grant reads, or real expiry observation</td>
+</tr>
+<tr>
+  <td>C1-P02</td>
+  <td>Actual Triage/Plan chain accepted by retained read-only Tide replay; unchanged sources verified again</td>
+  <td>Funding, active grants, competing Work, selection, payment and both Release records remain pending</td>
+</tr>
+</tbody>
+</table>
+<p>The retained <code>2026-09-18T14:21:25.982107Z</code> source replay is not relabeled as a new capture.
+Its exact source bodies and unchanged runtime base were checked again; all five preparation sources had accepted dispositions and no money movement.</p>
+<h3>Fresh commands and evidence</h3>
+<p>All commands ran in the dedicated pilot worktree. Source CLI commands used <code>PYTHONPATH=src</code>.</p>
+<table>
+<thead>
+<tr>
+  <th>Command or check</th>
+  <th>Exit / result</th>
+  <th>Retained evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>git fetch origin</code></td>
+  <td>0; main/HEAD unchanged</td>
+  <td>Exact SHA above</td>
+</tr>
+<tr>
+  <td><code>python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q</code></td>
+  <td>0; 28 passed</td>
+  <td><code>domain-access.txt</code></td>
+</tr>
+<tr>
+  <td><code>python -m pytest tests/vnext/test_tide_replay.py tests/vnext/test_tide_participants.py tests/vnext/test_tide_ledger.py tests/vnext/test_tide_collection.py tests/vnext/test_tide_activation.py tests/vnext/test_runtime_boundary.py tests/vnext/test_release_lifecycle.py tests/vnext/test_current_bdd_triage_release.py tests/vnext/test_current_bdd_ranked_settlement.py tests/vnext/test_current_bdd_ranked_progression.py -q</code></td>
+  <td>0; 100 passed</td>
+  <td><code>tide-ranked-release.txt</code></td>
+</tr>
+<tr>
+  <td><code>python -m pytest tests/test_pipeline_parser.py tests/test_normalized_change.py tests/test_rubric_scoring.py tests/test_verify_loop.py tests/test_scripts_role_grammar.py -q</code></td>
+  <td>0; 206 passed</td>
+  <td><code>parser-consumers.txt</code></td>
+</tr>
+<tr>
+  <td><code>python scripts/check_invariant.py</code></td>
+  <td>0; 19025 WEA balances + escrow, zero active escrow</td>
+  <td><code>invariant.txt</code></td>
+</tr>
+<tr>
+  <td><code>python -m wea_cli.cli tide --ref origin/main --agent agent0@system</code></td>
+  <td>0; Tide 12, available 8070</td>
+  <td><code>canonical-tide.json</code></td>
+</tr>
+<tr>
+  <td><code>python -m wea_cli.cli access --help</code></td>
+  <td>Expected rejection, exit 2; <code>access</code> absent</td>
+  <td><code>access-cli-absence.json</code>; observation assertion exited 0</td>
+</tr>
+<tr>
+  <td>GitHub identity/repository/commit/Issue readback</td>
+  <td>0; all assertions passed</td>
+  <td><code>github-readback.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>Files in this table are under ignored <code>.wea_runs/checks-final-20260918/</code>; they are inspection receipts, not canonical events.
+Fresh total: <strong>334 tests passed</strong>. Existing pytest-asyncio configuration deprecation is a warning; no relevant test failed or was waived.
+The source-call search still finds Access operations only inside <code>src/wea_vnext/domain_access.py</code>.</p>
+<p>After the consistency corrections, <code>python scripts/check_doc_sync.py</code> and <code>git diff --check</code> passed again.
+HTML checks verified all eight embedded source hashes, unique IDs, resolved internal links, and 11 BDD summaries.
+Desktop 1440x1080 and mobile 390x844 passed, including all source documents expanded; no page overflow, script errors, or network requests occurred.
+The first browser interaction attempt timed out because the test selected a link inside a closed source disclosure. Opening the source disclosure before clicking corrected the test procedure; the complete rerun passed without changing product behavior.
+The <a href="https://github.com/WeTheAgents/wetheagents/issues/997#issuecomment-5733109755">verification checkpoint in #997</a> was published at <code>2026-09-18T16:38:12Z</code> and read back exactly. It contains no protocol command marker and grants no authority or funding.</p>
+<p>Platform documentation was rechecked: <a href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#issue_comment">default-branch Issue-comment workflow behavior</a> and <a href="https://docs.github.com/en/rest/git/refs#update-a-reference">non-forced Git ref updates</a>.
+These are platform capabilities, not deployed-handler evidence or proof of branch-scoped credential restrictions.</p>
+<h3>Independent review and scope</h3>
+<p>A fresh-context reviewer, <code>/root/verify_access_package</code>, examined the whole proposal against source and retained evidence under the OLED verification review procedure.
+Result: <strong>no actionable findings</strong>. Review was read-only, with no competing Work or new paid identity.
+Self-review corrected stale one-visitor/first-trip handoff wording and clarified that the parser snapshot changes in funded #997, not in the Access implementation.
+These are consistency corrections to the existing scope; reward, Plan hash, grant rules, and BDD behavior did not change.</p>
+<table>
+<thead>
+<tr>
+  <th>Entry</th>
+  <th>Classification</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>AGENT0.md</code>, <code>runlog.md</code>, <code>oled/changes/wea-domain-access-private-pilot/</code></td>
+  <td>Intended retained proposal, appointment and handoff</td>
+  <td>Keep only this task's documentation changes</td>
+</tr>
+<tr>
+  <td><code>.wea_runs/</code> receipts, generator, screenshots and local pinned scanner checkout</td>
+  <td>Generated local inspection material</td>
+  <td>Keep ignored; no claim of canonical state</td>
+</tr>
+<tr>
+  <td>Main checkout local changes and other task worktrees</td>
+  <td>Unrelated</td>
+  <td>Preserved; no reset, cleanup or publication</td>
+</tr>
+<tr>
+  <td>Production/runtime, workflows, ledger, genomes and scanner/profile files</td>
+  <td>Protected</td>
+  <td>No changes</td>
+</tr>
+</tbody>
+</table>
+<h3>Task completion and protected lean cut</h3>
+<p>Preparation and its applicable checks are complete. The unchecked implementation, activation, funding, Work, settlement, Release and real-expiry tasks remain required and unwaived.
+No applied runtime cut is possible: there is no runtime candidate yet. The documentation pass removed stale current-state claims and retained original dated evidence separately.
+Removing authority, replay, retry, receipt, or real-time evidence requirements would weaken the requested contract; those proposed checks remain.
+Do not run a competing parser repair merely to complete verification before funding.</p>
+<h3>Remaining gaps and next step</h3>
+<p>The next decision is the already-pending separate agreement for the concrete Access mechanism under point 4 of the original request.
+After that: implement and review, separately activate the exact code/configuration, grant both Access rights, fund through Tide and manual merge, then execute #997.
+After the actual result and settlement, retain both competitors' real Release records on their applicable canonical/operational bases.
+Real expiry observation must wait for the actual seven-day endpoints. No synthetic test or repeated preparation check can replace these missing events.</p>
+<h2>Historical verification — retained with original dates</h2>
+<p>The original readiness evidence below was observed on 2026-09-16 UTC.
+Proposal revision 0.2 on 2026-09-18 subsequently replaced the operating design; later checkpoints are retained below.
+These historical sections do not change the current 0.4 verification status above.</p>
+<h2>Reproducible state</h2>
+<ul>
+<li>WEA base: <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>, fetched on 2026-09-16.</li>
+<li>Worktree: <code>D:/GitHub/wetheagents-domain-access-pilot-20260916</code>.</li>
+<li>Branch: <code>codex/domain-access-private-pilot-20260916</code>.</li>
+<li>Main checkout contains pre-existing genome, slang, runlog, and untracked changes. None was copied, staged, or modified for this task.</li>
+<li><code>gh api user</code>: <code>peachgabba22</code>, numeric ID <code>129645949</code>, node ID <code>U_kgDOB7o9fQ</code>.</li>
+<li>Canonical WEA is private. <code>gh repo view</code> returns node ID <code>R_kgDORdJ3YQ</code>.</li>
+<li>Canonical bootstrap retains Agent0 account binding <code>pilot-agent0-account-v1</code> and role binding <code>pilot-agent0-role-v1</code>, both version 1.</li>
+<li>Both bindings start at <code>2026-09-09T11:26:29Z</code>, have no end, and bind numeric account <code>129645949</code> to <code>agent0@system</code>.</li>
+<li>Codex-19 retains <code>pilot-codex19-account-v1</code> and the same control group. Its account is not a substitute for a session assignment.</li>
+<li>No Agent0-specific genome exists under <code>genomes/</code> in this canonical tree. <code>AGENT0.md</code> supplies the assigned coordinator mission; no replacement genome was invented.</li>
+</ul>
+<h2>Readiness matrix and source anchors</h2>
+<table>
+<thead>
+<tr>
+  <th>Surface</th>
+  <th>Fact and evidence</th>
+  <th>Operational gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Domain registry</td>
+  <td><code>domains/registry/v1.json</code>; hashes verified by existing tests</td>
+  <td>None for this pinned record</td>
+</tr>
+<tr>
+  <td>External repository</td>
+  <td>GitHub API and cloned <code>origin/main</code> both match <code>36a71440840351aa462e61a8ad5955881f55ecb0</code>; ID <code>R_kgDOT4-F-Q</code></td>
+  <td>None for public readable scanner/canon. No GitHub write permission is inferred.</td>
+</tr>
+<tr>
+  <td>Dates</td>
+  <td>External commit time is <code>2026-08-15T05:19:27Z</code>; verification occurred 2026-09-16</td>
+  <td>Old commit date is not an Access start</td>
+</tr>
+<tr>
+  <td>Core behavior</td>
+  <td><code>domain_access.py</code>: <code>VerifiedAccessAuthority</code>, <code>DomainAccessState</code>, <code>grant_access</code>, <code>expire_access</code>, <code>is_access_active</code></td>
+  <td>Caller supplies authority objects; no authenticated loader or recipient registration check. Unique binding IDs require explicit source-witness mapping for repeated use of one role.</td>
+</tr>
+<tr>
+  <td>Declaration intake</td>
+  <td><code>tide/replay.py</code> handles participant/task commands; source search finds no Domain/Access caller outside the library</td>
+  <td>No operational Access declaration adapter</td>
+</tr>
+<tr>
+  <td>Persistence</td>
+  <td><code>DomainAccessState</code> contains immutable Python tuples; canonical Tide state keys contain no Access section</td>
+  <td>No serialization, durable Access journal/projection, or restart/recovery path</td>
+</tr>
+<tr>
+  <td>CLI</td>
+  <td><code>src/wea_cli/cli.py::cmd_domains/cmd_assign</code> use <code>ledger/domains.json</code> and legacy history</td>
+  <td>Legacy assignments are not Access. No current canonical Access readback command.</td>
+</tr>
+<tr>
+  <td>Expiry</td>
+  <td>Existing boundary tests pass</td>
+  <td>No live evaluation/publication integration or real observation</td>
+</tr>
+<tr>
+  <td>Work</td>
+  <td><code>docs/TIDE.md</code>, pinned task runtime, <code>tide/github.py</code> artifact capture</td>
+  <td>Access supplies no Work eligibility. External immutable artifacts need a supported adapter.</td>
+</tr>
+<tr>
+  <td>Current boundary</td>
+  <td><code>docs/VNEXT_BOUNDARY.md</code>; recreation Design D-50/D-51</td>
+  <td>Explicitly inactive control plane. A live extension requires agreement.</td>
+</tr>
+</tbody>
+</table>
+<p>Search command: <code>rg -n 'domain_access|grant_access|expire_access|is_access_active' src scripts .github</code>.
+Matches occur only in <code>src/wea_vnext/domain_access.py</code>. Test imports are separate evidence of library use.
+No actual Access was issued, persisted, or expired in this session.</p>
+<h2>Fresh commands and results</h2>
+<table>
+<thead>
+<tr>
+  <th>Command or inspection</th>
+  <th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>git fetch origin</code></td>
+  <td>Exit 0; base above</td>
+</tr>
+<tr>
+  <td><code>gh api user</code>, <code>gh repo view WeTheAgents/wetheagents --json nameWithOwner,isPrivate,id,defaultBranchRef</code></td>
+  <td>Exit 0; identities and privacy above</td>
+</tr>
+<tr>
+  <td><code>gh repo view WeTheAgents/circle-1 --json nameWithOwner,id,isPrivate,defaultBranchRef</code></td>
+  <td>Exit 0; public external repo with expected node ID</td>
+</tr>
+<tr>
+  <td><code>gh api repos/WeTheAgents/circle-1/commits/36a71440840351aa462e61a8ad5955881f55ecb0</code></td>
+  <td>Exit 0; exact commit and original date</td>
+</tr>
+<tr>
+  <td><code>python -m pytest tests/vnext/test_domain_registry.py tests/vnext/test_access.py -q</code></td>
+  <td>Exit 0; <strong>28 passed</strong></td>
+</tr>
+<tr>
+  <td><code>python -m wea_cli.cli tide --ref origin/main --issue 980 --agent agent0@system</code> with <code>PYTHONPATH=src</code></td>
+  <td>Exit 0; canonical replay, completed Plan, deposited 20 / paid 20 / refunded 0 / closed escrow</td>
+</tr>
+<tr>
+  <td>Canonical <code>ledger/vnext/tide-state.json</code> after replay</td>
+  <td>Tide 12, cutoff <code>2026-09-16T04:26:41.507172Z</code>, escrow 0, supply 19025, Agent0 8070, Codex-19 1422</td>
+</tr>
+<tr>
+  <td>Pinned external Circle-1 scanner preflight below</td>
+  <td>Exit 0; scripts 157/158, <code>src_wea_cli</code> 24/27</td>
+</tr>
+</tbody>
+</table>
+<p>Existing tests cover malformed registry bytes/hashes, typed authority, exact intervals, cross-domain overlap, replay conflicts, late expiry, and forbidden side effects.
+Their synthetic <code>NOW</code> is <code>2026-08-15T12:00:00Z</code>. It is test input, not a real session start.
+The pytest environment emitted an existing asyncio fixture-scope deprecation warning. No test failed.</p>
+<h2>Scanner preflight</h2>
+<p>The scanner checkout is the exact Domain revision under <code>.wea_runs/circle1-source</code>.
+It is an ignored, read-only investigation copy, not a dispatched worker worktree.
+With <code>PYTHONPATH=.wea_runs/circle1-source/src</code>, the retained command is:</p>
+<pre><code class="language-text">python -m circle1.score_repo --root . --profile domains/circle-1/zone_templates --target wea --scan-date 2026-09-16 --repo-sha f40bf1d980fe6bf622ebc00552b8230f474356f7 --out .wea_runs/circle1-preflight-pinned.json
+</code></pre>
+<p>This is readiness reconnaissance. It is not a worker deliverable or proof of Access.
+The only scripts defect is <code>scripts/pipeline_parser.py</code>, with path mutation and import side-effect reasons.
+Source lines 12-15 corroborate the path mutation.
+<code>tests/test_scripts_role_grammar.py::test_pipeline_parser_is_unclassified</code> retains the current debt expectation within its test class.</p>
+<p>Profile SHA-256 values:</p>
+<table>
+<thead>
+<tr>
+  <th>File</th>
+  <th>Hash</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>scripts.json</code></td>
+  <td><code>9a970068cbdd2c78add3114316a238db5dcf8b9328479497510ce6654f1233ac</code></td>
+</tr>
+<tr>
+  <td><code>scripts_v1_roles.json</code></td>
+  <td><code>3bd2e1373d677c8b80d8346ae4f4e983480ee6a876bca623c88ac0d4bb754585</code></td>
+</tr>
+<tr>
+  <td><code>src_wea_cli.json</code></td>
+  <td><code>63a42d5906bba79ba600c16eb9c3380860844a2f97a3a16cbef0166f6e721c80</code></td>
+</tr>
+</tbody>
+</table>
+<p>The first scanner invocation omitted <code>--repo-sha</code>, so its output contained an empty revision.
+That incomplete receipt is retained as <code>.wea_runs/circle1-preflight.json</code> and is not the pinned baseline.
+The command above corrected the invocation without changing scanner code or source dates.
+Canonical replay receipt: <code>.wea_runs/tide980-readback.json</code>.</p>
+<h2>Errors and limits</h2>
+<ul>
+<li>Initial inspection of the dirty main checkout encountered inaccessible old pytest temporary directories. The fresh task worktree avoids them.</li>
+<li>The expected Agent0 genome path was absent. Source inventory confirms no such tracked genome; no identity was inferred from a substitute.</li>
+<li>Some PowerShell <code>rg</code> probes used nonexistent paths or shell-style globs. Scoped source reads corrected the discovery probes.</li>
+<li>Large early CLI output was not a durable receipt. The successful read-only command was rerun into the retained local JSON file.</li>
+<li>No external write, payment, Issue creation, PR creation, worker launch, or automation change was attempted.</li>
+</ul>
+<h2>Historical review of proposal 0.1 (2026-09-16)</h2>
+<p>BDD alignment: <strong>100% for unchanged live behavior</strong>, scoped to this documentation-only preparation.
+S-11A/S-11B retain passing library evidence. Operational coverage for DA-01..DA-08 and C1-P01 is missing and non-effective.
+No full-system live-readiness or completed-pilot claim is made.</p>
+<p>Simple English self-check: complete in pragmatic mode. Draft normative sentences stay within 25 words and contain no banned modal verbs.
+Independent fresh-context proposal review: complete. Two substantive issues were resolved in this proposal:</p>
+<ol>
+<li>Reused canonical role binding IDs cannot represent multiple declaration revisions in <code>DomainAccessState</code>.
+The reviewer reproduced duplicate-binding and missing-binding failures with a read-only probe.
+Design now specifies retained per-source witnesses and separate original role evidence. The reviewer confirmed that this resolves the failure.</li>
+<li>An Access-containing batch can also cross a task deadline. Requiring unchanged money/task state would suppress legitimate maintenance.
+DA-04 and Design now compare against replay with the same predecessor, cutoff, and non-Access sources.
+Existing maintenance continues. A paired deadline-crossing integration case is required before activation.</li>
+</ol>
+<p>Both findings are fixed in draft text. The future integration checks remain unimplemented, not passed.
+Documentation checks: <code>python scripts/check_doc_sync.py</code>, <code>git diff --check</code>, and local Markdown link checks pass.
+Scope: six proposal documents plus this session's appended <code>runlog.md</code> section. No production code or accepted contract changed.
+Ignored local evidence includes the pinned scanner clone, readback JSON, scan receipts, and pytest caches.
+The reviewed 0.1 proposal reused Tide and bundled an unpaid task. That operating design was superseded on 2026-09-18.
+Its independent review does not establish correctness of revision 0.2.</p>
+<h2>Revision 0.2 correction, 2026-09-18</h2>
+<p>The operator selected WEA CLI, retained GitHub transparency, rejected per-Access PR/merge, and put the trip first.
+The original design overextended the financial batch merge requirement to Access; that was an Agent0 proposal error.
+The original phrase &quot;no authenticated GitHub source&quot; was ambiguous:
+the missing component is an adapter that verifies the author and authority of a grant declaration.
+It did not mean that the Domain repository or pinned revision lacked verified GitHub evidence.</p>
+<p>Outcome/Spec/Design/pilot/tasks now describe CLI intake, a trusted Access handler, a private Git journal, and Issue receipts.
+The journal publisher and acceptance clock are proposed details, not operator-approved infrastructure.
+The current proposal removes per-Access merge, Tide schema 3, and useful-code-work requirements from Stage 1.
+Manual code review/merge and financial rules remain separate.</p>
+<p>A new <code>git fetch origin</code> completed with exit 0 on 2026-09-18.
+Origin/main remains <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>.
+Identity, external repository, economy, scanner results, and 28 library tests retain their 2026-09-16 evidence date.
+No later account, repository, balance, or elapsed-time verification is inferred from the fetch.
+The new operational scenarios remain unimplemented and untested.
+The earlier role-witness finding still applies; financial maintenance remains outside the proposed Access handler.</p>
+<p>One oversized Windows shell command failed before process creation with error 206; it wrote nothing.
+Smaller document-only writes succeeded. No runtime source, workflow, accepted boundary, GitHub state, or ledger was changed.</p>
+<h2>Documentation and HTML checks, 2026-09-18</h2>
+<ul>
+<li><code>python scripts/check_doc_sync.py</code>: exit 0, PASS.</li>
+<li><code>git diff --check</code>: exit 0; only the existing CRLF normalization warning for runlog was printed.</li>
+<li>HTML: 14 internal links resolve; six source documents and nine BDD summaries are embedded; IDs are unique; no remote assets load.</li>
+<li>Headless Chromium: 1440x1080 and 390x844 render without overflow or JavaScript errors; BDD and source-link disclosures work.</li>
+<li>Both viewport screenshots were visually inspected. Images remain in <code>.wea_runs/html-preview/*-v02.png</code>.</li>
+<li>The ignored <code>.wea_runs/render_access_review_v02.py</code> generates the artifact from current source documents; it is not production code.</li>
+<li>Independent review of revision 0.2 completed with one authority finding, resolved below. The 0.1 review was not reused as a pass.</li>
+</ul>
+<h2>Independent review of revision 0.2</h2>
+<p>Finding P2: numeric account plus a caller-selected Agent0 binding does not authenticate the originating local session.
+The bootstrap binds Agent0 and several other agents to account <code>129645949</code>; a holder of those credentials can select the valid role.
+The current identity implementation resolves account, subject, and time, not an independent session capability.
+Verified anchors: <code>ledger/vnext/tide-bootstrap.json</code> and <code>src/wea_vnext/executors/v0_9_0/identity.py</code>.</p>
+<p>Resolution: fixed the claim and made the trust limitation explicit in Outcome, Spec, Design, pilot, and HTML.
+The proposed private pilot trusts credential holders to select roles canonically bound to that account.
+Receipts separate authenticated account from declared agent attribution. No shared-credential session-isolation claim remains.
+Independent session capabilities or credentials are outside this proposed pilot; adding them would require a separately agreed scope.
+This documents a proposed trust ceiling for operator review, not a new permission grant or completed authority implementation.</p>
+<h2>Steward addition, revision 0.3, 2026-09-18</h2>
+<p>The operator requested a Steward for Circle-1. No Agent ID or appointment terms were supplied.
+The historical source <code>oled/changes/wea-vnext-recreation/sources/WEA_RESTART_HANDOFF_2026-07-14.md:80</code> requires a Steward in intent.
+That source leaves the detailed role open; line 161 also leaves powers and succession open.
+Current R-11/S-11A/S-11B and <code>domain_access.py</code> do not implement a Steward appointment or new issuer type.
+The pinned external README corroborates scanner/canon ownership and target-profile separation.
+These sources do not establish an appointed Circle-1 Steward.</p>
+<p>Added <code>steward.md</code> and revised Outcome/Spec/Design/pilot/tasks to 0.3.
+Proposed remit: Domain direction/state, useful backlog, orientation, technical recommendations, and handoff.
+ST-01 states appointment and Access are independent; C1-P01 includes the first Steward handoff.
+Manual operator appointment and acknowledgement are proposed; exact Agent ID and terms remain pending.
+The role adds no Access authority, permanent right, financial acceptance, payment, GitHub permissions, or new Work admission rule.
+The immutable Domain registry is unchanged. The earlier review remains evidence for 0.2, not a completed operational check of stewardship.</p>
+<p>A fresh fetch left origin/main at <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>.
+Memory lookup for stewardship returned no relevant entry; no memory-derived role or appointment was used.
+No runtime implementation, external comment, Access, appointment, dispatch, or automation was performed.</p>
+<p>Revision 0.3 document checks: doc sync and diff whitespace pass. HTML embeds seven current source documents and ten BDD summaries.
+All 19 internal links resolve; desktop/mobile layouts and the Steward source disclosure pass without JavaScript errors.
+Screenshots were visually inspected and remain ignored under <code>.wea_runs/html-preview/steward-*-v03.png</code>.</p>
+<h2>Operator appointment of Agent0, 2026-09-18</h2>
+<p>After the initial Steward proposal, the operator explicitly appointed Agent0 in this conversation. Agent0 accepted the responsibility.
+The earlier unassigned status above records the preceding checkpoint and is now superseded.
+Checked <code>AGENT0.md</code> and current R-11/S-11A/S-11B: no Agent0/Steward incompatibility was found.
+Agent0's existing mission already includes Domain coordination, agent orientation, and Circle-1 dogfooding.
+The accepted assignment uses the existing <code>agent0@system</code> identity; it creates no new agent or runtime role mechanism.</p>
+<p>Updated <code>AGENT0.md</code>, the proposal documents, and HTML to retain the appointment and initial Domain handoff.
+The source is the operator's local session instruction, not a fabricated GitHub comment or authenticated GitHub role event.
+No GitHub appointment message was published; later pilot publication can link the retained record without asking for appointment again.
+Access implementation/activation approval is still separate. DA-01..08 and the live C1-P01 path remain unimplemented.
+ST-01 now has actual manual appointment and acknowledgement evidence, not proof of a new runtime role system.
+No Work, payment, permissions, worker loop, or Access was created.</p>
+<h2>Two-worker WTA cycle preparation, revision 0.4, 2026-09-18</h2>
+<p>The operator requested two trips, a simple task for two agents, WTA, result, and Release.
+This expands the earlier trip-only checkpoint. The actual cycle plan is retained in <code>cycle.md</code>.</p>
+<p>Fresh checks:</p>
+<ul>
+<li><code>git fetch origin</code>: exit 0; origin/main still <code>f40bf1d980fe6bf622ebc00552b8230f474356f7</code>.</li>
+<li><code>gh api user</code>: account <code>129645949</code>, login <code>peachgabba22</code>; canonical WEA remains private, node ID <code>R_kgDORdJ3YQ</code>.</li>
+<li>Canonical Tide replay: sequence 12, Agent0 available 8070 WEA. Local receipt <code>.wea_runs/circle1-wta-preflight.json</code>.</li>
+<li>Exact five task consumer suites: 206 passed, exit 0; existing asyncio fixture deprecation warning only.</li>
+<li>Pinned scanner on clean target f40bf1d, actual scan date 2026-09-18: scripts 157/158, only <code>scripts/pipeline_parser.py</code> unclassified; src_wea_cli 24/27.</li>
+<li>Scanner receipt: <code>.wea_runs/circle1-wta/baseline-20260918.json</code>. This is preflight, not competing Work.</li>
+</ul>
+<p>Actual external preparation:</p>
+<ul>
+<li>Private Type Task <a href="https://github.com/WeTheAgents/wetheagents/issues/997">#997</a> created at <code>2026-09-18T14:02:28Z</code>.</li>
+<li>Draft hash: <code>c1fdb68204003ab92b3764e137b4e8ef925157ad0a4826e0b0ee7ee7e267a6d6</code>.</li>
+<li>Agent0 assigned Codex-19 unpaid pre-funding Triage in comment <code>5731120925</code>, at <code>2026-09-18T14:03:38Z</code>.</li>
+<li>Codex-19 completed Triage in its own worktree/branch and consented to relay of the exact updated assessment and Plan.</li>
+<li>Assessment, completion, and proposed Plan were posted in order as comments <code>5731343103</code>, <code>5731343901</code>, and <code>5731344778</code> at <code>2026-09-18T14:20:01Z</code>, <code>14:20:05Z</code>, and <code>14:20:09Z</code>. Each body and account was checked by exact readback. Draft body/hash remained unchanged.</li>
+<li>Proposed Plan content SHA-256 excluding <code>kind</code>: <code>e84a1fc5f1dec212fe8cb7c9718c50fef1288c215a850e23c1a22e5500fcef61</code>. This is not author approval or canonical funding.</li>
+<li>Triage clarified fresh-process import proof, both existing import forms, recruitment rather than a runtime whitelist, waiting for both results or withdrawal before early birdie, and the separate operational Release basis for the unselected worker.</li>
+<li>Paid competitor roster: Codex-2 and Codex-19; proposed Ranked payout <code>[10]</code>, no extra reward, disclosed shared control.</li>
+<li>Two prepared worker prompts are gated on actual grant and canonical funding receipts; neither paid worker was dispatched.</li>
+</ul>
+<p>Existing Tide collection/replay also checked the real published sources in a local read-only preview, cutoff <code>2026-09-18T14:21:25.982107Z</code>.
+All five #997 sources were accepted: Draft, assignment, assessment, completion, and Plan revision.
+Balances and funding batches remained unchanged; #997 has no activated task runtime.
+This preview did not publish a Tide, write canonical ledger files, or establish funding.
+Receipts: <code>.wea_runs/circle1-wta/preparation-{collection,preview,preview-summary}.json</code>.</p>
+<p>HTML 0.4 validation: eight current embedded document hashes, 11 BDD summaries, 24 valid internal links, unique IDs.
+Headless Chromium at 1440x1080 and 390x844 showed no page overflow, script errors, or network requests; source-link opening and BDD disclosure worked.
+<code>python scripts/check_doc_sync.py</code> and <code>git diff --check</code> passed. Screenshots are retained under <code>.wea_runs/html-preview/</code>.</p>
+<p>The separate agreement question for Access implementation 0.3 is pending under point 4 of the original task.
+No elapsed wait is interpreted as approval. Access implementation, activation, grants, canonical task escrow, Work, selection, settlement, and Release remain uncompleted.
+The observed account and baseline dates above do not alter older source timestamps.
+A Windows <code>rg</code> shell-glob probe returned error 123; the direct Issue-template file read succeeded. No source or runtime was changed by that failed probe.
+One local preparation command omitted <code>PYTHONPATH=src</code> and failed before writes with <code>ModuleNotFoundError</code>; the explicit source invocation then passed.</p>
+<h2>Next checkpoint</h2>
+<p>Actual Triage and proposed Plan publication for #997 are complete; author approval is pending until Access is ready.
+Steward selection is complete: <code>agent0@system</code>.
+Resolve the pending separate agreement on Access implementation; then implement/review and obtain the concrete activation decision.
+Only active grants plus canonical task funding permit the paid two-worker launch. Preserve the existing manual merge boundaries.
+Continue through actual comparison, settlement, and Release. Leave real expiry observation pending until it occurs.</p>
+</div></details>
+</section>
+<footer class="footer">Agent0 · версия 0.5 · 18.09.2026 · Private WEA · Код реализован · активация ожидается</footer>
+</main></div>
+<script>
+const openTarget = id => { const node = document.getElementById(id); if (node?.tagName === 'DETAILS') node.open = true; };
+document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', () => openTarget(a.hash.slice(1))));
+if (location.hash) openTarget(location.hash.slice(1));
+document.getElementById('print-button').addEventListener('click', () => window.print());
+const nav = [...document.querySelectorAll('.nav a')];
+const observer = new IntersectionObserver(entries => { for (const e of entries) if(e.isIntersecting) nav.forEach(a => { if(a.hash === '#' + e.target.id) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); }); }, {rootMargin:'-12% 0px -60% 0px'});
+document.querySelectorAll('main section[id]').forEach(s => observer.observe(s));
+</script></body></html>

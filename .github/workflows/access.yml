@@ -1,0 +1,62 @@
+name: Domain Access
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Intake Issue number, required only for first activation
+        type: string
+        default: ""
+      activation_comment_id:
+        description: Exact fresh operator approval comment; empty for recovery
+        type: string
+        default: ""
+      activation_sha256:
+        description: SHA-256 of the exact activation comment body
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+  issues: write
+  actions: read
+
+concurrency:
+  group: wea-private-domain-access
+  cancel-in-progress: false
+
+jobs:
+  access:
+    if: >-
+      github.repository == 'WeTheAgents/wetheagents' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (!github.event.issue.pull_request && startsWith(github.event.comment.body, '<!-- wea-access -->')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Reconcile Access journal
+        env:
+          ACCESS_ISSUE: ${{ inputs.issue }}
+          ACTIVATION_COMMENT_ID: ${{ inputs.activation_comment_id }}
+          ACTIVATION_SHA256: ${{ inputs.activation_sha256 }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ -n "$ACTIVATION_COMMENT_ID" ]; then
+            args+=(--issue "$ACCESS_ISSUE" --activation-comment-id "$ACTIVATION_COMMENT_ID" --activation-sha256 "$ACTIVATION_SHA256")
+          fi
+          python -m wea_vnext.access_github "${args[@]}"

@@ -48,7 +48,8 @@ Its implementation evidence is recorded there. The operator retained the initial
 | --- | --- | --- |
 | `src/wea_cli/`, `scripts/`, current `ledger/` | v1 runtime and history | Do not add new vNext protocol rules. Preserve audit and migration evidence. Legacy writers cannot publish into the active canonical ledger. |
 | `src/wea_vnext/engine.py`, `store.py` | version selection, manifest verification, replay transport, shadow storage | No business rules. Executor selection is always explicit. |
-| `src/wea_vnext/domain_access.py`, `domains/registry/` | inactive Domain/Access control plane and immutable external-repository bindings | Keep outside executor closures. Use no network lookup, GitHub permission effect, live grant, ledger write, or placeholder repository identity. Add a manifest only after the external revision is publicly verified. |
+| `src/wea_vnext/domain_access.py`, `domains/registry/` | pure Domain/Access library and immutable external-repository bindings | Keep outside executor closures. The library performs no network or ledger writes and grants no GitHub permissions. |
+| `src/wea_vnext/access_control.py`, `access_github.py`, `src/wea_cli/access.py`, `access.yml` | private operational Access adapter, accepted delta 0.5 | Disabled until exact operator activation after manual code merge. Only its separate `wea/access-journal` branch and configured Issue may receive Access data. No financial writer, task admission, executor change, or GitHub permission grant. |
 | `src/wea_vnext/financial_correction.py` | inactive append-only financial-correction control plane | Keep outside executor closures and current ledger paths. Use only explicit opening evidence and complete immutable groups. Do not treat in-memory atomicity as a durable write protocol. |
 | `src/wea_vnext/executors/v0_6_x/` | immutable protocol behavior | Never edit a released executor closure. Copy the complete closure to a new version, change it there, and create a new manifest. |
 | `src/wea_vnext/declarations.py`, `identity.py`, `hello_world.py`, `intake.py`, `migration.py`, `projection.py` | public candidate facades | Delegate through one explicitly pinned executor closure; do not duplicate rules. |
@@ -63,10 +64,12 @@ The new Tide explicitly selects executor `0.9.0` and ruleset `0.9`; it does not 
 `src/wea_vnext/tide/` owns collection, journal replay, and publication.
 `wea tide` and the invariant/schema scripts only read and verify that journal.
 
-Domain/Access does not select an executor. Its accepted boundary is a separate
-inactive control-plane library because registry validation and the internal
-seven-day right do not change historical Contract replay. A later request to
-make Access affect runtime behavior must return to Outcome, Spec, and Design.
+Domain/Access remains outside Contract replay. Accepted Access delta 0.5 in
+`oled/changes/wea-domain-access-private-pilot/` adds an explicitly activated
+CLI/Issue/Actions adapter and an independent append-only Git journal. It reads
+canonical identity through the existing task identity executor 0.9.0; it does
+not change that executor or make Access a Work/payment prerequisite in runtime.
+Code deployment and exact activation remain separate from implementation approval.
 
 Financial correction also does not select an executor. It preserves exact
 published-row bytes and replays complete compensating groups against explicit
