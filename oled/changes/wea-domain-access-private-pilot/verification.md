@@ -10,7 +10,7 @@ their original dates and are superseded only where explicitly stated here.
 
 ### Fresh implementation evidence
 
-- `tests/vnext/test_access_runtime.py`: 41 passed after review fixes. Synthetic
+- `tests/vnext/test_access_runtime.py`: 53 passed after all implementation fixes. Synthetic
   clocks and GitHub API fixtures; this is not real seven-day travel.
 - Combined Access/library/boundary/Tide/CLI/parser compatibility run: 423 passed,
   exit 0, 115.76 seconds. Exact command/output retained locally in
@@ -113,24 +113,49 @@ New regressions include real local Git object transfer and a subsequent fetch,
 single replay across multiple decisions, over-limit capture refusal, and
 receipt/CLI capacity failures without writes. Output:
 `.wea_runs/access-implementation/tests-git-transport.txt`.
-Ruff, doc sync and diff whitespace checks pass. A fourth native review follows;
-no clean native-review result is claimed yet.
+Ruff, doc sync and diff whitespace checks passed. Fourth native review completed
+without actionable findings and independently passed the 52-test adapter suite.
+Its combined probe again hit the review runner's 124-second timeout.
 
-On published `3300d3d`, scope/doc checks, runtime boundary, Semgrep and Workers
+A separate authenticated transport probe against the entire main ancestry
+exceeded its transfer timeout and exposed a Windows child-process leak. This
+was a failed probe, not passing runtime evidence. The handler now terminates the
+process tree on timeout. Two focused transport regressions pass, including a
+real child-process cleanup test. An authenticated native Git fetch/read of the
+canonical history root `01c1fc2ed0191064000ad244dcade0fc670a25d9` passed with no
+remote writes; this proves transport authentication, not live Access publication.
+Logs: `live-git-read.txt` (failure), `live-git-root-read.txt` (success), and
+`tests-git-cleanup.txt`, all under `.wea_runs/access-implementation/`.
+The final Access/runtime-boundary suite passed **64 tests**, exit 0, 109.80
+seconds (53 adapter, 11 boundary), including the Windows timeout regression.
+Output: `.wea_runs/access-implementation/tests-final.txt`. Native review of final
+code commit `651ca8f4656ca75be406e9842cef5e488ee3dba2` completed without actionable
+findings and independently passed all 53 adapter tests (103.31 seconds).
+Full-diff and final-delta review receipts are `native-review-fourth.txt` and
+`native-review-timeout.txt`. Code review is complete; installation still needs
+the exact one-time operator exception and manual merge described above.
+
+On published `651ca8f`, scope/doc checks, runtime boundary, Semgrep and Workers
 passed. Trusted ledger/tide-replay remained failed at the documented code
-installation boundary. The final protection update is now published for fresh CI.
+installation boundary. Those failures are not represented as a green check.
 Open Tide 13 PR #998 is based on `f40bf1d`; it is not canonical funding and must
 be regenerated after code installation advances main.
 
 ### Scope, recovery and lean cut
 
-Three new Python modules (1248 production lines), one workflow, one
+Three new Python modules (1271 production lines), one workflow, one
 focused test module, CLI routing, boundary tests and operating documentation.
 The implementation remains below Design's 1350-line revisit threshold; there is no new
 dependency, task executor change, financial writer or scheduler. The accepted
 cut removes a redundant record hash chain and a generic version/migration
 engine. Protocol reads use one standard-library Git archive rather than one
 process per file. Recovery is append/readback only. Capacity is explicit.
+
+HTML 0.5: eight embedded document hashes matched their current source bytes;
+all 25 internal links resolved, with 23 unique IDs. Chromium desktop 1440x1080
+and mobile 390x844 checks passed without overflow or JavaScript errors. Source
+disclosure links worked and both viewport screenshots were visually inspected.
+Screenshots: `.wea_runs/html-preview/access-v05-{1440,390}.png`.
 
 Actual test failures were fixed: pagination query construction; incomplete
 synthetic identity/Bot fixtures; a closure hash test ran while files changed

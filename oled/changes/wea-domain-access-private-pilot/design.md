@@ -165,7 +165,7 @@ request or a committed decision for operator recovery.
 
 Implementation ceiling: three new Python modules, one workflow, focused tests and existing routing/boundary documentation; estimate 800–1200 production lines. Revisit at more than three additional files or 150 lines beyond that estimate, or any task/financial write. Use standard library and existing Tide GitHub capture/identity reads. The intake Issue is selected by exact activation; #997 can host the private pilot without another Issue. Recovery is forward append/readback, never rewriting an interval. Proof hooks are the focused Access runtime/CLI tests, existing library and runtime-boundary suites, independent review, and a separate-process readback after activation. Until run, these are planned evidence only.
 
-Implementation measurement after the transport repair: 1248 lines across the
+Implementation measurement after the transport repair: 1271 lines across the
 three new Python modules, below the 1350-line revisit threshold. The native Git
 adapter addresses a demonstrated rate-limit defect without adding a dependency
 or another persistence model. Live publication and seven-day observation remain

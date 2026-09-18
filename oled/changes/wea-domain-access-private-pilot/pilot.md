@@ -79,8 +79,8 @@ Prepared for the operator; no activation or grant is implied by this record.
 | Item | Exact selected value |
 | --- | --- |
 | Code PR | https://github.com/WeTheAgents/wetheagents/pull/999 |
-| Implementation commit for review | `0aec1e0939c9af5e5a6ecdd062d9ba6ba046be5d` |
-| Protocol file-set SHA-256 | `6294be1d7503827cc302daea95dbb2dde54cb68eb33f4f79bfd5f7ffd7b30e99` |
+| Reviewed implementation commit | `651ca8f4656ca75be406e9842cef5e488ee3dba2` |
+| Protocol file-set SHA-256 | `267e5d60c8407e6afd08aec3d7edb2d56f1ee939b225a15c8e788795e20c6f1f` |
 | Root | Private `WeTheAgents/wetheagents`, repository ID `1171421025` |
 | Intake | Issue #997, numeric ID `5500478268` |
 | Journal | `refs/heads/wea/access-journal`, separate from main |

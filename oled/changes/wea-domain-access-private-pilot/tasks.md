@@ -29,7 +29,8 @@ Implementation is authorized by the operator's current request. Exact activation
 - [x] Add trusted disabled-by-default handler and explicit recovery entrypoint.
 - [x] Update the approved Access boundary; preserve Tide and released executors.
 - [x] Prove implemented DA-01..08 behavior with focused synthetic tests, including races, uncertain responses and tampering; retain separate pending live evidence in verification.md.
-- [ ] Complete self-review and independent code review; retain manual code merge.
+- [x] Complete self-review, fresh-context review, full native review and final-delta native review; no actionable findings remain.
+- [ ] Obtain the exact one-time writer installation exception and complete manual code merge.
 
 ## Activation and first trip
 
