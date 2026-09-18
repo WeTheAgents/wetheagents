@@ -7,7 +7,10 @@ import base64
 import copy
 import hashlib
 import json
+import os
 import subprocess
+import sys
+import time
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -881,7 +884,7 @@ def test_native_git_transfers_history_once_and_reads_new_objects(tmp_path, monke
     git("commit", "--quiet", "-m", "first")
     first = git("rev-parse", "HEAD")
     api = g.GitHub("test-token-never-on-command-line")
-    run = subprocess.run
+    popen = subprocess.Popen
     fetches = []
 
     def local_transfer(argv, **kwargs):
@@ -890,9 +893,9 @@ def test_native_git_transfers_history_once_and_reads_new_objects(tmp_path, monke
             assert kwargs["env"]["GIT_CONFIG_VALUE_1"] == "false"
             fetches.append(argv[-1])
             argv = [*argv[:-2], str(repository), argv[-1]]
-        return run(argv, **kwargs)
+        return popen(argv, **kwargs)
 
-    monkeypatch.setattr(g.subprocess, "run", local_transfer)
+    monkeypatch.setattr(g.subprocess, "Popen", local_transfer)
     try:
         commit = api.get(f"{API_ROOT}/git/commits/{first}")
         tree = api.get(f"{API_ROOT}/git/trees/{commit['tree']['sha']}")
@@ -977,3 +980,48 @@ def test_full_issue_refuses_receipt_and_retains_cli_request(
         cli.submit(api, args, ACCOUNT, tmp_path)
     assert len(list((tmp_path / ".wea_runs/access-requests").glob("*.json"))) == 1
     assert len(api.writes) == writes
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Git wrapper timeout regression")
+def test_native_git_timeout_terminates_child_processes(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    pid_file = tmp_path / "child-pid"
+    api = g.GitHub("credential-must-not-appear-in-errors")
+    api._directory = SimpleNamespace(name=str(tmp_path))
+    popen = subprocess.Popen
+    processes = []
+
+    def stalled_transfer(argv, **kwargs):
+        if argv[0] != "git":
+            return popen(argv, **kwargs)
+        code = (
+            "import subprocess,sys,time; "
+            "child=subprocess.Popen([sys.executable,'-c',"
+            "'import time;time.sleep(60)']); "
+            "open(sys.argv[1],'w').write(str(child.pid)); time.sleep(60)"
+        )
+        process = popen([sys.executable, "-c", code, str(pid_file)], **kwargs)
+        processes.append(process)
+        wait = process.wait
+        deadline = time.monotonic() + 5
+        while not pid_file.exists() and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert pid_file.exists()
+        process.wait = lambda timeout=None: wait(0.1 if timeout == 120 else timeout)
+        return process
+
+    monkeypatch.setattr(g.subprocess, "Popen", stalled_transfer)
+    with pytest.raises(
+        GitHubError, match="canonical Access Git object transfer failed"
+    ):
+        api._git("fetch")
+    assert processes[0].poll() is not None
+    child_pid = pid_file.read_text()
+    running = subprocess.run(
+        ["tasklist", "/FI", f"PID eq {child_pid}", "/FO", "CSV", "/NH"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    assert f'"{child_pid}"' not in running

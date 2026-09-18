@@ -10,6 +10,7 @@ import io
 import json
 import os
 import re
+import signal
 import subprocess
 import tarfile
 import tempfile
@@ -54,16 +55,38 @@ class GitHub(GitHubClient):
             GIT_CONFIG_KEY_1="http.followRedirects",
             GIT_CONFIG_VALUE_1="false",
         )
+        process = None
         try:
-            subprocess.run(
+            process = subprocess.Popen(
                 ["git", "-C", self._directory.name, *args],
                 env=env,
-                capture_output=True,
-                check=True,
-                timeout=120,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=os.name != "nt",
             )
+            try:
+                result = process.wait(timeout=120)
+            except subprocess.TimeoutExpired:
+                # Windows Git launches a wrapper plus children; kill the tree.
+                if os.name == "nt":
+                    subprocess.run(
+                        ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        timeout=10,
+                        check=True,
+                    )
+                else:
+                    os.killpg(process.pid, signal.SIGKILL)
+                raise
+            if result:
+                raise GitHubError("canonical Access Git object transfer failed")
         except (OSError, subprocess.SubprocessError):
             raise GitHubError("canonical Access Git object transfer failed") from None
+        finally:
+            if process is not None and process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
 
     def close(self) -> None:
         if self._batch is not None:
