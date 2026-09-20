@@ -1,6 +1,7 @@
 # Installation checkpoint
 
-Status: operator accepted this transition on 2026-09-20 and explicitly instructed implementation and installation.
+Status: installed on 2026-09-20 through PR #1008 and its exact operator update. Tide 17 / PR #1009 is canonical.
+The operator explicitly approved both implementation and installation.
 The retained contract and current evidence are in `../wea-access-protocol-transition/`. Live completion is recorded there, not inferred from approval.
 
 ## Original reviewed admission candidate (before the transition)
@@ -29,4 +30,4 @@ Its affected behavior includes the current one-time activation/closure rule and 
 The admission PR can then form part of one reviewed installation package with that transition.
 After the manual installation and exact update source, verify a fresh CLI read, original intervals, overlap rejection and a new admissible operation.
 Then verify schema-3 admission through a canonical Tide candidate and its trusted guard.
-Until those steps pass, keep PR #1008 unmerged and do not claim live enforcement.
+These steps passed; detailed actual receipts are in `../wea-access-protocol-transition/verification.md`. Real September 25 expiry observation remains pending.
