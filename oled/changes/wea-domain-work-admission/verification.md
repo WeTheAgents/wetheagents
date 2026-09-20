@@ -28,7 +28,8 @@ Time-based tests use synthetic clocks. They are not real seven-day observations.
 - Expanded admission/Access/Tide/collection/activation/runtime-boundary run: 181 passed, exit 0, 211.06 seconds.
 - After the Triage review fix, the three direct Triage/retry regressions passed, exit 0.
 - Final admission/Tide/ledger/participants/Access/Release/role-deadline regression: 151 passed, exit 0, 212.76 seconds.
-- Added Work scope-override regression: 1 passed, exit 0. The final admission file contains 41 cases.
+- Added Work scope-override regression: 1 passed, exit 0. The admission file then contained 41 cases.
+- After all three native-review fixes: the full applicable regression passed 156 tests, exit 0, 195.86 seconds.
 - Ruff on all changed Python: passed. `git diff --check`: passed.
 - `python scripts/check_invariant.py`: PASS. Tide 16, balances 19025, escrow 0, supply 19025 WEA.
 - All 16 canonical Tide batches replayed exactly against `origin/main`. No ledger bytes changed.
@@ -36,7 +37,10 @@ Time-based tests use synthetic clocks. They are not real seven-day observations.
 - Codex-2 and Codex-19 remain active with their original September 25 endpoints. Source CLI `access show` reports `observed`, `actual-utc-read`, `active`.
 - Exact read artifacts remain ignored under `.wea_runs/domain-admission/` in the task worktree.
 - Simple English self-check: the three longest normative statements contain 18 words each. Technical identifiers remain unchanged.
-- Native post-PR review and CI are pending.
+- Draft PR: https://github.com/WeTheAgents/wetheagents/pull/1008. Original code head: `c2b59acaffb54dce9323d9fe7b71e480b3af4a01`. Review-fix code head: `3fa22ab7eae58dd350136d4e360c28a30c6fd872`.
+- CI on that head: Semgrep, doc-sync, vNext boundary and Workers checks passed. The trusted ledger guard and `tide/replay` failed.
+- Exact guard error: `candidate writer universe changed: src/wea_vnext/tide/domain.py`. Run: `35497755355`. No status or guard was bypassed.
+- First native review completed with three actionable findings, fixed below. Repeat review is pending. Review used the installed npm CLI. The older root bundled CLI first rejected `service_tier=default`, then rejected the configured model as requiring a newer CLI. Shared configuration was not changed.
 
 ## Independent review
 
@@ -44,11 +48,14 @@ Time-based tests use synthetic clocks. They are not real seven-day observations.
    Fixed: bind Triage sources to the exact admitted Draft and recheck the reviewer at assignment time during completion.
    The original three-batch reproduction now leaves zero escrow and unresolved assignment/completion.
 2. A second fresh reviewer examined the complete corrected artifact and reported no actionable findings.
+3. Native post-PR review found a P1 unbounded REST journal-read regression, a P2 digit-prefixed Domain ID rejection and a P2 `none` scope collision.
+   Fixed: capture uses the existing native Git-object reader, with cleanup on success/failure; scope selection defers Domain authority to the canonical registry; internal scope uses `-`, outside the Domain ID namespace.
+   Focused regressions preserve `1-research` and `none` as domains that require Access and forbid per-object REST reads in production capture.
 
 ## Scope and protected cut
 
 The implementation reuses the Access journal and Tide transport, replay, escrow, dispositions and trusted guard.
-It adds one 100-line admission module, small integration changes and focused tests. No dependency, alternate writer or general claim operation exists.
+It adds one small admission module, small integration changes and focused tests. No dependency, alternate writer or general claim operation exists.
 Read-only historical journal mode is necessary because historical writer packages differ from current Tide packages. It cannot append decisions.
 Live writer checks remain exact. Removing scope binding, source-time checks, prefix preservation or guard recapture would weaken authority.
 No safe additional cut was identified. Existing tests retain historical semantics and use explicit internal scope for new candidates.
@@ -59,6 +66,6 @@ Public Circle-1 files, GitHub permissions, registries, ledger data and released 
 The live Access genesis pins all vNext files plus its CLI/workflow. This patch changes files in that closure.
 The existing Access writer therefore rejects new grants if this candidate is merged without an accepted closure transition.
 Read-only inspection and historical replay work. They do not authorize replacing the live writer closure.
-Keep the PR unmerged. The next operator decision concerns an exact, separately specified installation transition that preserves grants, intervals and journal history.
+Keep the PR unmerged. `installation.md` records the exact current hashes and the proposed append-only transition for a separate operator decision.
 No closure update format, reactivation, replacement genesis or migration is silently introduced here.
 BDD alignment: implementation evidence covers DWA-01..06. Live deployment remains pending, not claimed.
