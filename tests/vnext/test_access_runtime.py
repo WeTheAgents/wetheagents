@@ -824,6 +824,7 @@ def test_exact_2000_comment_boundary_preserves_read_and_receipt_repair(
         g.WORKFLOW,
         "src/wea_vnext/domain_access.py",
         "src/wea_vnext/access_control.py",
+        "src/wea_vnext/access_protocol.py",
         "src/wea_vnext/access_github.py",
         "src/wea_cli/access.py",
     ],

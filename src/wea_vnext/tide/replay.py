@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any
 
 from ..engine import installed_executor, load_executor
-from . import records
+from . import domain, records
 
 EXECUTOR = "0.9.0"
 PARTICIPANT_EXECUTOR = "0.10.0"
@@ -81,6 +81,9 @@ class Replay:
         self.participants: dict[str, dict[str, Any]] = {}
         self.participant_module: Any = None
         self.participant_revisions: set[str] = set()
+        self.access_snapshot: dict[str, Any] | None = None
+        self.access: Any = None
+        self.domain_scopes: dict[str, str | None] = {}
 
     def _event(self, raw: dict[str, Any]) -> Any:
         payload = {"issue_number": raw["issue_number"], "issue_id": raw["issue_id"]}
@@ -243,6 +246,9 @@ class Replay:
                 raise ValueError(
                     "active Issue body changed; body-integrity resolution is required"
                 )
+            selected_domain = None
+            if self.access_snapshot is not None:
+                selected_domain = domain.scope(event.body, self.access)
             if issue in self.drafts and self.drafts[issue] != candidate:
                 if self.drafts[issue].author_agent_id != candidate.author_agent_id:
                     raise ValueError("a retained Draft cannot change its author Agent")
@@ -252,6 +258,8 @@ class Replay:
                     balances=self._balance_records()
                 )
             self.drafts[issue] = candidate
+            if self.access_snapshot is not None:
+                self.domain_scopes[issue] = selected_domain
             self.intakes.setdefault(
                 issue, intake.PlanIntakeState(balances=self._balance_records())
             )
@@ -261,6 +269,17 @@ class Replay:
             raise ValueError("exact Draft has not been accepted")
         if kind in {"triage_assignment", "triage_assessment"}:
             records.authenticate_triage(self.modules, event, self.registry)
+            if self.access_snapshot is not None and (
+                data["issue_revision_id"] != draft.issue_revision_id
+            ):
+                raise ValueError("Triage source requires the exact admitted Draft")
+            if kind == "triage_assignment":
+                domain.require(
+                    self.access,
+                    self.domain_scopes.get(issue),
+                    data["reviewer_agent_id"],
+                    event.effective_at,
+                )
             return "Triage source retained; completion required"
         if kind == "triage_completion":
             assessment = records.assessment(
@@ -272,6 +291,16 @@ class Replay:
                     if str(self.sources[item.revision_id]["issue_id"]) == issue
                 ],
                 self.registry,
+            )
+            if self.domain_scopes.get(issue) is not None and (
+                assessment.assignment_source_revision_id not in self.processed
+            ):
+                raise ValueError("domain Triage requires an admitted assignment")
+            domain.require(
+                self.access,
+                self.domain_scopes.get(issue),
+                assessment.reviewer_agent_id,
+                assessment.assignment_effective_at,
             )
             self.intakes[issue] = intake.call_verified(
                 "record_triage_assessment",
@@ -356,6 +385,7 @@ class Replay:
         if kind not in {"work", "lifecycle"}:
             raise ValueError("unsupported declaration requires coordinator review")
         derived = lifecycle.derive_source_event(event, state)
+        domain.admit(self.access, self.domain_scopes.get(issue), derived)
         revision = None
         if derived.kind == "suffix_replan":
             target = derived.payload["plan_revision_id"]
@@ -392,7 +422,9 @@ class Replay:
         ):
             raise ReplayError("Tide predecessor or sequence differs")
         schema = batch.get("schema", "wea-tide-batch-1")
-        if schema == "wea-tide-batch-2":
+        if self.access_snapshot is not None and schema != domain.SCHEMA:
+            raise ReplayError("domain admission forbids a Tide schema downgrade")
+        if schema in {"wea-tide-batch-2", domain.SCHEMA}:
             reference = installed_executor(PARTICIPANT_EXECUTOR).reference
             if batch.get("participant_runtime") != list(reference):
                 raise ReplayError(
@@ -415,6 +447,10 @@ class Replay:
         cutoff = records.timestamp(batch["collection"]["cutoff"])
         if self.last_cutoff is not None and cutoff <= self.last_cutoff:
             raise ReplayError("Tide cutoff must advance")
+        if schema == domain.SCHEMA:
+            snapshot = batch.get("access_snapshot")
+            self.access = domain.restore(snapshot, cutoff, self.access_snapshot)
+            self.access_snapshot = snapshot
         self.sequence += 1
         for raw in batch["collection"]["sources"]:
             key = (
@@ -422,7 +458,7 @@ class Replay:
                 or f"unresolved:{raw['object_id']}:{raw['content_hash']}"
             )
             old = self.sources.get(key)
-            if old is None and schema == "wea-tide-batch-2":
+            if old is None and schema in {"wea-tide-batch-2", domain.SCHEMA}:
                 self.participant_revisions.add(key)
             if old is not None:
                 stable = (
@@ -571,9 +607,16 @@ class Replay:
             raise ReplayError("global balances plus escrow do not equal opening supply")
         return json_data(
             {
-                "schema": "wea-tide-state-2"
+                "schema": "wea-tide-state-3"
+                if self.access_snapshot is not None
+                else "wea-tide-state-2"
                 if self.participant_module is not None
                 else "wea-tide-state-1",
+                **(
+                    {"domain_scopes": self.domain_scopes}
+                    if self.access_snapshot is not None
+                    else {}
+                ),
                 **(
                     {"participants": self.participants}
                     if self.participant_module is not None

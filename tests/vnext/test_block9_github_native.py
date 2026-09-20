@@ -175,6 +175,7 @@ def _install_pinned_boundary(root: Path) -> None:
         "src/wea_vnext/engine.py",
         "src/wea_vnext/domain_access.py",
         "src/wea_vnext/access_control.py",
+        "src/wea_vnext/access_protocol.py",
         "src/wea_vnext/access_github.py",
         "src/wea_cli/access.py",
         *(

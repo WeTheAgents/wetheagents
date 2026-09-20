@@ -201,7 +201,16 @@ def run(
             "run_id": os.environ["GITHUB_RUN_ID"],
             "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
         }
-        payloads = candidate(root, base, collection, merges, provenance)
+        from .domain import capture
+
+        payloads = candidate(
+            root,
+            base,
+            collection,
+            merges,
+            provenance,
+            access_snapshot=capture(api, cutoff),
+        )
         sequence = engine.sequence + 1
     if payloads is None:
         report(

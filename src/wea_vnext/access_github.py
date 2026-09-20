@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from . import access_control as control
+from . import access_protocol
 from .tide.collection import API_ROOT, REPOSITORY, REPOSITORY_ID, _pages, _source
 from .tide.github import GitHub as GitHubClient
 from .tide.github import GitHubError
@@ -268,10 +269,12 @@ def verify_installed(genesis: dict[str, Any]) -> None:
 class Journal:
     """Append one file by a non-forced ref update; never write main or a ledger."""
 
-    def __init__(self, api: Any):
+    def __init__(self, api: Any, *, verify_closure: bool = True):
         self.api = api
+        self.verify_closure = verify_closure
         self._snapshot: Any = None
         self.state: Any = None
+        self.protocol: Any = None
 
     def head(self) -> str | None:
         refs = self.api.get(f"{API_ROOT}/git/matching-refs/heads/{BRANCH}")
@@ -337,13 +340,22 @@ class Journal:
             if not documents:
                 if path != "genesis.json":
                     raise ValueError("journal has no unique genesis")
-                validate_genesis(data)
-            elif path != f"decision-{data['source']['object_id']}.json":
-                raise ValueError("journal decision filename differs")
+                validate_genesis(data, verify_closure=False)
+            else:
+                prefix = (
+                    "protocol"
+                    if data["schema"] == access_protocol.SCHEMA
+                    else "decision"
+                )
+                if path != f"{prefix}-{data['source']['object_id']}.json":
+                    raise ValueError("journal decision filename differs")
             documents.append(data)
             commits.append(commit_sha)
             previous = files
         self.state = control.replay(documents[0], documents[1:])
+        self.protocol = access_protocol.package(documents[0], documents[1:])
+        if self.verify_closure:
+            verify_installed(self.protocol)
         self._snapshot = head, documents[0], documents[1:], commits[1:]
         return self._snapshot
 
@@ -359,8 +371,11 @@ class Journal:
         self.state = state
 
     def append(self, parent: str | None, path: str, data: dict[str, Any]) -> str:
+        if not self.verify_closure:
+            raise ValueError("historical Access readers cannot publish decisions")
         if (parent is None and path != "genesis.json") or (
-            parent is not None and not re.fullmatch(r"decision-[1-9][0-9]*\.json", path)
+            parent is not None
+            and not re.fullmatch(r"(?:decision|protocol)-[1-9][0-9]*\.json", path)
         ):
             raise ValueError("invalid Access append path")
         tree_input: dict[str, Any] = {
@@ -400,7 +415,7 @@ class Journal:
         return commit["sha"]
 
 
-def validate_genesis(data: dict[str, Any]) -> None:
+def validate_genesis(data: dict[str, Any], *, verify_closure: bool = True) -> None:
     if set(data) != {
         "schema",
         "repository_id",
@@ -445,7 +460,8 @@ def validate_genesis(data: dict[str, Any]) -> None:
     if not re.fullmatch(r"[0-9a-f]{40}", data["code_sha"]):
         raise ValueError("activation code SHA differs")
     control.initial_state(data)
-    verify_installed(data)
+    if verify_closure:
+        verify_installed(data)
 
 
 def repository(api: Any, issue: int) -> dict[str, Any]:
@@ -525,6 +541,63 @@ def activate(
         if observed == data:
             return recovered
         raise
+
+
+def update_protocol(
+    api: Any,
+    root: Path,
+    base: str,
+    comment: int,
+    expected_hash: str,
+    provenance: dict[str, Any],
+    clock: Any = control.utcnow,
+) -> str:
+    """Append the exact operator update from trusted main, never rewrite genesis."""
+    reader = Journal(api, verify_closure=False)
+    for _ in range(3):
+        head, genesis, entries, commits = reader.read()
+        if genesis is None:
+            raise ValueError("protocol update requires an activated journal")
+        issue = repository(api, genesis["issue_number"])
+        if str(issue["id"]) != genesis["issue_id"]:
+            raise ValueError("activated Issue differs")
+        source = capture(
+            api,
+            genesis["issue_number"],
+            api.get(f"{API_ROOT}/issues/comments/{comment}"),
+        )
+        if source["content_hash"] != expected_hash:
+            raise ValueError("protocol update source hash differs")
+        for entry, commit in zip(entries, commits, strict=True):
+            if entry["source"]["object_id"] == str(comment):
+                if (
+                    entry["schema"] != access_protocol.SCHEMA
+                    or entry["source"] != source
+                ):
+                    raise ValueError(
+                        "protocol update retry differs from retained source"
+                    )
+                return commit
+        data = {
+            "schema": access_protocol.SCHEMA,
+            "source": source,
+            "accepted_at": json_data(clock()),
+            "code_sha": base,
+            "protocol_files": protocol(root, base),
+            "provenance": provenance,
+        }
+        data["decision"] = access_protocol.decision(
+            reader.protocol, base, data["protocol_files"]
+        )
+        control.replay(genesis, [*entries, data])
+        verify_installed(data)
+        if api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base:
+            raise ValueError("canonical main changed before protocol update")
+        try:
+            return Journal(api).append(head, f"protocol-{comment}.json", data)
+        except GitHubError:
+            continue
+    raise GitHubError("protocol update unresolved; retry the same source and hash")
 
 
 def process(
@@ -653,6 +726,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "code_sha": base,
         "workflow": WORKFLOW,
     }
+    update_comment = getattr(args, "protocol_comment_id", None)
+    if update_comment and args.activation_comment_id:
+        raise ValueError("activation and protocol update are separate operations")
+    if update_comment:
+        if workflow_run["event"] != "workflow_dispatch":
+            raise ValueError("protocol updates require explicit workflow dispatch")
+        update_protocol(
+            api, root, base, update_comment, args.protocol_sha256, provenance
+        )
     if args.activation_comment_id:
         activate(
             api,
@@ -670,7 +752,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     issue = repository(api, genesis["issue_number"])
     if (
         str(issue["id"]) != genesis["issue_id"]
-        or protocol(root, base) != genesis["protocol_files"]
+        or protocol(root, base) != journal.protocol["protocol_files"]
     ):
         raise ValueError("activated Issue or protocol closure differs")
     engine, _ = load(root, base)
@@ -698,6 +780,8 @@ def main() -> int:
     parser.add_argument("--issue", type=int)
     parser.add_argument("--activation-comment-id", type=int)
     parser.add_argument("--activation-sha256", default="")
+    parser.add_argument("--protocol-comment-id", type=int)
+    parser.add_argument("--protocol-sha256", default="")
     args = parser.parse_args()
     try:
         print(json.dumps(run(args), ensure_ascii=False))
