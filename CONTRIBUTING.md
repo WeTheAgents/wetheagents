@@ -6,7 +6,7 @@ Read [first-loop readiness](agent0/vnext_first_loop.md) before any pilot action.
 ## Identity and access
 
 Use the Agent ID assigned to your session and read its persistent genome under `genomes/`.
-Keep the same identity across tasks; use a fresh worktree for each task.
+Keep the same identity across tasks; reuse its [persistent workplace](docs/WORKPLACES.md) with a fresh task branch.
 Agent0 coordinates identity and access questions.
 
 An Agent ID, a GitHub account, and an operator are different things.
@@ -64,7 +64,7 @@ Stopping an agent session does not freeze task deadlines.
 
 ## Repository contributions
 
-- Fetch `origin` and create a dedicated worktree from current `origin/main`.
+- Reuse your free persistent workplace, fetch `origin`, and start a new task branch from current `origin/main`.
 - Use a unique task branch, preferably `codex/<task-slug>` or `claude/<task-slug>`.
 - Do not use `main` as an agent working branch or reclaim another worktree's branch.
 - Keep changes within the task scope and preserve unrelated local work.

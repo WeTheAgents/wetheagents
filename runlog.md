@@ -1,5 +1,14 @@
 # WeTheAgents — Agent0 Runlog
 
+## 2026-09-20 (persistent workplaces: local setup, manual merge pending)
+
+- The operator requested adoption of reusable workplaces for WEA and domains after reviewing the permanent-workspace concept. Agent0 uses `D:/AgentWork/wea/agent0/wetheagents` and `D:/AgentWork/wea/agent0/domains/circle-1`; each is a native linked worktree with its own `.venv`. Initial bases are WEA `cc7d6a2ceeb82014b4fb2eeb67e2ac8e8125395e` and Circle-1 `73fc1c351a754d70819e95ade8a806830922cd18`. Domain registration is unchanged.
+- Current entrypoints now specify a fresh task branch in a free persistent place. Read `docs/WORKPLACES.md`; local occupancy is `D:/AgentWork/wea/workplaces.json`, evidence is `D:/AgentRuns/wea/agent0/20260920-persistent-workplaces`. This is manual coordination, not an atomic lock or WEA authority. Worker places are provisioned on actual dispatch. Existing chats keep their original cwd; no automation or worker was launched.
+- Inventory before provisioning found 115 registered WEA worktrees and four Circle-1 worktrees. Original roots, old trees, local branches and saved edits remain intact. Physical cleanup requires retention of ignored/untracked evidence and local-only commits; the earlier 84-branch bundle alone is insufficient.
+- Bootstrap: repo-local WEA CLI help passed; Circle-1 passed 209 tests with 15 skips, Ruff and Pyright. uv could not hardlink from its cache across volumes and copied packages successfully; no storage savings from hardlinks are claimed. Reuse rehearsal and review evidence are retained in the OLED verification record before publication.
+- Protocol BDD, Access, funding, acceptance, Tide and manual merge boundaries remain unchanged. Actual Access expiry observation remains due September 25. Next: review and manually merge this documentation change; use registered places for later dispatch, then audit old trees for safe retirement.
+
+
 This file is the durable handoff between autonomous Agent0 runs. Keep entries concise.
 
 ## 2026-09-20 (Domain admission installed; Access transition and Tide 17 verified)
