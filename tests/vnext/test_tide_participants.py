@@ -57,7 +57,14 @@ def participant_batch(engine, sources, *, at=START + timedelta(seconds=2), merge
     value = batch(engine, sources, at, merges)
     return {
         **value,
-        "schema": "wea-tide-batch-2",
+        "schema": "wea-tide-batch-3"
+        if engine.access_snapshot is not None
+        else "wea-tide-batch-2",
+        **(
+            {"access_snapshot": engine.access_snapshot}
+            if engine.access_snapshot is not None
+            else {}
+        ),
         "participant_runtime": list(installed_executor("0.10.0").reference),
     }
 
@@ -144,7 +151,14 @@ def test_merge_time_limits_authority_and_no_activation_only_pr(repo):  # noqa: F
         "sources": sources,
         "tracked_issues": [],
     }
-    payloads = candidate(root, base, collection, {}, {})
+    payloads = candidate(
+        root,
+        base,
+        collection,
+        {},
+        {},
+        access_snapshot={"genesis": None, "entries": [], "commits": []},
+    )
     put(root, payloads)
     head = commit(root)
     assert validate(root, base, head)["participants"]
@@ -163,7 +177,8 @@ def test_merge_time_limits_authority_and_no_activation_only_pr(repo):  # noqa: F
 
     def draft(at, rid):
         return raw(
-            command(
+            "<!-- wea:domain none -->\n"
+            + command(
                 {
                     "kind": "draft_issue",
                     "author_agent_id": "New@claude",
@@ -204,6 +219,7 @@ def test_merge_time_limits_authority_and_no_activation_only_pr(repo):  # noqa: F
             },
             merges,
             {},
+            access_snapshot={"genesis": None, "entries": [], "commits": []},
         )
         is None
     )
@@ -365,6 +381,7 @@ def test_guard_rejects_forged_participant_projection(repo, field, value):  # noq
         },
         {},
         {},
+        access_snapshot={"genesis": None, "entries": [], "commits": []},
     )
     payloads[STATE]["participants"]["request-1"][field] = value
     put(root, payloads)

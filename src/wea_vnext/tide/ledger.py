@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from ..engine import installed_executor
+from . import domain
 from .collection import API_ROOT, collect_sources, cutoff_evidence
 from .github import retain_artifacts
 from .records import timestamp
@@ -149,6 +150,8 @@ def candidate(
     collection: dict[str, Any],
     merges: dict[str, str],
     provenance: dict[str, Any],
+    *,
+    access_snapshot: dict[str, Any],
 ) -> dict[str, Any] | None:
     unresolved = [
         source["object_id"]
@@ -164,7 +167,8 @@ def candidate(
     before = engine.state()
     sequence = engine.sequence + 1
     core = {
-        "schema": "wea-tide-batch-2",
+        "schema": domain.SCHEMA,
+        "access_snapshot": access_snapshot,
         "participant_runtime": list(installed_executor(PARTICIPANT_EXECUTOR).reference),
         "sequence": sequence,
         "previous_hash": engine.last_hash,
@@ -181,6 +185,7 @@ def candidate(
         "dispositions",
         "funding_batches",
         "participants",
+        "domain_scopes",
     )
     if all(before.get(key, {}) == after.get(key, {}) for key in meaningful):
         return None
@@ -214,6 +219,8 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
             "Tide PR must contain exactly its batch, projection, and receipt"
         )
     batch, receipt = read(root, head, path), read(root, head, receipt_path)
+    if batch.get("schema") != domain.SCHEMA:
+        raise ReplayError("new Tide candidates require domain admission schema 3")
     tracked = sorted({source["issue_number"] for source in engine.sources.values()})
     if batch["collection"].get("tracked_issues") != tracked:
         raise ReplayError("candidate collection omits canonical tracked Issues")
@@ -232,6 +239,8 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
         ):
             raise ReplayError("Tide provenance does not name the trusted main workflow")
         cutoff = timestamp(batch["collection"]["cutoff"])
+        if domain.capture(api, cutoff) != batch["access_snapshot"]:
+            raise ReplayError("Access snapshot differs from the canonical journal")
         if (
             not timestamp(run["run_started_at"])
             <= cutoff
@@ -257,7 +266,12 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
                 "candidate source evidence differs from authenticated GitHub reads"
             )
     expected = candidate(
-        root, base, batch["collection"], batch["funding_merges"], receipt["provenance"]
+        root,
+        base,
+        batch["collection"],
+        batch["funding_merges"],
+        receipt["provenance"],
+        access_snapshot=batch["access_snapshot"],
     )
     if expected is None:
         raise ReplayError("empty Tide candidate is not permitted")

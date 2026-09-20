@@ -71,6 +71,16 @@ canonical identity through the existing task identity executor 0.9.0; it does
 not change that executor or make Access a Work/payment prerequisite in runtime.
 Code deployment and exact activation remain separate from implementation approval.
 
+The operator accepted the domain work admission delta on 2026-09-20.
+`oled/changes/wea-domain-work-admission/spec.md` defines DWA-01..06 for Tide schema 3.
+This candidate adds an admission adapter around the unchanged task executor.
+New Drafts bind their domain in the approved body hash. New domain Work and role entry require the assigned agent's Access.
+Acceptance, settlement, Release, public contributions and historical tasks keep their existing rules.
+The candidate is not live: the activated Access writer pins Tide's previous code closure.
+Installation requires an exact reviewed transition that preserves Access publication and its immutable journal.
+Historical Access readers validate retained data without requiring the old writer package to equal the current Tide package.
+Those readers cannot publish decisions. Live Access writer closure checks remain mandatory.
+
 Financial correction also does not select an executor. It preserves exact
 published-row bytes and replays complete compensating groups against explicit
 opening positions. It has no persistence, current-ledger writer, or live

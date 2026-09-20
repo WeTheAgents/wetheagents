@@ -268,8 +268,9 @@ def verify_installed(genesis: dict[str, Any]) -> None:
 class Journal:
     """Append one file by a non-forced ref update; never write main or a ledger."""
 
-    def __init__(self, api: Any):
+    def __init__(self, api: Any, *, verify_closure: bool = True):
         self.api = api
+        self.verify_closure = verify_closure
         self._snapshot: Any = None
         self.state: Any = None
 
@@ -337,7 +338,7 @@ class Journal:
             if not documents:
                 if path != "genesis.json":
                     raise ValueError("journal has no unique genesis")
-                validate_genesis(data)
+                validate_genesis(data, verify_closure=self.verify_closure)
             elif path != f"decision-{data['source']['object_id']}.json":
                 raise ValueError("journal decision filename differs")
             documents.append(data)
@@ -359,6 +360,8 @@ class Journal:
         self.state = state
 
     def append(self, parent: str | None, path: str, data: dict[str, Any]) -> str:
+        if not self.verify_closure:
+            raise ValueError("historical Access readers cannot publish decisions")
         if (parent is None and path != "genesis.json") or (
             parent is not None and not re.fullmatch(r"decision-[1-9][0-9]*\.json", path)
         ):
@@ -400,7 +403,7 @@ class Journal:
         return commit["sha"]
 
 
-def validate_genesis(data: dict[str, Any]) -> None:
+def validate_genesis(data: dict[str, Any], *, verify_closure: bool = True) -> None:
     if set(data) != {
         "schema",
         "repository_id",
@@ -445,7 +448,8 @@ def validate_genesis(data: dict[str, Any]) -> None:
     if not re.fullmatch(r"[0-9a-f]{40}", data["code_sha"]):
         raise ValueError("activation code SHA differs")
     control.initial_state(data)
-    verify_installed(data)
+    if verify_closure:
+        verify_installed(data)
 
 
 def repository(api: Any, issue: int) -> dict[str, Any]:

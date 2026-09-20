@@ -107,6 +107,10 @@ This proposal does not isolate their sessions. Tests must not claim to reject su
 
 ## DA-07: Work, money, and permissions
 
+Historical scope: Access delta 0.5 and Tide schemas 1/2.
+The accepted [domain admission delta](../wea-domain-work-admission/spec.md) modifies new domain-work admission under schema 3.
+Its deployment remains pending. The financial and GitHub-permission boundaries below remain unchanged.
+
 - **GIVEN:** Access is issued, absent, or expired.
 - **WHEN:** Access or independent task processing runs.
 - **THEN:** Work, funding, acceptance, settlement, Release, and participant rules MUST remain unchanged.

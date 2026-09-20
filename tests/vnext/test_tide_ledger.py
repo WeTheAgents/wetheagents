@@ -65,6 +65,7 @@ def prepared(repo):
         {"cutoff": cutoff.isoformat(), "sources": sources, "tracked_issues": []},
         {},
         {"run_id": "1", "run_attempt": "1"},
+        access_snapshot={"genesis": None, "entries": [], "commits": []},
     )
     put(root, values)
     return root, base, commit(root), cutoff
@@ -145,7 +146,12 @@ def test_unrelated_chat_is_a_noop(repo):
     source["content_hash"] = hashlib.sha256(source["body"].encode()).hexdigest()
     assert (
         candidate(
-            root, base, {"cutoff": cutoff.isoformat(), "sources": [source]}, {}, {}
+            root,
+            base,
+            {"cutoff": cutoff.isoformat(), "sources": [source]},
+            {},
+            {},
+            access_snapshot={"genesis": None, "entries": [], "commits": []},
         )
         is None
     )
@@ -160,6 +166,7 @@ def test_existing_canonical_tide_is_not_paid_again(repo):
             {"cutoff": (cutoff + timedelta(minutes=2)).isoformat(), "sources": []},
             {},
             {},
+            access_snapshot={"genesis": None, "entries": [], "commits": []},
         )
         is None
     )
@@ -182,6 +189,7 @@ def test_candidate_cannot_drop_previously_tracked_issues(repo):
         },
         {},
         {},
+        access_snapshot={"genesis": None, "entries": [], "commits": []},
     )
     assert values is not None
     put(root, values)

@@ -8,6 +8,12 @@ Access does not create Work, funding, a payment obligation, Release, or GitHub
 permissions. The task Plan and canonical Tide escrow remain separate.
 There is no early revoke, extension, or transfer command.
 
+The accepted [domain work admission delta](../oled/changes/wea-domain-work-admission/spec.md)
+adds an Access prerequisite to new WEA domain work through Tide schema 3.
+Its deployment is pending. The [Tide instructions](TIDE.md#domain-admission-schema-3-candidate) describe the new scope and checks.
+Public issues and PRs remain open under ordinary GitHub permissions and Steward review.
+Existing obligations keep their acceptance, settlement and Release paths after Access expiry.
+
 ## Operator deployment checkpoint
 
 The operator accepted the Access 0.5 Outcome/Spec/Design on 2026-09-18.

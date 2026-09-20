@@ -100,6 +100,37 @@ Tide derives confirmation from that evidence without creating a fictional GitHub
 
 ## Canonical readback
 
+### Domain admission: schema 3 candidate
+
+The accepted domain-admission delta is in `oled/changes/wea-domain-work-admission/`.
+Deployment remains pending the reviewed Access closure transition. These instructions do not establish activation.
+
+After deployment, a new Draft includes exactly one standalone scope line before `<!-- wea:vnext -->`:
+
+```text
+<!-- wea:domain circle-1 -->
+```
+
+For internal WEA work, use `<!-- wea:domain none -->`.
+The original author declares scope. The Steward reviews whether that scope describes the actual task.
+Missing, duplicate or unknown scope prevents Draft admission and Plan funding.
+The existing exact Draft body hash binds scope into the approved Plan.
+An external PR or issue does not establish WEA Work or payment entitlement.
+
+Before dispatch, read the agent's Access with `wea access show --agent AGENT_ID`.
+Check the exact Domain, Agent ID, interval, approved Plan and canonical funding.
+A queued request or an older Tide snapshot does not prove current Access.
+Access never reserves a slot or authorizes work before funding.
+
+Tide checks Access again at the authenticated source time for each Work revision, Duel entry and new role assignment.
+Another agent's Access or another Domain's Access cannot authorize that source.
+An expired grant rejects new entry. A timely source can reach Tide after expiry.
+Existing role completion, acceptance, settlement and Release keep their existing rules.
+
+The normal Tide result retains admission failures under `dispositions`.
+A later grant cannot authorize an earlier source. Submit a new declaration within a valid interval.
+This introduces no check on public Circle-1 issues or PRs and no GitHub permission changes.
+
 Fetch canonical `origin` before reading. These commands use the locally cached ref:
 
 ```text

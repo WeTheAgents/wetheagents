@@ -51,7 +51,9 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
 def read(
     api: GitHub, args: argparse.Namespace, account: str, journal: Journal | None = None
 ) -> dict:
-    head, genesis, entries, commits = (journal or Journal(api)).read()
+    head, genesis, entries, commits = (
+        journal or Journal(api, verify_closure=False)
+    ).read()
     if genesis is None:
         return {"status": "disabled"}
     repository(api, genesis["issue_number"])
