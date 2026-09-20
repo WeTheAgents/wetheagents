@@ -1,7 +1,7 @@
 # Verification
 
 Contract: Outcome 1.0, Spec 1.0, Design 1.0.
-Decision: Not ready for deployment. Implementation checks, independent review and repeat native post-PR review passed. Installation remains separately pending.
+Decision: Ready. Implementation checks, reviews and the separately approved installation are complete; see the live checkpoint below.
 Base: `77d2ebec4154b91339aa5bfa4697032220e8318c`.
 Account: `peachgabba22`, numeric ID `129645949`, canonical Agent0 role verified from Tide replay.
 WEA remains private. The original checkout's saved changes remain outside this worktree.
@@ -70,6 +70,10 @@ Public Circle-1 files, GitHub permissions, registries, ledger data and released 
 The live Access genesis pins all vNext files plus its CLI/workflow. This patch changes files in that closure.
 The existing Access writer therefore rejects new grants if this candidate is merged without an accepted closure transition.
 Read-only inspection and historical replay work. They do not authorize replacing the live writer closure.
-Keep the PR unmerged. `installation.md` records the exact current hashes and the proposed append-only transition for a separate operator decision.
+The operator subsequently approved that transition. PR #1008 was manually installed and its append-only update succeeded; exact current evidence is in `../wea-access-protocol-transition/verification.md`.
 No closure update format, reactivation, replacement genesis or migration is silently introduced here.
-BDD alignment: implementation evidence covers DWA-01..06. Live deployment remains pending, not claimed.
+BDD alignment: implementation evidence covers DWA-01..06. Live schema-3 checkpoint Tide 17 passed local replay, native review and the trusted guard, then merged through PR #1009. No new paid Work or actual seven-day expiry observation is claimed.
+
+## Live checkpoint
+
+PR #1008 installed at `2026-09-20T08:41:37Z`. The exact operator package update and original grants were verified live. Tide 17 / PR #1009 merged at `2026-09-20T08:56:09Z` with four retained Access records and unchanged balances. The accepted transition contract and detailed receipts are in `../wea-access-protocol-transition/`.

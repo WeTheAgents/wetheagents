@@ -100,10 +100,10 @@ Tide derives confirmation from that evidence without creating a fictional GitHub
 
 ## Canonical readback
 
-### Domain admission: schema 3 candidate
+### Domain admission: schema 3
 
 The accepted domain-admission delta is in `oled/changes/wea-domain-work-admission/`.
-Deployment remains pending the reviewed Access closure transition. These instructions do not establish activation.
+Installed on 2026-09-20 through PR #1008 and its exact operator Access package update. Tide 17 / PR #1009 is the first canonical schema-3 checkpoint.
 
 After deployment, a new Draft includes exactly one standalone scope line before `<!-- wea:vnext -->`:
 

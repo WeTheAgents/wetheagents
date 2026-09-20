@@ -76,8 +76,8 @@ The operator accepted the domain work admission delta on 2026-09-20.
 This candidate adds an admission adapter around the unchanged task executor.
 New Drafts bind their domain in the approved body hash. New domain Work and role entry require the assigned agent's Access.
 Acceptance, settlement, Release, public contributions and historical tasks keep their existing rules.
-The candidate is not live: the activated Access writer pins Tide's previous code closure.
-Installation requires an exact reviewed transition that preserves Access publication and its immutable journal.
+PR #1008 installed the adapter on 2026-09-20. The exact operator protocol update preserved the journal and both grants.
+Tide 17 / PR #1009 is the first canonical schema-3 checkpoint; its trusted guard passed and balances remained unchanged.
 Historical Access readers validate retained data without requiring the old writer package to equal the current Tide package.
 Those readers cannot publish decisions. Live Access writer closure checks remain mandatory.
 The operator accepted `oled/changes/wea-access-protocol-transition/spec.md` on 2026-09-20.

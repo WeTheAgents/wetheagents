@@ -5,7 +5,7 @@
 | 1.0 | 2026-09-20 | Outcome 1.0 and the operator's instruction to implement the agreed WEA boundary |
 
 Effective scope: new domain-scoped Drafts admitted by Tide batch schema 3.
-Implementation is pending verification and deployment. Existing canonical tasks retain their historical scope.
+Installed through PR #1008 on 2026-09-20; Tide 17 is the first canonical schema-3 checkpoint. Existing canonical tasks retain their historical scope.
 This delta modifies DA-07 only for admission to new domain work.
 DA-01..06, DA-08, S-11A/B intervals and existing financial rules remain unchanged.
 The task executor remains 0.9.0. The participant executor remains 0.10.0.
