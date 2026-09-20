@@ -27,8 +27,8 @@ do not override its status or waive subsequent financial checks.
 Use the merged source CLI with `PYTHONPATH=src`, or an installed package with
 exactly the activated protocol bytes. An incompatible package fails closed.
 The fixed closure includes the Access adapter, vNext imports and the workflow;
-genesis retains its file hashes and reviewed code commit. This pilot has one
-format and no automatic migration to another implementation.
+genesis retains its original file hashes and reviewed code commit. An explicit
+operator protocol update can authorize a later package without changing genesis.
 
 Prepare one fresh operator comment in the selected private Issue (the pilot
 can use #997), with this literal first line:
@@ -53,9 +53,41 @@ with no genesis returns `disabled`. Repeating the exact activation returns the
 original genesis; another activation is rejected.
 
 Keep this data branch separate from main. It contains only genesis and one
-immutable decision file per source. No Access operation needs a PR or merge.
+immutable decision or protocol-update file per source. Grant requests do not
+need PRs. Code installation retains its separate manual merge.
 The repository administrator remains trusted; Git cannot prevent an
 administrator from deleting or replacing the entire history.
+
+## Update the installed protocol
+
+The operator accepted the [append-only transition](../oled/changes/wea-access-protocol-transition/spec.md) on 2026-09-20.
+Code installation alone does not update the active Access package. Preserve the
+original journal and grant intervals. Never reactivate or replace genesis.
+
+After reviewing and manually installing the code, create a fresh operator comment
+on the existing intake Issue. Use this exact first line:
+
+```text
+<!-- wea-access-protocol -->
+```
+
+The JSON below it contains exactly `schema` (`wea-access-protocol-1`),
+`previous_protocol_hash`, `code_sha` (current full main SHA), `protocol_hash`
+(`digest(protocol(root, code_sha))`) and `journal_ref` (`refs/heads/wea/access-journal`).
+Read the previous package from validated journal replay. Do not always use genesis:
+an earlier update may already be authoritative.
+
+Dispatch **Domain Access** on main with `protocol_comment_id` and `protocol_sha256`
+(the SHA-256 of that exact comment body). Do not combine activation and update.
+The handler requires the canonical operator's unedited source, matching predecessor,
+current main and installed package bytes. It appends `protocol-<comment-id>.json`.
+Subsequent grants check that package. The update creates no Access or payment.
+
+On a lost acknowledgement, retry the same source and hash. Canonical readback
+returns the original introducing commit. Changed sources and stale predecessors
+fail closed. Recovery appends a separately reviewed forward update.
+Read back both grants and package before ordinary operation. The next Tide retains
+the changed Access snapshot even if no money or task state changes.
 
 ## Request and read a trip
 

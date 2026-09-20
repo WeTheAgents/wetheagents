@@ -80,6 +80,10 @@ The candidate is not live: the activated Access writer pins Tide's previous code
 Installation requires an exact reviewed transition that preserves Access publication and its immutable journal.
 Historical Access readers validate retained data without requiring the old writer package to equal the current Tide package.
 Those readers cannot publish decisions. Live Access writer closure checks remain mandatory.
+The operator accepted `oled/changes/wea-access-protocol-transition/spec.md` on 2026-09-20.
+An exact operator source may authorize a reviewed package through an append-only journal update.
+Genesis, previous decisions, grants and intervals remain unchanged; ordinary writers require the latest authorized package.
+Installation and actual live receipts remain separately recorded in that change.
 
 Financial correction also does not select an executor. It preserves exact
 published-row bytes and replays complete compensating groups against explicit

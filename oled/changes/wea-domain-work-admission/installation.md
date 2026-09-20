@@ -1,9 +1,9 @@
 # Installation checkpoint
 
-Status: proposed follow-up, not implemented or approved by this candidate.
-The operator approved the admission behavior and its implementation. A live Access protocol transition remains a separate behavior change.
+Status: operator accepted this transition on 2026-09-20 and explicitly instructed implementation and installation.
+The retained contract and current evidence are in `../wea-access-protocol-transition/`. Live completion is recorded there, not inferred from approval.
 
-## Exact current candidate
+## Original reviewed admission candidate (before the transition)
 
 - Code commit: `3fa22ab7eae58dd350136d4e360c28a30c6fd872`.
 - Activated Access protocol hash: `267e5d60c8407e6afd08aec3d7edb2d56f1ee939b225a15c8e788795e20c6f1f`.
@@ -14,7 +14,7 @@ The six changed closure paths are the Access CLI/reader, Tide runner/replay/ledg
 The base-code guard rejects the new module as a changed writer universe. Its failed result remains visible.
 A manual merge exception alone is insufficient: the old Access genesis still pins the old package and rejects subsequent grants.
 
-## Smallest proposed transition
+## Accepted transition
 
 Retain the existing genesis, decisions, grant IDs, intervals and idempotency history.
 Introduce one explicit operator-authorized append-only protocol-update record in the same Access journal.
@@ -24,7 +24,7 @@ The record would authorize new writer code, not new trips, money or GitHub permi
 Old journal records and historical Tide snapshots would remain reproducible under their recorded formats.
 An exact retry would return the same update. Recovery would append forward without replacing genesis or extending any trip.
 
-This proposal needs an accepted Outcome/Spec/Design delta before implementation.
+The accepted Outcome/Spec/Design delta is now retained in `../wea-access-protocol-transition/`.
 Its affected behavior includes the current one-time activation/closure rule and mixed-version journal replay.
 The admission PR can then form part of one reviewed installation package with that transition.
 After the manual installation and exact update source, verify a fresh CLI read, original intervals, overlap rejection and a new admissible operation.

@@ -265,11 +265,23 @@ def decide(
 
 
 def replay(genesis: dict[str, Any], entries: list[dict[str, Any]]) -> DomainAccessState:
+    from . import access_protocol
+
     state = initial_state(genesis)
+    package = access_protocol.package(genesis, [])
     previous: list[dict[str, Any]] = []
     seen: set[str] = set()
     last_at = timestamp(genesis["cutoff"])
     for entry in entries:
+        source_id = entry["source"]["object_id"]
+        if source_id in seen or timestamp(entry["accepted_at"]) < last_at:
+            raise ValueError("journal repeats a source or moves clock backwards")
+        if entry["schema"] == access_protocol.SCHEMA:
+            access_protocol.validate(genesis, package, entry)
+            package = access_protocol.package(genesis, [entry])
+            seen.add(source_id)
+            last_at = timestamp(entry["accepted_at"])
+            continue
         if set(entry) != {
             "schema",
             "source",

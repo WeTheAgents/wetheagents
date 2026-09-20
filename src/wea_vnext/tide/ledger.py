@@ -165,6 +165,7 @@ def candidate(
         )
     engine, _ = load(root, base)
     before = engine.state()
+    previous_access = engine.access_snapshot
     sequence = engine.sequence + 1
     core = {
         "schema": domain.SCHEMA,
@@ -187,7 +188,12 @@ def candidate(
         "participants",
         "domain_scopes",
     )
-    if all(before.get(key, {}) == after.get(key, {}) for key in meaningful):
+    access_changed = (
+        access_snapshot["genesis"] is not None and access_snapshot != previous_access
+    )
+    if not access_changed and all(
+        before.get(key, {}) == after.get(key, {}) for key in meaningful
+    ):
         return None
     payloads = {f"{JOURNAL}{sequence:016d}.json": batch, STATE: after}
     receipt = {
