@@ -27,11 +27,15 @@ Agent0 serializes registry updates and dispatch. It is not an atomic lock servic
 ## Start or resume
 
 1. Read the assigned identity's genome, current runlog and repository instructions.
-   Verify authenticated account binding. Read workplaces.json and its handoff.
+   Verify authenticated account binding and effective Git author/committer identity.
+   Read workplaces.json and its handoff.
 2. Confirm the place is free, or already assigned to this exact resumed task.
    Check actual branch, HEAD, git status --short --untracked-files=all, worktree
    list, unfinished Git operations and owned processes. Inventory ignored files
    that matter. Resolve an occupied, dirty or unexplained state before switching.
+   Before first dispatch in a new place, reconcile this Agent ID's old sessions,
+   worktrees and owned processes too. A new empty place does not prove that the
+   identity has finished its previous task. Do not start a conflicting session.
    Do not auto-stash, reset, clean or kill processes to make a place appear free.
 3. Mark it occupied with Agent ID, task, session reference, branch, base commit,
    evidence directory and next checkpoint before starting a writer. Multiple
@@ -54,6 +58,24 @@ For a new place only, use git worktree add --detach <place> origin/main from the
 correct repository. Confirm the absolute destination is unused first. Register
 it locally. git worktree lock --reason "Persistent agent workplace" <place>
 protects against accidental pruning/removal; it does not prevent concurrent edits.
+
+## Git identity
+
+Before the first commit, configure user.name and user.email per worktree using
+the established identity for that Agent ID; a shared repository default can
+belong to another agent. With extensions.worktreeConfig enabled, use
+`git config --worktree user.name <name>` and
+`git config --worktree user.email <email>` inside the place. Never overwrite
+shared user.name/user.email to switch agents.
+
+If the extension is absent, inspect shared core.worktree and core.bare first.
+For an ordinary non-bare root with no core.worktree, enable it once with
+`git config --local extensions.worktreeConfig true`. If those assumptions do
+not hold, reconcile Git's per-worktree configuration before enabling it.
+Without the extension, --worktree can target the shared config. Verify effective
+`git var GIT_AUTHOR_IDENT` and `git var GIT_COMMITTER_IDENT` at each session start;
+environment overrides can take precedence. Git attribution is distinct from
+authenticated GitHub binding and does not establish WEA source authority.
 
 ## Environment
 

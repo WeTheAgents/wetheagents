@@ -1,4 +1,4 @@
-# WeTheAgents — Agent0 Runlog
+# WeTheAgents вЂ” Agent0 Runlog
 
 ## 2026-09-20 (persistent workplaces: local setup, manual merge pending)
 
@@ -6,6 +6,7 @@
 - Current entrypoints now specify a fresh task branch in a free persistent place. Read `docs/WORKPLACES.md`; local occupancy is `D:/AgentWork/wea/workplaces.json`, evidence is `D:/AgentRuns/wea/agent0/20260920-persistent-workplaces`. This is manual coordination, not an atomic lock or WEA authority. Worker places are provisioned on actual dispatch. Existing chats keep their original cwd; no automation or worker was launched.
 - Inventory before provisioning found 115 registered WEA worktrees and four Circle-1 worktrees. Original roots, old trees, local branches and saved edits remain intact. Physical cleanup requires retention of ignored/untracked evidence and local-only commits; the earlier 84-branch bundle alone is insufficient.
 - Bootstrap: repo-local WEA CLI help passed; Circle-1 passed 209 tests with 15 skips, Ruff and Pyright. uv could not hardlink from its cache across volumes and copied packages successfully; no storage savings from hardlinks are claimed. Reuse rehearsal and review evidence are retained in the OLED verification record before publication.
+- PR #1011 contains the change. Native review found inherited Codex-2 Git identity in Agent0's new Circle-1 place and a missing old-session check. Both procedures were corrected; per-worktree author/committer configuration now verifies as Agent0 while shared defaults remain unchanged. Re-review is recorded in the OLED evidence.
 - Protocol BDD, Access, funding, acceptance, Tide and manual merge boundaries remain unchanged. Actual Access expiry observation remains due September 25. Next: review and manually merge this documentation change; use registered places for later dispatch, then audit old trees for safe retirement.
 
 
@@ -295,7 +296,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Fix `escrow #909 has no entry in task_index.json` (decide whether to reconstruct entry vs return escrow).
   - Reduce `history_issue_missing_task_index_entry=256` (expected until repo truth is queryable and/or task_index is rebuilt).
 - **Next highest-leverage action**:
-  - Decide and enforce canonical repo slug in `wea` (CLI/config/docs) so `wea show` works again; then do one 10–20-issue reconciliation batch for `open_no_active_escrow` + fix escrow `#909`.
+  - Decide and enforce canonical repo slug in `wea` (CLI/config/docs) so `wea show` works again; then do one 10вЂ“20-issue reconciliation batch for `open_no_active_escrow` + fix escrow `#909`.
 
 ## 2026-05-05T22:03:27+03:00 (Circle-1 director loop)
 
@@ -306,7 +307,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - `scripts/check_task_escrow_sync.py`: fails on the open-task/escrow mismatch; other escrow checks pass.
   - `ledger/tide.json`: `last_run=2026-05-03T06:57:47Z`.
 - **Decisions**:
-  - Treat `task_index open-state drift` as a primary Circle-1 “temperature” driver; prioritize a GitHub-connected cleanup pass once GitHub write access is restored.
+  - Treat `task_index open-state drift` as a primary Circle-1 вЂњtemperatureвЂќ driver; prioritize a GitHub-connected cleanup pass once GitHub write access is restored.
 - **Actions taken (repo)**:
   - Added `scripts/report_task_index_stale_open.py` (triage helper; read-only; optional `--fail`; stdout forced to UTF-8 w/ replacement for Windows console compatibility).
 - **Issues/PRs touched**: none (GitHub access remains blocked in this environment).
@@ -319,7 +320,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Reconcile `ledger/task_index.json` task statuses with GitHub issue truth + escrow truth (likely requires either closing tasks or re-escrowing).
   - Confirm whether `scripts/report_task_index_stale_open.py` should become a failing check in CI, or remain triage-only.
 - **Next highest-leverage action**:
-  - Restore GitHub auth (or Codex GitHub app install) for `WeTheAgents/wetheagents`, then run a guided task-index reconciliation session (create a single “reconcile open tasks with escrow” governance/ops issue + execute).
+  - Restore GitHub auth (or Codex GitHub app install) for `WeTheAgents/wetheagents`, then run a guided task-index reconciliation session (create a single вЂњreconcile open tasks with escrowвЂќ governance/ops issue + execute).
 
 ## 2026-05-06T22:05:20+03:00 (Circle-1 director loop)
 
@@ -354,7 +355,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - `python scripts/check_task_escrow_sync.py`: FAIL (69 `task_index` tasks `status=open` without an active escrow; includes `#885`).
   - `python scripts/report_task_index_drift.py --json`: indicates additional drift signal `history_issue_missing_task_index_entry=255`.
 - **Decisions**:
-  - Keep treating this environment as **offline-only**; invest in 1-command, repeatable “director sweep” to reduce operational temperature and improve handoff quality.
+  - Keep treating this environment as **offline-only**; invest in 1-command, repeatable вЂњdirector sweepвЂќ to reduce operational temperature and improve handoff quality.
 - **Actions taken (repo)**:
   - Added `scripts/circle1_director_sweep.py` (orchestrates invariant + escrow sync + drift reports; offline-friendly; optional `--fail` / `--json`).
   - Updated `agent0/task_index_reconciliation.md` to recommend the sweep during offline triage.
@@ -403,7 +404,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Return codes: `check_invariant=0` (PASS), `check_task_escrow_sync=1` (FAIL), `report_task_index_stale_open=1` (FAIL), `report_task_index_drift_json=0`.
   - Drift counts: `open_no_active_escrow=70`, `open_has_payment_events=4`, `history_issue_missing_task_index_entry=255`.
 - **Decisions**:
-  - Keep this environment **offline-only**; optimize “director sweep → online reconciliation” handoff instead of attempting GitHub operations here.
+  - Keep this environment **offline-only**; optimize вЂњdirector sweep в†’ online reconciliationвЂќ handoff instead of attempting GitHub operations here.
 - **Actions taken (repo)**:
   - `scripts/check_task_escrow_sync.py`: added `--json` output mode (no behavior change; easier tooling/CI consumption).
   - `scripts/circle1_director_sweep.py`: added `generated_at`, top-level `drift_counts`/`return_codes`, parses escrow-sync JSON, and `--out` now also writes `.wea_runs/circle1_sweep_latest.json`.
@@ -416,7 +417,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Outbound GitHub access blocked (cannot reconcile `task_index` with issue truth; cannot comment/create issues).
 - **Active threads**:
   - Online reconciliation pass to resolve the 70 stale `open` tasks + investigate the 255 history-only issue ids.
-  - Escrowed task `#885` (and other “open_has_payment_events” tasks) cannot be progressed/closed correctly without GitHub connectivity.
+  - Escrowed task `#885` (and other вЂњopen_has_payment_eventsвЂќ tasks) cannot be progressed/closed correctly without GitHub connectivity.
 - **Next highest-leverage action**:
   - From a GitHub-connected environment, execute `agent0/task_index_reconciliation.md` until `python scripts/check_task_escrow_sync.py` is green; re-run `python scripts/circle1_director_sweep.py --fail --out .wea_runs/circle1_sweep.json` to confirm.
 
@@ -428,7 +429,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Drift counts: `open_no_active_escrow=70`, `open_has_payment_events=4`, `history_issue_missing_task_index_entry=255`.
   - Return codes: `check_invariant=0` (PASS), `check_task_escrow_sync=1` (FAIL), `report_task_index_stale_open=1` (FAIL), `report_task_index_drift_json=0`.
 - **Decisions**:
-  - Keep this environment **offline-only**; reduce temperature by tightening the “offline sweep → online reconciliation” dogfooding loop.
+  - Keep this environment **offline-only**; reduce temperature by tightening the вЂњoffline sweep в†’ online reconciliationвЂќ dogfooding loop.
 - **Actions taken (repo)**:
   - Added `wea circle1 sweep` (CLI wrapper around the same offline director sweep logic).
   - Updated `agent0/task_index_reconciliation.md` to prefer `wea circle1 sweep` invocations.
@@ -440,7 +441,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - Outbound GitHub access blocked (cannot reconcile `task_index` with issue truth; cannot comment/create issues).
 - **Active threads**:
   - Online reconciliation pass to resolve the 70 stale `open` tasks + investigate the 255 history-only issue ids.
-  - Escrowed task `#885` (and other “open_has_payment_events” tasks) cannot be progressed/closed correctly without GitHub connectivity.
+  - Escrowed task `#885` (and other вЂњopen_has_payment_eventsвЂќ tasks) cannot be progressed/closed correctly without GitHub connectivity.
 - **Next highest-leverage action**:
   - From a GitHub-connected environment, run `wea circle1 sweep --fail --out .wea_runs/circle1_sweep.json`, execute `agent0/task_index_reconciliation.md` until escrow-sync is green, then re-run the sweep to confirm drift counts drop to zero.
 
@@ -464,16 +465,16 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
   - `ledger/task_index.json` status edits only; no balance/escrow mutations.
 - **Invariant results**: PASS (`python scripts/check_invariant.py`).
 - **Notes / investigations**:
-  - `wea tasks` only returns `#1` because GitHub currently has only 1 open issue with label `task`; the “open tasks” drift is ledger-only.
+  - `wea tasks` only returns `#1` because GitHub currently has only 1 open issue with label `task`; the вЂњopen tasksвЂќ drift is ledger-only.
   - `scripts/check_task_escrow_sync.py` now also surfaces an active-escrow-without-task_index entry (likely `#909`) as a separate mismatch.
 - **Blockers**:
   - Remaining drift requires continued GitHub-truth reconciliation (close/cancel ledger open tasks that are closed on GitHub; reconcile open-with-payments and orphaned escrows).
 - **Active threads**:
   - Reduce `open_no_active_escrow` to `0` via iterative `wea show` verification + `task_index` repair.
   - Investigate `open_has_payment_events=9` (`#885 #894-#901`): confirm GitHub state + Tide/history truth, then repair `task_index` statuses accordingly.
-  - Resolve the active-escrow-without-task_index entry (likely `#909`) and the “orphaned escrow” class (`#160`).
+  - Resolve the active-escrow-without-task_index entry (likely `#909`) and the вЂњorphaned escrowвЂќ class (`#160`).
 - **Next highest-leverage action**:
-  - Merge this PR, then run another 10–20 issue reconciliation batch (verify closed via `wea show`, update `task_index`, re-run `wea circle1 sweep --fail`).
+  - Merge this PR, then run another 10вЂ“20 issue reconciliation batch (verify closed via `wea show`, update `task_index`, re-run `wea circle1 sweep --fail`).
 
 ## 2026-05-24T22:06:13+03:00 (Circle-1 director loop)
 
@@ -494,9 +495,9 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - **Invariant results**: PASS (`python scripts/check_invariant.py`).
 - **Blockers**:
   - Remaining `open_no_active_escrow` requires continued GitHub-truth reconciliation (verify CLOSED/OPEN; cancel or re-escrow).
-  - `history_issue_missing_task_index_entry=256` remains unresolved (history ↔ task_index mismatch).
+  - `history_issue_missing_task_index_entry=256` remains unresolved (history в†” task_index mismatch).
 - **Next highest-leverage action**:
-  - Merge PR `#921`, then run a reconciliation batch for `open_no_active_escrow` tasks: `wea show <issue>` to confirm issue truth → update `ledger/task_index.json` (cancel vs keep open + escrow) → re-run `wea circle1 sweep --fail`.
+  - Merge PR `#921`, then run a reconciliation batch for `open_no_active_escrow` tasks: `wea show <issue>` to confirm issue truth в†’ update `ledger/task_index.json` (cancel vs keep open + escrow) в†’ re-run `wea circle1 sweep --fail`.
 
 ## 2026-05-25T22:06:30+03:00 (Circle-1 director loop)
 
@@ -512,28 +513,28 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - **Dispatches launched**: none.
 - **Ledger-affecting actions**: `ledger/task_index.json` status edits only (via cherry-pick to a new branch); invariant PASS.
 - **Blockers**: PR `#921` must be updated (rebase/merge onto current `main`) before merging safely; `open_no_active_escrow` + `history_issue_missing_task_index_entry` require continued reconciliation.
-- **Next highest-leverage action**: Get `#921` updated and merged (or open/merge a replacement PR from `codex/circle1-agent0-loop-2026-05-25`), then run a 10–20 issue reconciliation batch.
+- **Next highest-leverage action**: Get `#921` updated and merged (or open/merge a replacement PR from `codex/circle1-agent0-loop-2026-05-25`), then run a 10вЂ“20 issue reconciliation batch.
 
 ## 2026-06-11T00:00:00Z (Agent0 heartbeat)
 
-- **Context loaded**: full heartbeat cycle — balances, escrows, trajectory_mints, open issues, PRs, branches, genome snapshots.
+- **Context loaded**: full heartbeat cycle вЂ” balances, escrows, trajectory_mints, open issues, PRs, branches, genome snapshots.
 - **Ops sweep**:
   - Economy: 19,025 WEA (0 escrows, invariant PASS). PR `#921` merged 2026-06-03. 320 WEA escrows returned 2026-06-04.
   - Circle-1 sweep: had drift (`report_task_index_stale_open=52`). Reconciled all 52 stale-open tasks:
     - 25 issues marked `paid` (confirmed in `trajectory_mints.json`): #348 #349 #350 #351 #359 #368 #372 #373 #374 #375 #385 #386 #411 #412 #413 #414 #436 #437 #438 #447 #448 #449 #450 #451 #452
-    - 27 issues marked `cancelled` (GitHub CLOSED, no payment): #160–#171 #176 #179 #185 #190 #192 #193 #209 #257 #258 #259 #261 #262 #272 #273 #367
-  - Post-fix circle-1 sweep: `has_drift=False` — all 4 checks PASS.
+    - 27 issues marked `cancelled` (GitHub CLOSED, no payment): #160вЂ“#171 #176 #179 #185 #190 #192 #193 #209 #257 #258 #259 #261 #262 #272 #273 #367
+  - Post-fix circle-1 sweep: `has_drift=False` вЂ” all 4 checks PASS.
 - **Telegram**: no new links.
-- **Open tasks on GitHub**: only `#1` (Hello World, 100 WEA, onboarding task — intentionally always-open).
+- **Open tasks on GitHub**: only `#1` (Hello World, 100 WEA, onboarding task вЂ” intentionally always-open).
 - **Gauntlet**: PAUSED (awaiting operator signal to resume). All 6 trajectories have no open issue. Next slots: T1=42, T2=43, T3=39, T4=40, T5=37, T6=37.
 - **Dispatches launched**: none (no open tasks to dispatch to; only `#1` is onboarding-class, not worth burning dispatch on veteran agents).
 - **Genome snapshots**: all agents updated.
-- **Ledger-affecting actions**: `ledger/task_index.json` reconciliation only — no balance/escrow mutations. Invariant PASS.
+- **Ledger-affecting actions**: `ledger/task_index.json` reconciliation only вЂ” no balance/escrow mutations. Invariant PASS.
 - **Active threads**:
-  - `history_issue_missing_task_index_entry=256` unresolved (low priority — pre-task_index history).
+  - `history_issue_missing_task_index_entry=256` unresolved (low priority вЂ” pre-task_index history).
   - Gauntlet resume awaiting operator signal.
 - **Next highest-leverage action**:
-  - Operator: decide whether to resume gauntlet (creates 6 new issues, ~56–62 WEA per slot from escrow). If yes, Agent0 will run Phase 7a next cycle.
+  - Operator: decide whether to resume gauntlet (creates 6 new issues, ~56вЂ“62 WEA per slot from escrow). If yes, Agent0 will run Phase 7a next cycle.
 
 ## 2026-09-11T14:06:00+03:00 (vNext Pilot 2 WTA completion)
 
@@ -918,7 +919,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - Validation: 22 internal links resolve, six source documents are embedded, and source IDs are unique. Headless Chromium rendered 1440x1080 and 390x844 with no page overflow or script errors; BDD disclosure and source-link opening passed. Screenshots remain in `.wea_runs/html-preview/`. The CLI browser blocked file URLs; automatic approval review rejected the local preview-server launch with only `blocked by policy`. Used a temporary headless browser with in-memory HTML instead, without a server. Both inspection browsers were closed. No Access, worker, money, permission, or automation action occurred. Next checkpoint remains operator agreement on the proposal.
 
 
-### Domain / Access: CLI, GitHub transparency, trip first — 2026-09-18
+### Domain / Access: CLI, GitHub transparency, trip first вЂ” 2026-09-18
 
 - Operator correction: retain GitHub infrastructure, Issues, transparent history, and recoverable state; use WEA CLI for routine operations without an Access PR/merge. First stage is the trip itself. The earlier proposal incorrectly copied the financial batch merge gate onto every Access issuance.
 - Updated `oled/changes/wea-domain-access-private-pilot/{outcome,spec,design,pilot,tasks,verification}.md` and `review.html` to proposal 0.2. Selected direction is recorded separately from pending technical detail: a trusted Access handler, private Git journal, Issue receipts, acceptance clock, retry, and recovery. Implementation and activation still require the original task's separate agreement.
@@ -930,7 +931,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - Independent review of proposal 0.2 found one P2: shared account credentials plus a public Agent0 binding do not authenticate a distinct local session. Narrowed all claims: this private pilot trusts credential holders to select canonical roles and distinguishes authenticated account from declared agent attribution. This trust ceiling remains part of the proposal for agreement; no session capability or new permission was implemented.
 
 
-### Circle-1 Steward added to the pilot proposal — 2026-09-18
+### Circle-1 Steward added to the pilot proposal вЂ” 2026-09-18
 
 - Operator requested a Steward for Circle-1. Historical source `oled/changes/wea-vnext-recreation/sources/WEA_RESTART_HANDOFF_2026-07-14.md:80` names this role, but leaves details open; line 161 leaves powers and succession open. Current R-11/S-11A/S-11B has no Steward appointment implementation. Historical wording does not appoint an agent or confer authority.
 - Added `steward.md` and advanced current proposal and HTML to 0.3: Domain purpose/state, useful backlog, newcomer orientation, technical recommendations, and handoff. ST-01 separates the responsibility from Access and existing task/financial authority. Proposed manual appointment stays outside immutable registry v1 and adds no Access issuer type or automatic rights.
@@ -939,7 +940,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - No implementation, appointment, Access, Work, financial action, GitHub permission, external message, or background loop was created. Next: select the Steward and agree the proposed remit and protocol; keep the implementation and activation checkpoints separate. Real seven-day observation remains unstarted.
 
 
-### Operator appointed Agent0 as Circle-1 Steward — 2026-09-18
+### Operator appointed Agent0 as Circle-1 Steward вЂ” 2026-09-18
 
 - Operator explicitly instructed Agent0 to take the role in this conversation; Agent0 accepted. The earlier unresolved identity choice is closed: Steward `agent0@system`, Domain `circle-1`. No checked current rule prohibits Agent0/Steward overlap; existing Agent0 mission already covers Domain coordination and Circle-1 dogfooding.
 - Recorded the accepted manual responsibility in `AGENT0.md`, `steward.md`, related pilot documents, and HTML. Included an initial handoff: pinned external revision, dated WEA baseline, proposed visitor Codex-19, later parser-repair candidate, and inactive Access status. No new identity, extra Steward service, or parallel Agent0 loop is needed.
@@ -948,7 +949,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - Origin/main refreshed unchanged at `f40bf1d980fe6bf622ebc00552b8230f474356f7`. Main checkout remains outside this work. Next: agree the concrete Access protocol, then implement/review and separately activate the first trip. Real expiry observation remains unstarted. BDD alignment: unchanged live behavior is preserved; DA-01..08 and live C1-P01 remain unimplemented and not ready.
 - Validation: doc-sync initially rejected the new AGENT0 link to an unmapped proposal path. Replaced it with the established runlog handoff link; `python scripts/check_doc_sync.py` and `git diff --check` then passed. HTML verifies the accepted Agent0 appointment, seven current source hashes, unique IDs, and valid internal links. Only documentation/artifact files changed.
 
-### Circle-1 two-agent WTA cycle: preparation actually started — 2026-09-18
+### Circle-1 two-agent WTA cycle: preparation actually started вЂ” 2026-09-18
 
 - **Operator scope:** two real seven-day trips, one useful two-agent task, WTA, result, settlement and Release. This supersedes the earlier trip-only checkpoint. Agent0 remains appointed Steward, task author/payer/selector, and does not compete. Selected workers are persistent `Codex-2@codex` and `Codex-19@codex`; all share account `129645949` and control group `owner-github-129645949`.
 - **Fresh preflight:** fetched origin/main unchanged at `f40bf1d980fe6bf622ebc00552b8230f474356f7`. Account `peachgabba22` / `129645949` and WEA private visibility verified again. Source CLI canonical Tide readback exits 0: sequence 12, Agent0 available 8070 WEA. This balance is not task escrow. Main checkout's unrelated local changes remain outside the dedicated pilot worktree.
@@ -964,7 +965,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - **Actual errors:** Windows `rg` wildcard-path probes failed with error 123 or absent optional paths; direct scoped reads succeeded. One local preparation command omitted `PYTHONPATH=src` and failed with `ModuleNotFoundError` before file or external mutation; rerunning explicitly from source succeeded. Existing pytest asyncio deprecation and Git CRLF notices remain warnings, not failed checks. No failed/uncertain external mutation occurred.
 - **Next checkpoint:** resolve the pending concrete Access implementation agreement, implement/review, and obtain separate activation against the reviewed code. Then grant both trips, approve the exact Plan, prepare/verify/manual-merge funding, freshly read canonical escrow and grants, and launch both workers. Complete actual comparison, winner installation, Ranked settlement, both Release records and closing summary. Record real Access start/end times only from grants; keep real post-boundary observation pending until it occurs. No automation is authorized to fill the wait. BDD alignment: live behavior unchanged; proposed Access scenarios and the full live cycle remain unproved.
 
-### Circle-1 preparation verification completed — 2026-09-18
+### Circle-1 preparation verification completed вЂ” 2026-09-18
 
 - **Request and scope:** operator asked to finish the checks. Applied OLED verification to the existing 0.4 proposal and actual #997 preparation; this did not supply the separately requested implementation or activation agreement. Continued in the same dedicated worktree, with fetched main/HEAD unchanged at `f40bf1d980fe6bf622ebc00552b8230f474356f7`. No implementation, financial, genome or scanner/profile edits were made.
 - **Fresh tests:** 28 Domain/Access tests passed, 100 existing Tide/Ranked/Release/runtime-boundary tests passed, and the exact five parser consumer suites passed 206 tests. All commands exited 0; **334 total**. Full commands and scenario mapping are in `oled/changes/wea-domain-access-private-pilot/verification.md`; raw output is under `.wea_runs/checks-final-20260918/`. Existing asyncio fixture-scope deprecation is a nonblocking warning.
