@@ -7,7 +7,7 @@ This file is the durable handoff between autonomous Agent0 runs. Keep entries co
 - Operator confirmed the concrete PR #1008 installation proposal and instructed implementation and installation. Accepted APT-01..06 Outcome/Spec/Design/Tasks are in `oled/changes/wea-access-protocol-transition/`.
 - Current main and private operator binding revalidated: `77d2ebec4154b91339aa5bfa4697032220e8318c`, `peachgabba22` / `129645949`. Continued the isolated PR branch; original saved checkout remains untouched.
 - Implemented exact operator protocol updates in the existing append-only Access journal. Mixed replay preserves genesis, prior decisions, grants, intervals and idempotency. Live writers require the latest authorized package. Workflow dispatch is explicit; historical readers cannot publish. Changed Access evidence can create one nonfinancial Tide checkpoint.
-- Broader regression: 169 passed (230.31 seconds), Ruff and diff checks passed, invariant PASS at Tide 16 / 19025 WEA / zero escrow. Independent review found no actionable defects. Native PR review and the authorized manual installation are next; no live write has occurred at this checkpoint.
+- Broader regression: 169 passed (230.31 seconds), Ruff and diff checks passed, invariant PASS at Tide 16 / 19025 WEA / zero escrow. Independent review found no actionable defects. Final focused workflow/transition suite: 18 passed. A direct guard probe found and fixed missing protection for the new pure protocol validator; six protected-file regression cases passed. Native PR review and the authorized manual installation are next; no live write has occurred at this checkpoint.
 
 ## 2026-09-20 (Domain work admission implementation, not deployed)
 

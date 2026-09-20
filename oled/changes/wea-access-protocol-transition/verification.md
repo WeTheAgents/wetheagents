@@ -13,3 +13,7 @@ Account verified as `peachgabba22` / `129645949`; canonical main is `77d2ebec415
 - Fresh independent review found no actionable defects in source authority, mixed replay, preservation, races, retries or checkpoint behavior.
 - Native post-PR review and live installation remain pending. No journal, grant, ledger or permission was changed by these checks.
 - Scope remains the existing workflow/journal plus one pure format module. No new dependency, executor or financial rule; no safe authority-preserving cut was identified.
+
+- Final focused transition suite: 18 passed, exit 0, 19.30 seconds, including workflow dispatch, idempotent retry, ordinary reconciliation and a subsequent valid seven-day grant.
+- A direct writer-boundary probe found the new pure `access_protocol.py` was unprotected. Added it to the existing pinned source set; all six installed-guard regression cases passed (96.17 seconds). The original admission module was already protected by static writer discovery.
+- Before installation the live journal still had exactly two decisions at `6ffe0b5dab1d2233bbebff2bacdfb0e874ad7254`. Full immutable readback is retained in `.wea_runs/domain-admission/pre-transition.json`; canonical repository privacy was verified.
