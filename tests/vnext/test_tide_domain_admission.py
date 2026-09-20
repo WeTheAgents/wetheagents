@@ -100,17 +100,35 @@ def test_dwa01_invalid_scope_cannot_fund(snapshot, scope):
 
 def test_dwa01_internal_scope_needs_no_access():
     engine = Replay(bootstrap())
-    sources, cutoff = setup_sources("none")
+    sources, cutoff = setup_sources("-")
     engine.apply(domain_batch(engine, sources, cutoff, domain.EMPTY))
     state, _ = submit(engine, cutoff, domain.EMPTY)
     assert state["dispositions"]["work-revision"]["status"] == "accepted"
+
+
+@pytest.mark.parametrize("domain_id", ["1-research", "none"])
+def test_dwa01_valid_domain_names_never_become_internal(domain_id):
+    from wea_vnext.domain_access import build_domain_registry, make_domain_record
+
+    record = make_domain_record(
+        domain_id=domain_id,
+        repository_id="R_kgDOT4-F-Q",
+        repository_locator="https://github.com/WeTheAgents/circle-1",
+        revision="1" * 40,
+    )
+    access = SimpleNamespace(registry=build_domain_registry([record]), grants=[])
+    selected = domain.scope(f"<!-- wea:domain {domain_id} -->", access)
+    assert selected == domain_id
+    with pytest.raises(ValueError, match="needs active Access"):
+        domain.require(access, selected, "agent-alpha", support.NOW)
+    assert domain.scope("<!-- wea:domain - -->", access) is None
 
 
 def test_dwa01_scope_change_invalidates_plan_hash(snapshot):
     engine = Replay(bootstrap())
     sources, cutoff = setup_sources("circle-1")
     sources[0]["body"] = sources[0]["body"].replace(
-        "wea:domain circle-1", "wea:domain none"
+        "wea:domain circle-1", "wea:domain -"
     )
     sources[0]["content_hash"] = hashlib.sha256(sources[0]["body"].encode()).hexdigest()
     state = engine.apply(domain_batch(engine, sources, cutoff, snapshot))
@@ -204,7 +222,7 @@ def test_dwa03_internal_assignment_cannot_be_reused_after_domain_retry(snapshot)
     sources, cutoff = setup_sources("circle-1")
     old = copy.deepcopy(sources[0])
     old["revision_id"] = "old-internal-draft"
-    old["body"] = old["body"].replace("circle-1", "none")
+    old["body"] = old["body"].replace("circle-1", "-")
     old["content_hash"] = hashlib.sha256(old["body"].encode()).hexdigest()
     at = control.timestamp(old["effective_at"]) - timedelta(minutes=2)
     old["effective_at"] = at.isoformat()
@@ -391,6 +409,44 @@ def test_dwa05_capture_reads_real_journal_objects_and_cutoff(snapshot):
     assert earlier["genesis"] == snapshot["genesis"]
     assert earlier["entries"] == earlier["commits"] == []
     assert domain.capture(api, support.NOW - timedelta(days=21)) == domain.EMPTY
+
+
+@pytest.mark.parametrize("broken", [False, True])
+def test_dwa05_production_capture_uses_native_reader_and_closes_it(
+    snapshot, monkeypatch, broken
+):
+    journal = journal_api(snapshot)
+    requests, readers = [], []
+
+    class NativeReader(access_github.GitHub):
+        def __init__(self, token):
+            super().__init__(token)
+            # Existing transport tests cover native Git transfer and caching.
+            self._objects = copy.deepcopy(journal.objects)
+            self.closed = False
+            readers.append(self)
+
+        def close(self):
+            self.closed = True
+            super().close()
+
+    def request(api, method, path, data=None):
+        assert method == "GET" and "matching-refs" in path
+        requests.append(path)
+        if broken:
+            raise OSError("journal unavailable")
+        return journal.get(path)
+
+    monkeypatch.setattr(access_github, "GitHub", NativeReader)
+    monkeypatch.setattr(access_github.GitHubClient, "request", request)
+    api = access_github.GitHubClient("test-token")
+    if broken:
+        with pytest.raises(OSError, match="unavailable"):
+            domain.capture(api, support.NOW)
+    else:
+        assert domain.capture(api, support.NOW)["entries"] == snapshot["entries"]
+    assert len(requests) == 1
+    assert len(readers) == 1 and readers[0].closed
 
 
 def test_dwa05_historical_reader_does_not_require_current_writer_bytes(snapshot):

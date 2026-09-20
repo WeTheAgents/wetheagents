@@ -15,6 +15,7 @@ The task executor remains 0.9.0. The participant executor remains 0.10.0.
 - **GIVEN:** Tide first admits a Draft under schema 3.
 - **WHEN:** The original author declares its scope in the exact Draft body.
 - **THEN:** Tide MUST require exactly one scope: a registered Domain ID or explicit internal WEA scope.
+- **THEN:** Every valid registered Domain ID MUST remain a domain scope, including digit-prefixed IDs and `none`.
 - **THEN:** Tide MUST reject missing, malformed, duplicate or unknown scope without funding the Plan.
 - **THEN:** The Plan approval MUST bind that scope through the existing exact Draft body hash.
 - **THEN:** A Work source MUST NOT override the task scope.

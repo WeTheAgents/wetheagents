@@ -4,13 +4,16 @@ Bound to Outcome 1.0 and Spec 1.0. This is an admission adapter around immutable
 It reuses Tide collection, authenticated source time, Access journal replay and the existing manual candidate merge.
 
 New Drafts include one standalone line before the protocol declaration:
-`<!-- wea:domain circle-1 -->` or `<!-- wea:domain none -->` for internal WEA work.
+`<!-- wea:domain circle-1 -->` or `<!-- wea:domain - -->` for internal WEA work.
+The dash is outside the Domain ID namespace. Valid IDs such as `none` or `1-research` always name domains.
+This corrects the predeployment `none` sentinel collision without changing registry rules or existing canonical tasks.
 The existing Draft body hash binds this line to Triage and the approved Plan.
 There is no free-form domain selector on Work. The Steward reviews whether the declared scope describes the actual task.
 A false internal-scope declaration is a governance violation, not something a scanner can infer from arbitrary prose.
 
 Schema 3 retains a complete Access journal snapshot through the fixed Tide cutoff.
 Capture reuses `access_github.Journal` in explicit read-only historical mode.
+Production capture uses the existing native Git-object reader and closes its temporary resources after each capture, including failures.
 That mode validates journal data and decisions without requiring the historical writer's entire package to equal the current Tide package.
 It cannot append records. Live Access grant paths retain their exact closure checks.
 The trusted guard independently captures the same historical prefix from GitHub.

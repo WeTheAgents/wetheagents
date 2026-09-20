@@ -39,7 +39,7 @@ def command(data):
     return MARKER + json.dumps(data, ensure_ascii=False, indent=2)
 
 
-def setup_sources(scope="none"):
+def setup_sources(scope="-"):
     draft = support.draft()
     body = (
         (f"<!-- wea:domain {scope} -->\n" if scope is not None else "")

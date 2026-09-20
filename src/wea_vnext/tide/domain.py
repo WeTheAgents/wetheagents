@@ -9,16 +9,26 @@ from typing import Any
 from .records import timestamp
 
 SCHEMA = "wea-tide-batch-3"
-SCOPE = re.compile(r"<!-- wea:domain ([a-z][a-z0-9-]*) -->")
+SCOPE = re.compile(r"<!-- wea:domain ([a-z0-9-]{1,63}) -->")
 EMPTY = {"genesis": None, "entries": [], "commits": []}
 
 
 def capture(api: Any, cutoff: datetime) -> dict[str, Any]:
     """Read the canonical journal and retain only its prefix through cutoff."""
     # Access imports Tide's historical replay helpers. Keep this import lazy.
-    from ..access_github import Journal
+    from ..access_github import GitHub, GitHubClient, Journal
 
-    _, genesis, entries, commits = Journal(api, verify_closure=False).read()
+    # Production uses the existing bounded Git transfer, not REST per object.
+    reader = (
+        GitHub(api.token)
+        if isinstance(api, GitHubClient) and not isinstance(api, GitHub)
+        else api
+    )
+    try:
+        _, genesis, entries, commits = Journal(reader, verify_closure=False).read()
+    finally:
+        if reader is not api:
+            reader.close()
     if genesis is None or timestamp(genesis["cutoff"]) > cutoff:
         return {"genesis": None, "entries": [], "commits": []}
     count = sum(timestamp(item["accepted_at"]) <= cutoff for item in entries)
@@ -67,7 +77,8 @@ def scope(body: str, access: Any) -> str | None:
     if len(markers) != 1 or not (match := SCOPE.fullmatch(markers[0])):
         raise ValueError("Draft requires one exact wea:domain scope line")
     selected = match[1]
-    if selected == "none":
+    # A dash cannot be a Domain ID; valid IDs such as "none" stay domains.
+    if selected == "-":
         return None
     if access is None:
         raise ValueError("Domain scope requires an activated Access registry")

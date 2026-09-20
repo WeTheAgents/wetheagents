@@ -177,7 +177,7 @@ def test_merge_time_limits_authority_and_no_activation_only_pr(repo):  # noqa: F
 
     def draft(at, rid):
         return raw(
-            "<!-- wea:domain none -->\n"
+            "<!-- wea:domain - -->\n"
             + command(
                 {
                     "kind": "draft_issue",

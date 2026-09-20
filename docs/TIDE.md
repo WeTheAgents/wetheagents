@@ -111,7 +111,8 @@ After deployment, a new Draft includes exactly one standalone scope line before 
 <!-- wea:domain circle-1 -->
 ```
 
-For internal WEA work, use `<!-- wea:domain none -->`.
+For internal WEA work, use `<!-- wea:domain - -->`.
+The dash cannot be a Domain ID. A registered domain named `none` still requires Access.
 The original author declares scope. The Steward reviews whether that scope describes the actual task.
 Missing, duplicate or unknown scope prevents Draft admission and Plan funding.
 The existing exact Draft body hash binds scope into the approved Plan.
