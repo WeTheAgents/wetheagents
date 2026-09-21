@@ -1,5 +1,17 @@
 # Verification
 
+## v3: neutral slots and first mixed cycle
+
+Bindings: outcome/spec/design v3. Four actual workers completed, followed by a separate Agent0 review. Evidence: `D:/AgentRuns/wea/agent0/20260921-first-mixed-cycle/`; PR #1011 remains unmerged.
+
+- PW-6/7: Codex-2 used work/slot-1, Codex-19 work/slot-2, Claude-1 then Claude-5 work/slot-3. All kept their registered identities and common operator binding. Native process receipts, complete event logs, final responses and clean worker states are retained. Both Claude results report success with no permission denials.
+- PW-2/3/5: Claude-1 finished before Claude-5 started in slot 3. All workers finished before the Agent0 review started. Occupancy history retains exact native sessions and timestamps; three worker slots are free. Agent0's transition PR still occupies its slot.
+- PW-8 failure: the original assignments.json and Claude-5 prompt retained slot 1, despite the actual slot-3 process cwd/branch/selector. Claude-5 surfaced the contradiction and wrote nothing. Original artifacts are preserved; assignments-corrected.json records actual execution. The local runner now rejects this exact prompt/cwd mismatch before process creation (exit 1) and validates the consistent Codex-2 tuple (exit 0), both with --check-only and no new session. Evidence: dispatch-validation.json. This is not an atomic lock or an end-to-end post-fix dispatch run.
+- Agent0 independently verified the reports and actual peer read. Codex workers duplicated #913; Claude-5 challenged Claude-1 on #981. Exact source metrics confirmed 108/10162, 127/6333 and 62/4714 physical lines/UTF-8 bytes for Claude-1, Codex-20 and Claude-5. These do not calibrate a new budget. Snapshot capture was September 21; source updatedAt remains September 14.
+- No canonical Work, funding, acceptance, payment, Release or new Access resulted. Genome, protocol and ledger files are unchanged. Actual seven-day Access endpoint observations remain due September 25.
+- Surface: four active guide/profile files plus runlog, retained OLED records and local evidence. Production LOC is zero. Existing native Git/CLI facilities and Python stdlib were reused; no WEA dependency, scheduler or general allocator was added.
+- Fresh v3 checks: .venv/Scripts/python.exe scripts/check_doc_sync.py and git diff --check passed. Native v3 review remains the final publication check; its exact head and verdict will be retained in the PR description and external review log.
+
 ## v2: persistent branches and role profiles
 
 Bindings: outcome/spec/design v2. PR #1011 remains the manual-merge checkpoint; final native verdict is retained on that PR and in the external review log.

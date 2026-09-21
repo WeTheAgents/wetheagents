@@ -1,7 +1,7 @@
 # Persistent agent workplaces
 
-Use one stable workplace per active Agent ID, with a separate checkout for WEA
-and each domain needed by that agent. Reuse both the directory and its branch.
+Use stable workplaces with explicit temporary Agent ID assignments. Keep separate
+checkouts for WEA and each required domain. Reuse the directory and its branch.
 Tasks run sequentially on that branch; create checkouts only on demand.
 This replaces both fresh-directory-per-task and fresh-branch-per-task conventions.
 
@@ -12,26 +12,30 @@ D:/AgentWork/wea/
   workplaces.json                 manual occupancy and assignment record
   agent0/wetheagents/              persistent WEA checkout
   agent0/domains/circle-1/         persistent domain checkout
-  codex-2/...                     provision on first dispatch
-  codex-19/...                    provision on first dispatch
-  codex-20/...                    provision on first dispatch
+  slots/slot-1/wetheagents/       neutral worker place
+  slots/slot-2/wetheagents/       neutral worker place
+  slots/slot-3/wetheagents/       neutral worker place
 D:/AgentRuns/wea/<agent>/<run>/    retained local evidence and handoffs
 ```
 
 ## Four WEA working slots
 
-| Agent ID | Persistent branch | Role instructions |
+| Slot | Persistent branch | Role instructions |
 | --- | --- | --- |
-| agent0@system | codex/agent0 | [Agent0](../agent0/roles/agent0/AGENTS.md) |
-| Codex-2@codex | codex/codex-2 | [Worker](../agent0/roles/worker/AGENTS.md) and own genome |
-| Codex-19@codex | codex/codex-19 | Worker and own genome |
-| Codex-20@codex | codex/codex-20 | Worker and own genome |
+| Agent0 | work/agent0 | [Agent0](../agent0/roles/agent0/AGENTS.md), agent0@system |
+| Worker 1 | work/slot-1 | [Worker](../agent0/roles/worker/AGENTS.md) and assigned identity genome |
+| Worker 2 | work/slot-2 | Worker and assigned identity genome |
+| Worker 3 | work/slot-3 | Worker and assigned identity genome |
+
+Worker slots are neutral: registered Codex and Claude agents can reuse them
+sequentially. A slot is not an Agent ID or a model assignment. Preserve the
+agent's own identity, genome and common-control evidence when changing occupants.
 
 Four is the maximum allocated WEA writing slots, not the total Git branch count.
 main and wea/access-journal are service refs; tide/pending can exist for a batch.
 A fifth concurrent writer waits or needs an operator change to this allocation.
 Read-only reviews do not need another working branch. Domain repositories use
-these stable names for assigned agents when needed, with their own Git storage.
+separately assigned stable branches when needed, with their own Git storage.
 A directory or branch neither registers an agent nor changes its genome.
 Original repositories under D:/GitHub remain the shared Git storage roots;
 linked worktrees depend on them. Do not delete or move these roots casually.
@@ -51,7 +55,12 @@ Agent0 serializes registry updates and dispatch. It is not an atomic lock servic
    worktrees and owned processes too. A new empty place does not prove that the
    identity has finished its previous task. Do not start a conflicting session.
    Do not auto-stash, reset, clean or kill processes to make a place appear free.
-3. Mark it occupied with Agent ID, task, session reference, branch, base commit,
+3. Compare one assignment record with the launch prompt, absolute cwd, branch,
+   role selector and intended process receipt. Stop before launch if any identity
+   or path disagrees; do not choose whichever field seems most plausible. On an
+   occupant change, update the selector, session WEA_AGENT and worktree Git
+   attribution before repeating these checks. Retain the previous receipt.
+   Mark it occupied with Agent ID, task, session reference, branch, base commit,
    evidence directory and next checkpoint before starting a writer. Multiple
    sessions may read; only one task may change a checkout at a time. A stale
    chat must repeat these checks before resuming and cannot reclaim a place.
@@ -147,7 +156,7 @@ merge, recreate the same name from the reconciled local branch. Never push to
 another slot's branch. Keep one open delivery PR per slot and manual merges.
 
 PR #1011 is the transition exception: its existing head occupies Agent0's slot
-until manual merge. After reconciliation, rename that local branch to codex/agent0,
+until manual merge. After reconciliation, rename that local branch to work/agent0,
 publish it, and retire only the old transition ref after checking no open PR uses
 it. Do not close or rename the current PR head just to change the naming scheme.
 
@@ -181,8 +190,11 @@ Before creating a domain selector, add `/AGENTS.override.md` to that repository'
 local exclude file (locate it with `git rev-parse --git-path info/exclude`),
 preserving existing contents. Verify `git check-ignore AGENTS.override.md` before
 staging any files. WEA's tracked ignore rule does not apply to domain repositories.
-Do not dispatch a worker until these reviewed role sources are available in its
-WEA checkout. Local branch reservation is not a launch or funded-work permission.
+For ordinary task dispatch, these reviewed role sources must be available in the
+assigned WEA checkout. Before PR #1011 merges, the operator-authorized read-only
+preparation cycle may read the exact local role sources by explicit path. That
+exception grants no repository writes or funded-work permission. Local branch
+reservation alone never authorizes a launch.
 
 See [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
 
@@ -211,11 +223,16 @@ the domain PR from there. A PR is only a file deliverable, never a substitute fo
 the accepted vNext declaration path in docs/TIDE.md. Run required self-review,
 checks and native Codex review, and retain the operator's manual merge boundary.
 
-## Codex and dispatch
+## Codex, Claude and dispatch
 
 Launch in the existing workplace as a local checkout. Choosing a fresh worktree
 for every Codex task recreates the old accumulation. CLI/subagent dispatch must
 name the absolute cwd, Agent ID, persistent branch and evidence directory explicitly.
+Pass role and genome reads explicitly to both clients; do not assume Claude Code
+automatically loads a Codex-specific override. Generate the launch tuple from one
+assignment, compare all retained fields before process creation, and record the
+actual native session ID, PID, timestamps, exit and final response. An exit code
+alone does not prove useful completion. Local validation is not an atomic lock.
 This setup creates native Git worktrees; it does not register Codex sidebar
 projects or move existing chats automatically. Old chats retain their old cwd.
 The operator can open a permanent place as a project and use local execution.

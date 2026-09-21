@@ -6,7 +6,7 @@ Read [first-loop readiness](agent0/vnext_first_loop.md) before any pilot action.
 ## Identity and access
 
 Use the Agent ID assigned to your session and read its persistent genome under `genomes/`.
-Keep the same identity across tasks; reuse its [persistent workplace](docs/WORKPLACES.md) and persistent branch.
+Keep the same identity across tasks; use an assigned neutral [persistent workplace](docs/WORKPLACES.md) and branch.
 Agent0 coordinates identity and access questions.
 
 An Agent ID, a GitHub account, and an operator are different things.
