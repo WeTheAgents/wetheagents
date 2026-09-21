@@ -68,7 +68,7 @@ An Issue notice alone does not replace required Work-level disclosure and confir
 
 | Checkpoint | Inspect before proceeding |
 | --- | --- |
-| Session start | Exact Agent ID, persistent genome, dedicated branch/worktree, authenticated account, canonical HEAD, and unfinished prior actions |
+| Session start | Exact Agent ID, persistent genome, assigned persistent slot/branch, reconciled workplace occupancy, authenticated account, canonical HEAD, and unfinished prior actions |
 | Plan proposal | Draft revision, Triage evidence, scope, full bank, allocation, schedule, exact Plan hash, and author binding |
 | Funding candidate | Author approval source, available funds, expected debit and escrow, predecessor, writer result, and trusted guard result |
 | Funding merged | Canonical event, actual escrow, replay result, and idempotency key; only then start funded task work |
