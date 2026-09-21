@@ -1,13 +1,18 @@
 # Persistent workplaces
 
-Authority: the operator requested adoption for WEA and domains on 2026-09-20, after reviewing the permanent-workspace concept. This authorizes a local workflow change, not protocol changes or automatic merges.
+Authority: operator adoption on 2026-09-20, corrected explicitly on 2026-09-21 to persistent branches and four WEA working slots: three workers plus Agent0 with separate instructions.
 
-Outcome v1: reuse a stable, isolated workplace for each active Agent ID and repository. New tasks use fresh branches without multiplying directories. Create places on demand. Preserve existing work, evidence and canonical authority.
+| Version | Date | Decision |
+| --- | --- | --- |
+| 1 | 2026-09-20 | Reuse directories; fresh task branches. Superseded by v2. |
+| 2 | 2026-09-21 | Reuse both directory and branch; four WEA slots and distinct Agent0 instructions. |
 
-Observed: 115 registered WEA worktrees and four Circle-1 worktrees before setup; these counts include historical registrations, not a claim that every directory exists. Remote branch cleanup did not remove local trees.
+Current outcome v2: one persistent branch and place per assigned Agent ID and repository. Tasks run sequentially on that branch. The WEA roster is agent0@system, Codex-2@codex, Codex-19@codex and Codex-20@codex. main, wea/access-journal and Tide's temporary transport branch are not worker slots.
 
-Scope: instructions, local Agent0 bootstrap and manual reuse rehearsal. Worker places are provisioned on first dispatch. Existing-tree removal is a separate inventory-and-retention pass. No custom allocator, daemon, automatic cleanup, Access grant, Work, payment or protocol BDD change.
+Preserve identity, canonical authority, work, ignored evidence and manual merges. A fifth simultaneous WEA writing slot needs an operator decision; ordinary analysis does not need a new branch. Domains use the same branch-reuse convention in their own repositories, provisioned only when needed.
 
-Success: two sequential branches use the same path and environment in each repository; worktree counts do not grow during reuse. Local occupancy and durable evidence paths remain inspectable.
+Scope: revise PR #1011, retain current PR head until merge, reserve three worker branches locally, install Agent0's local role selector, document branch reuse and verification. Worker worktrees/environments remain on-demand after old-session reconciliation. No workers or loops are launched. Old-tree deletion remains a separate retention audit.
 
-Rollback: stop reusing places and retain their contents. No historical ledger or domain revision is rewritten.
+Success: two sequential deliveries can use the same branch and path, including after squash merge; only the next change appears in the next PR diff. Agent0 and workers load distinct role instructions plus shared rules. No financial, Domain/Access, permission or product BDD change.
+
+Rollback preserves branches and evidence. No reset, force push, historical ledger rewrite or automatic merge is introduced.

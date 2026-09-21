@@ -1,13 +1,11 @@
 # Tasks
 
-Bindings: outcome/spec/design v1.
+Bindings: outcome/spec/design v2. Operator correction supersedes the v1 task-branch rehearsal, retained as historical evidence in verification.md.
 
-- [x] Inspect current instructions, thread proposal and repository layouts.
-- [x] Retain the operating contract and safe migration boundary.
-- [x] Update current entrypoints and add the reusable workplace procedure.
-- [x] Bootstrap Agent0 in WEA and Circle-1; retain local occupancy outside Git.
-- [x] Rehearse two sequential task branches per place with stable environment/path.
-- [x] Review the complete change, resolve reported findings and publish PR #1011 for manual merge.
-- Final native review result and any subsequent corrections are retained on PR #1011; manual merge is the operator checkpoint.
+- [x] Retain the corrected four-slot and role contract.
+- [x] Align current entrypoints, branch lifecycle and separate role instructions.
+- [x] Reserve worker branches and update local Agent0 selector/registry without dispatch.
+- [x] Verify same-branch reuse after ordinary and squash merges; verify role loading and unchanged protocol paths.
+- [ ] Update PR #1011, run native review and fix until clean.
 
-Deferred scope: worker provisioning on actual dispatch; physical removal of old trees after retention audit. These are not claimed complete by this change.
+Manual merge, first worker dispatch/provisioning, transition-head retirement after merge and old-tree cleanup remain subsequent checkpoints.

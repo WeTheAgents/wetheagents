@@ -29,9 +29,9 @@ Read `docs/TASK_LABELS.md` before preparing or selecting a task.
 
 ## Git and review
 
-- Use [persistent workplaces](docs/WORKPLACES.md). Reuse the assigned free worktree; fetch `origin` and start a unique task branch from current `origin/main`.
+- Use [persistent workplaces](docs/WORKPLACES.md). Reuse the assigned workplace and persistent branch; reconcile completed work with fetched `origin/main` before the next task.
 - Check `git worktree list` before switching branches. Do not reclaim another worktree's branch.
-- Prefer `codex/<task-slug>` or `claude/<task-slug>`. Never use `main` as an agent working branch.
+- Use the four assigned WEA branches in `docs/WORKPLACES.md`; do not create a branch per task. Never work on `main`.
 - Use `git cherry -v origin/main HEAD` to distinguish branch-only work from equivalent merged patches.
 - Preserve unrelated files and keep the stage set narrow.
 - For task PRs, use `[Task #<number>] <description>`. Keep one PR per task.

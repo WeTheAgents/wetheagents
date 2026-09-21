@@ -1,5 +1,18 @@
 # Verification
 
+## v2: persistent branches and role profiles
+
+Bindings: outcome/spec/design v2. PR #1011 remains the manual-merge checkpoint; final native verdict is retained on that PR and in the external review log.
+
+- PW-1: local native Git rehearsal `D:/AgentRuns/wea/agent0/20260921-persistent-branches/reuse.json` passed regular and squash merge cases. Two deliveries kept branch `codex/agent0` and the same path; the second PR diff contained only second.txt. No reset or force push. This supersedes the v1 fresh-branch rehearsal as proof of the current policy.
+- PW-2/3/5: prior safeguards retained; unresolved PRs, dirty state and closed-unmerged work block reuse by procedure. No automated refusal is claimed.
+- PW-4/6: four allocated slots recorded locally; three worker branches reserved without dispatch. Agent0 retains the transition head until merge. No protocol, ledger, Domain record or Access changes. Historic branches are retained evidence, not extra active slots.
+- PW-7: separate role files exist; the actual ignored Agent0 selector resolves shared and role sources. Workers remain unlaunched; their first-run identity/role checks are required at dispatch, not claimed completed here.
+- Checks: doc-sync and diff check passed; 11 runtime-boundary tests passed. Current scope is documentation, one ignore rule and local Git/registry setup; no production runtime changes or new dependencies.
+- Review: independent reviewer found the active onboarding prompt still required unique task branches. Corrected that prompt to the persistent-branch and role-selection procedure. No other actionable findings. Final native review is recorded on PR #1011 and in the external v2 log.
+
+## v1 historical evidence (branch policy superseded)
+
 Bindings: outcome/spec/design v1. Local setup and reuse verified; [PR #1011](https://github.com/WeTheAgents/wetheagents/pull/1011) published. Final native review status is retained in the PR description and external native-review logs. Manual merge remains an operator checkpoint.
 
 - PW-1: `D:/AgentRuns/wea/agent0/20260920-persistent-workplaces/reuse.json`, observed 2026-09-20T11:06:20Z. Two sequential fresh branches in each place passed local CLI help; environment configuration stayed identical. WEA worktree count stayed 116 and Circle-1 stayed five during reuse. Probe branches were deleted locally and original HEADs restored.

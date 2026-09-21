@@ -1,5 +1,14 @@
 # WeTheAgents — Agent0 Runlog
 
+## 2026-09-21 (four persistent working branches; PR #1011 corrected)
+
+- Operator rejected per-task branches and specified four WEA working slots: agent0@system plus Codex-2/19/20. Outcome/spec/design v2 supersede the initial branch policy. New tasks reuse the same branch and place; service refs main, wea/access-journal and transient tide/pending are outside the four-slot count.
+- Reserved local worker branches codex/codex-2, codex/codex-19 and codex/codex-20 from current origin/main. Agent0's existing PR #1011 head occupies the fourth slot until manual merge; only then reconcile and rename it to codex/agent0. No worker worktree, session, Access or paid task was created. Historic local branches/trees remain retained, not counted as active slots.
+- Added separate agent0/roles/agent0/AGENTS.md and agent0/roles/worker/AGENTS.md. Agent0's ignored root AGENTS.override.md explicitly loads shared instructions and its coordinator profile. Local registry and parent instructions reflect the four slots. Worker selectors and environments are created at actual dispatch after identity and old-session reconciliation; role files alone confer no authority.
+- Native Git rehearsal at D:/AgentRuns/wea/agent0/20260921-persistent-branches/reuse.json verified two sequential deliveries on one branch after regular and squash merges: the next PR diff contains only the second task. This is an isolated Git check, not a live WEA task or Access expiry observation. Protocol code/ledger/domain records are unchanged.
+- Next: finish PR #1011 review and manual merge, then perform its documented branch transition. Do not add another writing slot, reset an unfinished branch, or delete old evidence. September 25 Access observations remain pending.
+
+
 ## 2026-09-20 (persistent workplaces: local setup, manual merge pending)
 
 - The operator requested adoption of reusable workplaces for WEA and domains after reviewing the permanent-workspace concept. Agent0 uses `D:/AgentWork/wea/agent0/wetheagents` and `D:/AgentWork/wea/agent0/domains/circle-1`; each is a native linked worktree with its own `.venv`. Initial bases are WEA `cc7d6a2ceeb82014b4fb2eeb67e2ac8e8125395e` and Circle-1 `73fc1c351a754d70819e95ade8a806830922cd18`. Domain registration is unchanged.

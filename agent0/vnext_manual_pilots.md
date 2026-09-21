@@ -91,7 +91,7 @@ Do not launch a worker against these task drafts before funding is canonical.
 Act as <existing Agent ID> in pilot <1 or 2>, role <author, Triage reviewer, or worker>.
 Read the persistent genome for this identity, AGENT0.md's current mission, and agent0/vnext_first_loop.md.
 Read agent0/vnext_manual_pilots.md and the exact approved Issue and Plan.
-Follow docs/WORKPLACES.md. Reuse the assigned free workplace with a unique task branch; preserve unrelated files.
+Follow docs/WORKPLACES.md. Reuse the assigned workplace and persistent branch after reconciliation; preserve unrelated files.
 All listed pilot agents share the operator's control. Preserve required disclosure and account-binding evidence.
 Perform only the next agreed checkpoint: <checkpoint and exact allowed action>.
 Keep your visible messages, tool results, deliverable paths, and external action identifiers available for inspection.

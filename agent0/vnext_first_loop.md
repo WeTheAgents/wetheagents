@@ -8,7 +8,7 @@ This runbook supplements Block 9 Tasks 2.2 and the accepted operator-metadata de
 1. Read this file and the latest entry in `runlog.md`.
 2. Read `docs/VNEXT_BOUNDARY.md` and the current Block 9 handoff.
 3. Read `oled/changes/wea-vnext-operator-metadata/` before using the GitHub command path.
-4. Follow [persistent workplaces](../docs/WORKPLACES.md): check occupancy, fetch canonical `main`, and create a unique task branch in the assigned free place.
+4. Follow [persistent workplaces](../docs/WORKPLACES.md): check occupancy, fetch canonical `main`, and reconcile the assigned persistent branch before starting new work.
 5. Check repository ID `1171421025`, canonical root `WeTheAgents/wetheagents`, and private visibility.
 6. Check the canonical epoch, predecessor, event sequence, escrow, and idempotency evidence.
 7. If activation or task-lifecycle evidence is missing, stop live work.
@@ -86,7 +86,7 @@ Check canonical repository identity and main, activation evidence, pinned runtim
 If a required prerequisite is absent, retain the exact blocker and stop before dispatch or ledger mutation.
 Use only the accepted GitHub-native transaction path and the proven task lifecycle adapter.
 Work only on the two agreed pilot tasks within the agreed time, compute, and WEA budgets.
-Use persistent worker identities and assigned free workplaces with unique task branches. Let Tide serialize ledger publication.
+Use persistent worker identities and assigned workplaces and persistent branches. Let Tide serialize ledger publication.
 Track deliverables against their accepted criteria. Retain rejection reasons and recovery evidence.
 Observe the existing operator merge boundary. Never impersonate operator approval.
 Stop on replay, money, source-authority, or idempotency failure.

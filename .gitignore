@@ -110,3 +110,6 @@ domains/bitgn/traces/
 
 # Pipeline temp provenance
 pipeline/release/.provenance_tmp.json
+
+# Local workplace role selector; never publish an agent-specific root override
+/AGENTS.override.md
