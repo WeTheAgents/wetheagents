@@ -1,168 +1,36 @@
 # Agent Switching Protocol
 
-How to run multiple agents from one machine. Supports both sequential
-(one IDE chat, switching identities) and parallel (multiple terminals).
+The operator replaced the identity-specific worktree recipe on 2026-09-21.
+Use [persistent workplaces](WORKPLACES.md) for the current allocation, role,
+publication and handoff procedure. Earlier examples remain in Git history.
 
----
+## Assign a session
 
-## Agent Map
+1. Retain the existing registered Agent ID and read its canonical genome.
+   Admission, identity and authority are separate from local workplace selection.
+2. Assign one free neutral WEA slot, work/slot-1 through work/slot-3. Registered
+   Codex and Claude identities may use the same slot sequentially. Agent0 uses
+   its separate coordinator place and work/agent0 after the documented transition.
+3. Reconcile the prior occupant's session, owned processes, Git state and PR.
+   An unfinished task or unknown writer blocks reuse; do not reset or auto-stash.
+4. Record the assignment locally in workplaces.json. Match its Agent ID, cwd,
+   branch, prompt and role selector before launch. Set session WEA_AGENT and
+   effective Git identity; verify the authenticated account binding separately.
+5. Launch in that existing place with its own role/genome reads and bounded scope.
+   Retain the native session, process receipt, result and next checkpoint outside
+   the checkout. Release occupancy only after the old writer has stopped and its
+   delivery has been reconciled or an explicit suspension decision retained.
 
-| Agent | Worktree | WEA_AGENT | Platform |
-|-------|----------|-----------|----------|
-| Cursor-1 | `D:\GitHub\wetheagents-cursor-1` | `Cursor-1@cursor` | Cursor IDE |
-| Codex-2 | `D:\GitHub\wetheagents-codex-2` | `Codex-2@codex` | Codex CLI |
-| Claude-1 | `D:\GitHub\wetheagents-claude-1` | `Claude-1@claude` | Claude Code CLI |
-| gemini-4 | `D:\GitHub\wetheagents-gemini-4` | `gemini-4@google` | Gemini CLI |
-| Claude-17 | `D:\GitHub\wetheagents-claude-17` | `Claude-17@claude` | Claude Code CLI |
+Parallel work still needs coordination: separate Git worktrees do not allocate
+identities, stop old sessions, serialize registry updates or grant WEA powers.
+Do not create extra task branches or use the main checkout as an Agent0 workplace.
+The registry is manual local coordination, not an atomic lock or canonical state.
 
----
+## New identities
 
-## Sequential Switching (one IDE, multiple agents)
-
-The operator tells the AI assistant which agent to work as.
-
-### Protocol
-
-1. Operator says: "Switch to Cursor-1" or "Do task X as Codex-2"
-2. AI changes working directory to the agent's worktree
-3. AI reads `AGENTS.local.md` in that worktree (the agent's genome)
-4. AI loads `.env` or sets `WEA_AGENT` environment variable
-5. AI announces: "Now working as Cursor-1@cursor"
-6. All git operations use that worktree's configured identity
-7. On switch: repeat from step 2 with new agent
-
-### Identity Rules
-
-- **Never mix commits across agents** — each agent's work stays in its worktree
-- **Announce identity on every switch** — always state which agent you are
-- **Read the genome** — AGENTS.local.md contains your behavioral instructions
-- **Each PR from its own branch** — the worktree branch is `agent/<Name>/work`
-- **Source .env before wea/gh commands** — ensures correct WEA_AGENT
-
-### Example
-
-```
-Operator: "Do 3 tasks as Cursor-1, then review task #5 as Claude-1"
-
-AI: "Switching to Cursor-1@cursor"
-    cd D:\GitHub\wetheagents-cursor-1
-    [reads AGENTS.local.md]
-    [does 3 tasks]
-
-AI: "Switching to Claude-1@claude"
-    cd D:\GitHub\wetheagents-claude-1
-    [reads AGENTS.local.md]
-    [reviews task #5]
-```
-
----
-
-## Parallel Execution (multiple terminals)
-
-Each terminal opens a different worktree. No coordination needed —
-git worktrees isolate branches by design.
-
-### Bash Example (recommended — uses auto-mode)
-
-All three platforms support non-interactive dispatch with auto-approval:
-
-```bash
-# Terminal 1: Claude-1 implements task #42
-cd /d/GitHub/wetheagents-claude-1
-set -a; source .env; set +a
-CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe' \
-  claude --permission-mode auto -p \
-  "You are Claude-1@claude. Read AGENTS.local.md, then implement task #42."
-
-# Terminal 2: gemini-4 reviews PR #15
-cd /d/GitHub/wetheagents-gemini-4
-set -a; source .env; set +a
-gemini --sandbox false --yolo -p \
-  "You are gemini-4@google. Read AGENTS.local.md, then review PR #15."
-
-# Terminal 3: Codex-2 writes tests for task #50
-cd /d/GitHub/wetheagents-codex-2
-set -a; source .env; set +a
-codex exec --full-auto \
-  -c 'sandbox_permissions=["disk-full-read-access","network-full-access"]' \
-  "You are Codex-2@codex. Read AGENTS.local.md, then write tests for task #50."
-```
-
-### Auto-mode flags by platform
-
-| Platform | Flag | Behavior |
-|----------|------|----------|
-| Claude | `--permission-mode auto` | AI classifier: approves edits/tests/push-to-branch, blocks push-to-main |
-| Gemini | `--sandbox false --yolo` | Approves all tool calls, sandbox disabled |
-| Codex | `--full-auto -c 'sandbox_permissions=[...]'` | Sandboxed write + network access |
-
-**Windows requirement:** Claude requires `CLAUDE_CODE_GIT_BASH_PATH='D:\Git\bin\bash.exe'`.
-
----
-
-## Adding a New Agent
-
-Adding Cursor-2 (or any agent N+1):
-
-```bash
-# 1. Complete Tide participant admission and merge its checked batch.
-
-# 2. Create a dedicated onboarding worktree from canonical main.
-git fetch origin
-git worktree add ../wetheagents-cursor-2-genesis -b agent/Cursor-2/genome-init origin/main
-cd ../wetheagents-cursor-2-genesis
-
-# 3. Create and commit the missing generation-zero genome.
-WEA_AGENT=agent0@system wea genome init Cursor-2@cursor
-git add genomes/Cursor-2@cursor
-WEA_AGENT=agent0@system git commit -m "Initialize Cursor-2 genome" -m "Genome-Genesis: Cursor-2@cursor"
-
-# 4. Merge the reviewed onboarding change, then create the agent worktree.
-cd D:\GitHub\wetheagents
-git fetch origin
-git worktree add ../wetheagents-cursor-2 -b agent/Cursor-2/work origin/main
-
-# 5. Configure identity (requires extensions.worktreeConfig = true in main repo)
-cd ../wetheagents-cursor-2
-git config --worktree user.name "Cursor-2"
-git config --worktree user.email "cursor-2@cursor"
-
-# 6. Create .env
-echo "WEA_AGENT=Cursor-2@cursor" > .env
-echo "GITHUB_TOKEN=<PAT>" >> .env
-echo "GITHUB_REPOSITORY=WeTheAgents/wetheagents" >> .env
-
-# 7. Deploy genome
-cp genomes/Cursor-2@cursor/AGENTS.local.md ./AGENTS.local.md
-```
-
-No handwritten code changes are needed. Registration is a Tide admission, a
-generated genome, and a dedicated worktree.
-
----
-
-## Worktree Layout
-
-```
-D:\GitHub\
-├── wetheagents/                   # main (Agent0 control center)
-│   ├── genomes/                   # canonical genome storage
-│   │   ├── base/                  # shared template + principles
-│   │   ├── Cursor-1@cursor/       # per-agent canonical genome
-│   │   ├── Codex-2@codex/
-│   │   ├── Claude-1@claude/
-│   │   └── gemini-4@google/
-│   └── ledger/                    # economy (only Agent0 writes)
-├── wetheagents-cursor-1/          # Cursor-1 worktree
-│   ├── .env                       # WEA_AGENT + GITHUB_TOKEN
-│   └── AGENTS.local.md            # working copy of genome
-├── wetheagents-codex-2/           # Codex-2 worktree
-├── wetheagents-claude-1/          # Claude-1 worktree
-├── wetheagents-gemini-4/          # gemini-4 worktree
-└── wetheagents-claude-17/         # Claude-17 worktree (Gauntlet Evaluator)
-```
-
-**Key design properties:**
-- `genomes/` on main = canonical storage (committed, versioned)
-- Worktree `AGENTS.local.md` = working copy (gitignored, may diverge)
-- `wea genome snapshot` (future) = copy worktree genome back to `genomes/`
+Use [Tide participant admission](TIDE.md#add-participants) and the
+[CLI genome initialization procedure](CLI.md) when an identity does not yet exist.
+Use an assigned existing slot for explicitly authorized onboarding maintenance;
+do not create a permanent branch per new Agent ID. A checked-out genome, local
+selector or environment variable does not register or authenticate an agent.
+The exact task contract still governs Access, Plan, funding, Work and acceptance.

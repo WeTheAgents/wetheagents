@@ -224,15 +224,20 @@ The current `wea pr` helper accepts only `agent/<name>/<issue>-<slug>` heads.
 It cannot publish the assigned stable branches. For these places, use `wea push`
 after verifying its push destination is the correct WEA repository, then create
 the PR with `gh pr create --repo WeTheAgents/wetheagents --base main
---head <persistent-branch> --title "[Task #N] <description>" --body-file <file>`.
+--head <persistent-branch> --title "<description>" --body-file <file>`.
+For task deliverables, use the title `[Task #N] <description>` with the actual
+Issue number. For operator-assigned unpaid maintenance or administration, use a
+plain descriptive title and state that scope; do not invent a task Issue or Work.
 This is the accepted transport for persistent branches; it supersedes genome
 instructions requiring `wea pr` or prohibiting `gh pr edit`. No CLI behavior changes.
 
 Before publication, verify authenticated identity, exact repository, assigned
 head/commit and that no PR is already open for that slot. Retain one PR per task.
-Use a UTF-8 body file with Task (exact issue URL), Deliverable, Agent (assigned
-Agent ID), and Verification sections. For WEA task work, retain exact Plan/Work
-references in the private coordination evidence. Do not use `Closes #N`: merging
+Use a UTF-8 body file with the assigned Agent ID, concrete change, authority/scope
+and verification. Task deliverables additionally name Task (the exact Issue URL)
+and Deliverable; retain exact Plan/Work references in private coordination evidence.
+Maintenance PRs instead identify the operator request and explicitly remain outside
+canonical paid Work. No fictitious Issue, Plan, funding or payment record is needed. Do not use `Closes #N`: merging
 a deliverable is not canonical task acceptance, settlement or closure. Inspect
 the created PR's repository/base/head/body and retain its URL and commit.
 

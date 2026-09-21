@@ -12,6 +12,8 @@ Bindings: outcome/spec/design v3. Earlier branch and identity-bound roster rehea
 
 - [x] Align the active Git workflow skill and configure/verify canonical push destinations per workplace, preserving shared settings.
 
+- [x] Redirect the retired agent-switching guide and distinguish task versus unpaid maintenance publication.
+
 A clean final native re-review is required before merge. Its exact head/verdict is retained on PR #1011 and in the external review log.
 
 Manual merge, Agent0 transition-head retirement after merge and old-tree cleanup remain subsequent checkpoints. This cycle creates no canonical Work, funding, acceptance or Release.

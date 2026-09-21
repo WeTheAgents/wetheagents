@@ -29,6 +29,10 @@ Read `docs/TASK_LABELS.md` before preparing or selecting a task.
 
 ## Git and review
 
+WORKPLACES.md is authoritative for local allocation, branch names, role loading
+and publication. Conflicting recipes in older guides, genomes or shared skills
+are superseded for these operations; identity and canonical authority rules remain.
+
 - Use [persistent workplaces](docs/WORKPLACES.md). Reuse the assigned workplace and persistent branch; reconcile completed work with fetched `origin/main` before the next task.
 - Check `git worktree list` before switching branches. Do not reclaim another worktree's branch.
 - Use the four assigned WEA branches in `docs/WORKPLACES.md`; do not create a branch per task. Never work on `main`.
