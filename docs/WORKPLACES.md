@@ -223,6 +223,28 @@ the domain PR from there. A PR is only a file deliverable, never a substitute fo
 the accepted vNext declaration path in docs/TIDE.md. Run required self-review,
 checks and native Codex review, and retain the operator's manual merge boundary.
 
+## Inspect persistent-slot activity
+
+Use canonical `wea report` for Tide state. Its `cmd_report` route calls
+`wea_cli.tide.build_report`; it does not call the historical
+`wea_cli.report_snapshot.build_inbox` or infer identities from branch names.
+The legacy inbox builder is not a supported review queue for persistent slots.
+
+Inspect each assigned slot's actual PR directly, for example with
+`gh pr list --repo WeTheAgents/wetheagents --head work/slot-1 --state all
+--json number,url,state,headRefName,headRefOid,body,author`.
+Compare the exact PR/head/body with the retained assignment and authenticated
+binding. Neither a branch name nor a shared GitHub login identifies its current
+Agent ID. PR metadata does not replace canonical Work or task-author authority.
+
+`check_branch_entropy.py` and `check_dead_branch_links.py` remain historical
+task-branch audits. The former returns REVIEW for unrecognized names; the latter
+only lists agent/ branches. Neither establishes occupancy or cleanup eligibility
+for work/* slots. Retire them from that decision path: use the local registry,
+actual Git state, owned processes and exact PR state as specified above. A closed
+task does not make a permanent slot branch disposable. No helper code or legacy
+history is changed, and no automatic cleanup is introduced.
+
 ## Codex, Claude and dispatch
 
 Launch in the existing workplace as a local checkout. Choosing a fresh worktree

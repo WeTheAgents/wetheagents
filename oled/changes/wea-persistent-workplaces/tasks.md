@@ -8,6 +8,7 @@ Bindings: outcome/spec/design v3. Earlier branch and identity-bound roster rehea
 - [x] Preserve the observed Claude-5 path mismatch; add local pre-launch validation and prove rejection without starting a process.
 - [x] Complete doc-sync/diff checks and publish the v3 update to PR #1011.
 - [x] Resolve native review round 1: the manual-pilot checkpoint now names persistent slot/branch reuse.
+- [x] Trace the round-2 legacy-consumer finding; document canonical report routing and exclude old branch audits from persistent-slot decisions.
 
 A clean final native re-review is required before merge. Its exact head/verdict is retained on PR #1011 and in the external review log.
 
