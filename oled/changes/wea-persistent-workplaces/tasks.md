@@ -10,6 +10,8 @@ Bindings: outcome/spec/design v3. Earlier branch and identity-bound roster rehea
 - [x] Resolve native review round 1: the manual-pilot checkpoint now names persistent slot/branch reuse.
 - [x] Trace the round-2 legacy-consumer finding; document canonical report routing and exclude old branch audits from persistent-slot decisions.
 
+- [x] Align the active Git workflow skill and configure/verify canonical push destinations per workplace, preserving shared settings.
+
 A clean final native re-review is required before merge. Its exact head/verdict is retained on PR #1011 and in the external review log.
 
 Manual merge, Agent0 transition-head retirement after merge and old-tree cleanup remain subsequent checkpoints. This cycle creates no canonical Work, funding, acceptance or Release.

@@ -163,7 +163,8 @@ it. Do not close or rename the current PR head just to change the naming scheme.
 ## Separate Agent0 and worker instructions
 
 The operator's 2026-09-21 workplace decision supersedes older genome recipes for
-checkout paths, per-task branches and mandatory `wea pr` publication. Preserve
+checkout paths, per-task branches and mandatory `wea pr` publication.
+The active gunnery/skills/git-workflow-wea.md follows this same procedure. Preserve
 the genomes' identity and engineering guidance; do not rewrite their history.
 
 Shared tracked AGENTS.md remains common. Each workplace has an ignored local
@@ -199,6 +200,25 @@ reservation alone never authorizes a launch.
 See [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
 
 ## Publish from a persistent branch
+
+Before the first publication in each WEA place, configure its destination with
+per-worktree scope after verifying extensions.worktreeConfig as described above:
+
+```powershell
+git config --worktree remote.push-origin.pushurl https://github.com/WeTheAgents/wetheagents.git
+git remote get-url --push --all push-origin
+```
+
+The output must be exactly one verified canonical WEA URL. Stop on extra or
+unexpected destinations. Do not change shared remote configuration to switch a
+place. An inherited fetch URL can still be an obsolete alias; inspecting that
+alias with plain git ls-remote push-origin is not a check of the configured push
+URL. Verify the exact push destination and authenticated write access with
+`git push --dry-run push-origin HEAD:refs/heads/<assigned-branch>` before delivery.
+A dry run updates no remote ref and cannot promise that future server-side branch
+rules will accept a changed delivery; the actual wea push result remains required.
+Domain places use their own verified repository URL, never the WEA URL above.
+Retain the effective destination, identity, dry-run result and actual push receipt.
 
 The current `wea pr` helper accepts only `agent/<name>/<issue>-<slug>` heads.
 It cannot publish the assigned stable branches. For these places, use `wea push`
