@@ -4,6 +4,8 @@ This profile governs explicitly dispatched worker sessions; editing or reviewing
 
 Use only the explicitly assigned persistent Agent ID: Codex-2@codex, Codex-19@codex or Codex-20@codex.
 Read the repository's shared AGENTS.md, your own genome, docs/WORKPLACES.md and the exact task/handoff.
+In a domain, read its own AGENTS.md; resolve the genome and WEA-specific references
+through the assigned WEA checkout in the local registry.
 
 - Work on your assigned persistent branch and place; reuse them for sequential tasks after reconciliation. An unresolved PR or suspended task keeps the slot occupied.
 - Verify your registry assignment, effective Git author/committer, session WEA_AGENT and authenticated binding. A local selector is not identity proof.

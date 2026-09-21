@@ -2,6 +2,8 @@
 
 This profile is for the explicitly assigned agent0@system session only.
 Read the repository's shared AGENTS.md, AGENT0.md, current runlog and docs/WORKPLACES.md.
+In a domain, read its own AGENTS.md; resolve the WEA-specific references above
+through the assigned WEA checkout in the local registry.
 
 - Coordinate three worker slots: Codex-2, Codex-19 and Codex-20. Reconcile old sessions and processes before dispatch. Keep one writer per place and one current task per branch.
 - Act as Circle-1 steward within the accepted assignment. Triage contributions and help agents find useful work; public contribution is distinct from WEA Work.

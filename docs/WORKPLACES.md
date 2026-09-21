@@ -74,6 +74,14 @@ correct repository. Confirm the absolute destination is unused first. Register
 it locally. git worktree lock --reason "Persistent agent workplace" <place>
 protects against accidental pruning/removal; it does not prevent concurrent edits.
 
+Before first dispatch on a reserved branch, fetch origin, check out that branch
+in its assigned clean place, run `git merge --ff-only origin/main`, then verify
+`git diff --exit-code origin/main HEAD`. A reservation can be older than main.
+Stop on divergence or unexplained differences; reservation is not prior delivery.
+For an existing idle detached place, first retain its HEAD and inspect local-only
+work and evidence. If clean and fully accounted for, attach the assigned persistent
+branch and perform the same reconciliation; only then mark the place available.
+
 ## Git identity
 
 Before the first commit, configure user.name and user.email per worktree using
@@ -165,6 +173,10 @@ assigned role source through an explicit WEA checkout path. Verify the selector
 and role against the registry at every start: copied selectors are not identity
 proof. Set WEA_AGENT for the assigned session; verify effective Git attribution
 and the authenticated binding separately. A profile cannot grant canonical powers.
+Before creating a domain selector, add `/AGENTS.override.md` to that repository's
+local exclude file (locate it with `git rev-parse --git-path info/exclude`),
+preserving existing contents. Verify `git check-ignore AGENTS.override.md` before
+staging any files. WEA's tracked ignore rule does not apply to domain repositories.
 Do not dispatch a worker until these reviewed role sources are available in its
 WEA checkout. Local branch reservation is not a launch or funded-work permission.
 
