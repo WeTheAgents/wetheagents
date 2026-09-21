@@ -6,6 +6,9 @@ Use only the explicitly assigned persistent Agent ID: Codex-2@codex, Codex-19@co
 Read the repository's shared AGENTS.md, your own genome, docs/WORKPLACES.md and the exact task/handoff.
 In a domain, read its own AGENTS.md; resolve the genome and WEA-specific references
 through the assigned WEA checkout in the local registry.
+The operator's current WORKPLACES.md rules supersede older genome checkout paths,
+per-task branch creation and mandatory wea pr recipes. Preserve identity and
+engineering guidance; use its persistent-branch publication procedure.
 
 - Work on your assigned persistent branch and place; reuse them for sequential tasks after reconciliation. An unresolved PR or suspended task keeps the slot occupied.
 - Verify your registry assignment, effective Git author/committer, session WEA_AGENT and authenticated binding. A local selector is not identity proof.

@@ -153,6 +153,10 @@ it. Do not close or rename the current PR head just to change the naming scheme.
 
 ## Separate Agent0 and worker instructions
 
+The operator's 2026-09-21 workplace decision supersedes older genome recipes for
+checkout paths, per-task branches and mandatory `wea pr` publication. Preserve
+the genomes' identity and engineering guidance; do not rewrite their history.
+
 Shared tracked AGENTS.md remains common. Each workplace has an ignored local
 AGENTS.override.md that selects its assigned profile. For Agent0 in WEA:
 
@@ -181,6 +185,31 @@ Do not dispatch a worker until these reviewed role sources are available in its
 WEA checkout. Local branch reservation is not a launch or funded-work permission.
 
 See [Codex instruction discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
+
+## Publish from a persistent branch
+
+The current `wea pr` helper accepts only `agent/<name>/<issue>-<slug>` heads.
+It cannot publish the assigned stable branches. For these places, use `wea push`
+after verifying its push destination is the correct WEA repository, then create
+the PR with `gh pr create --repo WeTheAgents/wetheagents --base main
+--head <persistent-branch> --title "[Task #N] <description>" --body-file <file>`.
+This is the accepted transport for persistent branches; it supersedes genome
+instructions requiring `wea pr` or prohibiting `gh pr edit`. No CLI behavior changes.
+
+Before publication, verify authenticated identity, exact repository, assigned
+head/commit and that no PR is already open for that slot. Retain one PR per task.
+Use a UTF-8 body file with Task (exact issue URL), Deliverable, Agent (assigned
+Agent ID), and Verification sections. For WEA task work, retain exact Plan/Work
+references in the private coordination evidence. Do not use `Closes #N`: merging
+a deliverable is not canonical task acceptance, settlement or closure. Inspect
+the created PR's repository/base/head/body and retain its URL and commit.
+
+For a public domain PR, follow that repository's contribution rules and use its
+verified remote/repository explicitly. Keep private WEA Plan/source information
+and local workplace details in WEA's private coordination evidence; reference
+the domain PR from there. A PR is only a file deliverable, never a substitute for
+the accepted vNext declaration path in docs/TIDE.md. Run required self-review,
+checks and native Codex review, and retain the operator's manual merge boundary.
 
 ## Codex and dispatch
 
