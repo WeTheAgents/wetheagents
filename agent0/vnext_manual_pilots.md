@@ -1,8 +1,9 @@
 # Two manual vNext pilots
 
-Status: preparation only. The source-to-executor integration and live activation are not ready.
+Status on 2026-09-30: both initial pilots (#958 and #964) are complete. Tide is active.
+This file retains their original setup and checkpoints; consult runlog.md and canonical replay for current state.
 Authority: the operator accepted both scenarios and common control on 2026-09-07.
-Read `vnext_first_loop.md` before starting either pilot.
+Read `vnext_first_loop.md` before any new funded task; do not repeat completed pilots.
 
 ## Identities and roles
 

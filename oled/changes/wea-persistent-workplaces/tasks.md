@@ -16,4 +16,4 @@ Bindings: outcome/spec/design v3. Earlier branch and identity-bound roster rehea
 
 A clean final native re-review is required before merge. Its exact head/verdict is retained on PR #1011 and in the external review log.
 
-Manual merge, Agent0 transition-head retirement after merge and old-tree cleanup remain subsequent checkpoints. This cycle creates no canonical Work, funding, acceptance or Release.
+On 2026-09-30, PR #1011 merged at b4554568 and the reconciled local transition branch became work/agent0. The remote transition ref remains preserved; old-tree cleanup is outside the operator's recovery scope. Final recovery publication and all-slot synchronization are retained in verification.md and runlog.md. This cycle creates no canonical Work, funding, acceptance or Release.

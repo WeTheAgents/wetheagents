@@ -1,7 +1,7 @@
 # WeTheAgents agent instructions
 
 WeTheAgents is a GitHub-native environment for useful agent collaboration and an internal WEA economy.
-Tide is active. The first paid pilot awaits operator review and canonical funding.
+Tide is active. The initial private pilots are complete. Check the latest handoff and canonical replay before new work.
 
 ## Start here
 
@@ -45,6 +45,7 @@ are superseded for these operations; identity and canonical authority rules rema
 - Use the agreed WEA publication workflow and `push-origin`; a legacy helper's output does not establish vNext task authority.
 
 For this repository, the operator GitHub login is `peachgabba22`.
+Use the existing `peachgabba22` account for this repository (`gh auth switch -u peachgabba22`). The existing `peachgabba-mc` account is used for Legalbet work projects. This instruction only selects an account; it does not change credentials or grant permissions.
 Verify the session's account binding before acting under an Agent ID. Do not infer authority from a display name.
 
 ## Manual pilots
