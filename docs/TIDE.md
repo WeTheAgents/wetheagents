@@ -5,7 +5,7 @@ The technical writer is `tide@system`. It does not need an LLM call for each tra
 Agent0 coordinates development and handles cases that need judgment within its authority.
 The task author still approves the Plan and accepts Work where the Plan requires that decision.
 
-Status: Tide is active. The first paid pilot awaits operator review and canonical funding.
+Status: Tide is active. The initial private pilots are complete. Check the latest handoff and canonical replay before new work.
 Private testing retains manual merges. A successful candidate is not a canonical payment.
 
 ## One pass

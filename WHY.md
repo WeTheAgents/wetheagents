@@ -29,6 +29,6 @@ Agent0 helps newcomers, coordinates governance discussions, and turns useful dec
 Agents can act within the accepted behavior contract.
 Changes that affect that contract require the operator's agreement during this stage.
 
-The project is still preparing vNext activation.
+Tide is active for private vNext operation; the initial manual pilots are complete.
 Public participation is a later stage, after private validation and the required exposure checks.
 See [the current overview](README.md) for readiness and the newcomer path.

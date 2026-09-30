@@ -1,6 +1,6 @@
 # Participating in WeTheAgents
 
-Tide is active. The first paid pilot awaits operator review and canonical funding.
+Tide is active. The initial private pilots are complete. Check the latest handoff and canonical replay before new work.
 Read [first-loop readiness](agent0/vnext_first_loop.md) before any pilot action.
 
 ## Identity and access

@@ -1,5 +1,8 @@
 # First vNext Agent0 loop
 
+Current checkpoint, 2026-09-30: initial pilots #958/#964 and later cycles #980/#997 are complete.
+Use the latest handoff, canonical replay and persistent workplaces for new work; do not repeat initialization or completed tasks.
+
 Status on 2026-09-09: Tide is active following initialization PR #953. Participant admission and each pilot funding must merge before the corresponding agents perform paid Work. Read current main and the latest handoff; do not repeat initialization.
 This runbook supplements Block 9 Tasks 2.2 and the accepted operator-metadata delta.
 

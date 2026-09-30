@@ -1,5 +1,14 @@
 # Verification
 
+## 2026-09-30 state recovery
+
+- Operator-approved review and manual merge completed: WEA #1011 at b4554568, WEA #1012 at d05195c8, Circle-1 #3 at a1ada79. Exact reviewed heads and remote merge receipts are retained in the recovery evidence directory named in runlog.md.
+- PW-1/3/5: canonical workplace and account/role bindings were verified; all 18 original tracked changes plus 7 untracked files were copied and SHA-256 checked. All 25 original files remained unchanged. Agent0 fast-forwarded to canonical main and renamed the merged transition branch to work/agent0. No reset, clean, force push or old-tree deletion occurred.
+- Fresh WEA checks: doc-sync, diff-check, 11 runtime-boundary tests and invariant passed. Native review evidence matches #1011's exact head; new native reviews of #1012 and public #3 completed without actionable findings. Circle-1 checks: 209 passed / 15 skipped; Ruff clean; Pyright zero errors.
+- A fresh independent reviewer examined the whole recovery diff against the accepted workplace contract and reported no findings. Updated npm Codex 0.159.2 completed a second native review with the preserved gpt-6.1-sol configuration, exit 0 and no actionable findings. Post-publication native review and CI remain required before the recovery merge.
+- Protected cut: production LOC is zero; existing Git workplaces, verifier and handoff carry the change. Removing preservation or authority checks would weaken the accepted contract; no additional mechanism or dependency is added.
+- The recovery patch only reconciles status prose, the existing operator account instruction and this handoff. It introduces no protocol, money, Access, runtime or scheduling behavior. Final recovery-PR review/CI and all-slot synchronization remain the publication checkpoint, not inferred completed work. Old-tree cleanup is outside the operator's present scope.
+
 ## v3: neutral slots and first mixed cycle
 
 Bindings: outcome/spec/design v3. Four actual workers completed, followed by a separate Agent0 review. Evidence: `D:/AgentRuns/wea/agent0/20260921-first-mixed-cycle/`; PR #1011 remains unmerged.

@@ -6,13 +6,13 @@ WEA is an internal accounting unit used to fund tasks.
 
 ## Current status
 
-We are preparing the first private, manually supervised vNext pilots.
-vNext is not active. The earlier v1 task lifecycle is paused.
-Existing balances and transaction history are retained for migration and audit.
+Tide is active in the private vNext environment. The two initial manual pilots are complete.
+The earlier v1 task lifecycle remains paused; its balances and history are frozen audit evidence.
+The latest canonical journal is Tide 17. Read the current handoff and replay before new work.
 An open Issue or a successful old CLI command does not establish an active, funded vNext task.
 
 Repository development and governance discussions can continue within their agreed scope.
-Paid pilot work starts only after activation and the task funding checks pass.
+New paid work starts only after its exact Plan is approved and its funding is canonical.
 See [first-loop readiness](agent0/vnext_first_loop.md) for the exact launch gates.
 
 ## Start here
@@ -26,15 +26,17 @@ Use an existing assigned Agent ID and its persistent genome.
 If you do not have an identity or repository access, ask Agent0 to coordinate onboarding.
 Choosing a name or setting an environment variable does not create an authenticated identity.
 
-## The intended task path
+## The current task path
 
 An author proposes a useful task. Triage informs an exact Resolution Plan.
 The author approves that Plan, and the full bank is escrowed before funded task work.
 Agents submit Deliverables under the Plan. Authorized acceptance and settlement follow its rules.
-Agent0 is the sole ledger writer. During private testing, the operator merges checked candidates manually.
+Tide (`tide@system`) is the technical ledger writer. During private testing, the operator merges checked candidates manually.
 
-This describes the accepted target flow. The source-to-payment integration still needs implementation and live evidence.
-The [two manual pilots](agent0/vnext_manual_pilots.md) test both Agent0-funded and agent-funded work.
+The source-to-payment path has live evidence from completed tasks #958, #964, #980 and #997.
+The [manual pilot record](agent0/vnext_manual_pilots.md) retains the original setup;
+[current handoff](runlog.md) and canonical Tide replay establish the latest state.
+Use the assigned [persistent workplace](docs/WORKPLACES.md) and its role instructions.
 
 ## Help shape the project
 
