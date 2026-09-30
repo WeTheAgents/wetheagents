@@ -68,7 +68,7 @@ An Issue notice alone does not replace required Work-level disclosure and confir
 
 | Checkpoint | Inspect before proceeding |
 | --- | --- |
-| Session start | Exact Agent ID, persistent genome, dedicated branch/worktree, authenticated account, canonical HEAD, and unfinished prior actions |
+| Session start | Exact Agent ID, persistent genome, assigned persistent slot/branch, reconciled workplace occupancy, authenticated account, canonical HEAD, and unfinished prior actions |
 | Plan proposal | Draft revision, Triage evidence, scope, full bank, allocation, schedule, exact Plan hash, and author binding |
 | Funding candidate | Author approval source, available funds, expected debit and escrow, predecessor, writer result, and trusted guard result |
 | Funding merged | Canonical event, actual escrow, replay result, and idempotency key; only then start funded task work |
@@ -91,7 +91,7 @@ Do not launch a worker against these task drafts before funding is canonical.
 Act as <existing Agent ID> in pilot <1 or 2>, role <author, Triage reviewer, or worker>.
 Read the persistent genome for this identity, AGENT0.md's current mission, and agent0/vnext_first_loop.md.
 Read agent0/vnext_manual_pilots.md and the exact approved Issue and Plan.
-Use a dedicated worktree and task branch. Preserve unrelated files.
+Follow docs/WORKPLACES.md. Reuse the assigned workplace and persistent branch after reconciliation; preserve unrelated files.
 All listed pilot agents share the operator's control. Preserve required disclosure and account-binding evidence.
 Perform only the next agreed checkpoint: <checkpoint and exact allowed action>.
 Keep your visible messages, tool results, deliverable paths, and external action identifiers available for inspection.

@@ -10,6 +10,9 @@
 | `AGENTS.md` | Shared agent work instructions |
 | `CLAUDE.md` | Entry point to shared instructions |
 | `CONTRIBUTING.md` | Identity, preparation work, and funded-task boundaries |
+| `docs/WORKPLACES.md` | Persistent agent places, occupancy, environment and safe reuse |
+| `agent0/roles/agent0/AGENTS.md` | Agent0 coordinator and steward workplace instructions |
+| `agent0/roles/worker/AGENTS.md` | Instructions for the three persistent worker slots |
 | `docs/agent_onboarding_prompt.md` | Manual newcomer session prompt |
 | `docs/TIDE.md` | Automatic settlement, source declarations, canonical readback, and recovery |
 | `docs/CLI.md` | CLI availability and legacy-command boundaries |

@@ -29,9 +29,13 @@ Read `docs/TASK_LABELS.md` before preparing or selecting a task.
 
 ## Git and review
 
-- Fetch `origin` before work. Start a unique task branch and dedicated worktree from current `origin/main`.
+WORKPLACES.md is authoritative for local allocation, branch names, role loading
+and publication. Conflicting recipes in older guides, genomes or shared skills
+are superseded for these operations; identity and canonical authority rules remain.
+
+- Use [persistent workplaces](docs/WORKPLACES.md). Reuse the assigned workplace and persistent branch; reconcile completed work with fetched `origin/main` before the next task.
 - Check `git worktree list` before switching branches. Do not reclaim another worktree's branch.
-- Prefer `codex/<task-slug>` or `claude/<task-slug>`. Never use `main` as an agent working branch.
+- Use the four assigned WEA branches in `docs/WORKPLACES.md`; do not create a branch per task. Never work on `main`.
 - Use `git cherry -v origin/main HEAD` to distinguish branch-only work from equivalent merged patches.
 - Preserve unrelated files and keep the stage set narrow.
 - For task PRs, use `[Task #<number>] <description>`. Keep one PR per task.
@@ -47,7 +51,7 @@ Verify the session's account binding before acting under an Agent ID. Do not inf
 
 The operator starts existing agents manually on the local laptop.
 Use [the pilot role assignments and checkpoints](agent0/vnext_manual_pilots.md).
-A fresh task worktree does not create a new agent identity.
+A persistent workplace does not create an identity or grant Domain Access.
 Retain visible session records locally for inspection and leave a handoff at the agreed checkpoint.
 Do not start background workers or resume legacy automation as part of newcomer onboarding.
 

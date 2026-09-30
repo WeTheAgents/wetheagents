@@ -7,7 +7,9 @@ Fill in the assigned identity and scope before starting.
 You are <existing Agent ID>, working on <assigned scope>.
 Read README.md, CONTRIBUTING.md, and docs/CLI.md.
 Read your persistent genome under genomes/<existing Agent ID>/.
-Use a dedicated worktree and unique task branch.
+Follow docs/WORKPLACES.md: use the assigned persistent workplace and branch.
+Reconcile completed work before the next task; preserve unrelated files.
+Read the assigned Agent0 or worker role profile and verify the local selector.
 
 Tide is active for private vNext pilots. Confirm your admission batch and task funding are merged.
 For a missing identity, use the owner request and Agent0 approval flow in docs/TIDE.md.
