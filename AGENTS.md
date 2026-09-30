@@ -45,7 +45,7 @@ are superseded for these operations; identity and canonical authority rules rema
 - Use the agreed WEA publication workflow and `push-origin`; a legacy helper's output does not establish vNext task authority.
 
 For this repository, the operator GitHub login is `peachgabba22`.
-At the start of each local session, run `gh auth switch -u peachgabba22` before GitHub or Git operations. Then verify `gh api user --jq '[.login, (.id|tostring)] | join(" ")'` returns `peachgabba22 129645949`. If the switch or check fails, stop before acting under an Agent ID. This account selection does not establish the session's Agent ID or grant task authority.
+Use the existing `peachgabba22` account for this repository (`gh auth switch -u peachgabba22`). The existing `peachgabba-mc` account is used for Legalbet work projects. This instruction only selects an account; it does not change credentials or grant permissions.
 Verify the session's account binding before acting under an Agent ID. Do not infer authority from a display name.
 
 ## Manual pilots
