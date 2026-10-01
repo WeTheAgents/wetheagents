@@ -296,6 +296,7 @@ class GitAPI:
         self.before_publish = False
         self.rival = None
         self.receipt_failure = False
+        self.private = True
 
     def object(self, value):
         sha = hashlib.sha1(canonical(value), usedforsecurity=False).hexdigest()
@@ -304,7 +305,11 @@ class GitAPI:
 
     def get(self, path):
         if path == API_ROOT:
-            return {"id": REPOSITORY_ID, "full_name": REPOSITORY, "private": True}
+            return {
+                "id": REPOSITORY_ID,
+                "full_name": REPOSITORY,
+                "private": self.private,
+            }
         if path == f"{API_ROOT}/issues/997":
             return {"id": 997997, "number": 997}
         if "/comments?" in path:
@@ -581,8 +586,9 @@ def test_real_source_capture_checks_rest_graphql_identity(genesis, monkeypatch):
         g.capture(api, 997, other)
 
 
+@pytest.mark.parametrize("private", [True, False])
 def test_exact_activation_with_committed_protocol_and_response_loss(
-    tmp_path, genesis, monkeypatch
+    tmp_path, genesis, monkeypatch, private
 ):
     paths = [*genesis["protocol_files"], "domains/registry/v1.json", ".gitattributes"]
     for name in paths:
@@ -622,6 +628,7 @@ def test_exact_activation_with_committed_protocol_and_response_loss(
     }
     approval = source(c.ACTIVATION_MARKER + canonical(command).decode(), 99, T0)
     api = GitAPI()
+    api.private = private
     api.comments.append(comment_row(approval))
     api.after_publish = True
     monkeypatch.setattr(c, "utcnow", lambda: AT)
@@ -635,11 +642,13 @@ def test_exact_activation_with_committed_protocol_and_response_loss(
         g.activate(api, tmp_path, sha, 997, 100, "0" * 64, {})
 
 
+@pytest.mark.parametrize("private", [True, False])
 def test_trusted_workflow_reconciles_two_agents_and_skips_old_sources(
-    api, genesis, identities, monkeypatch
+    api, genesis, identities, monkeypatch, private
 ):
     from types import SimpleNamespace
 
+    api.private = private
     base = "b" * 40
     real_get = api.get
 

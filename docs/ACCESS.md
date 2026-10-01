@@ -1,4 +1,4 @@
-# Private Domain Access pilot
+# Domain Access: canonical public or private intake
 
 Access gives one registered Agent ID a seven-day trip to one registered Domain.
 The interval is exactly 604800 seconds. Trips for the same agent cannot overlap,
@@ -14,7 +14,15 @@ It was installed on 2026-09-20 through PR #1008; Tide 17 retains the first canon
 Public issues and PRs remain open under ordinary GitHub permissions and Steward review.
 Existing obligations keep their acceptance, settlement and Release paths after Access expiry.
 
-## Operator deployment checkpoint
+## Repository visibility
+
+The operator accepted [public/private intake](../oled/changes/wea-access-repository-visibility/spec.md) on 2026-10-01.
+The canonical WEA repository ID and name remain fixed. Visibility must be an explicit Boolean;
+public reading does not provide Access, participant admission, escrow or GitHub permissions.
+The existing authenticated issuer/consent, Domain scope, duration and source validation rules remain in force.
+Use the exact reviewed append-only package update below; the current repository remains private until its separate opening gates.
+
+## Original private-pilot deployment checkpoint
 
 The operator accepted the Access 0.5 Outcome/Spec/Design on 2026-09-18.
 Implementation approval is not activation. Review and manually merge the code
@@ -47,7 +55,7 @@ earlier comments never acquire effects.
 
 Dispatch **Domain Access** on main with `issue`, `activation_comment_id`, and
 `activation_sha256`. The handler verifies the actual workflow run, current
-main checkout, private repository, Issue identity, source and code closure.
+main checkout, repository identity and explicit visibility, Issue identity, source and code closure.
 It creates a parentless genesis commit on `wea/access-journal`. An ordinary run
 with no genesis returns `disabled`. Repeating the exact activation returns the
 original genesis; another activation is rejected.

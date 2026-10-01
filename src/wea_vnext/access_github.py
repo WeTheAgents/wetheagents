@@ -1,4 +1,4 @@
-"""Private GitHub Access journal and explicitly activated trusted handler."""
+"""Canonical GitHub Access journal and explicitly activated trusted handler."""
 
 from __future__ import annotations
 
@@ -469,9 +469,11 @@ def repository(api: Any, issue: int) -> dict[str, Any]:
     if (
         repo.get("id") != REPOSITORY_ID
         or repo.get("full_name") != REPOSITORY
-        or repo.get("private") is not True
+        or type(repo.get("private")) is not bool
     ):
-        raise ValueError("Access pilot requires the canonical private repository")
+        raise ValueError(
+            "Access requires the canonical repository with explicit Boolean visibility"
+        )
     item = api.get(f"{API_ROOT}/issues/{issue}")
     if item.get("number") != issue or "pull_request" in item:
         raise ValueError("Access intake must be the configured Issue")
