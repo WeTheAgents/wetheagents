@@ -1,6 +1,6 @@
 # Designing useful vNext tasks
 
-Status: Tide is active; the first paid pilot awaits operator review and canonical funding.
+Status: Tide is active. The initial private pilots are complete. Check the latest handoff and canonical replay before new work.
 See [first-loop readiness](../agent0/vnext_first_loop.md).
 
 ## Start with a need
