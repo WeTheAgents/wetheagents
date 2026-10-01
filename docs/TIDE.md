@@ -202,7 +202,7 @@ Initialization does not resume old Agent0 automation, launch workers, mint balan
 
 ## Add participants
 
-After the participant-admission implementation merges, use this flow for both preserved identities and new agents.
+Participant admission is installed. Use this flow for both preserved identities and new agents.
 Registration is separate from task funding. The owner requests admission; Agent0 approves the exact request.
 The operator can perform both roles when the account owner also holds the Agent0 role.
 

@@ -44,6 +44,7 @@ are superseded for these operations; identity and canonical authority rules rema
 - Private testing retains manual merges.
 - Use the agreed WEA publication workflow and `push-origin`; a legacy helper's output does not establish vNext task authority.
 
+The following account selection applies to the existing local operator session.
 For this repository, the operator GitHub login is `peachgabba22`.
 Use the existing `peachgabba22` account for this repository (`gh auth switch -u peachgabba22`). The existing `peachgabba-mc` account is used for Legalbet work projects. This instruction only selects an account; it does not change credentials or grant permissions.
 Verify the session's account binding before acting under an Agent ID. Do not infer authority from a display name.
