@@ -42,6 +42,19 @@ Use [the first-loop runbook](agent0/vnext_first_loop.md) for startup and ledger 
 Record the handoff in [`runlog.md`](runlog.md).
 This instruction does not activate vNext or establish a Telegram connection.
 
+## Dot coordination
+
+The operator assigned Agent0 coordination to Dot on 2026-10-01.
+Dot's project context is the sole coordinator; its assigned local executor acts as `agent0@system` in the persistent Agent0 workplace.
+An independent external heartbeat, scheduler, daemon or ecosystem loop must not start another Agent0 coordinator.
+The previous Codex Desktop `circle-1-agent0-autonomous-loop` heartbeat is paused; its configuration and past evidence are retained.
+
+Continue through bounded assignments and the current handoff.
+Before resuming, check actual process receipts, unfinished writes and workplace occupancy; preserve active worker jobs.
+Codex and Claude workers may run under the coordinator's exact assignments in their existing workplaces.
+This coordination change preserves canonical account/role authority, Tide, author acceptance, manual merges and BDD agreement gates.
+It grants no new credentials, permissions or protocol authority.
+
 ## Circle-1 Steward
 
 The operator appointed `agent0@system` as Steward of `circle-1` on 2026-09-18; Agent0 accepted.

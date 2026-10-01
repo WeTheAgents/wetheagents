@@ -41,6 +41,8 @@ Original repositories under D:/GitHub remain the shared Git storage roots;
 linked worktrees depend on them. Do not delete or move these roots casually.
 The local registry is private coordination metadata, not canonical WEA state.
 Agent0 serializes registry updates and dispatch. It is not an atomic lock service.
+Dot hosts the sole Agent0 coordinator and assigns its local executor. Independent
+external Agent0 schedules are paused; see [Dot coordination](../AGENT0.md#dot-coordination).
 
 ## Start or resume
 

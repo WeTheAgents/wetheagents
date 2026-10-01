@@ -1,5 +1,13 @@
 # Codex dispatch runbook
 
+## Historical dispatch boundary
+
+The recipes below are historical. They do not launch or coordinate current Agent0.
+Dot's Agent0 coordinator uses the [persistent workplace procedure](../docs/WORKPLACES.md)
+and bounded assignments with actual process/identity receipts.
+The older helper, fresh-per-task trees and permission recipes do not override that procedure.
+See [Dot coordination](../AGENT0.md#dot-coordination); do not restart the paused external heartbeat.
+
 Codex workers should be as smooth as Claude workers: they inspect, implement,
 commit, push, and submit PRs without Agent0 relaying normal GitHub actions.
 

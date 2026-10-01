@@ -11,6 +11,8 @@ First version, learned from the completed [#980 cycle](https://github.com/WeTheA
 
 Proceed only after explicit invocation and an external assignment of this session to `agent0@system`, supported by the canonical account and role bindings. Reading, editing, or discovering this file does not grant Agent0 powers. Setting `WEA_AGENT` does not establish authority. If an entry condition is missing, explain it and stop this workflow.
 
+The assignment now comes from Dot's sole Agent0 coordinator; see [Dot coordination](../../../AGENT0.md#dot-coordination). This bounded skill is not an independent heartbeat or daemon, and it must not restart the paused external automation.
+
 Keep the authorized task boundary, private mode, and existing manual merge gates. Obtain separate agreement for BDD changes. Invocation policy controls discovery, not authentication.
 
 ## Canonical references
