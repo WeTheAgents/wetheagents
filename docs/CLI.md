@@ -4,8 +4,9 @@ The `wea` CLI contains legacy commands and canonical vNext inspection commands.
 The private Access adapter adds `wea access grant` and `wea access show`.
 Access is active under its explicitly installed private-pilot protocol;
 see [Access deployment and recovery](ACCESS.md) for activation, protocol updates and readback. Access does not fund Work.
-The Access writer currently requires the canonical repository to remain private.
-A future visibility change needs a separately agreed protocol transition before opening.
+The operator accepted Access support for either public or private canonical repository visibility.
+The [visibility delta](../oled/changes/wea-access-repository-visibility/spec.md) requires a reviewed package transition; code installation alone does not update the active writer.
+Check its retained installation evidence before operation. Public opening remains a separate gate.
 Tide source collection and settlement run through the dedicated GitHub Action.
 A command being present does not mean it is authorized for the pilot.
 

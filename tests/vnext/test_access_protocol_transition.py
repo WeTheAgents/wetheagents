@@ -69,10 +69,11 @@ def update_entry(old, files):
     }
 
 
-@pytest.fixture
-def prepared(genesis, identities, monkeypatch):
+@pytest.fixture(params=[True, False])
+def prepared(genesis, identities, monkeypatch, request):
     old = historical(genesis)
     api = GitAPI()
+    api.private = request.param
     journal = g.Journal(api)
     head = journal.append(None, "genesis.json", old)
     _, grant = entry(old, identities)

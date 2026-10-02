@@ -199,7 +199,7 @@ def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> d
 def command(args: argparse.Namespace) -> int:
     try:
         if args.repo != REPOSITORY:
-            raise ValueError("Access is restricted to the canonical private repository")
+            raise ValueError("Access is restricted to the canonical repository")
         account = str(json.loads(gh("api", "user"))["id"])
         api = GitHub(gh("auth", "token"))
         root = (

@@ -4,6 +4,8 @@ Revision 0.5, accepted 2026-09-18. Bound to accepted Outcome 0.5.
 The operator accepted DA-01..08, ST-01, C1-P01 and C1-P02 and authorized implementation.
 R-11, S-11A, and S-11B retain their library meaning; this accepted delta supplies the operational path.
 
+The historical 0.5 wording below is retained. The operator accepted the [public/private visibility delta](../wea-access-repository-visibility/spec.md) on 2026-10-01; it supersedes the private-only DA-01 intake condition and extends DA-06/08 evidence without changing authority or grant rules.
+
 ## Affected BDD
 
 | Contract | Proposed change |
