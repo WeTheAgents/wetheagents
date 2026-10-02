@@ -162,6 +162,10 @@ class History:
                 for ref in i.repository_refs(command)
             ]
         )
+        # Synthetic observations use one known ID unless a probe supplies both.
+        observations = copy.deepcopy(observations)
+        for observed in observations:
+            observed.setdefault("repository_aliases", [observed["repository_id"]])
         provenance = provenance or (
             {
                 "workflow": g.WORKFLOW,
@@ -1175,3 +1179,140 @@ def test_lri07_rejects_unauthorized_source_before_repository_lookup(
         == "recorded"
     )
     assert len(g.Journal(api).read()[2]) == len(history.entries) + 2
+
+
+def alias_history(genesis, identities, old_encoding):
+    genesis = copy.deepcopy(genesis)
+    original = c.replay(genesis, []).registry.domain("circle-1")
+    old_id = "999" if old_encoding == "numeric" else "R_existing_node"
+    record = make_domain_record(
+        domain_id=original.domain_id,
+        repository_id=old_id,
+        repository_locator=original.repository_locator,
+        revision=original.revision,
+    )
+    registry = i.build_domain_registry([record])
+    genesis["registry_text"] = canonical(registry.to_mapping()).decode()
+    genesis["registry_hash"] = registry.registry_hash
+    activation = c.strict_json(
+        genesis["activation"]["body"][len(c.ACTIVATION_MARKER) :]
+    )
+    activation["registry_hash"] = registry.registry_hash
+    genesis["activation"]["body"] = c.ACTIVATION_MARKER + canonical(activation).decode()
+    genesis["activation"]["content_hash"] = c.sha256(genesis["activation"]["body"])
+    return History(genesis, identities)
+
+
+def alias_api(history, monkeypatch, *, numeric=999, node="R_existing_node"):
+    api = GitAPI()
+    journal = g.Journal(api)
+    journal.append(None, "genesis.json", history.genesis)
+    for item in history.entries:
+        prefix = "protocol" if item["schema"] == protocol.SCHEMA else "decision"
+        journal.append(
+            journal.head(), f"{prefix}-{item['source']['object_id']}.json", item
+        )
+    original = api.get
+
+    def get(path):
+        if path.startswith("https://api.github.com/repos/"):
+            return {
+                "id": numeric,
+                "node_id": node,
+                "full_name": "WeTheAgents/new-circle",
+            }
+        return original(path)
+
+    def graphql(query, variables):
+        assert variables["id"] == node
+        return {
+            "data": {
+                "node": {
+                    "id": node,
+                    "nameWithOwner": "WeTheAgents/new-circle",
+                    "object": {"oid": variables["revision"]},
+                }
+            }
+        }
+
+    monkeypatch.setattr(api, "get", get)
+    monkeypatch.setattr(api, "graphql", graphql)
+    return api
+
+
+@pytest.mark.parametrize("old_encoding", ["numeric", "node"])
+@pytest.mark.parametrize("operation", ["registry-add", "registry-replace"])
+def test_lri04_repository_aliases_cannot_replace_or_duplicate_identity(
+    genesis, identities, monkeypatch, old_encoding, operation
+):
+    history = alias_history(genesis, identities, old_encoding)
+    old_registry = history.state.registry
+    old_revision = history.state.binding_revision("circle-1")
+    api = alias_api(history, monkeypatch)
+    requested = "R_existing_node" if old_encoding == "numeric" else "999"
+    payload = replacement(
+        history,
+        requested,
+        "alias-domain" if operation == "registry-add" else "circle-1",
+    )
+    src = history.prepare(
+        operation, payload, AGENT0 if operation == "registry-add" else OPERATOR
+    )
+    result = g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+    assert result["status"] == "rejected", result
+    assert (
+        "different repository ID"
+        if operation == "registry-replace"
+        else "already registered"
+    ) in result["reason"]
+    _, genesis, entries, _ = g.Journal(api).read()
+    state = c.replay(genesis, entries)
+    assert state.registry == old_registry
+    assert state.binding_revision("circle-1") == old_revision
+    assert entries[-1]["repositories"][0]["repository_aliases"] == [
+        "999",
+        "R_existing_node",
+    ]
+
+
+@pytest.mark.parametrize("old_encoding", ["numeric", "node"])
+def test_lri04_alias_observation_keeps_original_binding(
+    genesis, identities, monkeypatch, old_encoding
+):
+    history = alias_history(genesis, identities, old_encoding)
+    before = canonical(history.state)
+    old_binding = history.state.binding_revision("circle-1")
+    api = alias_api(history, monkeypatch)
+    requested = "R_existing_node" if old_encoding == "numeric" else "999"
+    src = history.prepare("repository-observe", replacement(history, requested))
+    result = g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+    assert result["status"] == "recorded", result
+    _, genesis, entries, _ = g.Journal(api).read()
+    state = c.replay(genesis, entries)
+    assert state.registry == history.state.registry
+    assert state.grants == history.state.grants
+    assert state.binding_revision("circle-1") == old_binding
+    assert state.observations[-1]["repository_id"] == "R_existing_node"
+    assert canonical(history.state) == before
+
+
+def test_lri04_numeric_reference_to_a_different_repository_is_allowed(
+    genesis, identities, monkeypatch
+):
+    history = alias_history(genesis, identities, "node")
+    api = alias_api(history, monkeypatch, numeric=1000, node="R_other_node")
+    before = history.state.registry.domain("circle-1")
+    src = history.prepare(
+        "registry-add", replacement(history, "1000", "another-domain"), AGENT0
+    )
+    assert (
+        g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)[
+            "status"
+        ]
+        == "recorded"
+    )
+    _, genesis, entries, _ = g.Journal(api).read()
+    state = c.replay(genesis, entries)
+    assert state.registry.domain("circle-1") == before
+    assert state.registry.domain("another-domain").repository_id == "1000"
+    assert entries[-1]["repositories"][0]["repository_id"] == "R_other_node"

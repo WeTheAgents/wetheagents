@@ -73,3 +73,13 @@ An explicit workflow dispatch supplies initiative_comment_id and initiative_sha2
 The handler checks current main, the installed package, operator authority, body hash, and trusted workflow provenance.
 Ordinary comments cannot activate the policy. Before activation, the writer leaves ordinary initiative declarations without effect.
 The handler keeps package update and activation dispatches separate. This task performs neither operation.
+
+
+## Repository identity aliases
+
+References can name the numeric REST ID or GraphQL node ID returned for the same repository.
+Verified observations retain repository_aliases and the canonical node ID. The writer compares both forms before changing a binding or adding a Domain.
+An alternate ID spelling cannot register the same physical repository twice or create a replacement binding.
+A same-repository observation preserves the original Domain record, binding revision, and grants.
+Early preflight authenticates the source. Only unresolved identity comparison waits for the required repository read.
+Historical records are not rewritten or migrated to another ID spelling.

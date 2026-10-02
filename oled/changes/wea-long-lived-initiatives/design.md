@@ -190,3 +190,8 @@ Only verified observations enter accepted records. An authorized required read f
 New participation checks the Steward's canonical agent registration at both source and acceptance time.
 Related tasks use exact GitHub Issue URLs containing an owner, repository, and positive Issue number.
 These corrections preserve accepted authority, intervals, historical grants, and financial obligations.
+
+
+Review correction: repository uniqueness and replacement compare the verified numeric/node identity pair, while retaining original Domain record bytes.
+The existing protected writer list now pins initiatives.py. Ordinary source edits cannot alter initiative or binding authority without the existing installation gate.
+This adds no guard exemption, new role, or live activation.

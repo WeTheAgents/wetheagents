@@ -176,6 +176,7 @@ def _install_pinned_boundary(root: Path) -> None:
         "src/wea_vnext/domain_access.py",
         "src/wea_vnext/access_control.py",
         "src/wea_vnext/access_protocol.py",
+        "src/wea_vnext/initiatives.py",
         "src/wea_vnext/access_github.py",
         "src/wea_cli/access.py",
         *(
@@ -545,6 +546,7 @@ def test_ordinary_pr_rejects_a_new_javascript_ledger_writer(
         "src/wea_vnext/executors/v0_9_0/manifest.json",
         "src/wea_vnext/rulesets/0.9.json",
         "src/wea_vnext/tide/__init__.py",
+        "src/wea_vnext/initiatives.py",
         "src/wea_vnext/__init__.py",
     ],
 )

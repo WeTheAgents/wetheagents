@@ -65,3 +65,17 @@ Exact failure: existing writer boundary source changed: .github/workflows/access
 Run: https://github.com/WeTheAgents/wetheagents/actions/runs/36998956153/job/110811990321.
 This is a separate installation authorization gate. It is not waived, bypassed, or reported as passing.
 No merge, installation, activation, live journal update, funding, repository creation, or public operation is performed.
+
+
+## Full normalized run and second review
+
+The complete LF-normalized scoped run on 6bd15f3b8c7bc01491a17809f4f355f8ba6a630f passes: 229 tests, exit 0, 670.98 seconds.
+Evidence: scoped-lf-6bd15f3b.log, scoped-lf-6bd15f3b.xml, and scoped-lf-6bd15f3b-exit.json.
+The native review of that head completed with one P2 repository-ID alias finding; its own 202 scoped tests passed.
+This supersedes the earlier mixed full-run outcome. The native verdict was not clean.
+The next candidate fixes both numeric/node directions, duplicate registration, and same-repository observations without rewriting old bindings.
+A separate source-boundary probe identified an unpinned initiatives.py. The candidate adds one protected pin and two existing regression cases.
+Focused alias/context/guard checks pass: 11 tests, exit 0, 41.48 seconds. Evidence: identity-pin-focused-green.log and its exit receipt.
+Two preliminary focused runs found synthetic fixture and preflight errors. Their failure logs are retained; no live data was written.
+The final candidate still requires its complete scoped/guard run and post-fix native review. Exact receipts are retained in the PR and handoff.
+No new installation authorization is inferred from these corrections.

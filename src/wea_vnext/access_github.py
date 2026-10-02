@@ -641,6 +641,7 @@ def process(
                     {
                         "requested_locator": r["repository_locator"],
                         "repository_id": r["repository_id"],
+                        "repository_aliases": [r["repository_id"]],
                         "repository_locator": r["repository_locator"],
                         **(
                             {
@@ -668,6 +669,7 @@ def process(
                     provisional,
                     journal.protocol,
                     provenance,
+                    preflight=True,
                 )
                 if preliminary["status"] == "rejected" or "duplicate_of" in preliminary:
                     refs = []
@@ -679,17 +681,26 @@ def process(
                     "https://api.github.com/repos/"
                     + locator.removeprefix("https://github.com/")
                 )
+                if type(repo["id"]) is not int or repo["id"] <= 0:
+                    raise ValueError("required repository numeric identity read failed")
                 observations.append(
                     {
                         "requested_locator": locator,
-                        "repository_id": ref["repository_id"]
-                        if ref["repository_id"] in {str(repo["id"]), repo["node_id"]}
-                        else repo["node_id"],
+                        "repository_id": repo["node_id"],
+                        "repository_aliases": sorted(
+                            {str(repo["id"]), repo["node_id"]}
+                        ),
                         "repository_locator": "https://github.com/" + repo["full_name"],
                     }
                 )
                 if command["operation"] in {"registry-add", "registry-replace"}:
                     revision = command["payload"]["record"]["revision"]
+                    if (
+                        ref["repository_id"]
+                        not in observations[-1]["repository_aliases"]
+                    ):
+                        observations[-1]["context_revision"] = None
+                        continue
                     value = api.graphql(
                         "query($id:ID!,$revision:String!){node(id:$id){"
                         "... on Repository{id nameWithOwner "

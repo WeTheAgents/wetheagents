@@ -224,12 +224,29 @@ def repositories(command: dict, observations: list[dict]) -> None:
         context = command["operation"] in {"registry-add", "registry-replace"}
         fields(
             observed,
-            {"requested_locator", "repository_id", "repository_locator"}
+            {
+                "requested_locator",
+                "repository_id",
+                "repository_aliases",
+                "repository_locator",
+            }
             | ({"context_revision"} if context else set()),
         )
+        aliases = observed["repository_aliases"]
+        if (
+            type(aliases) is not list
+            or not 1 <= len(aliases) <= 2
+            or any(type(alias) is not str for alias in aliases)
+            or aliases != sorted(set(aliases))
+        ):
+            raise ValueError("repository aliases must be exact unique permanent IDs")
+        for alias in aliases:
+            aliased = {**payload, "repository_id": alias}
+            DomainRecord(**aliased, record_hash=digest(aliased))
         if (
             observed["requested_locator"] != ref["repository_locator"]
-            or observed["repository_id"] != ref["repository_id"]
+            or ref["repository_id"] not in aliases
+            or observed["repository_id"] not in aliases
         ):
             raise ValueError("resolved repository ID differs")
         if context:
@@ -250,6 +267,8 @@ def decide(
     observations: list[dict],
     package: dict,
     provenance: dict,
+    *,
+    preflight: bool = False,
 ) -> tuple[DomainAccessState | State, dict]:
     result: dict[str, Any] = {
         "status": "rejected",
@@ -328,7 +347,9 @@ def decide(
                 raise ValueError("initiative policy is not active at the source time")
             repositories(command, observations)
             if op.startswith("registry-") or op == "repository-observe":
-                candidate = registry_decision(state, command, observations, at)
+                candidate = registry_decision(
+                    state, command, observations, at, resolve_identity=not preflight
+                )
             elif op == "grant":
                 if command["actor"] != payload.get("issuer"):
                     raise ValueError("grant actor must select its explicit issuer role")
@@ -356,7 +377,12 @@ def decide(
 
 
 def registry_decision(
-    state: State, command: dict, observations: list, at: datetime
+    state: State,
+    command: dict,
+    observations: list,
+    at: datetime,
+    *,
+    resolve_identity: bool = True,
 ) -> State:
     op, payload = command["operation"], command["payload"]
     fields(payload, {"previous_registry", "record", "reason"})
@@ -371,8 +397,10 @@ def registry_decision(
     old = next(
         (r for r in state.registry.records if r.domain_id == record.domain_id), None
     )
+    aliases = observations[0]["repository_aliases"]
+    same_repository = old is not None and old.repository_id in aliases
     if op == "repository-observe":
-        if not old or old.repository_id != record.repository_id:
+        if old is None or (resolve_identity and not same_repository):
             raise ValueError(
                 "observation requires the existing permanent repository ID"
             )
@@ -388,13 +416,18 @@ def registry_decision(
     if op == "registry-add" and old is not None:
         raise ValueError("Domain already exists; use an exact replacement")
     if op == "registry-replace" and (
-        old is None
-        or command["actor"]["kind"] != "operator"
-        or old.repository_id == record.repository_id
+        old is None or command["actor"]["kind"] != "operator" or same_repository
     ):
         raise ValueError("replacement requires operator and a different repository ID")
     if op not in {"registry-add", "registry-replace"}:
         raise ValueError("unknown registry operation")
+    if any(
+        r.domain_id != record.domain_id and r.repository_id in aliases
+        for r in state.registry.records
+    ):
+        raise ValueError(
+            "permanent repository is already registered under another Domain"
+        )
     registry = build_domain_registry(
         (
             *[r for r in state.registry.records if r.domain_id != record.domain_id],
