@@ -113,6 +113,8 @@ def authority(
     command: dict[str, Any],
     identities: dict[str, Any],
     at: datetime,
+    *,
+    require_recipient: bool = True,
 ) -> VerifiedAccessAuthority:
     modules = load_executor(installed_executor("0.9.0").reference).import_modules(
         ("identity",)
@@ -169,9 +171,12 @@ def authority(
         and b.subject_id == command["agent_id"]
         and b.active_at(at)
     ]
-    if len(recipients) != 1 or not any(
-        a.github_account_id == recipients[0].github_account_id
-        for a in registry.accounts
+    if require_recipient and (
+        len(recipients) != 1
+        or not any(
+            a.github_account_id == recipients[0].github_account_id
+            for a in registry.accounts
+        )
     ):
         raise ValueError("recipient is not canonically registered at acceptance")
     return VerifiedAccessAuthority(
@@ -239,6 +244,12 @@ def decide(
             }
         if command["registry_hash"] != genesis["registry_hash"]:
             raise ValueError("requested Domain registry differs")
+        from .initiatives import State
+
+        if isinstance(state, State):
+            raise ValueError(
+                "active initiative policy requires an explicit binding grant"
+            )
         witness = authority(source, command, identities, at)
         candidate = replace(
             state, authority_bindings=(*state.authority_bindings, witness)
@@ -265,7 +276,7 @@ def decide(
 
 
 def replay(genesis: dict[str, Any], entries: list[dict[str, Any]]) -> DomainAccessState:
-    from . import access_protocol
+    from . import access_protocol, initiatives
 
     state = initial_state(genesis)
     package = access_protocol.package(genesis, [])
@@ -279,6 +290,37 @@ def replay(genesis: dict[str, Any], entries: list[dict[str, Any]]) -> DomainAcce
         if entry["schema"] == access_protocol.SCHEMA:
             access_protocol.validate(genesis, package, entry)
             package = access_protocol.package(genesis, [entry])
+            seen.add(source_id)
+            last_at = timestamp(entry["accepted_at"])
+            continue
+        if entry["schema"] == initiatives.SCHEMA:
+            if set(entry) != {
+                "schema",
+                "source",
+                "identities",
+                "identity_commit",
+                "accepted_at",
+                "provenance",
+                "decision",
+                "repositories",
+            }:
+                raise ValueError("initiative journal fields differ")
+            if not re.fullmatch(r"[0-9a-f]{40}", entry["identity_commit"]):
+                raise ValueError("initiative identity commit differs")
+            state, expected = initiatives.decide(
+                genesis,
+                state,
+                previous,
+                entry["source"],
+                entry["identities"],
+                entry["accepted_at"],
+                entry["repositories"],
+                package,
+                entry["provenance"],
+            )
+            if canonical(expected) != canonical(entry["decision"]):
+                raise ValueError("initiative decision differs from evidence replay")
+            previous.append(entry)
             seen.add(source_id)
             last_at = timestamp(entry["accepted_at"])
             continue

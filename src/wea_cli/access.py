@@ -14,7 +14,7 @@ from wea_vnext import access_control as control
 from wea_vnext.access_github import COMMENT_LIMIT, GitHub, Journal, comments, repository
 from wea_vnext.tide.collection import API_ROOT, REPOSITORY
 from wea_vnext.tide.github import GitHubError
-from wea_vnext.tide.replay import canonical
+from wea_vnext.tide.replay import canonical, digest
 
 
 def gh(*args: str) -> str:
@@ -45,19 +45,58 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:
     group = show.add_mutually_exclusive_group(required=True)
     group.add_argument("--agent")
     group.add_argument("--request-id")
+    group.add_argument(
+        "--initiative", help="Read an initiative card and its exact revision"
+    )
+    group.add_argument(
+        "--registry",
+        action="store_true",
+        help="Read immutable Domain binding revisions",
+    )
     show.set_defaults(_handler=command)
 
 
 def read(
     api: GitHub, args: argparse.Namespace, account: str, journal: Journal | None = None
 ) -> dict:
-    head, genesis, entries, commits = (
-        journal or Journal(api, verify_closure=False)
-    ).read()
+    reader = journal or Journal(api, verify_closure=False)
+    head, genesis, entries, commits = reader.read()
     if genesis is None:
         return {"status": "disabled"}
     repository(api, genesis["issue_number"])
     now = control.utcnow()
+    from wea_vnext.initiatives import POLICY, State
+
+    if getattr(args, "registry", False):
+        groups = (
+            reader.state.groups if isinstance(reader.state, State) else (reader.state,)
+        )
+        return {
+            "status": "observed",
+            "journal_commit": head,
+            "policy": POLICY if isinstance(reader.state, State) else None,
+            "registry": reader.state.registry.to_mapping(),
+            "registry_revision": reader.state.registry_revision
+            if isinstance(reader.state, State)
+            else reader.state.registry.registry_hash,
+            "binding_revisions": {
+                r.domain_id: reader.state.binding_revision(r.domain_id)
+                if isinstance(reader.state, State)
+                else r.record_hash
+                for r in reader.state.registry.records
+            },
+            "binding_history": [group.registry.to_mapping() for group in groups],
+        }
+    if getattr(args, "initiative", None):
+        if not isinstance(reader.state, State):
+            return {"status": "disabled", "journal_commit": head}
+        card = reader.state.initiatives.get(args.initiative)
+        return {
+            "status": "observed" if card else "not-found",
+            "journal_commit": head,
+            "initiative": card,
+            "revision": digest(card) if card else None,
+        }
     selected = []
     for entry, commit in zip(entries, commits, strict=True):
         decision = entry["decision"]
@@ -68,7 +107,10 @@ def read(
                 and entry["source"]["original_author_account_id"] == account
             )
         else:
-            matches = request.get("agent_id") == args.agent
+            matches = (
+                request.get("agent_id", request.get("payload", {}).get("agent_id"))
+                == args.agent
+            )
         if matches:
             selected.append(control.view(entry, commit, now))
     pending = []
@@ -79,7 +121,15 @@ def read(
         ) <= control.timestamp(genesis["cutoff"]):
             continue
         try:
-            request = control.request(row.get("body") or "")
+            from wea_vnext.initiatives import MARKER
+            from wea_vnext.initiatives import request as initiative_request
+
+            body = row.get("body") or ""
+            request = (
+                initiative_request(body)
+                if body.startswith(MARKER)
+                else control.request(body)
+            )
         except (ValueError, TypeError, AttributeError, KeyError):
             continue
         if (
@@ -87,7 +137,9 @@ def read(
             and request["request_id"] == args.request_id
             and str(row["user"]["id"]) == account
         ) or (
-            not getattr(args, "request_id", None) and request["agent_id"] == args.agent
+            not getattr(args, "request_id", None)
+            and request.get("agent_id", request.get("payload", {}).get("agent_id"))
+            == args.agent
         ):
             pending.append(
                 {"status": "pending", "request": request, "source_url": row["html_url"]}
@@ -134,8 +186,26 @@ def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> d
         "issuer": issuer,
         "registry_hash": genesis["registry_hash"],
     }
-    body = control.MARKER + canonical(request).decode("utf-8")
-    control.request(body)
+    from wea_vnext.initiatives import MARKER, SCHEMA, State
+
+    if isinstance(journal.state, State):
+        request = {
+            "schema": SCHEMA,
+            "request_id": identifier,
+            "actor": issuer,
+            "operation": "grant",
+            "payload": {
+                "agent_id": args.agent,
+                "domain_id": args.domain,
+                "issuer": issuer,
+                "registry_hash": journal.state.registry_revision,
+                "binding_revision": journal.state.binding_revision(args.domain),
+            },
+        }
+        body = MARKER + canonical(request).decode("utf-8")
+    else:
+        body = control.MARKER + canonical(request).decode("utf-8")
+        control.request(body)
     saved = {
         "repository": REPOSITORY,
         "account_id": account,
@@ -151,10 +221,30 @@ def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> d
             file.flush()
             os.fsync(file.fileno())
     except FileExistsError:
-        if control.strict_json(path.read_text(encoding="utf-8")) != saved:
+        retained = control.strict_json(path.read_text(encoding="utf-8"))
+        # Resume retained bytes even if the current registry pointer moved.
+        from wea_vnext.initiatives import request as initiative_request
+
+        retained_body = retained.get("body", "")
+        retained_request = (
+            initiative_request(retained_body)
+            if retained_body.startswith(MARKER)
+            else control.request(retained_body)
+        )
+        retained_payload = retained_request.get("payload", retained_request)
+        if (
+            {k: retained.get(k) for k in ("repository", "account_id", "issue_number")}
+            != {k: saved[k] for k in ("repository", "account_id", "issue_number")}
+            or retained_request["request_id"] != identifier
+            or retained_payload.get("agent_id") != args.agent
+            or retained_payload.get("domain_id") != args.domain
+            or retained_payload.get("issuer") != issuer
+            or retained_request.get("operation", "grant") != "grant"
+        ):
             raise ValueError(
                 "retained request ID belongs to a different account or payload"
             ) from None
+        request, body = retained_request, retained_body
     print(
         json.dumps(
             {"status": "retained", "request_id": identifier, "local_request": str(path)}

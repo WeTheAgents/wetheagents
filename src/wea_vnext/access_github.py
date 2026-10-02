@@ -627,20 +627,133 @@ def process(
         if existing is not None:
             return control.view(entries[existing], commits[existing], clock())
         accepted = json_data(clock())
-        candidate_state, decision = control.decide(
-            genesis,
-            journal.state,
-            entries,
-            source,
-            identities,
-            accepted,
-        )
+        from . import initiatives
+
+        initiative = source["body"].startswith(initiatives.MARKER)
+        observations = []
+        if initiative:
+            # Resolve by locator, then check the permanent ID before any append.
+            refs = []
+            try:
+                command = initiatives.request(source["body"])
+                refs = initiatives.repository_refs(command)
+                provisional = [
+                    {
+                        "requested_locator": r["repository_locator"],
+                        "repository_id": r["repository_id"],
+                        "repository_aliases": [r["repository_id"]],
+                        "repository_locator": r["repository_locator"],
+                        **(
+                            {
+                                "context_revision": command["payload"]["record"][
+                                    "revision"
+                                ]
+                            }
+                            if command["operation"]
+                            in {"registry-add", "registry-replace"}
+                            else {}
+                        ),
+                    }
+                    for r in refs
+                ]
+                initiatives.repositories(command, provisional)
+                # Pure preflight rejects unauthorized, stale, and inapplicable
+                # requests before any required network read can block intake.
+                _, preliminary = initiatives.decide(
+                    genesis,
+                    journal.state,
+                    entries,
+                    source,
+                    identities,
+                    accepted,
+                    provisional,
+                    journal.protocol,
+                    provenance,
+                    preflight=True,
+                )
+                if preliminary["status"] == "rejected" or "duplicate_of" in preliminary:
+                    refs = []
+            except (ValueError, KeyError, TypeError, AttributeError):
+                refs = []
+            for ref in refs:
+                locator = ref["repository_locator"]
+                repo = api.get(
+                    "https://api.github.com/repos/"
+                    + locator.removeprefix("https://github.com/")
+                )
+                if type(repo["id"]) is not int or repo["id"] <= 0:
+                    raise ValueError("required repository numeric identity read failed")
+                observations.append(
+                    {
+                        "requested_locator": locator,
+                        "repository_id": repo["node_id"],
+                        "repository_aliases": sorted(
+                            {str(repo["id"]), repo["node_id"]}
+                        ),
+                        "repository_locator": "https://github.com/" + repo["full_name"],
+                    }
+                )
+                if command["operation"] in {"registry-add", "registry-replace"}:
+                    revision = command["payload"]["record"]["revision"]
+                    if (
+                        ref["repository_id"]
+                        not in observations[-1]["repository_aliases"]
+                    ):
+                        observations[-1]["context_revision"] = None
+                        continue
+                    value = api.graphql(
+                        "query($id:ID!,$revision:String!){node(id:$id){"
+                        "... on Repository{id nameWithOwner "
+                        "object(expression:$revision){"
+                        "... on Commit{oid}}}}}",
+                        {"id": repo["node_id"], "revision": revision},
+                    )
+                    node = value.get("data", {}).get("node")
+                    if (
+                        value.get("errors")
+                        or not node
+                        or node.get("id") != repo["node_id"]
+                    ):
+                        raise ValueError(
+                            "required permanent repository context read failed"
+                        )
+                    if not node.get("object") or node["object"].get("oid") != revision:
+                        raise ValueError(
+                            "context revision is not a commit "
+                            "in the permanent repository"
+                        )
+                    observations[-1].update(
+                        context_revision=revision,
+                        repository_locator="https://github.com/"
+                        + node["nameWithOwner"],
+                    )
+            candidate_state, decision = initiatives.decide(
+                genesis,
+                journal.state,
+                entries,
+                source,
+                identities,
+                accepted,
+                observations,
+                journal.protocol,
+                provenance,
+            )
+        else:
+            candidate_state, decision = control.decide(
+                genesis,
+                journal.state,
+                entries,
+                source,
+                identities,
+                accepted,
+            )
         if len(candidate_state.grants) > MAX_GRANTS:
             raise ValueError(
                 "Access pilot grant capacity reached; existing history remains readable"
             )
         entry = {
-            "schema": control.SCHEMA,
+            "schema": initiatives.SCHEMA if initiative else control.SCHEMA,
+            **({"repositories": observations} if initiative else {}),
             "source": source,
             "identities": identities,
             "identity_commit": identity_commit,
@@ -729,8 +842,18 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "workflow": WORKFLOW,
     }
     update_comment = getattr(args, "protocol_comment_id", None)
-    if update_comment and args.activation_comment_id:
-        raise ValueError("activation and protocol update are separate operations")
+    if (
+        sum(
+            bool(value)
+            for value in (
+                update_comment,
+                args.activation_comment_id,
+                getattr(args, "initiative_comment_id", None),
+            )
+        )
+        > 1
+    ):
+        raise ValueError("installation updates and activation are separate operations")
     if update_comment:
         if workflow_run["event"] != "workflow_dispatch":
             raise ValueError("protocol updates require explicit workflow dispatch")
@@ -759,16 +882,54 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("activated Issue or protocol closure differs")
     engine, _ = load(root, base)
     identities = json_data(engine.registry)
+    from . import initiatives
+
+    policy_comment = getattr(args, "initiative_comment_id", None)
+    if policy_comment:
+        if workflow_run["event"] != "workflow_dispatch":
+            raise ValueError(
+                "initiative activation requires explicit workflow dispatch"
+            )
+        row = api.get(f"{API_ROOT}/issues/comments/{int(policy_comment)}")
+        source = capture(api, genesis["issue_number"], row)
+        if source["content_hash"] != args.initiative_sha256:
+            raise ValueError("initiative activation body hash differs")
+        if initiatives.request(source["body"])["operation"] != "activate-policy":
+            raise ValueError("initiative activation dispatch names another operation")
+        if api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base:
+            raise ValueError("canonical main changed before activation")
+        process(
+            api,
+            source,
+            identities,
+            base,
+            {
+                **provenance,
+                "event": "workflow_dispatch",
+                "initiative_activation": source["content_hash"],
+            },
+            journal=journal,
+        )
+        head, genesis, entries, _ = journal.read()
     processed = {e["source"]["object_id"] for e in entries}
     rows = comments(api, genesis["issue_number"])
     for row in sorted(rows, key=lambda r: (r["created_at"], r["id"])):
         if str(row["id"]) in processed or not (row.get("body") or "").startswith(
-            control.MARKER
+            (control.MARKER, initiatives.MARKER)
         ):
             continue
         if control.timestamp(row["created_at"]) <= control.timestamp(genesis["cutoff"]):
             continue
         source = capture(api, genesis["issue_number"], row)
+        if source["body"].startswith(initiatives.MARKER):
+            if not isinstance(journal.state, initiatives.State):
+                continue
+            try:
+                operation = initiatives.request(source["body"])["operation"]
+            except (ValueError, KeyError, TypeError, AttributeError):
+                operation = None
+            if operation == "activate-policy":
+                continue
         if api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base:
             raise ValueError("canonical identity snapshot changed; dispatch again")
         process(api, source, identities, base, provenance, journal=journal)
@@ -784,6 +945,8 @@ def main() -> int:
     parser.add_argument("--activation-sha256", default="")
     parser.add_argument("--protocol-comment-id", type=int)
     parser.add_argument("--protocol-sha256", default="")
+    parser.add_argument("--initiative-comment-id", type=int)
+    parser.add_argument("--initiative-sha256", default="")
     args = parser.parse_args()
     try:
         print(json.dumps(run(args), ensure_ascii=False))

@@ -366,6 +366,7 @@ _GITHUB_NATIVE_PINNED_FILES = {
     "src/wea_vnext/domain_access.py",
     "src/wea_vnext/access_control.py",
     "src/wea_vnext/access_protocol.py",
+    "src/wea_vnext/initiatives.py",
     "src/wea_vnext/access_github.py",
     "src/wea_cli/access.py",
     "src/wea_vnext/tide/__main__.py",

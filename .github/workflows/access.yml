@@ -25,6 +25,14 @@ on:
         description: SHA-256 of the exact protocol-update comment body
         type: string
         default: ""
+      initiative_comment_id:
+        description: Exact operator initiative-policy activation; separate from installation
+        type: string
+        default: ""
+      initiative_sha256:
+        description: SHA-256 of the exact initiative-policy activation body
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -41,7 +49,8 @@ jobs:
       github.repository == 'WeTheAgents/wetheagents' &&
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'workflow_dispatch' ||
-       (!github.event.issue.pull_request && startsWith(github.event.comment.body, '<!-- wea-access -->')))
+       (!github.event.issue.pull_request && (startsWith(github.event.comment.body, '<!-- wea-access -->') ||
+        startsWith(github.event.comment.body, '<!-- wea-initiative -->'))))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -63,6 +72,8 @@ jobs:
           ACTIVATION_SHA256: ${{ inputs.activation_sha256 }}
           PROTOCOL_COMMENT_ID: ${{ inputs.protocol_comment_id }}
           PROTOCOL_SHA256: ${{ inputs.protocol_sha256 }}
+          INITIATIVE_COMMENT_ID: ${{ inputs.initiative_comment_id }}
+          INITIATIVE_SHA256: ${{ inputs.initiative_sha256 }}
         run: |
           set -euo pipefail
           args=()
@@ -71,5 +82,8 @@ jobs:
           fi
           if [ -n "$PROTOCOL_COMMENT_ID" ]; then
             args+=(--protocol-comment-id "$PROTOCOL_COMMENT_ID" --protocol-sha256 "$PROTOCOL_SHA256")
+          fi
+          if [ -n "$INITIATIVE_COMMENT_ID" ]; then
+            args+=(--initiative-comment-id "$INITIATIVE_COMMENT_ID" --initiative-sha256 "$INITIATIVE_SHA256")
           fi
           python -m wea_vnext.access_github "${args[@]}"
