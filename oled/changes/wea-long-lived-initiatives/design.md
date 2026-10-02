@@ -110,7 +110,11 @@ The proposed initiative can reference this old repository as evidence without re
 A future repository named `circle-1` receives a different permanent ID. That ID is unknown until separately authorized creation.
 Under accepted D4, an exact operator registry decision binds `circle-1` to the new repository through a new revision.
 Existing grants and tasks keep the old revision. New trips and Drafts must name the new revision explicitly.
-The stable Domain ID preserves continuity. Each immutable record hash identifies one binding revision.
+The stable Domain ID preserves continuity. The record hash identifies immutable content. A binding revision also identifies its accepted generation.
+The genesis binding retains its original record hash for historical compatibility.
+Later binding revisions hash the record, registry generation, and previous binding.
+An explicit A-to-B-to-A restoration creates a new generation and cannot revive A's old grants.
+An unrelated Domain addition preserves existing binding revisions.
 The replacement transfers no Access, Work, participant identity, budget, or credentials.
 
 The two confirmed October trips retain their original October 8 endpoints.
@@ -162,7 +166,7 @@ The operator states: «Участвует ли WEA в финансировани
 ## Exact implementation boundary
 
 `initiatives.State` retains registry-specific legacy Access states and accepted-time boundaries.
-Historical grants retain their original bytes and registry hashes. New grants name the exact Domain record hash.
+Historical grants retain their original bytes and registry hashes. New grants name the exact binding generation and current registry revision.
 `wea-initiative-1` decisions use the existing journal, immutable sources, canonical identities, and bounded append/readback path.
 The `activate-policy` record requires exact operator source, current installed package, body hash, and explicit workflow dispatch.
 Before activation, ordinary initiative sources have no effects. The implementation PR does not activate this record.
@@ -174,3 +178,15 @@ The implementation uses no new dependency, service, worker, authoritative branch
 
 Initial size estimate: eight existing product files and one new module, about 1,100 changed product lines.
 Tests and OLED records are separate evidence. Reconsider Design after three additional product files or 150 additional product lines.
+
+
+## Review corrections
+
+Registry revisions hash the ordered registry content and accepted boundary prefix. Equal content does not restore an old predecessor.
+New request registry_hash and previous_registry fields name that revision. Retained AccessGrant registry_hash values remain historical content hashes.
+The readonly registry view supplies current registry_revision and binding_revisions alongside unchanged immutable record content.
+The pure intake preflight rejects unauthorized, stale, or inapplicable sources before required repository reads.
+Only verified observations enter accepted records. An authorized required read failure still blocks publication.
+New participation checks the Steward's canonical agent registration at both source and acceptance time.
+Related tasks use exact GitHub Issue URLs containing an owner, repository, and positive Issue number.
+These corrections preserve accepted authority, intervals, historical grants, and financial obligations.

@@ -76,6 +76,15 @@ def read(
             "journal_commit": head,
             "policy": POLICY if isinstance(reader.state, State) else None,
             "registry": reader.state.registry.to_mapping(),
+            "registry_revision": reader.state.registry_revision
+            if isinstance(reader.state, State)
+            else reader.state.registry.registry_hash,
+            "binding_revisions": {
+                r.domain_id: reader.state.binding_revision(r.domain_id)
+                if isinstance(reader.state, State)
+                else r.record_hash
+                for r in reader.state.registry.records
+            },
             "binding_history": [group.registry.to_mapping() for group in groups],
         }
     if getattr(args, "initiative", None):
@@ -189,8 +198,8 @@ def submit(api: GitHub, args: argparse.Namespace, account: str, root: Path) -> d
                 "agent_id": args.agent,
                 "domain_id": args.domain,
                 "issuer": issuer,
-                "registry_hash": journal.state.registry.registry_hash,
-                "binding_revision": journal.state.binding(args.domain).record_hash,
+                "registry_hash": journal.state.registry_revision,
+                "binding_revision": journal.state.binding_revision(args.domain),
             },
         }
         body = MARKER + canonical(request).decode("utf-8")

@@ -637,27 +637,40 @@ def process(
             try:
                 command = initiatives.request(source["body"])
                 refs = initiatives.repository_refs(command)
-                initiatives.repositories(
-                    command,
-                    [
-                        {
-                            "requested_locator": r["repository_locator"],
-                            "repository_id": r["repository_id"],
-                            "repository_locator": r["repository_locator"],
-                            **(
-                                {
-                                    "context_revision": command["payload"]["record"][
-                                        "revision"
-                                    ]
-                                }
-                                if command["operation"]
-                                in {"registry-add", "registry-replace"}
-                                else {}
-                            ),
-                        }
-                        for r in refs
-                    ],
+                provisional = [
+                    {
+                        "requested_locator": r["repository_locator"],
+                        "repository_id": r["repository_id"],
+                        "repository_locator": r["repository_locator"],
+                        **(
+                            {
+                                "context_revision": command["payload"]["record"][
+                                    "revision"
+                                ]
+                            }
+                            if command["operation"]
+                            in {"registry-add", "registry-replace"}
+                            else {}
+                        ),
+                    }
+                    for r in refs
+                ]
+                initiatives.repositories(command, provisional)
+                # Pure preflight rejects unauthorized, stale, and inapplicable
+                # requests before any required network read can block intake.
+                _, preliminary = initiatives.decide(
+                    genesis,
+                    journal.state,
+                    entries,
+                    source,
+                    identities,
+                    accepted,
+                    provisional,
+                    journal.protocol,
+                    provenance,
                 )
+                if preliminary["status"] == "rejected" or "duplicate_of" in preliminary:
+                    refs = []
             except (ValueError, KeyError, TypeError, AttributeError):
                 refs = []
             for ref in refs:

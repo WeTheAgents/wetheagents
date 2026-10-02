@@ -7,7 +7,7 @@ Bindings: Outcome 0.2, Spec 1.0, Design 1.0. Candidate implementation; no produc
 - Full scoped run: 219 passed in 544.89 seconds. Exit 0.
 - Modules: test_initiatives, test_access_runtime, test_access_protocol_transition, test_tide_domain_admission, test_tide_replay, test_tide_ledger.
 - The same run includes scenario registry, runtime boundary, and Domain registry checks.
-- Repository-reference completion receives a separate focused run, retained in references-tests.log.
+- Repository-reference completion: 11 passed in 65.82 seconds. Evidence: references-tests.log.
 - Ruff and doc-sync pass. Canonical Tide 22 replay passes: opening supply 19025, escrow 0, balances plus escrow 19025.
 - Evidence directory: D:/AgentRuns/wea/agent0/20261002-long-lived-initiatives-implementation/.
 
@@ -47,4 +47,21 @@ The implementation adds no dependency, service, authoritative journal, financial
 The operator-appointed Circle-1 Domain Steward remains unchanged. Initiative succession creates only coordination responsibility in its explicit scope.
 Installation, exact package transition, policy activation, public opening, and repository creation require separate decisions.
 The protected-package guard remains enforced. A draft installation CI rejection is not waived by this implementation approval.
-Draft publication, native review, and CI results remain pending at this pre-publication checkpoint.
+Draft PR: https://github.com/WeTheAgents/wetheagents/pull/1029. The task remains occupied on work/agent0.
+Native review uses Codex 0.159.2 and gpt-6.1-sol, without a model override.
+The exact reviewed source head, verdict, and latest CI receipts are retained in the PR and private evidence directory.
+The first native review of 7ca322043d3393a7817a803e6897f62a1b5aeafa completed with three actionable findings.
+It identified unauthenticated repository lookup, expired Steward participation, and non-task URLs.
+The candidate fixes those findings and the self-reviewed A-to-B-to-A predecessor and grant-scope defect.
+Focused regression run: 9 passed in 64.91 seconds. Evidence: review-fixes-focused.log.
+Post-fix scoped run: 2 failed, 227 passed in 731.76s (0:12:11). The two failures identify a CRLF/LF mismatch in copied protocol bytes.
+Owned files now use canonical LF. Both failed activation cases pass on their exact repeat: 2 passed in 2.21 seconds.
+Evidence: review-fixes-scoped.log and review-activation-after-lf.log, with their corresponding exit receipts.
+The combined results cover all 229 cases. This is not reported as one uninterrupted green run.
+Post-fix native review and new-head CI remain the next checkpoint.
+The first-head CI passes doc-sync, vNext Boundary, Semgrep, and Workers Builds.
+trusted-ledger-check and tide/replay reject the protected writer change in .github/workflows/access.yml.
+Exact failure: existing writer boundary source changed: .github/workflows/access.yml.
+Run: https://github.com/WeTheAgents/wetheagents/actions/runs/36998956153/job/110811990321.
+This is a separate installation authorization gate. It is not waived, bypassed, or reported as passing.
+No merge, installation, activation, live journal update, funding, repository creation, or public operation is performed.

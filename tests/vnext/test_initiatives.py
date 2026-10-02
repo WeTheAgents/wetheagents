@@ -402,7 +402,7 @@ def replacement(history, repository_id="R_new_repository", domain_id="circle-1")
         revision="d" * 40,
     )
     return {
-        "previous_registry": history.state.registry.registry_hash,
+        "previous_registry": history.state.registry_revision,
         "record": record.to_mapping(),
         "reason": "exact repository transition",
     }
@@ -484,9 +484,11 @@ def test_lri06_binding_a_never_authorizes_binding_b(genesis, identities):
         history.add("registry-replace", replacement(history), OPERATOR)["status"]
         == "recorded"
     )
-    record = history.state.binding("circle-1")
     old_scope = {"domain_id": "circle-1", "binding_revision": old_record.record_hash}
-    new_scope = {"domain_id": "circle-1", "binding_revision": record.record_hash}
+    new_scope = {
+        "domain_id": "circle-1",
+        "binding_revision": history.state.binding_revision("circle-1"),
+    }
     domain.require(history.state, old_scope, old_grant.agent_id, history.now)
     with pytest.raises(ValueError, match="needs active Access"):
         domain.require(history.state, new_scope, old_grant.agent_id, history.now)
@@ -500,8 +502,8 @@ def test_lri06_binding_a_never_authorizes_binding_b(genesis, identities):
         "agent_id": old_grant.agent_id,
         "domain_id": "circle-1",
         "issuer": AGENT0,
-        "registry_hash": history.state.registry.registry_hash,
-        "binding_revision": record.record_hash,
+        "registry_hash": history.state.registry_revision,
+        "binding_revision": history.state.binding_revision("circle-1"),
     }
     assert history.add("grant", grant, AGENT0)["status"] == "rejected"
     history.now = old_grant.ends_at
@@ -851,8 +853,8 @@ def test_lri06_delayed_legacy_body_and_global_cross_domain_overlap(history):
             "agent_id": "Codex-2@codex",
             "domain_id": domain_id,
             "issuer": AGENT0,
-            "registry_hash": history.state.registry.registry_hash,
-            "binding_revision": history.state.binding(domain_id).record_hash,
+            "registry_hash": history.state.registry_revision,
+            "binding_revision": history.state.binding_revision(domain_id),
         }
 
     assert history.add("grant", grant("circle-1"), AGENT0)["status"] == "granted"
@@ -993,9 +995,8 @@ def test_lri01_lri05_new_draft_requires_active_registered_steward(request, statu
         )["status"]
         == "recorded"
     )
-    record = history.state.binding("circle-1")
     sources[0]["body"] = (
-        f"<!-- wea:binding {record.record_hash} -->\n"
+        f"<!-- wea:binding {history.state.binding_revision('circle-1')} -->\n"
         "<!-- wea:initiative research -->\n" + sources[0]["body"]
     )
     body_hash = c.sha256(sources[0]["body"])
@@ -1023,7 +1024,7 @@ def test_lri01_lri05_new_draft_requires_active_registered_steward(request, statu
         assert state["escrow_wea"] == 100, state["dispositions"]
         assert state["domain_scopes"]["issue-42"] == {
             "domain_id": "circle-1",
-            "binding_revision": record.record_hash,
+            "binding_revision": history.state.binding_revision("circle-1"),
         }
         assert state["initiative_scopes"]["issue-42"] == "research"
     else:
@@ -1032,3 +1033,145 @@ def test_lri01_lri05_new_draft_requires_active_registered_steward(request, statu
             "active Steward"
             in state["dispositions"][sources[0]["revision_id"]]["reason"]
         )
+
+
+def test_lri04_lri06_aba_restore_creates_a_new_binding_and_registry_generation(
+    genesis, identities
+):
+    _, old = entry(
+        genesis,
+        identities,
+        declaration(genesis, at=AT - timedelta(seconds=30)),
+        at=AT - timedelta(seconds=30),
+    )
+    history = History(genesis, identities, old=[old])
+    original_record = history.state.registry.domain("circle-1")
+    original_registry = history.state.registry.registry_hash
+    original_binding = history.state.binding_revision("circle-1")
+    stale_payload = replacement(history, "R_future", "future-domain")
+    stale_command = i.request(
+        history.prepare("registry-add", stale_payload, AGENT0)["body"]
+    )
+    stale_source = source(
+        i.MARKER + canonical(stale_command).decode(), 999, history.now
+    )
+    assert (
+        history.add("registry-replace", replacement(history), OPERATOR)["status"]
+        == "recorded"
+    )
+    back = {
+        "previous_registry": history.state.registry_revision,
+        "record": original_record.to_mapping(),
+        "reason": "explicit restoration",
+    }
+    assert history.add("registry-replace", back, OPERATOR)["status"] == "recorded"
+    assert history.state.registry.registry_hash == original_registry
+    assert history.state.registry_revision != original_registry
+    assert history.state.binding_revision("circle-1") != original_binding
+    old_scope = {"domain_id": "circle-1", "binding_revision": original_binding}
+    current_scope = {
+        "domain_id": "circle-1",
+        "binding_revision": history.state.binding_revision("circle-1"),
+    }
+    domain.require(
+        history.state, old_scope, old["decision"]["grant"]["agent_id"], history.now
+    )
+    with pytest.raises(ValueError, match="needs active Access"):
+        domain.require(
+            history.state,
+            current_scope,
+            old["decision"]["grant"]["agent_id"],
+            history.now,
+        )
+    assert history.add_source(stale_source)["status"] == "rejected"
+
+
+@pytest.mark.parametrize("expired_at_source", [False, True])
+def test_lri05_expired_steward_blocks_new_participation(history, expired_at_source):
+    history.create()
+    assert history.decision()["status"] == "recorded"
+    instant = history.now
+    for binding in history.identities["bindings"]:
+        if binding["binding_id"] == AGENT["binding_id"]:
+            binding["effective_until"] = json_data(
+                instant if expired_at_source else instant + timedelta(seconds=1)
+            )
+    src = history.prepare(
+        "participate", history.card_payload(responsibility="replicate"), NEXT
+    )
+    result = history.add_source(src, accepted=instant + timedelta(seconds=2))
+    assert result["status"] == "rejected"
+    assert "canonically registered Steward" in result["reason"]
+    assert NEXT["subject"] not in history.state.initiatives["research"]["participants"]
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/",
+        "https://github.com/WeTheAgents/wetheagents",
+        "https://github.com/WeTheAgents/wetheagents/pull/1016",
+        "https://github.com/WeTheAgents/wetheagents/issues/0",
+        "https://github.com/WeTheAgents/wetheagents/issues/1016?different=1",
+    ],
+)
+def test_lri02_rejects_non_task_urls(history, url):
+    history.create()
+    result = history.add(
+        "decision",
+        history.card_payload(
+            status="active",
+            reason="test exact related task",
+            next_question="replicate",
+            evidence=EVIDENCE,
+            tasks=[url],
+        ),
+    )
+    assert result["status"] == "rejected"
+    assert "exact GitHub references" in result["reason"]
+
+
+def test_lri07_rejects_unauthorized_source_before_repository_lookup(
+    history, monkeypatch
+):
+    api = GitAPI()
+    journal = g.Journal(api)
+    journal.append(None, "genesis.json", history.genesis)
+    for item in history.entries:
+        prefix = "protocol" if item["schema"] == protocol.SCHEMA else "decision"
+        journal.append(
+            journal.head(), f"{prefix}-{item['source']['object_id']}.json", item
+        )
+    original = api.get
+    reads = []
+
+    def unavailable(path):
+        if path == "https://api.github.com/repos/WeTheAgents/nonexistent":
+            reads.append(path)
+            raise GitHubError("repository unavailable")
+        return original(path)
+
+    monkeypatch.setattr(api, "get", unavailable)
+    payload = {
+        **CREATE,
+        "repositories": [
+            {
+                "repository_id": "R_missing",
+                "repository_locator": "https://github.com/WeTheAgents/nonexistent",
+            }
+        ],
+    }
+    src = history.prepare("create", payload, {**AGENT, "binding_id": "unbound"})
+    result = g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+    assert result["status"] == "rejected" and not reads
+    assert "actor binding differs" in result["reason"]
+    legitimate = history.prepare("create", CREATE)
+    legitimate["object_id"] = "900"
+    legitimate["revision_id"] = "github:IC_900:created"
+    assert (
+        g.process(
+            api, legitimate, history.identities, "b" * 40, {}, lambda: history.now
+        )["status"]
+        == "recorded"
+    )
+    assert len(g.Journal(api).read()[2]) == len(history.entries) + 2

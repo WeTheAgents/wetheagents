@@ -26,7 +26,7 @@ Agent actors use `kind: agent`. Agent0 and operator use their existing roles for
 
 `previous_revision` is the SHA-256 of the canonical current card. `proposal_hash` binds the exact retained handoff proposal.
 `wea access show --initiative research` returns the current card and its exact revision.
-`wea access show --registry` returns the current registry and all immutable binding revisions.
+`wea access show --registry` returns registry_revision, binding_revisions, current registry content, and immutable registry history.
 An intervening card change cancels the pending handoff. A successor must submit fresh exact consent.
 Each repository reference contains `repository_id` and `repository_locator`. The permanent ID identifies the repository.
 The writer reads the locator and checks its permanent ID. A failed read prevents publication.
@@ -34,16 +34,18 @@ Registry additions and replacements also check the pinned commit through the per
 This lookup uses the [GitHub Repository object API](https://docs.github.com/en/graphql/reference/repos).
 Evidence contains inputs, method, result, limitations, references, common_control, and downstream_use.
 References and downstream_use contain explicit reference lists. Empty downstream_use asserts no actual downstream adoption.
-Participants review scientific value. Structured evidence and activity counts create no proof of usefulness or payment authority.
-Tasks contain exact GitHub references. An initiative link creates no funding or acceptance decision.
+New participation requires a canonically registered Steward at source and acceptance time. Participants review scientific value. Structured evidence and activity counts create no proof of usefulness or payment authority.
+Tasks contain exact GitHub Issue URLs: https://github.com/OWNER/REPOSITORY/issues/POSITIVE_NUMBER. An initiative link creates no funding or acceptance decision.
 
 ## Registry and grant operations
 
 Registry operations are `registry-add`, `registry-replace`, and `repository-observe`.
-Each payload contains previous_registry, record, and reason. The record uses the existing immutable DomainRecord format.
+Each payload contains previous_registry, record, and reason. The record uses the existing immutable DomainRecord format. previous_registry names the current registry_revision.
 Agent0 can add a verified repository. Only an exact operator source can replace an existing Domain repository ID.
 A same-ID rename records an observation. It changes no Domain binding or grant.
 The grant operation contains agent_id, domain_id, registry_hash, binding_revision, and issuer.
+New request registry_hash names registry_revision. binding_revision names the Domain's binding_revisions value.
+These generation identifiers remain distinct from immutable registry content hashes after a replacement.
 The outer actor must equal the explicit issuer. Only existing operator or Agent0 authority can grant Access.
 `wea access grant` selects this format after activation. It retains original request bytes across registry changes and retries.
 
@@ -53,7 +55,7 @@ After activation, a Domain Draft names its exact current binding at authenticate
 
 ```text
 <!-- wea:domain circle-1 -->
-<!-- wea:binding <64-character Domain record hash> -->
+<!-- wea:binding <64-character binding revision> -->
 <!-- wea:initiative research -->
 ```
 

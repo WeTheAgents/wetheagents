@@ -91,8 +91,7 @@ def scope(body: str, access: Any, at: datetime | None = None) -> Any:
         binding = [line for line in body.splitlines() if "<!-- wea:binding" in line]
         if len(binding) != 1 or not (revision := BINDING.fullmatch(binding[0])):
             raise ValueError("Draft requires one exact binding revision")
-        record = access.binding(selected, at)
-        if revision[1] != record.record_hash:
+        if revision[1] != access.binding_revision(selected, at):
             raise ValueError("Draft binding differs at its authenticated source time")
         return {"domain_id": selected, "binding_revision": revision[1]}
     access.binding(selected, at) if isinstance(

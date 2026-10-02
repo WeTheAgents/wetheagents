@@ -56,12 +56,60 @@ class State:
                     selected = group
         return selected.registry.domain(domain_id)
 
-    def grant_binding(self, grant):
-        return next(
-            group.registry.domain(grant.domain_id).record_hash
-            for group in self.groups
-            if group.registry.registry_hash == grant.registry_hash
+    def registry_revision_at(self, index: int) -> str:
+        if index == 0:
+            return self.groups[0].registry.registry_hash
+        return digest(
+            [
+                (group.registry.registry_hash, json_data(boundary))
+                for group, boundary in zip(
+                    self.groups[: index + 1], self.boundaries[: index + 1], strict=True
+                )
+            ]
         )
+
+    @property
+    def registry_revision(self) -> str:
+        return self.registry_revision_at(len(self.groups) - 1)
+
+    def binding_revision_at(self, domain_id: str, index: int) -> str:
+        previous_record = None
+        revision = None
+        for position, group in enumerate(self.groups[: index + 1]):
+            record = next(
+                (r for r in group.registry.records if r.domain_id == domain_id), None
+            )
+            if record is not None and record.record_hash != previous_record:
+                revision = (
+                    record.record_hash
+                    if position == 0
+                    else digest(
+                        {
+                            "record_hash": record.record_hash,
+                            "registry_revision": self.registry_revision_at(position),
+                            "previous_binding": revision,
+                        }
+                    )
+                )
+                previous_record = record.record_hash
+        if revision is None:
+            raise ValueError("Domain has no retained binding revision")
+        return revision
+
+    def binding_revision(self, domain_id: str, at: datetime | None = None) -> str:
+        index = len(self.groups) - 1
+        if at is not None:
+            index = max(
+                (i for i, boundary in enumerate(self.boundaries) if boundary <= at),
+                default=0,
+            )
+        return self.binding_revision_at(domain_id, index)
+
+    def grant_binding(self, grant):
+        index = next(
+            index for index, group in enumerate(self.groups) if grant in group.grants
+        )
+        return self.binding_revision_at(grant.domain_id, index)
 
     def assignable(self, initiative_id: str, at: datetime) -> str:
         initiatives: dict[str, Any] = {}
@@ -294,7 +342,9 @@ def decide(
                     "binding_revision": candidate.grant_binding(grant),
                 }
             else:
-                candidate = initiative_decision(state, command, subject, source, at)
+                candidate = initiative_decision(
+                    state, command, subject, source, at, identities
+                )
         return candidate, {
             **result,
             "status": "recorded",
@@ -311,7 +361,7 @@ def registry_decision(
     op, payload = command["operation"], command["payload"]
     fields(payload, {"previous_registry", "record", "reason"})
     text(payload["reason"], "reason")
-    if payload["previous_registry"] != state.registry.registry_hash:
+    if payload["previous_registry"] != state.registry_revision:
         raise ValueError("registry predecessor differs")
     fields(
         payload["record"],
@@ -365,9 +415,9 @@ def scoped_grant(
         payload,
         {"agent_id", "domain_id", "registry_hash", "binding_revision", "issuer"},
     )
-    if payload["registry_hash"] != state.registry.registry_hash:
+    if payload["registry_hash"] != state.registry_revision:
         raise ValueError("requested registry is stale")
-    if payload["binding_revision"] != state.binding(payload["domain_id"]).record_hash:
+    if payload["binding_revision"] != state.binding_revision(payload["domain_id"]):
         raise ValueError("requested binding differs")
     witness = c.authority(source, payload, identities, at)
     if any(
@@ -393,7 +443,12 @@ def scoped_grant(
 
 
 def initiative_decision(
-    state: State, command: dict, subject: str, source: dict, at: datetime
+    state: State,
+    command: dict,
+    subject: str,
+    source: dict,
+    at: datetime,
+    identities: dict,
 ) -> State:
     op, payload = command["operation"], command["payload"]
     if command["actor"]["kind"] != "agent" and not (
@@ -439,6 +494,26 @@ def initiative_decision(
                 raise ValueError("new participation requires an active Steward")
             if command["actor"]["kind"] == "operator":
                 raise ValueError("participant requires an agent binding")
+            modules = c.load_executor(
+                c.installed_executor("0.9.0").reference
+            ).import_modules(("identity",))
+            registry = c.records.registry(modules, identities)
+            for instant in (c.timestamp(source["created_at"]), at):
+                if (
+                    len(
+                        [
+                            b
+                            for b in registry.bindings
+                            if b.actor_kind == "agent"
+                            and b.subject_id == card["steward"]
+                            and b.active_at(instant)
+                        ]
+                    )
+                    != 1
+                ):
+                    raise ValueError(
+                        "new participation requires a canonically registered Steward"
+                    )
             card["participants"][subject] = text(
                 payload["responsibility"], "responsibility"
             )
@@ -491,7 +566,12 @@ def initiative_decision(
                 text(payload["reason"], "reason")
                 text(payload["next_question"], "next question or closure reason")
                 if type(payload["tasks"]) is not list or any(
-                    type(t) is not str or not t.startswith("https://github.com/")
+                    type(t) is not str
+                    or not re.fullmatch(
+                        r"https://github\.com/[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?/"
+                        r"[A-Za-z0-9_.-]+/issues/[1-9][0-9]*",
+                        t,
+                    )
                     for t in payload["tasks"]
                 ):
                     raise ValueError("task links require exact GitHub references")
