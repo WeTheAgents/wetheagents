@@ -168,7 +168,7 @@ def candidate(
     previous_access = engine.access_snapshot
     sequence = engine.sequence + 1
     core = {
-        "schema": domain.SCHEMA,
+        "schema": domain.batch_schema(access_snapshot),
         "access_snapshot": access_snapshot,
         "participant_runtime": list(installed_executor(PARTICIPANT_EXECUTOR).reference),
         "sequence": sequence,
@@ -187,9 +187,12 @@ def candidate(
         "funding_batches",
         "participants",
         "domain_scopes",
+        "initiative_scopes",
     )
-    access_changed = (
-        access_snapshot["genesis"] is not None and access_snapshot != previous_access
+    from ..initiatives import meaningful as meaningful_access
+
+    access_changed = meaningful_access(access_snapshot) != meaningful_access(
+        previous_access
     )
     if not access_changed and all(
         before.get(key, {}) == after.get(key, {}) for key in meaningful
@@ -225,7 +228,9 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
             "Tide PR must contain exactly its batch, projection, and receipt"
         )
     batch, receipt = read(root, head, path), read(root, head, receipt_path)
-    if batch.get("schema") != domain.SCHEMA:
+    if batch.get("schema") != domain.batch_schema(
+        batch.get("access_snapshot", domain.EMPTY)
+    ):
         raise ReplayError("new Tide candidates require domain admission schema 3")
     tracked = sorted({source["issue_number"] for source in engine.sources.values()})
     if batch["collection"].get("tracked_issues") != tracked:

@@ -83,7 +83,9 @@ class Replay:
         self.participant_revisions: set[str] = set()
         self.access_snapshot: dict[str, Any] | None = None
         self.access: Any = None
-        self.domain_scopes: dict[str, str | None] = {}
+        self.domain_scopes: dict[str, Any] = {}
+        self.initiative_scopes: dict[str, str | None] = {}
+        self.revision_schema = False
 
     def _event(self, raw: dict[str, Any]) -> Any:
         payload = {"issue_number": raw["issue_number"], "issue_id": raw["issue_id"]}
@@ -248,7 +250,12 @@ class Replay:
                 )
             selected_domain = None
             if self.access_snapshot is not None:
-                selected_domain = domain.scope(event.body, self.access)
+                selected_domain = domain.scope(
+                    event.body, self.access, event.effective_at
+                )
+                selected_initiative = domain.initiative_scope(
+                    event.body, self.access, event.effective_at, self.registry
+                )
             if issue in self.drafts and self.drafts[issue] != candidate:
                 if self.drafts[issue].author_agent_id != candidate.author_agent_id:
                     raise ValueError("a retained Draft cannot change its author Agent")
@@ -260,6 +267,8 @@ class Replay:
             self.drafts[issue] = candidate
             if self.access_snapshot is not None:
                 self.domain_scopes[issue] = selected_domain
+                if self.revision_schema:
+                    self.initiative_scopes[issue] = selected_initiative
             self.intakes.setdefault(
                 issue, intake.PlanIntakeState(balances=self._balance_records())
             )
@@ -422,9 +431,12 @@ class Replay:
         ):
             raise ReplayError("Tide predecessor or sequence differs")
         schema = batch.get("schema", "wea-tide-batch-1")
-        if self.access_snapshot is not None and schema != domain.SCHEMA:
+        if self.access_snapshot is not None and schema not in {
+            domain.SCHEMA,
+            domain.REVISION_SCHEMA,
+        }:
             raise ReplayError("domain admission forbids a Tide schema downgrade")
-        if schema in {"wea-tide-batch-2", domain.SCHEMA}:
+        if schema in {"wea-tide-batch-2", domain.SCHEMA, domain.REVISION_SCHEMA}:
             reference = installed_executor(PARTICIPANT_EXECUTOR).reference
             if batch.get("participant_runtime") != list(reference):
                 raise ReplayError(
@@ -447,8 +459,13 @@ class Replay:
         cutoff = records.timestamp(batch["collection"]["cutoff"])
         if self.last_cutoff is not None and cutoff <= self.last_cutoff:
             raise ReplayError("Tide cutoff must advance")
-        if schema == domain.SCHEMA:
+        if self.revision_schema and schema != domain.REVISION_SCHEMA:
+            raise ReplayError("binding admission forbids schema downgrade")
+        if schema in {domain.SCHEMA, domain.REVISION_SCHEMA}:
             snapshot = batch.get("access_snapshot")
+            if domain.batch_schema(snapshot) != schema:
+                raise ReplayError("Tide schema differs from activated binding policy")
+            self.revision_schema = schema == domain.REVISION_SCHEMA
             self.access = domain.restore(snapshot, cutoff, self.access_snapshot)
             self.access_snapshot = snapshot
         self.sequence += 1
@@ -458,7 +475,11 @@ class Replay:
                 or f"unresolved:{raw['object_id']}:{raw['content_hash']}"
             )
             old = self.sources.get(key)
-            if old is None and schema in {"wea-tide-batch-2", domain.SCHEMA}:
+            if old is None and schema in {
+                "wea-tide-batch-2",
+                domain.SCHEMA,
+                domain.REVISION_SCHEMA,
+            }:
                 self.participant_revisions.add(key)
             if old is not None:
                 stable = (
@@ -607,13 +628,22 @@ class Replay:
             raise ReplayError("global balances plus escrow do not equal opening supply")
         return json_data(
             {
-                "schema": "wea-tide-state-3"
+                "schema": "wea-tide-state-4"
+                if self.revision_schema
+                else "wea-tide-state-3"
                 if self.access_snapshot is not None
                 else "wea-tide-state-2"
                 if self.participant_module is not None
                 else "wea-tide-state-1",
                 **(
-                    {"domain_scopes": self.domain_scopes}
+                    {
+                        "domain_scopes": self.domain_scopes,
+                        **(
+                            {"initiative_scopes": self.initiative_scopes}
+                            if self.revision_schema
+                            else {}
+                        ),
+                    }
                     if self.access_snapshot is not None
                     else {}
                 ),

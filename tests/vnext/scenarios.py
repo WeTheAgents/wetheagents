@@ -99,7 +99,8 @@ CURRENT_SCENARIO_IDS = (
     *CORRECTION_SCENARIO_IDS,
 )
 SCENARIO_IDS = CURRENT_SCENARIO_IDS
-ACCEPTED_FUTURE_SCENARIO_IDS = BLOCK9_SCENARIO_IDS
+INITIATIVE_SCENARIO_IDS = tuple(f"LRI-{number:02d}" for number in range(1, 8))
+ACCEPTED_FUTURE_SCENARIO_IDS = (*BLOCK9_SCENARIO_IDS, *INITIATIVE_SCENARIO_IDS)
 PROPOSED_FUTURE_SCENARIO_IDS: tuple[str, ...] = ()
 
 # These references may duplicate current IDs because the version prefix is part
@@ -124,8 +125,7 @@ def validate_registry() -> None:
         )
     if len(CORRECTION_SCENARIO_IDS) != 1:
         raise ValueError(
-            "expected 1 correction scenario ID, "
-            f"found {len(CORRECTION_SCENARIO_IDS)}"
+            f"expected 1 correction scenario ID, found {len(CORRECTION_SCENARIO_IDS)}"
         )
     if len(BLOCK9_SCENARIO_IDS) != 9:
         raise ValueError(
@@ -146,7 +146,7 @@ def validate_registry() -> None:
     if CORRECTION_SCENARIO_IDS != ("S-13C",):
         raise ValueError("correction scenarios do not match the approved scope")
     if ACCEPTED_FUTURE_SCENARIO_IDS != tuple(
-        f"S-{number}" for number in range(71, 80)
+        [*(f"S-{number}" for number in range(71, 80)), *INITIATIVE_SCENARIO_IDS]
     ):
         raise ValueError("accepted-future scenarios do not match the accepted scope")
     if PROPOSED_FUTURE_SCENARIO_IDS != ():

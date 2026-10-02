@@ -12,15 +12,14 @@ from .scenarios import (
     CORRECTION_SCENARIO_IDS,
     CURRENT_SCENARIO_IDS,
     HISTORICAL_SCENARIO_REFS,
+    INITIATIVE_SCENARIO_IDS,
     PROPOSED_FUTURE_SCENARIO_IDS,
     SCENARIO_IDS,
     validate_registry,
 )
 
 SPEC_PATH = Path("oled/changes/wea-vnext-recreation/spec.md")
-CORRECTION_SPEC_PATH = Path(
-    "oled/changes/wea-vnext-s13c-financial-correction/spec.md"
-)
+CORRECTION_SPEC_PATH = Path("oled/changes/wea-vnext-s13c-financial-correction/spec.md")
 BLOCK9_SPEC_PATH = Path("oled/changes/wea-vnext-block9-cutover/spec.md")
 
 
@@ -92,10 +91,13 @@ def test_scenario_registry_matches_effective_and_accepted_scopes_exactly() -> No
     assert SCENARIO_IDS is CURRENT_SCENARIO_IDS
     assert CONTROL_PLANE_SCENARIO_IDS == ("S-11A", "S-11B")
     assert CORRECTION_SCENARIO_IDS == ("S-13C",)
-    assert ACCEPTED_FUTURE_SCENARIO_IDS == BLOCK9_SCENARIO_IDS
-    assert ACCEPTED_FUTURE_SCENARIO_IDS == tuple(
-        f"S-{number}" for number in range(71, 80)
+    initiative_spec = Path("oled/changes/wea-long-lived-initiatives/spec.md")
+    initiative_source = initiative_spec.read_text(encoding="utf-8")
+    initiative_headings = tuple(
+        re.findall(r"^### (LRI-[0-9]{2}):", initiative_source, re.MULTILINE)
     )
+    assert INITIATIVE_SCENARIO_IDS == initiative_headings
+    assert ACCEPTED_FUTURE_SCENARIO_IDS == (*BLOCK9_SCENARIO_IDS, *initiative_headings)
     assert PROPOSED_FUTURE_SCENARIO_IDS == ()
     assert HISTORICAL_SCENARIO_REFS == tuple(
         f"0.8:{item}" for item in CHANGED_SCENARIO_IDS
