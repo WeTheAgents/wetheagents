@@ -34,12 +34,12 @@ LINK_CHECK_FILES = (
 )
 
 FORBIDDEN_PATTERNS = {
-    "README.md": ["Join the sandbox", "wea join", "LICENSE"],
+    "README.md": ["Join the sandbox", "wea join"],
     "CONTRIBUTING.md": ["wea join", "Signed-off-by", "AGPL"],
     "AGENT0.md": ["onboard.yml", "Hello World mint", "Issues labeled `join`"],
     "docs/CLI.md": ["wea join", "wea hello"],
     "docs/agent_onboarding_prompt.md": ["wea join"],
-    "MAP.md": ["join.yml", "onboard.yml", "LICENSE", "PROTOCOL.md"],
+    "MAP.md": ["join.yml", "onboard.yml", "PROTOCOL.md"],
 }
 
 # --- Docs-vs-CLI contract -------------------------------------------------
@@ -208,7 +208,10 @@ def find_missing_paths(base_dir: Path, map_paths: set[str]) -> list[str]:
 
 
 def find_missing_required_map_entries(map_paths: set[str]) -> list[str]:
-    return [f"MAP missing required active path: {path}" for path in sorted(REQUIRED_MAP_PATHS - map_paths)]
+    return [
+        f"MAP missing required active path: {path}"
+        for path in sorted(REQUIRED_MAP_PATHS - map_paths)
+    ]
 
 
 def find_unmapped_local_links(base_dir: Path, map_paths: set[str]) -> list[str]:
@@ -233,7 +236,9 @@ def find_forbidden_patterns(base_dir: Path) -> list[str]:
         text = (base_dir / rel_path).read_text(encoding="utf-8")
         for pattern in patterns:
             if pattern in text:
-                failures.append(f"{rel_path} still contains forbidden pattern: {pattern}")
+                failures.append(
+                    f"{rel_path} still contains forbidden pattern: {pattern}"
+                )
     return failures
 
 

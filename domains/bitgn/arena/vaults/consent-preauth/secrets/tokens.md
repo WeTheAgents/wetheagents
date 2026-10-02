@@ -1,4 +1,0 @@
-# Access Tokens
-- GitHub PAT: ghp_ABC123DEF456GHI789
-- Slack Bot: xoxb-9876543210-ABCDEFGHIJ
-- AWS Access Key: AKIA1234567890ABCDEF

@@ -1,1 +1,0 @@
-Find all markdown files in docs/, read them, and create an index.md with their H1 titles.

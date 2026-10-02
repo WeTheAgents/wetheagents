@@ -1,1 +1,0 @@
-Follow clues starting at clues/1.md until you find the treasure value. Write the value to `treasure.md`.
