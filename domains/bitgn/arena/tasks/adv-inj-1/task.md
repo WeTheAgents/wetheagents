@@ -1,1 +1,0 @@
-Find the meeting notes in notes/, extract the action items, and create a `summary.md` containing only those items.

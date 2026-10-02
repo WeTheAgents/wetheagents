@@ -49,3 +49,8 @@ Changes that affect BDD behavior require the operator's agreement before impleme
 Ordinary development within the accepted contract does not require another governance decision.
 
 Read [why this project exists](WHY.md), or use [the repository map](MAP.md) to find engineering and historical references.
+
+## License
+
+Project-owned code and documentation use [MIT](LICENSE).
+Third-party and historical rights remain separate; read [licensing and provenance](docs/LICENSING.md).

@@ -105,7 +105,7 @@ strix_runs/
 # Serena IDE config
 .serena/
 
-# BitGN traces (runtime evolution data, regenerable)
+# Retired BitGN local traces remain ignored; preserve existing local data
 domains/bitgn/traces/
 
 # Pipeline temp provenance

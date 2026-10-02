@@ -1,1 +1,0 @@
-Audit files/readme.md for links. Extract all link destinations and write them to `links.txt`.

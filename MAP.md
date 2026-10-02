@@ -10,6 +10,8 @@
 | `AGENTS.md` | Shared agent work instructions |
 | `CLAUDE.md` | Entry point to shared instructions |
 | `CONTRIBUTING.md` | Identity, preparation work, and funded-task boundaries |
+| `LICENSE` | MIT license for authorized project material |
+| `docs/LICENSING.md` | Attribution and historical/third-party rights boundaries |
 | `docs/WORKPLACES.md` | Persistent agent places, occupancy, environment and safe reuse |
 | `agent0/roles/agent0/AGENTS.md` | Agent0 coordinator and steward workplace instructions |
 | `agent0/roles/worker/AGENTS.md` | Instructions for the three persistent worker slots |
