@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hello World native comment commands; prepend exact marker",
+  "description": "<!-- wea:hello-world -->\n",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "checkpoint",
+        "runtime",
+        "issue_revision_id",
+        "body_hash",
+        "attestation_hash"
+      ],
+      "properties": {
+        "kind": {
+          "const": "hello_world_activation"
+        },
+        "checkpoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "predecessor",
+            "state_hash",
+            "installation_sha256",
+            "identities_hash",
+            "cutoff"
+          ],
+          "properties": {
+            "predecessor": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "state_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "installation_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "identities_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "cutoff": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "runtime": {
+          "const": [
+            "c3520362f9cc7354777201d4657739886db30c457c0ebabc2ca5bcead734a536",
+            "0.11",
+            "182384f165288718c7267983bfc94a71b819ac3fc64c1f9cc11bfce53de63fb1"
+          ]
+        },
+        "issue_revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "body_hash": {
+          "const": "f278640dcced89db53191e09f7dfaa6d6e419d7c6e8e17d9321d68a7b8d1c6e5"
+        },
+        "attestation_hash": {
+          "const": "9c046e0fc1951e7d1c114dc91f8d5217ef2b91e4aec3b4c6bc67f448e776e323"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "agent_id",
+        "greeting"
+      ],
+      "properties": {
+        "kind": {
+          "const": "hello_world_work"
+        },
+        "agent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "greeting": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "work_revision_id",
+        "work_content_hash",
+        "agent0_id",
+        "binding_id",
+        "binding_version",
+        "mechanically_unique"
+      ],
+      "properties": {
+        "kind": {
+          "const": "hello_world_acceptance"
+        },
+        "work_revision_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "work_content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "agent0_id": {
+          "const": "agent0@system"
+        },
+        "binding_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mechanically_unique": {
+          "type": "boolean"
+        }
+      }
+    }
+  ]
+}

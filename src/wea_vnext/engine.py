@@ -177,6 +177,12 @@ class _ReadOnlyModule:
                 if not callable(maintenance):
                     raise ManifestError("Tide maintenance entry point is invalid")
                 verified_calls["apply_tide_maintenance"] = maintenance
+        elif module.__name__.endswith(".sources") and callable(
+            module.__dict__.get("replay_hello_world")
+        ):
+            verified_calls["replay_hello_world"] = module.__dict__.pop(
+                "replay_hello_world"
+            )
         _remember_verified_calls(self, reference, verified_calls)
 
     def __getattribute__(self, name: str) -> Any:

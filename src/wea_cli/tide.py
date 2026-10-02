@@ -21,6 +21,15 @@ def show(args) -> int:
         print(json.dumps({"status": "inactive", "ref": args.ref, "commit": commit}))
         return 0
     engine, _ = load(root, commit)
+    if getattr(args, "hello_world_evidence", None):
+        from wea_vnext.tide.hello_world import preview
+
+        if args.issue is not None or args.agent is not None:
+            raise ValueError("Hello World candidate replay requires its full evidence")
+        packet = json.loads(Path(args.hello_world_evidence).read_bytes())
+        result = preview(engine, commit, packet, root=root)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
     state = engine.state()
     if args.issue is not None:
         ids = {
@@ -125,6 +134,8 @@ def build_report(root: Path, ref: str, agent: str) -> dict[str, Any]:
         "total_balances_wea": sum(state["balances"].values()),
         "active_escrow_wea": state["escrow_wea"],
         "opening_supply_wea": state["opening_supply"],
+        "current_supply_wea": state.get("current_supply", state["opening_supply"]),
+        **({"hello_world": state["hello_world"]} if "hello_world" in state else {}),
         "legacy": {
             "status": "retained_history_only",
             "included_in_current_totals": False,

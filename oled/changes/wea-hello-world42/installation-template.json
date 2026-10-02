@@ -1,0 +1,21 @@
+{
+  "command": {
+    "checkpoint": {
+      "cutoff": null,
+      "identities_hash": null,
+      "installation_sha256": "f208d56b159dcf0a4b5847cb65805ba2a13106d5a832075c3cbefe526dfddc58",
+      "predecessor": null,
+      "state_hash": null
+    },
+    "runtime": [
+      "c3520362f9cc7354777201d4657739886db30c457c0ebabc2ca5bcead734a536",
+      "0.11",
+      "182384f165288718c7267983bfc94a71b819ac3fc64c1f9cc11bfce53de63fb1"
+    ],
+    "schema": "wea-hello-world-installation-1"
+  },
+  "marker": "<!-- wea:hello-world-installation -->\n",
+  "real_source_id": null,
+  "real_source_time": null,
+  "status": "PENDING template; not a source or authorization"
+}
