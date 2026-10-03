@@ -275,29 +275,40 @@ def _replay_hello_world(
                 raise
             malformed[e.revision_id] = "unresolved: " + str(exc)
 
-    activations = [
-        (e, d) for e, d in commands if d and d.get("kind") == "hello_world_activation"
-    ]
+    activations = []
+    for candidate, command in commands:
+        if not command or command.get("kind") != "hello_world_activation":
+            continue
+        try:
+            _source(candidate)
+            if candidate.actor_account_id != OPERATOR_ID:
+                raise ValueError(
+                    "Hello World activation requires the authenticated operator"
+                )
+            _fields(
+                command,
+                "kind checkpoint runtime issue_revision_id body_hash attestation_hash",
+            )
+            if (
+                command["checkpoint"] != checkpoint
+                or command["runtime"] != list(runtime)
+                or command["issue_revision_id"] != issue.revision_id
+                or command["body_hash"] != BODY_HASH
+                or command["attestation_hash"] != ATTESTATION_HASH
+                or candidate.effective_at <= at
+                or candidate.order_key <= issue.order_key
+            ):
+                raise ValueError(
+                    "Hello World activation is stale or does not bind "
+                    "the exact snapshot"
+                )
+        except (ValueError, KeyError, TypeError) as exc:
+            malformed[candidate.revision_id] = "unresolved: " + str(exc)
+            continue
+        activations.append((candidate, command))
     if len(activations) != 1:
         raise ValueError("Hello World requires exactly one authenticated activation")
-    activation, command = activations[0]
-    _source(activation)
-    _fields(
-        command, "kind checkpoint runtime issue_revision_id body_hash attestation_hash"
-    )
-    if (
-        activation.actor_account_id != OPERATOR_ID
-        or command["checkpoint"] != checkpoint
-        or command["runtime"] != list(runtime)
-        or command["issue_revision_id"] != issue.revision_id
-        or command["body_hash"] != BODY_HASH
-        or command["attestation_hash"] != ATTESTATION_HASH
-        or activation.effective_at <= at
-        or activation.order_key <= issue.order_key
-    ):
-        raise ValueError(
-            "Hello World activation is stale or does not bind the exact snapshot"
-        )
+    activation, _ = activations[0]
     contract_id = "system-hello-world:" + canonical_hash(
         {
             "issue_id": ISSUE_ID,
@@ -342,6 +353,12 @@ def _replay_hello_world(
                 greeting = data["greeting"]
                 if type(greeting) is not str or not greeting.strip():
                     raise ValueError("Hello World greeting must be nonempty")
+                try:
+                    greeting.encode("utf-8")
+                except UnicodeEncodeError as exc:
+                    raise ValueError(
+                        "Hello World greeting must be encodable as UTF-8"
+                    ) from exc
                 authorize_agent(
                     github_account_id=event.actor_account_id,
                     agent_id=data["agent_id"],

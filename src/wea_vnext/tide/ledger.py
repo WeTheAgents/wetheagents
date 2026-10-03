@@ -154,19 +154,38 @@ def candidate(
     access_snapshot: dict[str, Any],
     hello_world: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
+    engine, _ = load(root, base)
+    from . import hello_world as hw
+
+    # Only a canonically retained active anchor can isolate Issue #1 failures.
+    # An initial caller-selected anchor cannot relax required source evidence.
+    def isolated_hello_world(source):
+        return (
+            engine.hello_world_anchor is not None
+            and engine.hello_world is not None
+            and source["repository_id"] == str(hw.collection.REPOSITORY_ID)
+            and source["issue_id"] == "4015417565"
+            and type(source["issue_number"]) is int
+            and source["issue_number"] == 1
+            and (
+                source["object_kind"] == "issue_comment"
+                or (
+                    source["object_kind"] == "issue"
+                    and source["object_id"] == "4015417565"
+                )
+            )
+        )
+
     unresolved = [
         source["object_id"]
         for source in collection["sources"]
-        if source["revision_status"] != "confirmed"
+        if source["revision_status"] != "confirmed" and not isolated_hello_world(source)
     ]
     if unresolved:
         raise ReplayError(
             "required revision evidence is incomplete; no candidate: "
             + ", ".join(unresolved[:10])
         )
-    engine, _ = load(root, base)
-    from . import hello_world as hw
-
     if hello_world is None:
         hello_world = engine.hello_world_anchor
     if hello_world is not None:

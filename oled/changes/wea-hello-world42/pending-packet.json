@@ -14,8 +14,9 @@
   "code_commit": null,
   "future_writer_implemented": true,
   "gates": {
+    "access_package_transition": "pending separate exact operator append-only package transition; no Access update authorized/performed",
     "activation": "pending exact operator event",
-    "code_review": "pending Agent0 review/CI",
+    "code_review": "pending fresh Agent0 native review/CI of review corrections",
     "financial_publication": "pending trusted guard and manual merge",
     "installation": "pending exact operator event",
     "issue_body_write": "pending separate permission"
@@ -81,7 +82,7 @@
     "mint": false
   },
   "live_installed": false,
-  "owned_process_check": "trusted-owned-process-check.json: 1 passed in 0.89s; unchanged test",
+  "owned_process_check": "Prior unchanged test passed on published aee48d69 tree; exact final-tree trusted repeat pending Agent0 after STOP",
   "preserved_runtimes": {
     "0.10.0": [
       "9b3139e82966844d15fa7b695acad0b004acb7e37c764e28289f3fe00595b5a3",
@@ -102,10 +103,28 @@
   "proposed_runtime": [
     "c3520362f9cc7354777201d4657739886db30c457c0ebabc2ca5bcead734a536",
     "0.11",
-    "182384f165288718c7267983bfc94a71b819ac3fc64c1f9cc11bfce53de63fb1"
+    "300c135ef8d26c2f3669c68c168e98111c52cd50fd48d7f44dc642e7f2cb1bcb"
   ],
+  "protected_access_package_transition": {
+    "approval": null,
+    "authorized_code_sha": "37949899b5b074384275fe08e3bbdb94bc5f3511",
+    "changed_pinned_files": [
+      "src/wea_vnext/engine.py",
+      "src/wea_vnext/tide/__main__.py",
+      "src/wea_vnext/tide/ledger.py",
+      "src/wea_vnext/tide/replay.py"
+    ],
+    "evidence": "hello-world-access-installation-impact.json",
+    "historical_grants_unchanged": true,
+    "historical_reader": "unchanged reader; verify_closure=False historical read, per Agent0",
+    "journal_head": "459b333b74bf27246e45947baf5d12503fd45589",
+    "ordinary_live_access": "rejects changed package until separate exact operator append-only package transition",
+    "record_count": 9,
+    "update_performed": false
+  },
   "publication": "Agent0 separate draft review; no worker push/PR",
   "real_mint": false,
+  "review_correction_base": "aee48d69c40c76da47c91daeee5835ab25f407f3",
   "review_limits": [
     "Inactive future schema-5 financial integration; all live gates remain pending",
     "utf8-exact-1 and exact body/source proposals require operator review",
@@ -117,9 +136,9 @@
   "runtime": [
     "c3520362f9cc7354777201d4657739886db30c457c0ebabc2ca5bcead734a536",
     "0.11",
-    "182384f165288718c7267983bfc94a71b819ac3fc64c1f9cc11bfce53de63fb1"
+    "300c135ef8d26c2f3669c68c168e98111c52cd50fd48d7f44dc642e7f2cb1bcb"
   ],
-  "source_archive_sha256": "0a15396e66d43c5a47a14453a24b0bbf0fcde9b0e804c9efb31e6d3238bbfd07",
+  "source_archive_sha256": "9249e1dae9710b0b3d136bdd034a22f9910666067d3176a2a1d81e2b737be1da",
   "source_files": {
     "wea_cli/__init__.py": "8f95afd17449dc299dc03a9cbc02c16266ebbbc365c078ddd5588a25d0477227",
     "wea_cli/access.py": "67dbea8073df5ad35b54a5991ea5ad68ed616dd4e0a7979c4e977f2b289ef9c4",
@@ -176,9 +195,9 @@
     "wea_vnext/executors/v0_11_0/declarations.py": "736e36fe400e4d71203d1fbb3b78e2b00c7112deeae3ee8be2ff742f5da31f07",
     "wea_vnext/executors/v0_11_0/events.py": "a07dc148a5cbdc3ff9341ffa8ba7517fb84455e0ddaefc670f6a21722e9c8ef1",
     "wea_vnext/executors/v0_11_0/identity.py": "1b50c121f119059620cd172e4cb1a58f8f15cface5c50eadb7b9b06c8f080e9a",
-    "wea_vnext/executors/v0_11_0/manifest.json": "182384f165288718c7267983bfc94a71b819ac3fc64c1f9cc11bfce53de63fb1",
+    "wea_vnext/executors/v0_11_0/manifest.json": "300c135ef8d26c2f3669c68c168e98111c52cd50fd48d7f44dc642e7f2cb1bcb",
     "wea_vnext/executors/v0_11_0/model.py": "8506c1251a683cbd1b5f84ec6eedc21a9a2448b7d56ce6a1e9b17e3a6b5fe91a",
-    "wea_vnext/executors/v0_11_0/sources.py": "5a33c093ab1152a88cdbd00f56dbc4295a04873ea447155dd7cad84273534c6e",
+    "wea_vnext/executors/v0_11_0/sources.py": "6aa6ab48c310130bf4bfbd9743e919c1ab2b1dddddea716435aec068f13fb7bb",
     "wea_vnext/executors/v0_11_0/transition.py": "be9b9bdd4ab44ad310906b1c8ef02e0838f32314f499b74bd613a6c009f9ee40",
     "wea_vnext/executors/v0_6_0/__init__.py": "9cd71fe0e0abb17a10949417097fdb1dcfc4bfc3c48de5a420340493170d3bd1",
     "wea_vnext/executors/v0_6_0/canonical.py": "be6406b66bbe4960a85e2eba9b5f0d60f5f3ef9ba27c92868f3f09a9f3496fa7",
@@ -306,44 +325,118 @@
     "wea_vnext/tide/github.py": "1635612cb3434276eed857330ca8708ba3a4fac12c81d0e0b290ef669a39b399",
     "wea_vnext/tide/hello_world.py": "b1bbd4e73943a0cdb08abde6ded26328231fb8eb43328cce5ef279d3225e2489",
     "wea_vnext/tide/labels.py": "05e6d49585700219a3dcb4abdce8bad712bee29c8f06761c1bdad267c4b1fc6b",
-    "wea_vnext/tide/ledger.py": "4eee276b93b1f5fb6e0175e72cd45506c668a008317c45414754f756d5186db7",
+    "wea_vnext/tide/ledger.py": "58baf49a35c12747dd0903b9d84635dcce2a10512023b35114691cfca6fd3950",
     "wea_vnext/tide/records.py": "c6969d779d0a5c8b1d3589cc920c6a387f6a249dbd8894dfa7d924b3a4c7ebbd",
     "wea_vnext/tide/replay.py": "6613ea187129611636e91199c3d1bf66b6187f9a70dc81d17ee0dc7149de9cd6"
   },
-  "source_package_sha256": "f208d56b159dcf0a4b5847cb65805ba2a13106d5a832075c3cbefe526dfddc58",
+  "source_package_sha256": "6d19a6c6828f8a88c168907b6a30f640cdb61a918dbc05caf797e72ffff26031",
   "state_schema": "wea-tide-state-5",
   "status": "PENDING; code review only; no installation or activation authority",
-  "tested_code_and_tests_sha256": "e113d60af8a3bf595e69c0559fe306e36b128c2d68ec1d8044379c615981d1dc",
+  "tested_code_and_tests_sha256": "4eb77a8c00e4d1b5aff38f11b6a1b85f16cf2d978c0dcf30df9312aed40bc32c",
   "verification": {
     "canonical_batches_replayed": 25,
-    "ci": "not run; Agent0 separate",
-    "diffcheck": "exit 0",
-    "independent_native_review": "not run; Agent0 separate",
-    "invariant": "19025 WEA; zero escrow; exit 0",
-    "native_full_suite": {
-      "deselected": 1,
-      "evidence": "financial-reconnect-full-vnext.txt/result.json",
+    "ci": "pending Agent0 corrective relay; original trusted writer installation gate remains",
+    "final_tree_windows_owned_process": "pending exact unchanged test through Agent0 trusted executor after STOP",
+    "focused": {
+      "evidence": "review-correction-reconnect-focused.txt/result.json",
+      "failed": 1,
+      "failure": "pip user cache sandbox write denied; no code regression",
+      "passed": 117
+    },
+    "fresh_native_review": "pending Agent0",
+    "interrupted_native_full": {
+      "exit_verdict": null,
+      "log": "review-correction-full.txt",
+      "passed": false,
+      "stopped_at": "57%"
+    },
+    "invariant": "19025 WEA, zero escrow; exit 0",
+    "json_source_schema": "current synthetic payload accepted, prior runtime rejected",
+    "packaging_repair": {
+      "evidence": "review-correction-reconnect-packaging-fixed.txt/result.json",
       "exit_code": 0,
-      "passed": 974,
-      "skipped": 18
+      "passed": 1
+    },
+    "prior_original_tree_verification": {
+      "canonical_batches_replayed": 25,
+      "ci": "not run; Agent0 separate",
+      "diffcheck": "exit 0",
+      "independent_native_review": "not run; Agent0 separate",
+      "invariant": "19025 WEA; zero escrow; exit 0",
+      "native_full_suite": {
+        "deselected": 1,
+        "evidence": "financial-reconnect-full-vnext.txt/result.json",
+        "exit_code": 0,
+        "passed": 974,
+        "skipped": 18
+      },
+      "protected_files": 265,
+      "required_lint": "exit 0",
+      "schema": "exit 0",
+      "task_labels_and_packaging": {
+        "exit_code": 0,
+        "passed": 21,
+        "seconds": 19.72
+      },
+      "unchanged_owned_process": {
+        "agent0_repeat_after_stop": "pending",
+        "evidence": "trusted-owned-process-check.json",
+        "executor": "authorized trusted local",
+        "passed": 1,
+        "seconds": 0.89
+      }
     },
     "protected_files": 265,
     "required_lint": "exit 0",
     "schema": "exit 0",
-    "task_labels_and_packaging": {
+    "trusted_local_full_suite": {
+      "code_and_tests_sha256": "4eb77a8c00e4d1b5aff38f11b6a1b85f16cf2d978c0dcf30df9312aed40bc32c",
+      "command": [
+        "D:\\AgentWork\\wea\\slots\\slot-1\\wetheagents\\.venv\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "tests/vnext",
+        "-q",
+        "-k",
+        "not test_native_git_timeout_terminates_child_processes",
+        "--durations=10",
+        "--basetemp",
+        "D:\\AgentRuns\\wea\\agent0\\20261002-readiness-implementation\\review-correction-resilient-full-tmp"
+      ],
+      "completed_at_utc": "2026-10-03T01:16:39.314178+00:00",
+      "cwd": "D:\\AgentWork\\wea\\slots\\slot-1\\wetheagents",
+      "deselected": 1,
+      "errors": 0,
+      "executor": "authorized trusted local Agent0 validation; not native worker",
       "exit_code": 0,
-      "passed": 21,
-      "seconds": 19.72
+      "failed": 0,
+      "helper_pid": 36460,
+      "output_file": "D:\\AgentRuns\\wea\\agent0\\20261002-readiness-implementation\\review-correction-resilient-full.txt",
+      "passed": 984,
+      "pid": 29752,
+      "receipt_file": "review-correction-resilient-full-result.json",
+      "runtime": [
+        "c3520362f9cc7354777201d4657739886db30c457c0ebabc2ca5bcead734a536",
+        "0.11",
+        "300c135ef8d26c2f3669c68c168e98111c52cd50fd48d7f44dc642e7f2cb1bcb"
+      ],
+      "seconds": 1322.77,
+      "skipped": 18,
+      "source_fingerprint": "4eb77a8c00e4d1b5aff38f11b6a1b85f16cf2d978c0dcf30df9312aed40bc32c",
+      "source_tree_unchanged": true,
+      "started_at_utc": "2026-10-03T00:54:36.550492+00:00",
+      "state": "process finished",
+      "summary": [
+        "984 passed, 18 skipped, 1 deselected, 1 warning in 1321.24s (0:22:01)"
+      ],
+      "tested_tree_unchanged": true,
+      "timeout_seconds": 2700,
+      "warning": 1
     },
-    "unchanged_owned_process": {
-      "agent0_repeat_after_stop": "pending",
-      "evidence": "trusted-owned-process-check.json",
-      "executor": "authorized trusted local",
-      "passed": 1,
-      "seconds": 0.89
-    }
+    "wheel_source_comparison": "188 packaged files match"
   },
   "wheel_filename": "wea_cli-0.3.0-py3-none-any.whl",
-  "wheel_sha256": "59b393067ab90d6cccc5eb09c9f1aabf06342671ea5717b8c0278e17ac783138",
+  "wheel_sha256": "e9cb5a6726c31ce1fb9cc6b930f74e8c6be6d4019068a5ad1d0de4e1a19ec6fa",
   "writer": "tide@system"
 }
