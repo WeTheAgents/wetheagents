@@ -413,7 +413,7 @@ def test_read_only_overlay_preserves_tasks_and_increases_supply_by_exactly_42(na
 
 
 def test_existing_canonical_replay_remains_byte_identical():
-    engine, _ = load(ROOT, BASE)
+    engine, _ = load(ROOT, "origin/main")
     before = canonical(engine.state())
     on_disk = verify_directory(ROOT)
     assert canonical(on_disk) == before

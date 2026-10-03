@@ -101,6 +101,27 @@ def checkpoint(engine: Any, predecessor: str) -> dict[str, str]:
     }
 
 
+def _source_window_hash(captured: dict[str, Any]) -> str:
+    """Hash original collector bytes before Work artifact enrichment.
+
+    Artifact bytes keep their own hashes and remain in the full Tide batch.
+    The trusted guard still compares the complete enriched collection with
+    independent authenticated source and artifact reads.
+    """
+    window = {
+        **captured,
+        "sources": [
+            {
+                key: value
+                for key, value in row.items()
+                if key not in {"artifact", "artifact_error"}
+            }
+            for row in captured["sources"]
+        ],
+    }
+    return digest(collection.cutoff_evidence(window))
+
+
 def collect_hello_world_sources(api_get, api_graphql, *, cutoff, tracked_issues=(1,)):
     """Capture the permanent Issue explicitly without changing task discovery."""
     endpoint = f"{collection.API_ROOT}/issues/1"
@@ -172,7 +193,7 @@ def preview(
         "tracked_issues"
     ] != [1]:
         raise ReplayError("Hello World collection requires permanent Issue #1")
-    if captured["capture_hash"] != digest(collection.cutoff_evidence(captured)):
+    if captured["capture_hash"] != _source_window_hash(captured):
         raise ReplayError("Hello World collection hash differs")
     modules, evidence = native_evidence(packet, captured)
     source = modules["sources"]
@@ -358,7 +379,7 @@ def advance(engine, batch):
         captured.get("schema") != "wea-tide-collection-1"
         or captured.get("repository_id") != str(collection.REPOSITORY_ID)
         or 1 not in captured.get("tracked_issues", [])
-        or captured.get("capture_hash") != digest(collection.cutoff_evidence(captured))
+        or captured.get("capture_hash") != _source_window_hash(captured)
     ):
         raise ReplayError("Hello World requires a complete authenticated collection")
     try:
