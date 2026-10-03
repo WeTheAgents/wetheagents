@@ -2,7 +2,7 @@
 devlogs/
 research/
 
-# Vendored btc_dashboard — runtime state only, never committed.
+# Local remnants of the separate BTC project (not part of current WEA).
 /vendor/btc_dashboard/node_modules/
 /vendor/btc_dashboard/data/
 
@@ -71,10 +71,10 @@ claude_doctor/
 .llm_cache/
 catboost_info/
 
-# Poker arena session logs (runtime artifacts, 2M+ lines)
+# Retained local-only remnants of the removed poker experiment
 domains/poker/data/arena_sessions/
 
-# Poker browser profiles (Chromium runtime data)
+# Retained local-only browser profiles from the removed poker experiment
 domains/poker/profiles/
 
 # Debug/temp knowledge artifacts

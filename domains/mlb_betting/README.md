@@ -16,3 +16,6 @@ python scripts/mlb_daily_capture.py
 python scripts/check_2026_pipeline.py --strict-freshness
 python scripts/generate_picks_2026.py --date YYYY-MM-DD --dry-run --no-poly
 ```
+
+Verified on 2026-10-03: repository ID `1216600302`; the standalone repository is private.
+This navigation stub does not create a WEA Domain binding or transfer Access.

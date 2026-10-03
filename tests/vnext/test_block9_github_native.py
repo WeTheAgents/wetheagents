@@ -1052,8 +1052,4 @@ def test_legacy_direct_write_workflows_are_absent_or_read_only() -> None:
     assert not (workflows / "agent0-ledger-candidate.yml").exists()
     assert not (workflows / "genome-mutation-tracker.yml").exists()
     assert not (workflows / "guard-ledger.yml").exists()
-    btc = (workflows / "btc-snapshot.yml").read_text(encoding="utf-8")
-    assert "schedule:" not in btc
-    assert "contents: write" not in btc
-    assert "git push" not in btc
-    assert "actions/upload-artifact@v4" in btc
+    assert not (workflows / "btc-snapshot.yml").exists()
