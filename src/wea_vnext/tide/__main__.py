@@ -100,6 +100,7 @@ def run(
     retry_closed: bool,
     activation_comment_id: int = 0,
     activation_sha256: str = "",
+    hello_world_installation_revision: str = "",
 ) -> None:
     base = git(root, "rev-parse", "HEAD")
     if (
@@ -190,7 +191,17 @@ def run(
     else:
         cutoff = datetime.now(timezone.utc)
         tracked = sorted({raw["issue_number"] for raw in engine.sources.values()})
-        collection = collect_sources(
+        from . import hello_world as hw
+
+        anchor = engine.hello_world_anchor
+        if hello_world_installation_revision:
+            if anchor is not None:
+                raise ReplayError("Hello World is already activated")
+            anchor = hw.prepare_anchor(engine, base, hello_world_installation_revision)
+        collector = (
+            hw.collect_hello_world_sources if anchor is not None else collect_sources
+        )
+        collection = collector(
             api.get, api.graphql, cutoff=cutoff, tracked_issues=tracked
         )
         collection = retain_artifacts(
@@ -210,6 +221,7 @@ def run(
             merges,
             provenance,
             access_snapshot=capture(api, cutoff),
+            hello_world=anchor,
         )
         sequence = engine.sequence + 1
     if payloads is None:
@@ -267,6 +279,7 @@ def main() -> None:
     parser.add_argument("--retry-closed", action="store_true")
     parser.add_argument("--activation-comment-id", type=int, default=0)
     parser.add_argument("--activation-sha256", default="")
+    parser.add_argument("--hello-world-installation-revision", default="")
     args = parser.parse_args()
     api = (
         GitHub(os.environ.get("GITHUB_TOKEN", ""))
@@ -280,6 +293,7 @@ def main() -> None:
             args.retry_closed,
             args.activation_comment_id,
             args.activation_sha256,
+            args.hello_world_installation_revision,
         )
     elif args.command == "invalidate-pending":
         invalidate_pending(api)

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Prepend exact <!-- wea:hello-world-installation --> newline. Actual unedited operator source IDs/times are captured separately.",
+  "properties": {
+    "checkpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "cutoff": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "identities_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "installation_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "predecessor": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "state_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "predecessor",
+        "state_hash",
+        "installation_sha256",
+        "identities_hash",
+        "cutoff"
+      ],
+      "type": "object"
+    },
+    "runtime": {
+      "const": [
+        "c3520362f9cc7354777201d4657739886db30c457c0ebabc2ca5bcead734a536",
+        "0.11",
+        "300c135ef8d26c2f3669c68c168e98111c52cd50fd48d7f44dc642e7f2cb1bcb"
+      ]
+    },
+    "schema": {
+      "const": "wea-hello-world-installation-1"
+    }
+  },
+  "required": [
+    "schema",
+    "runtime",
+    "checkpoint"
+  ],
+  "title": "Pending separate operator installation source",
+  "type": "object"
+}

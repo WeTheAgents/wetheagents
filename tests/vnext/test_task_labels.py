@@ -236,7 +236,11 @@ def test_existing_tide_syncs_before_pending_and_noop_returns(
     monkeypatch.setattr(tide, "funding_merges", lambda *args: {})
     monkeypatch.setattr(tide, "collect_sources", lambda *args, **kwargs: {})
     monkeypatch.setattr(tide, "retain_artifacts", lambda collection, *args: collection)
-    monkeypatch.setattr(tide, "candidate", lambda *args: None)
+    def empty_candidate(*args, access_snapshot, hello_world):
+        assert hello_world is None
+        return None
+
+    monkeypatch.setattr(tide, "candidate", empty_candidate)
 
     class WriterAPI(API):
         def get(self, path):

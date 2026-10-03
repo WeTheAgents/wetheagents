@@ -1,0 +1,18 @@
+{
+  "command": {
+    "attestation_hash": "9c046e0fc1951e7d1c114dc91f8d5217ef2b91e4aec3b4c6bc67f448e776e323",
+    "body_hash": "f278640dcced89db53191e09f7dfaa6d6e419d7c6e8e17d9321d68a7b8d1c6e5",
+    "checkpoint": null,
+    "issue_revision_id": null,
+    "kind": "hello_world_activation",
+    "runtime": [
+      "c3520362f9cc7354777201d4657739886db30c457c0ebabc2ca5bcead734a536",
+      "0.11",
+      "300c135ef8d26c2f3669c68c168e98111c52cd50fd48d7f44dc642e7f2cb1bcb"
+    ]
+  },
+  "marker": "<!-- wea:hello-world -->\n",
+  "real_source_id": null,
+  "real_source_time": null,
+  "status": "PENDING template; not a source or authorization"
+}

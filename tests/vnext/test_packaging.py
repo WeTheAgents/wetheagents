@@ -113,6 +113,18 @@ def test_wheel_resources_upgrade_isolation_and_preimport_verification(
     assert "wea_vnext/executors/v0_6_2/identity_hello_world.py" in names
     assert "wea_vnext/executors/v0_6_2/identity_migration.py" in names
     assert "wea_vnext/executors/v0_6_3/manifest.json" in names
+    assert "wea_vnext/executors/v0_11_0/manifest.json" in names
+    assert "wea_vnext/executors/v0_11_0/attestation.json" in names
+    candidate = _installed_python(
+        installed,
+        "from wea_vnext.engine import installed_executor, load_executor; "
+        "r=installed_executor('0.11.0').reference; "
+        "s=load_executor(r).import_module('sources'); "
+        "assert not hasattr(s, 'replay_hello_world'); "
+        "print(r.tide_interface_version)",
+    )
+    assert candidate.returncode == 0, candidate.stdout + candidate.stderr
+    assert candidate.stdout.strip() == "0.11"
     assert "wea_vnext/executors/v0_6_3/intake.py" in names
     assert "wea_vnext/rulesets/0.7.json" in names
     assert "wea_vnext/executors/v0_7_0/manifest.json" in names

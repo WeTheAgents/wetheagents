@@ -312,7 +312,8 @@ def main():
             print(f"Tide replay failed: {exc}")
             sys.exit(1)
         if tide is not None:
-            print(f"Tide {tide['sequence']}: balances plus escrow = {tide['opening_supply']} WEA")
+            supply = tide.get("current_supply", tide["opening_supply"])
+            print(f"Tide {tide['sequence']}: balances plus escrow = {supply} WEA")
         print("\nStatus: PASS (Invariant holds)")
         sys.exit(0)
     else:

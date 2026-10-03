@@ -86,6 +86,9 @@ class Replay:
         self.domain_scopes: dict[str, Any] = {}
         self.initiative_scopes: dict[str, str | None] = {}
         self.revision_schema = False
+        self.hello_world = None
+        self.hello_world_anchor = None
+        self.opening_supply = self.supply
 
     def _event(self, raw: dict[str, Any]) -> Any:
         payload = {"issue_number": raw["issue_number"], "issue_id": raw["issue_id"]}
@@ -430,13 +433,27 @@ class Replay:
             or batch["sequence"] != self.sequence + 1
         ):
             raise ReplayError("Tide predecessor or sequence differs")
+        from .hello_world import BATCH_SCHEMA, advance
+
+        self._hello_world_before = self.state()
+        self._hello_world_registry = self.registry.to_data()
         schema = batch.get("schema", "wea-tide-batch-1")
+        if self.hello_world_anchor is not None and schema != BATCH_SCHEMA:
+            raise ReplayError("Hello World forbids a Tide schema downgrade")
+        if schema != BATCH_SCHEMA and "hello_world" in batch:
+            raise ReplayError("Hello World evidence requires schema 5")
         if self.access_snapshot is not None and schema not in {
             domain.SCHEMA,
             domain.REVISION_SCHEMA,
+            BATCH_SCHEMA,
         }:
             raise ReplayError("domain admission forbids a Tide schema downgrade")
-        if schema in {"wea-tide-batch-2", domain.SCHEMA, domain.REVISION_SCHEMA}:
+        if schema in {
+            "wea-tide-batch-2",
+            domain.SCHEMA,
+            domain.REVISION_SCHEMA,
+            BATCH_SCHEMA,
+        }:
             reference = installed_executor(PARTICIPANT_EXECUTOR).reference
             if batch.get("participant_runtime") != list(reference):
                 raise ReplayError(
@@ -459,13 +476,19 @@ class Replay:
         cutoff = records.timestamp(batch["collection"]["cutoff"])
         if self.last_cutoff is not None and cutoff <= self.last_cutoff:
             raise ReplayError("Tide cutoff must advance")
-        if self.revision_schema and schema != domain.REVISION_SCHEMA:
+        if self.revision_schema and schema not in {
+            domain.REVISION_SCHEMA,
+            BATCH_SCHEMA,
+        }:
             raise ReplayError("binding admission forbids schema downgrade")
-        if schema in {domain.SCHEMA, domain.REVISION_SCHEMA}:
+        if schema in {domain.SCHEMA, domain.REVISION_SCHEMA, BATCH_SCHEMA}:
             snapshot = batch.get("access_snapshot")
-            if domain.batch_schema(snapshot) != schema:
+            access_schema = domain.batch_schema(snapshot)
+            if self.revision_schema and access_schema != domain.REVISION_SCHEMA:
+                raise ReplayError("binding admission forbids schema downgrade")
+            if schema != BATCH_SCHEMA and access_schema != schema:
                 raise ReplayError("Tide schema differs from activated binding policy")
-            self.revision_schema = schema == domain.REVISION_SCHEMA
+            self.revision_schema = access_schema == domain.REVISION_SCHEMA
             self.access = domain.restore(snapshot, cutoff, self.access_snapshot)
             self.access_snapshot = snapshot
         self.sequence += 1
@@ -479,6 +502,7 @@ class Replay:
                 "wea-tide-batch-2",
                 domain.SCHEMA,
                 domain.REVISION_SCHEMA,
+                BATCH_SCHEMA,
             }:
                 self.participant_revisions.add(key)
             if old is not None:
@@ -580,6 +604,8 @@ class Replay:
             if reason != "not a protocol declaration":
                 self.dispositions[key] = {"status": "accepted", "reason": reason}
         self._maintenance(cutoff, batch["funding_merges"], blocked_issues)
+        if schema == BATCH_SCHEMA:
+            advance(self, batch)
         self.last_hash = digest(batch)
         self.last_cutoff = cutoff
         return self.state()
@@ -625,10 +651,12 @@ class Replay:
             for role in item.roles
         )
         if sum(self.balances.values()) + escrow != self.supply:
-            raise ReplayError("global balances plus escrow do not equal opening supply")
+            raise ReplayError("global balances plus escrow do not equal current supply")
         return json_data(
             {
-                "schema": "wea-tide-state-4"
+                "schema": "wea-tide-state-5"
+                if self.hello_world is not None
+                else "wea-tide-state-4"
                 if self.revision_schema
                 else "wea-tide-state-3"
                 if self.access_snapshot is not None
@@ -656,7 +684,16 @@ class Replay:
                 "last_hash": self.last_hash,
                 "cutoff": self.last_cutoff,
                 "balances": self.balances,
-                "opening_supply": self.supply,
+                "opening_supply": self.opening_supply,
+                **(
+                    {
+                        "current_supply": self.supply,
+                        "hello_world": self.hello_world,
+                        "hello_world_anchor": self.hello_world_anchor,
+                    }
+                    if self.hello_world is not None
+                    else {}
+                ),
                 "escrow_wea": escrow,
                 "tasks": projections,
                 "funding_batches": self.funding_batches,

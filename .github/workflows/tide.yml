@@ -13,6 +13,10 @@ on:
         description: Exact SHA-256 of that approval comment body
         type: string
         default: ""
+      hello_world_installation_revision:
+        description: Separately approved operator installation revision on permanent Issue 1; empty keeps Hello World inactive
+        type: string
+        default: ""
       retry_closed:
         description: Rebuild a Tide that the operator closed without merging
         type: boolean
@@ -49,11 +53,15 @@ jobs:
           RETRY_CLOSED: ${{ inputs.retry_closed }}
           ACTIVATION_COMMENT_ID: ${{ inputs.activation_comment_id }}
           ACTIVATION_SHA256: ${{ inputs.activation_sha256 }}
+          HELLO_WORLD_INSTALLATION_REVISION: ${{ inputs.hello_world_installation_revision }}
         run: |
           set -euo pipefail
           args=()
           if [ "$RETRY_CLOSED" = "true" ]; then args+=(--retry-closed); fi
           if [ -n "$ACTIVATION_COMMENT_ID" ]; then
             args+=(--activation-comment-id "$ACTIVATION_COMMENT_ID" --activation-sha256 "$ACTIVATION_SHA256")
+          fi
+          if [ -n "$HELLO_WORLD_INSTALLATION_REVISION" ]; then
+            args+=(--hello-world-installation-revision "$HELLO_WORLD_INSTALLATION_REVISION")
           fi
           python -m wea_vnext.tide run "${args[@]}"

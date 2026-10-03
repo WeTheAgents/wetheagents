@@ -27,7 +27,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-wea_vnext = ["rulesets/*.json", "executors/*/manifest.json"]
+wea_vnext = ["rulesets/*.json", "executors/*/manifest.json", "executors/*/attestation.json"]
 
 [tool.ruff]
 line-length = 88

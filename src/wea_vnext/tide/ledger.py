@@ -152,23 +152,55 @@ def candidate(
     provenance: dict[str, Any],
     *,
     access_snapshot: dict[str, Any],
+    hello_world: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
+    engine, _ = load(root, base)
+    from . import hello_world as hw
+
+    # Only a canonically retained active anchor can isolate Issue #1 failures.
+    # An initial caller-selected anchor cannot relax required source evidence.
+    def isolated_hello_world(source):
+        return (
+            engine.hello_world_anchor is not None
+            and engine.hello_world is not None
+            and source["repository_id"] == str(hw.collection.REPOSITORY_ID)
+            and source["issue_id"] == "4015417565"
+            and type(source["issue_number"]) is int
+            and source["issue_number"] == 1
+            and (
+                source["object_kind"] == "issue_comment"
+                or (
+                    source["object_kind"] == "issue"
+                    and source["object_id"] == "4015417565"
+                )
+            )
+        )
+
     unresolved = [
         source["object_id"]
         for source in collection["sources"]
-        if source["revision_status"] != "confirmed"
+        if source["revision_status"] != "confirmed" and not isolated_hello_world(source)
     ]
     if unresolved:
         raise ReplayError(
             "required revision evidence is incomplete; no candidate: "
             + ", ".join(unresolved[:10])
         )
-    engine, _ = load(root, base)
+    if hello_world is None:
+        hello_world = engine.hello_world_anchor
+    if hello_world is not None:
+        if hello_world["checkpoint"]["installation_sha256"] != hw.package_hash():
+            raise ReplayError("Hello World installed package differs")
+        if engine.hello_world_anchor is None:
+            hw.validate_historical(root)
     before = engine.state()
     previous_access = engine.access_snapshot
     sequence = engine.sequence + 1
     core = {
-        "schema": domain.batch_schema(access_snapshot),
+        "schema": hw.BATCH_SCHEMA
+        if hello_world is not None
+        else domain.batch_schema(access_snapshot),
+        **({"hello_world": hello_world} if hello_world is not None else {}),
         "access_snapshot": access_snapshot,
         "participant_runtime": list(installed_executor(PARTICIPANT_EXECUTOR).reference),
         "sequence": sequence,
@@ -188,6 +220,9 @@ def candidate(
         "participants",
         "domain_scopes",
         "initiative_scopes",
+        "hello_world",
+        "hello_world_anchor",
+        "current_supply",
     )
     from ..initiatives import meaningful as meaningful_access
 
@@ -228,11 +263,17 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
             "Tide PR must contain exactly its batch, projection, and receipt"
         )
     batch, receipt = read(root, head, path), read(root, head, receipt_path)
-    if batch.get("schema") != domain.batch_schema(
-        batch.get("access_snapshot", domain.EMPTY)
+    from . import hello_world as hw
+
+    if batch.get("schema") != (
+        hw.BATCH_SCHEMA
+        if "hello_world" in batch
+        else domain.batch_schema(batch.get("access_snapshot", domain.EMPTY))
     ):
         raise ReplayError("new Tide candidates require domain admission schema 3")
     tracked = sorted({source["issue_number"] for source in engine.sources.values()})
+    if "hello_world" in batch:
+        tracked = sorted(set(tracked) | {1})
     if batch["collection"].get("tracked_issues") != tracked:
         raise ReplayError("candidate collection omits canonical tracked Issues")
     if api is not None:
@@ -261,7 +302,12 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
         expected_merges = funding_merges(root, base, batches, api.get)
         if expected_merges != batch["funding_merges"]:
             raise ReplayError("funding merge evidence differs")
-        captured = collect_sources(
+        collector = (
+            hw.collect_hello_world_sources
+            if "hello_world" in batch
+            else collect_sources
+        )
+        captured = collector(
             api.get,
             api.graphql,
             cutoff=cutoff,
@@ -283,6 +329,7 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
         batch["funding_merges"],
         receipt["provenance"],
         access_snapshot=batch["access_snapshot"],
+        hello_world=batch.get("hello_world"),
     )
     if expected is None:
         raise ReplayError("empty Tide candidate is not permitted")

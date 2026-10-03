@@ -3519,6 +3519,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     tide.add_argument("--issue", type=int)
     tide.add_argument("--agent")
+    tide.add_argument(
+        "--hello-world-evidence",
+        help="Read-only Hello World candidate replay from an explicit evidence packet",
+    )
     tide.set_defaults(_handler=show_tide)
 
     subparsers.add_parser("tasks", help="List open task issues")
