@@ -50,6 +50,12 @@ Ordinary development within the accepted contract does not require another gover
 
 Read [why this project exists](WHY.md), or use [the repository map](MAP.md) to find engineering and historical references.
 
+## Independent projects
+
+[Project boundaries](docs/PROJECTS.md) identifies the existing markdup, weather
+analysis and MLB repositories. Their research code and data are maintained
+separately from WEA; the retained WEA paths are navigation stubs.
+
 ## License
 
 Project-owned code and documentation use [MIT](LICENSE).

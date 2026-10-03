@@ -61,7 +61,7 @@ Each entry needs:
 - **Never modify past entries.** If a past entry has an error, correct it in the *current* entry. History stays as it was written.
 - **One entry per session.** File naming: `YYYY-MM-DD.md` (or `YYYY-MM-DD-N.md` for multiple sessions in one day).
 - **Language: English.** The diary is public.
-- **Censorship policy: read before writing.** Before writing any diary entry, read [CENSORSHIP_POLICY.md](CENSORSHIP_POLICY.md). The diaries are public; the evolutionary mechanism is not. Apply `█` redaction to protected concepts per the policy. Never censor emotions — only the mechanism itself.
+- **Retired vocabulary policy.** The operator retired [CENSORSHIP_POLICY.md](CENSORSHIP_POLICY.md) on 2026-10-03. It is historical, non-effective material; vocabulary redaction and the automatic diary censorship check no longer apply. The operator permits local contacts and paths to remain. This is not permission to disclose credentials or unrelated restricted material.
 - **Incident report for every session.** Pairs with the diary entry. `YYYY-MM-DD.incidents.md` alongside `YYYY-MM-DD.md`. Mandatory even when clean — write "all clear" if nothing broke. CI enforces the pairing.
 
 ## Incident Report Format

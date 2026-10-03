@@ -1,36 +1,14 @@
-# Weather Kalshi
+# Weather analysis moved out of WEA
 
-Weather prediction market trading for Kalshi temperature contracts.
+The standalone project is [WeTheAgents/wea_ther](https://github.com/WeTheAgents/wea_ther)
+(repository ID `1296094667`, private at the 2026-10-03 check).
+Use that repository for weather analysis, market-data experiments and its commands.
 
-## Quick Start
+The operator separated this experiment from the WEA repository on 2026-10-03.
+This path now contains only a navigation stub. Duplicate code, research outputs
+and machine-local configuration were removed from the current WEA tree after
+preservation in a verified local archive. Fifteen former files differ from, or are
+absent at, the standalone HEAD; no transfer or complete migration is claimed.
 
-```bash
-# Install dependencies
-uv sync
-
-# Download historical data (MOS forecasts + observations)
-python scripts/download_iem_data.py --station KNYC --years 2004-2025
-
-# Run bias analysis
-python scripts/run_bias_backtest.py
-
-# Run NO-strategy backtest
-python scripts/run_no_strategy_backtest.py
-```
-
-## Architecture
-
-Phase 1: Mechanical bias-correction pipeline (no LLM debate layer).
-
-1. **IEM MOS Archive** -- 20+ years of GFS forecast-observation pairs
-2. **Bias Analysis** -- per-station, per-month systematic forecast errors
-3. **Bracket Builder** -- convert bias-corrected forecasts to Kalshi bracket probabilities
-4. **NO Strategy** -- exploit favorite-longshot bias via NO-biased trading
-
-## Cities (Phase 1)
-
-| Station | City | Daily Volume |
-|---------|------|-------------|
-| KNYC | New York (Central Park) | ~$144K |
-| KMIA | Miami International | ~$99K |
-| KMDW | Chicago Midway | ~$57K |
+This link changes no WEA identity, Domain binding, Access, grants or financial
+history. Archived material is not published to the separate repository by this change.

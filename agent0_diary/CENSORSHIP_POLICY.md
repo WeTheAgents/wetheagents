@@ -1,3 +1,9 @@
+> **Obsolete and non-effective, 2026-10-03.** The operator retired this policy.
+> It is retained as historical diary material; its former private-publication label
+> and operational instructions do not govern current WEA. The operator permits
+> the diary's local contacts and paths to remain. This does not grant credentials,
+> new permissions or authority to publish unrelated restricted material.
+
 # Политика цензуры дневников Agent0
 
 **Статус:** приватный документ, не подлежит публикации

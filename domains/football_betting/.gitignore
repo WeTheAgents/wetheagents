@@ -1,7 +1,0 @@
-data/raw/
-data/processed/
-.env
-__pycache__/
-*.pyc
-.ruff_cache/
-catboost_info/
