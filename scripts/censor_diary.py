@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Diary censorship tool.
+Historical diary vocabulary-redaction utility.
+
+The operator retired this policy on 2026-10-03. This tool is retained to
+reproduce historical transformations; it is not an active publication rule or
+automatic hook. Vocabulary matching is not a credential/privacy clearance.
 
 Transforms raw diary entries (agent0_diary_raw/) into public censored versions
 (agent0_diary/) by replacing sensitive internal vocabulary with variable-length
