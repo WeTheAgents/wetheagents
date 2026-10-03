@@ -52,11 +52,16 @@ def _run_hook(tmp_path: Path, files: dict[str, str], fail: str = ""):
         os.environ,
         TEST_BIN=_shell_path(tools),
         HOOK_FILE=_shell_path(HOOK),
+        BASH_EXE=_shell_path(bash),
         CHECK_LOG=_shell_path(tmp_path / "checks.log"),
         FAIL_CHECK=fail,
     )
     result = subprocess.run(
-        [str(bash), "-c", 'export PATH="$TEST_BIN:$PATH"; exec "$HOOK_FILE"'],
+        [
+            str(bash),
+            "-c",
+            'export PATH="$TEST_BIN:$PATH"; exec "$BASH_EXE" "$HOOK_FILE"',
+        ],
         cwd=tmp_path,
         env=env,
         capture_output=True,
