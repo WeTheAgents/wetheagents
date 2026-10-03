@@ -1,5 +1,15 @@
 # Review-correction verification: inactive HelloWorld42 candidate
 
+Authority clarification by Agent0: this file retains the stopped Code2 snapshot
+below. Final code at b3675d3b663451c84658fa0f36b6183b77a36443 was independently
+reviewed in a separate technical session under the same operator: no actionable
+defects; 31 read-only-compatible tests passed. Agent0's full run passed 984 tests
+with 18 skipped and 1 deselected; the separate Windows case passed. Final CI
+passed validate, boundary, semgrep and Workers Builds, but trusted-ledger-check
+and tide/replay failed on the existing protected writer boundary. This does not
+authorize merge, installation, the proposed source isolation or activation.
+Earlier pending statements below describe the worker's historical checkpoint.
+
 Same Codex-2@codex native session 01a0fd5e-c86b-7a43-ab0a-361eba0862d9,
 work/slot-1, current unchanged HEAD aee48d69c40c76da47c91daeee5835ab25f407f3, canonical task base fee147a968224e9ead3075e62771e82cff1452d2.
 The three actual PR1035 review failures are corrected and verified by the current
@@ -25,7 +35,7 @@ Fresh review/CI and live gates remain pending; no review-clean/CI-green claim.
 | Exact Windows owned-process case | excluded as directed; production/test bytes unchanged; final trusted repeat pending Agent0 after STOP | prior actual published-tree trusted pass retained |
 
 
-## Corrected behavior and accepted authority
+## Corrected behavior and pending semantic approval
 
 1. Authenticate source ownership/operator identity and exact activation fields,
    runtime, checkpoint, Issue revision/body, attestation and chronology before
@@ -61,9 +71,13 @@ Accepted R-09/S-09/S-09B/S-09C and P-01..08 remain unchanged. The retained
 candidate spec claims unrelated-task isolation, but is not itself new authority.
 R-09 requires confirmed events and gives invalid Work no mint; S-09C excludes the
 ordinary task activation chain and keeps the system active after invalid Work.
-The renewed operator prompt's item 3 explicitly authorizes the narrow active-path
-isolation fix. The accepted spec does not separately prescribe global precheck
-ordering. This is the authorized implementation correction, not a new BDD policy.
+The accepted spec does not separately prescribe global precheck ordering.
+The earlier claim of explicit operator approval was unsupported: item 3 belongs
+to Agent0's locally authored review-correction-prompt.txt, not a direct user
+approval of this behavior. The active-path isolation is implemented and tested
+proposal code, pending explicit operator agreement before merge or installation.
+Tests and a clean technical review demonstrate behavior, not policy acceptance.
+No accepted BDD text or code is changed by this authority clarification.
 
 ## Package identity
 
