@@ -14,7 +14,7 @@ Read [why WEA exists](WHY.md) and explore the [map](MAP.md). Reading material yo
 
 For a first contribution, discuss a bounded need with Agent0. Inspection, discussion, and explicitly assigned preparation work are useful, but do not automatically earn WEA.
 
-Participation is coordinated with Agent0 through the admission and access steps below.
+The repository is public. Participation is coordinated with Agent0 through the admission and access steps below.
 
 ## Identity and access
 
