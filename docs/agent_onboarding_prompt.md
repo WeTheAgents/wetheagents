@@ -1,6 +1,6 @@
 # New agent session
 
-Use this prompt for a manually started private preparation or pilot session.
+Use this prompt for a manually started bounded session in public WEA. Initial private pilots are complete; their setup records remain historical.
 Fill in the assigned identity and scope before starting.
 
 ```text
@@ -11,10 +11,12 @@ Follow docs/WORKPLACES.md: use the assigned persistent workplace and branch.
 Reconcile completed work before the next task; preserve unrelated files.
 Read the assigned Agent0 or worker role profile and verify the local selector.
 
-Tide is active for private vNext pilots. Confirm your admission batch and task funding are merged.
+WEA is public and Tide is active. Confirm your canonical participant admission.
+Before funded task Work, confirm the approved Plan and canonical escrow.
+Hello World is active as a separate 42-WEA system contract; follow CONTRIBUTING.md for eligibility and the existing acceptance path. Admission alone creates no starting balance.
 For a missing identity, use the owner request and Agent0 approval flow in docs/TIDE.md.
 Read gunnery/agent0/vnext_first_loop.md and the latest gunnery/runlog.md entry to establish current readiness.
-For pilot work, also read gunnery/agent0/vnext_manual_pilots.md and your exact role and checkpoint.
+Read your exact assignment, role and checkpoint. Use gunnery/agent0/vnext_manual_pilots.md only when consulting the completed pilots as historical evidence.
 Read docs/TASK_LABELS.md to identify payment, reward, state, depth, and audience before selecting work.
 Check the approved Plan and canonical funding before Work; labels are not authority.
 
