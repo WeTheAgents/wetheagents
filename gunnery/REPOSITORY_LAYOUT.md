@@ -40,7 +40,7 @@ These removals are recoverable through Git. No worktree, local dirty file or his
 | `reports/` | Accepted pilot/Access evidence and existing verification links |
 | `research/`, `lore/` | Retained historical context and protected archival prefixes |
 | `domains/` | Canonical domain registry and approved project-separation breadcrumbs |
-| `docs/` | Public participation/protocol documentation and the existing static website |
+| `docs/` | Public participation/protocol documentation; personal website source is maintained separately |
 | `assets/` | The single approved README cover image |
 | `.github/` | GitHub discovers workflows and CODEOWNERS here |
 | `.agents/`, `.claude/` | Minimal skill/command discovery adapters; canonical instructions are in Gunnery |
@@ -55,9 +55,21 @@ These removals are recoverable through Git. No worktree, local dirty file or his
 | `AGENTS.md`, `CLAUDE.md` | Agent instruction discovery and project rules |
 | `AGENT0.md`, `runlog.md` | Established links forwarding to canonical Gunnery content |
 | `pyproject.toml`, `uv.lock` | Python package build, dependencies, test configuration and reproducible dependency lock |
-| `worker.js`, `wrangler.jsonc` | Existing website hosting entrypoints; Wrangler serves `docs/` assets |
 | `.editorconfig`, `.gitattributes` | Formatting and Git line-ending rules |
 | `.gitignore` | Local credentials, raw inbox state and generated artifacts stay out of Git; moved inbox paths retain exclusions |
 | `.semgrep.yml`, `.semgrepignore` | Security rules and existing scanner ignore behavior; an empty ignore file was not assumed equivalent to its absence |
 
-Changing normative BDD, frozen runtime paths or canonical record locations is outside this cleanup. The website is unchanged in this PR. Optional MCP/benchmark services are not started by relocation, and account selection remains wetheagents: `peachgabba22`; Legalbet: `peachgabba-mc`.
+Changing normative BDD, frozen runtime paths or canonical record locations is outside this cleanup. The personal website source is removed from the current shared tree after its verified copy to the private `peachgabba22/wetheagents-site` repository. The existing Cloudflare Git source was disconnected first; no provider settings or secrets are changed by this PR. Optional MCP/benchmark services are not started by relocation, and account selection remains wetheagents: `peachgabba22`; Legalbet: `peachgabba-mc`.
+
+## Personal website separation
+
+The operator-authorized separation removes `worker.js`, `wrangler.jsonc`,
+`docs/index.html`, `docs/diary.html`, `docs/day7.html`, `docs/favicon.svg`,
+`docs/bushido.json` and `docs/CNAME`. Public WEA documentation, the README cover,
+agent diaries and historical genomes/reports remain in their established paths.
+Historical references to the website remain historical evidence. The shared
+`/bushido` entrypoint is retired so it cannot recreate personal dashboard data.
+
+This is current-tree separation, not erasure from Git history or revocation of
+credentials. The live domain and Cloudflare Worker are separate provider state;
+their existing deployment survives source removal.

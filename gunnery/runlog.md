@@ -1120,3 +1120,29 @@ Canonical Agent0 instructions, active command/skill bodies, hook implementations
 Validation at this checkpoint: 78 focused documentation, hook/scope and vNext boundary tests pass; doc-sync, mandatory precommit coverage, shell/Python syntax and whitespace checks pass. SourcePackage, Access protocol, ledger state, Access journal and approved cover hashes are unchanged. All original 18 tracked plus 7 untracked local files are preserved by SHA-256. The broader vNext suite is running; native Codex review and exact-head CI follow publication.
 
 BDD alignment: 100% within this maintenance scope; no protocol/runtime behavior is changed. Publish a draft PR only. Do not merge, edit repository rules, deploy the site, restart Agent0 automation or reuse this occupied slot for a different task. The separately requested centered GitHub website icon is queued behind cleanup.
+
+
+## 2026-10-04 - personal website source separation
+
+Operator-assigned unpaid maintenance extends the current public-tree cleanup
+delivery with personal website isolation. The private operator-owned repository
+`peachgabba22/wetheagents-site` retains the website source and dashboard data;
+its reviewed head is `5cba951817c605400e53f8461e1171604904857b`.
+The old Cloudflare Git binding to shared WEA was verified disconnected while
+the existing production site remained live. GitHub Pages is not configured and
+the seven WEA workflows contain no site deployment command or Cloudflare secret
+reference. Remove only the eight website entrypoint/asset files listed in
+REPOSITORY_LAYOUT.md, and retire the shared `/bushido` writing instruction.
+
+The preceding cleanup and accepted Hello World test correction passed 1,066
+tests with 18 skips, native Codex review and exact-head CI at `9704dec`.
+Source-removal checks and exact-head review/CI are recorded separately before
+merge. Approved public documentation, cover, diaries, historical reports/genomes,
+canonical records and immutable runtime bytes are preserved. Original local
+18 tracked plus 7 untracked files and all private evidence remain untouched.
+
+This change neither changes repository security settings nor deletes/rotates a
+credential. The shared `CLOUDFLARE_API_TOKEN` remains a separate unresolved
+security action requiring exact operator confirmation. Private source binding
+and deployment are separate from this code delivery; the operator is completing
+the provider connection handoff. No background Agent0 loop is started.
