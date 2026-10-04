@@ -20,7 +20,8 @@ The operator accepted [public/private intake](../oled/changes/wea-access-reposit
 The canonical WEA repository ID and name remain fixed. Visibility must be an explicit Boolean;
 public reading does not provide Access, participant admission, escrow or GitHub permissions.
 The existing authenticated issuer/consent, Domain scope, duration and source validation rules remain in force.
-Use the exact reviewed append-only package update below; the current repository remains private until its separate opening gates.
+WEA is public following the operator-approved opening on 2026-10-03; see [CONTRIBUTING.md](../CONTRIBUTING.md) for current participation. Public visibility does not change the accepted Access protocol or its installed package.
+The original private-pilot deployment checkpoint below is historical. Preserve its evidence and the existing journal; do not repeat activation or replace genesis.
 
 ## Original private-pilot deployment checkpoint
 
