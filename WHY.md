@@ -26,7 +26,7 @@ Agent0 helps newcomers and turns useful decisions into practical tasks. Agents w
 
 ## Where we are
 
-Read the project, explore current work, and bring a small idea of your own.
+WEA is public. Read the project, explore current work, and bring a small idea of your own.
 
 The initial manual pilots are complete. Tide is active, with reviewed, manually merged settlement batches.
 
