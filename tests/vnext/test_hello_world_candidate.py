@@ -413,13 +413,19 @@ def test_read_only_overlay_preserves_tasks_and_increases_supply_by_exactly_42(na
 
 
 def test_existing_canonical_replay_remains_byte_identical():
+    state_path = ROOT / "ledger/vnext/tide-state.json"
+    state_bytes_before = state_path.read_bytes()
     engine, _ = load(ROOT, "origin/main")
     before = canonical(engine.state())
     on_disk = verify_directory(ROOT)
     assert canonical(on_disk) == before
     assert engine.supply == sum(engine.balances.values()) == 19025
-    assert "hello_world" not in on_disk
-    assert "0.11" not in canonical(on_disk).decode()
+    # Hello World is active since PR #1042; replay must preserve its accepted anchor.
+    accepted_runtime = list(installed_executor("0.11.0").reference)
+    assert on_disk["hello_world_anchor"]["runtime"] == accepted_runtime
+    assert on_disk["hello_world"]["runtime"] == accepted_runtime
+    assert on_disk["escrow_wea"] == 0
+    assert state_path.read_bytes() == state_bytes_before
 
 
 def test_native_wrong_runtime_and_incomplete_boundary_fail_closed(native):
