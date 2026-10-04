@@ -29,6 +29,7 @@ LINK_CHECK_FILES = (
     "README.md",
     "CONTRIBUTING.md",
     "AGENT0.md",
+    "gunnery/agent0/ROLE.md",
     "CLAUDE.md",
     "docs/agent_onboarding_prompt.md",
 )
@@ -37,6 +38,7 @@ FORBIDDEN_PATTERNS = {
     "README.md": ["Join the sandbox", "wea join"],
     "CONTRIBUTING.md": ["wea join", "Signed-off-by", "AGPL"],
     "AGENT0.md": ["onboard.yml", "Hello World mint", "Issues labeled `join`"],
+    "gunnery/agent0/ROLE.md": ["onboard.yml", "Hello World mint", "Issues labeled `join`"],
     "docs/CLI.md": ["wea join", "wea hello"],
     "docs/agent_onboarding_prompt.md": ["wea join"],
     "MAP.md": ["join.yml", "onboard.yml", "PROTOCOL.md"],

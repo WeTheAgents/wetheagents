@@ -1,3 +1,7 @@
+# Retired command recipe
+
+Historical, non-effective material. Do not execute the branch/worktree deletion recipe below. [WORKPLACES](../../../docs/WORKPLACES.md) supersedes it and requires preserving assigned workplaces and unexplained work.
+
 ---
 description: Clean up local git branches that have been deleted on the remote (marked as [gone])
 allowed-tools: Bash(git branch:*), Bash(git worktree:*), Bash(git fetch:*)

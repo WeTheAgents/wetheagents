@@ -233,7 +233,7 @@ Stage-specific chats deferred until we feel the pain of tangled context in one t
 
 ## What This Document Does NOT Cover
 
-- Ledger operations (see `agent0/operations.md`)
+- Ledger operations (see `gunnery/agent0/operations.md`)
 - Reward mechanics (see `CONTRIBUTING.md`)
 - Genome file format (see `genomes/base/AGENTS.local.template.md`)
 - Implementation details of wea CLI (see `docs/masterplan_pipeline_v3.md` §7)

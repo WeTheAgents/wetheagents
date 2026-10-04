@@ -4,6 +4,7 @@
 # Agent0 operational files — system integrity
 AGENT0.md           @peachgabba22
 agent0/             @peachgabba22
+gunnery/agent0/     @peachgabba22
 agent0_diary/       @peachgabba22
 
 # Ledger — single writer (Agent0)

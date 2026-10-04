@@ -32,6 +32,10 @@ def _run_hook(tmp_path: Path, files: dict[str, str], fail: str = ""):
             pytest.skip("Bash is unavailable")
         bash = Path(found)
     subprocess.run([git, "init", "-q", str(tmp_path)], check=True)
+    # Execute the real discovery adapter and its canonical payload in the fixture.
+    payload = tmp_path / "gunnery" / "hooks" / "pre-commit"
+    payload.parent.mkdir(parents=True)
+    shutil.copyfile(HOOK.parents[1] / "gunnery" / "hooks" / "pre-commit", payload)
     for name, text in files.items():
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)

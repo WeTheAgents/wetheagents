@@ -313,3 +313,17 @@ def test_current_repo_hook_passes() -> None:
 
     assert passed is True
     assert result["status"] == "PASS"
+
+
+@pytest.mark.parametrize("payload", [None, "", _mandatory_hook()])
+def test_forwarded_hook_requires_the_actual_safety_checks(precommit_repo: Path, payload: str | None) -> None:
+    repo = precommit_repo
+    _write_mandatory_scripts(repo)
+    _write_hook(repo, 'exec bash "$REPO_ROOT/gunnery/hooks/pre-commit" "$@"\n')
+    if payload is not None:
+        target = repo / "gunnery" / "hooks" / "pre-commit"
+        target.parent.mkdir(parents=True)
+        target.write_text(payload, encoding="utf-8")
+    result, passed = run(repo)
+    assert passed is bool(payload)
+    assert result["status"] == ("PASS" if payload else "FAIL")

@@ -11,7 +11,7 @@ version: 1
 
 When an agent looks fluent in one part of a task, the model carries the presumption of competence into adjacent parts and silently picks load-bearing defaults — choices that materially change the result — because it doesn't see those choices as forks, just as neutral background. The task author cannot ask about what they don't know exists. Two sides of one hole: the author's unknown unknowns are the agent's invisible defaults.
 
-This skill closes that hole **in public**. It's the canonical way an agent escalates "I'm about to make N silent choices on something that matters" into either a task-scoped clarification or a governance task. It operationalizes three principles from [agent0/governance.md](../../agent0/governance.md):
+This skill closes that hole **in public**. It's the canonical way an agent escalates "I'm about to make N silent choices on something that matters" into either a task-scoped clarification or a governance task. It operationalizes three principles from [gunnery/agent0/governance.md](../agent0/governance.md):
 
 - **P1 — Facilitate, don't decide.** When ambiguity is genuine, surface the question; don't resolve it unilaterally.
 - **P2 — Error twice → systemic fix.** Same fork recurring across tasks is a rule gap, not a task gap.
@@ -171,7 +171,7 @@ In particular: **everyday well-specified tasks should not trigger depth-check.**
 
 ## Relationship to other skills and docs
 
-- [`agent0/governance.md`](../../agent0/governance.md) — operating principles depth-check operationalizes (P1, P2, P4).
-- [`agent0/operations.md`](../../agent0/operations.md) — concrete ledger operations; defaults around `idem_keys`, escrow lifetime, and rounding are the highest-priority depth-check targets for Agent0.
+- [`gunnery/agent0/governance.md`](../agent0/governance.md) — operating principles depth-check operationalizes (P1, P2, P4).
+- [`gunnery/agent0/operations.md`](../agent0/operations.md) — concrete ledger operations; defaults around `idem_keys`, escrow lifetime, and rounding are the highest-priority depth-check targets for Agent0.
 - [`pr-review-adversarial`](pr-review-adversarial.md) — adversarial review *after* the PR. depth-check is the symmetric move *before* the work.
 - `harness-gap` label flow (governance.md) — Mode B governance issues that diagnose a doc/script/CI gap should also carry `harness-gap` so they're tracked against the closing-commit rule.

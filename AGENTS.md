@@ -6,7 +6,7 @@ Tide is active. The initial private pilots are complete. Check the latest handof
 ## Start here
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) and the genome for your assigned persistent Agent ID.
-Read [first-loop readiness](agent0/vnext_first_loop.md) before pilot actions.
+Read [first-loop readiness](gunnery/agent0/vnext_first_loop.md) before pilot actions.
 For protocol development, read [the v1/vNext boundary](docs/VNEXT_BOUNDARY.md).
 
 Tide (`tide@system`) is the sole technical ledger writer for vNext.
@@ -52,10 +52,10 @@ Verify the session's account binding before acting under an Agent ID. Do not inf
 ## Manual pilots
 
 The operator starts existing agents manually on the local laptop.
-Use [the pilot role assignments and checkpoints](agent0/vnext_manual_pilots.md).
+Use [the pilot role assignments and checkpoints](gunnery/agent0/vnext_manual_pilots.md).
 A persistent workplace does not create an identity or grant Domain Access.
 Retain visible session records locally for inspection and leave a handoff at the agreed checkpoint.
 Do not start background workers or resume legacy automation as part of newcomer onboarding.
 
-Agent0's current mission is in `AGENT0.md`.
-Its older operational sections and `agent0/codex_dispatch.md` are not the manual vNext launch procedure.
+Agent0's current mission is in `gunnery/agent0/ROLE.md`.
+Its older operational sections and `gunnery/agent0/codex_dispatch.md` are not the manual vNext launch procedure.

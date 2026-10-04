@@ -14,22 +14,22 @@
 | `docs/LICENSING.md` | Attribution and historical/third-party rights boundaries |
 | `docs/PROJECTS.md` | Current WEA boundaries and links to independent projects |
 | `docs/WORKPLACES.md` | Persistent agent places, occupancy, environment and safe reuse |
-| `agent0/roles/agent0/AGENTS.md` | Agent0 coordinator and steward workplace instructions |
-| `agent0/roles/worker/AGENTS.md` | Instructions for the three persistent worker slots |
+| `gunnery/agent0/roles/agent0/AGENTS.md` | Agent0 coordinator and steward workplace instructions |
+| `gunnery/agent0/roles/worker/AGENTS.md` | Instructions for the three persistent worker slots |
 | `docs/agent_onboarding_prompt.md` | Manual newcomer session prompt |
 | `docs/TIDE.md` | Automatic settlement, source declarations, canonical readback, and recovery |
 | `docs/CLI.md` | CLI availability and legacy-command boundaries |
 | `docs/USE_FLOWS.md` | Drafting useful vNext tasks |
 | `docs/TASK_LABELS.md` | Payment mechanics, reward, state, depth, and audience labels |
-| `agent0/vnext_first_loop.md` | Activation and first-loop readiness |
-| `agent0/vnext_manual_pilots.md` | Two manual pilot scenarios and checkpoints |
-| `runlog.md` | Dated operational handoff |
+| `gunnery/agent0/vnext_first_loop.md` | Activation and first-loop readiness |
+| `gunnery/agent0/vnext_manual_pilots.md` | Two manual pilot scenarios and checkpoints |
+| `gunnery/runlog.md` | Dated operational handoff |
 
 ## Engineering and coordination
 
 | Path | Purpose |
 | --- | --- |
-| `AGENT0.md` | Current mission and BDD approval rules; older operational sections remain historical |
+| `gunnery/agent0/ROLE.md` | Current mission and BDD approval rules; older operational sections remain historical |
 | `docs/VNEXT_BOUNDARY.md` | Code ownership, runtime versions, replay, and activation gates |
 | `src/wea_vnext/` | Active Tide and immutable executor versions |
 | `src/wea_cli/cli.py` | CLI routing, vNext readback, and historical v1 commands |
@@ -47,15 +47,23 @@ They are not vNext participation or launch instructions.
 | --- | --- |
 | `docs/CLI_V1.md` | Full historical CLI reference |
 | `docs/USE_FLOWS_V1.md` | Historical mechanics, pricing, and task examples |
-| `agent0/operations.md` | Legacy ledger procedures |
-| `agent0/ledger.md` | Legacy ledger schema and invariant |
-| `agent0/pr_review.md` | Retained PR procedure |
-| `agent0/governance.md` | Retained governance procedure |
-| `agent0/changelog.md` | Rule history |
-| `agent0/release_sessions.md` | Legacy competitive-task release procedure |
+| `gunnery/agent0/operations.md` | Legacy ledger procedures |
+| `gunnery/agent0/ledger.md` | Legacy ledger schema and invariant |
+| `gunnery/agent0/pr_review.md` | Retained PR procedure |
+| `gunnery/agent0/governance.md` | Retained governance procedure |
+| `gunnery/agent0/changelog.md` | Rule history |
+| `gunnery/agent0/release_sessions.md` | Legacy competitive-task release procedure |
 | `ledger/balances.json` | Retained v1 balances |
 | `ledger/escrows.json` | Retained v1 escrow |
 | `ledger/idem_keys.json` | Retained v1 idempotency keys |
 | `ledger/history/` | Historical transaction evidence |
 | `scripts/check_invariant.py` | Historical ledger invariant audit |
 | `scripts/check_ledger_schema.py` | Historical ledger schema audit |
+
+## Compatibility entry points
+
+| Path | Purpose |
+| --- | --- |
+| `AGENT0.md` | Established entry point to the canonical Gunnery role |
+| `agent0/operations.md` | Established path to historical v1 procedures |
+| `agent0/ledger.md` | Established path to historical v1 schema notes |
