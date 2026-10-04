@@ -266,7 +266,12 @@ def _worktree_branch_map(root: Path) -> dict[str, str]:
         if not path:
             raise RuntimeError("Worktree inspection returned an entry without a path")
         if branch_ref:
-            if not branch_ref.startswith("refs/heads/"):
+            if (
+                not branch_ref.startswith("refs/heads/")
+                or _git(
+                    ["check-ref-format", branch_ref], cwd=root, check=False
+                ).returncode
+            ):
                 raise RuntimeError(f"Invalid worktree branch ref: {branch_ref}")
             branch_map[branch_ref[len("refs/heads/") :]] = path.replace("\\", "/")
         if "bare" in entry:
@@ -297,7 +302,10 @@ def _worktree_branch_map(root: Path) -> dict[str, str]:
                     held = f"refs/heads/{held}"
             elif held == "detached HEAD":
                 continue
-            if not held.startswith("refs/heads/"):
+            if (
+                not held.startswith("refs/heads/")
+                or _git(["check-ref-format", held], cwd=root, check=False).returncode
+            ):
                 raise RuntimeError(f"Invalid worktree operation branch: {held}")
             branch_map[held[len("refs/heads/") :]] = path.replace("\\", "/")
 
@@ -717,7 +725,7 @@ def main(argv: list[str] | None = None) -> int:
             main_ref_override=args.main_ref,
             idle_days=args.idle_days,
         )
-    except (RuntimeError, subprocess.CalledProcessError, ValueError) as exc:
+    except (OSError, RuntimeError, subprocess.CalledProcessError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
 

@@ -863,3 +863,56 @@ def test_empty_update_refs_state_has_no_secondary_holds(repository: Path) -> Non
         [row.branch.name],
         [],
     )
+
+
+@pytest.mark.parametrize(
+    "state", ["rebase-merge/head-name", "rebase-apply/head-name", "BISECT_START"]
+)
+@pytest.mark.parametrize(
+    "payload", ["", "refs/heads/bad ref\n", "refs/heads/unfinished/\n"]
+)
+def test_invalid_held_branch_metadata_refuses_deletion(
+    repository: Path,
+    state: str,
+    payload: str,
+) -> None:
+    row, log_path = captured_candidate(repository)
+    metadata = repository / ".git" / state
+    metadata.parent.mkdir(exist_ok=True)
+    metadata.write_text(payload, encoding="utf-8")
+    before = git(repository, "show-ref")
+    deleted, failed = cleanup.apply_deletions(
+        repository, reports=[row], log_path=log_path
+    )
+    assert deleted == [] and "Invalid worktree operation branch" in failed[0]
+    assert git(repository, "show-ref") == before
+
+
+@pytest.mark.parametrize("apply", [False, True])
+@pytest.mark.parametrize(
+    "state", ["rebase-merge/head-name", "rebase-merge/update-refs", "BISECT_START"]
+)
+@pytest.mark.parametrize("error_type", [PermissionError, OSError])
+def test_initial_operation_metadata_io_failure_returns_cli_refusal(
+    repository: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    apply: bool,
+    state: str,
+    error_type: type[OSError],
+) -> None:
+    metadata = repository / ".git" / state
+    before = git(repository, "show-ref")
+    original = Path.read_text
+
+    def unavailable(path, *args, **kwargs):
+        if path == metadata:
+            raise error_type("operation metadata unreadable")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", unavailable)
+    flags = ["--apply"] if apply else []
+    assert cleanup.main(["--root", str(repository), *flags]) == 2
+    assert "operation metadata unreadable" in capsys.readouterr().err
+    assert git(repository, "show-ref") == before
+    assert not (repository / cleanup.BRANCH_LOG).exists()
