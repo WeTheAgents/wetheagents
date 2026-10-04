@@ -46,6 +46,12 @@ CATEGORY_LABELS = {
     "idle_30d": "idle-30d",
 }
 OPEN_TASK_STATUSES = {"open", "claimed"}
+PERSISTENT_WORKPLACE_BRANCHES = {
+    "work/agent0",
+    "work/slot-1",
+    "work/slot-2",
+    "work/slot-3",
+}
 BRANCH_LOG = Path("agent0_diary") / "branch_cleanup_log.jsonl"
 
 
@@ -118,6 +124,7 @@ def _run(
         capture_output=True,
         check=check,
         text=True,
+        encoding="utf-8",
     )
 
 
@@ -153,8 +160,7 @@ def _parse_worktree_porcelain(text: str) -> list[dict[str, str]]:
     entries: list[dict[str, str]] = []
     current: dict[str, str] = {}
 
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
+    for line in text.split("\0" if "\0" in text else "\n"):
         if not line:
             if current:
                 entries.append(current)
@@ -197,7 +203,7 @@ def _list_local_branches(root: Path) -> list[BranchInfo]:
     result = _git(
         [
             "for-each-ref",
-            "--format=%(refname:short)|%(objectname)|%(upstream:short)|"
+            "--format=%(refname)|%(objectname)|%(upstream:short)|"
             "%(upstream:track)|%(committerdate:iso8601)",
             "refs/heads",
         ],
@@ -205,13 +211,16 @@ def _list_local_branches(root: Path) -> list[BranchInfo]:
     )
 
     branches: list[BranchInfo] = []
-    for line in result.stdout.splitlines():
+    for line in result.stdout.split("\n"):
         if not line:
             continue
         parts = line.split("|")
         if len(parts) != 5:
             continue
-        name, sha, upstream, upstream_track, committed_raw = parts
+        ref, sha, upstream, upstream_track, committed_raw = parts
+        if not ref.startswith("refs/heads/"):
+            raise ValueError(f"Not a local branch ref: {ref}")
+        name = ref[len("refs/heads/") :]
         branches.append(
             BranchInfo(
                 name=name,
@@ -245,15 +254,76 @@ def _resolve_main_ref(root: Path, override: str | None) -> tuple[str, str]:
 
 
 def _worktree_branch_map(root: Path) -> dict[str, str]:
-    result = _git(["worktree", "list", "--porcelain"], cwd=root)
+    result = _git(["worktree", "list", "--porcelain", "-z"], cwd=root)
     branch_map: dict[str, str] = {}
 
-    for entry in _parse_worktree_porcelain(result.stdout):
+    entries = _parse_worktree_porcelain(result.stdout)
+    if not entries:
+        raise RuntimeError("Worktree inspection returned no entries")
+    for entry in entries:
         branch_ref = entry.get("branch")
         path = entry.get("worktree")
-        if not branch_ref or not path or not branch_ref.startswith("refs/heads/"):
+        if not path:
+            raise RuntimeError("Worktree inspection returned an entry without a path")
+        if branch_ref:
+            if not branch_ref.startswith("refs/heads/"):
+                raise RuntimeError(f"Invalid worktree branch ref: {branch_ref}")
+            branch_map[branch_ref[len("refs/heads/") :]] = path.replace("\\", "/")
+        if "bare" in entry:
             continue
-        branch_map[branch_ref[len("refs/heads/") :]] = path.replace("\\", "/")
+        if not entry.get("HEAD") or (not branch_ref and "detached" not in entry):
+            raise RuntimeError(f"Incomplete worktree HEAD state: {path}")
+
+        # Like git branch -D, retain branches held by detached rebase/bisect HEADs.
+        git_dir = _git(["rev-parse", "--absolute-git-dir"], cwd=Path(path))
+        directory = git_dir.stdout.rstrip("\r\n")
+        if not directory:
+            raise RuntimeError(f"Cannot inspect worktree operation state: {path}")
+        for state in (
+            "rebase-merge/head-name",
+            "rebase-apply/head-name",
+            "BISECT_START",
+        ):
+            try:
+                held = (
+                    (Path(directory) / state).read_text(encoding="utf-8").rstrip("\r\n")
+                )
+            except FileNotFoundError:
+                continue
+            if state == "BISECT_START":
+                if re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", held):
+                    continue
+                if not held.startswith("refs/heads/"):
+                    held = f"refs/heads/{held}"
+            elif held == "detached HEAD":
+                continue
+            if not held.startswith("refs/heads/"):
+                raise RuntimeError(f"Invalid worktree operation branch: {held}")
+            branch_map[held[len("refs/heads/") :]] = path.replace("\\", "/")
+
+        # Git also holds secondary refs scheduled by rebase --update-refs.
+        try:
+            pending = (Path(directory) / "rebase-merge/update-refs").read_text(
+                encoding="utf-8"
+            )
+        except FileNotFoundError:
+            continue
+        lines = pending.split("\n")
+        if lines[-1] == "":
+            lines.pop()
+        if len(lines) % 3:
+            raise RuntimeError("Malformed rebase update-refs state")
+        for offset in range(0, len(lines), 3):
+            held, before, after = lines[offset : offset + 3]
+            if (
+                not held.startswith("refs/heads/")
+                or _git(["check-ref-format", held], cwd=root, check=False).returncode
+                or not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", before)
+                or not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", after)
+                or len(before) != len(after)
+            ):
+                raise RuntimeError("Invalid rebase update-refs state")
+            branch_map[held[len("refs/heads/") :]] = path.replace("\\", "/")
 
     return branch_map
 
@@ -264,11 +334,12 @@ def _branch_is_merged(
     main_ref: str,
     main_sha: str,
 ) -> bool:
-    branch_sha = _git(["rev-parse", branch_name], cwd=root).stdout.strip()
+    branch_ref = f"refs/heads/{branch_name}"
+    branch_sha = _git(["rev-parse", "--verify", branch_ref], cwd=root).stdout.strip()
     if branch_sha == main_sha:
         return False
     result = _git(
-        ["merge-base", "--is-ancestor", branch_name, main_ref],
+        ["merge-base", "--is-ancestor", branch_ref, main_ref],
         cwd=root,
         check=False,
     )
@@ -402,6 +473,8 @@ def build_report(
 
         if branch.name == "main":
             row.protections.append("protected:main")
+        if branch.name in PERSISTENT_WORKPLACE_BRANCHES:
+            row.protections.append("protected:persistent_workplace")
         if _is_agent0_branch(branch.name):
             row.protections.append("protected:agent0")
 
@@ -516,6 +589,38 @@ def render_report(
     return "\n".join(lines)
 
 
+def _validated_deletion_ref(root: Path, branch: BranchInfo) -> str:
+    name = branch.name
+    if not name or name == "HEAD" or name.startswith(("-", "refs/")):
+        raise ValueError(f"Invalid local branch name: {name!r}")
+    ref = f"refs/heads/{name}"
+    if _git(["check-ref-format", ref], cwd=root, check=False).returncode != 0:
+        raise ValueError(f"Invalid local branch ref: {ref}")
+    if not re.fullmatch(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})", branch.sha) or not any(
+        character != "0" for character in branch.sha
+    ):
+        raise ValueError("Expected SHA must be a nonzero full object ID")
+
+    symbolic = _git(["symbolic-ref", "--quiet", ref], cwd=root, check=False)
+    if symbolic.returncode == 0:
+        raise ValueError(f"Refusing symbolic local branch ref: {ref}")
+    if symbolic.returncode != 1:
+        raise RuntimeError(f"Cannot inspect symbolic-ref status: {ref}")
+    current = _git(["show-ref", "--verify", "--hash", ref], cwd=root, check=False)
+    if current.returncode != 0:
+        raise RuntimeError(
+            f"Missing or unreadable local ref: {ref}; expected {branch.sha}"
+        )
+    actual_sha = current.stdout.strip()
+    if actual_sha != branch.sha.lower():
+        raise ValueError(f"SHA mismatch: expected {branch.sha}, current {actual_sha}")
+    # Case-folding filesystems can resolve an alias that is not the stored ref name.
+    names = _git(["for-each-ref", "--format=%(refname)", ref], cwd=root)
+    if ref not in names.stdout.split("\n"):
+        raise ValueError(f"Ref identity not found exactly: {ref}")
+    return ref
+
+
 def apply_deletions(
     root: Path,
     *,
@@ -529,14 +634,47 @@ def apply_deletions(
         if not row.can_delete:
             continue
 
-        _write_predelete_log(log_path, row)
-        result = _git(["branch", "-D", row.branch.name], cwd=root, check=False)
-        if result.returncode == 0:
-            deleted.append(row.branch.name)
+        name = row.branch.name
+        if (
+            name == "main"
+            or name in PERSISTENT_WORKPLACE_BRANCHES
+            or _is_agent0_branch(name)
+        ):
+            failed.append(f"{name}: protected branch")
+            continue
+        if row.open_pr_number is not None:
+            failed.append(f"{name}: open PR #{row.open_pr_number}")
             continue
 
-        detail = (result.stderr or result.stdout or "git branch -D failed").strip()
-        failed.append(f"{row.branch.name}: {detail}")
+        try:
+            ref = _validated_deletion_ref(root, row.branch)
+            _write_predelete_log(log_path, row)
+            # Refresh after logging, immediately before conditional ref deletion.
+            # This snapshot does not atomically exclude concurrent attachment.
+            worktrees = _worktree_branch_map(root)
+            if name in worktrees:
+                raise ValueError(f"Branch held by worktree: {worktrees[name]}")
+            result = _git(
+                ["update-ref", "--no-deref", "-d", ref, row.branch.sha],
+                cwd=root,
+                check=False,
+            )
+        except (
+            OSError,
+            ValueError,
+            RuntimeError,
+            subprocess.CalledProcessError,
+        ) as exc:
+            failed.append(f"{name}: deletion refused: {exc}")
+            continue
+        if result.returncode == 0:
+            deleted.append(name)
+            continue
+
+        detail = (
+            result.stderr or result.stdout or "conditional ref deletion failed"
+        ).strip()
+        failed.append(f"{name}: conditional ref deletion failed: {detail}")
 
     return deleted, failed
 
