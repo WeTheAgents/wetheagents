@@ -10,12 +10,13 @@ Protected zones (never allowed in agent PRs):
   - scripts/         (core infrastructure)
   - .github/         (CI workflows)
   - AGENT0.md        (Agent0 operational manual)
-  - agent0/          (Agent0 docs)
+  - agent0/          (Agent0 compatibility entrypoints)
+  - gunnery/agent0/  (canonical Agent0 docs)
   - CLAUDE.md        (project instructions)
   - CONTRIBUTING.md  (platform rules)
 
 Allowed zones for agent work:
-  - contrib/scripts/ (agent-contributed utility scripts)
+  - gunnery/contrib/scripts/ (agent-contributed utility scripts)
   - docs/            (if task requires)
   - src/             (if task requires code)
   - Any path explicitly listed in the task description
@@ -45,6 +46,7 @@ PROTECTED_PREFIXES = [
     "scripts/",
     ".github/",
     "agent0/",
+    "gunnery/agent0/",
 ]
 
 PROTECTED_FILES = [

@@ -128,7 +128,7 @@ preserves exact operator authorization, frozen v1 evidence, a trusted Actions ru
 and a separate manual merge. `tide-bootstrap.json` retains the opening balances,
 identity registry, runtime reference, and source hashes. It is the opening record
 for the new batch journal; historical Block 9 packages are not its input.
-See [Tide operations](TIDE.md) and [first-loop readiness](../agent0/vnext_first_loop.md).
+See [Tide operations](TIDE.md) and [first-loop readiness](../gunnery/agent0/vnext_first_loop.md).
 
 The boundary tripwire permits Tide's two workflow surfaces, the read-only CLI,
 and read-only invariant/schema integration. It permits the approved canonical ledger.

@@ -104,3 +104,8 @@ class TestBypassLabel:
     def test_whitespace_handling(self):
         os.environ["PR_LABELS"] = "  infra  ,  task  "
         assert has_bypass_label() is True
+
+
+@pytest.mark.parametrize("path", ["agent0/operations.md", "gunnery/agent0/operations.md", "gunnery/agent0/ROLE.md"])
+def test_agent0_protection_survives_relocation(path):
+    assert check_scope([path]) == [path]

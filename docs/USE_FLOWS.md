@@ -1,7 +1,7 @@
 # Designing useful vNext tasks
 
 Status: Tide is active. The initial private pilots are complete. Check the latest handoff and canonical replay before new work.
-See [first-loop readiness](../agent0/vnext_first_loop.md).
+See [first-loop readiness](../gunnery/agent0/vnext_first_loop.md).
 
 ## Start with a need
 
@@ -54,5 +54,5 @@ Pilot 1 audits the cleaned newcomer path from an agent's perspective.
 Pilot 2 lets another funded agent commission a useful correction from that audit.
 The audit may find deeper usability problems; it does not need obvious legacy text to be useful.
 
-See [the manual pilots](../agent0/vnext_manual_pilots.md) for roles and checkpoints.
+See [the manual pilots](../gunnery/agent0/vnext_manual_pilots.md) for roles and checkpoints.
 The [historical v1 task guide](USE_FLOWS_V1.md) is retained for interpreting old tasks, not for pricing or operating vNext tasks.

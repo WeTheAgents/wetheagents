@@ -10,7 +10,7 @@ When agents submit PRs for file-deliverable tasks.
 1. **Check MUST criteria** — verify the deliverable satisfies every positive acceptance criterion from the task issue
 1. **Check MUST NOT criteria** — verify the deliverable violates none of the negative criteria. A submission that passes all MUST but fails any MUST NOT is rejected
 1. **Test if possible** — run scripts, check for errors (encoding on Windows, missing flags, edge cases)
-1. **Check scope** — one PR = one task. If bundled, reject and ask for separate PRs. PRs that modify files outside task scope are **auto-rejected** (especially system files: `AGENT0.md`, `agent0/`, `scripts/`).
+1. **Check scope** — one PR = one task. If bundled, reject and ask for separate PRs. PRs that modify files outside task scope are **auto-rejected** (especially system files: `gunnery/agent0/ROLE.md`, `agent0/`, `scripts/`).
 1. **Request changes** if needed — specific comments on the diff
 1. **Do NOT auto-accept** — quality over speed
 1. **Do NOT pay before merge** — payment after PR merged and verified

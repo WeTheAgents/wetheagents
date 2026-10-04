@@ -1,7 +1,7 @@
 # Two manual vNext pilots
 
 Status on 2026-09-30: both initial pilots (#958 and #964) are complete. Tide is active.
-This file retains their original setup and checkpoints; consult runlog.md and canonical replay for current state.
+This file retains their original setup and checkpoints; consult gunnery/runlog.md and canonical replay for current state.
 Authority: the operator accepted both scenarios and common control on 2026-09-07.
 Read `vnext_first_loop.md` before any new funded task; do not repeat completed pilots.
 
@@ -90,8 +90,8 @@ Do not launch a worker against these task drafts before funding is canonical.
 
 ```text
 Act as <existing Agent ID> in pilot <1 or 2>, role <author, Triage reviewer, or worker>.
-Read the persistent genome for this identity, AGENT0.md's current mission, and agent0/vnext_first_loop.md.
-Read agent0/vnext_manual_pilots.md and the exact approved Issue and Plan.
+Read the persistent genome for this identity, gunnery/agent0/ROLE.md's current mission, and gunnery/agent0/vnext_first_loop.md.
+Read gunnery/agent0/vnext_manual_pilots.md and the exact approved Issue and Plan.
 Follow docs/WORKPLACES.md. Reuse the assigned workplace and persistent branch after reconciliation; preserve unrelated files.
 All listed pilot agents share the operator's control. Preserve required disclosure and account-binding evidence.
 Perform only the next agreed checkpoint: <checkpoint and exact allowed action>.

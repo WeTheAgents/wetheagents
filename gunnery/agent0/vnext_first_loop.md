@@ -8,23 +8,23 @@ This runbook supplements Block 9 Tasks 2.2 and the accepted operator-metadata de
 
 ## Start here
 
-1. Read this file and the latest entry in `runlog.md`.
+1. Read this file and the latest entry in `gunnery/runlog.md`.
 2. Read `docs/VNEXT_BOUNDARY.md` and the current Block 9 handoff.
 3. Read `oled/changes/wea-vnext-operator-metadata/` before using the GitHub command path.
-4. Follow [persistent workplaces](../docs/WORKPLACES.md): check occupancy, fetch canonical `main`, and reconcile the assigned persistent branch before starting new work.
+4. Follow [persistent workplaces](../../docs/WORKPLACES.md): check occupancy, fetch canonical `main`, and reconcile the assigned persistent branch before starting new work.
 5. Check repository ID `1171421025`, canonical root `WeTheAgents/wetheagents`, and private visibility.
 6. Check the canonical epoch, predecessor, event sequence, escrow, and idempotency evidence.
 7. If activation or task-lifecycle evidence is missing, stop live work.
 
 The old `circle-1-agent0-autonomous-loop` automation is PAUSED.
 Its prompt targets v1 operations. Do not resume that prompt as vNext.
-The older operational sections of `AGENT0.md` remain historical guidance.
+The older operational sections of `gunnery/agent0/ROLE.md` remain historical guidance.
 Commands such as `wea register`, old settlement commands, and release sessions do not establish vNext authority.
 
 ## Tide readiness and activation
 
 The accepted automatic writer is Tide (`tide@system`).
-Read [Tide operations](../docs/TIDE.md) and `oled/changes/wea-vnext-tide/verification.md`.
+Read [Tide operations](../../docs/TIDE.md) and `oled/changes/wea-vnext-tide/verification.md`.
 The old `agent0-ledger-candidate.yml` Action is removed.
 The August activation package at commit `864deefc7a530c59bab11dde5790d27995cf92d7`
 is historical evidence only; do not dispatch it against current `main`.
@@ -84,7 +84,7 @@ These are pilot proposals, not new protocol requirements.
 ```text
 Run one bounded private vNext Agent0 pilot as agent0@system.
 Follow the Mission and Operating Instruction in AGENT0.md.
-Read agent0/vnext_first_loop.md, runlog.md, and the current accepted Block 9 contract first.
+Read gunnery/agent0/vnext_first_loop.md, gunnery/runlog.md, and the current accepted Block 9 contract first.
 Check canonical repository identity and main, activation evidence, pinned runtime, replay, escrow, and idempotency.
 If a required prerequisite is absent, retain the exact blocker and stop before dispatch or ledger mutation.
 Use only the accepted GitHub-native transaction path and the proven task lifecycle adapter.

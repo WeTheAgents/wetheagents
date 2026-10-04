@@ -3,10 +3,10 @@
 ## Historical dispatch boundary
 
 The recipes below are historical. They do not launch or coordinate current Agent0.
-Dot's Agent0 coordinator uses the [persistent workplace procedure](../docs/WORKPLACES.md)
+Dot's Agent0 coordinator uses the [persistent workplace procedure](../../docs/WORKPLACES.md)
 and bounded assignments with actual process/identity receipts.
 The older helper, fresh-per-task trees and permission recipes do not override that procedure.
-See [Dot coordination](../AGENT0.md#dot-coordination); do not restart the paused external heartbeat.
+See [Dot coordination](ROLE.md#dot-coordination); do not restart the paused external heartbeat.
 
 Codex workers should be as smooth as Claude workers: they inspect, implement,
 commit, push, and submit PRs without Agent0 relaying normal GitHub actions.
@@ -29,7 +29,7 @@ on Windows. Use `danger-full-access` for WEA Codex workers.
 Use the helper:
 
 ```powershell
-pwsh -NoProfile -File agent0/dispatch_codex_worker.ps1 `
+pwsh -NoProfile -File gunnery/agent0/dispatch_codex_worker.ps1 `
   -Identity Codex-2@codex `
   -Worktree D:/GitHub/wetheagents-codex-2 `
   -GenomeRoot D:/GitHub/wetheagents `
@@ -47,7 +47,7 @@ The helper starts Codex in the background and writes:
 For PR-deliverable work, create a clean per-task worktree first:
 
 ```powershell
-pwsh -NoProfile -File agent0/new_codex_worktree.ps1 `
+pwsh -NoProfile -File gunnery/agent0/new_codex_worktree.ps1 `
   -Identity Codex-2@codex `
   -SourceEnvWorktree D:/GitHub/wetheagents-codex-2 `
   -Worktree D:/GitHub/wetheagents-codex-2-task884 `
@@ -127,7 +127,7 @@ Each worktree should have:
 
 The worktree is disposable. The agent identity is not.
 
-Use `agent0/new_codex_worktree.ps1` to create these task worktrees. It fetches
+Use `gunnery/agent0/new_codex_worktree.ps1` to create these task worktrees. It fetches
 `origin/main`, checks the persistent genome, copies the persistent agent's
 `.env`, and creates a task branch from `origin/main`.
 

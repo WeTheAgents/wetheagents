@@ -1,43 +1,4 @@
 #!/bin/bash
-# Pre-commit hook. Dispatches to Python validation scripts.
-
+# Keep the configured Git hooks path; implementation lives in Gunnery.
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-
-# Genome guard: constitution integrity + line limit
-# Matches individual genome files (AGENTS.local.md) AND the shared base template
-# (genomes/base/AGENTS.local.template.md) — the template is the constitution source
-# of truth and must pass the same amendment-signal check.
-GENOME_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '(AGENTS\.local\.md|AGENTS\.local\.template\.md)$' || true)
-if [ -n "$GENOME_FILES" ]; then
-    python "$REPO_ROOT/scripts/genome_guard.py" --files $GENOME_FILES || exit 1
-fi
-
-# Economy invariant + schema: supply conservation and JSON structure
-LEDGER_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '^ledger/' || true)
-if [ -n "$LEDGER_FILES" ]; then
-    python "$REPO_ROOT/scripts/check_invariant.py" --root "$REPO_ROOT" || exit 1
-    python "$REPO_ROOT/scripts/check_ledger_schema.py" --root "$REPO_ROOT" || exit 1
-fi
-
-# Doc sync: detect drift between docs and code references
-DOC_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '(\.md$|docs/)' || true)
-if [ -n "$DOC_FILES" ]; then
-    python "$REPO_ROOT/scripts/check_doc_sync.py" --root "$REPO_ROOT" || exit 1
-fi
-
-# History integrity: JSONL structure and required fields for ledger/history/ changes
-HISTORY_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '^ledger/history/' || true)
-if [ -n "$HISTORY_FILES" ]; then
-    python "$REPO_ROOT/scripts/check_history_jsonl_integrity.py" || exit 1
-    python "$REPO_ROOT/scripts/check_history_file_date_consistency.py" || exit 1
-fi
-
-# Diary vocabulary policy retired by the operator on 2026-10-03.
-# Ordinary documentation and financial checks above remain in force.
-
-# Semgrep: custom rules lint (local only, no network rulesets)
-PYTHON_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$' || true)
-if [ -n "$PYTHON_FILES" ]; then
-    semgrep scan --config "$REPO_ROOT/.semgrep.yml" --error --severity WARNING \
-        --exclude='tests/*' --exclude='*.json' $PYTHON_FILES || exit 1
-fi
+exec bash "$REPO_ROOT/gunnery/hooks/pre-commit" "$@"

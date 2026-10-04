@@ -130,6 +130,10 @@ def run(root: Path, hook_path: Path | None = None) -> tuple[dict[str, Any], bool
     scripts_dir = root / "scripts"
 
     hook_text = _read_text(hook)
+    # Follow the established adapter while retaining support for direct hooks.
+    forward = 'exec bash "$REPO_ROOT/gunnery/hooks/pre-commit" "$@"'
+    if any(line.strip() == forward for line in _logical_lines(hook_text)):
+        hook_text = _read_text(root / "gunnery" / "hooks" / "pre-commit")
     invoked = parse_invoked_scripts(hook_text)
 
     missing_mandatory = sorted(

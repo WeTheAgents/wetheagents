@@ -22,8 +22,8 @@ D:/AgentRuns/wea/<agent>/<run>/    retained local evidence and handoffs
 
 | Slot | Persistent branch | Role instructions |
 | --- | --- | --- |
-| Agent0 | work/agent0 | [Agent0](../agent0/roles/agent0/AGENTS.md), agent0@system |
-| Worker 1 | work/slot-1 | [Worker](../agent0/roles/worker/AGENTS.md) and assigned identity genome |
+| Agent0 | work/agent0 | [Agent0](../gunnery/agent0/roles/agent0/AGENTS.md), agent0@system |
+| Worker 1 | work/slot-1 | [Worker](../gunnery/agent0/roles/worker/AGENTS.md) and assigned identity genome |
 | Worker 2 | work/slot-2 | Worker and assigned identity genome |
 | Worker 3 | work/slot-3 | Worker and assigned identity genome |
 
@@ -42,7 +42,7 @@ linked worktrees depend on them. Do not delete or move these roots casually.
 The local registry is private coordination metadata, not canonical WEA state.
 Agent0 serializes registry updates and dispatch. It is not an atomic lock service.
 Dot hosts the sole Agent0 coordinator and assigns its local executor. Independent
-external Agent0 schedules are paused; see [Dot coordination](../AGENT0.md#dot-coordination).
+external Agent0 schedules are paused; see [Dot coordination](../gunnery/agent0/ROLE.md#dot-coordination).
 
 ## Start or resume
 

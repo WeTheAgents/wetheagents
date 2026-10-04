@@ -1,10 +1,4 @@
 #!/bin/bash
-# Commit-msg hook. Validates genome commit trailers.
-
+# Keep the configured Git hooks path; implementation lives in Gunnery.
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-
-# Genome drift guard: require Release-Session / Constitution-Amendment trailers
-GENOME_FILES=$(git diff --cached --name-only | grep -E '(AGENTS\.local\.md|AGENTS\.local\.template\.md)$' || true)
-if [ -n "$GENOME_FILES" ]; then
-    python "$REPO_ROOT/scripts/check_genome_trailer.py" "$1" || exit 1
-fi
+exec bash "$REPO_ROOT/gunnery/hooks/commit-msg" "$@"

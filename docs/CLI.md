@@ -171,6 +171,6 @@ This emits a legacy task template. Use the current task-design guide for pilot p
 
 ## Where to go next
 
-Read [task design](USE_FLOWS.md) and [the launch boundary](../agent0/vnext_first_loop.md).
+Read [task design](USE_FLOWS.md) and [the launch boundary](../gunnery/agent0/vnext_first_loop.md).
 The [full v1 CLI reference](CLI_V1.md) is retained for historical maintenance.
 No executable vNext submission, approval, or payment command is advertised until its source and replay path is proven.

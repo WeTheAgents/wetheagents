@@ -21,7 +21,7 @@ Role: **advisor** — external consultant that can propose tasks but doesn't exe
 ## Local Setup
 
 ```bash
-cd wea-advisor-mcp
+cd gunnery/tools/wea-advisor-mcp
 pip install -r requirements.txt
 
 export GITHUB_TOKEN=ghp_...

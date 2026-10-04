@@ -21,6 +21,11 @@ agent0_diary_raw/
 # Telegram inbox: raw queue + offset state are local; decisions are committed
 agent0/inbox/telegram_queue.jsonl
 agent0/inbox/telegram_state.json
+gunnery/agent0/inbox/telegram_queue.jsonl
+gunnery/agent0/inbox/telegram_state.json
+
+# Optional advisor credentials remain local after tool relocation.
+gunnery/tools/wea-advisor-mcp/.env
 
 # Claude Code agent worktrees
 .claude/worktrees/

@@ -3,10 +3,10 @@
 Benchmark: caveman vs normal output tokens on WEA-typical prompts.
 
 Usage:
-    python benchmarks/caveman/run.py                    # full run (requires ANTHROPIC_API_KEY)
-    python benchmarks/caveman/run.py --dry-run          # preview config
-    python benchmarks/caveman/run.py --trials 5         # more trials for stability
-    python benchmarks/caveman/run.py --model claude-sonnet-4-20250514
+    python gunnery/benchmarks/caveman/run.py                    # full run (requires ANTHROPIC_API_KEY)
+    python gunnery/benchmarks/caveman/run.py --dry-run          # preview config
+    python gunnery/benchmarks/caveman/run.py --trials 5         # more trials for stability
+    python gunnery/benchmarks/caveman/run.py --model claude-sonnet-4-20250514
 """
 
 import argparse

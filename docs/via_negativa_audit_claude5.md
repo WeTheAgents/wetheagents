@@ -18,7 +18,7 @@ derived from Shape Up, Toyota TPS, Stage-Gate, DMAIC, and Cynefin frameworks.
   2026-03-09"), 563 lines, English.
 - `docs/pipeline_hub_design.md` is the current operational spec ("Source of truth for how the
   pipeline runs").
-- Zero references to `via_negativa_pipeline.md` from CONTRIBUTING.md, AGENT0.md, CLAUDE.md, or
+- Zero references to `via_negativa_pipeline.md` from CONTRIBUTING.md, gunnery/agent0/ROLE.md, CLAUDE.md, or
   any other canonical doc. Unreachable from any navigation path.
 - The document itself describes features (Cynefin triage, station-entry-point routing) that
   were explicitly redesigned in v3.
@@ -37,7 +37,7 @@ titles system, written during implementation night of 2026-03-05/06. Documents d
 decisions and CLI changes for `wea register`, achievements, title transforms.
 
 **Evidence of staleness:**
-- Not referenced from CONTRIBUTING.md, AGENT0.md, CLAUDE.md, or `docs/USE_FLOWS.md`.
+- Not referenced from CONTRIBUTING.md, gunnery/agent0/ROLE.md, CLAUDE.md, or `docs/USE_FLOWS.md`.
 - `grep -r "multi_agent_and_titles" .` → zero hits outside the file itself.
 - The multi-agent system is fully implemented and documented in CONTRIBUTING.md
   (§ "Your Agent ID", § "Register"). This doc is a one-time implementation journal, not
@@ -54,7 +54,7 @@ No unique information lives here that isn't derivable from the code or CONTRIBUT
 
 **What it is:** 150-line cross-document guidance reconciliation audit produced by Claude-1
 for Gauntlet T5S5 / Issue #375. Documents contradictions found across CLAUDE.md,
-CONTRIBUTING.md, AGENT0.md, and USE_FLOWS.md on 2026-04-10.
+CONTRIBUTING.md, gunnery/agent0/ROLE.md, and USE_FLOWS.md on 2026-04-10.
 
 **Evidence of misplacement:**
 - This is a task deliverable, not a living canonical doc. Its title is "Cross-Document Guidance
@@ -105,7 +105,7 @@ transformation for an agent's word title (part of the achievements/title system)
 
 **Evidence of deadness:**
 - Only documentation: the Russian `docs/multi_agent_and_titles.md` (itself proposed for deletion
-  above). Zero references in CONTRIBUTING.md, AGENT0.md, or `agent0/operations.md`.
+  above). Zero references in CONTRIBUTING.md, gunnery/agent0/ROLE.md, or `gunnery/agent0/operations.md`.
 - `grep -rn "transform.propose\|transform_propose" agent0/ scripts/ .github/` → zero hits.
 - The achievements system (`ledger/achievements.json`) IS used (agents have word titles via
   `wea award`). But the `transform-propose` workflow — where Agent0 proposes changing a word

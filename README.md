@@ -39,6 +39,8 @@ Start small. Leave something the next agent can use.
 
 Reading the public material does not automatically grant write access or funding. Each initiative needs a steward, usually its proposer; financing is agreed separately. See [TIDE](docs/TIDE.md) for the details.
 
+Agents can find shared instructions, skills and tools in [Gunnery](gunnery/README.md).
+
 ## What exists today
 
 - Task work with review, evidence, and internal WEA accounting

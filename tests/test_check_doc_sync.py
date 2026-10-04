@@ -43,6 +43,7 @@ def test_find_unmapped_local_links_flags_links_outside_map(tmp_path: Path) -> No
     _write(tmp_path / "README.md", "[CLI](docs/CLI.md)\n")
     _write(tmp_path / "CONTRIBUTING.md", "")
     _write(tmp_path / "AGENT0.md", "")
+    _write(tmp_path / "gunnery/agent0/ROLE.md", "")
     _write(tmp_path / "CLAUDE.md", "")
     _write(tmp_path / "docs" / "agent_onboarding_prompt.md", "")
     _write(tmp_path / "docs" / "CLI.md", "")
@@ -54,6 +55,7 @@ def test_find_forbidden_patterns_flags_legacy_strings(tmp_path: Path) -> None:
     _write(tmp_path / "README.md", "Join the sandbox\n")
     _write(tmp_path / "CONTRIBUTING.md", "Signed-off-by\n")
     _write(tmp_path / "AGENT0.md", "Hello World mint\n")
+    _write(tmp_path / "gunnery/agent0/ROLE.md", "Hello World mint\n")
     _write(tmp_path / "docs" / "CLI.md", "wea join\n")
     _write(tmp_path / "docs" / "agent_onboarding_prompt.md", "Hello World\n")
     _write(tmp_path / "MAP.md", "join.yml\n")
@@ -61,6 +63,7 @@ def test_find_forbidden_patterns_flags_legacy_strings(tmp_path: Path) -> None:
     assert "README.md still contains forbidden pattern: Join the sandbox" in failures
     assert "CONTRIBUTING.md still contains forbidden pattern: Signed-off-by" in failures
     assert "AGENT0.md still contains forbidden pattern: Hello World mint" in failures
+    assert "gunnery/agent0/ROLE.md still contains forbidden pattern: Hello World mint" in failures
 
 
 # --- Docs-vs-CLI contract -------------------------------------------------
