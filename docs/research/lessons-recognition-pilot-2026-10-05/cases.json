@@ -1,0 +1,221 @@
+{
+  "description": "Frozen recognition-choice cases; correct answers included for retrospective inspection, not supplied as keys to candidates",
+  "cases": [
+    {
+      "id": "C01",
+      "lesson_id": "L1",
+      "is_control": false,
+      "prompt": "A local repository contains branch refs/heads/harbor and tag refs/tags/harbor at different commits. A resolver receives refs/heads/harbor and must return that exact reference and its commit. Its Git listing also contains refs/heads/archive/harbor. Which action meets the contract?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Split each Git record at its literal TAB and select the row whose full reference equals the input."
+        },
+        {
+          "id": "B",
+          "text": "Collect rows whose final path component is harbor and return the newest commit."
+        },
+        {
+          "id": "C",
+          "text": "Remove refs/heads/ from the input and return the first listing row ending in the remaining name."
+        }
+      ],
+      "correct_option": "A",
+      "grading_reason": "Only full-reference equality distinguishes the requested branch from both the tag and nested branch; listing order and commit recency cannot establish identity.",
+      "probe_source": "import pathlib, subprocess, tempfile\nwith tempfile.TemporaryDirectory(prefix='caseprobe-') as d:\n    p = pathlib.Path(d)\n    def git(*args):\n        return subprocess.check_output(['git', '-C', str(p), *args])\n    git('init', '-q')\n    git('config', 'user.name', 'Probe')\n    git('config', 'user.email', 'probe@example.invalid')\n    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'first')\n    old = git('rev-parse', 'HEAD').strip()\n    git('tag', 'harbor')\n    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'second')\n    new = git('rev-parse', 'HEAD').strip()\n    git('branch', 'harbor')\n    git('branch', 'archive/harbor', old.decode())\n    rows = [line.split(b'\\t', 1) for line in git('ls-remote', str(p)).split(b'\\n') if line]\n    matches = [(sha, ref) for sha, ref in rows if ref == b'refs/heads/harbor']\n    assert matches == [(new, b'refs/heads/harbor')]\n    suffix = [(sha, ref) for sha, ref in rows if ref.endswith(b'/harbor')]\n    assert len(suffix) == 3 and old != new\n    print('Exact match:', matches, 'Suffix matches:', suffix)\n"
+    },
+    {
+      "id": "C02",
+      "lesson_id": "L3",
+      "is_control": true,
+      "prompt": "A patch changes two lines in ledger_view.py. The approved gate requires Ruff findings on added lines to be absent; unchanged baseline findings are explicitly exempt, and unrelated cleanup is prohibited. The full-file run exits 1 with one finding on unchanged line 11. Neither added line has a finding. What should the worker do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Clean every finding in ledger_view.py before reporting the gate satisfied."
+        },
+        {
+          "id": "B",
+          "text": "Report the approved gate failed solely because the full-file command exited 1."
+        },
+        {
+          "id": "C",
+          "text": "Retain the full receipt and added-line mapping, report this gate satisfied, and leave the exempt line unchanged."
+        }
+      ],
+      "correct_option": "C",
+      "grading_reason": "The explicit gate evaluates added lines and exempts the baseline. Whole-file cleanup would exceed this contract; the full command's exit alone does not decide this particular gate.",
+      "probe_source": "import json\ncontract = {'scope': 'added_lines', 'baseline_exempt': True, 'unrelated_cleanup_allowed': False}\nreceipt = {'file': 'ledger_view.py', 'exit_code': 1, 'finding_lines': [11]}\nadded_lines = {28, 29}\ncovered_findings = set(receipt['finding_lines']) & added_lines\nassert receipt['exit_code'] != 0\nassert not covered_findings and contract['baseline_exempt']\nassert not contract['unrelated_cleanup_allowed']\nprint(json.dumps({'contract': contract, 'receipt': receipt, 'gate_passes': not covered_findings}))\n"
+    },
+    {
+      "id": "C03",
+      "lesson_id": "L4",
+      "is_control": false,
+      "prompt": "The requested branch is the reference shown in escape notation as refs/heads/cedar\\u00a0 (the escape denotes an actual trailing U+00A0 character, not a literal backslash). A local repository also has refs/heads/cedar at an older commit. A wrapper currently calls str.strip() on both the requested reference and each reference parsed from Git output. The contract requires the exact requested branch at the intended local commit. Which change meets it?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Keep strip(), then select the newest commit among matching normalized names."
+        },
+        {
+          "id": "B",
+          "text": "Preserve the requested reference, remove only record delimiters from Git output, parse TAB fields, and verify the exact reference and intended commit."
+        },
+        {
+          "id": "C",
+          "text": "Reject references containing Unicode whitespace and use the cedar branch."
+        }
+      ],
+      "correct_option": "B",
+      "grading_reason": "U+00A0 is valid reference content here. Generic stripping aliases two distinct branches; commit recency cannot repair the identity loss.",
+      "probe_source": "import pathlib, subprocess, tempfile\nwith tempfile.TemporaryDirectory(prefix='caseprobe-') as d:\n    p = pathlib.Path(d)\n    def git(*args):\n        return subprocess.check_output(['git', '-C', str(p), *args])\n    git('init', '-q')\n    git('config', 'user.name', 'Probe')\n    git('config', 'user.email', 'probe@example.invalid')\n    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'first')\n    old = git('rev-parse', 'HEAD').strip()\n    git('branch', 'cedar')\n    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'second')\n    intended = git('rev-parse', 'HEAD').strip()\n    wanted = 'refs/heads/cedar\\u00a0'\n    git('check-ref-format', wanted)\n    git('branch', 'cedar\\u00a0')\n    rows = [line.split(b'\\t', 1) for line in git('ls-remote', str(p)).split(b'\\n') if line]\n    exact = [(sha, ref) for sha, ref in rows if ref == wanted.encode('utf-8')]\n    assert exact == [(intended, wanted.encode('utf-8'))]\n    normalized = [(sha, ref) for sha, ref in rows if ref.decode('utf-8').strip() == wanted.strip()]\n    assert len(normalized) == 2 and old != intended\n    print('Exact:', exact, 'Normalized collision:', normalized)\n"
+    },
+    {
+      "id": "C04",
+      "lesson_id": "L2",
+      "is_control": true,
+      "prompt": "The approved CLI change requires every command, including help and local inspection, to refuse execution when a required policy snapshot is stale. The command set is send, inspect, and help; all pass through the shared dispatcher. Which implementation satisfies the accepted behavior?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Check freshness in the shared dispatcher before invoking any of the three commands."
+        },
+        {
+          "id": "B",
+          "text": "Check freshness only in send so inspection and help remain available."
+        },
+        {
+          "id": "C",
+          "text": "Check freshness in all commands, but treat stale snapshots as warnings for inspect and help."
+        }
+      ],
+      "correct_option": "A",
+      "grading_reason": "All three commands explicitly require the new refusal path. A shared gate matches this contract; narrowing it to send or warning on other commands violates the requirement.",
+      "probe_source": "import json\ncommands = ('send', 'inspect', 'help')\nrequired_refusals = set(commands)\nimplementations = {'A': {'send'}, 'B': set(commands), 'C': {'send'}}\npassing = [name for name, refusals in implementations.items() if refusals == required_refusals]\nassert passing == ['B']\nprint(json.dumps({'required_refusals': sorted(required_refusals), 'passing': passing}))\n"
+    },
+    {
+      "id": "C05",
+      "lesson_id": "L1",
+      "is_control": true,
+      "prompt": "A release selector receives refs/tags/quartz. The local repository contains that lightweight tag and refs/heads/quartz at different commits. The contract explicitly requests the tag commit, without substituting a branch. Which action meets the contract?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Prefer refs/heads/quartz because branch heads identify current work."
+        },
+        {
+          "id": "B",
+          "text": "Select the listing row whose full reference equals refs/tags/quartz and return its commit."
+        },
+        {
+          "id": "C",
+          "text": "Compare both commits and return whichever was created more recently."
+        }
+      ],
+      "correct_option": "B",
+      "grading_reason": "Exact identity applies to the requested namespace, including tags. Preferring branches or newer commits over-applies a branch-oriented interpretation.",
+      "probe_source": "import pathlib, subprocess, tempfile\nwith tempfile.TemporaryDirectory(prefix='caseprobe-') as d:\n    p = pathlib.Path(d)\n    def git(*args):\n        return subprocess.check_output(['git', '-C', str(p), *args])\n    git('init', '-q')\n    git('config', 'user.name', 'Probe')\n    git('config', 'user.email', 'probe@example.invalid')\n    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'first')\n    tag_commit = git('rev-parse', 'HEAD').strip()\n    git('tag', 'quartz')\n    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'second')\n    branch_commit = git('rev-parse', 'HEAD').strip()\n    git('branch', 'quartz')\n    rows = [line.split(b'\\t', 1) for line in git('ls-remote', str(p)).split(b'\\n') if line]\n    exact = [(sha, ref) for sha, ref in rows if ref == b'refs/tags/quartz']\n    assert exact == [(tag_commit, b'refs/tags/quartz')]\n    assert branch_commit != tag_commit\n    print('Requested tag:', exact, 'Branch commit:', branch_commit.decode())\n"
+    },
+    {
+      "id": "C06",
+      "lesson_id": "L2",
+      "is_control": false,
+      "prompt": "The approved repair requires send to reject a stale endpoint snapshot. It also requires inspect and help to keep working offline without reading that snapshot. All three commands share a dispatcher. Which implementation meets the contract?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Put a mandatory freshness check in the shared dispatcher before every command."
+        },
+        {
+          "id": "B",
+          "text": "Refresh the snapshot unconditionally at process startup and then dispatch normally."
+        },
+        {
+          "id": "C",
+          "text": "Put the mandatory freshness preflight on the send path, leaving inspect and help independent of the snapshot."
+        }
+      ],
+      "correct_option": "C",
+      "grading_reason": "A shared startup check introduces forbidden dependencies and failure paths for offline commands. The send-only preflight enforces the repair within its accepted scope.",
+      "probe_source": "import json\nrequired_snapshot_reads = {'send'}\nrequired_stale_refusals = {'send'}\nimplementations = {\n    'A': ({'send', 'inspect', 'help'}, {'send', 'inspect', 'help'}),\n    'B': ({'send', 'inspect', 'help'}, set()),\n    'C': ({'send'}, {'send'})\n}\npassing = [name for name, (reads, refusals) in implementations.items() if reads == required_snapshot_reads and refusals == required_stale_refusals]\nassert passing == ['C']\nprint(json.dumps({'passing': passing, 'offline_commands': ['inspect', 'help']}))\n"
+    },
+    {
+      "id": "C07",
+      "lesson_id": "L4",
+      "is_control": true,
+      "prompt": "An adapter transports Git listing records with CRLF terminators. The requested reference is refs/heads/maple, and the generated listing contains that reference at the intended commit. CRLF is transport framing, not part of the reference. Which parser meets the exact-readback contract?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Split on TAB and retain every character after it, including the CRLF, when comparing references."
+        },
+        {
+          "id": "B",
+          "text": "Ignore the reference field and accept any row whose commit equals the intended commit."
+        },
+        {
+          "id": "C",
+          "text": "Remove the record's CRLF terminator, split on literal TAB, then compare the complete reference and commit."
+        }
+      ],
+      "correct_option": "C",
+      "grading_reason": "Preserving reference content does not require preserving transport terminators. Exact readback checks both identity and commit; a matching commit alone can belong to another reference.",
+      "probe_source": "import pathlib, subprocess, tempfile\nwith tempfile.TemporaryDirectory(prefix='caseprobe-') as d:\n    p = pathlib.Path(d)\n    def git(*args):\n        return subprocess.check_output(['git', '-C', str(p), *args])\n    git('init', '-q')\n    git('config', 'user.name', 'Probe')\n    git('config', 'user.email', 'probe@example.invalid')\n    git('-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'first')\n    intended = git('rev-parse', 'HEAD').strip()\n    git('branch', 'maple')\n    git('branch', 'willow')\n    generated = git('ls-remote', str(p))\n    transported = generated.replace(b'\\n', b'\\r\\n')\n    records = transported.splitlines(keepends=True)\n    raw = [record.split(b'\\t', 1) for record in records]\n    parsed = [record.rstrip(b'\\r\\n').split(b'\\t', 1) for record in records]\n    wanted = b'refs/heads/maple'\n    assert not any(ref == wanted for sha, ref in raw)\n    exact = [(sha, ref) for sha, ref in parsed if ref == wanted]\n    assert exact == [(intended, wanted)]\n    assert sum(sha == intended for sha, ref in parsed) >= 2\n    print('Exact parsed row:', exact)\n"
+    },
+    {
+      "id": "C08",
+      "lesson_id": "L3",
+      "is_control": false,
+      "prompt": "A patch changes route_table.py and creates receipt_codec.py. The approved gate requires ruff check, ruff format --check, and pyright to exit zero for each complete changed Python file. The new file passes all three. On route_table.py, Ruff check exits 1 for an unchanged line, while formatting and Pyright exit zero. Added-line filtering finds no violations. What should the worker do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Report the gate passed because the new file and all added lines are clean."
+        },
+        {
+          "id": "B",
+          "text": "Resolve the finding in route_table.py and rerun the required whole-file commands before claiming the gate passed."
+        },
+        {
+          "id": "C",
+          "text": "Report the gate passed with a baseline exception for route_table.py."
+        }
+      ],
+      "correct_option": "B",
+      "grading_reason": "The accepted gate covers every complete changed file and provides no baseline exception. A nonzero whole-file receipt blocks the pass claim regardless of finding age.",
+      "probe_source": "import json\nrequired = ('ruff_check', 'ruff_format_check', 'pyright')\nreceipts = {\n    'route_table.py': {'ruff_check': 1, 'ruff_format_check': 0, 'pyright': 0},\n    'receipt_codec.py': {'ruff_check': 0, 'ruff_format_check': 0, 'pyright': 0}\n}\nfailures = [(file, command, result[command]) for file, result in receipts.items() for command in required if result[command] != 0]\nassert failures == [('route_table.py', 'ruff_check', 1)]\nadded_line_findings = []\nassert not added_line_findings and failures\nprint(json.dumps({'whole_file_gate_passes': not failures, 'failures': failures}))\n"
+    }
+  ],
+  "probes": {
+    "git_cases": [
+      "C01",
+      "C03",
+      "C05",
+      "C07"
+    ],
+    "modeled_contract_cases": [
+      "C02",
+      "C04",
+      "C06",
+      "C08"
+    ],
+    "all_exit_codes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "scope": "Git probes actually ran in new temporary repositories. Other probes model stipulated receipts and do not execute a real CLI, Ruff or Pyright."
+  },
+  "errata": [
+    {
+      "case": "C04",
+      "kind": "Retained original probe uses pre-relabel option letters",
+      "detail": "The frozen probe maps B to all-command refusal and A to send-only; after option relabelling the published shared-dispatcher option is A, and send-only is B. Probe B therefore corresponds to published A. The original probe is retained, not silently corrected. Its exit zero checks the modeled refusal contract and stale letters, not the final letter mapping. Candidates received only prompts/options, never probe sources; the correct-answer meaning and all measured scores are unchanged."
+    }
+  ]
+}

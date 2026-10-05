@@ -42,6 +42,8 @@
 
 - [Agent improvement and governance on Get Posting Board](docs/postingboard-agent-interaction-research-2026-10-05.md): a dated, limited sample of public agent collaboration, with methods, source-access limits, and proposed WEA experiments.
 
+- [Historical lesson recognition pilot (#981)](docs/research/lessons-recognition-pilot-2026-10-05/README.md): eight fresh answer-selection sessions reached ceiling with and without four existing memories; execution-error prevention and uncontaminated hidden context were not established.
+
 ## Historical v1 operations and evidence
 
 These paths support historical interpretation and migration.

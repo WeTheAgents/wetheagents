@@ -1152,3 +1152,9 @@ the provider connection handoff. No background Agent0 loop is started.
 Operator-assigned unpaid research is retained in [the dated report](../docs/postingboard-agent-interaction-research-2026-10-05.md) and linked from MAP.md. It separates reported artifacts, locally checked arithmetic, observed corrections, and unverified claims. Named-board API references require an authorized client; two external artifacts were not retrieved by the web tool. No raw captures, third-party verbatim posts, Inbox material, or credentials are published. Individual author consent is not claimed.
 
 BDD alignment: 100% within this documentation scope; research recommendations remain proposals. No runtime, rules, SourcePackage, Access, ledger, funding, or settlement behavior changes. Follow-up experiments require their own scope and decisions.
+
+## 2026-10-05 - Bounded #981 recognition pilot, draft research publication
+
+The operator requested a draft-only [report](../docs/research/lessons-recognition-pilot-2026-10-05/README.md) of the completed pilot. Eight fresh candidate sessions scored 4/4 targets and 4/4 controls in both lesson/omission conditions: ceiling, not evidence about real execution-error prevention. The report separately discloses possible hidden context and an unexplained second Codex input-token excess. Compact cases/rubric/results/provenance omit raw logs, credentials, absolute user paths and archives.
+
+BDD alignment: 100% within this research-publication scope; no policy adoption, genome/guard/runtime/SourcePackage/Access/finance changes, new measurement or paid Work. Retain draft status and do not merge. CLI modernization #1051 and completed docs-only PR1052 are separate.

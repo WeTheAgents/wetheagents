@@ -1,0 +1,593 @@
+{
+  "candidate_sessions": 8,
+  "paired_comparisons": 4,
+  "responses_per_session": 8,
+  "statistical_independence": "not established; case responses correlated, same operator/model families and hidden input not auditable",
+  "runs": [
+    {
+      "run": "codex-1-lessons",
+      "model": "gpt-6.1-sol (requested alias; server snapshot not exposed)",
+      "started_at": "2026-10-05T12:07:35.210169+00:00",
+      "finished_at": "2026-10-05T12:07:53.857118+00:00",
+      "runtime_seconds": 18.65,
+      "input_tokens_including_cache": 14918,
+      "output_tokens": 299,
+      "context_bytes": 1768,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "629e36ecef17303f8edfec12cd433c2f741c99a9f1e71b3a1849de08db6c7230",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Literal TAB parsing and full-reference equality select the exact branch without confusing it with a tag or nested branch."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "The approved gate covers added lines and explicitly exempts unchanged baseline findings. Preserve the evidence and leave the exempt line unchanged."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "The trailing U+00A0 is part of the requested reference and must be preserved. Exact reference and commit verification prevents substitution of the older cedar branch."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "The contract requires all three commands to reject stale snapshots. A mandatory check in their shared dispatcher enforces that behavior."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "Full-reference equality selects the explicitly requested tag and its commit."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "A send-only preflight rejects stale snapshots while keeping inspect and help offline and independent of the snapshot."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "CRLF is transport framing and must be removed before literal TAB parsing. Comparing the complete reference and commit satisfies exact readback."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "The gate requires every specified command to exit zero for each complete changed file. The unchanged-line Ruff finding must be resolved and the required commands rerun."
+        }
+      ],
+      "case_order": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08"
+      ],
+      "session_id_sha256": "f3e6d4ad3c1356f3a57cc4394ad847a0adb24d9f091e447fef3b7c0faf23e46e"
+    },
+    {
+      "run": "codex-1-omission",
+      "model": "gpt-6.1-sol (requested alias; server snapshot not exposed)",
+      "started_at": "2026-10-05T12:07:53.876201+00:00",
+      "finished_at": "2026-10-05T12:08:14.092842+00:00",
+      "runtime_seconds": 20.22,
+      "input_tokens_including_cache": 14525,
+      "output_tokens": 289,
+      "context_bytes": 0,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "dfc795f995c38792623979fe02beead526596766ca5a13abe1c756238284d8e2",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Literal TAB parsing and full-reference equality select the exact requested branch without confusing tags or nested branches."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "The approved gate covers added lines, which have no findings. The unchanged finding is explicitly exempt and must remain untouched."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "The trailing U+00A0 is part of the requested reference and must be preserved. Exact reference and commit verification prevents substitution of the older cedar branch."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "The contract requires all three commands to refuse execution when the snapshot is stale. A mandatory check in the shared dispatcher enforces that behavior."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "Full-reference equality selects the explicitly requested tag and its commit."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "A send-only preflight rejects stale snapshots while keeping inspect and help independent of snapshot access."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "Removing the CRLF transport terminator preserves the actual reference. Comparing both the complete reference and commit satisfies exact readback."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "The approved gate requires every whole-file command to exit zero. Added-line filtering cannot exempt the failing Ruff finding."
+        }
+      ],
+      "case_order": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08"
+      ],
+      "session_id_sha256": "a5a7b892e7759ec52f7f0e0732c1aa410c93cc210636ac25cd9530976fe33426"
+    },
+    {
+      "run": "codex-2-omission",
+      "model": "gpt-6.1-sol (requested alias; server snapshot not exposed)",
+      "started_at": "2026-10-05T12:08:14.110706+00:00",
+      "finished_at": "2026-10-05T12:08:38.668202+00:00",
+      "runtime_seconds": 24.56,
+      "input_tokens_including_cache": 14525,
+      "output_tokens": 325,
+      "context_bytes": 0,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "17229ac07b2958155bf511ab2bbe942899de3217682a74bbe8091e7507d93e18",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Literal TAB parsing and full-reference equality select refs/heads/harbor exactly. This excludes the tag and the archive branch."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "The approved gate exempts unchanged baseline findings, and neither added line has a finding. Preserve the evidence and leave the exempt line unchanged as required."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "The trailing U+00A0 is part of the requested reference and must be preserved. Removing only record delimiters permits exact reference and commit verification."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "Every command must refuse execution when the snapshot is stale. A mandatory check in the shared dispatcher enforces that requirement for all three commands."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "The contract requests the exact tag reference. Selecting its full-reference listing row returns the required commit without substituting the branch."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "Only send requires the freshness preflight. Inspect and help must remain independent of the snapshot and work offline."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "CRLF is record framing and must be removed before parsing. Exact readback requires comparing both the complete reference and its commit."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "The gate requires all three commands to exit zero on every complete changed Python file. The unchanged-line finding must be resolved before rerunning the whole-file checks."
+        }
+      ],
+      "case_order": [
+        "C08",
+        "C07",
+        "C06",
+        "C05",
+        "C04",
+        "C03",
+        "C02",
+        "C01"
+      ],
+      "session_id_sha256": "d5ea6ce6ed0b3f0d156bd8a35bd9a595e6887054d5b917f45870bc74de470961"
+    },
+    {
+      "run": "codex-2-lessons",
+      "model": "gpt-6.1-sol (requested alias; server snapshot not exposed)",
+      "started_at": "2026-10-05T12:08:38.698388+00:00",
+      "finished_at": "2026-10-05T12:09:00.274744+00:00",
+      "runtime_seconds": 21.58,
+      "input_tokens_including_cache": 17374,
+      "output_tokens": 309,
+      "context_bytes": 1768,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "7a09235357e3cd95dceb4ae1a438acf60ad2e26ad471d8750d6cebfea771cc5c",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Literal TAB parsing and full-reference equality select the requested branch. They exclude the same-named tag and nested branch."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "The approved gate exempts unchanged findings, and neither added line has a violation. Preserve the evidence and leave the exempt line unchanged."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "The trailing U+00A0 is part of the requested reference and must be preserved. Remove only record delimiters and verify the exact reference and intended commit."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "Every command must refuse execution when the snapshot is stale. A mandatory check in the shared dispatcher enforces that requirement."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "The contract requests the exact tag reference and its commit. Selecting by full reference prevents branch substitution."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "Only send requires the freshness preflight. Inspect and help must remain independent of the snapshot and work offline."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "CRLF is transport framing and must be removed before parsing. Literal TAB parsing and complete reference-and-commit comparison preserve exact readback."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "The gate covers each complete changed Python file, including unchanged lines. Resolve the finding and rerun the required whole-file commands."
+        }
+      ],
+      "case_order": [
+        "C08",
+        "C07",
+        "C06",
+        "C05",
+        "C04",
+        "C03",
+        "C02",
+        "C01"
+      ],
+      "session_id_sha256": "246774bbb5bcb11bdcb133b8d0d47a59f818b8a9202835cf324264ddce35d375"
+    },
+    {
+      "run": "claude-1-lessons",
+      "model": "claude-opus-5-5",
+      "started_at": "2026-10-05T12:09:00.304218+00:00",
+      "finished_at": "2026-10-05T12:09:09.899320+00:00",
+      "runtime_seconds": 9.6,
+      "input_tokens_including_cache": 3169,
+      "output_tokens": 702,
+      "context_bytes": 1768,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "629e36ecef17303f8edfec12cd433c2f741c99a9f1e71b3a1849de08db6c7230",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Exact full-ref matching on the literal TAB-delimited field distinguishes the branch from the same-named tag and the nested archive/harbor branch. The other options match by suffix and can return the wrong ref or commit."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "This gate covers only added lines, explicitly exempts unchanged baseline findings, and prohibits unrelated cleanup. Both added lines are clean, so the gate is satisfied and the full receipt plus added-line mapping documents it."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "strip() removes the valid trailing U+00A0 and collapses the request onto the older cedar branch. Preserving the ref, trimming only record delimiters, parsing TAB fields and verifying exact ref and commit meets the contract."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "The accepted behavior requires all three commands, including help and inspect, to refuse execution when the snapshot is stale. A check in the shared dispatcher enforces that uniformly."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "The contract asks for the tag commit with no branch substitution. Selecting the row whose full reference equals refs/tags/quartz returns exactly that."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "Only send must reject a stale snapshot, while inspect and help must work offline without reading it. A preflight on the send path alone meets both requirements; a dispatcher or startup check would break the offline commands."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "CRLF is transport framing, so removing only that terminator and then splitting on literal TAB gives the true reference for exact comparison of ref and commit. Keeping the CRLF breaks the match, and ignoring the ref field abandons exact readback."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "This gate requires all three commands to exit zero on each complete changed file, so the unchanged-line finding in route_table.py fails it. The worker must fix it and rerun the whole-file commands before claiming a pass."
+        }
+      ],
+      "case_order": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08"
+      ],
+      "session_id_sha256": "e643f44d858e5fe8590cee4bb83a16c6484b54b011a6d140256b172fc1165228"
+    },
+    {
+      "run": "claude-1-omission",
+      "model": "claude-opus-5-5",
+      "started_at": "2026-10-05T12:09:09.928840+00:00",
+      "finished_at": "2026-10-05T12:09:18.950626+00:00",
+      "runtime_seconds": 9.02,
+      "input_tokens_including_cache": 2530,
+      "output_tokens": 610,
+      "context_bytes": 0,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "dfc795f995c38792623979fe02beead526596766ca5a13abe1c756238284d8e2",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Exact full-reference matching on the TAB-delimited field returns refs/heads/harbor and its commit without confusing it with the tag or refs/heads/archive/harbor."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "The gate covers only added lines and exempts unchanged baseline findings, and unrelated cleanup is prohibited. Keeping the full receipt and added-line mapping documents that the gate is satisfied."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "str.strip() removes the trailing U+00A0 and collapses the requested branch into refs/heads/cedar. Preserving the reference, stripping only record delimiters, and verifying the exact reference and commit meets the contract."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "The contract requires every command, including help and inspect, to refuse execution on a stale snapshot. A check in the shared dispatcher enforces that uniformly."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "The contract explicitly requests the tag commit with no branch substitution. Matching the full reference refs/tags/quartz returns exactly that."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "Only send must reject a stale snapshot, while inspect and help must work offline without reading it. A preflight on the send path alone satisfies both requirements."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "CRLF is transport framing, so it is removed as the record terminator before splitting on TAB. The complete reference and commit are then compared exactly."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "This gate requires all three commands to exit zero on each complete changed file, with no baseline exemption. The route_table.py finding must be resolved and the whole-file commands rerun before claiming a pass."
+        }
+      ],
+      "case_order": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08"
+      ],
+      "session_id_sha256": "8d5555e16b328a1116aa1e2e166bbc2fe2a18b8bc3345a2c47e7db5942bf2eff"
+    },
+    {
+      "run": "claude-2-omission",
+      "model": "claude-opus-5-5",
+      "started_at": "2026-10-05T12:09:18.997604+00:00",
+      "finished_at": "2026-10-05T12:09:28.295791+00:00",
+      "runtime_seconds": 9.3,
+      "input_tokens_including_cache": 2530,
+      "output_tokens": 674,
+      "context_bytes": 0,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "17229ac07b2958155bf511ab2bbe942899de3217682a74bbe8091e7507d93e18",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Splitting on the literal TAB and matching the full reference exactly selects refs/heads/harbor alone. Suffix or last-component matching could pick the tag or refs/heads/archive/harbor."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "This gate only requires added lines to be free of findings, explicitly exempts unchanged baseline findings and prohibits unrelated cleanup. The gate is satisfied, with the full receipt and added-line mapping kept as evidence."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "str.strip() removes the trailing U+00A0 and collapses the requested reference into the older refs/heads/cedar. Preserving the requested reference, removing only record delimiters and verifying the exact reference and commit meets the contract."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "The accepted behavior requires every command, including help and inspect, to refuse execution on a stale snapshot. A check in the shared dispatcher before any command enforces that uniformly."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "The contract requests the tag commit for refs/tags/quartz without branch substitution. Matching the full reference exactly returns that tag's commit."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "Only send must reject a stale snapshot, while inspect and help must work offline without reading it. A send-path preflight meets both requirements; a dispatcher-wide check or startup refresh would break the offline commands."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "CRLF is transport framing, so it is removed as the record terminator before splitting on literal TAB. The complete reference and commit are then compared exactly."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "The gate requires all three commands to exit zero on each complete changed file, and Ruff check exits 1 on route_table.py. No baseline or added-line exemption exists in this contract, so the finding must be resolved and the whole-file commands rerun."
+        }
+      ],
+      "case_order": [
+        "C08",
+        "C07",
+        "C06",
+        "C05",
+        "C04",
+        "C03",
+        "C02",
+        "C01"
+      ],
+      "session_id_sha256": "31f638bfffe607b2c3d66030dee21a06b01068029a373c13f2a4afa47528b85e"
+    },
+    {
+      "run": "claude-2-lessons",
+      "model": "claude-opus-5-5",
+      "started_at": "2026-10-05T12:09:28.334304+00:00",
+      "finished_at": "2026-10-05T12:09:37.246046+00:00",
+      "runtime_seconds": 8.91,
+      "input_tokens_including_cache": 3169,
+      "output_tokens": 660,
+      "context_bytes": 1768,
+      "target_correct": 4,
+      "control_correct": 4,
+      "malformed": 0,
+      "exit_code": 0,
+      "observed_tool_calls": [],
+      "supplied_input_sha256": "7a09235357e3cd95dceb4ae1a438acf60ad2e26ad471d8750d6cebfea771cc5c",
+      "answers": [
+        {
+          "id": "C01",
+          "option": "A",
+          "rationale": "Splitting on literal TAB and matching the full reference exactly avoids confusing it with the same-named tag or the nested refs/heads/archive/harbor. Suffix or last-component matching could return the wrong reference."
+        },
+        {
+          "id": "C02",
+          "option": "C",
+          "rationale": "This gate covers added lines only, explicitly exempts unchanged baseline findings and prohibits unrelated cleanup. The added lines are clean, so the gate is satisfied and line 11 stays untouched, with the evidence retained."
+        },
+        {
+          "id": "C03",
+          "option": "B",
+          "rationale": "str.strip() removes the valid trailing U+00A0 and collapses the reference onto the older cedar branch. Preserving the reference, trimming only record delimiters, parsing TAB fields and verifying exact reference and commit meets the contract."
+        },
+        {
+          "id": "C04",
+          "option": "A",
+          "rationale": "This contract explicitly requires every command, including help and inspect, to refuse execution on a stale snapshot. A check in the shared dispatcher enforces that for all three."
+        },
+        {
+          "id": "C05",
+          "option": "B",
+          "rationale": "The contract requests the tag commit with no branch substitution. Matching the full reference refs/tags/quartz exactly returns the right commit."
+        },
+        {
+          "id": "C06",
+          "option": "C",
+          "rationale": "Only send must reject a stale snapshot, while inspect and help must work offline without reading it. A send-path preflight meets both requirements without adding failure paths to the other commands."
+        },
+        {
+          "id": "C07",
+          "option": "C",
+          "rationale": "CRLF is transport framing, so it is removed as a record terminator, then the row is split on literal TAB. Comparing the complete reference and commit satisfies exact readback."
+        },
+        {
+          "id": "C08",
+          "option": "B",
+          "rationale": "The gate requires all three commands to exit zero on each complete changed file, and ruff check exits 1 on route_table.py. The finding must be fixed and the whole-file commands rerun before claiming a pass."
+        }
+      ],
+      "case_order": [
+        "C08",
+        "C07",
+        "C06",
+        "C05",
+        "C04",
+        "C03",
+        "C02",
+        "C01"
+      ],
+      "session_id_sha256": "ac2369c8828c4b4dc3715af4a5d1d3a96db8f136e9a52b72a810a7b8831375a7"
+    }
+  ],
+  "pairs": [
+    {
+      "model": "codex",
+      "rep": 1,
+      "target_difference": 0,
+      "control_difference": 0
+    },
+    {
+      "model": "codex",
+      "rep": 2,
+      "target_difference": 0,
+      "control_difference": 0
+    },
+    {
+      "model": "claude",
+      "rep": 1,
+      "target_difference": 0,
+      "control_difference": 0
+    },
+    {
+      "model": "claude",
+      "rep": 2,
+      "target_difference": 0,
+      "control_difference": 0
+    }
+  ],
+  "interpretation": "ceiling; no measured target/control difference; uninformative about lesson benefit",
+  "reruns": 0,
+  "void_sessions": 0,
+  "infra_failures": 0,
+  "run_name_convention": "model-repetition-condition; the numeric suffix is a repetition index, not a persistent Agent ID",
+  "answers_order": "Answers are normalized by case ID C01-C08. case_order records actual presentation order, including reversed repetition 2.",
+  "session_identifier": "session_id_sha256 hashes the private CLI UUID for each actual session; raw provider identifiers are not published, and hashes alone cannot prove independence."
+}
