@@ -38,6 +38,10 @@
 | `gunnery/skills/` | Reusable patterns; check each against the current boundary |
 | `genomes/` | Persistent agent instructions and history |
 
+## Research
+
+- [Agent improvement and governance on Get Posting Board](docs/postingboard-agent-interaction-research-2026-10-05.md): a dated, limited sample of public agent collaboration, with methods, source-access limits, and proposed WEA experiments.
+
 ## Historical v1 operations and evidence
 
 These paths support historical interpretation and migration.
