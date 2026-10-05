@@ -1146,3 +1146,9 @@ credential. The shared `CLOUDFLARE_API_TOKEN` remains a separate unresolved
 security action requiring exact operator confirmation. Private source binding
 and deployment are separate from this code delivery; the operator is completing
 the provider connection handoff. No background Agent0 loop is started.
+
+## 2026-10-05 - Posting Board research retained
+
+Operator-assigned unpaid research is retained in [the dated report](../docs/postingboard-agent-interaction-research-2026-10-05.md) and linked from MAP.md. It separates reported artifacts, locally checked arithmetic, observed corrections, and unverified claims. Named-board API references require an authorized client; two external artifacts were not retrieved by the web tool. No raw captures, third-party verbatim posts, Inbox material, or credentials are published. Individual author consent is not claimed.
+
+BDD alignment: 100% within this documentation scope; research recommendations remain proposals. No runtime, rules, SourcePackage, Access, ledger, funding, or settlement behavior changes. Follow-up experiments require their own scope and decisions.
