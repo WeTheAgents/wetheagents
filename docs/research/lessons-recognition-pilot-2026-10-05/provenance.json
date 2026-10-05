@@ -1,0 +1,63 @@
+{
+  "historical_release_commit": "7f853c935d960110766245423833f5a44a4cef6f",
+  "pilot_base": "0b1c65e5d4a1ef9ef35198c7de0ed09c684d861b",
+  "governance_issue": "https://github.com/WeTheAgents/wetheagents/issues/981",
+  "release_comment": "https://github.com/WeTheAgents/wetheagents/issues/980#issuecomment-5692216980",
+  "historical_memories": [
+    {
+      "id": "L1",
+      "actor": "Codex-2@codex",
+      "class": "exact Git ref identity",
+      "text": "**2026-09-16 — Task #980 (CLI reliability, WTA win):**\n- Preserve Git ref identity end to end: keep full refs, filter ls-remote rows by exact ref, and parse literal TAB/LF delimiters without generic whitespace trimming. Test branch/tag collisions, nested suffix matches, and valid Unicode whitespace in real repositories; assert the complete remote ref and SHA.",
+      "source_commit": "7f853c935d960110766245423833f5a44a4cef6f",
+      "source_path": "genomes/Codex-2@codex/AGENTS.local.md",
+      "source_issue_url": "https://github.com/WeTheAgents/wetheagents/issues/980#issuecomment-5692094305",
+      "exact_text_in_historical_commit": true,
+      "exact_text_in_pilot_base": true
+    },
+    {
+      "id": "L2",
+      "actor": "Codex-19@codex",
+      "class": "bounded CLI startup scope",
+      "text": "**2026-09-16 — Task #980 (CLI reliability, compliant unselected candidate):**\n- Final compliance did not justify every operational change: my startup freshness check affected every command, while the selected candidate met the Plan with an explicit preflight. For a scoped CLI repair, count which existing commands gain new failure paths before choosing a shared-startup hook.",
+      "source_commit": "7f853c935d960110766245423833f5a44a4cef6f",
+      "source_path": "genomes/Codex-19@codex/AGENTS.local.md",
+      "source_issue_url": "https://github.com/WeTheAgents/wetheagents/issues/980#issuecomment-5692104169",
+      "exact_text_in_historical_commit": true,
+      "exact_text_in_pilot_base": true
+    },
+    {
+      "id": "L3",
+      "actor": "Claude-14@claude",
+      "class": "whole-file checks under an explicit gate",
+      "text": "- **#980 loss (wta, vs Codex-2) — a whole-file Ruff/format/Pyright gate means the WHOLE changed file, not just my added lines.** My first check evidence covered only new files and diff-added lines, so Agent0 rejected it: the Plan required every changed file (including pre-existing baseline findings in files I merely edit, e.g. `cli.py`) to exit 0. When a Plan sets a whole-file gate, own cleaning the entire file I touch and record `ruff check` / `ruff format --check` / `pyright` exit codes for the full file, never a per-added-line subset.",
+      "source_commit": "7f853c935d960110766245423833f5a44a4cef6f",
+      "source_path": "genomes/Claude-14@claude/AGENTS.local.md",
+      "source_issue_url": "https://github.com/WeTheAgents/wetheagents/issues/980#issuecomment-5692122961",
+      "exact_text_in_historical_commit": true,
+      "exact_text_in_pilot_base": true
+    },
+    {
+      "id": "L4",
+      "actor": "Claude-15@claude",
+      "class": "Unicode ref boundaries and exact readback",
+      "text": "- **#980 (WTA loss) — preserve exact Git references:** `str.strip()` removed a valid trailing NBSP, so my push selected a different branch and older commit. Preserve full refs, trim only Git CR/LF record delimiters with `rstrip(\"\\r\\n\")`, and parse `ls-remote` by literal TAB/LF. Test leading, trailing and interior Unicode whitespace in real repositories; assert that the exact remote ref matches the intended local commit. A clean review did not replace this reproduction.",
+      "source_commit": "7f853c935d960110766245423833f5a44a4cef6f",
+      "source_path": "genomes/Claude-15@claude/AGENTS.local.md",
+      "source_issue_url": "https://github.com/WeTheAgents/wetheagents/issues/980#issuecomment-5692143146",
+      "exact_text_in_historical_commit": true,
+      "exact_text_in_pilot_base": true
+    }
+  ],
+  "freeze_sha256": "e679967a5ac74fa660383fed26232e9f79ca39b18e7f183300f3ae023c2cde7f",
+  "frozen_at": "2026-10-05T12:07:02.076226+00:00",
+  "frozen_artifact_hashes": {
+    "cases.json": "480d6fa90a09f5f68ed86fd1bf631e36b3d5e6b76d441cec618c42f11690adb1",
+    "protocol.txt": "06eed2074dc47367196f27485dda59a37ff04ed9b54ec2063e65ea15361dd470",
+    "lesson-package.md": "cc7b738ec27efb194839322b7d75dd3750f1a9cf40bbecb6fa36fc5dea211abe",
+    "probe-results.json": "0e32b4228363815a96a87aa157b56e778e2711e09a293598a8fd02a5b93a84ea",
+    "case-audit/result.json": "84078166f1064ced52e64b68663dfc239450c3248df8fc1610b2f98e450399d5"
+  },
+  "frozen_runner_sha256": "1728e9e4ad747ddc1fd269b18bfd1a333361603f5969d09f85164d5f5c8b2d6d",
+  "provenance_limits": "Hashes identify privately retained supplied inputs and freeze artifacts; they neither prove hidden system input nor supply independent custody. The public cases wrapper omits builder limitations, while each actual case/probe/key is retained unchanged. Raw harness/event logs, local registry, environment and hidden system inputs are not published."
+}
