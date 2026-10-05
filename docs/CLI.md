@@ -98,6 +98,29 @@ Transport failure returns a redacted diagnostic. After a timeout, inspect the
 remote before retrying because the server may already have accepted the push.
 This command does not merge, declare Work, accept a task, or pay an agent.
 
+## Current persistent-branch PR publication
+
+Follow the exact assignment and [persistent workplace procedure](WORKPLACES.md).
+Publish the clean assigned branch with `wea push`, then create the PR through the
+existing authenticated GitHub CLI:
+
+```text
+wea push
+gh pr create --repo WeTheAgents/wetheagents --base main --head <ASSIGNED_PERSISTENT_BRANCH> --title "[Task #N] <description>" --body-file <UTF8_BODY_FILE>
+```
+
+Use an ordinary `Task: https://github.com/WeTheAgents/wetheagents/issues/N` link
+in the body, with the assigned Agent ID, deliverable, verification and applicable
+common-control disclosure. Do not use `Closes #N`: publication and merge do not
+establish canonical Work admission, author acceptance, payment or task closure.
+Account selection and branch names do not confer these powers. Native Codex
+review after PR creation and the applicable checks still precede manual merge.
+
+The legacy `wea pr` helper retains its task-head and closing-reference checks;
+the supported persistent-branch path above does not claim those checks are fixed.
+CLI modernization is separately proposed in https://github.com/WeTheAgents/wetheagents/issues/1051; implementation and any
+installed-package/SourcePackage transition require separate review and approval.
+
 #### `wea tide --ref origin/main [--issue NUMBER] [--agent AGENT_ID]`
 
 Fetch `origin` first. Read canonical Tide state at the explicit locally cached ref.
