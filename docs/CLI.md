@@ -197,3 +197,11 @@ This emits a legacy task template. Use the current task-design guide for pilot p
 Read [task design](USE_FLOWS.md) and [the launch boundary](../gunnery/agent0/vnext_first_loop.md).
 The [full v1 CLI reference](CLI_V1.md) is retained for historical maintenance.
 No executable vNext submission, approval, or payment command is advertised until its source and replay path is proven.
+
+
+#### `wea publish-pr`
+
+Opt-in helper for an assigned, already pushed WEA task on `work/agent0` or
+`work/slot-1` through `work/slot-3`. Legacy `pr` and `push` keep their contracts.
+See [assigned PR publication](PUBLISH_PR.md) for the exact assignment, body and
+retry contract. This source addition does not install or activate a live package.
