@@ -494,3 +494,33 @@ def test_wrong_invoked_source_blocks_even_with_current_path(delivery, monkeypatc
     with pytest.raises(p.PublicationError, match="Invoked CLI"):
         publish(root, intent, api)
     assert api.creates == 0
+
+
+def test_another_task_reference_does_not_claim_this_task(delivery):
+    _, intent, _ = delivery
+    other = row(intent)
+    other["state"] = "closed"
+    other["head"]["ref"] = "work/agent0"
+    other["title"] = "[Task #1047] Workflow documentation"
+    other["body"] = (
+        "Task: https://github.com/WeTheAgents/wetheagents/issues/1047\n"
+        "Related CLI proposal: " + intent.task_url
+    )
+    assert p.select_existing([other], intent) is None
+    other["body"] = "Task: " + intent.task_url
+    with pytest.raises(p.PublicationError):
+        p.select_existing([other], intent)
+
+
+def test_cli_reports_exact_safe_preflight_blocker(monkeypatch, capsys):
+    monkeypatch.setattr(cli, "resolve_repo_root", lambda root: Path(root))
+
+    def rejected(*args):
+        raise p.PublicationError("Existing slot/task PR conflicts")
+
+    monkeypatch.setattr(p, "load_intent", rejected)
+    assert p.cmd_publish_pr(argparse.Namespace(root=".")) == 2
+    assert (
+        capsys.readouterr().out
+        == "Publication blocked: Existing slot/task PR conflicts\n"
+    )

@@ -357,10 +357,7 @@ def select_existing(rows: list[dict], intent: Intent) -> dict | None:
                 row.get("state") == "open"
                 and row.get("head", {}).get("ref") == intent.branch
             )
-            or re.search(
-                re.escape(intent.task_url) + r"(?![0-9A-Za-z/?#])",
-                (row.get("body") or ""),
-            )
+            or f"Task: {intent.task_url}" in (row.get("body") or "").splitlines()
             or row.get("title", "").startswith(
                 f"[Task #{TASK.fullmatch(intent.task_url).group(1)}]"
             )
@@ -578,12 +575,13 @@ def cmd_publish_pr(args: argparse.Namespace) -> int:
         )
         print(json.dumps(result, indent=2))
         return 0 if result["status"].startswith("verified") or args.dry_run else 2
-    except (ValueError, OSError, git_transport.GitTransportError):
-        # Paths, transport stderr and assignment/body bytes may be private.
-        print(
-            "Publication blocked: check assignment, clean Git state, "
-            "history and retained receipt."
-        )
+    except (PublicationError, git_transport.GitTransportError) as exc:
+        # These messages are constructed locally; raw transport output is never used.
+        print(f"Publication blocked: {exc}")
+        return 2
+    except (ValueError, OSError):
+        # File/decode diagnostics can contain private paths or bytes.
+        print("Publication blocked: assignment/body/receipt could not be read safely.")
         return 2
 
 
