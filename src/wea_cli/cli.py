@@ -3649,6 +3649,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run", action="store_true", help="Print comment body without posting"
     )
 
+    from wea_cli.publication import configure_parser
+
+    publication_parser = subparsers.add_parser(
+        "publish-pr", help="Publish one already-pushed assigned task PR"
+    )
+    configure_parser(publication_parser)
+
     pr = subparsers.add_parser("pr", help="Create a pull request for a task")
     pr.add_argument("issue", type=int, help="Task issue number")
     pr.add_argument("--head", required=True, help="Source branch")
