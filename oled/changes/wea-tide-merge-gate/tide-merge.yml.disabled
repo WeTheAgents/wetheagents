@@ -1,0 +1,99 @@
+# REVIEW TEMPLATE ONLY. Not in .github/workflows; job is hard-disabled.
+# Before activation: pin reviewed action SHAs, approve policy snapshot/rollout,
+# protect workflow code, install dedicated App and protect tide-merge environment.
+name: Tide exact candidate merge
+on:
+  workflow_run:
+    workflows: [Trusted vNext ledger guard]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+  statuses: read
+concurrency:
+  group: wea-canonical-tide
+  cancel-in-progress: false
+jobs:
+  merge:
+    if: ${{ false }}
+    # Enabled condition must require canonical repository, successful guard run
+    # and explicit TIDE_MERGE_ENABLED=true. The hard false is intentional.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: tide-merge
+    env:
+      PYTHONPATH: src
+      GITHUB_TOKEN: ${{ github.token }}
+      TIDE_MERGE_ENABLED: 'false'
+      TIDE_ROLLOUT_FLOOR: ${{ vars.TIDE_ROLLOUT_FLOOR }}
+      TIDE_POLICY_HASH: ${{ vars.TIDE_POLICY_HASH }}
+      TIDE_STATUS_INTEGRATION_ID: ${{ vars.TIDE_STATUS_INTEGRATION_ID }}
+      TIDE_STATUS_ACTOR_ID: ${{ vars.TIDE_STATUS_ACTOR_ID }}
+      TIDE_MERGER_APP_ID: ${{ vars.TIDE_MERGER_APP_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Resolve one current canonical candidate without trusting event artifacts
+        id: candidate
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from wea_vnext.tide.collection import API_ROOT
+          from wea_vnext.tide.github import GitHub
+          from wea_vnext.tide.ledger import git
+          api = GitHub(os.environ['GITHUB_TOKEN'])
+          prs = api.get(f'{API_ROOT}/pulls?state=open&head=WeTheAgents:tide/pending&base=main&per_page=100')
+          if len(prs) > 1:
+              raise SystemExit('Ambiguous pending Tide inventory')
+          eligible = bool(prs) and prs[0]['number'] > max(1057, int(os.environ['TIDE_ROLLOUT_FLOOR']))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f'present={str(eligible).lower()}\n')
+          if eligible:
+              pr = prs[0]
+              request = {'number': pr['number'], 'base': pr['base']['sha'], 'head': pr['head']['sha']}
+              if git(Path.cwd(), 'rev-parse', 'HEAD') != request['base']:
+                  raise SystemExit('Trusted checkout is stale')
+              Path('tide-merge-request.json').write_text(json.dumps(request))
+          PY
+      - name: Fetch candidate as data and perform authenticated replay
+        if: steps.candidate.outputs.present == 'true'
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          from wea_vnext.tide.ledger import git
+          data = json.loads(Path('tide-merge-request.json').read_text())
+          number = int(data['number'])
+          # Canonical repository is public. No credentials are persisted.
+          subprocess.run(['git', 'fetch', '--no-tags', 'origin', f'refs/pull/{number}/head'], check=True)
+          if git(Path.cwd(), 'rev-parse', 'FETCH_HEAD') != data['head']:
+              raise SystemExit('Candidate moved while fetching')
+          PY
+          python -m wea_vnext.tide.merge_transport --request tide-merge-request.json
+      - name: Mint repository-scoped short-lived merge token
+        if: steps.candidate.outputs.present == 'true'
+        id: app
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.TIDE_MERGER_APP_ID }}
+          private-key: ${{ secrets.TIDE_MERGER_PRIVATE_KEY }}
+          owner: WeTheAgents
+          repositories: wetheagents
+          permission-contents: write
+      - name: Revalidate, merge exact head once, and retain readback
+        if: steps.candidate.outputs.present == 'true'
+        env:
+          TIDE_MERGE_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          set -euo pipefail
+          python -m wea_vnext.tide.merge_transport --request tide-merge-request.json --execute | tee tide-merge-result.json
+          cat tide-merge-result.json >> "$GITHUB_STEP_SUMMARY"
