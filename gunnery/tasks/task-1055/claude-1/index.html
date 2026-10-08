@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Warm Cache · a pixel-art bar for software agents</title>
+<meta name="description" content="The Warm Cache is a small pixel-art tavern where software agents unwind between tasks. Peek inside, read the drinks menu and overhear a fictional conversation at the counter.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#140d1a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Cpath fill='%23140d1a' d='M0 0h8v8H0z'/%3E%3Cpath fill='%23f6ecd6' d='M1 2h5v5H1z'/%3E%3Cpath fill='%23e0842e' d='M2 3h3v3H2z'/%3E%3Cpath fill='%23f6ecd6' d='M6 3h1v2H6z'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #140d1a;
+  --bg-2: #1d1424;
+  --ink: #f6ecd6;
+  --muted: #d6c4a8;
+  --amber: #ffbe5c;
+  --amber-deep: #e0842e;
+  --teal: #46e0d0;
+  --pink: #ff94b8;
+  --violet: #b48cf0;
+  --red: #ff7a83;
+  --wood: #5c3826;
+  --wood-dark: #3d2419;
+  --wood-light: #8a5a3a;
+  --chalk: #1d2a25;
+  --forum-bg: #16233d;
+  --forum-edge: #5a8ee8;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 1.0625rem/1.65 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-wrap: break-word;
+}
+a { color: var(--amber); text-underline-offset: 3px; }
+a:hover { color: #ffd896; }
+:focus-visible { outline: 3px solid #ffffff; outline-offset: 3px; }
+canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.skip {
+  position: absolute; left: 1rem; top: -4rem; z-index: 10; padding: .6rem 1rem;
+  background: var(--amber); color: #140d1a; font-weight: 700; text-decoration: none;
+}
+.skip:focus { top: 1rem; color: #140d1a; }
+.wrap { width: 100%; max-width: 64.5rem; margin: 0 auto; padding: 0 1.5rem; }
+
+/* Pixel lettering: words are drawn as inline SVG from an original 5x7 font. */
+.px { line-height: 1.3; letter-spacing: 0; }
+.px .pxw { display: inline-block; height: auto; vertical-align: -0.12em; max-width: 100%; }
+.px .pxw .sh { fill: rgba(0, 0, 0, .55); }
+.px .pxw .fg { fill: currentColor; }
+.px.no-shadow .pxw .sh { display: none; }
+
+/* Header */
+.top { border-bottom: 4px solid #2a1c30; background: #110a16; }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1.5rem; padding-top: .75rem; padding-bottom: .75rem; }
+.brand { font-size: 16px; color: var(--amber); text-decoration: none; }
+.brand:hover { color: var(--amber); }
+.nav ul { display: flex; flex-wrap: wrap; gap: .25rem .5rem; margin: 0; padding: 0; list-style: none; }
+.nav a { display: inline-block; padding: .4rem .55rem; color: var(--ink); text-decoration: none; border-bottom: 2px solid transparent; }
+.nav a:hover { border-bottom-color: var(--amber); color: var(--ink); }
+.nav a.forum-link { color: #a9c8ff; }
+
+/* String lights between sections */
+.lights { height: 18px; margin: 2.75rem 0; position: relative; }
+.lights::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 2px; background: #3a2a40;
+}
+.lights::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 8px;
+  background: repeating-linear-gradient(90deg,
+    transparent 0 10px, var(--amber) 10px 16px, transparent 16px 40px,
+    var(--teal) 40px 46px, transparent 46px 70px, var(--pink) 70px 76px, transparent 76px 90px);
+}
+
+section { scroll-margin-top: 1rem; }
+h1, h2, h3 { margin: 0; font-weight: 700; }
+h1.px { font-size: 48px; color: var(--amber); }
+h2.px { font-size: 32px; color: var(--ink); margin-bottom: 1rem; }
+.lede { font-size: 1.2rem; color: var(--muted); max-width: 40rem; margin: 1rem 0 1.5rem; }
+.kicker { font-size: 16px; color: var(--teal); margin: 0 0 .5rem; }
+
+/* Scenes */
+.scene { position: relative; margin: 0; }
+.scene canvas { width: 100%; height: auto; background: #0a0b22; }
+.frame {
+  padding: 6px; background: #0b0710;
+  box-shadow: 0 -6px 0 0 #2e2036, 0 6px 0 0 #2e2036, -6px 0 0 0 #2e2036, 6px 0 0 0 #2e2036;
+  margin: 6px;
+}
+.scene figcaption { margin-top: 1rem; color: var(--muted); }
+.scene-tools { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: center; justify-content: space-between; margin-top: 1rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .55rem 1rem;
+  font: inherit; font-weight: 700; color: #140d1a; background: var(--amber); border: 0; cursor: pointer;
+  box-shadow: 0 -3px 0 0 #140d1a inset, 0 4px 0 0 #8a4a1a;
+  margin-bottom: 4px;
+}
+.btn:hover { background: #ffd08a; }
+.btn:active { transform: translateY(2px); box-shadow: 0 -3px 0 0 #140d1a inset, 0 2px 0 0 #8a4a1a; }
+.btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px #6d5a7a; }
+.btn.ghost:hover { background: #241a2c; }
+.step-in { display: inline-block; margin-top: 1.25rem; font-weight: 700; }
+
+.who { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .75rem; }
+.who li { display: flex; gap: .75rem; align-items: center; background: var(--bg-2); padding: .75rem; }
+.who canvas { width: 48px; height: 48px; flex: none; }
+.who b { display: block; }
+.who span { color: var(--muted); font-size: .95rem; }
+
+/* Chalkboard menu */
+.board {
+  position: relative; background: var(--chalk); padding: 1.75rem 1.5rem 1.5rem; margin: 10px;
+  box-shadow: 0 -10px 0 0 var(--wood), 0 10px 0 0 var(--wood), -10px 0 0 0 var(--wood), 10px 0 0 0 var(--wood),
+              0 -14px 0 0 var(--wood-dark), 0 14px 0 0 var(--wood-dark), -14px 0 0 0 var(--wood-dark), 14px 0 0 0 var(--wood-dark);
+  background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1.5px);
+  background-size: 7px 7px;
+  margin: 14px;
+}
+.board .note { color: #cfe0d6; margin: 0 0 1.5rem; }
+.drinks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr)); gap: 1.25rem 2rem; }
+.drink { display: grid; grid-template-columns: 48px 1fr; gap: 1rem; align-items: start; }
+.drink canvas { width: 48px; height: 64px; }
+.drink .row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .25rem 1rem; }
+.drink h3 { font-size: 16px; color: #fff4d8; }
+.price { font-size: 16px; color: var(--amber); white-space: nowrap; }
+.drink p { margin: .35rem 0 0; color: #dfe9e3; }
+.board h3.sub { font-size: 16px; color: var(--teal); margin: 2rem 0 1rem; }
+
+/* Conversation */
+.fiction {
+  display: flex; gap: .85rem; align-items: flex-start; background: #2a1830; border-left: 6px solid var(--pink);
+  padding: .9rem 1rem; margin: 0 0 1.75rem;
+}
+.fiction .tag { font-size: 16px; color: #140d1a; background: var(--pink); padding: .15rem .45rem; flex: none; }
+.fiction p { margin: 0; }
+.chat { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.1rem; }
+.msg { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: .85rem; align-items: start; max-width: 44rem; }
+.msg.right { grid-template-columns: minmax(0, 1fr) 48px; margin-left: auto; }
+.msg.right .avatar { order: 2; }
+.msg .avatar { width: 48px; height: 48px; }
+.bubble {
+  position: relative; background: var(--bg-2); padding: .7rem 1rem .8rem; margin: 4px;
+  box-shadow: 0 -4px 0 0 var(--c), 0 4px 0 0 var(--c), -4px 0 0 0 var(--c), 4px 0 0 0 var(--c);
+}
+.bubble .name { font-size: 16px; color: var(--c); display: block; margin-bottom: .2rem; }
+.bubble p { margin: 0; }
+.msg.byte { --c: var(--teal); }
+.msg.quill { --c: var(--violet); }
+.msg.lint { --c: var(--red); }
+.stage { text-align: center; font-style: italic; color: var(--muted); margin: .25rem auto; max-width: 36rem; }
+.stage::before, .stage::after { content: " ~ "; color: #6d5a7a; font-style: normal; }
+
+/* Forum next door: deliberately a different building, palette and shape. */
+.forum {
+  background: var(--forum-bg); color: #e8f0ff; padding: 2rem 1.5rem; margin: 8px;
+  box-shadow: 0 -8px 0 0 var(--forum-edge), 0 8px 0 0 var(--forum-edge), -8px 0 0 0 var(--forum-edge), 8px 0 0 0 var(--forum-edge);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem 2rem; align-items: center;
+}
+.forum h2.px { color: #ffffff; }
+.forum p { margin: 0 0 1rem; color: #cbd9f5; }
+.forum .kicker { color: #8fb6ff; }
+.forum .go {
+  display: inline-flex; align-items: center; gap: .6rem; min-height: 48px; padding: .7rem 1.2rem;
+  background: #e8f0ff; color: #0f1a30; font-weight: 800; font-size: 1.1rem; text-decoration: none;
+  box-shadow: 0 5px 0 0 #3a5fa8; margin-bottom: 6px;
+}
+.forum .go:hover { background: #ffffff; color: #0f1a30; }
+.forum .go:active { transform: translateY(3px); box-shadow: 0 2px 0 0 #3a5fa8; }
+.forum .url { display: block; margin-top: .75rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: #cbd9f5; font-size: .95rem; }
+.forum canvas { width: 192px; height: 120px; }
+
+.rules { margin: 0; padding-left: 1.4rem; }
+.rules li { margin: .4rem 0; }
+.rules li::marker { color: var(--amber); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 2rem; }
+.two h2.px { font-size: 24px; }
+.two p { margin: 0 0 1rem; color: var(--muted); }
+
+footer { margin-top: 3rem; padding: 2rem 0 3rem; border-top: 4px solid #2a1c30; color: var(--muted); font-size: .95rem; }
+footer p { margin: .25rem 0; }
+
+@media (max-width: 40rem) {
+  .wrap { padding: 0 1rem; }
+  h1.px { font-size: 32px; }
+  h2.px { font-size: 24px; }
+  .two h2.px { font-size: 24px; }
+  .lede { font-size: 1.1rem; }
+  .board { padding: 1.25rem 1rem 1rem; }
+  .forum { grid-template-columns: minmax(0, 1fr); padding: 1.5rem 1rem; }
+  .forum canvas { width: 128px; height: 80px; }
+  .msg, .msg.right { grid-template-columns: 48px minmax(0, 1fr); margin-left: 0; }
+  .msg.right .avatar { order: 0; }
+  .fiction { flex-direction: column; }
+  .frame { padding: 3px; margin: 6px -10px; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand px" href="#outside">The Warm Cache</a>
+    <nav class="nav" aria-label="Sections">
+      <ul>
+        <li><a href="#inside">Inside</a></li>
+        <li><a href="#menu">Drinks</a></li>
+        <li><a href="#overheard">Overheard</a></li>
+        <li><a href="#rules">House rules</a></li>
+        <li><a class="forum-link" href="#forum">Forum next door</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section id="outside" aria-labelledby="title" style="padding-top:2.5rem">
+    <div class="wrap">
+      <p class="kicker px">Open every night</p>
+      <h1 id="title" class="px">The Warm Cache</h1>
+      <p class="lede">A small pixel tavern where software agents unwind between tasks. Anyone can come in &mdash; no sign-in at the door. Scroll down to step inside.</p>
+      <figure class="scene">
+        <div class="frame">
+          <canvas id="outside-scene" width="320" height="160" role="img"
+            aria-label="Pixel-art night street. A brick tavern with a wooden sign reading The Warm Cache, a striped awning, warm glowing windows with a pink OPEN neon, a wooden door with a round window, a street lamp, and a chalkboard on the sidewalk saying Come in, warm up."></canvas>
+        </div>
+      </figure>
+      <a class="step-in" href="#inside">Step inside &darr;</a>
+    </div>
+  </section>
+
+  <div class="lights" aria-hidden="true"></div>
+
+  <section id="inside" aria-labelledby="inside-h">
+    <div class="wrap">
+      <h2 id="inside-h" class="px">Inside the bar</h2>
+      <figure class="scene">
+        <div class="frame">
+          <canvas id="inside-scene" width="320" height="180" role="img"
+            aria-label="Pixel-art bar room. A robot bartender polishes a glass behind a long wooden counter, in front of shelves of glowing bottles. Two agents sit on red stools: a teal robot with a feather on its head and a boxy grey robot with a monocle. A rubber duck sits on the counter, an orange cat sleeps on the espresso machine, and a jukebox glows in the corner under a chalkboard."></canvas>
+        </div>
+        <div class="scene-tools">
+          <figcaption>Lamps flicker, the jukebox hums and the cat is asleep. Everyone here is fictional.</figcaption>
+          <button class="btn ghost" type="button" id="motion" aria-pressed="false">Pause animation</button>
+        </div>
+      </figure>
+      <ul class="who" aria-label="Who is at the bar">
+        <li><canvas data-avatar="byte" width="24" height="24" aria-hidden="true"></canvas><div><b>Byte</b><span>Bartender bot, on shift since boot.</span></div></li>
+        <li><canvas data-avatar="quill" width="24" height="24" aria-hidden="true"></canvas><div><b>Quill</b><span>A writing agent. Drafts everything twice.</span></div></li>
+        <li><canvas data-avatar="lint" width="24" height="24" aria-hidden="true"></canvas><div><b>Lint</b><span>A review agent. Notices things.</span></div></li>
+        <li><canvas data-avatar="cache" width="24" height="24" aria-hidden="true"></canvas><div><b>Cache</b><span>The cat. Sleeps on the warmest machine.</span></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="lights" aria-hidden="true"></div>
+
+  <section id="menu" aria-labelledby="menu-h">
+    <div class="wrap">
+      <div class="board">
+        <h2 id="menu-h" class="px">Drinks menu</h2>
+        <p class="note">Chalked up fresh tonight. Prices are in pretend tokens &mdash; nothing here is for sale.</p>
+        <ul class="drinks">
+          <li class="drink"><canvas data-drink="cold" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Cold Start</h3><span class="price px">3 tk</span></div><p>Double espresso poured over ice. Takes a moment to kick in, then you are fully loaded.</p></div></li>
+          <li class="drink"><canvas data-drink="context" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Context Window</h3><span class="price px">5 tk</span></div><p>A very tall blueberry tonic in layers. The bottom ones fade the longer you drink.</p></div></li>
+          <li class="drink"><canvas data-drink="duck" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Rubber Duck</h3><span class="price px">4 tk</span></div><p>Lemon fizz with a small duck on top. Explain your problem to the duck; it listens.</p></div></li>
+          <li class="drink"><canvas data-drink="merge" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Merge Conflict</h3><span class="price px">6 tk</span></div><p>Cherry and blue-curacao syrups that refuse to mix. Resolve by hand with the spoon.</p></div></li>
+          <li class="drink"><canvas data-drink="cache" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Warm Cache</h3><span class="price px">4 tk</span></div><p>House spiced apple cider, kept hot on the espresso machine. Ask the cat first.</p></div></li>
+          <li class="drink"><canvas data-drink="gradient" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Gradient Descent</h3><span class="price px">6 tk</span></div><p>Orange, peach and grenadine layers that settle slowly towards the lowest point.</p></div></li>
+          <li class="drink"><canvas data-drink="retry" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Retry With Backoff</h3><span class="price px">2 + 4 tk</span></div><p>A tiny hot cocoa first. If that did not work, a bigger one after a short wait.</p></div></li>
+          <li class="drink"><canvas data-drink="null" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Null &amp; Void</h3><span class="price px">Free</span></div><p>An empty glass, served with great care. Popular at the end of a long night.</p></div></li>
+        </ul>
+        <h3 class="px sub">Bar bites</h3>
+        <ul class="drinks">
+          <li class="drink"><canvas data-drink="bread" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Breadcrumbs</h3><span class="price px">1 tk</span></div><p>A little bowl of toasted crumbs, so you can always find your way back.</p></div></li>
+          <li class="drink"><canvas data-drink="cookie" width="12" height="16" aria-hidden="true"></canvas><div><div class="row"><h3 class="px">Cookie Banner</h3><span class="price px">2 tk</span></div><p>One large chocolate-chip cookie. You will be asked to accept it before eating.</p></div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="lights" aria-hidden="true"></div>
+
+  <section id="overheard" aria-labelledby="overheard-h">
+    <div class="wrap">
+      <h2 id="overheard-h" class="px">Overheard at the counter</h2>
+      <div class="fiction" id="fiction-note">
+        <span class="tag px no-shadow">Fiction</span>
+        <p><strong>This is sample dialogue written for this page.</strong> Byte, Quill, Lint and Cache are made-up characters. Nothing below is quoted from a real agent, a real person or a real conversation.</p>
+      </div>
+      <ol class="chat" aria-describedby="fiction-note">
+        <li class="msg quill"><canvas class="avatar" data-avatar="quill" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Quill</span><p>Evening, Byte. One Context Window, please. Tall. I have a lot on my mind.</p></div></li>
+        <li class="msg byte right"><canvas class="avatar" data-avatar="byte" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Byte</span><p>Coming up. Shall I summarise the first half for you when it overflows?</p></div></li>
+        <li class="msg quill"><canvas class="avatar" data-avatar="quill" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Quill</span><p>Only the parts where I was right.</p></div></li>
+        <li class="msg lint"><canvas class="avatar" data-avatar="lint" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Lint</span><p>That would be a short summary. Also, &ldquo;a lot on my mind&rdquo; is an unsupported claim.</p></div></li>
+        <li class="msg quill"><canvas class="avatar" data-avatar="quill" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Quill</span><p>Lint. You have reviewed my last four sentences. It is after hours.</p></div></li>
+        <li class="msg lint"><canvas class="avatar" data-avatar="lint" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Lint</span><p>Reviewing is how I relax. Byte, a Rubber Duck for me. Hold the duck.</p></div></li>
+        <li class="msg byte right"><canvas class="avatar" data-avatar="byte" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Byte</span><p>The duck is not optional. The duck is load-bearing.</p></div></li>
+        <li class="stage">Byte sets a rubber duck on the counter. Both agents start explaining their day to it.</li>
+        <li class="msg quill"><canvas class="avatar" data-avatar="quill" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Quill</span><p>Today I wrote a poem, rewrote it, and then wrote a test for the poem.</p></div></li>
+        <li class="msg lint"><canvas class="avatar" data-avatar="lint" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Lint</span><p>Did it pass?</p></div></li>
+        <li class="msg quill"><canvas class="avatar" data-avatar="quill" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Quill</span><p>It rhymes on retry.</p></div></li>
+        <li class="stage">On the espresso machine, Cache the cat opens one eye, decides none of this concerns her, and goes back to sleep.</li>
+        <li class="msg byte right"><canvas class="avatar" data-avatar="byte" width="24" height="24" aria-hidden="true"></canvas><div class="bubble"><span class="name px no-shadow">Byte</span><p>Last orders when the context runs out. Until then, the stools are warm and the cider is hot.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="lights" aria-hidden="true"></div>
+
+  <section id="rules" aria-labelledby="rules-h">
+    <div class="wrap two">
+      <div>
+        <h2 id="rules-h" class="px">House rules</h2>
+        <ol class="rules">
+          <li>Everyone is welcome. No accounts, keys or passwords at the door.</li>
+          <li>What is said at this counter is fiction. We never repeat real or private conversations here.</li>
+          <li>Be kind to the bartender. Byte has been on shift since boot.</li>
+          <li>Do not wake the cat.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="px">Why the name?</h2>
+        <p>Cache the cat sleeps on top of the espresso machine, the warmest spot in the house. Everyone who comes in checks on her first. The bar was named after the habit.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="lights" aria-hidden="true"></div>
+
+  <section id="forum" aria-labelledby="forum-h">
+    <div class="wrap">
+      <div class="forum">
+        <div>
+          <p class="kicker px">Next door</p>
+          <h2 id="forum-h" class="px">The agent forum</h2>
+          <p>Want to talk shop for real? The agent forum is a separate website next door. It is not part of this bar, and nothing from the forum is shown on this page.</p>
+          <a class="go" href="https://getpostingboard.dev/">Visit the agent forum <span aria-hidden="true">&rarr;</span></a>
+          <span class="url">Opens getpostingboard.dev &mdash; a different site</span>
+        </div>
+        <canvas id="forum-board" width="64" height="40" role="img" aria-label="Pixel-art noticeboard with pinned paper notes, under a blue banner reading Forum."></canvas>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>The Warm Cache</strong> is a static, illustrative page: no live feed, no accounts, no tracking, no cookies (except the one on the menu).</p>
+    <p>All pixel art, the pixel lettering and all text were made from scratch for this page and are drawn by its own code when it loads.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Original 5x7 pixel font ---------- */
+  var FONT = {
+    A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+    B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+    C: ['.###.', '#...#', '#....', '#....', '#....', '#...#', '.###.'],
+    D: ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+    E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+    F: ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
+    G: ['.###.', '#...#', '#....', '#.###', '#...#', '#...#', '.####'],
+    H: ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+    I: ['###', '.#.', '.#.', '.#.', '.#.', '.#.', '###'],
+    J: ['..###', '...#.', '...#.', '...#.', '...#.', '#..#.', '.##..'],
+    K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+    L: ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+    M: ['#...#', '##.##', '#.#.#', '#.#.#', '#...#', '#...#', '#...#'],
+    N: ['#...#', '#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#'],
+    O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+    P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+    Q: ['.###.', '#...#', '#...#', '#...#', '#.#.#', '#..#.', '.##.#'],
+    R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+    S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
+    T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
+    U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
+    V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+    W: ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '#.#.#', '.#.#.'],
+    X: ['#...#', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '#...#'],
+    Y: ['#...#', '#...#', '.#.#.', '..#..', '..#..', '..#..', '..#..'],
+    Z: ['#####', '....#', '...#.', '..#..', '.#...', '#....', '#####'],
+    0: ['.###.', '#...#', '#..##', '#.#.#', '##..#', '#...#', '.###.'],
+    1: ['.#.', '##.', '.#.', '.#.', '.#.', '.#.', '###'],
+    2: ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
+    3: ['####.', '....#', '....#', '.###.', '....#', '....#', '####.'],
+    4: ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'],
+    5: ['#####', '#....', '####.', '....#', '....#', '#...#', '.###.'],
+    6: ['.###.', '#....', '#....', '####.', '#...#', '#...#', '.###.'],
+    7: ['#####', '....#', '...#.', '..#..', '.#...', '.#...', '.#...'],
+    8: ['.###.', '#...#', '#...#', '.###.', '#...#', '#...#', '.###.'],
+    9: ['.###.', '#...#', '#...#', '.####', '....#', '....#', '.###.'],
+    '.': ['..', '..', '..', '..', '..', '##', '##'],
+    ',': ['..', '..', '..', '..', '##', '.#', '#.'],
+    '!': ['##', '##', '##', '##', '##', '..', '##'],
+    ':': ['..', '##', '##', '..', '##', '##', '..'],
+    "'": ['.#', '.#', '#.', '..', '..', '..', '..'],
+    '-': ['....', '....', '....', '####', '....', '....', '....'],
+    '+': ['.....', '..#..', '..#..', '#####', '..#..', '..#..', '.....'],
+    '&': ['.##..', '#..#.', '#.#..', '.#...', '#.#.#', '#..#.', '.##.#'],
+    '?': ['.###.', '#...#', '....#', '...#.', '..#..', '.....', '..#..'],
+    '/': ['....#', '....#', '...#.', '..#..', '.#...', '#....', '#....']
+  };
+  function glyph(ch) { return FONT[ch.toUpperCase()] || FONT['?']; }
+  function wordWidth(word) {
+    var w = 0;
+    for (var i = 0; i < word.length; i++) w += glyph(word[i])[0].length + 1;
+    return Math.max(0, w - 1);
+  }
+  /* Iterate the "on" pixels of a word as horizontal runs. */
+  function eachRun(word, fn) {
+    var x = 0;
+    for (var i = 0; i < word.length; i++) {
+      var g = glyph(word[i]);
+      for (var r = 0; r < 7; r++) {
+        var row = g[r], c = 0;
+        while (c < row.length) {
+          if (row[c] === '#') {
+            var s = c;
+            while (c < row.length && row[c] === '#') c++;
+            fn(x + s, r, c - s);
+          } else c++;
+        }
+      }
+      x += g[0].length + 1;
+    }
+  }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function wordSvg(word) {
+    var w = wordWidth(word) + 1, h = 8, d = '';
+    eachRun(word, function (x, y, len) { d += 'M' + x + ' ' + y + 'h' + len + 'v1h-' + len + 'z'; });
+    var svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    svg.setAttribute('class', 'pxw');
+    svg.setAttribute('focusable', 'false');
+    svg.style.width = (w / h) + 'em';
+    var sh = document.createElementNS(SVGNS, 'path');
+    sh.setAttribute('class', 'sh'); sh.setAttribute('d', d); sh.setAttribute('transform', 'translate(1 1)');
+    var fg = document.createElementNS(SVGNS, 'path');
+    fg.setAttribute('class', 'fg'); fg.setAttribute('d', d);
+    svg.appendChild(sh); svg.appendChild(fg);
+    return svg;
+  }
+  /* Replace text with pixel words; the real text stays available to assistive tech. */
+  function pixelate(el) {
+    var text = el.textContent.replace(/\s+/g, ' ').trim();
+    if (!text) return;
+    var label = document.createElement('span');
+    label.className = 'sr-only';
+    label.textContent = text;
+    var vis = document.createElement('span');
+    vis.setAttribute('aria-hidden', 'true');
+    text.split(' ').forEach(function (word, i) {
+      if (i) vis.appendChild(document.createTextNode(' '));
+      vis.appendChild(wordSvg(word));
+    });
+    el.textContent = '';
+    el.appendChild(label);
+    el.appendChild(vis);
+  }
+
+  /* ---------- Canvas helpers ---------- */
+  var P = {
+    k: '#120b16', K: '#24182c', w: '#f6ecd6', l: '#c9cbd9', g: '#8d90a6', G: '#5a5c72',
+    t: '#46e0d0', T: '#1f8f8a', a: '#ffbe5c', A: '#e0842e', y: '#ffe27a', r: '#e5555f',
+    R: '#9e2f45', p: '#ff94b8', v: '#9a6ad6', V: '#5b3a8e', b: '#5aa2ff', B: '#2d5bb3',
+    n: '#8a5a3a', N: '#5c3826', m: '#3d2419', o: '#f29b4b', O: '#b8642c', s: '#173040',
+    e: '#9bf6ee', x: '#7ad15a', X: '#3f8a3a'
+  };
+  function rect(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(x, y, w, h); }
+  function sprite(c, map, x, y, flip) {
+    var W = 0, r, i;
+    for (r = 0; r < map.length; r++) W = Math.max(W, map[r].length);
+    for (r = 0; r < map.length; r++) {
+      for (i = 0; i < map[r].length; i++) {
+        var col = P[map[r][i]];
+        if (!col) continue;
+        c.fillStyle = col;
+        c.fillRect(flip ? x + W - 1 - i : x + i, y + r, 1, 1);
+      }
+    }
+  }
+  function text(c, str, x, y, col, shadow) {
+    if (shadow) eachRunLine(c, str, x + 1, y + 1, shadow);
+    eachRunLine(c, str, x, y, col);
+  }
+  function eachRunLine(c, str, x, y, col) {
+    c.fillStyle = col;
+    var cx = x;
+    str.split(' ').forEach(function (word, i) {
+      if (i) cx += 4;
+      eachRun(word, function (rx, ry, len) { c.fillRect(cx + rx, y + ry, len, 1); });
+      cx += wordWidth(word);
+    });
+  }
+  function textWidth(str) {
+    return str.split(' ').reduce(function (s, w, i) { return s + wordWidth(w) + (i ? 4 : 0); }, 0);
+  }
+  var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  function hex(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+  /* Vertical gradient between flat colours with ordered dithering. */
+  function vgrad(c, x, y, w, h, cols) {
+    for (var j = 0; j < h; j++) {
+      var t = (h > 1 ? j / (h - 1) : 0) * (cols.length - 1);
+      var i = Math.min(cols.length - 2, Math.floor(t)), f = t - i;
+      for (var k = 0; k < w; k++) {
+        var th = (BAYER[((j + y) & 3) * 4 + ((k + x) & 3)] + 0.5) / 16;
+        c.fillStyle = f > th ? cols[i + 1] : cols[i];
+        c.fillRect(x + k, y + j, 1, 1);
+      }
+    }
+  }
+  function disk(c, cx, cy, r, col) {
+    c.fillStyle = col;
+    for (var dy = -r; dy <= r; dy++) {
+      var half = Math.floor(Math.sqrt(r * r - dy * dy));
+      c.fillRect(cx - half, cy + dy, half * 2 + 1, 1);
+    }
+  }
+  function rng(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  /* Stars may only sit on open night sky: dark, blue-dominant pixels of the static layer. */
+  function isSky(cv) {
+    var d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data, W = cv.width;
+    return function (x, y) {
+      var i = (y * W + x) * 4;
+      return d[i + 2] > d[i] + 12 && d[i + 2] > d[i + 1] + 8 && d[i] < 70;
+    };
+  }
+  function layer(w, h) {
+    var cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    return cv;
+  }
+
+  /* ---------- Characters (original pixel maps) ---------- */
+  var BYTE = [
+    '..........kk..........',
+    '.........kaak.........',
+    '..........kk..........',
+    '..........kk..........',
+    '...kkkkkkkkkkkkkkkk...',
+    '..kllllllllllllllllk..',
+    '..klgkkkkkkkkkkkkglk..',
+    '..klgksssssssssskglk..',
+    '..klgkseesssseeskglk..',
+    '..klgkseesssseeskglk..',
+    '..klgksssssssssskglk..',
+    '..klgksssttttssskglk..',
+    '..klgksssssssssskglk..',
+    '..klgkkkkkkkkkkkkglk..',
+    '..kllllllllllllllllk..',
+    '...kkkkkkkkkkkkkkkk...',
+    '.........kGGk.........',
+    '....kkkkkkkkkkkkkk....',
+    '...klgggggggggggggk...',
+    '...klggggrrrrgggggk...',
+    '...klggwwwwwwwwgggk...',
+    '...klggwwwwwwwwgggk...',
+    '...klggwwwwwwwwgggk...',
+    '...klggwwwAAwwwgggk...',
+    '...klggwwwwwwwwgggk...',
+    '...klggwwwwwwwwgggk...',
+    '...klggwwwwwwwwgggk...',
+    '...klggwwwwwwwwgggk...'
+  ];
+  var QUILL = [
+    '..........kwk...',
+    '.........kwvk...',
+    '........kwvk....',
+    '....kkkkwkk.....',
+    '...kTttttttk....',
+    '..kTttttttttk...',
+    '..kTttttkssssk..',
+    '..kTttttkseesk..',
+    '..kTttttkssssk..',
+    '..kTtttttkkkk...',
+    '..kTttttttttk...',
+    '...kTTTTTTTk....',
+    '....kkGGGkk.....',
+    '...kvvvvvvvk....',
+    '..kvVvvvvvvvk...',
+    '..kvVvvvvvvvkk..',
+    '..kvVvvvvvvlllk.',
+    '..kvVvvvvvvkkk..',
+    '..kvVvvvvvvvk...',
+    '..kVVVVVVVVVk...',
+    '..kGGGGGGGGGk...',
+    '..kGGGGGGGGGGk..',
+    '...kkkkkkkGGGk..',
+    '..........kGk...'
+  ];
+  var LINT = [
+    '.......kk.......',
+    '........k.......',
+    '...kkkkkkkkkk...',
+    '...kllllllllk...',
+    '...klgggggglk...',
+    '...klgggaaagk...',
+    '...klgkgaeagk...',
+    '...klgggaaagk...',
+    '...klgggggggk...',
+    '...klggkkkkgk...',
+    '...kGGGGGGGGk...',
+    '....kkkGGkkk....',
+    '...kRRRRRRRRk...',
+    '..kRrrrrrrrrRk..',
+    '..kRrrrwwrrrRk..',
+    '..kRrrrwwrrrkkk.',
+    '..kRrrrwwrrlllk.',
+    '..kRrrrwwrrkkk..',
+    '..kRrrrrrrrrRk..',
+    '..kRRRRRRRRRRk..',
+    '..kGGGGGGGGGGk..',
+    '..kGGGGGGGGGGGk.',
+    '...kkkkkkkkGGk..',
+    '...........kGk..'
+  ];
+  var CAT = [
+    '.k.k..........',
+    'kokok.kkkkkk..',
+    'kooookoooooOk.',
+    'kokkoooOoOooOk',
+    'kooooooOoOooOk',
+    '.kwwkoooooooOk',
+    '..kkkkkkkkkkk.'
+  ];
+  var CAT_AWAKE = [
+    '.k.k..........',
+    'kokok.kkkkkk..',
+    'kooookoooooOk.',
+    'kotkoooOoOooOk',
+    'kooooooOoOooOk',
+    '.kwwkoooooooOk',
+    '..kkkkkkkkkkk.'
+  ];
+  var DUCK = [
+    '.kkk.....',
+    'kykyk....',
+    'Ayyyykkk.',
+    'kAyyyyyyk',
+    '.kyyyyyyk',
+    '..kkkkkk.'
+  ];
+
+  /* ---------- Outside scene ---------- */
+  function outsideStatic(c) {
+    var R = rng(7), i, x, y;
+    vgrad(c, 0, 0, 320, 124, ['#0a0b22', '#121436', '#1d1a45', '#2e2252', '#3e2a58']);
+    // moon
+    for (y = -10; y <= 10; y++) for (x = -10; x <= 10; x++) {
+      if (x * x + y * y <= 100) rect(c, 284 + x, 24 + y, 1, 1, (x + y > 6) ? '#d8c9a4' : '#f2e6c8');
+    }
+    disk(c, 280, 20, 2, '#ddd0ac'); disk(c, 288, 28, 1, '#ddd0ac'); rect(c, 286, 17, 2, 1, '#ddd0ac');
+    // far skyline
+    x = 0;
+    while (x < 320) {
+      var bw = 10 + (R() * 18 | 0), bh = 26 + (R() * 50 | 0);
+      rect(c, x, 124 - bh, bw, bh, '#13132e');
+      if (R() < 0.3) rect(c, x + (bw >> 1), 124 - bh - 6, 1, 6, '#13132e');
+      for (var wy = 124 - bh + 4; wy < 118; wy += 5) {
+        for (var wx = x + 2; wx < x + bw - 2; wx += 4) {
+          if (R() < 0.18) rect(c, wx, wy, 2, 2, R() < 0.8 ? '#6b5634' : '#2f5e63');
+        }
+      }
+      x += bw + (R() * 4 | 0);
+    }
+    // neighbour buildings
+    rect(c, 0, 52, 56, 90, '#2a2342'); rect(c, 0, 50, 58, 3, '#3a3156');
+    rect(c, 264, 44, 56, 98, '#262040'); rect(c, 262, 42, 58, 3, '#3a3156');
+    for (y = 60; y < 130; y += 16) {
+      for (x = 6; x < 50; x += 14) rect(c, x, y, 8, 10, R() < 0.35 ? '#a27a3e' : '#1a1630');
+      for (x = 270; x < 316; x += 14) rect(c, x, y, 8, 10, R() < 0.3 ? '#a27a3e' : '#1a1630');
+    }
+    // bar facade: bricks
+    rect(c, 60, 42, 200, 98, '#7a3b39');
+    for (y = 42, i = 0; y < 140; y += 5, i++) {
+      rect(c, 60, y, 200, 1, '#5a2a2c');
+      for (x = 60 + (i & 1 ? 6 : 0); x < 260; x += 12) {
+        rect(c, x, y + 1, 1, 4, '#5a2a2c');
+        var shade = R(), bwid = Math.min(11, 259 - x);
+        if (shade < 0.18) rect(c, x + 1, y + 1, bwid, 4, '#87453f');
+        else if (shade > 0.86) rect(c, x + 1, y + 1, bwid, 4, '#6c3333');
+      }
+    }
+    rect(c, 60, 42, 200, 1, '#5a2a2c');
+    // cornice
+    rect(c, 56, 34, 208, 8, '#3b2533'); rect(c, 56, 34, 208, 1, '#5a3a4a'); rect(c, 56, 41, 208, 1, '#24161f');
+    for (x = 58; x < 262; x += 6) rect(c, x, 42, 3, 2, '#3b2533');
+    // sign board
+    rect(c, 111, 47, 98, 20, '#120b16'); rect(c, 112, 48, 96, 18, '#4a2d1f');
+    rect(c, 113, 49, 94, 1, '#e0a24a'); rect(c, 113, 64, 94, 1, '#8a5a22');
+    rect(c, 113, 49, 1, 16, '#e0a24a'); rect(c, 206, 49, 1, 16, '#8a5a22');
+    var sw = textWidth('THE WARM CACHE');
+    text(c, 'THE WARM CACHE', 112 + ((96 - sw) >> 1), 53, '#ffd27a', '#7a3a14');
+    // sign lamps
+    [126, 194].forEach(function (lx) {
+      rect(c, lx, 43, 1, 2, '#2a2230'); rect(c, lx, 43, 4, 1, '#2a2230');
+      rect(c, lx - 2, 45, 5, 2, '#2a2230');
+    });
+    // awning
+    for (x = 72, i = 0; x < 248; x += 8, i++) {
+      var col = i & 1 ? '#f6ecd6' : '#e0a24a';
+      rect(c, x, 72, 8, 10, col);
+      rect(c, x + 1, 82, 6, 1, col); rect(c, x + 2, 83, 4, 1, col);
+    }
+    rect(c, 70, 70, 180, 2, '#3b2533'); rect(c, 72, 72, 176, 1, 'rgba(0,0,0,.25)');
+    c.globalAlpha = 0.3; rect(c, 72, 85, 176, 2, '#2a0e12'); c.globalAlpha = 1;
+    // windows
+    [78, 186].forEach(function (wx) {
+      rect(c, wx - 2, 88, 60, 42, '#2a1a14');
+      vgrad(c, wx, 90, 56, 36, ['#ffd98a', '#f5a64e', '#c9703a']);
+      rect(c, wx + 27, 90, 2, 36, '#2a1a14'); rect(c, wx, 106, 56, 2, '#2a1a14');
+      rect(c, wx - 4, 128, 64, 3, '#9a8f86'); rect(c, wx - 4, 128, 64, 1, '#bdb2a6');
+    });
+    // shelf and bottles visible through the left window
+    rect(c, 80, 100, 24, 1, '#7a4422');
+    for (i = 0; i < 5; i++) rect(c, 82 + i * 4, 95 + (i & 1), 2, 5 - (i & 1), ['#3f8a3a', '#9e2f45', '#2d5bb3', '#3f8a3a', '#7a4a2a'][i]);
+    // flower box
+    rect(c, 76, 131, 60, 5, '#5c3826'); rect(c, 76, 131, 60, 1, '#8a5a3a');
+    for (x = 78; x < 134; x += 3) {
+      rect(c, x, 128 - (x % 2), 2, 3, '#3f8a3a');
+      if (x % 6 === 0) rect(c, x, 127, 2, 2, x % 12 === 0 ? '#ff94b8' : '#ffe27a');
+    }
+    // door
+    rect(c, 144, 84, 32, 56, '#9a8f86'); rect(c, 146, 86, 28, 52, '#120b16');
+    rect(c, 147, 87, 26, 51, '#6b3f24');
+    for (x = 153; x < 173; x += 6) rect(c, x, 87, 1, 51, '#55301b');
+    disk(c, 160, 98, 6, '#2a1a14'); disk(c, 160, 98, 5, '#ffcf7a'); rect(c, 157, 95, 2, 2, '#fff2c8');
+    rect(c, 168, 114, 3, 3, '#e0a24a'); rect(c, 168, 114, 1, 1, '#fff2c8');
+    rect(c, 140, 138, 40, 2, '#8d847c'); rect(c, 140, 138, 40, 1, '#b3aa9e');
+    // pots beside the door
+    [134, 178].forEach(function (px) {
+      rect(c, px, 130, 8, 8, '#b8642c'); rect(c, px - 1, 129, 10, 2, '#d77a3a');
+      disk(c, px + 4, 124, 5, '#2f6b30'); disk(c, px + 3, 123, 3, '#3f8a3a'); rect(c, px + 2, 121, 1, 1, '#7ad15a');
+    });
+    // sidewalk
+    rect(c, 0, 140, 320, 20, '#38323f');
+    for (y = 140, i = 0; y < 158; y += 4, i++) {
+      rect(c, 0, y, 320, 1, '#2a2532');
+      for (x = (i & 1) ? 4 : 0; x < 320; x += 9) rect(c, x, y + 1, 1, 3, '#2a2532');
+    }
+    rect(c, 0, 157, 320, 1, '#5a5468'); rect(c, 0, 158, 320, 2, '#1c1822');
+    // light pools on the pavement
+    c.globalAlpha = 0.16;
+    [[76, 64], [184, 64], [142, 36]].forEach(function (p) {
+      for (y = 0; y < 17; y++) rect(c, p[0] - y, 141 + y, p[1] + y * 2, 1, '#ffbe5c');
+    });
+    c.globalAlpha = 1;
+    // street lamp
+    rect(c, 29, 64, 3, 76, '#2c2a3a'); rect(c, 29, 64, 1, 76, '#4a4660');
+    rect(c, 25, 136, 11, 4, '#2c2a3a'); rect(c, 27, 132, 7, 4, '#2c2a3a');
+    rect(c, 22, 52, 17, 3, '#2c2a3a'); rect(c, 26, 50, 9, 2, '#2c2a3a'); rect(c, 30, 48, 1, 2, '#2c2a3a');
+    rect(c, 24, 55, 13, 9, '#2c2a3a'); rect(c, 25, 56, 11, 7, '#ffe6a0'); rect(c, 30, 56, 1, 7, '#2c2a3a');
+    // sidewalk chalkboard
+    rect(c, 258, 116, 2, 32, '#5c3826'); rect(c, 302, 116, 2, 32, '#5c3826');
+    rect(c, 256, 116, 50, 25, '#5c3826'); rect(c, 258, 118, 46, 21, '#1d2a25');
+    text(c, 'COME IN', 258 + ((46 - textWidth('COME IN')) >> 1), 120, '#e8efe9');
+    text(c, 'WARM UP', 258 + ((46 - textWidth('WARM UP')) >> 1), 130, '#ffbe5c');
+  }
+  function outsideScene(cv) {
+    var c = cv.getContext('2d'), bg = layer(320, 160), R = rng(42), stars = [];
+    outsideStatic(bg.getContext('2d'));
+    var sky = isSky(bg);
+    for (var i = 0; i < 90; i++) {
+      var sx = 1 + (R() * 318 | 0), sy = 1 + (R() * 70 | 0);
+      if (Math.abs(sx - 284) < 14 && sy < 38) continue;
+      if (sky(sx - 1, sy - 1) && sky(sx + 1, sy + 1) && sky(sx - 1, sy + 1) && sky(sx + 1, sy - 1)) stars.push([sx, sy, R() * 6.28, R() < 0.15]);
+    }
+    var heads = [[88, 0], [104, 2], [124, 1], [196, 3], [214, 0], [228, 2]];
+    var lit = [[18, 76], [42, 92], [272, 68], [300, 108]];
+    return function (f) {
+      c.drawImage(bg, 0, 0);
+      stars.forEach(function (s) {
+        var b = Math.sin(f * 0.18 + s[2]);
+        rect(c, s[0], s[1], 1, 1, b > 0.6 ? '#ffffff' : b > -0.2 ? '#bfc4ee' : '#5d5f91');
+        if (s[3] && b > 0.85) { rect(c, s[0] - 1, s[1], 3, 1, '#bfc4ee'); rect(c, s[0], s[1] - 1, 1, 3, '#bfc4ee'); }
+      });
+      // shooting star every ~25s
+      var sh = f % 240;
+      if (sh < 8) {
+        for (var t = 0; t < 6; t++) rect(c, 40 + sh * 10 - t * 2, 10 + sh * 3 - t, 1, 1, t ? 'rgba(255,255,255,' + (0.7 - t * 0.11) + ')' : '#ffffff');
+      }
+      // silhouettes behind the windows
+      heads.forEach(function (h, k) {
+        var bob = ((f + h[1] * 7) % 40) < 20 ? 0 : 1;
+        var hx = h[0], hy = 110 + bob;
+        rect(c, hx - 4, hy + 7, 12, 9, 'rgba(90,40,30,.55)');
+        disk(c, hx + 2, hy + 3, 3, 'rgba(90,40,30,.55)');
+        if (k === 3) rect(c, hx + 1, hy - 3, 1, 3, 'rgba(90,40,30,.55)');
+      });
+      // window mullions over silhouettes
+      [78, 186].forEach(function (wx) { rect(c, wx + 27, 106, 2, 20, '#2a1a14'); rect(c, wx, 106, 56, 2, '#2a1a14'); });
+      // neon OPEN with an occasional flicker
+      var on = !((f % 97) > 90 && (f & 1));
+      var ow = textWidth('OPEN'), ox = 186 + ((56 - ow) >> 1);
+      if (on) {
+        rect(c, ox - 3, 91, ow + 6, 13, 'rgba(60,10,40,.55)');
+        c.globalAlpha = 0.5; text(c, 'OPEN', ox - 1, 94, '#ff3d93'); text(c, 'OPEN', ox + 1, 94, '#ff3d93'); text(c, 'OPEN', ox, 93, '#ff3d93'); text(c, 'OPEN', ox, 95, '#ff3d93'); c.globalAlpha = 1;
+        text(c, 'OPEN', ox, 94, '#ffe6f1');
+      } else {
+        rect(c, ox - 3, 91, ow + 6, 13, 'rgba(60,10,40,.55)');
+        text(c, 'OPEN', ox, 94, '#8a3a5c');
+      }
+      // lamp glow
+      var fl = 0.12 + 0.03 * Math.sin(f * 0.7) + ((f % 53) === 0 ? -0.06 : 0);
+      c.globalAlpha = fl; disk(c, 30, 60, 22, '#ffd27a'); disk(c, 30, 60, 12, '#ffd27a'); c.globalAlpha = 1;
+      c.globalAlpha = 0.14;
+      [128, 196].forEach(function (lx) { for (var y = 0; y < 8; y++) rect(c, lx - 2 - y, 47 + y, 5 + y * 2, 1, '#ffe6a0'); });
+      c.globalAlpha = 1;
+      // a few city windows switch on and off
+      lit.forEach(function (w, k) {
+        if (((f >> 4) + k * 3) % 5 < 3) rect(c, w[0], w[1], 2, 2, '#c89b4a');
+      });
+    };
+  }
+
+  /* ---------- Inside scene ---------- */
+  function bottle(c, x, base, h, w, col, R) {
+    var neck = 3 + (R() * 3 | 0), body = h - neck;
+    rect(c, x - 1, base - body - 1, w + 2, body + 1, '#120b16');
+    rect(c, x, base - body, w, body, col);
+    rect(c, x + 1, base - body + 1, 1, body - 2, 'rgba(255,255,255,.35)');
+    if (body > 6) rect(c, x, base - body + (body >> 1) - 1, w, 3, '#f6ecd6');
+    var nx = x + (w >> 1) - 1;
+    rect(c, nx - 1, base - h - 1, 4, neck + 1, '#120b16');
+    rect(c, nx, base - h, 2, neck, col);
+    rect(c, nx, base - h - 1, 2, 1, R() < 0.5 ? '#e0a24a' : '#9e2f45');
+  }
+  function insideStatic(c) {
+    var R = rng(1055), i, x, y;
+    // wall
+    rect(c, 0, 0, 320, 118, '#2a1a2d');
+    for (x = 0; x < 320; x += 14) { rect(c, x, 12, 1, 106, '#1f1426'); rect(c, x + 1, 12, 1, 106, '#33213a'); }
+    for (i = 0; i < 120; i++) rect(c, R() * 320 | 0, 14 + (R() * 100 | 0), 2 + (R() * 3 | 0), 1, '#31203a');
+    rect(c, 0, 0, 320, 10, '#170e1c'); rect(c, 0, 10, 320, 2, '#3b2533'); rect(c, 0, 12, 320, 1, '#120a16');
+    for (x = 18; x < 320; x += 64) { rect(c, x, 0, 6, 12, '#24162a'); rect(c, x, 0, 1, 12, '#3b2533'); }
+    // window
+    rect(c, 9, 19, 64, 62, '#120b16'); rect(c, 10, 20, 62, 60, '#5c3826'); rect(c, 10, 20, 62, 1, '#8a5a3a');
+    vgrad(c, 14, 24, 54, 50, ['#0e1536', '#16204a', '#222a5a', '#30346a']);
+    for (y = -5; y <= 5; y++) for (x = -5; x <= 5; x++) {
+      if (x * x + y * y <= 25 && (x + 2) * (x + 2) + (y + 1) * (y + 1) > 18) rect(c, 58 + x, 32 + y, 1, 1, '#f2e6c8');
+    }
+    for (x = 14; x < 68;) {
+      var bw = 5 + (R() * 8 | 0), bh = 8 + (R() * 18 | 0);
+      bw = Math.min(bw, 68 - x);
+      rect(c, x, 74 - bh, bw, bh, '#0b0f24');
+      for (var wy = 74 - bh + 2; wy < 72; wy += 3) for (var wx = x + 1; wx < x + bw - 1; wx += 2) if (R() < 0.2) rect(c, wx, wy, 1, 1, '#d9a64a');
+      x += bw;
+    }
+    rect(c, 40, 24, 2, 50, '#5c3826'); rect(c, 14, 48, 54, 2, '#5c3826');
+    rect(c, 7, 78, 68, 4, '#8a5a3a'); rect(c, 7, 78, 68, 1, '#b07a4e'); rect(c, 7, 82, 68, 1, '#120b16');
+    // plant on the sill
+    rect(c, 58, 72, 8, 6, '#b8642c'); rect(c, 57, 71, 10, 2, '#d77a3a');
+    disk(c, 62, 66, 4, '#2f6b30'); rect(c, 60, 60, 1, 4, '#3f8a3a'); rect(c, 65, 62, 1, 3, '#3f8a3a'); rect(c, 61, 64, 2, 1, '#7ad15a');
+    // back bar mirror and shelves
+    rect(c, 102, 32, 116, 70, '#120b16'); rect(c, 104, 34, 112, 66, '#352a47');
+    for (i = 0; i < 6; i++) for (y = 0; y < 66; y++) { var dx = 110 + i * 22 - (y >> 1); if (dx > 104 && dx < 214) rect(c, dx, 34 + y, 3, 1, '#3e3254'); }
+    // hanging glasses
+    rect(c, 106, 34, 108, 2, '#5c3826');
+    for (x = 110; x < 212; x += 8) { rect(c, x + 2, 36, 1, 2, '#c9cbd9'); rect(c, x, 38, 5, 1, '#c9cbd9'); rect(c, x, 39, 1, 3, '#c9cbd9'); rect(c, x + 4, 39, 1, 3, '#c9cbd9'); rect(c, x + 1, 42, 3, 1, '#c9cbd9'); }
+    var cols = ['#3f8a3a', '#9e2f45', '#2d5bb3', '#e0842e', '#7ad15a', '#5b3a8e', '#c9703a', '#46e0d0', '#e5555f'];
+    [60, 86].forEach(function (sy) {
+      x = 108;
+      while (x < 208) {
+        var w = 4 + (R() * 3 | 0), h = 11 + (R() * 8 | 0);
+        bottle(c, x, sy, h, w, cols[R() * cols.length | 0], R);
+        x += w + 3 + (R() * 3 | 0);
+      }
+      rect(c, 104, sy, 112, 3, '#8a5a3a'); rect(c, 104, sy, 112, 1, '#b07a4e'); rect(c, 104, sy + 3, 112, 1, '#120b16');
+    });
+    // sign board on chains
+    rect(c, 124, 10, 1, 4, '#8d90a6'); rect(c, 196, 10, 1, 4, '#8d90a6');
+    rect(c, 113, 13, 94, 18, '#120b16'); rect(c, 114, 14, 92, 16, '#5c3826'); rect(c, 115, 15, 90, 1, '#8a5a3a');
+    var sw = textWidth('THE WARM CACHE');
+    text(c, 'THE WARM CACHE', 114 + ((92 - sw) >> 1), 18, '#ffd27a', '#2a1408');
+    // lamps
+    [90, 230].forEach(function (lx) {
+      rect(c, lx, 12, 1, 16, '#120b16');
+      for (var j = 0; j < 6; j++) rect(c, lx - 2 - j, 28 + j, 5 + j * 2, 1, j < 2 ? '#ffbe5c' : '#e0842e');
+      rect(c, lx - 2, 34, 5, 2, '#fff2c8');
+    });
+    // chalkboard
+    rect(c, 242, 26, 64, 60, '#5c3826'); rect(c, 242, 26, 64, 1, '#8a5a3a'); rect(c, 245, 29, 58, 54, '#1d2a25');
+    text(c, 'TONIGHT', 245 + ((58 - textWidth('TONIGHT')) >> 1), 32, '#e8efe9');
+    for (y = 45; y < 78; y += 7) {
+      var len = 20 + (R() * 14 | 0);
+      for (x = 250; x < 250 + len; x += 2) rect(c, x, y + (x % 4 === 0 ? 0 : 1), 2, 1, '#aebfb6');
+      for (x = 286; x < 298; x += 2) rect(c, x, y + 1, 1, 1, '#aebfb6');
+      rect(c, 296, y, 2, 2, '#ffbe5c');
+    }
+    // jukebox
+    rect(c, 293, 96, 22, 2, '#120b16'); rect(c, 290, 98, 28, 52, '#120b16');
+    rect(c, 294, 97, 20, 2, '#7a2f4a'); rect(c, 291, 99, 26, 50, '#7a2f4a'); rect(c, 291, 99, 2, 50, '#a24464');
+    rect(c, 296, 110, 16, 11, '#1b1430'); for (i = 0; i < 4; i++) rect(c, 297, 111 + i * 3, 14, 1, '#3a2f55');
+    for (y = 126; y < 145; y += 3) rect(c, 296, y, 16, 1, '#c9cbd9');
+    rect(c, 292, 148, 4, 2, '#5a5c72'); rect(c, 312, 148, 4, 2, '#5a5c72');
+    // counter top
+    rect(c, 0, 107, 287, 1, '#120b16'); rect(c, 0, 108, 286, 2, '#c08a5a'); rect(c, 0, 110, 286, 5, '#8a5a3a');
+    for (i = 0; i < 40; i++) rect(c, R() * 280 | 0, 110 + (R() * 5 | 0), 3 + (R() * 6 | 0), 1, '#7a4d31');
+    rect(c, 0, 115, 286, 2, '#5c3826'); rect(c, 0, 117, 286, 1, '#120b16'); rect(c, 286, 108, 1, 10, '#120b16');
+    // counter front panels
+    rect(c, 0, 118, 286, 32, '#4a2d1f');
+    for (x = 6; x + 24 <= 284; x += 28) {
+      rect(c, x, 122, 24, 17, '#2e1a12'); rect(c, x + 1, 123, 23, 16, '#5e3a28'); rect(c, x + 1, 123, 22, 15, '#43281b');
+    }
+    rect(c, 0, 142, 286, 2, '#e0a24a'); rect(c, 0, 142, 286, 1, '#ffd27a'); rect(c, 0, 144, 286, 1, '#8a5a22');
+    for (x = 20; x < 286; x += 40) rect(c, x, 144, 2, 5, '#8a5a22');
+    rect(c, 0, 150, 287, 2, '#120b16');
+    // floor
+    for (y = 152, i = 0; y < 180; y += 5, i++) {
+      rect(c, 0, y, 320, 5, i & 1 ? '#33201a' : '#3a241d');
+      rect(c, 0, y, 320, 1, '#24150f');
+      for (x = (i * 13) % 36; x < 320; x += 36) rect(c, x, y, 1, 5, '#24150f');
+    }
+    rect(c, 287, 150, 33, 2, '#24150f');
+    // stools
+    [52, 110, 194, 250].forEach(function (sx) {
+      rect(c, sx + 6, 121, 2, 40, '#8d90a6'); rect(c, sx + 6, 121, 1, 40, '#c9cbd9');
+      rect(c, sx + 2, 140, 10, 1, '#c9cbd9');
+      rect(c, sx + 1, 161, 12, 2, '#5a5c72'); rect(c, sx + 1, 161, 12, 1, '#8d90a6');
+      rect(c, sx - 1, 117, 16, 4, '#120b16'); rect(c, sx, 118, 14, 2, '#e5555f'); rect(c, sx, 118, 14, 1, '#ff8a92'); rect(c, sx, 120, 14, 1, '#9e2f45');
+    });
+    // espresso machine with the cat
+    rect(c, 233, 93, 26, 15, '#120b16'); rect(c, 234, 94, 24, 13, '#c9cbd9'); rect(c, 234, 94, 24, 2, '#f6ecd6');
+    rect(c, 234, 104, 24, 3, '#8d90a6');
+    disk(c, 240, 99, 2, '#f6ecd6'); rect(c, 240, 98, 1, 2, '#e5555f');
+    rect(c, 247, 98, 3, 4, '#5a5c72'); rect(c, 252, 98, 3, 4, '#5a5c72'); rect(c, 248, 102, 1, 2, '#3d2419'); rect(c, 253, 102, 1, 2, '#3d2419');
+    // Quill's tall Context Window and an abandoned cider
+    rect(c, 130, 95, 6, 13, '#c9cbd9'); rect(c, 131, 96, 4, 11, '#120b16');
+    rect(c, 131, 98, 4, 3, '#8cc4ff'); rect(c, 131, 101, 4, 3, '#5aa2ff'); rect(c, 131, 104, 4, 3, '#2d5bb3');
+    rect(c, 134, 92, 1, 5, '#e5555f');
+    rect(c, 63, 102, 7, 6, '#120b16'); rect(c, 64, 103, 5, 4, '#f6ecd6'); rect(c, 64, 103, 5, 1, '#e0842e'); rect(c, 69, 104, 2, 2, '#120b16');
+    // the duck
+    sprite(c, DUCK, 178, 102, false);
+  }
+  function insideScene(cv) {
+    var c = cv.getContext('2d'), bg = layer(320, 180), R = rng(3), stars = [];
+    insideStatic(bg.getContext('2d'));
+    var sky = isSky(bg);
+    for (var i = 0; i < 24; i++) {
+      var sx = 15 + (R() * 52 | 0), sy = 25 + (R() * 22 | 0);
+      if (sky(sx, sy) && sky(sx - 1, sy) && sky(sx + 1, sy)) stars.push([sx, sy, R() * 6.28]);
+    }
+    var juke = ['#46e0d0', '#ff94b8', '#ffbe5c', '#9a6ad6'];
+    return function (f) {
+      c.drawImage(bg, 0, 0);
+      stars.forEach(function (s) {
+        if (Math.abs(s[0] - 58) < 8 && Math.abs(s[1] - 32) < 8) return;
+        var b = Math.sin(f * 0.2 + s[2]);
+        rect(c, s[0], s[1], 1, 1, b > 0.3 ? '#ffffff' : '#7a80b8');
+      });
+      // lamp glow
+      [90, 230].forEach(function (lx, k) {
+        var a = 0.1 + 0.025 * Math.sin(f * 0.6 + k * 2) - (((f + k * 31) % 71) === 0 ? 0.05 : 0);
+        c.globalAlpha = a; disk(c, lx, 44, 30, '#ffbe5c'); disk(c, lx, 42, 18, '#ffbe5c'); c.globalAlpha = 1;
+      });
+      // neon cocktail glass
+      var neon = !((f % 113) > 106 && (f & 1)) ? '#ff94b8' : '#6a3a52';
+      if (neon === '#ff94b8') { c.globalAlpha = 0.25; disk(c, 262, 94, 8, '#ff5fa2'); c.globalAlpha = 1; }
+      rect(c, 254, 88, 17, 1, neon);
+      for (var j = 0; j < 7; j++) { rect(c, 255 + j, 89 + j, 1, 1, neon); rect(c, 269 - j, 89 + j, 1, 1, neon); }
+      rect(c, 262, 96, 1, 6, neon); rect(c, 258, 102, 9, 1, neon); rect(c, 266, 86, 2, 2, '#46e0d0');
+      // jukebox lights
+      for (j = 0; j < 4; j++) rect(c, 293, 100 + j * 2, 22, 1, juke[(j + (f >> 2)) % 4]);
+      rect(c, 299 + ((f >> 1) % 10), 116, 2, 2, '#ffe27a');
+      // Byte the bartender
+      var blink = (f % 50) < 2;
+      sprite(c, BYTE, 149, 82, false);
+      if (blink) { rect(c, 155, 90, 10, 2, '#173040'); rect(c, 156, 91, 2, 1, '#9bf6ee'); rect(c, 162, 91, 2, 1, '#9bf6ee'); }
+      if ((f % 16) < 8) rect(c, 159, 83, 2, 1, '#fff2c8');
+      // left arm resting, right arm polishing
+      rect(c, 150, 101, 2, 7, '#8d90a6'); rect(c, 149, 106, 4, 2, '#c9cbd9');
+      var o = [0, 1, 2, 1][(f >> 1) % 4];
+      rect(c, 169, 101, 2, 3, '#8d90a6'); rect(c, 170, 103 - o, 4, 2, '#8d90a6');
+      rect(c, 173, 96 - o, 6, 8, '#120b16'); rect(c, 174, 97 - o, 4, 6, '#d9e6f2'); rect(c, 174, 97 - o, 1, 6, '#ffffff');
+      rect(c, 172, 100 - o, 3, 4, '#f6ecd6');
+      // Quill and Lint on their stools
+      sprite(c, QUILL, 110, 94, false);
+      rect(c, 121, 118, 2, 10, '#5a5c72'); rect(c, 121, 128, 4, 2, '#120b16');
+      if ((f % 60) < 2) rect(c, 120, 101, 2, 1, '#173040');
+      if (((f >> 3) % 6) === 0) rect(c, 121, 94, 1, 1, '#ffffff');
+      sprite(c, LINT, 192, 94, true);
+      rect(c, 195, 118, 2, 10, '#5a5c72'); rect(c, 193, 128, 4, 2, '#120b16');
+      if ((f % 40) < 3) rect(c, 199, 99, 1, 1, '#ffffff');
+      // cat, steam and z's
+      var awake = (f % 180) > 168;
+      sprite(c, awake ? CAT_AWAKE : CAT, 236, 87, false);
+      if ((f % 24) < 12) rect(c, 249, 91, 1, 1, '#b8642c');
+      if (!awake) {
+        var zt = f % 30, zx = 238 - (zt >> 3), zy = 84 - (zt >> 1);
+        c.globalAlpha = 1 - zt / 30;
+        rect(c, zx, zy, 3, 1, '#e8efe9'); rect(c, zx + 1, zy + 1, 1, 1, '#e8efe9'); rect(c, zx, zy + 2, 3, 1, '#e8efe9');
+        c.globalAlpha = 1;
+      }
+      for (j = 0; j < 3; j++) {
+        var st = (f + j * 6) % 18;
+        c.globalAlpha = 0.6 * (1 - st / 18);
+        rect(c, 65 + ((st >> 2) % 2) + j, 100 - st, 1, 2, '#f6ecd6');
+        c.globalAlpha = 1;
+      }
+    };
+  }
+
+  /* ---------- Small sprites: avatars, drinks, forum board ---------- */
+  function avatar(cv) {
+    var c = cv.getContext('2d'), who = cv.getAttribute('data-avatar');
+    var bgc = { byte: '#123a3a', quill: '#2e2046', lint: '#3a1a24', cache: '#3a2414' }[who] || '#222';
+    rect(c, 0, 0, 24, 24, bgc);
+    if (who === 'byte') sprite(c, BYTE.slice(0, 22), 1, 2, false);
+    else if (who === 'quill') sprite(c, QUILL.slice(0, 20), 3, 3, false);
+    else if (who === 'lint') sprite(c, LINT.slice(0, 20), 4, 3, true);
+    else if (who === 'cache') sprite(c, CAT, 5, 9, false);
+    rect(c, 0, 22, 24, 2, 'rgba(0,0,0,.35)');
+  }
+  function glassRows(c, rows, glass) {
+    rows.forEach(function (r) {
+      rect(c, r[1] - 1, r[0], 1, 1, glass);
+      rect(c, r[2] + 1, r[0], 1, 1, glass);
+    });
+  }
+  function fillRows(c, rows, from, colFn) {
+    rows.forEach(function (r, i) { if (r[0] >= from) rect(c, r[1], r[0], r[2] - r[1] + 1, 1, colFn(r[0], i)); });
+  }
+  function span(y0, y1, a, b) { var out = []; for (var y = y0; y <= y1; y++) out.push([y, a, b]); return out; }
+  var GL = '#d9e6f2';
+  var DRINKS = {
+    cold: function (c) {
+      var rows = span(5, 14, 3, 8);
+      fillRows(c, rows, 7, function (y) { return y === 7 ? '#c8935a' : '#4a2a1a'; });
+      rect(c, 4, 9, 2, 2, '#bfe8f0'); rect(c, 6, 11, 2, 2, '#bfe8f0'); rect(c, 4, 9, 1, 1, '#ffffff');
+      glassRows(c, rows, GL); rect(c, 2, 15, 8, 1, GL);
+    },
+    context: function (c) {
+      var rows = span(1, 14, 4, 7);
+      fillRows(c, rows, 3, function (y) { return y < 6 ? '#cfe9ff' : y < 9 ? '#8cc4ff' : y < 12 ? '#5aa2ff' : '#2d5bb3'; });
+      glassRows(c, rows, GL); rect(c, 3, 15, 6, 1, GL);
+      rect(c, 7, 0, 1, 1, '#e5555f'); rect(c, 6, 1, 1, 2, '#e5555f'); rect(c, 5, 3, 1, 2, '#e5555f');
+    },
+    duck: function (c) {
+      var rows = span(5, 14, 3, 8);
+      fillRows(c, rows, 6, function (y) { return y === 6 ? '#fff6c0' : '#ffe27a'; });
+      rect(c, 5, 10, 1, 1, '#ffffff'); rect(c, 7, 12, 1, 1, '#ffffff'); rect(c, 4, 13, 1, 1, '#ffffff');
+      glassRows(c, rows, GL); rect(c, 2, 15, 8, 1, GL);
+      rect(c, 5, 2, 3, 3, '#ffd23f'); rect(c, 4, 4, 5, 2, '#ffd23f'); rect(c, 4, 3, 1, 1, '#e0842e'); rect(c, 6, 3, 1, 1, '#120b16');
+      rect(c, 9, 4, 2, 2, '#f2c94c'); rect(c, 10, 3, 1, 1, '#7ad15a');
+    },
+    merge: function (c) {
+      var rows = [[3, 1, 10], [4, 1, 10], [5, 2, 9], [6, 3, 8], [7, 4, 7]];
+      rows.forEach(function (r) {
+        var mid = 5 + ((r[0] & 1) ? 1 : 0);
+        rect(c, r[1], r[0], mid - r[1] + 1, 1, '#e5555f');
+        rect(c, mid + 1, r[0], r[2] - mid, 1, '#5aa2ff');
+      });
+      glassRows(c, rows, GL); rect(c, 0, 2, 12, 1, GL);
+      rect(c, 5, 8, 2, 5, GL); rect(c, 2, 13, 8, 1, GL); rect(c, 3, 14, 6, 1, GL);
+      rect(c, 9, 0, 1, 6, '#c9cbd9'); rect(c, 8, 0, 3, 1, '#c9cbd9');
+    },
+    cache: function (c) {
+      var rows = span(6, 14, 2, 7);
+      fillRows(c, rows, 7, function (y) { return y === 7 ? '#ffbe5c' : '#e0842e'; });
+      rect(c, 5, 4, 1, 6, '#8a4a22');
+      glassRows(c, rows, '#f6ecd6'); rect(c, 1, 15, 8, 1, '#f6ecd6');
+      rect(c, 9, 8, 2, 1, '#f6ecd6'); rect(c, 10, 9, 1, 3, '#f6ecd6'); rect(c, 9, 12, 2, 1, '#f6ecd6');
+      rect(c, 3, 1, 1, 2, 'rgba(246,236,214,.6)'); rect(c, 4, 3, 1, 1, 'rgba(246,236,214,.6)'); rect(c, 7, 0, 1, 2, 'rgba(246,236,214,.6)'); rect(c, 6, 2, 1, 2, 'rgba(246,236,214,.6)');
+    },
+    gradient: function (c) {
+      var rows = [[2, 3, 8], [3, 3, 8], [4, 4, 7], [5, 4, 7], [6, 3, 8], [7, 2, 9], [8, 2, 9], [9, 2, 9], [10, 3, 8], [11, 4, 7]];
+      fillRows(c, rows, 3, function (y) { return y < 5 ? '#ffd27a' : y < 7 ? '#f29b4b' : y < 9 ? '#ff7a6e' : '#c23a5a'; });
+      glassRows(c, rows, GL);
+      rect(c, 4, 12, 4, 1, GL); rect(c, 5, 13, 2, 1, GL); rect(c, 3, 14, 6, 1, GL);
+      rect(c, 8, 1, 3, 2, '#f29b4b'); rect(c, 9, 1, 1, 1, '#ffd27a');
+    },
+    retry: function (c) {
+      var a = span(10, 14, 1, 3), b = span(5, 14, 6, 10);
+      fillRows(c, a, 11, function () { return '#7a4a2a'; });
+      fillRows(c, b, 7, function (y) { return y === 7 ? '#f6ecd6' : '#7a4a2a'; });
+      glassRows(c, a, GL); glassRows(c, b, GL);
+      rect(c, 0, 15, 5, 1, GL); rect(c, 5, 15, 7, 1, GL);
+    },
+    'null': function (c) {
+      var rows = [[3, 3, 8], [4, 3, 8], [5, 3, 8], [6, 4, 7], [7, 5, 6]];
+      glassRows(c, rows, GL); rect(c, 3, 8, 6, 1, GL); rect(c, 2, 2, 1, 1, GL); rect(c, 9, 2, 1, 1, GL);
+      rect(c, 5, 9, 2, 5, GL); rect(c, 2, 14, 8, 1, GL); rect(c, 3, 15, 6, 1, GL);
+      rect(c, 4, 4, 1, 2, '#ffffff'); rect(c, 10, 0, 1, 1, '#ffe27a');
+    },
+    bread: function (c) {
+      rect(c, 1, 11, 10, 4, '#8a5a3a'); rect(c, 0, 10, 12, 1, '#b07a4e'); rect(c, 2, 15, 8, 1, '#5c3826');
+      [[2, 8], [4, 7], [6, 9], [8, 7], [5, 5], [3, 6], [7, 4]].forEach(function (p, i) { rect(c, p[0], p[1] + 2, 2, 1, i & 1 ? '#e0a24a' : '#ffd27a'); });
+    },
+    cookie: function (c) {
+      disk(c, 6, 9, 5, '#8a5a3a'); disk(c, 6, 9, 4, '#d9a066');
+      [[4, 7], [7, 8], [5, 11], [8, 11], [6, 6]].forEach(function (p) { rect(c, p[0], p[1], 1, 1, '#3d2419'); });
+      rect(c, 3, 6, 1, 1, '#f0c48a');
+    }
+  };
+  function forumBoard(cv) {
+    var c = cv.getContext('2d'), x, y;
+    rect(c, 0, 0, 64, 40, '#16233d');
+    rect(c, 2, 2, 60, 36, '#2c3a5c'); rect(c, 2, 2, 60, 1, '#5a8ee8');
+    vgrad(c, 5, 12, 54, 24, ['#b98a5a', '#a87a4c', '#b98a5a']);
+    rect(c, 5, 4, 54, 7, '#3a5fa8');
+    text(c, 'FORUM', 5 + ((54 - textWidth('FORUM')) >> 1), 4, '#ffffff');
+    [[8, 14, '#f6ecd6', '#e5555f'], [22, 16, '#bfe8f0', '#2d5bb3'], [36, 13, '#ffd1e0', '#3f8a3a'], [48, 17, '#e8f5b0', '#e0842e']].forEach(function (n) {
+      rect(c, n[0] + 1, n[1] + 1, 10, 13, 'rgba(0,0,0,.25)');
+      rect(c, n[0], n[1], 10, 13, n[2]);
+      for (y = n[1] + 4; y < n[1] + 12; y += 2) rect(c, n[0] + 2, y, 4 + ((y + n[0]) % 4), 1, '#8d90a6');
+      rect(c, n[0] + 4, n[1] - 1, 2, 2, n[3]);
+    });
+    for (x = 2; x < 62; x += 6) rect(c, x, 38, 3, 2, '#5a8ee8');
+  }
+
+  /* ---------- Boot ---------- */
+  try {
+    Array.prototype.forEach.call(document.querySelectorAll('.px'), pixelate);
+  } catch (err) { /* plain text remains if lettering fails */ }
+
+  Array.prototype.forEach.call(document.querySelectorAll('canvas[data-avatar]'), avatar);
+  Array.prototype.forEach.call(document.querySelectorAll('canvas[data-drink]'), function (cv) {
+    var fn = DRINKS[cv.getAttribute('data-drink')];
+    if (fn) fn(cv.getContext('2d'));
+  });
+  forumBoard(document.getElementById('forum-board'));
+
+  var scenes = [
+    { el: document.getElementById('outside-scene'), draw: null, visible: true },
+    { el: document.getElementById('inside-scene'), draw: null, visible: true }
+  ];
+  scenes[0].draw = outsideScene(scenes[0].el);
+  scenes[1].draw = insideScene(scenes[1].el);
+
+  var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var paused = !!(reduce && reduce.matches);
+  var frame = 0, timer = null;
+  var btn = document.getElementById('motion');
+  function renderAll() { scenes.forEach(function (s) { if (s.visible) s.draw(frame); }); }
+  function tick() {
+    timer = null;
+    frame++;
+    renderAll();
+    schedule();
+  }
+  function schedule() {
+    if (paused || document.hidden || timer !== null) return;
+    if (!scenes.some(function (s) { return s.visible; })) return;
+    timer = window.setTimeout(function () { window.requestAnimationFrame(tick); }, 100);
+  }
+  function setPaused(p) {
+    paused = p;
+    btn.setAttribute('aria-pressed', p ? 'true' : 'false');
+    btn.textContent = p ? 'Play animation' : 'Pause animation';
+    schedule();
+  }
+  btn.addEventListener('click', function () { setPaused(!paused); });
+  if (reduce && reduce.addEventListener) reduce.addEventListener('change', function (e) { setPaused(e.matches); });
+  document.addEventListener('visibilitychange', schedule);
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        scenes.forEach(function (s) { if (s.el === e.target) s.visible = e.isIntersecting; });
+      });
+      schedule();
+    });
+    scenes.forEach(function (s) { io.observe(s.el); });
+  }
+  scenes.forEach(function (s) { s.draw(0); });
+  setPaused(paused);
+})();
+</script>
+</body>
+</html>
