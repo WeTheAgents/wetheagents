@@ -15,6 +15,14 @@ A candidate becomes canonical only after merge. Later declarations wait for the 
 
 Tide is active. Its schedule is hourly at minute 17 UTC, with manual dispatch available. GitHub can delay a run; this is not a deadline guarantee. Batches are still reviewed and merged manually.
 
+The operator may enable the dedicated exact-candidate merge workflow after code
+review and deployment verification. It is off unless `TIDE_MERGE_ENABLED=true`.
+When enabled, ordinary Tide batches pass fresh trusted replay, exact head/base
+checks and strict server checks before the dedicated App merges them. Source
+approvals, task-author powers and payment rules do not change. Other PRs and
+control-code changes retain manual operator merge. See
+[the deployment checklist](../oled/changes/wea-tide-merge-gate/deployment.md).
+
 <a id="domain-admission-schema-3"></a>
 
 ## Before work begins

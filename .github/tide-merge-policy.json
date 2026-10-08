@@ -1,0 +1,174 @@
+{
+  "repository": "WeTheAgents/wetheagents",
+  "app_id": 5236324,
+  "installation_id": 169219742,
+  "visible_digest": "a645ec1c9143206cc40516108e8611af8229d817fb8522f10bb08578d9e2175e",
+  "full_policy": {
+    "rules": [
+      {
+        "type": "deletion",
+        "ruleset_source_type": "Repository",
+        "ruleset_source": "WeTheAgents/wetheagents",
+        "ruleset_id": 13444370
+      },
+      {
+        "type": "non_fast_forward",
+        "ruleset_source_type": "Repository",
+        "ruleset_source": "WeTheAgents/wetheagents",
+        "ruleset_id": 13444370
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": false,
+          "required_reviewers": [],
+          "require_code_owner_review": false,
+          "dismissal_restriction": {
+            "enabled": false,
+            "allowed_actors": []
+          },
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": false,
+          "require_extra_approval_for_unattributed_changes": true,
+          "allowed_merge_methods": [
+            "merge",
+            "squash",
+            "rebase"
+          ]
+        },
+        "ruleset_source_type": "Repository",
+        "ruleset_source": "WeTheAgents/wetheagents",
+        "ruleset_id": 13444370
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "tide/replay",
+              "integration_id": 15368
+            }
+          ]
+        },
+        "ruleset_source_type": "Repository",
+        "ruleset_source": "WeTheAgents/wetheagents",
+        "ruleset_id": 13444370
+      },
+      {
+        "type": "update",
+        "ruleset_source_type": "Repository",
+        "ruleset_source": "WeTheAgents/wetheagents",
+        "ruleset_id": 24719775
+      }
+    ],
+    "rulesets": [
+      {
+        "id": 13444370,
+        "target": "branch",
+        "source_type": "Repository",
+        "source": "WeTheAgents/wetheagents",
+        "enforcement": "active",
+        "conditions": {
+          "ref_name": {
+            "exclude": [],
+            "include": [
+              "refs/heads/main"
+            ]
+          }
+        },
+        "rules": [
+          {
+            "type": "deletion"
+          },
+          {
+            "type": "non_fast_forward"
+          },
+          {
+            "type": "pull_request",
+            "parameters": {
+              "required_approving_review_count": 0,
+              "dismiss_stale_reviews_on_push": false,
+              "required_reviewers": [],
+              "require_code_owner_review": false,
+              "dismissal_restriction": {
+                "enabled": false,
+                "allowed_actors": []
+              },
+              "require_last_push_approval": false,
+              "required_review_thread_resolution": false,
+              "require_extra_approval_for_unattributed_changes": true,
+              "allowed_merge_methods": [
+                "merge",
+                "squash",
+                "rebase"
+              ]
+            }
+          },
+          {
+            "type": "required_status_checks",
+            "parameters": {
+              "strict_required_status_checks_policy": true,
+              "do_not_enforce_on_create": false,
+              "required_status_checks": [
+                {
+                  "context": "tide/replay",
+                  "integration_id": 15368
+                }
+              ]
+            }
+          }
+        ],
+        "bypass_actors": [
+          {
+            "actor_id": 5,
+            "actor_type": "RepositoryRole",
+            "bypass_mode": "always"
+          }
+        ]
+      },
+      {
+        "id": 24719775,
+        "target": "branch",
+        "source_type": "Repository",
+        "source": "WeTheAgents/wetheagents",
+        "enforcement": "active",
+        "conditions": {
+          "ref_name": {
+            "exclude": [],
+            "include": [
+              "refs/heads/main"
+            ]
+          }
+        },
+        "rules": [
+          {
+            "type": "update"
+          }
+        ],
+        "bypass_actors": [
+          {
+            "actor_id": 5,
+            "actor_type": "RepositoryRole",
+            "bypass_mode": "always"
+          },
+          {
+            "actor_id": 5236324,
+            "actor_type": "Integration",
+            "bypass_mode": "pull_request"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "contents": "write",
+    "metadata": "read"
+  },
+  "environment": "tide-merge",
+  "deployment_branch": "main",
+  "status_integration_id": 15368,
+  "status_actor_id": 41898282
+}

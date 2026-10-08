@@ -130,9 +130,14 @@ identity registry, runtime reference, and source hashes. It is the opening recor
 for the new batch journal; historical Block 9 packages are not its input.
 See [Tide operations](TIDE.md) and [first-loop readiness](../gunnery/agent0/vnext_first_loop.md).
 
-The boundary tripwire permits Tide's two workflow surfaces, the read-only CLI,
+The boundary tripwire permits Tide's producer, guard and opt-in exact-candidate
+merge workflow surfaces, the read-only CLI,
 and read-only invariant/schema integration. It permits the approved canonical ledger.
 Its path inventory is not a complete security proof.
 The trusted guard checks candidate data without executing candidate Python.
-Private server-side ruleset enforcement remains DEFERRED; manual merge must
-check the current predecessor and the exact candidate status.
+Main now requires strict GitHub-Actions-bound tide/replay. The dedicated merger
+App bypasses only the update restriction through PRs, not the replay protection.
+The merge workflow remains disabled unless TIDE_MERGE_ENABLED is true. It replays
+with trusted main code and submits the exact head once; it never executes candidate
+code or changes protocol authority. Control-code changes still require operator
+manual merge. See [deployment guarantees](../oled/changes/wea-tide-merge-gate/deployment.md).
