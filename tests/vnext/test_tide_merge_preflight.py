@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 
-from wea_vnext.tide import merge_preflight as gate
+from scripts import tide_merge_preflight as gate
 from wea_vnext.tide.collection import REPOSITORY
 from wea_vnext.tide.replay import ReplayError
 

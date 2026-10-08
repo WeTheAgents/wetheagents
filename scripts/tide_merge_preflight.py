@@ -5,9 +5,9 @@ A successful result is not enduring merge authority.
 
 from pathlib import Path
 
-from .collection import API_ROOT, REPOSITORY
-from .ledger import RECEIPTS, git, read, validate
-from .replay import ReplayError
+from wea_vnext.tide.collection import API_ROOT, REPOSITORY
+from wea_vnext.tide.ledger import RECEIPTS, git, read, validate
+from wea_vnext.tide.replay import ReplayError
 
 
 def inspect(root: Path, api, number: int, *, base: str, head: str) -> dict:

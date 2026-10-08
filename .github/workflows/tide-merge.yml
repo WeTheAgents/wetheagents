@@ -73,7 +73,7 @@ jobs:
           if git(Path.cwd(), 'rev-parse', 'FETCH_HEAD') != data['head']:
               raise SystemExit('Candidate moved while fetching')
           PY
-          python -m wea_vnext.tide.merge_transport --request tide-merge-request.json
+          python -m scripts.tide_merge --request tide-merge-request.json
       - name: Mint repository-scoped short-lived merge token
         if: steps.candidate.outputs.present == 'true'
         id: app
@@ -92,5 +92,5 @@ jobs:
         run: |
           set -euo pipefail
           test "$TIDE_INSTALLATION_ID" = '169219742'
-          python -m wea_vnext.tide.merge_transport --request tide-merge-request.json --execute | tee tide-merge-result.json
+          python -m scripts.tide_merge --request tide-merge-request.json --execute | tee tide-merge-result.json
           cat tide-merge-result.json >> "$GITHUB_STEP_SUMMARY"

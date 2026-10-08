@@ -2,11 +2,13 @@
 
 import hashlib
 import http.client
+import json
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
-from wea_vnext.tide import merge_transport as transport
+from scripts import tide_merge as transport
 from wea_vnext.tide.collection import REPOSITORY
 from wea_vnext.tide.github import GitHubError
 from wea_vnext.tide.replay import ReplayError, canonical
@@ -324,8 +326,6 @@ def test_readback_never_accepts_different_merge(setup, field, value):
 
 
 def test_template_is_disabled_and_outside_workflows():
-    from pathlib import Path
-
     root = Path(__file__).resolve().parents[2]
     path = root / "oled/changes/wea-tide-merge-gate/tide-merge.yml.disabled"
     template = path.read_text(encoding="utf-8")
@@ -335,3 +335,12 @@ def test_template_is_disabled_and_outside_workflows():
     assert "vars.TIDE_MERGE_ENABLED == 'true'" in deployed
     assert "environment: tide-merge" in deployed
     assert "persist-credentials: false" in deployed
+
+
+def test_transport_preserves_canonical_hello_world_package_identity():
+    from wea_vnext.tide.hello_world import package_hash
+
+    root = Path(__file__).resolve().parents[2]
+    state = json.loads((root / "ledger/vnext/tide-state.json").read_bytes())
+    expected = state["hello_world_anchor"]["checkpoint"]["installation_sha256"]
+    assert package_hash() == expected

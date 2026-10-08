@@ -1,5 +1,14 @@
 # Tide merge deployment
 
+Live trial 37773567075 stopped before candidate publication: adding transport
+modules under wea_vnext changed the already installed Hello World package hash.
+The transport now resides in scripts/tide_merge.py and tide_merge_preflight.py,
+outside the frozen WEA package. No hash validator, anchor, executor or historical
+evidence is changed. Exact installed package hash matches the canonical anchor
+again: 84ca1de078b891d5fecc6afc914494ea93a137ab4ad36d73f6e066dbf8442683.
+Regression tests assert this compatibility. Automation remains disabled until
+the placement fix receives operator code merge and a fresh trial completes.
+
 This is operator-requested unpaid maintenance, not funded Work. No persistent
 Agent ID is claimed. The isolated task branch was explicitly assigned for this
 security change; existing persistent workplaces and their work are untouched.
