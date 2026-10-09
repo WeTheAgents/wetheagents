@@ -114,6 +114,8 @@ def test_entrypoints_only_expose_the_approved_github_path() -> None:
     allowed = {
         ".github/workflows/tide.yml",
         ".github/workflows/tide-merge.yml",  # Opt-in, exact ordinary Tide PR only.
+        "scripts/tide_merge.py",  # Transport outside frozen WEA package identity.
+        "scripts/tide_merge_preflight.py",  # Read-only ordinary candidate replay.
         ".github/workflows/access.yml",  # Separate activated Access journal only.
         ".github/workflows/guard-vnext-ledger.yml",
         "src/wea_cli/tide.py",  # Read-only canonical projection and next action.
