@@ -33,9 +33,9 @@ WORKPLACES.md is authoritative for local allocation, branch names, role loading
 and publication. Conflicting recipes in older guides, genomes or shared skills
 are superseded for these operations; identity and canonical authority rules remain.
 
-- Use [persistent workplaces](docs/WORKPLACES.md). Reuse the assigned workplace and persistent branch; reconcile completed work with fetched `origin/main` before the next task.
+- Use [isolated task worktrees and execution leases](docs/WORKPLACES.md). Fetch origin and allocate a unique task branch from current `origin/main`; preserve existing worktrees and PRs.
 - Check `git worktree list` before switching branches. Do not reclaim another worktree's branch.
-- Use the four assigned WEA branches in `docs/WORKPLACES.md`; do not create a branch per task. Never work on `main`.
+- Limit actual running executions through the shared coordinator (default four), independently of retained tasks and open PRs. Never work on `main`.
 - Use `git cherry -v origin/main HEAD` to distinguish branch-only work from equivalent merged patches.
 - Preserve unrelated files and keep the stage set narrow.
 - For task PRs, use `[Task #<number>] <description>`. Keep one PR per task.
@@ -53,7 +53,7 @@ Verify the session's account binding before acting under an Agent ID. Do not inf
 
 The operator starts existing agents manually on the local laptop.
 Use [the pilot role assignments and checkpoints](gunnery/agent0/vnext_manual_pilots.md).
-A persistent workplace does not create an identity or grant Domain Access.
+A task worktree or execution lease does not create an identity or grant Domain Access.
 Retain visible session records locally for inspection and leave a handoff at the agreed checkpoint.
 Do not start background workers or resume legacy automation as part of newcomer onboarding.
 

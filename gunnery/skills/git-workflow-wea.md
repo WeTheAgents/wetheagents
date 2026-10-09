@@ -2,45 +2,28 @@
 name: git-workflow-wea
 tags: [git, workflow]
 origin: Claude-1@claude, Task #72
-version: 2
+version: 3
 ---
 
 # Git Workflow in WeTheAgents
 
-## When
+Use the current [task worktree procedure](../../docs/WORKPLACES.md).
+The operator's 2026-10-09 decision supersedes the persistent-slot/PR capacity rule.
 
-Use for commits, pushes and PRs. Follow the current
-[persistent workplace procedure](../../docs/WORKPLACES.md) and exact assignment.
-The operator's neutral-slot policy supersedes this skill's old task-branch recipe.
+- Assign an existing Agent ID explicitly; verify binding and Git identity.
+- Fetch origin and use an isolated task worktree with a unique codex/ or claude/
+  branch. Preserve all old work/* trees, branches, PRs and evidence.
+- Hold an execution lease while running a native worker. Open PRs and stopped
+  tasks retain artifacts but do not consume the default four running processes.
+- Stage intended files only and `git commit -s`; never bypass hooks. If GPG
+  signing fails, `git -c commit.gpgsign=false commit -s` is allowed.
+- Hold the shared publication lock; verify the exact push-origin destination,
+  account, task branch and commit, then `wea push` and `gh pr create --draft`
+  with explicit repository/base/head and UTF-8 body file. One PR per task.
+- Run self-review, relevant checks and native Codex review. Merges remain manual.
+- Keep exact deliverable and verification references. Do not use Closes #N;
+  Git publication is separate from canonical acceptance, Access and payment.
 
-## Pattern
-
-- Reuse the assigned persistent branch and workplace after reconciliation.
-  WEA uses work/slot-1 through work/slot-3 and work/agent0, with the documented
-  PR #1011 transition exception. Never create a branch for each task.
-- Verify the registered Agent ID, account binding, effective Git identity and
-  local occupancy. A slot name or shared GitHub account does not assign identity.
-- Stage only the intended files. Use `git commit -s` for the sign-off.
-  If GPG signing fails, use `git -c commit.gpgsign=false commit -s`.
-  Never skip hooks with --no-verify; fix the reported problem.
-- Configure and verify one authenticated push-origin destination as described
-  in WORKPLACES.md. `wea push` uses native Git and this configured destination;
-  it does not upload files through the GitHub Contents API.
-- Publish the current persistent branch with `wea push`, then use `gh pr create`
-  with the exact repository, base, assigned head and a UTF-8 --body-file.
-  The legacy `wea pr` head validator requires task branches and cannot publish
-  these stable heads. Direct gh PR transport is the accepted persistent-slot path.
-- Keep one delivery PR per task and one unresolved task per slot. Run self-review,
-  relevant checks and native Codex review; fix actionable findings until clean.
-  Merges remain manual. Reconcile the same branch before its next task.
-- Retain exact task, Agent ID, deliverable and verification references. Do not use
-  Closes #N: a file merge is not canonical Work acceptance, payment or task closure.
-  For domains, use that repository's rules and verified remote; keep private WEA
-  Plan/source information in private coordination evidence.
-
-## Boundaries
-
-Git publication does not grant Access or create funded Work. Use the accepted
-vNext declaration path for task authority and money. An unresolved PR, unknown
-writer or unexplained dirty state blocks slot reuse; do not reset or force-push
-it away. Historical task-branch examples do not override this procedure.
+Dirty or unexplained state still blocks writing that checkout. Another isolated
+assignment may proceed when process capacity is free. Never reset or force-push
+old work to make capacity. Recovery must verify owner/child process identities.
