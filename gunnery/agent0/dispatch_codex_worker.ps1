@@ -65,11 +65,12 @@ $resolvedRunDir = (Resolve-Path -LiteralPath $RunDir).Path
 $resolvedRegistry = [IO.Path]::GetFullPath($RegistryRoot)
 New-Item -ItemType Directory -Force -Path $TaskEvidenceDir | Out-Null
 $resolvedEvidence = (Resolve-Path -LiteralPath $TaskEvidenceDir).Path
-$moduleRoot = (Resolve-Path (Join-Path $PSScriptRoot '../../src')).Path
+$moduleRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+$coordinatorFile = Join-Path $moduleRoot 'scripts/task_execution.py'
 $oldPythonPath = $env:PYTHONPATH
 try {
     $env:PYTHONPATH = $moduleRoot
-    $register = @('-m', 'wea_cli.task_execution', '--root', $resolvedRegistry,
+    $register = @($coordinatorFile, '--root', $resolvedRegistry,
         '--limit', $MaxProcesses, 'register', $TaskId, $Identity, $resolvedWorktree,
         $Branch, '--repository', 'WeTheAgents/wetheagents', '--evidence', $resolvedEvidence)
     if ($Resource.Count) {
@@ -93,6 +94,7 @@ $job = @{
     Identity = $Identity; TaskId = $TaskId; RegistryRoot = $resolvedRegistry
     Worktree = $resolvedWorktree; Branch = $Branch; Genome = $genomePath
     Python = $resolvedPython; Codex = $resolvedCodex; ModuleRoot = $moduleRoot
+    CoordinatorFile = $coordinatorFile
     Prompt = $resolvedPrompt; Sandbox = $Sandbox; Limit = $MaxProcesses
     EnvFile = $envPath; RunDir = $resolvedRunDir
     WritePaths = $writePaths
@@ -114,7 +116,7 @@ $env:WEA_AGENT = $job.Identity
 $env:PYTHONPATH = $job.ModuleRoot
 $code = 1
 try {
-    $command = @('-m', 'wea_cli.task_execution', '--root', $job.RegistryRoot,
+    $command = @($job.CoordinatorFile, '--root', $job.RegistryRoot,
         '--limit', $job.Limit, 'run', '--stdin-file', $job.Prompt, $job.TaskId,
         '--', $job.Codex, 'exec', '--sandbox', $job.Sandbox, '--json',
         '--output-last-message', (Join-Path $job.RunDir 'result.md'))

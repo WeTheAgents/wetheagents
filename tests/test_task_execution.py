@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from wea_cli import task_execution as execution
-from wea_cli.task_execution import CoordinationError, Coordinator
+from scripts import task_execution as execution
+from scripts.task_execution import CoordinationError, Coordinator
 
 
 def register(coordinator, root, task, **kwargs):
@@ -22,7 +22,7 @@ def register(coordinator, root, task, **kwargs):
 
 def worker(coordinator, task, *, crash=False):
     source = (
-        "import os,sys; from wea_cli.task_execution import Coordinator; "
+        "import os,sys; from scripts.task_execution import Coordinator; "
         "c=Coordinator(sys.argv[1]); "
         "ctx=c.lease(sys.argv[2]); lease=ctx.__enter__(); "
         "print('ready',flush=True); sys.stdin.readline(); "
@@ -304,7 +304,7 @@ def test_orphan_publishing_child_blocks_other_task_until_exit(tmp_path):
     )
     owner_source = """
 import os, sys, threading, time
-from wea_cli.task_execution import Coordinator
+from scripts.task_execution import Coordinator
 c = Coordinator(sys.argv[1])
 with c.lease('1') as lease, c.publication_lock(lease):
     thread = threading.Thread(target=lambda: lease.run(

@@ -46,12 +46,15 @@ against pruning; this is distinct from the coordinator's writer lock.
 
 ## Coordinator and native launch
 
-`python -m wea_cli.task_execution` is a standard-library local coordinator, with
+`python -m scripts.task_execution` is a standard-library local coordinator, with
 native advisory file locks, atomic registry replacement and execution receipts.
 Its command help defines register, run, reconcile and publication operations.
 Use an explicit Python executable and module checkout, not an unrelated PATH
 installation. The maintained native Codex launcher requires an explicit task,
 registry and assignment; the old compatibility path forwards to it.
+The launcher invokes the absolute reviewed script path so another task's older
+checkout cannot shadow the selected coordinator. This helper stays outside the
+fingerprinted installed `wea_cli`/`wea_vnext` packages and canonical writer boundary.
 
 An execution supervisor retains its own PID/creation identity and direct child
 PID/creation identity. It holds the worktree lease through child completion.

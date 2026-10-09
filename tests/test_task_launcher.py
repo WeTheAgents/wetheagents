@@ -30,6 +30,10 @@ def test_launcher_domain_transport_resume_and_evidence_preservation(tmp_path):
         subprocess.run(
             ["git", "-C", str(tree), *command], check=True, capture_output=True
         )
+    # An older task checkout has a regular scripts package that shadows PYTHONPATH.
+    (tree / "scripts").mkdir()
+    (tree / "scripts" / "__init__.py").write_text("# Older package, no coordinator\n")
+    (tree / ".git" / "info" / "exclude").write_text("scripts/\n")
     genome = tmp_path / "genome" / "genomes" / "Codex-2@codex"
     genome.mkdir(parents=True)
     (genome / "AGENTS.local.md").write_text("Fixture identity only")
