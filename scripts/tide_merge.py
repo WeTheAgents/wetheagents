@@ -10,10 +10,10 @@ import os
 import re
 from pathlib import Path
 
-from .collection import API_ROOT, REPOSITORY
-from .github import GitHub, GitHubError
-from .merge_preflight import inspect
-from .replay import ReplayError, canonical
+from scripts.tide_merge_preflight import inspect
+from wea_vnext.tide.collection import API_ROOT, REPOSITORY
+from wea_vnext.tide.github import GitHub, GitHubError
+from wea_vnext.tide.replay import ReplayError, canonical
 
 
 def policy_snapshot(api, *, include_bypass=False) -> dict:
