@@ -1,3 +1,9 @@
+# Current evidence: readback repair, 2026-10-10
+
+PR1067 merged at09:01:30UTC as8a8adb4af6aa522f1728e8d379d5c81b112eccb8. Guard38038748938 replay passed; the merge job then failed at the readback compare route because the shared reader rejects raw dot pairs. Live read-only gh compare using the encoded separator returned identical with merge/base8a8adb4a. Corrected readback also verified the actual PR identity, merge parents, candidate parent and matching trees.
+
+Regression first reproduced four failures through the real shared GitHub client. After the transport-only correction, python -m pytest tests/vnext/test_tide_merge_transport.py tests/vnext/test_tide_merge_preflight.py -q passed70 tests. Targeted Ruff passed. Tests accept identical/ahead, refuse behind/diverged, and retain nine unsafe-path refusals before HTTP. Canonical31-batch replay passed at merge8a8adb4a. Supply19025, escrow50, all balances/funding/escrows/settlements/releases and Hello World mint state are unchanged. Four1062 Works are eligible with no author acceptance; four disclosures remain unresolved and four old Triage reasons change, with no other task or stage effect. Independent review is pending. No live write or repeat merge was performed.
+
 # Not ready for automatic merge
 
 CURRENT: single authorized retry of the identical ruleset request succeeded.
