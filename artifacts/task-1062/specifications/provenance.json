@@ -17,7 +17,7 @@
   "candidate_brief_actual_sha256": "be7412b06b1c375f5e8df65b35b0885c635cddd9fc99580a81f17f0ca67e0956",
   "candidate_brief_stale_metadata_sha256": "1ae574f0f85ac3b1395af8ba86558e989e7cf0b8ac29540c37be349ec60f46a9",
   "brief_hash_note": "Per-file input manifests matched actual bytes. Top-level brief metadata was stale; an additive correction preserved inputs unchanged.",
-  "frozen_at": "2026-10-10T02:56:23.245982+00:00",
+  "frozen_at": "2026-10-10T05:56:23.245982+03:00",
   "common_control_group": "owner-github-129645949",
   "independence_scope": "Separate native sessions and outputs; common operator control; sibling reading prohibited procedurally, not by OS read isolation.",
   "records": [
@@ -33,8 +33,8 @@
       "session_id": "01a123b2-9661-75d1-b648-b90e907697ac",
       "native_pid": 20568,
       "native_process_creation_receipt": "134360738679470793",
-      "started_at": "2026-10-10T02:44:27.911535+00:00",
-      "ended_at": "2026-10-10T02:53:06.221365+00:00",
+      "started_at": "2026-10-10T05:44:27.911535+03:00",
+      "ended_at": "2026-10-10T05:53:06.221365+03:00",
       "exit_code": 0
     },
     {
@@ -49,8 +49,8 @@
       "session_id": "01a123b2-9661-74e1-ab5f-6d02382a08bf",
       "native_pid": 21084,
       "native_process_creation_receipt": "134360738682922208",
-      "started_at": "2026-10-10T02:44:28.275839+00:00",
-      "ended_at": "2026-10-10T02:52:22.581883+00:00",
+      "started_at": "2026-10-10T05:44:28.275839+03:00",
+      "ended_at": "2026-10-10T05:52:22.581883+03:00",
       "exit_code": 0
     },
     {
@@ -65,8 +65,8 @@
       "session_id": "e7a384af-3f1f-451c-84c2-4724f5483dba",
       "native_pid": 13684,
       "native_process_creation_receipt": "134360738684721926",
-      "started_at": "2026-10-10T02:44:28.459396+00:00",
-      "ended_at": "2026-10-10T02:52:44.193141+00:00",
+      "started_at": "2026-10-10T05:44:28.459396+03:00",
+      "ended_at": "2026-10-10T05:52:44.193141+03:00",
       "exit_code": 0
     },
     {
@@ -81,11 +81,14 @@
       "session_id": "f78da631-50a4-4bba-bb6b-e5c13f7a8dd3",
       "native_pid": 38900,
       "native_process_creation_receipt": "134360738686634856",
-      "started_at": "2026-10-10T02:44:28.644214+00:00",
-      "ended_at": "2026-10-10T02:56:01.192511+00:00",
+      "started_at": "2026-10-10T05:44:28.644214+03:00",
+      "ended_at": "2026-10-10T05:56:01.192511+03:00",
       "exit_code": 0
     }
   ],
   "implementation_or_hetzner_backtests_executed": false,
-  "payment_established_by_this_artifact": false
+  "payment_established_by_this_artifact": false,
+  "equal_total_context": false,
+  "blind_comparison": false,
+  "context_deviation": "Both Codex sessions successfully read the same generic research-handoff preference note from shared memory outside the provided snapshot. Audit found no sibling specification, current-task comment or technical WEA1062 hint in those results. Complete source snapshot remains byte-identical; total context equality is not established. Originals preserved; no candidate rerun."
 }
