@@ -2,7 +2,7 @@
 
 PR1067/Tide31 was App-merged at09:01:30UTC, merge8a8adb4af6aa522f1728e8d379d5c81b112eccb8, candidatef1c1ab389daaef1c32efe5d35db3eadd1272ecba. Producer38038314515 was scheduled; guard38038748938 replay succeeded. Its merge job failed only after the write, on the compare readback path rejected by the shared validator.
 
-The narrow transport repair encodes the fixed separator and preserves all path/identity/ancestry checks. Live read-only corrected readback observes the exact canonical merge. Canonical31-batch replay passed: no payments, refunds, new funding/reserve or minting; escrow1062=20 and1055=30, supply19025 and all balances unchanged. Four eligible Work declarations were retained without acceptance; four disclosure cases remain unresolved and four old Triage reasons changed. Draft code review remains pending. This checkpoint grants no further merge, dispatch, payment, reserve or deployment authority.
+The narrow transport repair encodes the fixed separator and preserves all path/identity/ancestry checks. Live read-only corrected readback observes the exact canonical merge. Canonical31-batch replay passed: no payments, refunds, new funding/reserve or minting; escrow1062=20 and1055=30, supply19025 and all balances unchanged. Four eligible Work declarations were retained without acceptance; four disclosure cases remain unresolved and four old Triage reasons changed. Draft PR1068 is published; Codex review found no actionable regressions. The fix is ready for manual operator review, with no code merge or workflow dispatch performed. This checkpoint grants no further merge, dispatch, payment, reserve or deployment authority.
 
 # Tide merge deployment
 
