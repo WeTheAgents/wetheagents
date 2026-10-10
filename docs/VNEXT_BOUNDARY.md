@@ -130,8 +130,8 @@ identity registry, runtime reference, and source hashes. It is the opening recor
 for the new batch journal; historical Block 9 packages are not its input.
 See [Tide operations](TIDE.md) and [first-loop readiness](../gunnery/agent0/vnext_first_loop.md).
 
-The boundary tripwire permits Tide's producer, guard and opt-in exact-candidate
-merge workflow surfaces, the read-only CLI,
+The boundary tripwire permits Tide's producer and guard workflow surfaces,
+including the guard's opt-in dependent merge job, the read-only CLI,
 and read-only invariant/schema integration. It permits the approved canonical ledger.
 Its path inventory is not a complete security proof.
 The trusted guard checks candidate data without executing candidate Python.
