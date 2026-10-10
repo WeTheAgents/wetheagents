@@ -1,3 +1,12 @@
+# Current readback repair, 2026-10-10
+
+- Complete: reproduce the raw compare separator rejection through the real API client.
+- Complete: encode the fixed separator in scripts/tide_merge.py only; preserve the frozen package and validator.
+- Complete: 70 transport/preflight tests and targeted Ruff pass, including legal compare and unsafe-path regression cases.
+- Complete: canonical31-batch replay and live read-only readback passed; all financial effects are zero.
+- Complete: self-review, draft PR1068 publication and Codex review; no actionable regressions.
+- Outside scope: merging the code PR or dispatching any workflow.
+
 # Status
 
 CURRENT: setup and code preparation complete; 45 focused tests and Ruff pass.

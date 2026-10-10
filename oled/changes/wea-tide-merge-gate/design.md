@@ -1,3 +1,7 @@
+# Readback decision, 2026-10-10
+
+Keep the shared reader and frozen WEA package unchanged. Percent-encode only the fixed three-dot compare separator in scripts/tide_merge.py; GitHub accepts this read-only route. Exact candidate/merge parents, tree identity and main ancestry checks remain. No token, permission, environment, workflow or protection change is needed.
+
 # Proposed design and exact authorization boundary
 
 CURRENT: approved rulesets 24719775 and 13444370 are applied; App5236324 and
