@@ -331,7 +331,13 @@ def test_template_is_disabled_and_outside_workflows():
     template = path.read_text(encoding="utf-8")
     assert "if: ${{ false }}" in template
     assert "TIDE_MERGE_ENABLED: 'false'" in template
-    deployed = (root / ".github/workflows/tide-merge.yml").read_text()
+    deployed = (root / ".github/workflows/guard-vnext-ledger.yml").read_text()
+    assert not (root / ".github/workflows/tide-merge.yml").exists()
+    assert "needs: trusted-ledger-check" in deployed
+    assert "needs.trusted-ledger-check.result == 'success'" in deployed
+    assert "github.ref == 'refs/heads/main'" in deployed
+    assert "VERIFIED_HEAD: ${{ needs.trusted-ledger-check.outputs.head }}" in deployed
+    assert "workflow_run:" not in deployed
     assert "vars.TIDE_MERGE_ENABLED == 'true'" in deployed
     assert "environment: tide-merge" in deployed
     assert "persist-credentials: false" in deployed

@@ -3,11 +3,40 @@
 A successful result is not enduring merge authority.
 """
 
+import re
 from pathlib import Path
 
 from wea_vnext.tide.collection import API_ROOT, REPOSITORY
 from wea_vnext.tide.ledger import RECEIPTS, git, read, validate
 from wea_vnext.tide.replay import ReplayError
+
+
+def guarded_request(api, number: int, *, base: str, head: str, floor: int):
+    """Bind the dependent job to its guard outputs; never discover another PR."""
+    if (
+        type(number) is not int or number <= 0
+        or type(floor) is not int
+        or any(not re.fullmatch(r"[0-9a-f]{40}", value) for value in (base, head))
+    ):
+        raise ReplayError("invalid guard output identity")
+    if number <= max(1057, floor):
+        return None
+    pr = api.get(f"{API_ROOT}/pulls/{number}")
+    if (
+        pr["head"]["ref"] != "tide/pending"
+        or pr["head"]["repo"]["full_name"] != REPOSITORY
+    ):
+        return None
+    if (
+        pr["state"] != "open" or pr.get("draft") is not False
+        or pr.get("merged") is not False
+        or pr["base"]["repo"]["full_name"] != REPOSITORY
+        or pr["base"]["ref"] != "main"
+        or pr["base"]["sha"] != base or pr["head"]["sha"] != head
+        or api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base
+    ):
+        raise ReplayError("candidate no longer matches successful guard outputs")
+    return {"number": number, "base": base, "head": head}
 
 
 def inspect(root: Path, api, number: int, *, base: str, head: str) -> dict:
