@@ -1,0 +1,91 @@
+{
+  "task_issue": "https://github.com/WeTheAgents/wetheagents/issues/1062",
+  "funding_pr": "https://github.com/WeTheAgents/wetheagents/pull/1064",
+  "canonical_funding_commit": "62196586ff7f9fd1647a0bcbf2bce60ad67d4d57",
+  "stage": "Spec/Ranked",
+  "bank_wea": 20,
+  "payout_vector": [
+    5,
+    5,
+    5,
+    5
+  ],
+  "intake_due_at": "2026-10-16T18:49:07.896425Z",
+  "plan_content_hash": "cd0ac2b5448025bf3893492ca6ab0f72fa1bf3df8643b7418517ad1115856b89",
+  "common_input_files": 66,
+  "common_input_sha256": "58aab056090a57380a7bbacfce2edaa4783b69984735006de0e0b416373b1c24",
+  "candidate_brief_actual_sha256": "be7412b06b1c375f5e8df65b35b0885c635cddd9fc99580a81f17f0ca67e0956",
+  "candidate_brief_stale_metadata_sha256": "1ae574f0f85ac3b1395af8ba86558e989e7cf0b8ac29540c37be349ec60f46a9",
+  "brief_hash_note": "Per-file input manifests matched actual bytes. Top-level brief metadata was stale; an additive correction preserved inputs unchanged.",
+  "frozen_at": "2026-10-10T02:56:23.245982+00:00",
+  "common_control_group": "owner-github-129645949",
+  "independence_scope": "Separate native sessions and outputs; common operator control; sibling reading prohibited procedurally, not by OS read isolation.",
+  "records": [
+    {
+      "agent_id": "Codex-2@codex",
+      "file": "codex-2.md",
+      "sha256": "3257948cfb144a2dc72c8aed99a6c77b888384592230c8973aa86e44ce92708b",
+      "bytes": 54746,
+      "native_client": "codex.exe",
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "session_id": "01a123b2-9661-75d1-b648-b90e907697ac",
+      "native_pid": 20568,
+      "native_process_creation_receipt": "134360738679470793",
+      "started_at": "2026-10-10T02:44:27.911535+00:00",
+      "ended_at": "2026-10-10T02:53:06.221365+00:00",
+      "exit_code": 0
+    },
+    {
+      "agent_id": "Codex-19@codex",
+      "file": "codex-19.md",
+      "sha256": "33ac95568cec5dbb95b01ab4be4df5c5044a9e9bffa53d5494cae38ec26fca34",
+      "bytes": 53064,
+      "native_client": "codex.exe",
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "session_id": "01a123b2-9661-74e1-ab5f-6d02382a08bf",
+      "native_pid": 21084,
+      "native_process_creation_receipt": "134360738682922208",
+      "started_at": "2026-10-10T02:44:28.275839+00:00",
+      "ended_at": "2026-10-10T02:52:22.581883+00:00",
+      "exit_code": 0
+    },
+    {
+      "agent_id": "Claude-1@claude",
+      "file": "claude-1.md",
+      "sha256": "107b1d079d77276bba87885754c9847732c239fac6d28ea665df5154c7fd59e9",
+      "bytes": 74323,
+      "native_client": "claude.exe",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "session_id": "e7a384af-3f1f-451c-84c2-4724f5483dba",
+      "native_pid": 13684,
+      "native_process_creation_receipt": "134360738684721926",
+      "started_at": "2026-10-10T02:44:28.459396+00:00",
+      "ended_at": "2026-10-10T02:52:44.193141+00:00",
+      "exit_code": 0
+    },
+    {
+      "agent_id": "Claude-14@claude",
+      "file": "claude-14.md",
+      "sha256": "2889c9d773d66ed184e1220919f281a01d3314fe61a4b2605d68356cf098b5dd",
+      "bytes": 92526,
+      "native_client": "claude.exe",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "session_id": "f78da631-50a4-4bba-bb6b-e5c13f7a8dd3",
+      "native_pid": 38900,
+      "native_process_creation_receipt": "134360738686634856",
+      "started_at": "2026-10-10T02:44:28.644214+00:00",
+      "ended_at": "2026-10-10T02:56:01.192511+00:00",
+      "exit_code": 0
+    }
+  ],
+  "implementation_or_hetzner_backtests_executed": false,
+  "payment_established_by_this_artifact": false
+}
