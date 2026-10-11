@@ -1,3 +1,19 @@
+# Readback refresh, 2026-10-11
+
+Tide33/PR1070 merged as e5851730a4b62d5429be648cd56a1fab1337ff46, then the old readback failed. PR1068 remains the same narrow separator repair. Current main was merged into its branch without rewriting history; 70 transport/preflight tests and targeted Ruff passed. Independent `codex exec review --base origin/main --ephemeral` found no actionable issues and independently repeated those checks.
+
+Read-only corrected readback of PR1070 verified merge parents [98c77872cb167ad76720a989b15921941a0c58fa, 14213ca92ca574085f37a069b9d31b9bac7f61be], candidate parent, matching trees and canonical-main ancestry. Only GET requests were used. This repair changes no financial records; Tide33's existing 30 WEA settlement is not repeated. Shared path validation, frozen package, workflows, secrets and protection rules are unchanged.
+
+The operator explicitly approved merging PR1068 after clean tests, review and exact-head CI. Check active Tide runs and current main before and after the ordinary manual PR merge; do not interfere with an active producer or bypass protections. Retain exact tested head, CI and resulting merge SHA in the local session handoff.
+
+For the next ordinary Tide, observe a naturally scheduled run only after separate coordination. Confirm current main contains this repair, inventory active producers/pending candidates and intended economic effects, then verify exact candidate/base/head replay, one App merge, green corrected readback, actual parents/tree/main ancestry and canonical replay. Do not dispatch a producer or financial workflow now. Readback of already merged PR1070 establishes the transport repair, not a complete new live pipeline run.
+
+# Historical checkpoint, 2026-10-10
+
+PR1067/Tide31 was App-merged at09:01:30UTC, merge8a8adb4af6aa522f1728e8d379d5c81b112eccb8, candidatef1c1ab389daaef1c32efe5d35db3eadd1272ecba. Producer38038314515 was scheduled; guard38038748938 replay succeeded. Its merge job failed only after the write, on the compare readback path rejected by the shared validator.
+
+The narrow transport repair encodes the fixed separator and preserves all path/identity/ancestry checks. Live read-only corrected readback observes the exact canonical merge. Canonical31-batch replay passed: no payments, refunds, new funding/reserve or minting; escrow1062=20 and1055=30, supply19025 and all balances unchanged. Four eligible Work declarations were retained without acceptance; four disclosure cases remain unresolved and four old Triage reasons changed. Draft PR1068 is published; Codex review found no actionable regressions. The fix is ready for manual operator review, with no code merge or workflow dispatch performed. This checkpoint grants no further merge, dispatch, payment, reserve or deployment authority.
+
 # Tide merge deployment
 
 ## Dependent-job repair, 2026-10-10

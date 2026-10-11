@@ -1,3 +1,7 @@
+# Current scope, 2026-10-10
+
+The App merged PR1067/Tide31 successfully; post-merge readback failed on the compare separator. The authorized continuation repairs only readback and publishes a draft code PR. No repeat merge, dispatch, financial operation or settings change is authorized. Earlier checkpoints below are historical.
+
 # Tide merge preparation
 
 CURRENT: App installation and approved ruleset split are complete. See

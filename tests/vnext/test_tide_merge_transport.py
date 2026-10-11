@@ -4,13 +4,15 @@ import hashlib
 import http.client
 import json
 from copy import deepcopy
+from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from scripts import tide_merge as transport
-from wea_vnext.tide.collection import REPOSITORY
-from wea_vnext.tide.github import GitHubError
+from wea_vnext.tide.collection import API_ROOT, REPOSITORY
+from wea_vnext.tide.github import GitHub, GitHubError
 from wea_vnext.tide.replay import ReplayError, canonical
 
 BASE, HEAD, MERGE = "a" * 40, "b" * 40, "c" * 40
@@ -95,6 +97,7 @@ def setup(monkeypatch, tmp_path):
             self.parents = [BASE, HEAD]
             self.tree = "tree"
             self.response_error = None
+            self.compare_status = "identical"
 
         def get(self, path):
             if "/pulls/" in path:
@@ -118,7 +121,7 @@ def setup(monkeypatch, tmp_path):
                     "tree": {"sha": self.tree if merged else "tree"},
                 }
             if "/compare/" in path:
-                return {"status": "identical"}
+                return {"status": self.compare_status}
             raise AssertionError(path)
 
         def request(self, method, path, data):
@@ -177,6 +180,53 @@ def test_exact_merge_and_retry_are_one_write(setup):
     assert run()["merge"] == MERGE
     assert len(service.writes) == 1
     assert service.writes[0][2] == {"sha": HEAD, "merge_method": "merge"}
+
+
+@pytest.mark.parametrize("status", ["identical", "ahead", "behind", "diverged"])
+def test_readback_through_real_client_preserves_main_ancestry(setup, status):
+    service, _run = setup
+    service.pr.update(merged=True, state="closed")
+    service.compare_status = status
+    api = GitHub("offline-test-token")
+    requests = []
+
+    def open_request(request, *, timeout):
+        assert request.get_method() == "GET"
+        assert timeout == 45
+        path = request.full_url.removeprefix("https://api.github.com/")
+        requests.append(path)
+        return BytesIO(json.dumps(service.get(path)).encode())
+
+    api.opener = SimpleNamespace(open=open_request)
+    if status in {"identical", "ahead"}:
+        assert transport.readback(api, 1058, BASE, HEAD)["merge"] == MERGE
+    else:
+        with pytest.raises(ReplayError, match="canonical main history"):
+            transport.readback(api, 1058, BASE, HEAD)
+    assert requests[-1] == f"{API_ROOT}/compare/{MERGE}%2E%2E%2Emain"
+    assert not service.writes
+
+
+@pytest.mark.parametrize("path", [
+    f"{API_ROOT}/compare/{MERGE}...main",
+    f"{API_ROOT}/../other/repo",
+    f"{API_ROOT}/git/../../commits/{MERGE}",
+    f"{API_ROOT}/git/commits/{MERGE}\\other",
+    f"{API_ROOT}/git/commits/{MERGE}#fragment",
+    f"{API_ROOT}/git/commits/{MERGE}\rheader",
+    f"{API_ROOT}/git/commits/{MERGE}\nheader",
+    "repos/other/repo/commits/main",
+    "https://api.github.com/repos/WeTheAgents/wetheagents/commits/main",
+])
+def test_readback_fix_does_not_relax_client_path_validation(path):
+    api = GitHub("offline-test-token")
+
+    def unexpected_request(*args, **kwargs):
+        pytest.fail("unsafe path reached the HTTP transport")
+
+    api.opener = SimpleNamespace(open=unexpected_request)
+    with pytest.raises(GitHubError, match=r"malformed|outside the canonical"):
+        api.get(path)
 
 
 def test_hidden_bypass_authority_uses_operator_attested_visible_digest(setup):
