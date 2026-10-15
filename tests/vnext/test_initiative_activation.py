@@ -327,3 +327,29 @@ def test_edited_operator_source_is_retained_as_rejected(activation_run, monkeypa
     assert entries[-1]["source"]["edit_history"]
     assert not isinstance(journal.state, i.State)
     assert not journal.state.grants
+
+
+def test_optional_external_reader_token_never_replaces_writer_token(
+    activation_run, monkeypatch
+):
+    ctx = activation_run
+    created = {}
+    existing_writer = g.GitHub
+
+    def writer(token):
+        created["writer"] = token
+        return existing_writer(token)
+
+    def reader(token):
+        created["reader"] = token
+        return object()
+
+    monkeypatch.setenv("GITHUB_TOKEN", "canonical-synthetic-token")
+    monkeypatch.setenv("WEA_DOMAIN_READ_TOKEN", "readonly-synthetic-token")
+    monkeypatch.setattr(g, "GitHub", writer)
+    monkeypatch.setattr(g, "RepositoryReader", reader)
+    assert g.run(ctx.args)["status"] == "reconciled"
+    assert created == {
+        "writer": "canonical-synthetic-token",
+        "reader": "readonly-synthetic-token",
+    }

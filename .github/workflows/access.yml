@@ -34,6 +34,19 @@ on:
         type: string
         default: ""
 
+      preflight_locator:
+        description: Read-only preflight GitHub repository URL; excludes all writes
+        type: string
+        default: ""
+      preflight_repository_id:
+        description: Expected permanent repository ID for read-only preflight
+        type: string
+        default: ""
+      preflight_revision:
+        description: Exact 40-hex context commit for read-only preflight
+        type: string
+        default: ""
+
 permissions:
   contents: write
   issues: write
@@ -44,10 +57,55 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  repository-preflight:
+    if: >-
+      github.repository == 'WeTheAgents/wetheagents' &&
+      github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' &&
+      (inputs.preflight_locator != '' || inputs.preflight_repository_id != '' || inputs.preflight_revision != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - name: Reject mixed or incomplete preflight inputs
+        env:
+          LOCATOR: ${{ inputs.preflight_locator }}
+          REPOSITORY_ID: ${{ inputs.preflight_repository_id }}
+          REVISION: ${{ inputs.preflight_revision }}
+          ISSUE: ${{ inputs.issue }}
+          ACTIVATION_COMMENT: ${{ inputs.activation_comment_id }}
+          ACTIVATION_HASH: ${{ inputs.activation_sha256 }}
+          PROTOCOL_COMMENT: ${{ inputs.protocol_comment_id }}
+          PROTOCOL_HASH: ${{ inputs.protocol_sha256 }}
+          INITIATIVE_COMMENT: ${{ inputs.initiative_comment_id }}
+          INITIATIVE_HASH: ${{ inputs.initiative_sha256 }}
+        run: |
+          set -euo pipefail
+          test -n "$LOCATOR"
+          test -n "$REPOSITORY_ID"
+          test -n "$REVISION"
+          test -z "$ISSUE$ACTIVATION_COMMENT$ACTIVATION_HASH$PROTOCOL_COMMENT$PROTOCOL_HASH$INITIATIVE_COMMENT$INITIATIVE_HASH"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify repository visibility without journal operations
+        env:
+          PYTHONPATH: src
+          GITHUB_TOKEN: ${{ github.token }}
+          WEA_DOMAIN_READ_TOKEN: ${{ secrets.WEA_DOMAIN_READ_TOKEN }}
+          LOCATOR: ${{ inputs.preflight_locator }}
+          REPOSITORY_ID: ${{ inputs.preflight_repository_id }}
+          REVISION: ${{ inputs.preflight_revision }}
+        run: python -m wea_vnext.repository_reader --locator "$LOCATOR" --repository-id "$REPOSITORY_ID" --revision "$REVISION"
   access:
     if: >-
       github.repository == 'WeTheAgents/wetheagents' &&
       github.ref == 'refs/heads/main' &&
+      inputs.preflight_locator == '' && inputs.preflight_repository_id == '' && inputs.preflight_revision == '' &&
       (github.event_name == 'workflow_dispatch' ||
        (!github.event.issue.pull_request && (startsWith(github.event.comment.body, '<!-- wea-access -->') ||
         startsWith(github.event.comment.body, '<!-- wea-initiative -->'))))
@@ -67,6 +125,7 @@ jobs:
           python-version: "3.12"
       - name: Reconcile Access journal
         env:
+          WEA_DOMAIN_READ_TOKEN: ${{ secrets.WEA_DOMAIN_READ_TOKEN }}
           ACCESS_ISSUE: ${{ inputs.issue }}
           ACTIVATION_COMMENT_ID: ${{ inputs.activation_comment_id }}
           ACTIVATION_SHA256: ${{ inputs.activation_sha256 }}
