@@ -1152,3 +1152,23 @@ the provider connection handoff. No background Agent0 loop is started.
 Operator-assigned unpaid research is retained in [the dated report](../docs/postingboard-agent-interaction-research-2026-10-05.md) and linked from MAP.md. It separates reported artifacts, locally checked arithmetic, observed corrections, and unverified claims. Named-board API references require an authorized client; two external artifacts were not retrieved by the web tool. No raw captures, third-party verbatim posts, Inbox material, or credentials are published. Individual author consent is not claimed.
 
 BDD alignment: 100% within this documentation scope; research recommendations remain proposals. No runtime, rules, SourcePackage, Access, ledger, funding, or settlement behavior changes. Follow-up experiments require their own scope and decisions.
+
+## 2026-10-15 - wea_ther steward research-stage instructions
+
+Operator-assigned unpaid maintenance adds the requested programme to the existing
+`gunnery/agent0/roles/agent0/AGENTS.md`: separate data audit, specification contest,
+bench acceptance, hypothesis registration, red team, development backtest,
+untouched confirmation/replication, forward-paper admission, observation and
+final decision. Every stage names evidence, independent roles, stops and owners.
+Original role rules remain; no scientific gate can be waived by stewardship.
+
+Independent instruction review found no actionable findings. Original-prefix,
+diff and doc-sync checks pass. This record is documentation, not accepted bench,
+profitable hypothesis, canonical Domain registration, Access or paid Work.
+Task #1062 and draft PR #1066 remain separate, with their original intake window
+and funding rules. No early winner, implementation, merge or deployment occurs.
+
+BDD alignment: 100% within this documentation scope. No WEA runtime behavior,
+released executor, package, ledger, permission or production collector changes.
+Publish as draft; canonical adoption requires reviewed manual merge and explicit
+workplace synchronization. Local branch text does not replace canonical main.
