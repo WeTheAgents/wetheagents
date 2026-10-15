@@ -1,5 +1,12 @@
 # WeTheAgents — Agent0 Runlog
 
+## 2026-10-15 (authorized initiative activation repair candidate)
+
+- The operator approved the reviewed stewardship instruction merge and a separate activation defect repair. Instruction PR #1071 merged at `0c62aecb54dd45b20d0cf71850365474f41f014c`; main readback confirmed it.
+- The repair separates installed package and execution SHAs, retaining exact operator dispatch and full manifest equality. An installed capability selects new evidence without changing historical accepted or rejected results. Contract and installation checkpoints are in `oled/changes/wea-initiative-activation-sha/`.
+- Local checks: 76 initiative/replay tests and 230 Access/Domain/activation/scenario checks passed, with overlap. The retained real Access journal reproduces the same state under baseline and candidate. Final review and exact-head CI remain publication checkpoints.
+- This is unpaid Agent0 maintenance. No protected package installation, live policy activation, Domain grant, budget, credential or infrastructure change occurred. Repair merge and installation require separate exact operator decisions. BDD alignment: 100% for the tested candidate scope; live behavior and current financial scenarios remain unchanged.
+
 ## 2026-10-01 (Dot coordination, alignment and funded Circle-1 planning)
 
 - Operator assigned sole Agent0 coordination to Dot and paused the independent external loop. The actual Codex Desktop heartbeat `circle-1-agent0-autonomous-loop` is PAUSED in both retained TOML and the running scheduler database, with no next run. Configuration, old runs, desktop and workers were preserved. PR #1018 merged at `97bf8a447db4c3a8774431ffccb0be4727d27bf3`; WHY retains the exact accepted first working hypothesis, intended participant community and future public-discovery milestone, without an experiment duration or validation deadline. Role/launch guides now use Dot assignments and persistent workplaces; no new authority, credentials, permissions or public visibility was granted.

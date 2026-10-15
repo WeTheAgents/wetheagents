@@ -1,7 +1,23 @@
 # Long-lived initiatives and registry updates: Spec
 
-Status: accepted Spec 1.0 for Outcome 0.2. The operator accepts implementation on 2026-10-02 at 09:44 UTC.
+Baseline: accepted Spec 1.0 for Outcome 0.2, approved on 2026-10-02 at 09:44 UTC.
+Accepted Spec 1.1 adds only the activation repair below, under its separately recorded Outcome 1.
 This contract remains non-effective in production until exact installation and policy activation. Historical contracts remain unchanged before that boundary.
+
+## Accepted activation repair delta
+
+| Spec version | Authority | Scope |
+| --- | --- | --- |
+| 1.0 | Operator, 2026-10-02 09:44 UTC | Original accepted future contract |
+| 1.1 | Operator, 2026-10-15 09:51 UTC | IR-06/LRI-07 activation evidence repair, installation and activation pending |
+
+Spec 1.1 adds the [activation evidence contract](../wea-initiative-activation-sha/spec.md).
+AS-01..03 refine LRI-07. All other Spec 1.0 requirements remain unchanged.
+Only a separately installed version 2 capability selects the new evidence form.
+The source MUST bind the installed package SHA and current execution SHA separately.
+The writer MUST check and retain the complete execution manifest against the installed package.
+Historical package predicates MUST preserve old accepted and rejected decisions.
+LRI scenarios remain accepted-future. Current financial scenarios remain unchanged.
 
 ## Accepted requirements
 
