@@ -101,7 +101,22 @@ def run(
     activation_comment_id: int = 0,
     activation_sha256: str = "",
     hello_world_installation_revision: str = "",
+    hello_world_package_revision: str = "",
 ) -> None:
+    if (
+        sum(
+            bool(value)
+            for value in (
+                activation_comment_id or activation_sha256,
+                hello_world_installation_revision,
+                hello_world_package_revision,
+            )
+        )
+        > 1
+    ):
+        raise ReplayError(
+            "initial activation and package transition inputs are exclusive"
+        )
     base = git(root, "rev-parse", "HEAD")
     if (
         os.environ.get("GITHUB_REPOSITORY") != REPOSITORY
@@ -116,6 +131,10 @@ def run(
     if active and activation_comment_id:
         raise ReplayError("Tide is already initialized")
     if not active and not activation_comment_id:
+        if hello_world_package_revision:
+            raise ReplayError(
+                "package transition requires canonically active Hello World"
+            )
         report("Tide is inactive: no approved canonical activation exists.")
         return
     if active:
@@ -222,6 +241,7 @@ def run(
             provenance,
             access_snapshot=capture(api, cutoff),
             hello_world=anchor,
+            package_revision=hello_world_package_revision,
         )
         sequence = engine.sequence + 1
     if payloads is None:
@@ -280,6 +300,7 @@ def main() -> None:
     parser.add_argument("--activation-comment-id", type=int, default=0)
     parser.add_argument("--activation-sha256", default="")
     parser.add_argument("--hello-world-installation-revision", default="")
+    parser.add_argument("--hello-world-package-revision", default="")
     args = parser.parse_args()
     api = (
         GitHub(os.environ.get("GITHUB_TOKEN", ""))
@@ -294,6 +315,7 @@ def main() -> None:
             args.activation_comment_id,
             args.activation_sha256,
             args.hello_world_installation_revision,
+            args.hello_world_package_revision,
         )
     elif args.command == "invalidate-pending":
         invalidate_pending(api)
