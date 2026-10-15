@@ -153,9 +153,12 @@ def candidate(
     *,
     access_snapshot: dict[str, Any],
     hello_world: dict[str, Any] | None = None,
+    package_revision: str = "",
+    package_transition: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     engine, _ = load(root, base)
     from . import hello_world as hw
+    from . import package_transition as packages
 
     # Only a canonically retained active anchor can isolate Issue #1 failures.
     # An initial caller-selected anchor cannot relax required source evidence.
@@ -188,11 +191,25 @@ def candidate(
         )
     if hello_world is None:
         hello_world = engine.hello_world_anchor
+    if package_revision and package_transition is not None:
+        raise ReplayError("select package authority by revision or retained evidence")
+    if package_revision:
+        package_transition = packages.prepare(
+            root, base, engine, collection, package_revision
+        )
+    if package_transition is not None:
+        packages.validate(
+            engine,
+            {"predecessor": base, "collection": collection, "hello_world": hello_world},
+            package_transition,
+        )
     if hello_world is not None:
-        if hello_world["checkpoint"]["installation_sha256"] != hw.package_hash():
-            raise ReplayError("Hello World installed package differs")
         if engine.hello_world_anchor is None:
+            if hello_world["checkpoint"]["installation_sha256"] != hw.package_hash():
+                raise ReplayError("Hello World installed package differs")
             hw.validate_historical(root)
+        else:
+            packages.verify_installed(root, base, engine, package_transition)
     before = engine.state()
     previous_access = engine.access_snapshot
     sequence = engine.sequence + 1
@@ -201,6 +218,11 @@ def candidate(
         if hello_world is not None
         else domain.batch_schema(access_snapshot),
         **({"hello_world": hello_world} if hello_world is not None else {}),
+        **(
+            {"hello_world_package_transition": package_transition}
+            if package_transition is not None
+            else {}
+        ),
         "access_snapshot": access_snapshot,
         "participant_runtime": list(installed_executor(PARTICIPANT_EXECUTOR).reference),
         "sequence": sequence,
@@ -222,6 +244,7 @@ def candidate(
         "initiative_scopes",
         "hello_world",
         "hello_world_anchor",
+        "hello_world_package",
         "current_supply",
     )
     from ..initiatives import meaningful as meaningful_access
@@ -330,6 +353,7 @@ def validate(root: Path, base: str, head: str, *, api: Any = None) -> dict[str, 
         receipt["provenance"],
         access_snapshot=batch["access_snapshot"],
         hello_world=batch.get("hello_world"),
+        package_transition=batch.get("hello_world_package_transition"),
     )
     if expected is None:
         raise ReplayError("empty Tide candidate is not permitted")

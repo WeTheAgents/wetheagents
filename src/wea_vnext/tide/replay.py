@@ -88,6 +88,7 @@ class Replay:
         self.revision_schema = False
         self.hello_world = None
         self.hello_world_anchor = None
+        self.hello_world_package = None
         self.opening_supply = self.supply
 
     def _event(self, raw: dict[str, Any]) -> Any:
@@ -435,6 +436,14 @@ class Replay:
             raise ReplayError("Tide predecessor or sequence differs")
         from .hello_world import BATCH_SCHEMA, advance
 
+        transition = batch.get("hello_world_package_transition")
+        if "hello_world_package_transition" in batch:
+            from . import package_transition
+
+            if batch.get("schema") != BATCH_SCHEMA or transition is None:
+                raise ReplayError("package transition requires schema5 evidence")
+            package_transition.validate(self, batch, transition)
+
         self._hello_world_before = self.state()
         self._hello_world_registry = self.registry.to_data()
         schema = batch.get("schema", "wea-tide-batch-1")
@@ -606,6 +615,10 @@ class Replay:
         self._maintenance(cutoff, batch["funding_merges"], blocked_issues)
         if schema == BATCH_SCHEMA:
             advance(self, batch)
+        if transition is not None:
+            import copy
+
+            self.hello_world_package = copy.deepcopy(transition)
         self.last_hash = digest(batch)
         self.last_cutoff = cutoff
         return self.state()
@@ -695,6 +708,11 @@ class Replay:
                     else {}
                 ),
                 "escrow_wea": escrow,
+                **(
+                    {"hello_world_package": self.hello_world_package}
+                    if self.hello_world_package is not None
+                    else {}
+                ),
                 "tasks": projections,
                 "funding_batches": self.funding_batches,
                 "dispositions": self.dispositions,

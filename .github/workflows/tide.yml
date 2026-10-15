@@ -21,6 +21,10 @@ on:
         description: Rebuild a Tide that the operator closed without merging
         type: boolean
         default: false
+      hello_world_package_revision:
+        description: Exact separate operator package-transition revision on Issue 1; never initial activation
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -54,6 +58,7 @@ jobs:
           ACTIVATION_COMMENT_ID: ${{ inputs.activation_comment_id }}
           ACTIVATION_SHA256: ${{ inputs.activation_sha256 }}
           HELLO_WORLD_INSTALLATION_REVISION: ${{ inputs.hello_world_installation_revision }}
+          HELLO_WORLD_PACKAGE_REVISION: ${{ inputs.hello_world_package_revision }}
         run: |
           set -euo pipefail
           args=()
@@ -63,5 +68,8 @@ jobs:
           fi
           if [ -n "$HELLO_WORLD_INSTALLATION_REVISION" ]; then
             args+=(--hello-world-installation-revision "$HELLO_WORLD_INSTALLATION_REVISION")
+          fi
+          if [ -n "$HELLO_WORLD_PACKAGE_REVISION" ]; then
+            args+=(--hello-world-package-revision "$HELLO_WORLD_PACKAGE_REVISION")
           fi
           python -m wea_vnext.tide run "${args[@]}"

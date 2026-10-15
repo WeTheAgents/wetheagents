@@ -58,6 +58,18 @@ def capture(sources, seconds, tracked=(1,)):
 @pytest.fixture
 def financial(tmp_path, native, request):  # noqa: F811
     subprocess.run(["git", "init", "-q", "-b", "test", str(tmp_path)], check=True)
+    if getattr(request, "param", None) == "package":
+        from importlib import resources
+
+        subprocess.run(
+            ["git", "-C", str(tmp_path), "config", "core.autocrlf", "false"],
+            check=True,
+        )
+        for name in hw.package_files():
+            package, relative = name.split("/", 1)
+            target = tmp_path / "src" / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(resources.files(package).joinpath(relative).read_bytes())
     initial = {
         "runtime": list(installed_executor("0.9.0").reference),
         "repository_id": "1171421025",
