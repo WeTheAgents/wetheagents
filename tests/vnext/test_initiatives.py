@@ -593,7 +593,7 @@ def test_lri07_activation_is_a_separate_exact_gate(genesis, identities, bad):
         return
     payload = {
         "policy": i.POLICY,
-        "code_sha": history.genesis["code_sha"],
+        "code_sha": protocol.package(history.genesis, history.entries)["code_sha"],
         "protocol_hash": digest(
             protocol.package(history.genesis, history.entries)["protocol_files"]
         ),
@@ -603,7 +603,12 @@ def test_lri07_activation_is_a_separate_exact_gate(genesis, identities, bad):
     src = history.prepare(
         "activate-policy", payload, AGENT if bad == "operator" else OPERATOR
     )
-    provenance = {"event": "issue_comment"} if bad == "dispatch" else None
+    provenance = {
+        "workflow": g.WORKFLOW,
+        "event": "issue_comment" if bad == "dispatch" else "workflow_dispatch",
+        "code_sha": payload["code_sha"],
+        "initiative_activation": src["content_hash"],
+    }
     assert history.add_source(src, provenance=provenance)["status"] == "rejected"
     assert not isinstance(history.state, i.State)
 

@@ -875,9 +875,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if genesis is None:
         return {"status": "disabled"}
     issue = repository(api, genesis["issue_number"])
+    execution_files = protocol(root, base)
     if (
         str(issue["id"]) != genesis["issue_id"]
-        or protocol(root, base) != journal.protocol["protocol_files"]
+        or execution_files != journal.protocol["protocol_files"]
     ):
         raise ValueError("activated Issue or protocol closure differs")
     engine, _ = load(root, base)
@@ -894,8 +895,23 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         source = capture(api, genesis["issue_number"], row)
         if source["content_hash"] != args.initiative_sha256:
             raise ValueError("initiative activation body hash differs")
-        if initiatives.request(source["body"])["operation"] != "activate-policy":
+        command = initiatives.request(source["body"])
+        if command["operation"] != "activate-policy":
             raise ValueError("initiative activation dispatch names another operation")
+        activation_provenance = {
+            **provenance,
+            "event": "workflow_dispatch",
+            "initiative_activation": source["content_hash"],
+        }
+        if initiatives.supports_activation_v2(journal.protocol) and (
+            command["payload"].get("activation_schema") == initiatives.ACTIVATION_SCHEMA
+        ):
+            activation_provenance["activation_evidence"] = {
+                "schema": initiatives.ACTIVATION_SCHEMA,
+                "installed_code_sha": journal.protocol["code_sha"],
+                "execution_code_sha": base,
+                "protocol_files": execution_files,
+            }
         if api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base:
             raise ValueError("canonical main changed before activation")
         process(
@@ -903,11 +919,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             source,
             identities,
             base,
-            {
-                **provenance,
-                "event": "workflow_dispatch",
-                "initiative_activation": source["content_hash"],
-            },
+            activation_provenance,
             journal=journal,
         )
         head, genesis, entries, _ = journal.read()

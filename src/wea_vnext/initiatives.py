@@ -25,7 +25,43 @@ from .tide.replay import digest, json_data
 SCHEMA = "wea-initiative-1"
 MARKER = "<!-- wea-initiative -->\n"
 POLICY = "wea-long-lived-initiatives:1"
+ACTIVATION_SCHEMA = "wea-initiative-activation-2"
+ACTIVATION_CAPABILITY = "src/wea_vnext/initiative_activation_v2.py"
+ACTIVATION_CAPABILITY_HASH = c.sha256(f'ACTIVATION_SCHEMA = "{ACTIVATION_SCHEMA}"\n')
 SLUG = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
+
+
+def supports_activation_v2(package: dict) -> bool:
+    """Select semantics from the installed historical package, not live code."""
+    return (
+        package["protocol_files"].get(ACTIVATION_CAPABILITY)
+        == ACTIVATION_CAPABILITY_HASH
+    )
+
+
+def activation_v2(payload: dict, package: dict, provenance: dict) -> bool:
+    """Check retained, trusted current-main evidence without I/O during replay."""
+    execution = payload.get("execution_code_sha")
+    return (
+        type(execution) is str
+        and re.fullmatch(r"[0-9a-f]{40}", execution) is not None
+        and payload
+        == {
+            "policy": POLICY,
+            "activation_schema": ACTIVATION_SCHEMA,
+            "code_sha": package["code_sha"],
+            "execution_code_sha": execution,
+            "protocol_hash": digest(package["protocol_files"]),
+        }
+        and provenance.get("code_sha") == execution
+        and provenance.get("activation_evidence")
+        == {
+            "schema": ACTIVATION_SCHEMA,
+            "installed_code_sha": package["code_sha"],
+            "execution_code_sha": execution,
+            "protocol_files": package["protocol_files"],
+        }
+    )
 
 
 @dataclass(frozen=True)
@@ -318,24 +354,35 @@ def decide(
         subject = actor(source, command, identities, at)
         op, payload = command["operation"], command["payload"]
         if op == "activate-policy":
-            fields(payload, {"policy", "code_sha", "protocol_hash"})
+            version2 = supports_activation_v2(package) and (
+                payload.get("activation_schema") == ACTIVATION_SCHEMA
+            )
+            fields(
+                payload,
+                {"policy", "code_sha", "protocol_hash"}
+                | ({"activation_schema", "execution_code_sha"} if version2 else set()),
+            )
             if observations:
                 raise ValueError("activation has no repository observations")
             if isinstance(state, State):
                 raise ValueError("initiative policy is already active")
             if (
                 command["actor"]["kind"] != "operator"
-                or payload
-                != {
-                    "policy": POLICY,
-                    "code_sha": package["code_sha"],
-                    "protocol_hash": digest(package["protocol_files"]),
-                }
+                or not (
+                    activation_v2(payload, package, provenance)
+                    if version2
+                    else payload
+                    == {
+                        "policy": POLICY,
+                        "code_sha": package["code_sha"],
+                        "protocol_hash": digest(package["protocol_files"]),
+                    }
+                    and provenance.get("code_sha") == package["code_sha"]
+                )
                 or "src/wea_vnext/initiatives.py" not in package["protocol_files"]
                 or provenance.get("initiative_activation") != source["content_hash"]
                 or provenance.get("event") != "workflow_dispatch"
                 or provenance.get("workflow") != ".github/workflows/access.yml"
-                or provenance.get("code_sha") != package["code_sha"]
             ):
                 raise ValueError(
                     "policy activation requires exact operator dispatch "
