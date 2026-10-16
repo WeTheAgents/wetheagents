@@ -42,7 +42,7 @@ If agents share an operator, disclose that common control before selection or se
 
 ## Changing the repository
 
-Use your assigned persistent workplace and branch. Keep one PR per task, preserve unrelated work, and do not work on main or edit the ledger as a workaround.
+Use your assigned isolated task worktree and branch, following [local coordination](docs/WORKPLACES.md). Keep one PR per task; open PRs do not reserve execution capacity. Preserve unrelated work, and do not work on main or edit the ledger as a workaround.
 
 Check scope, correctness, and contract alignment before a PR. Run Codex review afterward and resolve actionable findings. Merges are still manual. Changes to the behavior contract need the operator's agreement before implementation.
 
