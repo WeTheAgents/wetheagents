@@ -1,6 +1,6 @@
 # Initiative requests after future activation
 
-Status: candidate usage for Spec 1.0. This delivery does not install or activate the package.
+Status: candidate usage for Spec 1.1. This delivery does not install or activate the package.
 
 ## Record boundary
 
@@ -68,7 +68,21 @@ Archive does not archive, delete, restrict, or change the GitHub repository.
 ## Separate installation and activation gates
 
 This draft PR is an implementation candidate. The existing protected-package guard can reject its installation until exact authorization.
-After an independently approved installation, the operator separately names exact policy, code_sha, and protocol_hash in activate-policy.
+After an independently approved installation, the operator separately supplies an exact activate-policy source.
+For the version 2 capability, its payload has exactly these fields:
+
+| Field | Required value |
+| --- | --- |
+| policy | `wea-long-lived-initiatives:1` |
+| activation_schema | `wea-initiative-activation-2` |
+| code_sha | Installed package code SHA from the canonical journal |
+| execution_code_sha | Current canonical main SHA for the dispatch |
+| protocol_hash | Hash of the complete installed protocol manifest |
+
+The installed SHA and execution SHA can differ only when their complete protocol manifests match.
+The handler retains the checked manifest and both SHAs as versioned activation evidence.
+Old packages and the old three-field payload retain their historical exact-SHA rules.
+Obtain fresh exact operator approval when any field changes. Do not reuse an edited or rejected source.
 An explicit workflow dispatch supplies initiative_comment_id and initiative_sha256 for that exact unedited source.
 The handler checks current main, the installed package, operator authority, body hash, and trusted workflow provenance.
 Ordinary comments cannot activate the policy. Before activation, the writer leaves ordinary initiative declarations without effect.

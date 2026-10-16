@@ -113,7 +113,6 @@ def test_entrypoints_only_expose_the_approved_github_path() -> None:
         contents[path] = contents[path].replace('      - "ledger/vnext/**"\n', "")
     allowed = {
         ".github/workflows/tide.yml",
-        ".github/workflows/tide-merge.yml",  # Opt-in, exact ordinary Tide PR only.
         "scripts/tide_merge.py",  # Transport outside frozen WEA package identity.
         "scripts/tide_merge_preflight.py",  # Read-only ordinary candidate replay.
         ".github/workflows/access.yml",  # Separate activated Access journal only.

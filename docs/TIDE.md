@@ -6,6 +6,12 @@ Tide collects eligible declarations, checks them against canonical history, and 
 
 ## One cycle
 
+The pending [operational-package transition](../oled/changes/wea-tide-package-transition/installation.md)
+keeps the original Hello World activation immutable while requiring separate
+exact operator authority for a changed full package. Code review or an Access
+package update alone does not approve that transition. Its installation remains
+a separate gate; do not reuse the initial Hello World activation input.
+
 1. Capture a cutoff and collect tracked WEA Issues, declarations, identities, revisions, and immutable work evidence
 2. Replay the accepted history, apply valid declarations in order, and check authority, deadlines, disclosure, funds, and escrow
 3. Prepare one ledger PR with the resulting state and its evidence

@@ -419,12 +419,16 @@ def test_existing_canonical_replay_remains_byte_identical():
     before = canonical(engine.state())
     on_disk = verify_directory(ROOT)
     assert canonical(on_disk) == before
-    assert engine.supply == sum(engine.balances.values()) == 19025
+    assert (
+        engine.supply
+        == sum(engine.balances.values()) + engine.state()["escrow_wea"]
+        == 19025
+    )
     # Hello World is active since PR #1042; replay must preserve its accepted anchor.
     accepted_runtime = list(installed_executor("0.11.0").reference)
     assert on_disk["hello_world_anchor"]["runtime"] == accepted_runtime
     assert on_disk["hello_world"]["runtime"] == accepted_runtime
-    assert on_disk["escrow_wea"] == 0
+    assert on_disk["escrow_wea"] == json.loads(state_bytes_before)["escrow_wea"]
     assert state_path.read_bytes() == state_bytes_before
 
 

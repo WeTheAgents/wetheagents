@@ -19,6 +19,7 @@ from typing import Any
 
 from . import access_control as control
 from . import access_protocol
+from .repository_reader import RepositoryReader
 from .tide.collection import API_ROOT, REPOSITORY, REPOSITORY_ID, _pages, _source
 from .tide.github import GitHub as GitHubClient
 from .tide.github import GitHubError
@@ -610,6 +611,7 @@ def process(
     provenance: dict[str, Any],
     clock: Any = control.utcnow,
     journal: Journal | None = None,
+    repository_reader: RepositoryReader | None = None,
 ) -> dict[str, Any]:
     journal = journal or Journal(api)
     for _ in range(3):
@@ -677,12 +679,9 @@ def process(
                 refs = []
             for ref in refs:
                 locator = ref["repository_locator"]
-                repo = api.get(
-                    "https://api.github.com/repos/"
-                    + locator.removeprefix("https://github.com/")
-                )
-                if type(repo["id"]) is not int or repo["id"] <= 0:
-                    raise ValueError("required repository numeric identity read failed")
+                if repository_reader is None:
+                    repository_reader = RepositoryReader(api.token)
+                repo = repository_reader.identity(locator)
                 observations.append(
                     {
                         "requested_locator": locator,
@@ -701,27 +700,7 @@ def process(
                     ):
                         observations[-1]["context_revision"] = None
                         continue
-                    value = api.graphql(
-                        "query($id:ID!,$revision:String!){node(id:$id){"
-                        "... on Repository{id nameWithOwner "
-                        "object(expression:$revision){"
-                        "... on Commit{oid}}}}}",
-                        {"id": repo["node_id"], "revision": revision},
-                    )
-                    node = value.get("data", {}).get("node")
-                    if (
-                        value.get("errors")
-                        or not node
-                        or node.get("id") != repo["node_id"]
-                    ):
-                        raise ValueError(
-                            "required permanent repository context read failed"
-                        )
-                    if not node.get("object") or node["object"].get("oid") != revision:
-                        raise ValueError(
-                            "context revision is not a commit "
-                            "in the permanent repository"
-                        )
+                    node = repository_reader.commit(repo["node_id"], revision)
                     observations[-1].update(
                         context_revision=revision,
                         repository_locator="https://github.com/"
@@ -819,6 +798,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     ):
         raise ValueError("Access writes require the trusted canonical main workflow")
     api = GitHub(os.environ.get("GITHUB_TOKEN", ""))
+    read_token = os.environ.get("WEA_DOMAIN_READ_TOKEN", "")
+    repository_reader = RepositoryReader(read_token) if read_token else None
     root = Path.cwd()
     base = api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"]
     if git(root, "rev-parse", "HEAD") != base or os.environ.get("GITHUB_SHA") != base:
@@ -875,9 +856,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if genesis is None:
         return {"status": "disabled"}
     issue = repository(api, genesis["issue_number"])
+    execution_files = protocol(root, base)
     if (
         str(issue["id"]) != genesis["issue_id"]
-        or protocol(root, base) != journal.protocol["protocol_files"]
+        or execution_files != journal.protocol["protocol_files"]
     ):
         raise ValueError("activated Issue or protocol closure differs")
     engine, _ = load(root, base)
@@ -894,8 +876,23 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         source = capture(api, genesis["issue_number"], row)
         if source["content_hash"] != args.initiative_sha256:
             raise ValueError("initiative activation body hash differs")
-        if initiatives.request(source["body"])["operation"] != "activate-policy":
+        command = initiatives.request(source["body"])
+        if command["operation"] != "activate-policy":
             raise ValueError("initiative activation dispatch names another operation")
+        activation_provenance = {
+            **provenance,
+            "event": "workflow_dispatch",
+            "initiative_activation": source["content_hash"],
+        }
+        if initiatives.supports_activation_v2(journal.protocol) and (
+            command["payload"].get("activation_schema") == initiatives.ACTIVATION_SCHEMA
+        ):
+            activation_provenance["activation_evidence"] = {
+                "schema": initiatives.ACTIVATION_SCHEMA,
+                "installed_code_sha": journal.protocol["code_sha"],
+                "execution_code_sha": base,
+                "protocol_files": execution_files,
+            }
         if api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base:
             raise ValueError("canonical main changed before activation")
         process(
@@ -903,11 +900,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             source,
             identities,
             base,
-            {
-                **provenance,
-                "event": "workflow_dispatch",
-                "initiative_activation": source["content_hash"],
-            },
+            activation_provenance,
             journal=journal,
         )
         head, genesis, entries, _ = journal.read()
@@ -932,7 +925,15 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 continue
         if api.get(f"{API_ROOT}/git/ref/heads/main")["object"]["sha"] != base:
             raise ValueError("canonical identity snapshot changed; dispatch again")
-        process(api, source, identities, base, provenance, journal=journal)
+        process(
+            api,
+            source,
+            identities,
+            base,
+            provenance,
+            journal=journal,
+            repository_reader=repository_reader,
+        )
     head, genesis, entries, commits = journal.read()
     repair_receipts(api, genesis, entries, commits)
     return {"status": "reconciled", "journal_commit": head, "decisions": len(entries)}

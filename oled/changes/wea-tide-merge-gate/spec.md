@@ -1,3 +1,7 @@
+# Post-merge readback correction, 2026-10-10
+
+PR1067 already merged through the App. Encode only the fixed compare separator in the transport request. Preserve the shared API path validator, exact merge parents/tree checks, and acceptance of identical/ahead main history only. Raw traversal, foreign repository, fragments, backslashes and newline paths still refuse before HTTP. No repeat merge, dispatch, financial action or permission change is authorized by this repair.
+
 # Preparation contract
 
 Source: delegated user instruction, 2026-10-08. Only local preparation is active.

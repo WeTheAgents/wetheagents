@@ -1,0 +1,11 @@
+# External repository observation: Design 1.0
+
+Accepted candidate implementation, bound to Outcome/Spec 1.0. Independent design review: coordinator artifact external-repository-reader-review.md and steward_review follow-up on optional read-only preflight. No-change and relative external URLs both fail canonical transport. Broadening writer allowlisting is rejected. Use standard library, existing DomainRecord validation and no-redirect handler; no new dependency.
+
+RepositoryReader exposes identity(locator) and commit(node_id, revision), deriving GET api.github.com/repos/owner/repository and one fixed read-only GraphQL query. No arbitrary endpoint/query, redirect, host override or credential discovery. Socket timeout 30 seconds, response cap 1 MiB. Existing reconciliation job ceiling remains 15 minutes; preflight is 3 minutes. Revisit limits only with legitimate response evidence and explicit review.
+
+process accepts an explicit reader, or lazily uses the existing api.token after pure preflight. run reads optional WEA_DOMAIN_READ_TOKEN and passes that separate reader; canonical writer still uses only GITHUB_TOKEN. The workflow secret reference is conditional candidate plumbing, not proof or authorization of a secret. The token is scoped to the reader step, not checkout. Preflight uses the same reader and an independent job with contents-read permission, rejects mixed/partial inputs before checkout, and never imports or invokes a journal writer. Output binds requested/observed IDs, revision, execution SHA and credential-source label; never token bytes.
+
+Observation shape, accepted-time boundary, alias comparison and deterministic replay are unchanged. Required-read failure leaves journal state untouched; retry re-observes under the existing predecessor loop. No unreadable source is silently skipped.
+
+After reviewed protected merge, APT installation is required. Recovery remains a forward transition to a newly reviewed package with current predecessor; never replace genesis/history/grants or force rollback. Private access is a separate pending operation in installation.md, independently actionable only after exact approval. No new secret or permission is created here.

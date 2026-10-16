@@ -162,7 +162,8 @@ def readback(api, number: int, base: str, head: str) -> dict | None:
         or merge["tree"]["sha"] != candidate["tree"]["sha"]
     ):
         raise ReplayError("merged parents or tree differ; operator inspection required")
-    comparison = api.get(f"{API_ROOT}/compare/{sha}...main")
+    # Encode the fixed compare separator; the shared reader rejects raw dot pairs.
+    comparison = api.get(f"{API_ROOT}/compare/{sha}%2E%2E%2Emain")
     if comparison["status"] not in {"identical", "ahead"}:
         raise ReplayError("merge is not in canonical main history")
     return {

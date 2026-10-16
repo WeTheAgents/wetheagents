@@ -11,3 +11,12 @@ This delta extends the one-time activation contract; genesis activation remains 
 - **APT-06 Installation:** After reviewed manual installation, verify the exact update, unchanged live grants, ordinary writer reconciliation and retry/overlap rejection. Verify a canonical schema-3 candidate and its trusted guard before any manual batch merge. Synthetic expiry tests remain separate from real September 25 observations.
 
 Proof hooks: new protocol-transition regressions, existing Access/runtime/admission/Tide suites, canonical invariant, native review and dated live receipts.
+
+## Accepted activation evidence refinement, 2026-10-15
+
+The [activation repair](../wea-initiative-activation-sha/spec.md) refines APT-03/06 for the separate initiative activation operation.
+The installed package identity and current-main execution identity remain distinct.
+The writer MUST check the complete execution manifest against the installed manifest before publication.
+Versioned evidence MUST retain both identities and that manifest for deterministic replay.
+APT-01..06 package transitions remain unchanged. Same-byte repins remain rejected.
+Repair merge, protected installation and policy activation remain separate operator decisions.

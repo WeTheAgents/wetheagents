@@ -593,7 +593,7 @@ def test_lri07_activation_is_a_separate_exact_gate(genesis, identities, bad):
         return
     payload = {
         "policy": i.POLICY,
-        "code_sha": history.genesis["code_sha"],
+        "code_sha": protocol.package(history.genesis, history.entries)["code_sha"],
         "protocol_hash": digest(
             protocol.package(history.genesis, history.entries)["protocol_files"]
         ),
@@ -603,7 +603,12 @@ def test_lri07_activation_is_a_separate_exact_gate(genesis, identities, bad):
     src = history.prepare(
         "activate-policy", payload, AGENT if bad == "operator" else OPERATOR
     )
-    provenance = {"event": "issue_comment"} if bad == "dispatch" else None
+    provenance = {
+        "workflow": g.WORKFLOW,
+        "event": "issue_comment" if bad == "dispatch" else "workflow_dispatch",
+        "code_sha": payload["code_sha"],
+        "initiative_activation": src["content_hash"],
+    }
     assert history.add_source(src, provenance=provenance)["status"] == "rejected"
     assert not isinstance(history.state, i.State)
 
@@ -706,29 +711,43 @@ def test_lri04_repository_id_read_failure_and_locator_reuse_fail_closed(
     }
     src = history.prepare("create", payload)
     head = journal.head()
-    original = api.get
+    reader = type("Reader", (), {})()
 
-    def failure(path):
-        if path == "https://api.github.com/repos/WeTheAgents/circle-1":
-            raise GitHubError("required repository read unavailable")
-        return original(path)
+    def failure(locator):
+        raise GitHubError("required repository read unavailable")
 
-    monkeypatch.setattr(api, "get", failure)
+    reader.identity = failure
     with pytest.raises(GitHubError, match="required repository read"):
-        g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+        g.process(
+            api,
+            src,
+            history.identities,
+            "b" * 40,
+            {},
+            lambda: history.now,
+            repository_reader=reader,
+        )
     assert journal.head() == head
 
-    def reused(path):
-        if path == "https://api.github.com/repos/WeTheAgents/circle-1":
+    def reused(locator):
+        if locator == "https://github.com/WeTheAgents/circle-1":
             return {
                 "id": 999,
                 "node_id": "R_other",
                 "full_name": "WeTheAgents/circle-1",
             }
-        return original(path)
+        raise AssertionError(locator)
 
-    monkeypatch.setattr(api, "get", reused)
-    result = g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+    reader.identity = reused
+    result = g.process(
+        api,
+        src,
+        history.identities,
+        "b" * 40,
+        {},
+        lambda: history.now,
+        repository_reader=reader,
+    )
     assert (
         result["status"] == "rejected" and "repository ID differs" in result["reason"]
     )
@@ -1146,16 +1165,14 @@ def test_lri07_rejects_unauthorized_source_before_repository_lookup(
         journal.append(
             journal.head(), f"{prefix}-{item['source']['object_id']}.json", item
         )
-    original = api.get
+    reader = type("Reader", (), {})()
     reads = []
 
-    def unavailable(path):
-        if path == "https://api.github.com/repos/WeTheAgents/nonexistent":
-            reads.append(path)
-            raise GitHubError("repository unavailable")
-        return original(path)
+    def unavailable(locator):
+        reads.append(locator)
+        raise GitHubError("repository unavailable")
 
-    monkeypatch.setattr(api, "get", unavailable)
+    reader.identity = unavailable
     payload = {
         **CREATE,
         "repositories": [
@@ -1166,7 +1183,15 @@ def test_lri07_rejects_unauthorized_source_before_repository_lookup(
         ],
     }
     src = history.prepare("create", payload, {**AGENT, "binding_id": "unbound"})
-    result = g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+    result = g.process(
+        api,
+        src,
+        history.identities,
+        "b" * 40,
+        {},
+        lambda: history.now,
+        repository_reader=reader,
+    )
     assert result["status"] == "rejected" and not reads
     assert "actor binding differs" in result["reason"]
     legitimate = history.prepare("create", CREATE)
@@ -1212,31 +1237,28 @@ def alias_api(history, monkeypatch, *, numeric=999, node="R_existing_node"):
         journal.append(
             journal.head(), f"{prefix}-{item['source']['object_id']}.json", item
         )
-    original = api.get
+    reader = type("Reader", (), {})()
 
-    def get(path):
-        if path.startswith("https://api.github.com/repos/"):
+    def identity(locator):
+        if locator.startswith("https://github.com/"):
             return {
                 "id": numeric,
                 "node_id": node,
                 "full_name": "WeTheAgents/new-circle",
             }
-        return original(path)
+        raise AssertionError(locator)
 
-    def graphql(query, variables):
-        assert variables["id"] == node
+    def commit(node_id, revision):
+        assert node_id == node
         return {
-            "data": {
-                "node": {
-                    "id": node,
-                    "nameWithOwner": "WeTheAgents/new-circle",
-                    "object": {"oid": variables["revision"]},
-                }
-            }
+            "id": node,
+            "nameWithOwner": "WeTheAgents/new-circle",
+            "object": {"oid": revision},
         }
 
-    monkeypatch.setattr(api, "get", get)
-    monkeypatch.setattr(api, "graphql", graphql)
+    reader.identity = identity
+    reader.commit = commit
+    api.repository_reader = reader
     return api
 
 
@@ -1258,7 +1280,15 @@ def test_lri04_repository_aliases_cannot_replace_or_duplicate_identity(
     src = history.prepare(
         operation, payload, AGENT0 if operation == "registry-add" else OPERATOR
     )
-    result = g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+    result = g.process(
+        api,
+        src,
+        history.identities,
+        "b" * 40,
+        {},
+        lambda: history.now,
+        repository_reader=api.repository_reader,
+    )
     assert result["status"] == "rejected", result
     assert (
         "different repository ID"
@@ -1285,7 +1315,15 @@ def test_lri04_alias_observation_keeps_original_binding(
     api = alias_api(history, monkeypatch)
     requested = "R_existing_node" if old_encoding == "numeric" else "999"
     src = history.prepare("repository-observe", replacement(history, requested))
-    result = g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)
+    result = g.process(
+        api,
+        src,
+        history.identities,
+        "b" * 40,
+        {},
+        lambda: history.now,
+        repository_reader=api.repository_reader,
+    )
     assert result["status"] == "recorded", result
     _, genesis, entries, _ = g.Journal(api).read()
     state = c.replay(genesis, entries)
@@ -1306,9 +1344,15 @@ def test_lri04_numeric_reference_to_a_different_repository_is_allowed(
         "registry-add", replacement(history, "1000", "another-domain"), AGENT0
     )
     assert (
-        g.process(api, src, history.identities, "b" * 40, {}, lambda: history.now)[
-            "status"
-        ]
+        g.process(
+            api,
+            src,
+            history.identities,
+            "b" * 40,
+            {},
+            lambda: history.now,
+            repository_reader=api.repository_reader,
+        )["status"]
         == "recorded"
     )
     _, genesis, entries, _ = g.Journal(api).read()

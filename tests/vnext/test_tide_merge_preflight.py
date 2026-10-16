@@ -141,3 +141,60 @@ def test_old_success_cannot_hide_new_attempt(harness):
     api.latest = {"status": "completed", "conclusion": "failure", "run_attempt": 2}
     with pytest.raises(ReplayError, match="obsolete"):
         check()
+
+
+def test_guarded_request_returns_only_the_guarded_identity(harness):
+    _, api, _ = harness
+    assert gate.guarded_request(
+        api, 1065, base="a" * 40, head="b" * 40, floor=1064
+    ) == {
+        "number": 1065,
+        "base": "a" * 40,
+        "head": "b" * 40,
+    }
+
+
+@pytest.mark.parametrize("side", ["base", "head"])
+def test_guarded_request_rejects_movement_after_guard(harness, side):
+    pr, api, _ = harness
+    pr[side]["sha"] = "c" * 40
+    with pytest.raises(ReplayError, match="successful guard outputs"):
+        gate.guarded_request(api, 1065, base="a" * 40, head="b" * 40, floor=1064)
+
+
+def test_guarded_request_rejects_main_movement(harness):
+    _, api, _ = harness
+    api.main = "c" * 40
+    with pytest.raises(ReplayError, match="successful guard outputs"):
+        gate.guarded_request(api, 1065, base="a" * 40, head="b" * 40, floor=1064)
+
+
+def test_guarded_request_skips_old_rollout_without_lookup(harness):
+    _, api, _ = harness
+    assert (
+        gate.guarded_request(api, 1064, base="a" * 40, head="b" * 40, floor=1064)
+        is None
+    )
+    assert api.reads == 0
+
+
+@pytest.mark.parametrize("foreign", [False, True])
+def test_non_tide_guard_cannot_select_another_pending_pr(harness, foreign):
+    pr, api, _ = harness
+    if foreign:
+        pr["head"]["repo"]["full_name"] = "other/repository"
+    else:
+        pr["head"]["ref"] = "feature"
+    assert (
+        gate.guarded_request(api, 1065, base="a" * 40, head="b" * 40, floor=1064)
+        is None
+    )
+    assert api.reads == 1
+
+
+@pytest.mark.parametrize("head", ["", "main", "b" * 39, "x" * 40])
+def test_invalid_guard_output_cannot_read_or_write(harness, head):
+    _, api, _ = harness
+    with pytest.raises(ReplayError, match="invalid guard output"):
+        gate.guarded_request(api, 1065, base="a" * 40, head=head, floor=1064)
+    assert api.reads == 0
